@@ -31,7 +31,7 @@ class NodeService extends ChangeNotifier {
   });
 
   Future<void> updateDefaults() async {
-    for (final defaultNode in Coins.cryptocurrencies.map(
+    for (final defaultNode in Coins.enabled.map(
       (e) => e.defaultNode,
     )) {
       final savedNode = DB.instance
@@ -238,7 +238,7 @@ class NodeService extends ChangeNotifier {
       final map = jsonDecode(result as String);
       Logging.instance.log(map, level: LogLevel.Info);
 
-      for (final coin in Coins.cryptocurrencies) {
+      for (final coin in Coins.enabled) {
         final nodeList = List<Map<String, dynamic>>.from(
           map["nodes"][coin.identifier] as List? ?? [],
         );

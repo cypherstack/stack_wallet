@@ -35,9 +35,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -66,12 +63,10 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   String _searchTerm = "";
 
   final _coinsTestnet = [
-    ...Coins.cryptocurrencies
-        .where((e) => e.network == CryptoCurrencyNetwork.test),
+    ...Coins.enabled.where((e) => e.network == CryptoCurrencyNetwork.test),
   ];
   final _coins = [
-    ...Coins.cryptocurrencies
-        .where((e) => e.network == CryptoCurrencyNetwork.main),
+    ...Coins.enabled.where((e) => e.network == CryptoCurrencyNetwork.main),
   ];
   final List<AddWalletListEntity> coinEntities = [];
   final List<EthTokenEntity> tokenEntities = [];
@@ -152,16 +147,18 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       coinEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
     }
 
-    final contracts =
-        MainDB.instance.getEthContracts().sortByName().findAllSync();
+    if (Coins.enabled.whereType<Ethereum>().isNotEmpty) {
+      final contracts =
+          MainDB.instance.getEthContracts().sortByName().findAllSync();
 
-    if (contracts.isEmpty) {
-      contracts.addAll(DefaultTokens.list);
-      MainDB.instance.putEthContracts(contracts).then(
-          (value) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
+      if (contracts.isEmpty) {
+        contracts.addAll(DefaultTokens.list);
+        MainDB.instance.putEthContracts(contracts).then((value) =>
+            ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
+      }
+
+      tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
     }
-
-    tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(addWalletSelectedEntityStateProvider);
@@ -292,15 +289,16 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 initialState: ExpandableState.expanded,
                                 animationDurationMultiplier: 0.5,
                               ),
-                              ExpandingSubListItem(
-                                title: "Tokens",
-                                entities: filter(_searchTerm, tokenEntities),
-                                initialState: ExpandableState.expanded,
-                                animationDurationMultiplier: 0.5,
-                                trailing: AddCustomTokenSelector(
-                                  addFunction: _addToken,
+                              if (tokenEntities.isNotEmpty)
+                                ExpandingSubListItem(
+                                  title: "Tokens",
+                                  entities: filter(_searchTerm, tokenEntities),
+                                  initialState: ExpandableState.expanded,
+                                  animationDurationMultiplier: 0.5,
+                                  trailing: AddCustomTokenSelector(
+                                    addFunction: _addToken,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),

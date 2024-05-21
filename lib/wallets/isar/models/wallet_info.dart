@@ -407,9 +407,7 @@ class WalletInfo implements IsarId {
     this.cachedBalanceTertiaryString,
     this.otherDataJsonString,
   }) : assert(
-          Coins.cryptocurrencies
-              .map((e) => e.identifier)
-              .contains(coinName),
+          Coins.enabled.map((e) => e.identifier).contains(coinName),
         );
 
   WalletInfo copyWith({

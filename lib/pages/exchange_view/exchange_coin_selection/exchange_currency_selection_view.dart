@@ -44,12 +44,12 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class ExchangeCurrencySelectionView extends StatefulWidget {
   const ExchangeCurrencySelectionView({
-    Key? key,
+    super.key,
     required this.willChangeTicker,
     required this.pairedTicker,
     required this.isFixedRate,
     required this.willChangeIsSend,
-  }) : super(key: key);
+  });
 
   final String? willChangeTicker;
   final String? pairedTicker;
@@ -365,7 +365,7 @@ class _ExchangeCurrencySelectionViewState
           Flexible(
             child: Builder(
               builder: (context) {
-                final coins = Coins.cryptocurrencies.where(
+                final coins = Coins.enabled.where(
                   (e) =>
                       e.ticker.toLowerCase() !=
                       widget.pairedTicker?.toLowerCase(),

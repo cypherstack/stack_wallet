@@ -85,7 +85,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "lastUnlockedTimeout",
-          value: lastUnlockedTimeout);
+          value: lastUnlockedTimeout,);
       _lastUnlockedTimeout = lastUnlockedTimeout;
       notifyListeners();
     }
@@ -93,7 +93,7 @@ class Prefs extends ChangeNotifier {
 
   Future<int> _getLastUnlockedTimeout() async {
     return (DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "lastUnlockedTimeout")) as int? ??
+            boxName: DB.boxNamePrefs, key: "lastUnlockedTimeout",)) as int? ??
         60;
   }
 
@@ -106,7 +106,7 @@ class Prefs extends ChangeNotifier {
   set lastUnlocked(int lastUnlocked) {
     if (_lastUnlocked != lastUnlocked) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "lastUnlocked", value: lastUnlocked);
+          boxName: DB.boxNamePrefs, key: "lastUnlocked", value: lastUnlocked,);
       _lastUnlocked = lastUnlocked;
       notifyListeners();
     }
@@ -114,7 +114,7 @@ class Prefs extends ChangeNotifier {
 
   Future<int> _getLastUnlocked() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "lastUnlocked") as int? ??
+            boxName: DB.boxNamePrefs, key: "lastUnlocked",) as int? ??
         0;
   }
 
@@ -133,13 +133,13 @@ class Prefs extends ChangeNotifier {
     await DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs,
         key: "currentNotificationId",
-        value: _currentNotificationId);
+        value: _currentNotificationId,);
     notifyListeners();
   }
 
   Future<int> _getCurrentNotificationIndex() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "currentNotificationId") as int? ??
+            boxName: DB.boxNamePrefs, key: "currentNotificationId",) as int? ??
         0;
   }
 
@@ -154,7 +154,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "walletIdsSyncOnStartup",
-          value: walletIdsSyncOnStartup);
+          value: walletIdsSyncOnStartup,);
       _walletIdsSyncOnStartup = walletIdsSyncOnStartup;
       notifyListeners();
     }
@@ -162,7 +162,7 @@ class Prefs extends ChangeNotifier {
 
   Future<List<String>> _getWalletIdsSyncOnStartup() async {
     final list = await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "walletIdsSyncOnStartup") as List? ??
+            boxName: DB.boxNamePrefs, key: "walletIdsSyncOnStartup",) as List? ??
         [];
     return List<String>.from(list);
   }
@@ -178,7 +178,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "syncTypeIndex",
-          value: syncType.index);
+          value: syncType.index,);
       _syncType = syncType;
       notifyListeners();
     }
@@ -186,7 +186,7 @@ class Prefs extends ChangeNotifier {
 
   Future<SyncingType> _getSyncType() async {
     final int index = await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "syncTypeIndex") as int? ??
+            boxName: DB.boxNamePrefs, key: "syncTypeIndex",) as int? ??
         SyncingType.allWalletsOnStartup.index;
     return SyncingType.values[index];
   }
@@ -200,7 +200,7 @@ class Prefs extends ChangeNotifier {
   set wifiOnly(bool wifiOnly) {
     if (_wifiOnly != wifiOnly) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "wifiOnly", value: wifiOnly);
+          boxName: DB.boxNamePrefs, key: "wifiOnly", value: wifiOnly,);
       _wifiOnly = wifiOnly;
       notifyListeners();
     }
@@ -223,7 +223,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "showFavoriteWallets",
-          value: showFavoriteWallets);
+          value: showFavoriteWallets,);
       _showFavoriteWallets = showFavoriteWallets;
       notifyListeners();
     }
@@ -231,7 +231,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getShowFavoriteWallets() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "showFavoriteWallets") as bool? ??
+            boxName: DB.boxNamePrefs, key: "showFavoriteWallets",) as bool? ??
         true;
   }
 
@@ -244,7 +244,7 @@ class Prefs extends ChangeNotifier {
   set language(String newLanguage) {
     if (_language != newLanguage) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "language", value: newLanguage);
+          boxName: DB.boxNamePrefs, key: "language", value: newLanguage,);
       _language = newLanguage;
       notifyListeners();
     }
@@ -252,7 +252,7 @@ class Prefs extends ChangeNotifier {
 
   Future<String> _getPreferredLanguage() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "language") as String? ??
+            boxName: DB.boxNamePrefs, key: "language",) as String? ??
         Language.englishUS.description;
   }
 
@@ -265,7 +265,7 @@ class Prefs extends ChangeNotifier {
   set currency(String newCurrency) {
     if (currency != newCurrency) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "currency", value: newCurrency);
+          boxName: DB.boxNamePrefs, key: "currency", value: newCurrency,);
       _currency = newCurrency;
       notifyListeners();
     }
@@ -273,7 +273,7 @@ class Prefs extends ChangeNotifier {
 
   Future<String> _getPreferredCurrency() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "currency") as String? ??
+            boxName: DB.boxNamePrefs, key: "currency",) as String? ??
         "USD";
   }
 
@@ -327,7 +327,7 @@ class Prefs extends ChangeNotifier {
   set randomizePIN(bool randomizePIN) {
     if (_randomizePIN != randomizePIN) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "randomizePIN", value: randomizePIN);
+          boxName: DB.boxNamePrefs, key: "randomizePIN", value: randomizePIN,);
       _randomizePIN = randomizePIN;
       notifyListeners();
     }
@@ -335,7 +335,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getRandomizePIN() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "randomizePIN") as bool? ??
+            boxName: DB.boxNamePrefs, key: "randomizePIN",) as bool? ??
         false;
   }
 
@@ -348,7 +348,7 @@ class Prefs extends ChangeNotifier {
   set useBiometrics(bool useBiometrics) {
     if (_useBiometrics != useBiometrics) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "useBiometrics", value: useBiometrics);
+          boxName: DB.boxNamePrefs, key: "useBiometrics", value: useBiometrics,);
       _useBiometrics = useBiometrics;
       notifyListeners();
     }
@@ -356,7 +356,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getUseBiometrics() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "useBiometrics") as bool? ??
+            boxName: DB.boxNamePrefs, key: "useBiometrics",) as bool? ??
         false;
   }
 
@@ -390,7 +390,7 @@ class Prefs extends ChangeNotifier {
   set familiarity(int familiarity) {
     if (_familiarity != familiarity) {
       DB.instance.put<dynamic>(
-          boxName: DB.boxNamePrefs, key: "familiarity", value: familiarity);
+          boxName: DB.boxNamePrefs, key: "familiarity", value: familiarity,);
       _familiarity = familiarity;
       notifyListeners();
     }
@@ -398,7 +398,7 @@ class Prefs extends ChangeNotifier {
 
   Future<int> _getHasFamiliarity() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "familiarity") as int? ??
+            boxName: DB.boxNamePrefs, key: "familiarity",) as int? ??
         0;
   }
 
@@ -439,7 +439,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "showTestNetCoins",
-          value: showTestNetCoins);
+          value: showTestNetCoins,);
       _showTestNetCoins = showTestNetCoins;
       notifyListeners();
     }
@@ -447,7 +447,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getShowTestNetCoins() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "showTestNetCoins") as bool? ??
+            boxName: DB.boxNamePrefs, key: "showTestNetCoins",) as bool? ??
         false;
   }
 
@@ -463,7 +463,7 @@ class Prefs extends ChangeNotifier {
           .put<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "isAutoBackupEnabled",
-              value: isAutoBackupEnabled)
+              value: isAutoBackupEnabled,)
           .then((_) {
         _isAutoBackupEnabled = isAutoBackupEnabled;
         notifyListeners();
@@ -473,7 +473,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getIsAutoBackupEnabled() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "isAutoBackupEnabled") as bool? ??
+            boxName: DB.boxNamePrefs, key: "isAutoBackupEnabled",) as bool? ??
         false;
   }
 
@@ -488,7 +488,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "autoBackupLocation",
-          value: autoBackupLocation);
+          value: autoBackupLocation,);
       _autoBackupLocation = autoBackupLocation;
       notifyListeners();
     }
@@ -496,7 +496,7 @@ class Prefs extends ChangeNotifier {
 
   Future<String?> _getAutoBackupLocation() async {
     return await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "autoBackupLocation") as String?;
+        boxName: DB.boxNamePrefs, key: "autoBackupLocation",) as String?;
   }
 
   // auto backup frequency type
@@ -513,19 +513,19 @@ class Prefs extends ChangeNotifier {
           DB.instance.put<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "backupFrequencyType",
-              value: "10Min");
+              value: "10Min",);
           break;
         case BackupFrequencyType.everyAppStart:
           DB.instance.put<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "backupFrequencyType",
-              value: "onStart");
+              value: "onStart",);
           break;
         case BackupFrequencyType.afterClosingAWallet:
           DB.instance.put<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "backupFrequencyType",
-              value: "onWalletClose");
+              value: "onWalletClose",);
           break;
       }
       _backupFrequencyType = backupFrequencyType;
@@ -535,7 +535,7 @@ class Prefs extends ChangeNotifier {
 
   Future<BackupFrequencyType> _getBackupFrequencyType() async {
     String? rate = await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "backupFrequencyType") as String?;
+        boxName: DB.boxNamePrefs, key: "backupFrequencyType",) as String?;
     rate ??= "10Min";
     switch (rate) {
       case "10Min":
@@ -560,7 +560,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "lastAutoBackup",
-          value: lastAutoBackup);
+          value: lastAutoBackup,);
       _lastAutoBackup = lastAutoBackup;
       notifyListeners();
     }
@@ -568,7 +568,7 @@ class Prefs extends ChangeNotifier {
 
   Future<DateTime?> _getLastAutoBackup() async {
     return await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "autoBackupFileUri") as DateTime?;
+        boxName: DB.boxNamePrefs, key: "autoBackupFileUri",) as DateTime?;
   }
 
   // auto backup
@@ -583,7 +583,7 @@ class Prefs extends ChangeNotifier {
           .put<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "hideBlockExplorerWarning",
-              value: hideBlockExplorerWarning)
+              value: hideBlockExplorerWarning,)
           .then((_) {
         _hideBlockExplorerWarning = hideBlockExplorerWarning;
         notifyListeners();
@@ -594,7 +594,7 @@ class Prefs extends ChangeNotifier {
   Future<bool> _getHideBlockExplorerWarning() async {
     return await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
-            key: "hideBlockExplorerWarning") as bool? ??
+            key: "hideBlockExplorerWarning",) as bool? ??
         false;
   }
 
@@ -610,7 +610,7 @@ class Prefs extends ChangeNotifier {
           .put<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "gotoWalletOnStartup",
-              value: gotoWalletOnStartup)
+              value: gotoWalletOnStartup,)
           .then((_) {
         _gotoWalletOnStartup = gotoWalletOnStartup;
         notifyListeners();
@@ -620,7 +620,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getGotoWalletOnStartup() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "gotoWalletOnStartup") as bool? ??
+            boxName: DB.boxNamePrefs, key: "gotoWalletOnStartup",) as bool? ??
         false;
   }
 
@@ -635,7 +635,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "startupWalletId",
-          value: startupWalletId);
+          value: startupWalletId,);
       _startupWalletId = startupWalletId;
       notifyListeners();
     }
@@ -643,7 +643,7 @@ class Prefs extends ChangeNotifier {
 
   Future<String?> _getStartupWalletId() async {
     return await DB.instance.get<dynamic>(
-        boxName: DB.boxNamePrefs, key: "startupWalletId") as String?;
+        boxName: DB.boxNamePrefs, key: "startupWalletId",) as String?;
   }
 
   // incognito mode off by default
@@ -658,7 +658,7 @@ class Prefs extends ChangeNotifier {
           .put<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "externalCalls",
-              value: externalCalls)
+              value: externalCalls,)
           .then((_) {
         _externalCalls = externalCalls;
         notifyListeners();
@@ -668,7 +668,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getHasExternalCalls() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "externalCalls") as bool? ??
+            boxName: DB.boxNamePrefs, key: "externalCalls",) as bool? ??
         true;
   }
 
@@ -718,7 +718,7 @@ class Prefs extends ChangeNotifier {
   Future<void> saveSignupEpoch(int signupEpoch) async {
     _signupEpoch = signupEpoch;
     await DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs, key: "signupEpoch", value: _signupEpoch);
+        boxName: DB.boxNamePrefs, key: "signupEpoch", value: _signupEpoch,);
     // notifyListeners();
   }
 
@@ -733,7 +733,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "enableCoinControl",
-          value: enableCoinControl);
+          value: enableCoinControl,);
       _enableCoinControl = enableCoinControl;
       notifyListeners();
     }
@@ -741,7 +741,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getEnableCoinControl() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "enableCoinControl") as bool? ??
+            boxName: DB.boxNamePrefs, key: "enableCoinControl",) as bool? ??
         false;
   }
 
@@ -756,7 +756,7 @@ class Prefs extends ChangeNotifier {
       DB.instance.put<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "enableSystemBrightness",
-          value: enableSystemBrightness);
+          value: enableSystemBrightness,);
       _enableSystemBrightness = enableSystemBrightness;
       notifyListeners();
     }
@@ -764,7 +764,7 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getEnableSystemBrightness() async {
     return await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs, key: "enableSystemBrightness") as bool? ??
+            boxName: DB.boxNamePrefs, key: "enableSystemBrightness",) as bool? ??
         false;
   }
 
@@ -854,7 +854,7 @@ class Prefs extends ChangeNotifier {
       _amountUnits[coin] ?? AmountUnit.normal;
 
   void updateAmountUnit(
-      {required CryptoCurrency coin, required AmountUnit amountUnit}) {
+      {required CryptoCurrency coin, required AmountUnit amountUnit,}) {
     if (this.amountUnit(coin) != amountUnit) {
       DB.instance.put<dynamic>(
         boxName: DB.boxNamePrefs,
@@ -867,7 +867,7 @@ class Prefs extends ChangeNotifier {
   }
 
   Future<void> _setAmountUnits() async {
-    for (final coin in Coins.cryptocurrencies) {
+    for (final coin in Coins.enabled) {
       final unitIndex = await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
             key: "amountUnitFor${coin.identifier}",
@@ -900,7 +900,7 @@ class Prefs extends ChangeNotifier {
   }
 
   Future<void> _setMaxDecimals() async {
-    for (final coin in Coins.cryptocurrencies) {
+    for (final coin in Coins.enabled) {
       final decimals = await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
             key: "maxDecimalsFor${coin.identifier}",

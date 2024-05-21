@@ -6,8 +6,6 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
@@ -114,7 +112,7 @@ void main() {
       await service.updateDefaults();
       expect(
         service.nodes.length,
-        Coins.cryptocurrencies.map((e) => e.defaultNode).length,
+        Coins.enabled.map((e) => e.defaultNode).length,
       );
       expect(fakeStore.interactions, 0);
     });
@@ -207,11 +205,10 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.nodes;
-      final defaults =
-          Coins.cryptocurrencies.map((e) => e.defaultNode).toList();
+      final defaults = Coins.enabled.map((e) => e.defaultNode).toList();
 
-      nodes.sort((a, b) => a.host.compareTo(b.host));
-      defaults.sort((a, b) => a.host.compareTo(b.host));
+      nodes.sort((a, b) => a.id.compareTo(b.id));
+      defaults.sort((a, b) => a.id.compareTo(b.id));
 
       expect(nodes.length, defaults.length);
       expect(nodes.toString(), defaults.toString());
@@ -224,7 +221,7 @@ void main() {
       await service.add(nodeA, null, true);
       expect(
         service.nodes.length,
-        Coins.cryptocurrencies.map((e) => e.defaultNode).length + 1,
+        Coins.enabled.map((e) => e.defaultNode).length + 1,
       );
       expect(fakeStore.interactions, 0);
     });
@@ -235,7 +232,7 @@ void main() {
       await service.add(nodeA, "some password", true);
       expect(
         service.nodes.length,
-        Coins.cryptocurrencies.map((e) => e.defaultNode).length + 1,
+        Coins.enabled.map((e) => e.defaultNode).length + 1,
       );
       expect(fakeStore.interactions, 1);
       expect(fakeStore.writes, 1);
@@ -293,7 +290,7 @@ void main() {
 
         expect(
           service.nodes.length,
-          Coins.cryptocurrencies.map((e) => e.defaultNode).length + 2,
+          Coins.enabled.map((e) => e.defaultNode).length + 2,
         );
         expect(
           service.nodes.where((element) => element.id == nodeB.id).length,

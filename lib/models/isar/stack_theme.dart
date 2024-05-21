@@ -1548,7 +1548,8 @@ class StackTheme {
           json["colors"]["box_shadows"]["home_view_button_bar"] == null
               ? null
               : jsonEncode(
-                  json["colors"]["box_shadows"]["home_view_button_bar"] as Map)
+                  json["colors"]["box_shadows"]["home_view_button_bar"] as Map,
+                )
       ..coinColorsJsonString = jsonEncode(json["colors"]['coin'] as Map)
       ..overlayInt = parseColor(json["colors"]["overlay"] as String)
       ..accentColorBlueInt =
@@ -1587,7 +1588,8 @@ class StackTheme {
       ..buttonBackBorderSecondaryInt =
           parseColor(json["colors"]["button_back_border_secondary"] as String)
       ..buttonBackBorderSecondaryDisabledInt = parseColor(
-          json["colors"]["button_back_border_secondary_disabled"] as String)
+        json["colors"]["button_back_border_secondary_disabled"] as String,
+      )
       ..numberBackDefaultInt =
           parseColor(json["colors"]["number_back_default"] as String)
       ..numpadBackDefaultInt =
@@ -1621,7 +1623,8 @@ class StackTheme {
       ..buttonTextBorderlessInt =
           parseColor(json["colors"]["button_text_borderless"] as String)
       ..buttonTextBorderlessDisabledInt = parseColor(
-          json["colors"]["button_text_borderless_disabled"] as String)
+        json["colors"]["button_text_borderless_disabled"] as String,
+      )
       ..numberTextDefaultInt =
           parseColor(json["colors"]["number_text_default"] as String)
       ..numpadTextDefaultInt =
@@ -1629,9 +1632,11 @@ class StackTheme {
       ..bottomNavTextInt =
           parseColor(json["colors"]["bottom_nav_text"] as String)
       ..customTextButtonEnabledTextInt = parseColor(
-          json["colors"]["custom_text_button_enabled_text"] as String)
+        json["colors"]["custom_text_button_enabled_text"] as String,
+      )
       ..customTextButtonDisabledTextInt = parseColor(
-          json["colors"]["custom_text_button_disabled_text"] as String)
+        json["colors"]["custom_text_button_disabled_text"] as String,
+      )
       ..switchBGOnInt = parseColor(json["colors"]["switch_bg_on"] as String)
       ..switchBGOffInt = parseColor(json["colors"]["switch_bg_off"] as String)
       ..switchBGDisabledInt =
@@ -1651,7 +1656,8 @@ class StackTheme {
       ..stepIndicatorBGLinesInt =
           parseColor(json["colors"]["step_indicator_bg_lines"] as String)
       ..stepIndicatorBGLinesInactiveInt = parseColor(
-          json["colors"]["step_indicator_bg_lines_inactive"] as String)
+        json["colors"]["step_indicator_bg_lines_inactive"] as String,
+      )
       ..stepIndicatorIconTextInt =
           parseColor(json["colors"]["step_indicator_icon_text"] as String)
       ..stepIndicatorIconNumberInt =
@@ -1687,7 +1693,8 @@ class StackTheme {
       ..bottomNavIconIconInt =
           parseColor(json["colors"]["bottom_nav_icon_icon"] as String)
       ..bottomNavIconIconHighlightedInt = parseColor(
-          json["colors"]["bottom_nav_icon_icon_highlighted"] as String)
+        json["colors"]["bottom_nav_icon_icon_highlighted"] as String,
+      )
       ..topNavIconPrimaryInt =
           parseColor(json["colors"]["top_nav_icon_primary"] as String)
       ..topNavIconGreenInt =
@@ -1717,13 +1724,17 @@ class StackTheme {
       ..textFieldSuccessBorderInt =
           parseColor(json["colors"]["text_field_success_border"] as String)
       ..textFieldActiveSearchIconLeftInt = parseColor(
-          json["colors"]["text_field_active_search_icon_left"] as String)
+        json["colors"]["text_field_active_search_icon_left"] as String,
+      )
       ..textFieldDefaultSearchIconLeftInt = parseColor(
-          json["colors"]["text_field_default_search_icon_left"] as String)
+        json["colors"]["text_field_default_search_icon_left"] as String,
+      )
       ..textFieldErrorSearchIconLeftInt = parseColor(
-          json["colors"]["text_field_error_search_icon_left"] as String)
+        json["colors"]["text_field_error_search_icon_left"] as String,
+      )
       ..textFieldSuccessSearchIconLeftInt = parseColor(
-          json["colors"]["text_field_success_search_icon_left"] as String)
+        json["colors"]["text_field_success_search_icon_left"] as String,
+      )
       ..textFieldActiveTextInt =
           parseColor(json["colors"]["text_field_active_text"] as String)
       ..textFieldDefaultTextInt =
@@ -1739,23 +1750,31 @@ class StackTheme {
       ..textFieldSuccessLabelInt =
           parseColor(json["colors"]["text_field_success_label"] as String)
       ..textFieldActiveSearchIconRightInt = parseColor(
-          json["colors"]["text_field_active_search_icon_right"] as String)
+        json["colors"]["text_field_active_search_icon_right"] as String,
+      )
       ..textFieldDefaultSearchIconRightInt = parseColor(
-          json["colors"]["text_field_default_search_icon_right"] as String)
+        json["colors"]["text_field_default_search_icon_right"] as String,
+      )
       ..textFieldErrorSearchIconRightInt = parseColor(
-          json["colors"]["text_field_error_search_icon_right"] as String)
+        json["colors"]["text_field_error_search_icon_right"] as String,
+      )
       ..textFieldSuccessSearchIconRightInt = parseColor(
-          json["colors"]["text_field_success_search_icon_right"] as String)
+        json["colors"]["text_field_success_search_icon_right"] as String,
+      )
       ..settingsItem2ActiveBGInt = parseColor(
-          json["colors"]["settings_item_level_two_active_bg"] as String)
+        json["colors"]["settings_item_level_two_active_bg"] as String,
+      )
       ..settingsItem2ActiveTextInt = parseColor(
-          json["colors"]["settings_item_level_two_active_text"] as String)
+        json["colors"]["settings_item_level_two_active_text"] as String,
+      )
       ..settingsItem2ActiveSubInt = parseColor(
-          json["colors"]["settings_item_level_two_active_sub"] as String)
+        json["colors"]["settings_item_level_two_active_sub"] as String,
+      )
       ..radioButtonIconBorderInt =
           parseColor(json["colors"]["radio_button_icon_border"] as String)
       ..radioButtonIconBorderDisabledInt = parseColor(
-          json["colors"]["radio_button_icon_border_disabled"] as String)
+        json["colors"]["radio_button_icon_border_disabled"] as String,
+      )
       ..radioButtonBorderEnabledInt =
           parseColor(json["colors"]["radio_button_border_enabled"] as String)
       ..radioButtonBorderDisabledInt =
@@ -1809,9 +1828,11 @@ class StackTheme {
       ..rateTypeToggleColorOffInt =
           parseColor(json["colors"]["rate_type_toggle_color_off"] as String)
       ..rateTypeToggleDesktopColorOnInt = parseColor(
-          json["colors"]["rate_type_toggle_desktop_color_on"] as String)
+        json["colors"]["rate_type_toggle_desktop_color_on"] as String,
+      )
       ..rateTypeToggleDesktopColorOffInt = parseColor(
-          json["colors"]["rate_type_toggle_desktop_color_off"] as String)
+        json["colors"]["rate_type_toggle_desktop_color_off"] as String,
+      )
       ..ethTagTextInt = parseColor(json["colors"]["eth_tag_text"] as String)
       ..ethTagBGInt = parseColor(json["colors"]["eth_tag_bg"] as String)
       ..ethWalletTagTextInt =
@@ -1857,8 +1878,7 @@ class StackTheme {
 
     final Map<String, Color> result = {};
 
-    for (final mainNetId
-        in Coins.cryptocurrencies.map((e) => e.mainNetId)) {
+    for (final mainNetId in Coins.enabled.map((e) => e.mainNetId)) {
       if (map[mainNetId] is String) {
         result[mainNetId] = Color(
           (map[mainNetId] as String).toBigIntFromHex.toInt(),
@@ -2176,7 +2196,7 @@ class ThemeAssetsV2 implements IThemeAssets {
 
     final Map<String, String> result = {};
 
-    for (final coin in Coins.cryptocurrencies) {
+    for (final coin in Coins.enabled) {
       result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
     }
 
@@ -2511,7 +2531,7 @@ class ThemeAssetsV3 implements IThemeAssets {
 
     final Map<String, String> result = {};
 
-    for (final coin in Coins.cryptocurrencies) {
+    for (final coin in Coins.enabled) {
       result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
       result[coin.mainNetId] = prependIfNeeded(result[coin.mainNetId]!);
     }

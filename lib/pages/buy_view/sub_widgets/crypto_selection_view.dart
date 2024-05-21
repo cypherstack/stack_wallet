@@ -32,9 +32,9 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class CryptoSelectionView extends ConsumerStatefulWidget {
   const CryptoSelectionView({
-    Key? key,
+    super.key,
     required this.coins,
-  }) : super(key: key);
+  });
 
   final List<Crypto> coins;
 
@@ -70,7 +70,7 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
     coins.sort(
       (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()),
     );
-    for (final coin in Coins.cryptocurrencies.reversed) {
+    for (final coin in Coins.enabled.reversed) {
       final index = coins.indexWhere(
         (element) => element.ticker.toLowerCase() == coin.ticker.toLowerCase(),
       );

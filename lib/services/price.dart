@@ -48,7 +48,7 @@ class PriceAPI {
   ) async {
     final Map<String, dynamic> map = {};
 
-    for (final coin in Coins.cryptocurrencies) {
+    for (final coin in Coins.enabled) {
       final entry = data[coin];
       if (entry == null) {
         map[coin.prettyName] = ["0", 0.0];
@@ -68,8 +68,7 @@ class PriceAPI {
             {};
     // init with 0
     final result = {
-      for (final coin in Coins.cryptocurrencies)
-        coin: Tuple2(Decimal.zero, 0.0),
+      for (final coin in Coins.enabled) coin: Tuple2(Decimal.zero, 0.0),
     };
 
     for (final entry in map.entries) {

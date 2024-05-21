@@ -207,11 +207,11 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                   text: "Choose from Stack",
                                   onTap: () {
                                     try {
-                                      final coin = Coins.cryptocurrencies
-                                          .firstWhere((e) =>
-                                              e.ticker.toLowerCase() ==
-                                              model.receiveTicker
-                                                  .toLowerCase());
+                                      final coin = Coins.enabled.firstWhere(
+                                        (e) =>
+                                            e.ticker.toLowerCase() ==
+                                            model.receiveTicker.toLowerCase(),
+                                      );
 
                                       Navigator.of(context)
                                           .pushNamed(
@@ -258,7 +258,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                             child: TextField(
                               onTap: () {},
                               key: const Key(
-                                  "recipientExchangeStep2ViewAddressFieldKey"),
+                                "recipientExchangeStep2ViewAddressFieldKey",
+                              ),
                               controller: _toController,
                               readOnly: false,
                               autocorrect: false,
@@ -305,7 +306,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                         _toController.text.isNotEmpty
                                             ? TextFieldIconButton(
                                                 key: const Key(
-                                                    "sendViewClearAddressFieldButtonKey"),
+                                                  "sendViewClearAddressFieldButtonKey",
+                                                ),
                                                 onTap: () {
                                                   _toController.text = "";
                                                   model.recipientAddress =
@@ -323,11 +325,13 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                               )
                                             : TextFieldIconButton(
                                                 key: const Key(
-                                                    "sendViewPasteAddressFieldButtonKey"),
+                                                  "sendViewPasteAddressFieldButtonKey",
+                                                ),
                                                 onTap: () async {
                                                   final ClipboardData? data =
                                                       await clipboard.getData(
-                                                          Clipboard.kTextPlain);
+                                                    Clipboard.kTextPlain,
+                                                  );
                                                   if (data?.text != null &&
                                                       data!.text!.isNotEmpty) {
                                                     final content =
@@ -357,12 +361,14 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                         if (_toController.text.isEmpty)
                                           TextFieldIconButton(
                                             key: const Key(
-                                                "sendViewAddressBookButtonKey"),
+                                              "sendViewAddressBookButtonKey",
+                                            ),
                                             onTap: () {
                                               ref
                                                   .read(
-                                                      exchangeFlowIsActiveStateProvider
-                                                          .state)
+                                                    exchangeFlowIsActiveStateProvider
+                                                        .state,
+                                                  )
                                                   .state = true;
                                               Navigator.of(context)
                                                   .pushNamed(
@@ -371,14 +377,16 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                   .then((_) {
                                                 ref
                                                     .read(
-                                                        exchangeFlowIsActiveStateProvider
-                                                            .state)
+                                                      exchangeFlowIsActiveStateProvider
+                                                          .state,
+                                                    )
                                                     .state = false;
 
                                                 final address = ref
                                                     .read(
-                                                        exchangeFromAddressBookAddressStateProvider
-                                                            .state)
+                                                      exchangeFromAddressBookAddressStateProvider
+                                                          .state,
+                                                    )
                                                     .state;
                                                 if (address.isNotEmpty) {
                                                   _toController.text = address;
@@ -386,8 +394,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                       _toController.text;
                                                   ref
                                                       .read(
-                                                          exchangeFromAddressBookAddressStateProvider
-                                                              .state)
+                                                        exchangeFromAddressBookAddressStateProvider
+                                                            .state,
+                                                      )
                                                       .state = "";
                                                 }
                                                 setState(() {
@@ -404,7 +413,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                         if (_toController.text.isEmpty)
                                           TextFieldIconButton(
                                             key: const Key(
-                                                "sendViewScanQrButtonKey"),
+                                              "sendViewScanQrButtonKey",
+                                            ),
                                             onTap: () async {
                                               try {
                                                 final qrResult =
@@ -412,7 +422,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
                                                 final results =
                                                     AddressUtils.parseUri(
-                                                        qrResult.rawContent);
+                                                  qrResult.rawContent,
+                                                );
                                                 if (results.isNotEmpty) {
                                                   // auto fill address
                                                   _toController.text =
@@ -482,10 +493,11 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                     text: "Choose from Stack",
                                     onTap: () {
                                       try {
-                                        final coin = Coins.cryptocurrencies
-                                            .firstWhere((e) =>
-                                                e.ticker.toLowerCase() ==
-                                                model.sendTicker.toLowerCase());
+                                        final coin = Coins.enabled.firstWhere(
+                                          (e) =>
+                                              e.ticker.toLowerCase() ==
+                                              model.sendTicker.toLowerCase(),
+                                        );
 
                                         Navigator.of(context)
                                             .pushNamed(
@@ -512,8 +524,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                           });
                                         });
                                       } catch (e, s) {
-                                        Logging.instance.log("$e\n$s",
-                                            level: LogLevel.Info);
+                                        Logging.instance.log(
+                                          "$e\n$s",
+                                          level: LogLevel.Info,
+                                        );
                                       }
                                     },
                                   ),
@@ -530,7 +544,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               ),
                               child: TextField(
                                 key: const Key(
-                                    "refundExchangeStep2ViewAddressFieldKey"),
+                                  "refundExchangeStep2ViewAddressFieldKey",
+                                ),
                                 controller: _refundController,
                                 readOnly: false,
                                 autocorrect: false,
@@ -577,7 +592,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                           _refundController.text.isNotEmpty
                                               ? TextFieldIconButton(
                                                   key: const Key(
-                                                      "sendViewClearAddressFieldButtonKey"),
+                                                    "sendViewClearAddressFieldButtonKey",
+                                                  ),
                                                   onTap: () {
                                                     _refundController.text = "";
                                                     model.refundAddress =
@@ -595,12 +611,13 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                 )
                                               : TextFieldIconButton(
                                                   key: const Key(
-                                                      "sendViewPasteAddressFieldButtonKey"),
+                                                    "sendViewPasteAddressFieldButtonKey",
+                                                  ),
                                                   onTap: () async {
                                                     final ClipboardData? data =
                                                         await clipboard.getData(
-                                                            Clipboard
-                                                                .kTextPlain);
+                                                      Clipboard.kTextPlain,
+                                                    );
                                                     if (data?.text != null &&
                                                         data!
                                                             .text!.isNotEmpty) {
@@ -631,12 +648,14 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                           if (_refundController.text.isEmpty)
                                             TextFieldIconButton(
                                               key: const Key(
-                                                  "sendViewAddressBookButtonKey"),
+                                                "sendViewAddressBookButtonKey",
+                                              ),
                                               onTap: () {
                                                 ref
                                                     .read(
-                                                        exchangeFlowIsActiveStateProvider
-                                                            .state)
+                                                      exchangeFlowIsActiveStateProvider
+                                                          .state,
+                                                    )
                                                     .state = true;
                                                 Navigator.of(context)
                                                     .pushNamed(
@@ -645,13 +664,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                     .then((_) {
                                                   ref
                                                       .read(
-                                                          exchangeFlowIsActiveStateProvider
-                                                              .state)
+                                                        exchangeFlowIsActiveStateProvider
+                                                            .state,
+                                                      )
                                                       .state = false;
                                                   final address = ref
                                                       .read(
-                                                          exchangeFromAddressBookAddressStateProvider
-                                                              .state)
+                                                        exchangeFromAddressBookAddressStateProvider
+                                                            .state,
+                                                      )
                                                       .state;
                                                   if (address.isNotEmpty) {
                                                     _refundController.text =
@@ -672,7 +693,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                           if (_refundController.text.isEmpty)
                                             TextFieldIconButton(
                                               key: const Key(
-                                                  "sendViewScanQrButtonKey"),
+                                                "sendViewScanQrButtonKey",
+                                              ),
                                               onTap: () async {
                                                 try {
                                                   final qrResult =
@@ -680,7 +702,8 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
                                                   final results =
                                                       AddressUtils.parseUri(
-                                                          qrResult.rawContent);
+                                                    qrResult.rawContent,
+                                                  );
                                                   if (results.isNotEmpty) {
                                                     // auto fill address
                                                     _refundController.text =

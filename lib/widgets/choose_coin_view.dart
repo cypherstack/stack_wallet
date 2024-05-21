@@ -19,7 +19,6 @@ import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -52,7 +51,7 @@ class ChooseCoinView extends ConsumerStatefulWidget {
 }
 
 class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
-  List<CryptoCurrency> _coins = [...Coins.cryptocurrencies];
+  List<CryptoCurrency> _coins = [...Coins.enabled];
 
   @override
   void initState() {
