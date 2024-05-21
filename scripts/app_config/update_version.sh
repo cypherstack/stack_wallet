@@ -6,6 +6,11 @@ usage() {
     exit 1
 }
 
+# Check if no arguments are provided.
+if [ $# -eq 0 ]; then
+    usage
+fi
+
 # Parse command-line arguments.
 while getopts "v:b:" opt; do
     case "$opt" in
