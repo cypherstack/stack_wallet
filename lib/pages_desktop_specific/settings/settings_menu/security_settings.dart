@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/notifications/show_flush_bar.dart';
 import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -26,7 +27,7 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 class SecuritySettings extends ConsumerStatefulWidget {
-  const SecuritySettings({Key? key}) : super(key: key);
+  const SecuritySettings({super.key});
 
   static const String routeName = "/settingsMenuSecurity";
 
@@ -186,7 +187,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                         height: 16,
                       ),
                       Text(
-                        "Protect your Stack Wallet with a strong password. Stack Wallet does not store "
+                        "Protect your ${AppConfig.appName} with a strong password. ${AppConfig.appName} does not store "
                         "your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),

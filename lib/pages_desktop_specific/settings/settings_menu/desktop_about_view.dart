@@ -43,7 +43,8 @@ Future<bool> doesCommitExist(
   final Client client = Client();
   try {
     final uri = Uri.parse(
-        "$kGithubAPI$kGithubHead/$organization/$project/commits/$commit");
+      "$kGithubAPI$kGithubHead/$organization/$project/commits/$commit",
+    );
 
     final commitQuery = await client.get(
       uri,
@@ -51,8 +52,10 @@ Future<bool> doesCommitExist(
     );
 
     final response = jsonDecode(commitQuery.body.toString());
-    Logging.instance.log("doesCommitExist $project $commit $response",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "doesCommitExist $project $commit $response",
+      level: LogLevel.Info,
+    );
     bool isThereCommit;
     try {
       isThereCommit = response['sha'] == commit;
@@ -78,7 +81,8 @@ Future<bool> isHeadCommit(
   final Client client = Client();
   try {
     final uri = Uri.parse(
-        "$kGithubAPI$kGithubHead/$organization/$project/commits/$branch");
+      "$kGithubAPI$kGithubHead/$organization/$project/commits/$branch",
+    );
 
     final commitQuery = await client.get(
       uri,
@@ -86,8 +90,10 @@ Future<bool> isHeadCommit(
     );
 
     final response = jsonDecode(commitQuery.body.toString());
-    Logging.instance.log("isHeadCommit $project $commit $branch $response",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "isHeadCommit $project $commit $branch $response",
+      level: LogLevel.Info,
+    );
     bool isHead;
     try {
       isHead = response['sha'] == commit;
@@ -103,31 +109,35 @@ Future<bool> isHeadCommit(
 }
 
 class DesktopAboutView extends ConsumerWidget {
-  const DesktopAboutView({Key? key}) : super(key: key);
+  const DesktopAboutView({super.key});
 
   static const String routeName = "/desktopAboutView";
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    String firoCommit = FIRO_VERSIONS.getPluginVersion();
-    String epicCashCommit = EPIC_VERSIONS.getPluginVersion();
-    String moneroCommit = MONERO_VERSIONS.getPluginVersion();
-    List<Future> futureFiroList = [
+    final String firoCommit = FIRO_VERSIONS.getPluginVersion();
+    final String epicCashCommit = EPIC_VERSIONS.getPluginVersion();
+    final String moneroCommit = MONERO_VERSIONS.getPluginVersion();
+    final List<Future<bool>> futureFiroList = [
       doesCommitExist("cypherstack", "flutter_liblelantus", firoCommit),
       isHeadCommit("cypherstack", "flutter_liblelantus", "main", firoCommit),
     ];
-    Future commitFiroFuture = Future.wait(futureFiroList);
-    List<Future> futureEpicList = [
+    final Future<void> commitFiroFuture = Future.wait(futureFiroList);
+    final List<Future<bool>> futureEpicList = [
       doesCommitExist("cypherstack", "flutter_libepiccash", epicCashCommit),
       isHeadCommit(
-          "cypherstack", "flutter_libepiccash", "main", epicCashCommit),
+        "cypherstack",
+        "flutter_libepiccash",
+        "main",
+        epicCashCommit,
+      ),
     ];
-    Future commitEpicFuture = Future.wait(futureEpicList);
-    List<Future> futureMoneroList = [
+    final Future<void> commitEpicFuture = Future.wait(futureEpicList);
+    final List<Future<bool>> futureMoneroList = [
       doesCommitExist("cypherstack", "flutter_libmonero", moneroCommit),
       isHeadCommit("cypherstack", "flutter_libmonero", "main", moneroCommit),
     ];
-    Future commitMoneroFuture = Future.wait(futureMoneroList);
+    final Future<void> commitMoneroFuture = Future.wait(futureMoneroList);
 
     debugPrint("BUILD: $runtimeType");
     return DesktopScaffold(
@@ -143,7 +153,7 @@ class DesktopAboutView extends ConsumerWidget {
             Text(
               "About",
               style: STextStyles.desktopH3(context),
-            )
+            ),
           ],
         ),
       ),
@@ -182,14 +192,15 @@ class DesktopAboutView extends ConsumerWidget {
                                   children: [
                                     TextSpan(
                                       text:
-                                          "By using Stack Wallet, you agree to the ",
+                                          "By using ${AppConfig.appName}, you agree to the ",
                                       style: STextStyles
-                                              .desktopTextExtraExtraSmall(
-                                                  context)
-                                          .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark3),
+                                          .desktopTextExtraExtraSmall(
+                                        context,
+                                      ).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
+                                      ),
                                     ),
                                     TextSpan(
                                       text: "Terms of service",
@@ -199,7 +210,8 @@ class DesktopAboutView extends ConsumerWidget {
                                         ..onTap = () {
                                           launchUrl(
                                             Uri.parse(
-                                                "https://stackwallet.com/terms-of-service.html"),
+                                              "https://stackwallet.com/terms-of-service.html",
+                                            ),
                                             mode:
                                                 LaunchMode.externalApplication,
                                           );
@@ -208,12 +220,13 @@ class DesktopAboutView extends ConsumerWidget {
                                     TextSpan(
                                       text: " and ",
                                       style: STextStyles
-                                              .desktopTextExtraExtraSmall(
-                                                  context)
-                                          .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark3),
+                                          .desktopTextExtraExtraSmall(
+                                        context,
+                                      ).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
+                                      ),
                                     ),
                                     TextSpan(
                                       text: "Privacy policy",
@@ -223,7 +236,8 @@ class DesktopAboutView extends ConsumerWidget {
                                         ..onTap = () {
                                           launchUrl(
                                             Uri.parse(
-                                                "https://stackwallet.com/privacy-policy.html"),
+                                              "https://stackwallet.com/privacy-policy.html",
+                                            ),
                                             mode:
                                                 LaunchMode.externalApplication,
                                           );
@@ -242,8 +256,10 @@ class DesktopAboutView extends ConsumerWidget {
                               children: [
                                 FutureBuilder(
                                   future: PackageInfo.fromPlatform(),
-                                  builder: (context,
-                                      AsyncSnapshot<PackageInfo> snapshot) {
+                                  builder: (
+                                    context,
+                                    AsyncSnapshot<PackageInfo> snapshot,
+                                  ) {
                                     String version = "";
                                     String signature = "";
                                     String build = "";
@@ -269,14 +285,16 @@ class DesktopAboutView extends ConsumerWidget {
                                                 Text(
                                                   "Version",
                                                   style: STextStyles
-                                                          .desktopTextExtraExtraSmall(
-                                                              context)
-                                                      .copyWith(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark),
+                                                      .desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(
+                                                      context,
+                                                    )
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textDark,
+                                                  ),
                                                 ),
                                                 const SizedBox(
                                                   height: 2,
@@ -285,7 +303,8 @@ class DesktopAboutView extends ConsumerWidget {
                                                   version,
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                          context),
+                                                    context,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -299,14 +318,16 @@ class DesktopAboutView extends ConsumerWidget {
                                                 Text(
                                                   "Build number",
                                                   style: STextStyles
-                                                          .desktopTextExtraExtraSmall(
-                                                              context)
-                                                      .copyWith(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark),
+                                                      .desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(
+                                                      context,
+                                                    )
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textDark,
+                                                  ),
                                                 ),
                                                 const SizedBox(
                                                   height: 2,
@@ -315,7 +336,8 @@ class DesktopAboutView extends ConsumerWidget {
                                                   build,
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                          context),
+                                                    context,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -331,14 +353,16 @@ class DesktopAboutView extends ConsumerWidget {
                                                 Text(
                                                   "Build signature",
                                                   style: STextStyles
-                                                          .desktopTextExtraExtraSmall(
-                                                              context)
-                                                      .copyWith(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark),
+                                                      .desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(
+                                                      context,
+                                                    )
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textDark,
+                                                  ),
                                                 ),
                                                 const SizedBox(
                                                   height: 2,
@@ -347,7 +371,8 @@ class DesktopAboutView extends ConsumerWidget {
                                                   signature,
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                          context),
+                                                    context,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -355,316 +380,337 @@ class DesktopAboutView extends ConsumerWidget {
                                               width: 350,
                                             ),
                                             FutureBuilder(
-                                                future: commitFiroFuture,
-                                                builder: (context,
-                                                    AsyncSnapshot<dynamic>
-                                                        snapshot) {
-                                                  bool commitExists = false;
-                                                  bool isHead = false;
-                                                  CommitStatus stateOfCommit =
-                                                      CommitStatus.notLoaded;
+                                              future: commitFiroFuture,
+                                              builder: (
+                                                context,
+                                                AsyncSnapshot<dynamic> snapshot,
+                                              ) {
+                                                bool commitExists = false;
+                                                bool isHead = false;
+                                                CommitStatus stateOfCommit =
+                                                    CommitStatus.notLoaded;
 
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    commitExists = snapshot
-                                                        .data![0] as bool;
-                                                    isHead = snapshot.data![1]
-                                                        as bool;
-                                                    if (commitExists &&
-                                                        isHead) {
-                                                      stateOfCommit =
-                                                          CommitStatus.isHead;
-                                                    } else if (commitExists) {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .isOldCommit;
-                                                    } else {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .notACommit;
-                                                    }
+                                                if (snapshot.connectionState ==
+                                                        ConnectionState.done &&
+                                                    snapshot.hasData) {
+                                                  commitExists =
+                                                      snapshot.data![0] as bool;
+                                                  isHead =
+                                                      snapshot.data![1] as bool;
+                                                  if (commitExists && isHead) {
+                                                    stateOfCommit =
+                                                        CommitStatus.isHead;
+                                                  } else if (commitExists) {
+                                                    stateOfCommit = CommitStatus
+                                                        .isOldCommit;
+                                                  } else {
+                                                    stateOfCommit =
+                                                        CommitStatus.notACommit;
                                                   }
-                                                  TextStyle indicationStyle =
-                                                      STextStyles.itemSubtitle(
-                                                          context);
-                                                  switch (stateOfCommit) {
-                                                    case CommitStatus.isHead:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorGreen);
-                                                      break;
-                                                    case CommitStatus
-                                                          .isOldCommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorYellow);
-                                                      break;
-                                                    case CommitStatus
-                                                          .notACommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorRed);
-                                                      break;
-                                                    default:
-                                                      break;
-                                                  }
-                                                  return Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        "Firo Build Commit",
-                                                        style: STextStyles
-                                                                .desktopTextExtraExtraSmall(
-                                                                    context)
-                                                            .copyWith(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .extension<
-                                                                        StackColors>()!
-                                                                    .textDark),
+                                                }
+                                                TextStyle indicationStyle =
+                                                    STextStyles.itemSubtitle(
+                                                  context,
+                                                );
+                                                switch (stateOfCommit) {
+                                                  case CommitStatus.isHead:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorGreen,
+                                                    );
+                                                    break;
+                                                  case CommitStatus.isOldCommit:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorYellow,
+                                                    );
+                                                    break;
+                                                  case CommitStatus.notACommit:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorRed,
+                                                    );
+                                                    break;
+                                                  default:
+                                                    break;
+                                                }
+                                                return Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "Firo Build Commit",
+                                                      style: STextStyles
+                                                          .desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: Theme.of(
+                                                          context,
+                                                        )
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textDark,
                                                       ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      SelectableText(
-                                                        firoCommit,
-                                                        style: indicationStyle,
-                                                      ),
-                                                    ],
-                                                  );
-                                                }),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 2,
+                                                    ),
+                                                    SelectableText(
+                                                      firoCommit,
+                                                      style: indicationStyle,
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            ),
                                           ],
                                         ),
                                         const SizedBox(height: 35),
                                         Row(
                                           children: [
                                             FutureBuilder(
-                                                future: commitEpicFuture,
-                                                builder: (context,
-                                                    AsyncSnapshot<dynamic>
-                                                        snapshot) {
-                                                  bool commitExists = false;
-                                                  bool isHead = false;
-                                                  CommitStatus stateOfCommit =
-                                                      CommitStatus.notLoaded;
+                                              future: commitEpicFuture,
+                                              builder: (
+                                                context,
+                                                AsyncSnapshot<dynamic> snapshot,
+                                              ) {
+                                                bool commitExists = false;
+                                                bool isHead = false;
+                                                CommitStatus stateOfCommit =
+                                                    CommitStatus.notLoaded;
 
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    commitExists = snapshot
-                                                        .data![0] as bool;
-                                                    isHead = snapshot.data![1]
-                                                        as bool;
-                                                    if (commitExists &&
-                                                        isHead) {
-                                                      stateOfCommit =
-                                                          CommitStatus.isHead;
-                                                    } else if (commitExists) {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .isOldCommit;
-                                                    } else {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .notACommit;
-                                                    }
+                                                if (snapshot.connectionState ==
+                                                        ConnectionState.done &&
+                                                    snapshot.hasData) {
+                                                  commitExists =
+                                                      snapshot.data![0] as bool;
+                                                  isHead =
+                                                      snapshot.data![1] as bool;
+                                                  if (commitExists && isHead) {
+                                                    stateOfCommit =
+                                                        CommitStatus.isHead;
+                                                  } else if (commitExists) {
+                                                    stateOfCommit = CommitStatus
+                                                        .isOldCommit;
+                                                  } else {
+                                                    stateOfCommit =
+                                                        CommitStatus.notACommit;
                                                   }
-                                                  TextStyle indicationStyle =
-                                                      STextStyles.itemSubtitle(
-                                                          context);
-                                                  switch (stateOfCommit) {
-                                                    case CommitStatus.isHead:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorGreen);
-                                                      break;
-                                                    case CommitStatus
-                                                          .isOldCommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorYellow);
-                                                      break;
-                                                    case CommitStatus
-                                                          .notACommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorRed);
-                                                      break;
-                                                    default:
-                                                      break;
-                                                  }
-                                                  return Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        "Epic Cash Build Commit",
-                                                        style: STextStyles
-                                                                .desktopTextExtraExtraSmall(
-                                                                    context)
-                                                            .copyWith(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .extension<
-                                                                        StackColors>()!
-                                                                    .textDark),
+                                                }
+                                                TextStyle indicationStyle =
+                                                    STextStyles.itemSubtitle(
+                                                  context,
+                                                );
+                                                switch (stateOfCommit) {
+                                                  case CommitStatus.isHead:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorGreen,
+                                                    );
+                                                    break;
+                                                  case CommitStatus.isOldCommit:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorYellow,
+                                                    );
+                                                    break;
+                                                  case CommitStatus.notACommit:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorRed,
+                                                    );
+                                                    break;
+                                                  default:
+                                                    break;
+                                                }
+                                                return Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "Epic Cash Build Commit",
+                                                      style: STextStyles
+                                                          .desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: Theme.of(
+                                                          context,
+                                                        )
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textDark,
                                                       ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      SelectableText(
-                                                        epicCashCommit,
-                                                        style: indicationStyle,
-                                                      ),
-                                                    ],
-                                                  );
-                                                }),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 2,
+                                                    ),
+                                                    SelectableText(
+                                                      epicCashCommit,
+                                                      style: indicationStyle,
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            ),
                                             const SizedBox(
                                               width: 105,
                                             ),
                                             FutureBuilder(
-                                                future: commitMoneroFuture,
-                                                builder: (context,
-                                                    AsyncSnapshot<dynamic>
-                                                        snapshot) {
-                                                  bool commitExists = false;
-                                                  bool isHead = false;
-                                                  CommitStatus stateOfCommit =
-                                                      CommitStatus.notLoaded;
+                                              future: commitMoneroFuture,
+                                              builder: (
+                                                context,
+                                                AsyncSnapshot<dynamic> snapshot,
+                                              ) {
+                                                bool commitExists = false;
+                                                bool isHead = false;
+                                                CommitStatus stateOfCommit =
+                                                    CommitStatus.notLoaded;
 
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    commitExists = snapshot
-                                                        .data![0] as bool;
-                                                    isHead = snapshot.data![1]
-                                                        as bool;
-                                                    if (commitExists &&
-                                                        isHead) {
-                                                      stateOfCommit =
-                                                          CommitStatus.isHead;
-                                                    } else if (commitExists) {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .isOldCommit;
-                                                    } else {
-                                                      stateOfCommit =
-                                                          CommitStatus
-                                                              .notACommit;
-                                                    }
+                                                if (snapshot.connectionState ==
+                                                        ConnectionState.done &&
+                                                    snapshot.hasData) {
+                                                  commitExists =
+                                                      snapshot.data![0] as bool;
+                                                  isHead =
+                                                      snapshot.data![1] as bool;
+                                                  if (commitExists && isHead) {
+                                                    stateOfCommit =
+                                                        CommitStatus.isHead;
+                                                  } else if (commitExists) {
+                                                    stateOfCommit = CommitStatus
+                                                        .isOldCommit;
+                                                  } else {
+                                                    stateOfCommit =
+                                                        CommitStatus.notACommit;
                                                   }
-                                                  TextStyle indicationStyle =
-                                                      STextStyles.itemSubtitle(
-                                                          context);
-                                                  switch (stateOfCommit) {
-                                                    case CommitStatus.isHead:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorGreen);
-                                                      break;
-                                                    case CommitStatus
-                                                          .isOldCommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorYellow);
-                                                      break;
-                                                    case CommitStatus
-                                                          .notACommit:
-                                                      indicationStyle = STextStyles
-                                                              .itemSubtitle(
-                                                                  context)
-                                                          .copyWith(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .extension<
-                                                                      StackColors>()!
-                                                                  .accentColorRed);
-                                                      break;
-                                                    default:
-                                                      break;
-                                                  }
-                                                  return Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        "Monero Build Commit",
-                                                        style: STextStyles
-                                                                .desktopTextExtraExtraSmall(
-                                                                    context)
-                                                            .copyWith(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .extension<
-                                                                        StackColors>()!
-                                                                    .textDark),
+                                                }
+                                                TextStyle indicationStyle =
+                                                    STextStyles.itemSubtitle(
+                                                  context,
+                                                );
+                                                switch (stateOfCommit) {
+                                                  case CommitStatus.isHead:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorGreen,
+                                                    );
+                                                    break;
+                                                  case CommitStatus.isOldCommit:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorYellow,
+                                                    );
+                                                    break;
+                                                  case CommitStatus.notACommit:
+                                                    indicationStyle =
+                                                        STextStyles
+                                                            .itemSubtitle(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(
+                                                        context,
+                                                      )
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .accentColorRed,
+                                                    );
+                                                    break;
+                                                  default:
+                                                    break;
+                                                }
+                                                return Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "Monero Build Commit",
+                                                      style: STextStyles
+                                                          .desktopTextExtraExtraSmall(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: Theme.of(
+                                                          context,
+                                                        )
+                                                            .extension<
+                                                                StackColors>()!
+                                                            .textDark,
                                                       ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      SelectableText(
-                                                        moneroCommit,
-                                                        style: indicationStyle,
-                                                      ),
-                                                    ],
-                                                  );
-                                                }),
+                                                    ),
+                                                    const SizedBox(
+                                                      height: 2,
+                                                    ),
+                                                    SelectableText(
+                                                      moneroCommit,
+                                                      style: indicationStyle,
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            ),
                                           ],
                                         ),
                                         const SizedBox(height: 35),
@@ -673,20 +719,21 @@ class DesktopAboutView extends ConsumerWidget {
                                             Text(
                                               "Website:",
                                               style: STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                          context)
-                                                  .copyWith(
-                                                      color: Theme.of(context)
-                                                          .extension<
-                                                              StackColors>()!
-                                                          .textDark),
+                                                  .desktopTextExtraExtraSmall(
+                                                context,
+                                              ).copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark,
+                                              ),
                                             ),
                                             CustomTextButton(
                                               text: "https://stackwallet.com",
                                               onTap: () {
                                                 launchUrl(
                                                   Uri.parse(
-                                                      "https://stackwallet.com"),
+                                                    "https://stackwallet.com",
+                                                  ),
                                                   mode: LaunchMode
                                                       .externalApplication,
                                                 );
@@ -700,13 +747,13 @@ class DesktopAboutView extends ConsumerWidget {
                                             Text(
                                               "Tezos functionality:",
                                               style: STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                          context)
-                                                  .copyWith(
-                                                      color: Theme.of(context)
-                                                          .extension<
-                                                              StackColors>()!
-                                                          .textDark),
+                                                  .desktopTextExtraExtraSmall(
+                                                context,
+                                              ).copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark,
+                                              ),
                                             ),
                                             CustomTextButton(
                                               text: "Powered by TzKT API",
@@ -723,10 +770,10 @@ class DesktopAboutView extends ConsumerWidget {
                                       ],
                                     );
                                   },
-                                )
+                                ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),

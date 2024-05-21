@@ -14,6 +14,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings/sub_widgets/desktop_manage_themes.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
@@ -29,7 +30,7 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
 class AppearanceOptionSettings extends ConsumerStatefulWidget {
-  const AppearanceOptionSettings({Key? key}) : super(key: key);
+  const AppearanceOptionSettings({super.key});
 
   static const String routeName = "/settingsMenuAppearance";
 
@@ -44,132 +45,139 @@ class _AppearanceOptionSettings
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return SingleChildScrollView(
-        child: Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(
-            right: 30,
-          ),
-          child: RoundedWhiteContainer(
-            radiusMultiplier: 2,
-            child: Wrap(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SvgPicture.asset(
-                        Assets.svg.circleSun,
-                        width: 48,
-                        height: 48,
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: RichText(
-                            textAlign: TextAlign.left,
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: "Appearances",
-                                  style: STextStyles.desktopTextSmall(context),
-                                ),
-                                TextSpan(
-                                  text:
-                                      "\n\nCustomize how your Stack Wallet looks according to your preferences.",
-                                  style: STextStyles.desktopTextExtraExtraSmall(
-                                      context),
-                                ),
-                              ],
-                            ),
-                          ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              right: 30,
+            ),
+            child: RoundedWhiteContainer(
+              radiusMultiplier: 2,
+              child: Wrap(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.circleSun,
+                          width: 48,
+                          height: 48,
                         ),
-                      ],
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: Divider(
-                        thickness: 0.5,
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            "Display favorite wallets",
-                            style: STextStyles.desktopTextExtraSmall(context)
-                                .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark),
-                            textAlign: TextAlign.left,
-                          ),
-                          SizedBox(
-                            height: 20,
-                            width: 40,
-                            child: DraggableSwitchButton(
-                              isOn: ref.watch(
-                                prefsChangeNotifierProvider.select(
-                                    (value) => value.showFavoriteWallets),
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: RichText(
+                              textAlign: TextAlign.left,
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: "Appearances",
+                                    style:
+                                        STextStyles.desktopTextSmall(context),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        "\n\nCustomize how your ${AppConfig.appName} looks according to your preferences.",
+                                    style:
+                                        STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              onValueChanged: (newValue) {
-                                ref
-                                    .read(prefsChangeNotifierProvider)
-                                    .showFavoriteWallets = newValue;
-                              },
                             ),
-                          )
-                        ],
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: Divider(
-                        thickness: 0.5,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Choose theme",
-                            style: STextStyles.desktopTextExtraSmall(context)
-                                .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark),
-                            textAlign: TextAlign.left,
                           ),
                         ],
                       ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.all(2),
-                      child: ThemeToggle(),
-                    ),
-                  ],
-                ),
-              ],
+                      const Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Divider(
+                          thickness: 0.5,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Display favorite wallets",
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: DraggableSwitchButton(
+                                isOn: ref.watch(
+                                  prefsChangeNotifierProvider.select(
+                                    (value) => value.showFavoriteWallets,
+                                  ),
+                                ),
+                                onValueChanged: (newValue) {
+                                  ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .showFavoriteWallets = newValue;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Divider(
+                          thickness: 0.5,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Choose theme",
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(2),
+                        child: ThemeToggle(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    ));
+        ],
+      ),
+    );
   }
 }
 
 class ThemeToggle extends ConsumerStatefulWidget {
   const ThemeToggle({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<ThemeToggle> createState() => _ThemeToggle();

@@ -118,7 +118,7 @@ class _ForgottenPassphraseRestoreFromSWBState
     final String? jsonString = await compute(
       SWB.decryptStackWalletWithPassphrase,
       Tuple2(fileToRestore, passphrase),
-      debugLabel: "stack wallet decryption compute",
+      debugLabel: "${AppConfig.appName} decryption compute",
     );
 
     if (mounted) {

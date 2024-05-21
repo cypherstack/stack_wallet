@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -24,9 +25,9 @@ import 'package:tuple/tuple.dart';
 
 class DesktopAttentionDeleteWallet extends ConsumerStatefulWidget {
   const DesktopAttentionDeleteWallet({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -79,7 +80,7 @@ class _DesktopAttentionDeleteWallet
                     child: Text(
                       "You are going to permanently delete your wallet.\n\nIf you delete your wallet, "
                       "the only way you can have access to your funds is by using your backup key."
-                      "\n\nStack Wallet does not keep nor is able to restore your backup key or your wallet."
+                      "\n\n${AppConfig.appName} does not keep nor is able to restore your backup key or your wallet."
                       "\n\nPLEASE SAVE YOUR BACKUP KEY.",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
@@ -118,7 +119,7 @@ class _DesktopAttentionDeleteWallet
                         if (wallet is MnemonicInterface) {
                           final words = await wallet.getMnemonicAsWords();
 
-                          if (mounted) {
+                          if (context.mounted) {
                             await Navigator.of(context).pushNamed(
                               DeleteWalletKeysPopup.routeName,
                               arguments: Tuple2(
@@ -131,7 +132,7 @@ class _DesktopAttentionDeleteWallet
                       },
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
