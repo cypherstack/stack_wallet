@@ -1,9 +1,9 @@
 abstract class AppConfig {
-  static String get appName => prefix + separator + suffix;
+  static const appName = prefix + _separator + suffix;
 
-  static String get prefix => "Stack";
+  static const prefix = "Stack";
 
-  static String get separator => " ";
+  static const _separator = " ";
 
-  static String get suffix => "Wallet";
+  static const suffix = "Wallet";
 }

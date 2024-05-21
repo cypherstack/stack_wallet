@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/create_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/edit_auto_backup_view.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_file_view.dart';
@@ -38,7 +39,7 @@ import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BackupRestoreSettings extends ConsumerStatefulWidget {
-  const BackupRestoreSettings({Key? key}) : super(key: key);
+  const BackupRestoreSettings({super.key});
 
   static const String routeName = "/settingsMenuBackupRestore";
 
@@ -299,7 +300,8 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
     fileLocationController.text =
         ref.read(prefsChangeNotifierProvider).autoBackupLocation ?? " ";
     frequencyController.text = Format.prettyFrequencyType(
-        ref.read(prefsChangeNotifierProvider).backupFrequencyType);
+      ref.read(prefsChangeNotifierProvider).backupFrequencyType,
+    );
 
     fileLocationFocusNode = FocusNode();
     passwordFocusNode = FocusNode();
@@ -324,8 +326,9 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    bool isEnabledAutoBackup = ref.watch(prefsChangeNotifierProvider
-        .select((value) => value.isAutoBackupEnabled));
+    final bool isEnabledAutoBackup = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.isAutoBackupEnabled),
+    );
 
     ref.listen(
         prefsChangeNotifierProvider
@@ -334,8 +337,9 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
       frequencyController.text = Format.prettyFrequencyType(next);
     });
 
-    return LayoutBuilder(builder: (context, constraints) {
-      return SingleChildScrollView(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -386,23 +390,26 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                           TextSpan(
                                             text: "Auto Backup",
                                             style: STextStyles.desktopTextSmall(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                           TextSpan(
                                             text:
-                                                "\n\nAuto backup is a custom Stack Wallet feature that offers a convenient backup of your data."
+                                                "\n\nAuto backup is a custom ${AppConfig.appName} feature that offers a convenient backup of your data."
                                                 "To ensure maximum security, we recommend using a unique password that you haven't used anywhere "
                                                 "else on the internet before. Your password is not stored.",
                                             style: STextStyles
                                                 .desktopTextExtraExtraSmall(
-                                                    context),
+                                              context,
+                                            ),
                                           ),
                                           TextSpan(
                                             text:
                                                 "\n\nFor more information, please see our website ",
                                             style: STextStyles
                                                 .desktopTextExtraExtraSmall(
-                                                    context),
+                                              context,
+                                            ),
                                           ),
                                           TextSpan(
                                             text: "stackwallet.com",
@@ -412,7 +419,8 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                               ..onTap = () {
                                                 launchUrl(
                                                   Uri.parse(
-                                                      "https://stackwallet.com/"),
+                                                    "https://stackwallet.com/",
+                                                  ),
                                                   mode: LaunchMode
                                                       .externalApplication,
                                                 );
@@ -458,14 +466,16 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                   "Backed up ${prettySinceLastBackupString(ref.watch(prefsChangeNotifierProvider.select((value) => value.lastAutoBackup)))}",
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                          context),
+                                                    context,
+                                                  ),
                                                 ),
                                                 CustomTextButton(
                                                   text: "Back up now",
                                                   onTap: () {
                                                     ref
                                                         .read(
-                                                            autoSWBServiceProvider)
+                                                          autoSWBServiceProvider,
+                                                        )
                                                         .doBackup();
                                                   },
                                                 ),
@@ -495,7 +505,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                 },
                                               ),
                                             ],
-                                          )
+                                          ),
                                         ],
                                       ),
                               ),
@@ -539,7 +549,8 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                           TextSpan(
                                             text: "Manual Backup",
                                             style: STextStyles.desktopTextSmall(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                           TextSpan(
                                             text:
@@ -548,7 +559,8 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                 "Use a strong password to encrypt your data.",
                                             style: STextStyles
                                                 .desktopTextExtraExtraSmall(
-                                                    context),
+                                              context,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -622,15 +634,17 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                           TextSpan(
                                             text: "Restore Backup",
                                             style: STextStyles.desktopTextSmall(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                           TextSpan(
                                             text:
-                                                "\n\nUse your Stack Wallet backup file to restore your wallets, address book "
+                                                "\n\nUse your ${AppConfig.appName} backup file to restore your wallets, address book "
                                                 "and wallet preferences.",
                                             style: STextStyles
                                                 .desktopTextExtraExtraSmall(
-                                                    context),
+                                              context,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -672,7 +686,9 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                 ],
               ),
             ),
-          ));
-    });
+          ),
+        );
+      },
+    );
   }
 }
