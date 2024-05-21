@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -x -e
 
 ../app_config/configure_duo.sh
 

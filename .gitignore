@@ -46,6 +46,10 @@ test/services/coins/particl/particl_wallet_test_parameters.dart
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
+# asset symlinks
+/assets/default_themes
+/assets/icon
+
 # other
 coverage
 scripts/**/build

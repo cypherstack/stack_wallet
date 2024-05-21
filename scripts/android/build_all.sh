@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -e
+set -x -e
+
+../app_config/shared/link_assets.sh "stack_wallet"
 
 # libepiccash requires old rust
 source ../rust_version.sh

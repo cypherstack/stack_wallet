@@ -254,8 +254,6 @@ class _SVG {
 class _PNG {
   const _PNG();
 
-  String get splash => "assets/images/splash.png";
-
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
   String get mascot => "assets/images/mascot.png";

@@ -213,7 +213,7 @@ flutter_launcher_icons:
     image_path: assets/icon/macos-icon.png
 
 flutter_native_splash:
-  image: assets/images/splash.png
+  image: assets/icon/splash.png
   color: "F7F7F7"
   android_disable_fullscreen: true
 

@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -e
+set -x -e
+
+../app_config/shared/link_assets.sh "stack_duo"
 
 # Configure files for Duo.
 export ORIGINAL_NAME="Stack Wallet"
