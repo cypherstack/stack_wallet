@@ -365,7 +365,7 @@ class _ExchangeCurrencySelectionViewState
           Flexible(
             child: Builder(
               builder: (context) {
-                final coins = SupportedCoins.cryptocurrencies.where(
+                final coins = Coins.cryptocurrencies.where(
                   (e) =>
                       e.ticker.toLowerCase() !=
                       widget.pairedTicker?.toLowerCase(),

@@ -28,7 +28,7 @@ class CoinSelectSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
-    final coins_ = [...SupportedCoins.cryptocurrencies];
+    final coins_ = [...Coins.cryptocurrencies];
     coins_.removeWhere(
       (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
     );

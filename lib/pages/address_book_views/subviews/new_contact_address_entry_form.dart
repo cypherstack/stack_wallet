@@ -74,7 +74,7 @@ class _NewContactAddressEntryFormState
       ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
     addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
-    coins = [...SupportedCoins.cryptocurrencies];
+    coins = [...Coins.cryptocurrencies];
     super.initState();
   }
 
@@ -91,7 +91,7 @@ class _NewContactAddressEntryFormState
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
     if (isDesktop) {
-      coins = [...SupportedCoins.cryptocurrencies];
+      coins = [...Coins.cryptocurrencies];
       coins.removeWhere(
         (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
       );

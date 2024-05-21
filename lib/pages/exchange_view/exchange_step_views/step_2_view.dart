@@ -72,7 +72,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   bool isStackCoin(String ticker) {
     try {
-      SupportedCoins.getCryptoCurrencyForTicker(ticker);
+      Coins.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -207,8 +207,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                   text: "Choose from Stack",
                                   onTap: () {
                                     try {
-                                      final coin = SupportedCoins
-                                          .cryptocurrencies
+                                      final coin = Coins.cryptocurrencies
                                           .firstWhere((e) =>
                                               e.ticker.toLowerCase() ==
                                               model.receiveTicker
@@ -483,8 +482,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                     text: "Choose from Stack",
                                     onTap: () {
                                       try {
-                                        final coin = SupportedCoins
-                                            .cryptocurrencies
+                                        final coin = Coins.cryptocurrencies
                                             .firstWhere((e) =>
                                                 e.ticker.toLowerCase() ==
                                                 model.sendTicker.toLowerCase());

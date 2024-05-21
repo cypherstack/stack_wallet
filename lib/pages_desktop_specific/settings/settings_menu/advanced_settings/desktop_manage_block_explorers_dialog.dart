@@ -40,8 +40,8 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
     );
 
     final coins = showTestNet
-        ? SupportedCoins.cryptocurrencies
-        : SupportedCoins.cryptocurrencies
+        ? Coins.cryptocurrencies
+        : Coins.cryptocurrencies
             .where(
               (e) => e.network == CryptoCurrencyNetwork.main,
             )

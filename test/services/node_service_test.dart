@@ -114,7 +114,7 @@ void main() {
       await service.updateDefaults();
       expect(
         service.nodes.length,
-        SupportedCoins.cryptocurrencies.map((e) => e.defaultNode).length,
+        Coins.cryptocurrencies.map((e) => e.defaultNode).length,
       );
       expect(fakeStore.interactions, 0);
     });
@@ -208,7 +208,7 @@ void main() {
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.nodes;
       final defaults =
-          SupportedCoins.cryptocurrencies.map((e) => e.defaultNode).toList();
+          Coins.cryptocurrencies.map((e) => e.defaultNode).toList();
 
       nodes.sort((a, b) => a.host.compareTo(b.host));
       defaults.sort((a, b) => a.host.compareTo(b.host));
@@ -224,7 +224,7 @@ void main() {
       await service.add(nodeA, null, true);
       expect(
         service.nodes.length,
-        SupportedCoins.cryptocurrencies.map((e) => e.defaultNode).length + 1,
+        Coins.cryptocurrencies.map((e) => e.defaultNode).length + 1,
       );
       expect(fakeStore.interactions, 0);
     });
@@ -235,7 +235,7 @@ void main() {
       await service.add(nodeA, "some password", true);
       expect(
         service.nodes.length,
-        SupportedCoins.cryptocurrencies.map((e) => e.defaultNode).length + 1,
+        Coins.cryptocurrencies.map((e) => e.defaultNode).length + 1,
       );
       expect(fakeStore.interactions, 1);
       expect(fakeStore.writes, 1);
@@ -293,7 +293,7 @@ void main() {
 
         expect(
           service.nodes.length,
-          SupportedCoins.cryptocurrencies.map((e) => e.defaultNode).length + 2,
+          Coins.cryptocurrencies.map((e) => e.defaultNode).length + 2,
         );
         expect(
           service.nodes.where((element) => element.id == nodeB.id).length,

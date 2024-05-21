@@ -38,7 +38,7 @@ class ManageNodesView extends ConsumerStatefulWidget {
 }
 
 class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
-  List<CryptoCurrency> _coins = [...SupportedCoins.cryptocurrencies];
+  List<CryptoCurrency> _coins = [...Coins.cryptocurrencies];
 
   @override
   void initState() {

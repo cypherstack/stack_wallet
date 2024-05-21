@@ -37,7 +37,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
 
   bool _isWalletCoinAndHasWallet(String ticker) {
     try {
-      final coin = SupportedCoins.getCryptoCurrencyForTicker(ticker);
+      final coin = Coins.getCryptoCurrencyForTicker(ticker);
       return ref
           .read(pWallets)
           .wallets

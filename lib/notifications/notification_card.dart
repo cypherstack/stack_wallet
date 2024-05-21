@@ -44,8 +44,7 @@ class NotificationCard extends ConsumerWidget {
 
   String coinIconPath(IThemeAssets assets, WidgetRef ref) {
     try {
-      final coin =
-          SupportedCoins.getCryptoCurrencyByPrettyName(notification.coinName);
+      final coin = Coins.getCryptoCurrencyByPrettyName(notification.coinName);
       return ref.read(coinIconProvider(coin));
     } catch (_) {
       return notification.iconAssetName;

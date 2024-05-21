@@ -72,7 +72,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
 
     final List<CryptoCurrency> coins = [];
 
-    for (final coin in SupportedCoins.cryptocurrencies) {
+    for (final coin in Coins.cryptocurrencies) {
       if (contact.addresses.where((e) => e.coin == coin).isNotEmpty) {
         coins.add(coin);
       }

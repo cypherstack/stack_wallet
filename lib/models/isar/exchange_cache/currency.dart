@@ -161,7 +161,7 @@ class Currency {
 
   static bool checkIsStackCoin(String ticker) {
     try {
-      SupportedCoins.getCryptoCurrencyForTicker(ticker);
+      Coins.getCryptoCurrencyForTicker(ticker);
       return true;
     } catch (_) {
       return false;

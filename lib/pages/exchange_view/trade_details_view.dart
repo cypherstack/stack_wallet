@@ -88,9 +88,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   bool isStackCoin(String ticker) {
     try {
       try {
-        SupportedCoins.getCryptoCurrencyForTicker(ticker);
+        Coins.getCryptoCurrencyForTicker(ticker);
       } catch (_) {}
-      SupportedCoins.getCryptoCurrencyByPrettyName(ticker);
+      Coins.getCryptoCurrencyByPrettyName(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -279,11 +279,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       onPressed: () {
                         CryptoCurrency coin;
                         try {
-                          coin = SupportedCoins.getCryptoCurrencyForTicker(
+                          coin = Coins.getCryptoCurrencyForTicker(
                             trade.payInCurrency,
                           );
                         } catch (_) {
-                          coin = SupportedCoins.getCryptoCurrencyByPrettyName(
+                          coin = Coins.getCryptoCurrencyByPrettyName(
                             trade.payInCurrency,
                           );
                         }
@@ -379,8 +379,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             builder: (context) {
                               String text;
                               try {
-                                final coin =
-                                    SupportedCoins.getCryptoCurrencyForTicker(
+                                final coin = Coins.getCryptoCurrencyForTicker(
                                   trade.payInCurrency,
                                 );
                                 final amount = sendAmount.toAmount(
@@ -629,7 +628,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       text: "View transaction",
                       onTap: () {
                         final CryptoCurrency coin =
-                            SupportedCoins.getCryptoCurrencyForTicker(
+                            Coins.getCryptoCurrencyForTicker(
                           trade.payInCurrency,
                         );
 
@@ -1382,11 +1381,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 onPressed: () {
                   CryptoCurrency coin;
                   try {
-                    coin = SupportedCoins.getCryptoCurrencyForTicker(
+                    coin = Coins.getCryptoCurrencyForTicker(
                       trade.payInCurrency,
                     );
                   } catch (_) {
-                    coin = SupportedCoins.getCryptoCurrencyByPrettyName(
+                    coin = Coins.getCryptoCurrencyByPrettyName(
                       trade.payInCurrency,
                     );
                   }

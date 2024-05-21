@@ -1858,7 +1858,7 @@ class StackTheme {
     final Map<String, Color> result = {};
 
     for (final mainNetId
-        in SupportedCoins.cryptocurrencies.map((e) => e.mainNetId)) {
+        in Coins.cryptocurrencies.map((e) => e.mainNetId)) {
       if (map[mainNetId] is String) {
         result[mainNetId] = Color(
           (map[mainNetId] as String).toBigIntFromHex.toInt(),
@@ -2176,7 +2176,7 @@ class ThemeAssetsV2 implements IThemeAssets {
 
     final Map<String, String> result = {};
 
-    for (final coin in SupportedCoins.cryptocurrencies) {
+    for (final coin in Coins.cryptocurrencies) {
       result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
     }
 
@@ -2511,7 +2511,7 @@ class ThemeAssetsV3 implements IThemeAssets {
 
     final Map<String, String> result = {};
 
-    for (final coin in SupportedCoins.cryptocurrencies) {
+    for (final coin in Coins.cryptocurrencies) {
       result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
       result[coin.mainNetId] = prependIfNeeded(result[coin.mainNetId]!);
     }

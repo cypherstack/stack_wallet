@@ -27,7 +27,7 @@ final pAllWalletsInfoByCoin = Provider((ref) {
   }
 
   final List<({CryptoCurrency coin, List<WalletInfo> wallets})> results = [];
-  for (final coin in SupportedCoins.cryptocurrencies) {
+  for (final coin in Coins.cryptocurrencies) {
     if (map[coin] != null) {
       results.add(map[coin]!);
     }

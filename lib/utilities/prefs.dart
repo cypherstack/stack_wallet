@@ -867,7 +867,7 @@ class Prefs extends ChangeNotifier {
   }
 
   Future<void> _setAmountUnits() async {
-    for (final coin in SupportedCoins.cryptocurrencies) {
+    for (final coin in Coins.cryptocurrencies) {
       final unitIndex = await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
             key: "amountUnitFor${coin.identifier}",
@@ -900,7 +900,7 @@ class Prefs extends ChangeNotifier {
   }
 
   Future<void> _setMaxDecimals() async {
-    for (final coin in SupportedCoins.cryptocurrencies) {
+    for (final coin in Coins.cryptocurrencies) {
       final decimals = await DB.instance.get<dynamic>(
             boxName: DB.boxNamePrefs,
             key: "maxDecimalsFor${coin.identifier}",

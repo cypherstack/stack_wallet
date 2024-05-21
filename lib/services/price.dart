@@ -48,7 +48,7 @@ class PriceAPI {
   ) async {
     final Map<String, dynamic> map = {};
 
-    for (final coin in SupportedCoins.cryptocurrencies) {
+    for (final coin in Coins.cryptocurrencies) {
       final entry = data[coin];
       if (entry == null) {
         map[coin.prettyName] = ["0", 0.0];
@@ -68,12 +68,12 @@ class PriceAPI {
             {};
     // init with 0
     final result = {
-      for (final coin in SupportedCoins.cryptocurrencies)
+      for (final coin in Coins.cryptocurrencies)
         coin: Tuple2(Decimal.zero, 0.0),
     };
 
     for (final entry in map.entries) {
-      result[SupportedCoins.getCryptoCurrencyByPrettyName(
+      result[Coins.getCryptoCurrencyByPrettyName(
         entry.key as String,
       )] = Tuple2(
         Decimal.parse(entry.value[0] as String),
@@ -126,7 +126,7 @@ class PriceAPI {
 
       for (final map in coinGeckoData) {
         final String coinName = map["name"] as String;
-        final coin = SupportedCoins.getCryptoCurrencyByPrettyName(coinName);
+        final coin = Coins.getCryptoCurrencyByPrettyName(coinName);
 
         final price = Decimal.parse(map["current_price"].toString());
         final change24h = map["price_change_percentage_24h"] != null

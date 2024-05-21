@@ -413,7 +413,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     if (ticker == null) return false;
 
     try {
-      SupportedCoins.getCryptoCurrencyForTicker(ticker);
+      Coins.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -1168,7 +1168,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     text: "Choose from Stack",
                     onTap: () {
                       try {
-                        final coin = SupportedCoins.getCryptoCurrencyForTicker(
+                        final coin = Coins.getCryptoCurrencyForTicker(
                           selectedCrypto!.ticker,
                         );
                         Navigator.of(context)
@@ -1331,7 +1331,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                         ),
                                         Expanded(
                                           child: AddressBookAddressChooser(
-                                            coin: SupportedCoins
+                                            coin: Coins
                                                 .cryptocurrencies
                                                 .firstWhere(
                                               (e) =>

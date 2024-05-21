@@ -94,7 +94,7 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         int decimals;
                         try {
-                          decimals = SupportedCoins.getCryptoCurrencyForTicker(
+                          decimals = Coins.getCryptoCurrencyForTicker(
                             receivingCurrency.ticker,
                           ).fractionDigits;
                         } catch (_) {
@@ -113,7 +113,7 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         CryptoCurrency? coin;
                         try {
-                          coin = SupportedCoins.getCryptoCurrencyForTicker(
+                          coin = Coins.getCryptoCurrencyForTicker(
                             receivingCurrency.ticker,
                           );
                         } catch (_) {

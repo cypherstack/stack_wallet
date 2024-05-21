@@ -52,7 +52,7 @@ class ChooseCoinView extends ConsumerStatefulWidget {
 }
 
 class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
-  List<CryptoCurrency> _coins = [...SupportedCoins.cryptocurrencies];
+  List<CryptoCurrency> _coins = [...Coins.cryptocurrencies];
 
   @override
   void initState() {

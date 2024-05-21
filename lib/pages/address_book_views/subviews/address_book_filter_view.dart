@@ -41,7 +41,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
 
   @override
   void initState() {
-    final coins = [...SupportedCoins.cryptocurrencies];
+    final coins = [...Coins.cryptocurrencies];
     coins.removeWhere(
       (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
     );
