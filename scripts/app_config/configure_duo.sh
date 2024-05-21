@@ -17,3 +17,6 @@ else
   sed -i 's/Wallet/Duo/g' ../../lib/app_config.dart
   sed -i "s/${ORIGINAL_NAME}/${NEW_NAME}/g" ../../pubspec.yaml
 fi
+
+# Extract Duo images.
+unzip -o stack_duo_assets.zip -d ../../
