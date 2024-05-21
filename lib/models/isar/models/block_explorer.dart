@@ -31,7 +31,7 @@ class TransactionBlockExplorer {
   @ignore
   CryptoCurrency? get coin {
     try {
-      return SupportedCoins.getCryptoCurrencyForTicker(ticker);
+      return Coins.getCryptoCurrencyForTicker(ticker);
     } catch (_) {
       return null;
     }

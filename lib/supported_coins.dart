@@ -21,7 +21,7 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 
 /// The supported coins. Eventually move away from the Coin enum
-class SupportedCoins {
+class Coins {
   /// A List of our supported coins.
   static final List<CryptoCurrency> cryptocurrencies = [
     Bitcoin(CryptoCurrencyNetwork.main),

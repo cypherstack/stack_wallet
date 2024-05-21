@@ -43,7 +43,7 @@ class ContactAddressEntry {
 
   factory ContactAddressEntry.fromJson(Map<String, dynamic> jsonObject) {
     return ContactAddressEntry(
-      coin: SupportedCoins.getCryptoCurrencyFor(jsonObject["coin"] as String),
+      coin: Coins.getCryptoCurrencyFor(jsonObject["coin"] as String),
       address: jsonObject["address"] as String,
       label: jsonObject["label"] as String,
       other: jsonObject["other"] as String?,

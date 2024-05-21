@@ -774,7 +774,7 @@ abstract class SWB {
         return false;
       }
 
-      final coin = SupportedCoins.getCryptoCurrencyFor(
+      final coin = Coins.getCryptoCurrencyFor(
         walletbackup['coinName'] as String,
       );
 
@@ -1036,7 +1036,7 @@ abstract class SWB {
       for (final node in primaryNodes) {
         try {
           await nodeService.setPrimaryNodeFor(
-            coin: SupportedCoins.getCryptoCurrencyByPrettyName(
+            coin: Coins.getCryptoCurrencyByPrettyName(
               node['coinName'] as String,
             ),
             node: nodeService.getNodeById(id: node['id'] as String)!,
@@ -1226,7 +1226,7 @@ abstract class SWB {
       for (final node in primaryNodes) {
         try {
           await nodeService.setPrimaryNodeFor(
-            coin: SupportedCoins.getCryptoCurrencyByPrettyName(
+            coin: Coins.getCryptoCurrencyByPrettyName(
               node['coinName'] as String,
             ),
             node: nodeService.getNodeById(id: node['id'] as String)!,

@@ -405,7 +405,7 @@ bool isStackCoin(String? ticker) {
   if (ticker == null) return false;
 
   try {
-    SupportedCoins.getCryptoCurrencyForTicker(ticker);
+    Coins.getCryptoCurrencyForTicker(ticker);
     return true;
   } on ArgumentError catch (_) {
     return false;

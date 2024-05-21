@@ -99,7 +99,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     ref.refresh(addressBookFilterProvider);
 
     // if (widget.coin == null) {
-    final coins = SupportedCoins.cryptocurrencies.toList();
+    final coins = Coins.cryptocurrencies.toList();
     coins.removeWhere(
       (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
     );

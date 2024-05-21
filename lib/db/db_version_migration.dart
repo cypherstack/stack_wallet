@@ -560,7 +560,7 @@ class DbVersionMigrator with WalletDB {
 
       final count = await MainDB.instance.getTransactions(walletId).count();
 
-      final crypto = SupportedCoins.getCryptoCurrencyFor(info.coinIdentifier);
+      final crypto = Coins.getCryptoCurrencyFor(info.coinIdentifier);
 
       for (var i = 0; i < count; i += 50) {
         final txns = await MainDB.instance

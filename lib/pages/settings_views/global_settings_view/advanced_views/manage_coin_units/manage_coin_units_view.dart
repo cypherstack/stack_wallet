@@ -45,7 +45,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final _coins = SupportedCoins.cryptocurrencies
+    final _coins = Coins.cryptocurrencies
         .where((e) => e is! Firo && e.network != CryptoCurrencyNetwork.test)
         .toList();
 

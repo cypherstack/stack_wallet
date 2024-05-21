@@ -67,7 +67,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     ref.refresh(addressBookFilterProvider);
 
     if (widget.coin == null) {
-      final coins = [...SupportedCoins.cryptocurrencies];
+      final coins = [...Coins.cryptocurrencies];
       coins.removeWhere(
         (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
       );

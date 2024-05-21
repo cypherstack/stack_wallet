@@ -31,7 +31,7 @@ class NodeService extends ChangeNotifier {
   });
 
   Future<void> updateDefaults() async {
-    for (final defaultNode in SupportedCoins.cryptocurrencies.map(
+    for (final defaultNode in Coins.cryptocurrencies.map(
       (e) => e.defaultNode,
     )) {
       final savedNode = DB.instance
@@ -39,7 +39,7 @@ class NodeService extends ChangeNotifier {
       if (savedNode == null) {
         // save the default node to hive only if no other nodes for the specific coin exist
         if (getNodesFor(
-          SupportedCoins.getCryptoCurrencyByPrettyName(
+          Coins.getCryptoCurrencyByPrettyName(
             defaultNode.coinName,
           ),
         ).isEmpty) {
@@ -64,8 +64,7 @@ class NodeService extends ChangeNotifier {
 
       // check if a default node is the primary node for the crypto currency
       // and update it if needed
-      final coin =
-          SupportedCoins.getCryptoCurrencyByPrettyName(defaultNode.coinName);
+      final coin = Coins.getCryptoCurrencyByPrettyName(defaultNode.coinName);
       final primaryNode = getPrimaryNodeFor(currency: coin);
       if (primaryNode != null && primaryNode.id == defaultNode.id) {
         await setPrimaryNodeFor(
@@ -206,8 +205,7 @@ class NodeService extends ChangeNotifier {
     bool shouldNotifyListeners,
   ) async {
     // check if the node being edited is the primary one; if it is, setPrimaryNodeFor coin
-    final coin =
-        SupportedCoins.getCryptoCurrencyByPrettyName(editedNode.coinName);
+    final coin = Coins.getCryptoCurrencyByPrettyName(editedNode.coinName);
     final primaryNode = getPrimaryNodeFor(currency: coin);
     if (primaryNode?.id == editedNode.id) {
       await setPrimaryNodeFor(
@@ -240,7 +238,7 @@ class NodeService extends ChangeNotifier {
       final map = jsonDecode(result as String);
       Logging.instance.log(map, level: LogLevel.Info);
 
-      for (final coin in SupportedCoins.cryptocurrencies) {
+      for (final coin in Coins.cryptocurrencies) {
         final nodeList = List<Map<String, dynamic>>.from(
           map["nodes"][coin.identifier] as List? ?? [],
         );

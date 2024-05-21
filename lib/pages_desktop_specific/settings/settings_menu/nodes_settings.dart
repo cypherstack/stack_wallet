@@ -42,7 +42,7 @@ class NodesSettings extends ConsumerStatefulWidget {
 }
 
 class _NodesSettings extends ConsumerState<NodesSettings> {
-  List<CryptoCurrency> _coins = [...SupportedCoins.cryptocurrencies];
+  List<CryptoCurrency> _coins = [...Coins.cryptocurrencies];
 
   late final TextEditingController searchNodeController;
   late final FocusNode searchNodeFocusNode;

@@ -129,7 +129,7 @@ class NotificationsService extends ChangeNotifier {
     for (final notification in _watchedTransactionNotifications) {
       try {
         final CryptoCurrency coin =
-            SupportedCoins.getCryptoCurrencyByPrettyName(notification.coinName);
+            Coins.getCryptoCurrencyByPrettyName(notification.coinName);
         final txid = notification.txid!;
         final wallet = Wallets.sharedInstance.getWallet(notification.walletId);
 

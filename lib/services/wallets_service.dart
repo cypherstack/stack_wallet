@@ -90,7 +90,7 @@ class WalletsService extends ChangeNotifier {
     mapped.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
       try {
-        SupportedCoins.getCryptoCurrencyFor(jsonObject["coin"] as String);
+        Coins.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
         Logging.instance.log(

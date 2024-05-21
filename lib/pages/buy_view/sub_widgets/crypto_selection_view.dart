@@ -70,7 +70,7 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
     coins.sort(
       (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()),
     );
-    for (final coin in SupportedCoins.cryptocurrencies.reversed) {
+    for (final coin in Coins.cryptocurrencies.reversed) {
       final index = coins.indexWhere(
         (element) => element.ticker.toLowerCase() == coin.ticker.toLowerCase(),
       );
@@ -270,7 +270,7 @@ bool isStackCoin(String? ticker) {
   if (ticker == null) return false;
 
   try {
-    SupportedCoins.getCryptoCurrencyForTicker(ticker);
+    Coins.getCryptoCurrencyForTicker(ticker);
     return true;
   } on ArgumentError catch (_) {
     return false;
@@ -305,7 +305,7 @@ class CoinIconForTicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     try {
-      final coin = SupportedCoins.getCryptoCurrencyForTicker(ticker);
+      final coin = Coins.getCryptoCurrencyForTicker(ticker);
       return SvgPicture.file(
         File(
           ref.watch(coinIconProvider(coin)),

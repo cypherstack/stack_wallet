@@ -59,7 +59,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   bool isStackCoin(String ticker) {
     try {
-      SupportedCoins.getCryptoCurrencyForTicker(ticker);
+      Coins.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -68,7 +68,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   void selectRecipientAddressFromStack() async {
     try {
-      final coin = SupportedCoins.getCryptoCurrencyForTicker(
+      final coin = Coins.getCryptoCurrencyForTicker(
         ref.read(desktopExchangeModelProvider)!.receiveTicker,
       );
 
@@ -101,7 +101,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   void selectRefundAddressFromStack() async {
     try {
-      final coin = SupportedCoins.getCryptoCurrencyForTicker(
+      final coin = Coins.getCryptoCurrencyForTicker(
         ref.read(desktopExchangeModelProvider)!.sendTicker,
       );
 
@@ -131,7 +131,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   }
 
   void selectRecipientFromAddressBook() async {
-    final coin = SupportedCoins.getCryptoCurrencyForTicker(
+    final coin = Coins.getCryptoCurrencyForTicker(
       ref.read(desktopExchangeModelProvider)!.receiveTicker,
     );
 
@@ -178,7 +178,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   }
 
   void selectRefundFromAddressBook() async {
-    final coin = SupportedCoins.getCryptoCurrencyForTicker(
+    final coin = Coins.getCryptoCurrencyForTicker(
       ref.read(desktopExchangeModelProvider)!.sendTicker,
     );
 

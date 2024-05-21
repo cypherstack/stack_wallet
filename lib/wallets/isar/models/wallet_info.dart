@@ -96,7 +96,7 @@ class WalletInfo implements IsarId {
   }
 
   @ignore
-  CryptoCurrency get coin => SupportedCoins.getCryptoCurrencyFor(coinName);
+  CryptoCurrency get coin => Coins.getCryptoCurrencyFor(coinName);
 
   @ignore
   Balance get cachedBalance {
@@ -407,7 +407,7 @@ class WalletInfo implements IsarId {
     this.cachedBalanceTertiaryString,
     this.otherDataJsonString,
   }) : assert(
-          SupportedCoins.cryptocurrencies
+          Coins.cryptocurrencies
               .map((e) => e.identifier)
               .contains(coinName),
         );
@@ -466,7 +466,7 @@ class WalletInfo implements IsarId {
     Map<String, dynamic> jsonObject,
     AddressType mainAddressType,
   ) {
-    final coin = SupportedCoins.getCryptoCurrencyFor(
+    final coin = Coins.getCryptoCurrencyFor(
       jsonObject["coin"] as String,
     );
     return WalletInfo(

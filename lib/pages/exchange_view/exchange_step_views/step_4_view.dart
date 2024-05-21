@@ -75,7 +75,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   bool _isWalletCoinAndHasWallet(String ticker, WidgetRef ref) {
     try {
-      final coin = SupportedCoins.getCryptoCurrencyForTicker(ticker);
+      final coin = Coins.getCryptoCurrencyForTicker(ticker);
       return ref
           .read(pWallets)
           .wallets
@@ -853,7 +853,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                         .useMaterialPageRoute,
                                                 builder:
                                                     (BuildContext context) {
-                                                  final coin = SupportedCoins
+                                                  final coin = Coins
                                                       .cryptocurrencies
                                                       .firstWhere(
                                                     (e) =>
