@@ -1331,9 +1331,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                         ),
                                         Expanded(
                                           child: AddressBookAddressChooser(
-                                            coin: Coins
-                                                .cryptocurrencies
-                                                .firstWhere(
+                                            coin: Coins.enabled.firstWhere(
                                               (e) =>
                                                   e.ticker.toLowerCase() ==
                                                   selectedCrypto!.ticker

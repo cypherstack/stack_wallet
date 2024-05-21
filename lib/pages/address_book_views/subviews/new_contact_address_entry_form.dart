@@ -30,7 +30,6 @@ import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
 import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
@@ -40,11 +39,11 @@ import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class NewContactAddressEntryForm extends ConsumerStatefulWidget {
   const NewContactAddressEntryForm({
-    Key? key,
+    super.key,
     required this.id,
     required this.barcodeScanner,
     required this.clipboard,
-  }) : super(key: key);
+  });
 
   final int id;
 
@@ -74,7 +73,7 @@ class _NewContactAddressEntryFormState
       ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
     addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
-    coins = [...Coins.cryptocurrencies];
+    coins = [...Coins.enabled];
     super.initState();
   }
 
@@ -91,7 +90,7 @@ class _NewContactAddressEntryFormState
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
     if (isDesktop) {
-      coins = [...Coins.cryptocurrencies];
+      coins = [...Coins.enabled];
       coins.removeWhere(
         (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
       );

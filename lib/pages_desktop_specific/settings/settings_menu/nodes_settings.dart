@@ -23,9 +23,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
@@ -33,7 +30,7 @@ import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:stackwallet/widgets/textfield_icon_button.dart';
 
 class NodesSettings extends ConsumerStatefulWidget {
-  const NodesSettings({Key? key}) : super(key: key);
+  const NodesSettings({super.key});
 
   static const String routeName = "/settingsMenuNodes";
 
@@ -42,7 +39,7 @@ class NodesSettings extends ConsumerStatefulWidget {
 }
 
 class _NodesSettings extends ConsumerState<NodesSettings> {
-  List<CryptoCurrency> _coins = [...Coins.cryptocurrencies];
+  List<CryptoCurrency> _coins = [...Coins.enabled];
 
   late final TextEditingController searchNodeController;
   late final FocusNode searchNodeFocusNode;
@@ -56,10 +53,12 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
       return coins;
     }
     return coins
-        .where((coin) =>
-            coin.prettyName.contains(filter) ||
-            coin.identifier.contains(filter) ||
-            coin.ticker.toLowerCase().contains(filter.toLowerCase()))
+        .where(
+          (coin) =>
+              coin.prettyName.contains(filter) ||
+              coin.identifier.contains(filter) ||
+              coin.ticker.toLowerCase().contains(filter.toLowerCase()),
+        )
         .toList();
   }
 
@@ -227,8 +226,10 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                         itemBuilder: (context, index) {
                           final coin = coins[index];
                           final count = ref
-                              .watch(nodeServiceChangeNotifierProvider
-                                  .select((value) => value.getNodesFor(coin)))
+                              .watch(
+                                nodeServiceChangeNotifierProvider
+                                    .select((value) => value.getNodesFor(coin)),
+                              )
                               .length;
 
                           return Padding(
@@ -290,7 +291,8 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                             Text(
                                               "${coin.prettyName} nodes",
                                               style: STextStyles.titleBold12(
-                                                  context),
+                                                context,
+                                              ),
                                             ),
                                             Text(
                                               count > 1

@@ -39,13 +39,11 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final coins = showTestNet
-        ? Coins.cryptocurrencies
-        : Coins.cryptocurrencies
-            .where(
-              (e) => e.network == CryptoCurrencyNetwork.main,
-            )
-            .toList();
+    final coins = Coins.enabled
+        .where(
+          (e) => showTestNet || e.network == CryptoCurrencyNetwork.main,
+        )
+        .toList();
 
     return DesktopDialog(
       maxHeight: 850,

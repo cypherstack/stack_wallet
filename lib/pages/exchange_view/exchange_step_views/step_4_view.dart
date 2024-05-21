@@ -35,8 +35,6 @@ import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -853,9 +851,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                         .useMaterialPageRoute,
                                                 builder:
                                                     (BuildContext context) {
-                                                  final coin = Coins
-                                                      .cryptocurrencies
-                                                      .firstWhere(
+                                                  final coin =
+                                                      Coins.enabled.firstWhere(
                                                     (e) =>
                                                         e.ticker
                                                             .toLowerCase() ==

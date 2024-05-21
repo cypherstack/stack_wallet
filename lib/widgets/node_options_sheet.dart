@@ -11,7 +11,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:solana/solana.dart';
@@ -33,35 +32,17 @@ import 'package:stackwallet/utilities/test_epic_box_connection.dart';
 import 'package:stackwallet/utilities/test_eth_node_connection.dart';
 import 'package:stackwallet/utilities/test_monero_node_connection.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/peercoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
 class NodeOptionsSheet extends ConsumerWidget {
   const NodeOptionsSheet({
-    Key? key,
+    super.key,
     required this.nodeId,
     required this.coin,
     required this.popBackToRoute,
-  }) : super(key: key);
+  });
 
   final String nodeId;
   final CryptoCurrency coin;
@@ -101,7 +82,10 @@ class NodeOptionsSheet extends ConsumerWidget {
   }
 
   Future<bool> _testConnection(
-      NodeModel node, BuildContext context, WidgetRef ref) async {
+    NodeModel node,
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     bool testPassed = false;
 
     switch (coin.runtimeType) {
@@ -183,7 +167,7 @@ class NodeOptionsSheet extends ConsumerWidget {
 
         break;
 
-      case (Ethereum):
+      case const (Ethereum):
         try {
           testPassed = await testEthNodeConnection(node.host);
         } catch (_) {
@@ -220,12 +204,14 @@ class NodeOptionsSheet extends ConsumerWidget {
       //   context: context,
       // );
     } else {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        iconAsset: Assets.svg.circleAlert,
-        message: "Could not connect to node",
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          iconAsset: Assets.svg.circleAlert,
+          message: "Could not connect to node",
+          context: context,
+        ),
+      );
     }
 
     return testPassed;
@@ -234,12 +220,16 @@ class NodeOptionsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
-    final node = ref.watch(nodeServiceChangeNotifierProvider
-        .select((value) => value.getNodeById(id: nodeId)))!;
+    final node = ref.watch(
+      nodeServiceChangeNotifierProvider
+          .select((value) => value.getNodeById(id: nodeId)),
+    )!;
 
     final status = ref
-                .watch(nodeServiceChangeNotifierProvider
-                    .select((value) => value.getPrimaryNodeFor(currency: coin)))
+                .watch(
+                  nodeServiceChangeNotifierProvider.select(
+                      (value) => value.getPrimaryNodeFor(currency: coin)),
+                )
                 ?.id !=
             nodeId
         ? "Disconnected"
@@ -313,7 +303,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                             height: 15,
                             width: 19,
                             color: node.id.startsWith(
-                                    DefaultNodes.defaultNodeIdPrefix)
+                              DefaultNodes.defaultNodeIdPrefix,
+                            )
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorDark
@@ -379,9 +370,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           "Details",
                           style: STextStyles.button(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
+                          ),
                         ),
                       ),
                     ),

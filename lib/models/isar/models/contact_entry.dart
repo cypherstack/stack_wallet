@@ -37,7 +37,7 @@ class ContactEntry {
   @ignore
   List<ContactAddressEntry> get addressesSorted {
     final List<ContactAddressEntry> sorted = [];
-    for (final coin in Coins.cryptocurrencies) {
+    for (final coin in Coins.enabled) {
       final slice = addresses.where((e) => e.coin == coin).toList();
       if (slice.isNotEmpty) {
         slice.sort(

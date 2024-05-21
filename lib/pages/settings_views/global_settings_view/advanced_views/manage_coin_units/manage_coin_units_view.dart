@@ -11,7 +11,6 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/background.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -45,7 +44,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final _coins = Coins.cryptocurrencies
+    final _coins = Coins.enabled
         .where((e) => e is! Firo && e.network != CryptoCurrencyNetwork.test)
         .toList();
 

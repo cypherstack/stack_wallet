@@ -1,29 +1,17 @@
-import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/peercoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
 
 /// The supported coins. Eventually move away from the Coin enum
 class Coins {
-  /// A List of our supported coins.
-  static final List<CryptoCurrency> cryptocurrencies = [
+  /// A List of enabled coins.
+  static List<CryptoCurrency> get enabled => all
+      .where(
+          (element) => AppConfig.supportedCoins.contains(element.runtimeType))
+      .toList();
+
+  /// A List of all implemented coins.
+  static final List<CryptoCurrency> all = [
     Bitcoin(CryptoCurrencyNetwork.main),
     BitcoinFrost(CryptoCurrencyNetwork.main),
     Litecoin(CryptoCurrencyNetwork.main),
@@ -54,7 +42,7 @@ class Coins {
   ];
 
   static CryptoCurrency getCryptoCurrencyFor(String coinIdentifier) =>
-      cryptocurrencies.firstWhere(
+      all.firstWhere(
         (e) => e.identifier == coinIdentifier,
       );
 
@@ -63,7 +51,7 @@ class Coins {
     bool caseInsensitive = true,
   }) {
     final _ticker = caseInsensitive ? ticker.toLowerCase() : ticker;
-    return cryptocurrencies.firstWhere(
+    return all.firstWhere(
       caseInsensitive
           ? (e) => e.ticker.toLowerCase() == _ticker && e is! FrostCurrency
           : (e) => e.ticker == _ticker && e is! FrostCurrency,
@@ -75,7 +63,7 @@ class Coins {
   static CryptoCurrency getCryptoCurrencyByPrettyName(final String prettyName) {
     final name = prettyName.replaceAll(" ", "").toLowerCase();
     try {
-      return cryptocurrencies.firstWhere(
+      return all.firstWhere(
         (e) => e.identifier.toLowerCase() == name || e.prettyName == prettyName,
       );
     } catch (_) {

@@ -30,7 +30,7 @@ class PriceService extends ChangeNotifier {
 
   Timer? _timer;
   final Map<CryptoCurrency, Tuple2<Decimal, double>> _cachedPrices = {
-    for (final coin in Coins.cryptocurrencies) coin: Tuple2(Decimal.zero, 0.0)
+    for (final coin in Coins.enabled) coin: Tuple2(Decimal.zero, 0.0),
   };
 
   final Map<String, Tuple2<Decimal, double>> _cachedTokenPrices = {};

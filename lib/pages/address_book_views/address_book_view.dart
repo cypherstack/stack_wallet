@@ -26,7 +26,6 @@ import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
@@ -67,7 +66,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     ref.refresh(addressBookFilterProvider);
 
     if (widget.coin == null) {
-      final coins = [...Coins.cryptocurrencies];
+      final coins = [...Coins.enabled];
       coins.removeWhere(
         (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
       );

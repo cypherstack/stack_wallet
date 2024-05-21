@@ -27,7 +27,7 @@ final pAllWalletsInfoByCoin = Provider((ref) {
   }
 
   final List<({CryptoCurrency coin, List<WalletInfo> wallets})> results = [];
-  for (final coin in Coins.cryptocurrencies) {
+  for (final coin in Coins.enabled) {
     if (map[coin] != null) {
       results.add(map[coin]!);
     }
@@ -42,7 +42,14 @@ final _pAllWalletsInfo = ChangeNotifierProvider((ref) {
   if (_globalInstance == null) {
     final isar = ref.watch(mainDBProvider).isar;
     _globalInstance = _WalletInfoWatcher(
-      isar.walletInfo.where().findAllSync(),
+      isar.walletInfo
+          .where()
+          .filter()
+          .anyOf<String, CryptoCurrency>(
+            Coins.enabled.map((e) => e.identifier),
+            (q, element) => q.coinNameMatches(element),
+          )
+          .findAllSync(),
       isar,
     );
   }
@@ -60,7 +67,15 @@ class _WalletInfoWatcher extends ChangeNotifier {
   _WalletInfoWatcher(this._value, Isar isar) {
     _streamSubscription =
         isar.walletInfo.watchLazy(fireImmediately: true).listen((event) {
-      isar.walletInfo.where().findAll().then((value) {
+      isar.walletInfo
+          .where()
+          .filter()
+          .anyOf<String, CryptoCurrency>(
+            Coins.enabled.map((e) => e.identifier),
+            (q, element) => q.coinNameMatches(element),
+          )
+          .findAll()
+          .then((value) {
         _value = value;
         notifyListeners();
       });
