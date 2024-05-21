@@ -7,7 +7,7 @@ usage() {
 }
 
 # Check if no arguments are provided.
-if [ $# -eq 0 ]; then
+if [ -z "$VERSION" ] || [ -z "$BUILD_NUMBER" ]; then
     usage
 fi
 
