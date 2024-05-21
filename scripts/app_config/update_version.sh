@@ -35,7 +35,7 @@ if [ -z "$VERSION" ]; then
     VERSION="$CURRENT_VERSION_NUMBER"
 fi
 
-# If build number is not provided, increment the current build number by one.
+# If build number is not provided or is empty, increment the current build number by one.
 if [ -z "$BUILD_NUMBER" ]; then
     BUILD_NUMBER=$((CURRENT_BUILD_NUMBER + 1))
 fi
