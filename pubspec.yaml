@@ -197,21 +197,6 @@ dev_dependencies:
   flutter_lints: ^3.0.1
   isar_generator: 3.0.5
 
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: assets/icon/icon.png
-  image_path_android: assets/icon/app_icon_alpha.png
-  image_path_ios: assets/icon/icon.png
-  remove_alpha_ios: true
-  windows:
-    generate: true
-    image_path: assets/icon/icon.png
-    icon_size: 48 # min:48, max:256, default: 48
-  macos:
-    generate: true
-    image_path: assets/icon/macos-icon.png
-
 flutter_native_splash:
   image: assets/icon/splash.png
   color: "F7F7F7"
