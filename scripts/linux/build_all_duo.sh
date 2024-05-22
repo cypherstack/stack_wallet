@@ -2,8 +2,6 @@
 
 set -x -e
 
-../app_config/configure_duo.sh
-
 # Configure Linux for Duo.
 sed -i "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../linux/CMakeLists.txt
 sed -i "s/${ORIGINAL_NAME}/${NEW_NAME}/g" ../../linux/my_application.cc

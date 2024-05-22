@@ -2,8 +2,6 @@
 
 set -x -e
 
-../app_config/configure_duo.sh
-
 # Configure Windows for Duo.
 sed -i 's/Stack Wallet/Stack Duo/g' ../../windows/runner/Runner.rc
 

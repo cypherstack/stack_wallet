@@ -2,8 +2,6 @@
 
 set -x -e
 
-../app_config/configure_duo.sh
-
 # Configure macOS for Duo.
 sed -i '' 's/com.cypherstack.stackWallet/com.cypherstack.stackDuo/g' ../../macos/Runner.xcodeproj/project.pbxproj
 

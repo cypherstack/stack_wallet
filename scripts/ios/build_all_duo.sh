@@ -2,8 +2,6 @@
 
 set -x -e
 
-../app_config/configure_duo.sh
-
 # Configure ios for Duo.
 sed -i '' "s/${ORIGINAL_NAME}/${NEW_NAME}/g" ../../ios/Runner/Info.plist
 sed -i '' "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../ios/Runner.xcodeproj/project.pbxproj

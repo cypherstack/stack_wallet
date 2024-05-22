@@ -7,18 +7,12 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-
 SELECT_ASSETS_DIR=$1
 
-# set project root
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-pushd "${SCRIPT_DIR}/../../../"
-PROJECT_ROOT="$(pwd)"
-popd
-
 # declare full paths
-ASSET_SOURCES_DIR="${PROJECT_ROOT}/asset_sources"
-ASSETS_DIR="${PROJECT_ROOT}/assets"
+ASSET_SOURCES_DIR="${APP_PROJECT_ROOT_DIR}/asset_sources"
+ASSETS_DIR="${APP_PROJECT_ROOT_DIR}/assets"
+
 
 # finally update symlinks
 
