@@ -1,10 +1,15 @@
 #!/bin/bash
 
+set -x -e
+
 # Function to display usage.
 usage() {
     echo "Usage: $0 [-v <version>] [-b <build_number>]"
     exit 1
 }
+
+unset -v VERSION
+unset -v BUILD_NUMBER
 
 # Check if no arguments are provided.
 if [ $# -ne 4 ]; then # if [ -z "$VERSION" ] || [ -z "$BUILD_NUMBER" ]; then
@@ -21,7 +26,7 @@ while getopts "v:b:" opt; do
 done
 
 # Define the pubspec.yaml file path.
-PUBSPEC_FILE="../../pubspec.yaml"
+PUBSPEC_FILE="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
 
 # Ensure the pubspec.yaml file exists.
 if [ ! -f "$PUBSPEC_FILE" ]; then
@@ -29,24 +34,13 @@ if [ ! -f "$PUBSPEC_FILE" ]; then
     exit 1
 fi
 
-# Extract the current version and build number from pubspec.yaml.
-CURRENT_VERSION_LINE=$(grep "^version:" "$PUBSPEC_FILE")
-CURRENT_VERSION=$(echo "$CURRENT_VERSION_LINE" | cut -d ' ' -f 2)
-CURRENT_VERSION_NUMBER=$(echo "$CURRENT_VERSION" | cut -d '+' -f 1)
-CURRENT_BUILD_NUMBER=$(echo "$CURRENT_VERSION" | cut -d '+' -f 2)
-
-# If version is not provided, use the current version number.
-if [ -z "$VERSION" ]; then
-    VERSION="$CURRENT_VERSION_NUMBER"
+if [[ "$(uname)" == 'Darwin' ]]; then
+  # macos specific sed
+  sed -i '' "s/PLACEHOLDER_V/$VERSION/g" "${PUBSPEC_FILE}"
+  sed -i '' "s/PLACEHOLDER_B/$BUILD_NUMBER/g" "${PUBSPEC_FILE}"
+else
+  sed -i '' "s/PLACEHOLDER_V/$VERSION/g" "${PUBSPEC_FILE}"
+  sed -i '' "s/PLACEHOLDER_B/$BUILD_NUMBER/g" "${PUBSPEC_FILE}"
 fi
-
-# If build number is not provided or is empty, increment the current build number by one.
-if [ -z "$BUILD_NUMBER" ]; then
-    BUILD_NUMBER=$((CURRENT_BUILD_NUMBER + 1))
-fi
-
-# Update the version and build number in pubspec.yaml.
-TMP_FILE=$(mktemp)
-sed "s/^version: .*/version: $VERSION+$BUILD_NUMBER/" "$PUBSPEC_FILE" > "$TMP_FILE" && mv "$TMP_FILE" "$PUBSPEC_FILE"
 
 echo "Updated $PUBSPEC_FILE with version: $VERSION and build number: $BUILD_NUMBER"
