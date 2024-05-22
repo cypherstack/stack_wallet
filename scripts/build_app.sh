@@ -13,26 +13,48 @@ usage() {
     exit 1
 }
 
-# check for required number of args
-if [ $# -ne 8 ]; then
-    usage
-fi
-
+# required args
 unset -v APP_VERSION_STRING
 unset -v APP_BUILD_NUMBER
 unset -v APP_BUILD_PLATFORM
 unset -v APP_NAMED_ID
 
+# optional args (with defaults)
+BUILD_CRYPTO_PLUGINS=0
+
 # Parse command-line arguments.
-while getopts "v:b:p:a:" opt; do
-    case "$opt" in
+while getopts "v:b:p:a:i" opt; do
+    case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
         p) APP_BUILD_PLATFORM="$OPTARG" ;;
         a) APP_NAMED_ID="$OPTARG" ;;
+        i) BUILD_CRYPTO_PLUGINS=1 ;;
         *) usage ;;
     esac
 done
+
+if [ -z "$APP_VERSION_STRING" ]; then
+  echo "Missing -v option"
+  usage
+fi
+
+if [ -z "$APP_BUILD_NUMBER" ]; then
+  echo "Missing -b option"
+  usage
+fi
+
+if [ -z "$APP_BUILD_PLATFORM" ]; then
+  echo "Missing -p option"
+  usage
+fi
+
+if [ -z "$APP_NAMED_ID" ]; then
+  echo "Missing -a option"
+  usage
+fi
+
+
 
 if printf '%s\0' "${APP_PLATFORMS[@]}" | grep -Fxqz -- "${APP_BUILD_PLATFORM}"; then
     pushd "${APP_PROJECT_ROOT_DIR}/scripts/${APP_BUILD_PLATFORM}"
@@ -51,13 +73,15 @@ else
     exit 1
 fi
 
-if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then
-    ./build_all.sh
-elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
-    ./build_all_duo.sh
-else
-    echo "Invalid app id: ${APP_NAMED_ID}"
-    exit 1
+if [ "$BUILD_CRYPTO_PLUGINS" -eq 0 ]; then
+    if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then
+        ./build_all.sh
+    elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
+        ./build_all_duo.sh
+    else
+        echo "Invalid app id: ${APP_NAMED_ID}"
+        exit 1
+    fi
 fi
 
 popd
