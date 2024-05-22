@@ -276,7 +276,7 @@ flutter:
 
     # lottie animations
     # basic
-    - assets/lottie/test2_sw.json
+    - assets/lottie/loader.json
     - assets/lottie/icon_send.json
     - assets/lottie/loader_and_checkmark.json
     - assets/lottie/arrow_rotate.json

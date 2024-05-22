@@ -49,6 +49,7 @@ test/services/coins/particl/particl_wallet_test_parameters.dart
 # asset symlinks
 /assets/default_themes
 /assets/icon
+/assets/lottie
 
 # other
 coverage
