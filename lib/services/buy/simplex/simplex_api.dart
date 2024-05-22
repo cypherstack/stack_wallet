@@ -12,6 +12,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/order.dart';
@@ -19,7 +20,6 @@ import 'package:stackwallet/models/buy/response_objects/quote.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/enums/fiat_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
@@ -405,7 +405,7 @@ bool isStackCoin(String? ticker) {
   if (ticker == null) return false;
 
   try {
-    Coins.getCryptoCurrencyForTicker(ticker);
+    AppConfig.getCryptoCurrencyForTicker(ticker);
     return true;
   } on ArgumentError catch (_) {
     return false;

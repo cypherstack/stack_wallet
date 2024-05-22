@@ -42,6 +42,8 @@ else
 fi
 
 if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
+    # shellcheck disable=SC1090
+    source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/update_version.sh" -v "${APP_VERSION_STRING}" -b "${APP_BUILD_NUMBER}"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}"
 else
@@ -52,7 +54,6 @@ fi
 if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then
     ./build_all.sh
 elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
-    "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_duo.sh"
     ./build_all_duo.sh
 else
     echo "Invalid app id: ${APP_NAMED_ID}"

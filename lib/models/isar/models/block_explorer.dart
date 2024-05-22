@@ -9,7 +9,7 @@
  */
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 part 'block_explorer.g.dart';
@@ -31,7 +31,7 @@ class TransactionBlockExplorer {
   @ignore
   CryptoCurrency? get coin {
     try {
-      return Coins.getCryptoCurrencyForTicker(ticker);
+      return AppConfig.getCryptoCurrencyForTicker(ticker);
     } catch (_) {
       return null;
     }

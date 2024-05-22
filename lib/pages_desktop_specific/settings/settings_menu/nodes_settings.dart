@@ -16,7 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -39,7 +39,7 @@ class NodesSettings extends ConsumerStatefulWidget {
 }
 
 class _NodesSettings extends ConsumerState<NodesSettings> {
-  List<CryptoCurrency> _coins = [...Coins.enabled];
+  List<CryptoCurrency> _coins = [...AppConfig.coins];
 
   late final TextEditingController searchNodeController;
   late final FocusNode searchNodeFocusNode;

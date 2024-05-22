@@ -12,11 +12,11 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -26,7 +26,6 @@ import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/animated_text.dart';
 import 'package:stackwallet/widgets/conditional_parent.dart';
@@ -94,7 +93,7 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         int decimals;
                         try {
-                          decimals = Coins.getCryptoCurrencyForTicker(
+                          decimals = AppConfig.getCryptoCurrencyForTicker(
                             receivingCurrency.ticker,
                           ).fractionDigits;
                         } catch (_) {
@@ -113,7 +112,7 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         CryptoCurrency? coin;
                         try {
-                          coin = Coins.getCryptoCurrencyForTicker(
+                          coin = AppConfig.getCryptoCurrencyForTicker(
                             receivingCurrency.ticker,
                           );
                         } catch (_) {

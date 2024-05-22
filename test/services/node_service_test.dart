@@ -4,7 +4,7 @@ import 'package:hive_test/hive_test.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
@@ -112,7 +112,7 @@ void main() {
       await service.updateDefaults();
       expect(
         service.nodes.length,
-        Coins.enabled.map((e) => e.defaultNode).length,
+        AppConfig.coins.map((e) => e.defaultNode).length,
       );
       expect(fakeStore.interactions, 0);
     });
@@ -205,7 +205,7 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.nodes;
-      final defaults = Coins.enabled.map((e) => e.defaultNode).toList();
+      final defaults = AppConfig.coins.map((e) => e.defaultNode).toList();
 
       nodes.sort((a, b) => a.id.compareTo(b.id));
       defaults.sort((a, b) => a.id.compareTo(b.id));
@@ -221,7 +221,7 @@ void main() {
       await service.add(nodeA, null, true);
       expect(
         service.nodes.length,
-        Coins.enabled.map((e) => e.defaultNode).length + 1,
+        AppConfig.coins.map((e) => e.defaultNode).length + 1,
       );
       expect(fakeStore.interactions, 0);
     });
@@ -232,7 +232,7 @@ void main() {
       await service.add(nodeA, "some password", true);
       expect(
         service.nodes.length,
-        Coins.enabled.map((e) => e.defaultNode).length + 1,
+        AppConfig.coins.map((e) => e.defaultNode).length + 1,
       );
       expect(fakeStore.interactions, 1);
       expect(fakeStore.writes, 1);
@@ -290,7 +290,7 @@ void main() {
 
         expect(
           service.nodes.length,
-          Coins.enabled.map((e) => e.defaultNode).length + 2,
+          AppConfig.coins.map((e) => e.defaultNode).length + 2,
         );
         expect(
           service.nodes.where((element) => element.id == nodeB.id).length,

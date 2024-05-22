@@ -10,6 +10,7 @@
 
 import 'package:hive/hive.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/db/migrate_wallets_to_isar.dart';
@@ -26,15 +27,11 @@ import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/mixins/wallet_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/constants.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
@@ -560,7 +557,7 @@ class DbVersionMigrator with WalletDB {
 
       final count = await MainDB.instance.getTransactions(walletId).count();
 
-      final crypto = Coins.getCryptoCurrencyFor(info.coinIdentifier);
+      final crypto = AppConfig.getCryptoCurrencyFor(info.coinIdentifier);
 
       for (var i = 0; i < count; i += 50) {
         final txns = await MainDB.instance

@@ -9,7 +9,7 @@
  */
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 part 'contact_entry.g.dart';
@@ -37,7 +37,7 @@ class ContactEntry {
   @ignore
   List<ContactAddressEntry> get addressesSorted {
     final List<ContactAddressEntry> sorted = [];
-    for (final coin in Coins.enabled) {
+    for (final coin in AppConfig.coins) {
       final slice = addresses.where((e) => e.coin == coin).toList();
       if (slice.isNotEmpty) {
         slice.sort(
@@ -102,7 +102,7 @@ class ContactAddressEntry {
   late final String? other;
 
   @ignore
-  CryptoCurrency get coin => Coins.getCryptoCurrencyFor(coinName);
+  CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName);
 
   ContactAddressEntry();
 

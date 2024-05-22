@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
@@ -21,7 +22,6 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -129,7 +129,7 @@ class NotificationsService extends ChangeNotifier {
     for (final notification in _watchedTransactionNotifications) {
       try {
         final CryptoCurrency coin =
-            Coins.getCryptoCurrencyByPrettyName(notification.coinName);
+            AppConfig.getCryptoCurrencyByPrettyName(notification.coinName);
         final txid = notification.txid!;
         final wallet = Wallets.sharedInstance.getWallet(notification.walletId);
 

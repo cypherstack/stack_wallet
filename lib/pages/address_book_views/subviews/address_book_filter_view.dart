@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/text_styles.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -40,7 +40,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
 
   @override
   void initState() {
-    final coins = [...Coins.enabled];
+    final coins = [...AppConfig.coins];
     coins.removeWhere(
       (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
     );

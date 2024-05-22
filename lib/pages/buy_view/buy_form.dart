@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
 import 'package:stackwallet/models/buy/response_objects/fiat.dart';
 import 'package:stackwallet/models/buy/response_objects/quote.dart';
@@ -30,7 +31,6 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/buy/buy_response.dart';
 import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -413,7 +413,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     if (ticker == null) return false;
 
     try {
-      Coins.getCryptoCurrencyForTicker(ticker);
+      AppConfig.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -1168,7 +1168,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                     text: "Choose from Stack",
                     onTap: () {
                       try {
-                        final coin = Coins.getCryptoCurrencyForTicker(
+                        final coin = AppConfig.getCryptoCurrencyForTicker(
                           selectedCrypto!.ticker,
                         );
                         Navigator.of(context)
@@ -1331,7 +1331,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                         ),
                                         Expanded(
                                           child: AddressBookAddressChooser(
-                                            coin: Coins.enabled.firstWhere(
+                                            coin: AppConfig.coins.firstWhere(
                                               (e) =>
                                                   e.ticker.toLowerCase() ==
                                                   selectedCrypto!.ticker

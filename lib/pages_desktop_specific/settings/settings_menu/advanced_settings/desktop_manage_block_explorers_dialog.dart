@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -39,7 +39,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final coins = Coins.enabled
+    final coins = AppConfig.coins
         .where(
           (e) => showTestNet || e.network == CryptoCurrencyNetwork.main,
         )

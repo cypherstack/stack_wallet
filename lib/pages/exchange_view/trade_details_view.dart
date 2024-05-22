@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
@@ -33,7 +34,6 @@ import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -88,9 +88,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   bool isStackCoin(String ticker) {
     try {
       try {
-        Coins.getCryptoCurrencyForTicker(ticker);
+        AppConfig.getCryptoCurrencyForTicker(ticker);
       } catch (_) {}
-      Coins.getCryptoCurrencyByPrettyName(ticker);
+      AppConfig.getCryptoCurrencyByPrettyName(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -279,11 +279,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       onPressed: () {
                         CryptoCurrency coin;
                         try {
-                          coin = Coins.getCryptoCurrencyForTicker(
+                          coin = AppConfig.getCryptoCurrencyForTicker(
                             trade.payInCurrency,
                           );
                         } catch (_) {
-                          coin = Coins.getCryptoCurrencyByPrettyName(
+                          coin = AppConfig.getCryptoCurrencyByPrettyName(
                             trade.payInCurrency,
                           );
                         }
@@ -379,7 +379,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             builder: (context) {
                               String text;
                               try {
-                                final coin = Coins.getCryptoCurrencyForTicker(
+                                final coin =
+                                    AppConfig.getCryptoCurrencyForTicker(
                                   trade.payInCurrency,
                                 );
                                 final amount = sendAmount.toAmount(
@@ -628,7 +629,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       text: "View transaction",
                       onTap: () {
                         final CryptoCurrency coin =
-                            Coins.getCryptoCurrencyForTicker(
+                            AppConfig.getCryptoCurrencyForTicker(
                           trade.payInCurrency,
                         );
 
@@ -1381,11 +1382,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 onPressed: () {
                   CryptoCurrency coin;
                   try {
-                    coin = Coins.getCryptoCurrencyForTicker(
+                    coin = AppConfig.getCryptoCurrencyForTicker(
                       trade.payInCurrency,
                     );
                   } catch (_) {
-                    coin = Coins.getCryptoCurrencyByPrettyName(
+                    coin = AppConfig.getCryptoCurrencyByPrettyName(
                       trade.payInCurrency,
                     );
                   }

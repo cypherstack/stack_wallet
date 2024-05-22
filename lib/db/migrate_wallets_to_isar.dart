@@ -2,16 +2,12 @@ import 'dart:convert';
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -171,8 +167,8 @@ Future<void> migrateWalletsToIsar({
       coinName: old.coinIdentifier,
       walletId: old.walletId,
       name: old.name,
-      mainAddressType: Coins.getCryptoCurrencyFor(old.coinIdentifier)
-          .primaryAddressType,
+      mainAddressType:
+          AppConfig.getCryptoCurrencyFor(old.coinIdentifier).primaryAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
       cachedChainHeight: walletBox.get(
             DBKeys.storedChainHeight,

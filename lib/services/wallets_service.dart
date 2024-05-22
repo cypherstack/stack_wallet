@@ -11,8 +11,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/logger.dart';
 
 @Deprecated("Legacy support only. Do not use.")
@@ -90,7 +90,7 @@ class WalletsService extends ChangeNotifier {
     mapped.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
       try {
-        Coins.getCryptoCurrencyFor(jsonObject["coin"] as String);
+        AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
         Logging.instance.log(

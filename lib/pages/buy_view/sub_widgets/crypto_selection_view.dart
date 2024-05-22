@@ -13,8 +13,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/buy/response_objects/crypto.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -70,7 +70,7 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
     coins.sort(
       (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()),
     );
-    for (final coin in Coins.enabled.reversed) {
+    for (final coin in AppConfig.coins.reversed) {
       final index = coins.indexWhere(
         (element) => element.ticker.toLowerCase() == coin.ticker.toLowerCase(),
       );
@@ -270,7 +270,7 @@ bool isStackCoin(String? ticker) {
   if (ticker == null) return false;
 
   try {
-    Coins.getCryptoCurrencyForTicker(ticker);
+    AppConfig.getCryptoCurrencyForTicker(ticker);
     return true;
   } on ArgumentError catch (_) {
     return false;
@@ -305,7 +305,7 @@ class CoinIconForTicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     try {
-      final coin = Coins.getCryptoCurrencyForTicker(ticker);
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
       return SvgPicture.file(
         File(
           ref.watch(coinIconProvider(coin)),
@@ -326,7 +326,7 @@ class CoinIconForTicker extends ConsumerWidget {
 // }) {
 //   String? iconAsset = /*isStackCoin(ticker)
 //       ?*/
-//       Assets.svg.iconFor(coin: SupportedCoins.getCryptoCurrencyForTicker(ticker));
+//       Assets.svg.iconFor(coin: SupportedAppConfig.getCryptoCurrencyForTicker(ticker));
 //   // : Assets.svg.buyIconFor(ticker);
 //   return (iconAsset != null)
 //       ? SvgPicture.asset(iconAsset, height: size, width: size)

@@ -28,7 +28,7 @@ import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/e
 import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -63,10 +63,10 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   String _searchTerm = "";
 
   final _coinsTestnet = [
-    ...Coins.enabled.where((e) => e.network == CryptoCurrencyNetwork.test),
+    ...AppConfig.coins.where((e) => e.network == CryptoCurrencyNetwork.test),
   ];
   final _coins = [
-    ...Coins.enabled.where((e) => e.network == CryptoCurrencyNetwork.main),
+    ...AppConfig.coins.where((e) => e.network == CryptoCurrencyNetwork.main),
   ];
   final List<AddWalletListEntity> coinEntities = [];
   final List<EthTokenEntity> tokenEntities = [];
@@ -147,7 +147,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       coinEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
     }
 
-    if (Coins.enabled.whereType<Ethereum>().isNotEmpty) {
+    if (AppConfig.coins.whereType<Ethereum>().isNotEmpty) {
       final contracts =
           MainDB.instance.getEthContracts().sortByName().findAllSync();
 

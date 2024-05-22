@@ -26,7 +26,6 @@ import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dia
 import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
@@ -73,7 +72,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   bool _isWalletCoinAndHasWallet(String ticker, WidgetRef ref) {
     try {
-      final coin = Coins.getCryptoCurrencyForTicker(ticker);
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
       return ref
           .read(pWallets)
           .wallets
@@ -851,8 +850,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                         .useMaterialPageRoute,
                                                 builder:
                                                     (BuildContext context) {
-                                                  final coin =
-                                                      Coins.enabled.firstWhere(
+                                                  final coin = AppConfig.coins
+                                                      .firstWhere(
                                                     (e) =>
                                                         e.ticker
                                                             .toLowerCase() ==

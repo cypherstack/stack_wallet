@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/isar_id_interface.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
@@ -96,7 +96,7 @@ class WalletInfo implements IsarId {
   }
 
   @ignore
-  CryptoCurrency get coin => Coins.getCryptoCurrencyFor(coinName);
+  CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName);
 
   @ignore
   Balance get cachedBalance {
@@ -407,7 +407,7 @@ class WalletInfo implements IsarId {
     this.cachedBalanceTertiaryString,
     this.otherDataJsonString,
   }) : assert(
-          Coins.enabled.map((e) => e.identifier).contains(coinName),
+          AppConfig.coins.map((e) => e.identifier).contains(coinName),
         );
 
   WalletInfo copyWith({
@@ -464,7 +464,7 @@ class WalletInfo implements IsarId {
     Map<String, dynamic> jsonObject,
     AddressType mainAddressType,
   ) {
-    final coin = Coins.getCryptoCurrencyFor(
+    final coin = AppConfig.getCryptoCurrencyFor(
       jsonObject["coin"] as String,
     );
     return WalletInfo(

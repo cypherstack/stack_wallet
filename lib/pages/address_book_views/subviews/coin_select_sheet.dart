@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/coin_image_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -27,7 +27,7 @@ class CoinSelectSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
-    final coins_ = [...Coins.enabled];
+    final coins_ = [...AppConfig.coins];
     coins_.removeWhere(
       (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
     );

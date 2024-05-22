@@ -11,13 +11,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/contact_address_entry.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_choose_from_stack.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import 'package:stackwallet/providers/exchange/exchange_send_from_wallet_id_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -59,7 +59,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   bool isStackCoin(String ticker) {
     try {
-      Coins.getCryptoCurrencyForTicker(ticker);
+      AppConfig.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -68,7 +68,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   void selectRecipientAddressFromStack() async {
     try {
-      final coin = Coins.getCryptoCurrencyForTicker(
+      final coin = AppConfig.getCryptoCurrencyForTicker(
         ref.read(desktopExchangeModelProvider)!.receiveTicker,
       );
 
@@ -101,7 +101,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   void selectRefundAddressFromStack() async {
     try {
-      final coin = Coins.getCryptoCurrencyForTicker(
+      final coin = AppConfig.getCryptoCurrencyForTicker(
         ref.read(desktopExchangeModelProvider)!.sendTicker,
       );
 
@@ -131,7 +131,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   }
 
   void selectRecipientFromAddressBook() async {
-    final coin = Coins.getCryptoCurrencyForTicker(
+    final coin = AppConfig.getCryptoCurrencyForTicker(
       ref.read(desktopExchangeModelProvider)!.receiveTicker,
     );
 
@@ -178,7 +178,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   }
 
   void selectRefundFromAddressBook() async {
-    final coin = Coins.getCryptoCurrencyForTicker(
+    final coin = AppConfig.getCryptoCurrencyForTicker(
       ref.read(desktopExchangeModelProvider)!.sendTicker,
     );
 

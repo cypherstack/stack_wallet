@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -44,7 +44,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final _coins = Coins.enabled
+    final _coins = AppConfig.coins
         .where((e) => e is! Firo && e.network != CryptoCurrencyNetwork.test)
         .toList();
 

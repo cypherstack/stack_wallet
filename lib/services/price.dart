@@ -13,10 +13,10 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -48,7 +48,7 @@ class PriceAPI {
   ) async {
     final Map<String, dynamic> map = {};
 
-    for (final coin in Coins.enabled) {
+    for (final coin in AppConfig.coins) {
       final entry = data[coin];
       if (entry == null) {
         map[coin.prettyName] = ["0", 0.0];
@@ -68,11 +68,11 @@ class PriceAPI {
             {};
     // init with 0
     final result = {
-      for (final coin in Coins.enabled) coin: Tuple2(Decimal.zero, 0.0),
+      for (final coin in AppConfig.coins) coin: Tuple2(Decimal.zero, 0.0),
     };
 
     for (final entry in map.entries) {
-      result[Coins.getCryptoCurrencyByPrettyName(
+      result[AppConfig.getCryptoCurrencyByPrettyName(
         entry.key as String,
       )] = Tuple2(
         Decimal.parse(entry.value[0] as String),
@@ -125,7 +125,7 @@ class PriceAPI {
 
       for (final map in coinGeckoData) {
         final String coinName = map["name"] as String;
-        final coin = Coins.getCryptoCurrencyByPrettyName(coinName);
+        final coin = AppConfig.getCryptoCurrencyByPrettyName(coinName);
 
         final price = Decimal.parse(map["current_price"].toString());
         final change24h = map["price_change_percentage_24h"] != null

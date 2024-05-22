@@ -13,14 +13,13 @@ import 'dart:isolate';
 import 'package:cw_core/wallet_info.dart' as xmr;
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 class DB {
@@ -164,7 +163,7 @@ class DB {
     names.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
       try {
-        Coins.getCryptoCurrencyFor(jsonObject["coin"] as String);
+        AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
         Logging.instance.log(

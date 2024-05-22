@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
 import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
@@ -19,7 +20,6 @@ import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_3_view.
 import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
@@ -72,7 +72,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   bool isStackCoin(String ticker) {
     try {
-      Coins.getCryptoCurrencyForTicker(ticker);
+      AppConfig.getCryptoCurrencyForTicker(ticker);
       return true;
     } on ArgumentError catch (_) {
       return false;
@@ -207,7 +207,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                   text: "Choose from Stack",
                                   onTap: () {
                                     try {
-                                      final coin = Coins.enabled.firstWhere(
+                                      final coin = AppConfig.coins.firstWhere(
                                         (e) =>
                                             e.ticker.toLowerCase() ==
                                             model.receiveTicker.toLowerCase(),
@@ -493,7 +493,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                     text: "Choose from Stack",
                                     onTap: () {
                                       try {
-                                        final coin = Coins.enabled.firstWhere(
+                                        final coin = AppConfig.coins.firstWhere(
                                           (e) =>
                                               e.ticker.toLowerCase() ==
                                               model.sendTicker.toLowerCase(),

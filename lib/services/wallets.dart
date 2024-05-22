@@ -18,7 +18,7 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -400,7 +400,7 @@ class Wallets {
         .where()
         .filter()
         .anyOf<String, CryptoCurrency>(
-          Coins.enabled.map((e) => e.identifier),
+          AppConfig.coins.map((e) => e.identifier),
           (q, element) => q.coinNameMatches(element),
         )
         .findAll();

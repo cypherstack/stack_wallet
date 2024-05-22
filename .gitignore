@@ -63,3 +63,4 @@ libtor_ffi.dll
 flutter_libsparkmobile.dll
 secp256k1.dll
 /libisar.so
+/lib/app_config.g.dart

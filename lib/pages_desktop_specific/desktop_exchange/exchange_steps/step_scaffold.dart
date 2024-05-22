@@ -28,7 +28,6 @@ import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
 import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -194,7 +193,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   void sendFromStack() {
     final trade = ref.read(desktopExchangeModelProvider)!.trade!;
     final address = trade.payInAddress;
-    final coin = Coins.getCryptoCurrencyForTicker(trade.payInCurrency);
+    final coin = AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency);
     final amount = Decimal.parse(trade.payInAmount).toAmount(
       fractionDigits: coin.fractionDigits,
     );

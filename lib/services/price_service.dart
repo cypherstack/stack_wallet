@@ -17,7 +17,7 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/price.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
@@ -30,7 +30,7 @@ class PriceService extends ChangeNotifier {
 
   Timer? _timer;
   final Map<CryptoCurrency, Tuple2<Decimal, double>> _cachedPrices = {
-    for (final coin in Coins.enabled) coin: Tuple2(Decimal.zero, 0.0),
+    for (final coin in AppConfig.coins) coin: Tuple2(Decimal.zero, 0.0),
   };
 
   final Map<String, Tuple2<Decimal, double>> _cachedTokenPrices = {};

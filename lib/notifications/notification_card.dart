@@ -13,9 +13,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -44,7 +44,8 @@ class NotificationCard extends ConsumerWidget {
 
   String coinIconPath(IThemeAssets assets, WidgetRef ref) {
     try {
-      final coin = Coins.getCryptoCurrencyByPrettyName(notification.coinName);
+      final coin =
+          AppConfig.getCryptoCurrencyByPrettyName(notification.coinName);
       return ref.read(coinIconProvider(coin));
     } catch (_) {
       return notification.iconAssetName;

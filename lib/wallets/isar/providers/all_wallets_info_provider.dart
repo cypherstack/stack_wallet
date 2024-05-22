@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 
@@ -27,7 +27,7 @@ final pAllWalletsInfoByCoin = Provider((ref) {
   }
 
   final List<({CryptoCurrency coin, List<WalletInfo> wallets})> results = [];
-  for (final coin in Coins.enabled) {
+  for (final coin in AppConfig.coins) {
     if (map[coin] != null) {
       results.add(map[coin]!);
     }
@@ -46,7 +46,7 @@ final _pAllWalletsInfo = ChangeNotifierProvider((ref) {
           .where()
           .filter()
           .anyOf<String, CryptoCurrency>(
-            Coins.enabled.map((e) => e.identifier),
+            AppConfig.coins.map((e) => e.identifier),
             (q, element) => q.coinNameMatches(element),
           )
           .findAllSync(),
@@ -71,7 +71,7 @@ class _WalletInfoWatcher extends ChangeNotifier {
           .where()
           .filter()
           .anyOf<String, CryptoCurrency>(
-            Coins.enabled.map((e) => e.identifier),
+            AppConfig.coins.map((e) => e.identifier),
             (q, element) => q.coinNameMatches(element),
           )
           .findAll()

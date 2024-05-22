@@ -16,7 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/assets.dart';
@@ -72,7 +72,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
 
     final List<CryptoCurrency> coins = [];
 
-    for (final coin in Coins.enabled) {
+    for (final coin in AppConfig.coins) {
       if (contact.addresses.where((e) => e.coin == coin).isNotEmpty) {
         coins.add(coin);
       }

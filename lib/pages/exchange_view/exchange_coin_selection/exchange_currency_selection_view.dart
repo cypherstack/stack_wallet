@@ -22,7 +22,7 @@ import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
 import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/assets.dart';
 import 'package:stackwallet/utilities/constants.dart';
@@ -365,7 +365,7 @@ class _ExchangeCurrencySelectionViewState
           Flexible(
             child: Builder(
               builder: (context) {
-                final coins = Coins.enabled.where(
+                final coins = AppConfig.coins.where(
                   (e) =>
                       e.ticker.toLowerCase() !=
                       widget.pairedTicker?.toLowerCase(),

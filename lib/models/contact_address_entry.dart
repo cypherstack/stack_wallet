@@ -10,7 +10,7 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 @Deprecated("Use lib/models/isar/models/contact_entry.dart instead")
@@ -43,7 +43,7 @@ class ContactAddressEntry {
 
   factory ContactAddressEntry.fromJson(Map<String, dynamic> jsonObject) {
     return ContactAddressEntry(
-      coin: Coins.getCryptoCurrencyFor(jsonObject["coin"] as String),
+      coin: AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String),
       address: jsonObject["address"] as String,
       label: jsonObject["label"] as String,
       other: jsonObject["other"] as String?,

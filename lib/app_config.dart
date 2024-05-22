@@ -1,34 +1,43 @@
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
+
+part 'app_config.g.dart';
 
 abstract class AppConfig {
-  static const appName = prefix + _separator + suffix;
+  static const appName = _prefix + _separator + suffix;
 
-  static const prefix = "Stack";
+  static const prefix = _prefix;
+  static const suffix = _suffix;
 
-  static const _separator = " ";
+  static List<CryptoCurrency> get coins => _supportedCoins;
 
-  static const suffix = "Wallet";
+  static CryptoCurrency getCryptoCurrencyFor(String coinIdentifier) =>
+      coins.firstWhere(
+        (e) => e.identifier == coinIdentifier,
+      );
 
-  // comment out coins to disable them
-  static const supportedCoins = [
-    Bitcoin,
-    BitcoinFrost,
-    Litecoin,
-    Bitcoincash,
-    Dogecoin,
-    Epiccash,
-    Ecash,
-    Ethereum,
-    Firo,
-    Monero,
-    Particl,
-    Peercoin,
-    Solana,
-    Stellar,
-    Tezos,
-    Wownero,
-    Namecoin,
-    Nano,
-    Banano,
-  ];
+  static CryptoCurrency getCryptoCurrencyForTicker(
+    final String ticker, {
+    bool caseInsensitive = true,
+  }) {
+    final _ticker = caseInsensitive ? ticker.toLowerCase() : ticker;
+    return coins.firstWhere(
+      caseInsensitive
+          ? (e) => e.ticker.toLowerCase() == _ticker && e is! FrostCurrency
+          : (e) => e.ticker == _ticker && e is! FrostCurrency,
+    );
+  }
+
+  /// Fuzzy logic. Use with caution!!
+  @Deprecated("dangerous")
+  static CryptoCurrency getCryptoCurrencyByPrettyName(final String prettyName) {
+    final name = prettyName.replaceAll(" ", "").toLowerCase();
+    try {
+      return coins.firstWhere(
+        (e) => e.identifier.toLowerCase() == name || e.prettyName == prettyName,
+      );
+    } catch (_) {
+      throw Exception("getCryptoCurrencyByPrettyName($prettyName) failed!");
+    }
+  }
 }

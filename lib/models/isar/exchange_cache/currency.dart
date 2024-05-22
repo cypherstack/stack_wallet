@@ -9,8 +9,8 @@
  */
 
 import 'package:isar/isar.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/supported_coins.dart';
 
 part 'currency.g.dart';
 
@@ -161,7 +161,7 @@ class Currency {
 
   static bool checkIsStackCoin(String ticker) {
     try {
-      Coins.getCryptoCurrencyForTicker(ticker);
+      AppConfig.getCryptoCurrencyForTicker(ticker);
       return true;
     } catch (_) {
       return false;

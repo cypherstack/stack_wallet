@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 
@@ -20,7 +20,7 @@ class _Watcher extends ChangeNotifier {
     _streamSubscription = isar.walletInfo
         .filter()
         .anyOf<String, CryptoCurrency>(
-          Coins.enabled.map((e) => e.identifier),
+          AppConfig.coins.map((e) => e.identifier),
           (q, element) => q.coinNameMatches(element),
         )
         .isFavouriteEqualTo(isFavourite)
@@ -47,7 +47,7 @@ final _wiProvider = ChangeNotifierProvider.family<_Watcher, bool>(
       isar.walletInfo
           .filter()
           .anyOf<String, CryptoCurrency>(
-            Coins.enabled.map((e) => e.identifier),
+            AppConfig.coins.map((e) => e.identifier),
             (q, element) => q.coinNameMatches(element),
           )
           .isFavouriteEqualTo(isFavourite)

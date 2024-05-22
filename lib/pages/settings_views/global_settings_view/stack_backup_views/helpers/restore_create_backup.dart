@@ -16,6 +16,7 @@ import 'dart:typed_data';
 import 'package:frostdart/frostdart.dart' as frost;
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
@@ -33,7 +34,6 @@ import 'package:stackwallet/services/trade_notes_service.dart';
 import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
 import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
@@ -774,7 +774,7 @@ abstract class SWB {
         return false;
       }
 
-      final coin = Coins.getCryptoCurrencyFor(
+      final coin = AppConfig.getCryptoCurrencyFor(
         walletbackup['coinName'] as String,
       );
 
@@ -1036,7 +1036,7 @@ abstract class SWB {
       for (final node in primaryNodes) {
         try {
           await nodeService.setPrimaryNodeFor(
-            coin: Coins.getCryptoCurrencyByPrettyName(
+            coin: AppConfig.getCryptoCurrencyByPrettyName(
               node['coinName'] as String,
             ),
             node: nodeService.getNodeById(id: node['id'] as String)!,
@@ -1226,7 +1226,7 @@ abstract class SWB {
       for (final node in primaryNodes) {
         try {
           await nodeService.setPrimaryNodeFor(
-            coin: Coins.getCryptoCurrencyByPrettyName(
+            coin: AppConfig.getCryptoCurrencyByPrettyName(
               node['coinName'] as String,
             ),
             node: nodeService.getNodeById(id: node['id'] as String)!,

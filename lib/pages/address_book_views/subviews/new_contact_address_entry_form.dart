@@ -19,7 +19,7 @@ import 'package:stackwallet/pages/address_book_views/subviews/coin_select_sheet.
 import 'package:stackwallet/providers/providers.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
@@ -73,7 +73,7 @@ class _NewContactAddressEntryFormState
       ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
     addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
-    coins = [...Coins.enabled];
+    coins = [...AppConfig.coins];
     super.initState();
   }
 
@@ -90,7 +90,7 @@ class _NewContactAddressEntryFormState
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
     if (isDesktop) {
-      coins = [...Coins.enabled];
+      coins = [...AppConfig.coins];
       coins.removeWhere(
         (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
       );

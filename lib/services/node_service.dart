@@ -12,9 +12,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/supported_coins.dart';
 import 'package:stackwallet/utilities/default_nodes.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -31,7 +31,7 @@ class NodeService extends ChangeNotifier {
   });
 
   Future<void> updateDefaults() async {
-    for (final defaultNode in Coins.enabled.map(
+    for (final defaultNode in AppConfig.coins.map(
       (e) => e.defaultNode,
     )) {
       final savedNode = DB.instance
@@ -39,7 +39,7 @@ class NodeService extends ChangeNotifier {
       if (savedNode == null) {
         // save the default node to hive only if no other nodes for the specific coin exist
         if (getNodesFor(
-          Coins.getCryptoCurrencyByPrettyName(
+          AppConfig.getCryptoCurrencyByPrettyName(
             defaultNode.coinName,
           ),
         ).isEmpty) {
@@ -64,7 +64,8 @@ class NodeService extends ChangeNotifier {
 
       // check if a default node is the primary node for the crypto currency
       // and update it if needed
-      final coin = Coins.getCryptoCurrencyByPrettyName(defaultNode.coinName);
+      final coin =
+          AppConfig.getCryptoCurrencyByPrettyName(defaultNode.coinName);
       final primaryNode = getPrimaryNodeFor(currency: coin);
       if (primaryNode != null && primaryNode.id == defaultNode.id) {
         await setPrimaryNodeFor(
@@ -205,7 +206,7 @@ class NodeService extends ChangeNotifier {
     bool shouldNotifyListeners,
   ) async {
     // check if the node being edited is the primary one; if it is, setPrimaryNodeFor coin
-    final coin = Coins.getCryptoCurrencyByPrettyName(editedNode.coinName);
+    final coin = AppConfig.getCryptoCurrencyByPrettyName(editedNode.coinName);
     final primaryNode = getPrimaryNodeFor(currency: coin);
     if (primaryNode?.id == editedNode.id) {
       await setPrimaryNodeFor(
@@ -238,7 +239,7 @@ class NodeService extends ChangeNotifier {
       final map = jsonDecode(result as String);
       Logging.instance.log(map, level: LogLevel.Info);
 
-      for (final coin in Coins.enabled) {
+      for (final coin in AppConfig.coins) {
         final nodeList = List<Map<String, dynamic>>.from(
           map["nodes"][coin.identifier] as List? ?? [],
         );

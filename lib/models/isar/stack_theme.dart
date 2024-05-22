@@ -13,7 +13,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/supported_coins.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
 import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
 import 'package:stackwallet/utilities/extensions/impl/string.dart';
@@ -1878,7 +1878,7 @@ class StackTheme {
 
     final Map<String, Color> result = {};
 
-    for (final mainNetId in Coins.enabled.map((e) => e.mainNetId)) {
+    for (final mainNetId in AppConfig.coins.map((e) => e.mainNetId)) {
       if (map[mainNetId] is String) {
         result[mainNetId] = Color(
           (map[mainNetId] as String).toBigIntFromHex.toInt(),
@@ -2196,7 +2196,7 @@ class ThemeAssetsV2 implements IThemeAssets {
 
     final Map<String, String> result = {};
 
-    for (final coin in Coins.enabled) {
+    for (final coin in AppConfig.coins) {
       result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
     }
 
@@ -2531,7 +2531,7 @@ class ThemeAssetsV3 implements IThemeAssets {
 
     final Map<String, String> result = {};
 
-    for (final coin in Coins.enabled) {
+    for (final coin in AppConfig.coins) {
       result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
       result[coin.mainNetId] = prependIfNeeded(result[coin.mainNetId]!);
     }
