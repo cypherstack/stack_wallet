@@ -2,8 +2,6 @@
 
 set -x -e
 
-source ./env.sh
-
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <theme specific assets dir name (ex. stack_wallet)>"
     exit 1

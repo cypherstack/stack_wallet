@@ -2,8 +2,6 @@
 
 set -x -e
 
-source ./env.sh
-
 # run icon and image generators
 pushd "${APP_PROJECT_ROOT_DIR}"
 flutter pub get
