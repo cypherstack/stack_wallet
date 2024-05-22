@@ -39,8 +39,8 @@ if [[ "$(uname)" == 'Darwin' ]]; then
   sed -i '' "s/PLACEHOLDER_V/$VERSION/g" "${PUBSPEC_FILE}"
   sed -i '' "s/PLACEHOLDER_B/$BUILD_NUMBER/g" "${PUBSPEC_FILE}"
 else
-  sed -i '' "s/PLACEHOLDER_V/$VERSION/g" "${PUBSPEC_FILE}"
-  sed -i '' "s/PLACEHOLDER_B/$BUILD_NUMBER/g" "${PUBSPEC_FILE}"
+  sed -i "s/PLACEHOLDER_V/$VERSION/g" "${PUBSPEC_FILE}"
+  sed -i "s/PLACEHOLDER_B/$BUILD_NUMBER/g" "${PUBSPEC_FILE}"
 fi
 
 echo "Updated $PUBSPEC_FILE with version: $VERSION and build number: $BUILD_NUMBER"
