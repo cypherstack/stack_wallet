@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
@@ -158,7 +159,7 @@ class _StartupPreferencesViewState
                                                   textAlign: TextAlign.left,
                                                 ),
                                                 Text(
-                                                  "Stack Wallet home screen",
+                                                  "${AppConfig.appName} home screen",
                                                   style:
                                                       STextStyles.itemSubtitle(
                                                           context),

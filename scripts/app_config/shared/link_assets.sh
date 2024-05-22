@@ -24,6 +24,3 @@ ln -s "${ASSET_SOURCES_DIR}/icon/${SELECT_ASSETS_DIR}" "${ASSETS_DIR}/icon"
 
 rm -f "${ASSETS_DIR}/lottie"
 ln -s "${ASSET_SOURCES_DIR}/lottie/${SELECT_ASSETS_DIR}" "${ASSETS_DIR}/lottie"
-
-# run icon and image generators
-"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh"

@@ -2,10 +2,6 @@
 
 set -x -e
 
-# Configure ios for Duo.
-sed -i '' "s/${ORIGINAL_NAME}/${NEW_NAME}/g" ../../ios/Runner/Info.plist
-sed -i '' "s/${ORIGINAL_APP_ID}/${NEW_APP_ID}/g" ../../ios/Runner.xcodeproj/project.pbxproj
-
 # todo: revisit following at some point
 
 # libepiccash requires old rust

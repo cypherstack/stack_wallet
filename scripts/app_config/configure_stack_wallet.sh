@@ -4,22 +4,23 @@ set -x -e
 
 # Configure files for Stack Wallet.
 
-# currently unused
-#export APP_NAME="Stack Wallet"
-#export APP_ID="com.cypherstack.stackwallet"
+export NEW_NAME="Stack Wallet"
+export NEW_APP_ID="com.cypherstack.stackwallet"
+export NEW_APP_ID_CAMEL="com.cypherstack.stackWallet"
+export NEW_APP_ID_SNAKE="com.cypherstack.stack_wallet"
+export NEW_BASIC_NAME="stack_wallet"
 
+NEW_PUBSPEC_NAME="stackwallet"
 PUBSPEC_FILE="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
-PUBSPEC_NAME="stackwallet"
-PUBSPEC_DESC="Stack Wallet"
 
 # String replacements.
 if [[ "$(uname)" == 'Darwin' ]]; then
   # macos specific sed
-  sed -i '' "s/name: PLACEHOLDER/name: ${PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i '' "s/description: PLACEHOLDER/description: ${PUBSPEC_DESC}/g" "${PUBSPEC_FILE}"
+  sed -i '' "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
+  sed -i '' "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
 else
-  sed -i "s/name: PLACEHOLDER/name: ${PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i "s/description: PLACEHOLDER/description: ${PUBSPEC_DESC}/g" "${PUBSPEC_FILE}"
+  sed -i "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
+  sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
 fi
 
 

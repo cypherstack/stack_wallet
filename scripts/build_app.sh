@@ -54,8 +54,7 @@ if [ -z "$APP_NAMED_ID" ]; then
   usage
 fi
 
-
-
+# checks for the correct platform dir and pushes it for later
 if printf '%s\0' "${APP_PLATFORMS[@]}" | grep -Fxqz -- "${APP_BUILD_PLATFORM}"; then
     pushd "${APP_PROJECT_ROOT_DIR}/scripts/${APP_BUILD_PLATFORM}"
 else
@@ -63,15 +62,20 @@ else
     usage
 fi
 
+# apply config project wide change changes
 if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
-    # shellcheck disable=SC1090
-    source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/update_version.sh" -v "${APP_VERSION_STRING}" -b "${APP_BUILD_NUMBER}"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}"
+    # shellcheck disable=SC1090
+    source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh"
+    "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 else
     echo "Invalid app id: ${APP_NAMED_ID}"
     exit 1
 fi
+
+# run icon and image generators after project config has completed
+"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh"
 
 if [ "$BUILD_CRYPTO_PLUGINS" -eq 0 ]; then
     if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then

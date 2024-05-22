@@ -1,4 +1,4 @@
-package com.cypherstack.stackwallet
+package com.place.holder
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterFragmentActivity

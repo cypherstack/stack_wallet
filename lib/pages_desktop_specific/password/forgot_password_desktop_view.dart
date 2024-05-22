@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -73,7 +74,7 @@ class _ForgotPasswordDesktopViewState
                   height: 42,
                 ),
                 Text(
-                  "Stack Wallet",
+                  AppConfig.appName,
                   style: STextStyles.desktopH1(context),
                 ),
                 const SizedBox(
@@ -82,7 +83,7 @@ class _ForgotPasswordDesktopViewState
                 SizedBox(
                   width: 400,
                   child: Text(
-                    "Stack Wallet does not store your password. Create new wallet or use a Stack backup file to restore your wallet.",
+                    "${AppConfig.appName} does not store your password. Create new wallet or use a Stack backup file to restore your wallet.",
                     textAlign: TextAlign.center,
                     style: STextStyles.desktopTextSmall(context).copyWith(
                       color: Theme.of(context)
