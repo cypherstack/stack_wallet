@@ -2,6 +2,8 @@
 
 set -x -e
 
+source ./env.sh
+
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <theme specific assets dir name (ex. stack_wallet)>"
     exit 1
@@ -22,8 +24,5 @@ ln -s "${ASSET_SOURCES_DIR}/bundled_themes/${SELECT_ASSETS_DIR}" "${ASSETS_DIR}/
 rm -f "${ASSETS_DIR}/icon"
 ln -s "${ASSET_SOURCES_DIR}/icon/${SELECT_ASSETS_DIR}" "${ASSETS_DIR}/icon"
 
-
-
-
-# todo run flutter_native_splash
-# todo run flutter_launcher_icons
+# run icon and image generators
+"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh"

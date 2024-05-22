@@ -2,11 +2,7 @@
 
 set -x -e
 
-# set project root
-THIS_SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-pushd "${THIS_SCRIPT_DIR}/../"
-export APP_PROJECT_ROOT_DIR="$(pwd)"
-popd
+source ./env.sh
 
 APP_PLATFORMS=("android" "ios" "macos" "linux" "windows")
 APP_NAMED_IDS=("stack_wallet" "stack_duo")
