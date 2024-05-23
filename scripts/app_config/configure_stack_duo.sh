@@ -33,6 +33,7 @@ part of 'app_config.dart';
 const _prefix = "Stack";
 const _separator = " ";
 const _suffix = "Duo";
+const _appDataDirName = "stackduo";
 
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoin(CryptoCurrencyNetwork.main),

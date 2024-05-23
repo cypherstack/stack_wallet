@@ -28,6 +28,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:window_size/window_size.dart';
+
 import 'app_config.dart';
 import 'db/db_version_migration.dart';
 import 'db/hive/db.dart';
@@ -75,7 +77,6 @@ import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'widgets/crypto_notifications.dart';
-import 'package:window_size/window_size.dart';
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -87,8 +88,10 @@ void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
-    StackFileSystem.overrideDir = args.last;
+    StackFileSystem.setDesktopOverrideDir(args.last);
   }
+
+  // TODO set external libs file paths (bad external lib design workaround)
 
   final loadCoinlibFuture = loadCoinlib();
 

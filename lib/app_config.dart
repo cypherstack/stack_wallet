@@ -9,6 +9,8 @@ abstract class AppConfig {
   static const prefix = _prefix;
   static const suffix = _suffix;
 
+  static String get appDefaultDataDirName => _appDataDirName;
+
   static List<CryptoCurrency> get coins => _supportedCoins;
 
   static CryptoCurrency getCryptoCurrencyFor(String coinIdentifier) =>

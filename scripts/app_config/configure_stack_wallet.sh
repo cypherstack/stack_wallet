@@ -35,6 +35,7 @@ part of 'app_config.dart';
 const _prefix = "Stack";
 const _separator = " ";
 const _suffix = "Wallet";
+const _appDataDirName = "stackwallet";
 
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoin(CryptoCurrencyNetwork.main),
