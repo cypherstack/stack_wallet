@@ -68,7 +68,7 @@ if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}"
     # shellcheck disable=SC1090
     source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh"
-    "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
+    "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 else
     echo "Invalid app id: ${APP_NAMED_ID}"
     exit 1
