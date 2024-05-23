@@ -14,6 +14,7 @@ import 'dart:math';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:cw_core/node.dart';
+import 'package:cw_core/pathForWallet.dart';
 import 'package:cw_core/unspent_coins_info.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
@@ -91,7 +92,11 @@ void main(List<String> args) async {
     StackFileSystem.setDesktopOverrideDir(args.last);
   }
 
-  // TODO set external libs file paths (bad external lib design workaround)
+  // Tell flutter_libmonero how to get access to the application dir
+  FS.setApplicationRootDirectoryFunction(
+    StackFileSystem.applicationRootDirectory,
+  );
+  // TODO set any other external libs file paths (bad external lib design workaround)
 
   final loadCoinlibFuture = loadCoinlib();
 
