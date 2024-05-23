@@ -9,40 +9,40 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../app_config.dart';
 import '../../db/db_version_migration.dart';
 import '../../db/hive/db.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../desktop_home_view.dart';
-import 'forgot_password_desktop_view.dart';
 import '../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../themes/stack_colors.dart';
-import '../../themes/theme_providers.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/stack_text_field.dart';
+import '../desktop_home_view.dart';
+import 'forgot_password_desktop_view.dart';
 
 class DesktopLoginView extends ConsumerStatefulWidget {
   const DesktopLoginView({
-    Key? key,
+    super.key,
     this.startupWalletId,
     this.load,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/desktopLogin";
 
@@ -187,14 +187,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SvgPicture.file(
-                  File(
-                    ref.watch(
-                      themeProvider.select(
-                        (value) => value.assets.stackIcon,
-                      ),
-                    ),
-                  ),
+                const AppIcon(
                   width: 100,
                 ),
                 const SizedBox(

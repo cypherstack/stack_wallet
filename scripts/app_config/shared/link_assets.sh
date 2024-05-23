@@ -24,3 +24,6 @@ ln -s "${ASSET_SOURCES_DIR}/icon/${SELECT_ASSETS_DIR}" "${ASSETS_DIR}/icon"
 
 rm -f "${ASSETS_DIR}/lottie"
 ln -s "${ASSET_SOURCES_DIR}/lottie/${SELECT_ASSETS_DIR}" "${ASSETS_DIR}/lottie"
+
+rm -f "${ASSETS_DIR}/in_app_logo_icons"
+ln -s "${ASSET_SOURCES_DIR}/in_app_logo_icons/${SELECT_ASSETS_DIR}" "${ASSETS_DIR}/in_app_logo_icons"

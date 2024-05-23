@@ -37,6 +37,8 @@ const _separator = " ";
 const _suffix = "Wallet";
 const _appDataDirName = "stackwallet";
 
+const ({String light, String dark})? _appIconAsset = null;
+
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoin(CryptoCurrencyNetwork.main),
   BitcoinFrost(CryptoCurrencyNetwork.main),

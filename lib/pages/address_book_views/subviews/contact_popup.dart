@@ -14,25 +14,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../models/send_view_auto_fill_data.dart';
 import '../../../notifications/show_flush_bar.dart';
-import 'contact_details_view.dart';
-import '../../exchange_view/exchange_step_views/step_2_view.dart';
-import '../../send_view/send_view.dart';
 import '../../../providers/global/active_wallet_provider.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
-import '../../../themes/theme_providers.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
+import '../../exchange_view/exchange_step_views/step_2_view.dart';
+import '../../send_view/send_view.dart';
+import 'contact_details_view.dart';
 
 final exchangeFromAddressBookAddressStateProvider =
     StateProvider<String>((ref) => "");
@@ -117,16 +118,8 @@ class ContactPopUp extends ConsumerWidget {
                                         borderRadius: BorderRadius.circular(32),
                                       ),
                                       child: contact.customId == "default"
-                                          ? Center(
-                                              child: SvgPicture.file(
-                                                File(
-                                                  ref.watch(
-                                                    themeProvider.select(
-                                                      (value) => value
-                                                          .assets.stackIcon,
-                                                    ),
-                                                  ),
-                                                ),
+                                          ? const Center(
+                                              child: AppIcon(
                                                 width: 20,
                                               ),
                                             )

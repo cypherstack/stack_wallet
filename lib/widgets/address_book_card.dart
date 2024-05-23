@@ -8,33 +8,32 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../app_config.dart';
 import '../models/isar/models/contact_entry.dart';
 import '../pages/address_book_views/subviews/contact_popup.dart';
 import '../providers/global/address_book_service_provider.dart';
-import '../app_config.dart';
 import '../themes/stack_colors.dart';
-import '../themes/theme_providers.dart';
 import '../utilities/assets.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import 'app_icon.dart';
 import 'conditional_parent.dart';
 import 'expandable.dart';
 import 'rounded_white_container.dart';
 
 class AddressBookCard extends ConsumerStatefulWidget {
   const AddressBookCard({
-    Key? key,
+    super.key,
     required this.contactId,
     this.indicatorDown,
     this.desktopSendFrom = true,
-  }) : super(key: key);
+  });
 
   final String contactId;
   final ExpandableState? indicatorDown;
@@ -104,15 +103,8 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
               borderRadius: BorderRadius.circular(32),
             ),
             child: contact.customId == "default"
-                ? Center(
-                    child: SvgPicture.file(
-                      File(
-                        ref.watch(
-                          themeProvider.select(
-                            (value) => value.assets.stackIcon,
-                          ),
-                        ),
-                      ),
+                ? const Center(
+                    child: AppIcon(
                       width: 20,
                     ),
                   )

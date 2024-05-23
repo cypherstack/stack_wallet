@@ -14,20 +14,22 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../app_config.dart';
-import 'stack_privacy_calls.dart';
 import '../pages_desktop_specific/password/create_password_view.dart';
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
 import '../utilities/prefs.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
+import '../widgets/app_icon.dart';
 import '../widgets/background.dart';
 import '../widgets/desktop/secondary_button.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'stack_privacy_calls.dart';
 
 class IntroView extends ConsumerStatefulWidget {
-  const IntroView({Key? key}) : super(key: key);
+  const IntroView({super.key});
 
   static const String routeName = "/introView";
 
@@ -132,18 +134,10 @@ class _IntroViewState extends ConsumerState<IntroView> {
                       const Spacer(
                         flex: 2,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 130,
                         height: 130,
-                        child: SvgPicture.file(
-                          File(
-                            ref.watch(
-                              themeProvider.select(
-                                (value) => value.assets.stackIcon,
-                              ),
-                            ),
-                          ),
-                        ),
+                        child: AppIcon(),
                       ),
                       const Spacer(
                         flex: 42,

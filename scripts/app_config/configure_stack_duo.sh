@@ -35,6 +35,11 @@ const _separator = " ";
 const _suffix = "Duo";
 const _appDataDirName = "stackduo";
 
+const ({String light, String dark})? _appIconAsset = (
+  light: "assets/in_app_logo_icons/stack-duo-icon_light.svg",
+  dark: "assets/in_app_logo_icons/stack-duo-icon_dark.svg",
+);
+
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoin(CryptoCurrencyNetwork.main),
   Monero(CryptoCurrencyNetwork.main),

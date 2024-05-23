@@ -11,6 +11,8 @@ abstract class AppConfig {
 
   static String get appDefaultDataDirName => _appDataDirName;
 
+  static ({String light, String dark})? get appIconAsset => _appIconAsset;
+
   static List<CryptoCurrency> get coins => _supportedCoins;
 
   static CryptoCurrency? getCryptoCurrencyFor(String coinIdentifier) {

@@ -8,26 +8,24 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
+
 import '../../app_config.dart';
-import 'delete_password_warning_view.dart';
 import '../../themes/stack_colors.dart';
-import '../../themes/theme_providers.dart';
 import '../../utilities/text_styles.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import 'delete_password_warning_view.dart';
 
 class ForgotPasswordDesktopView extends ConsumerStatefulWidget {
   const ForgotPasswordDesktopView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/forgotPasswordDesktop";
 
@@ -60,14 +58,7 @@ class _ForgotPasswordDesktopViewState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SvgPicture.file(
-                  File(
-                    ref.watch(
-                      themeProvider.select(
-                        (value) => value.assets.stackIcon,
-                      ),
-                    ),
-                  ),
+                const AppIcon(
                   width: 100,
                 ),
                 const SizedBox(

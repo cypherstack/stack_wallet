@@ -8,21 +8,20 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../../../models/isar/exchange_cache/currency.dart';
 import '../../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../../themes/stack_colors.dart';
-import '../../../../themes/theme_providers.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../widgets/app_icon.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -35,7 +34,7 @@ class AddTokenListElementData {
 }
 
 class AddTokenListElement extends ConsumerStatefulWidget {
-  const AddTokenListElement({Key? key, required this.data}) : super(key: key);
+  const AddTokenListElement({super.key, required this.data});
 
   final AddTokenListElementData data;
 
@@ -79,14 +78,7 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
                       currency.image,
                       width: iconSize,
                       height: iconSize,
-                      placeholderBuilder: (_) => SvgPicture.file(
-                        File(
-                          ref.watch(
-                            themeAssetsProvider.select(
-                              (value) => value.stackIcon,
-                            ),
-                          ),
-                        ),
+                      placeholderBuilder: (_) => AppIcon(
                         width: iconSize,
                         height: iconSize,
                       ),

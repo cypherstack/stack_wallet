@@ -8,18 +8,16 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import '../../themes/theme_providers.dart';
+
+import '../app_icon.dart';
 
 class LivingStackIcon extends ConsumerStatefulWidget {
   const LivingStackIcon({
-    Key? key,
+    super.key,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressed;
 
@@ -59,15 +57,7 @@ class _LivingStackIconState extends ConsumerState<LivingStackIcon> {
           child: AnimatedScale(
             duration: const Duration(milliseconds: 200),
             scale: _hovering ? 1.2 : 1,
-            child: SvgPicture.file(
-              File(
-                ref.watch(
-                  themeProvider.select(
-                    (value) => value.assets.stackIcon,
-                  ),
-                ),
-              ),
-            ),
+            child: const AppIcon(),
           ),
         ),
       ),

@@ -10,10 +10,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/isar/stack_theme.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 import 'stack_colors.dart';
 import 'theme_service.dart';
-import '../wallets/crypto_currency/crypto_currency.dart';
 
 final applicationThemesDirectoryPathProvider = StateProvider((ref) => "");
 

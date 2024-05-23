@@ -254,6 +254,7 @@ flutter:
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg
   assets:
+    - assets/in_app_logo_icons/
     - assets/images/
     - assets/icon/
     - google_fonts/

@@ -14,14 +14,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../app_config.dart';
-import '../buy_view/buy_view.dart';
-import '../exchange_view/exchange_view.dart';
-import 'sub_widgets/home_view_button_bar.dart';
-import '../notification_views/notifications_view.dart';
-import '../settings_views/global_settings_view/global_settings_view.dart';
-import '../settings_views/global_settings_view/hidden_settings.dart';
-import '../wallets_view/wallets_view.dart';
 import '../../providers/global/notifications_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
@@ -32,13 +26,21 @@ import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
+import '../../widgets/app_icon.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
+import '../buy_view/buy_view.dart';
+import '../exchange_view/exchange_view.dart';
+import '../notification_views/notifications_view.dart';
+import '../settings_views/global_settings_view/global_settings_view.dart';
+import '../settings_views/global_settings_view/hidden_settings.dart';
+import '../wallets_view/wallets_view.dart';
+import 'sub_widgets/home_view_button_bar.dart';
 
 class HomeView extends ConsumerStatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+  const HomeView({super.key});
 
   static const routeName = "/home";
 
@@ -183,14 +185,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 GestureDetector(
                   onTap: _hiddenOptions,
                   child: RotateIcon(
-                    icon: SvgPicture.file(
-                      File(
-                        ref.watch(
-                          themeProvider.select(
-                            (value) => value.assets.stackIcon,
-                          ),
-                        ),
-                      ),
+                    icon: const AppIcon(
                       width: 24,
                       height: 24,
                     ),
