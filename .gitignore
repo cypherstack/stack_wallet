@@ -88,3 +88,8 @@ secp256k1.dll
 /macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme
 /macos/Runner.xcodeproj/project.pbxproj
 /macos/Runner/Assets.xcassets/AppIcon.appiconset
+
+/windows/runner/Runner.rc
+/windows/runner/main.cpp
+/windows/CMakeLists.txt
+/windows/runner/resources/app_icon.ico
