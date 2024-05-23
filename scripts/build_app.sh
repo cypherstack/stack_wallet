@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x -e
+set -e
 
 source ./env.sh
 
@@ -11,6 +11,18 @@ APP_NAMED_IDS=("stack_wallet" "stack_duo")
 usage() {
     echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app>"
     exit 1
+}
+
+confirmDisclaimer() {
+    while true; do
+        # shellcheck disable=SC2162
+        read -p "Please confirm you understand that when using certain values for <version> and <build_number> there is a chance that the resulting app WILL DELETE CRITICAL WALLET DATA. Are you sure you want to continue? (yes/no): " response
+        case $response in
+            [Yy][Ee][Ss] ) echo "Continuing..."; break;;
+            [Nn][Oo] ) exit 0;;
+            * ) echo "Invalid response";;
+        esac
+    done
 }
 
 # required args
@@ -53,6 +65,9 @@ if [ -z "$APP_NAMED_ID" ]; then
   echo "Missing -a option"
   usage
 fi
+
+confirmDisclaimer
+set -x
 
 # checks for the correct platform dir and pushes it for later
 if printf '%s\0' "${APP_PLATFORMS[@]}" | grep -Fxqz -- "${APP_BUILD_PLATFORM}"; then

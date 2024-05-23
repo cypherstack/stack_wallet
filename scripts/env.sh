@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x -e
+set -e
 
 # set project root
 THIS_SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
