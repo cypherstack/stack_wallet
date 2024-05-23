@@ -2,26 +2,25 @@ import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/node_model.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
 
-export 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/nano.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/peercoin.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/stellar.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/tezos.dart';
-export 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
-export 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+export 'coins/banano.dart';
+export 'coins/bitcoin.dart';
+export 'coins/bitcoin_frost.dart';
+export 'coins/bitcoincash.dart';
+export 'coins/dogecoin.dart';
+export 'coins/ecash.dart';
+export 'coins/epiccash.dart';
+export 'coins/ethereum.dart';
+export 'coins/firo.dart';
+export 'coins/litecoin.dart';
+export 'coins/monero.dart';
+export 'coins/namecoin.dart';
+export 'coins/nano.dart';
+export 'coins/particl.dart';
+export 'coins/peercoin.dart';
+export 'coins/solana.dart';
+export 'coins/stellar.dart';
+export 'coins/tezos.dart';
+export 'coins/wownero.dart';
 
 enum CryptoCurrencyNetwork {
   main,
