@@ -88,13 +88,15 @@ if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
     # shellcheck disable=SC1090
     source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
+
+    if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
+        # run icon and image generators after project config has completed for non linux
+        "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh" "${APP_BUILD_PLATFORM}"
+    fi
 else
     echo "Invalid app id: ${APP_NAMED_ID}"
     exit 1
 fi
-
-# run icon and image generators after project config has completed
-"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh"
 
 if [ "$BUILD_CRYPTO_PLUGINS" -eq 0 ]; then
     if [[ "$APP_NAMED_ID" = "stack_wallet" ]]; then

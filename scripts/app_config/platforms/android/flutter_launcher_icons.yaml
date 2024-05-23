@@ -9,19 +9,13 @@ flutter_launcher_icons:
   # adaptive_icon_foreground: "assets/icon/foreground.png"
   adaptive_icon_monochrome: "assets/icon/app_icon_alpha.png"
 
-  ios: true
-  image_path_ios: "assets/icon/icon.png"
-  remove_alpha_ios: true
+  ios: false
 
   web:
     generate: false
-    image_path: "assets/icon/icon.png"
 
   windows:
-    generate: true
-    image_path: "assets/icon/icon.png"
-    icon_size: 48 # min:48, max:256, default: 48
+    generate: false
 
   macos:
-    generate: true
-    image_path: assets/icon/macos-icon.png
+    generate: false

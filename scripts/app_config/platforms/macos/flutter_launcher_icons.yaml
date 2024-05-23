@@ -1,0 +1,15 @@
+# flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  android: false
+
+  ios: false
+
+  web:
+    generate: false
+
+  windows:
+    generate: false
+
+  macos:
+    generate: true
+    image_path: assets/icon/macos-icon.png
