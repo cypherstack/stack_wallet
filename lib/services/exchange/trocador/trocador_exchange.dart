@@ -11,6 +11,9 @@
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../../app_config.dart';
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../models/exchange/response_objects/estimate.dart';
 import '../../../models/exchange/response_objects/range.dart';
@@ -22,7 +25,6 @@ import '../exchange_response.dart';
 import 'response_objects/trocador_coin.dart';
 import 'response_objects/trocador_quote.dart';
 import 'trocador_api.dart';
-import 'package:uuid/uuid.dart';
 
 class TrocadorExchange extends Exchange {
   TrocadorExchange._();
@@ -117,7 +119,8 @@ class TrocadorExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(
-      bool fixedRate) async {
+    bool fixedRate,
+  ) async {
     _cachedCurrencies ??= (await TrocadorAPI.getCoins(isOnion: false)).value;
 
     _cachedCurrencies?.removeWhere((e) => e.network != onlySupportedNetwork);
@@ -132,7 +135,7 @@ class TrocadorExchange extends Exchange {
             image: e.image,
             isFiat: false,
             rateType: SupportedRateType.both,
-            isStackCoin: Currency.checkIsStackCoin(e.ticker),
+            isStackCoin: AppConfig.isStackCoin(e.ticker),
             tokenContract: null,
             isAvailable: true,
           ),
@@ -267,7 +270,9 @@ class TrocadorExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-      String forCurrency, bool fixedRate) async {
+    String forCurrency,
+    bool fixedRate,
+  ) async {
     // TODO: implement getPairedCurrencies
     throw UnimplementedError();
   }

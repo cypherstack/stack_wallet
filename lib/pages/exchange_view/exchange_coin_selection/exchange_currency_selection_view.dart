@@ -13,16 +13,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
+import '../../../app_config.dart';
 import '../../../exceptions/exchange/unsupported_currency_exception.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
-import '../../buy_view/sub_widgets/crypto_selection_view.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../../../services/exchange/trocador/trocador_exchange.dart';
-import '../../../app_config.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
@@ -41,6 +41,7 @@ import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import '../../buy_view/sub_widgets/crypto_selection_view.dart';
 
 class ExchangeCurrencySelectionView extends StatefulWidget {
   const ExchangeCurrencySelectionView({
@@ -418,27 +419,28 @@ class _ExchangeCurrencySelectionViewState
                                 SizedBox(
                                   width: 24,
                                   height: 24,
-                                  child: isStackCoin(items[index].ticker)
-                                      ? CoinIconForTicker(
-                                          ticker: items[index].ticker,
-                                          size: 24,
-                                        )
-                                      // ? getIconForTicker(
-                                      //     items[index].ticker,
-                                      //     size: 24,
-                                      //   )
-                                      : hasImageUrl
-                                          ? SvgPicture.network(
-                                              items[index].image,
-                                              width: 24,
-                                              height: 24,
-                                              placeholderBuilder: (_) =>
-                                                  const LoadingIndicator(),
+                                  child:
+                                      AppConfig.isStackCoin(items[index].ticker)
+                                          ? CoinIconForTicker(
+                                              ticker: items[index].ticker,
+                                              size: 24,
                                             )
-                                          : const SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                            ),
+                                          // ? getIconForTicker(
+                                          //     items[index].ticker,
+                                          //     size: 24,
+                                          //   )
+                                          : hasImageUrl
+                                              ? SvgPicture.network(
+                                                  items[index].image,
+                                                  width: 24,
+                                                  height: 24,
+                                                  placeholderBuilder: (_) =>
+                                                      const LoadingIndicator(),
+                                                )
+                                              : const SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                ),
                                 ),
                                 const SizedBox(
                                   width: 10,

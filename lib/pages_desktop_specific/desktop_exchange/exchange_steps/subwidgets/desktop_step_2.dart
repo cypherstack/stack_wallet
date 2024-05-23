@@ -58,15 +58,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   late final FocusNode _toFocusNode;
   late final FocusNode _refundFocusNode;
 
-  bool isStackCoin(String ticker) {
-    try {
-      AppConfig.getCryptoCurrencyForTicker(ticker);
-      return true;
-    } on ArgumentError catch (_) {
-      return false;
-    }
-  }
-
   void selectRecipientAddressFromStack() async {
     try {
       final coin = AppConfig.getCryptoCurrencyForTicker(
@@ -311,7 +302,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                     .textFieldActiveSearchIconRight,
               ),
             ),
-            if (isStackCoin(
+            if (AppConfig.isStackCoin(
               ref.watch(
                 desktopExchangeModelProvider
                     .select((value) => value!.receiveTicker),
@@ -416,7 +407,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                   : const XIcon(),
                             ),
                       if (_toController.text.isEmpty &&
-                          isStackCoin(
+                          AppConfig.isStackCoin(
                             ref.watch(
                               desktopExchangeModelProvider
                                   .select((value) => value!.receiveTicker),
@@ -458,7 +449,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                     .textFieldActiveSearchIconRight,
               ),
             ),
-            if (isStackCoin(
+            if (AppConfig.isStackCoin(
               ref.watch(
                 desktopExchangeModelProvider
                     .select((value) => value!.sendTicker),
@@ -565,7 +556,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                   : const XIcon(),
                             ),
                       if (_refundController.text.isEmpty &&
-                          isStackCoin(
+                          AppConfig.isStackCoin(
                             ref.watch(
                               desktopExchangeModelProvider
                                   .select((value) => value!.sendTicker),

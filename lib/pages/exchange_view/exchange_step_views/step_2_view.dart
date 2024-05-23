@@ -11,13 +11,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
-import '../../address_book_views/address_book_view.dart';
-import '../../address_book_views/subviews/contact_popup.dart';
-import '../choose_from_stack_view.dart';
-import 'step_3_view.dart';
-import '../sub_widgets/step_row.dart';
 import '../../../providers/providers.dart';
 import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../../../themes/stack_colors.dart';
@@ -38,6 +34,11 @@ import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import '../../address_book_views/address_book_view.dart';
+import '../../address_book_views/subviews/contact_popup.dart';
+import '../choose_from_stack_view.dart';
+import '../sub_widgets/step_row.dart';
+import 'step_3_view.dart';
 
 class Step2View extends ConsumerStatefulWidget {
   const Step2View({
@@ -69,15 +70,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
   late final FocusNode _refundFocusNode;
 
   bool enableNext = false;
-
-  bool isStackCoin(String ticker) {
-    try {
-      AppConfig.getCryptoCurrencyForTicker(ticker);
-      return true;
-    } on ArgumentError catch (_) {
-      return false;
-    }
-  }
 
   @override
   void initState() {
@@ -202,7 +194,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 "Recipient Wallet",
                                 style: STextStyles.smallMed12(context),
                               ),
-                              if (isStackCoin(model.receiveTicker))
+                              if (AppConfig.isStackCoin(model.receiveTicker))
                                 CustomTextButton(
                                   text: "Choose from Stack",
                                   onTap: () {
@@ -488,7 +480,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                   "Refund Wallet (required)",
                                   style: STextStyles.smallMed12(context),
                                 ),
-                                if (isStackCoin(model.sendTicker))
+                                if (AppConfig.isStackCoin(model.sendTicker))
                                   CustomTextButton(
                                     text: "Choose from Stack",
                                     onTap: () {

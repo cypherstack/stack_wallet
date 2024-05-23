@@ -86,18 +86,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   late final Transaction? transactionIfSentFromStack;
   late final String? walletId;
 
-  bool isStackCoin(String ticker) {
-    try {
-      try {
-        AppConfig.getCryptoCurrencyForTicker(ticker);
-      } catch (_) {}
-      AppConfig.getCryptoCurrencyByPrettyName(ticker);
-      return true;
-    } on ArgumentError catch (_) {
-      return false;
-    }
-  }
-
   @override
   initState() {
     tradeId = widget.tradeId;
@@ -260,7 +248,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     ),
                   ),
                   if (!hasTx &&
-                      isStackCoin(trade.payInCurrency) &&
+                      AppConfig.isStackCoin(trade.payInCurrency) &&
                       (trade.status == "New" ||
                           trade.status == "new" ||
                           trade.status == "waiting" ||
@@ -269,7 +257,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       height: 32,
                     ),
                   if (!hasTx &&
-                      isStackCoin(trade.payInCurrency) &&
+                      AppConfig.isStackCoin(trade.payInCurrency) &&
                       (trade.status == "New" ||
                           trade.status == "new" ||
                           trade.status == "waiting" ||
@@ -1372,7 +1360,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               ),
             if (!isDesktop &&
                 !hasTx &&
-                isStackCoin(trade.payInCurrency) &&
+                AppConfig.isStackCoin(trade.payInCurrency) &&
                 (trade.status == "New" ||
                     trade.status == "new" ||
                     trade.status == "waiting" ||

@@ -16,17 +16,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+
 import '../../app_config.dart';
 import '../../models/buy/response_objects/crypto.dart';
 import '../../models/buy/response_objects/fiat.dart';
 import '../../models/buy/response_objects/quote.dart';
 import '../../models/contact_address_entry.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../address_book_views/address_book_view.dart';
-import 'buy_quote_preview.dart';
-import 'sub_widgets/crypto_selection_view.dart';
-import 'sub_widgets/fiat_selection_view.dart';
-import '../exchange_view/choose_from_stack_view.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/address_book_address_chooser/address_book_address_chooser.dart';
 import '../../providers/providers.dart';
 import '../../services/buy/buy_response.dart';
@@ -56,6 +52,11 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../address_book_views/address_book_view.dart';
+import '../exchange_view/choose_from_stack_view.dart';
+import 'buy_quote_preview.dart';
+import 'sub_widgets/crypto_selection_view.dart';
+import 'sub_widgets/fiat_selection_view.dart';
 
 class BuyForm extends ConsumerStatefulWidget {
   const BuyForm({
@@ -408,17 +409,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   //
   //   return null;
   // }
-
-  bool isStackCoin(String? ticker) {
-    if (ticker == null) return false;
-
-    try {
-      AppConfig.getCryptoCurrencyForTicker(ticker);
-      return true;
-    } on ArgumentError catch (_) {
-      return false;
-    }
-  }
 
   Future<void> previewQuote(SimplexQuote quote) async {
     bool shouldPop = false;
@@ -1163,7 +1153,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                         Theme.of(context).extension<StackColors>()!.textDark3,
                   ),
                 ),
-                if (isStackCoin(selectedCrypto?.ticker))
+                if (AppConfig.isStackCoin(selectedCrypto?.ticker))
                   CustomTextButton(
                     text: "Choose from Stack",
                     onTap: () {
@@ -1297,7 +1287,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                       : const XIcon(),
                                 ),
                           if (_receiveAddressController.text.isEmpty &&
-                              isStackCoin(selectedCrypto?.ticker) &&
+                              AppConfig.isStackCoin(selectedCrypto?.ticker) &&
                               isDesktop)
                             TextFieldIconButton(
                               key: const Key("buyViewAddressBookButtonKey"),
@@ -1358,7 +1348,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               child: const AddressBookIcon(),
                             ),
                           if (_receiveAddressController.text.isEmpty &&
-                              isStackCoin(selectedCrypto?.ticker) &&
+                              AppConfig.isStackCoin(selectedCrypto?.ticker) &&
                               !isDesktop)
                             TextFieldIconButton(
                               key: const Key("buyViewAddressBookButtonKey"),

@@ -11,6 +11,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../app_config.dart';
 import '../../models/exchange/aggregate_currency.dart';
 import '../../pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import '../../providers/global/locale_provider.dart';
@@ -173,7 +175,8 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                           ),
                           child: Builder(
                             builder: (context) {
-                              if (isStackCoin(widget.currency?.ticker)) {
+                              if (AppConfig.isStackCoin(
+                                  widget.currency?.ticker)) {
                                 return Center(
                                   child: CoinIconForTicker(
                                     size: 18,

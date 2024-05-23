@@ -267,17 +267,6 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
   }
 }
 
-bool isStackCoin(String? ticker) {
-  if (ticker == null) return false;
-
-  try {
-    AppConfig.getCryptoCurrencyForTicker(ticker);
-    return true;
-  } on ArgumentError catch (_) {
-    return false;
-  }
-}
-
 // make a stateless widget that takes in string and double (won't ever be null)
 // class getIconForTicker extends ConsumerWidget{
 //   const getIconForTicker({

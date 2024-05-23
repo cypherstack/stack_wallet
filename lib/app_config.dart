@@ -37,6 +37,23 @@ abstract class AppConfig {
     }
   }
 
+  static bool isStackCoin(String? ticker) {
+    if (ticker == null) {
+      return false;
+    }
+
+    if (getCryptoCurrencyForTicker(ticker, caseInsensitive: false) != null) {
+      return true;
+    }
+
+    try {
+      getCryptoCurrencyByPrettyName(ticker);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Fuzzy logic. Use with caution!!
   @Deprecated("dangerous")
   static CryptoCurrency getCryptoCurrencyByPrettyName(final String prettyName) {

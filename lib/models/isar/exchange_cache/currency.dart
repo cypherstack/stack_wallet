@@ -9,6 +9,7 @@
  */
 
 import 'package:isar/isar.dart';
+
 import '../../../app_config.dart';
 import 'pair.dart';
 
@@ -98,7 +99,7 @@ class Currency {
         rateType: rateType,
         isAvailable: json["isAvailable"] as bool?,
         isStackCoin:
-            json["isStackCoin"] as bool? ?? Currency.checkIsStackCoin(ticker),
+            json["isStackCoin"] as bool? ?? AppConfig.isStackCoin(ticker),
         tokenContract: json["tokenContract"] as String?,
       )..id = json["id"] as int?;
     } catch (e) {
@@ -157,14 +158,5 @@ class Currency {
   @override
   String toString() {
     return "Currency: ${toJson()}";
-  }
-
-  static bool checkIsStackCoin(String ticker) {
-    try {
-      AppConfig.getCryptoCurrencyForTicker(ticker);
-      return true;
-    } catch (_) {
-      return false;
-    }
   }
 }

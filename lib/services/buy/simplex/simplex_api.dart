@@ -12,18 +12,19 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../app_config.dart';
 import '../../../models/buy/response_objects/crypto.dart';
 import '../../../models/buy/response_objects/fiat.dart';
 import '../../../models/buy/response_objects/order.dart';
 import '../../../models/buy/response_objects/quote.dart';
 import '../../../networking/http.dart';
-import '../buy_response.dart';
-import '../../tor_service.dart';
 import '../../../utilities/enums/fiat_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/prefs.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../tor_service.dart';
+import '../buy_response.dart';
 
 class SimplexAPI {
   static const String authority = "buycrypto.stackwallet.com";
@@ -90,7 +91,7 @@ class SimplexAPI {
 
       for (final crypto in jsonArray as List) {
         // TODO validate jsonArray
-        if (isStackCoin("${crypto['ticker_symbol']}")) {
+        if (AppConfig.isStackCoin("${crypto['ticker_symbol']}")) {
           cryptos.add(
             Crypto.fromJson({
               'ticker': "${crypto['ticker_symbol']}",
@@ -399,15 +400,4 @@ class SimplexAPI {
   // See https://github.com/dart-lang/sdk/issues/43391#issuecomment-1229656422
   String timeZoneFormatter(Duration offset) =>
       "${offset.isNegative ? "-" : "+"}${offset.inHours.abs().toString().padLeft(2, "0")}:${(offset.inMinutes - offset.inHours * 60).abs().toString().padLeft(2, "0")}";
-}
-
-bool isStackCoin(String? ticker) {
-  if (ticker == null) return false;
-
-  try {
-    AppConfig.getCryptoCurrencyForTicker(ticker);
-    return true;
-  } on ArgumentError catch (_) {
-    return false;
-  }
 }

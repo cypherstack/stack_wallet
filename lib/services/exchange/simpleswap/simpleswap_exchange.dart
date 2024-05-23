@@ -9,6 +9,8 @@
  */
 
 import 'package:decimal/decimal.dart';
+
+import '../../../app_config.dart';
 import '../../../models/exchange/response_objects/estimate.dart';
 import '../../../models/exchange/response_objects/range.dart';
 import '../../../models/exchange/response_objects/trade.dart';
@@ -76,7 +78,7 @@ class SimpleSwapExchange extends Exchange {
                   ? SupportedRateType.both
                   : SupportedRateType.estimated,
               isAvailable: true,
-              isStackCoin: Currency.checkIsStackCoin(e.symbol),
+              isStackCoin: AppConfig.isStackCoin(e.symbol),
               tokenContract: null,
             ),
           )
