@@ -80,3 +80,6 @@ secp256k1.dll
 /ios/Runner/Info.plist
 /ios/Runner.xcodeproj/project.pbxproj
 /ios/Runner/Assets.xcassets/AppIcon.appiconset
+
+/linux/CMakeLists.txt
+/linux/my_application.cc
