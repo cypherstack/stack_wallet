@@ -69,6 +69,8 @@ secp256k1.dll
 
 ## other generated project files
 
+pubspec.yaml
+
 /android/app/build.gradle
 /android/app/src/debug/AndroidManifest.xml
 /android/app/src/profile/AndroidManifest.xml

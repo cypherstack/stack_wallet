@@ -79,6 +79,10 @@ fi
 
 # apply config project wide change changes
 if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
+    if [ -f "${APP_PROJECT_ROOT_DIR}/pubspec.yaml" ]; then
+      rm "${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
+    fi
+    cp "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/pubspec.yaml" "${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/update_version.sh" -v "${APP_VERSION_STRING}" -b "${APP_BUILD_NUMBER}"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}"
     # shellcheck disable=SC1090
