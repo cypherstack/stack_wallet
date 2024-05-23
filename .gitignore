@@ -50,6 +50,7 @@ test/services/coins/particl/particl_wallet_test_parameters.dart
 /assets/default_themes
 /assets/icon
 /assets/lottie
+/assets/in_app_logo_icons
 
 # other
 coverage
