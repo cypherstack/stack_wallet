@@ -76,3 +76,7 @@ secp256k1.dll
 /android/app/src/main/profile/AndroidManifest.xml
 /android/app/src/main/kotlin/com/cypherstack/stackwallet/MainActivity.kt
 /android/app/src/main/res/**/ic_launcher.png
+
+/ios/Runner/Info.plist
+/ios/Runner.xcodeproj/project.pbxproj
+/ios/Runner/Assets.xcassets/AppIcon.appiconset
