@@ -9,9 +9,9 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
+import '../utilities/enums/stack_restoring_status.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/wallet/wallet.dart';
 
 class WalletRestoreState extends ChangeNotifier {
   final String walletId;

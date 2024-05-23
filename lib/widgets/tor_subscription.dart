@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
+import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../services/event_bus/global_event_bus.dart';
 
 class TorSubscription extends ConsumerStatefulWidget {
   const TorSubscription({

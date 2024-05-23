@@ -1,8 +1,8 @@
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/wallets/isar/isar_id_interface.dart';
+import '../../../models/balance.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../utilities/amount/amount.dart';
+import '../isar_id_interface.dart';
 
 part 'token_wallet_info.g.dart';
 

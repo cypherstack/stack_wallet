@@ -9,15 +9,15 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
+import '../../../models/exchange/change_now/exchange_transaction.dart';
+import '../../../models/exchange/response_objects/estimate.dart';
+import '../../../models/exchange/response_objects/range.dart';
+import '../../../models/exchange/response_objects/trade.dart';
+import '../../../models/isar/exchange_cache/currency.dart';
+import '../../../models/isar/exchange_cache/pair.dart';
+import 'change_now_api.dart';
+import '../exchange.dart';
+import '../exchange_response.dart';
 import 'package:uuid/uuid.dart';
 
 class ChangeNowExchange extends Exchange {

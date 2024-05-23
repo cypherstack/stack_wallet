@@ -1,11 +1,11 @@
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
+import '../../db/isar/main_db.dart';
+import '../../services/node_service.dart';
+import '../../utilities/flutter_secure_storage_interface.dart';
+import '../../utilities/prefs.dart';
+import '../isar/models/frost_wallet_info.dart';
+import '../isar/models/wallet_info.dart';
+import '../wallet/impl/bitcoin_frost_wallet.dart';
+import '../wallet/wallet.dart';
 
 class IncompleteFrostWallet {
   WalletInfo? info;

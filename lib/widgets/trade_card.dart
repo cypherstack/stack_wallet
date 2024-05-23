@@ -14,15 +14,15 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../models/exchange/change_now/exchange_transaction_status.dart';
+import '../models/exchange/response_objects/trade.dart';
+import '../models/isar/stack_theme.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/format.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import 'conditional_parent.dart';
+import 'rounded_white_container.dart';
 
 class TradeCard extends ConsumerWidget {
   const TradeCard({

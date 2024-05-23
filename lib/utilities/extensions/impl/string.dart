@@ -14,7 +14,7 @@ import 'dart:typed_data';
 import 'package:dart_bs58/dart_bs58.dart';
 import 'package:dart_bs58check/dart_bs58check.dart';
 import 'package:hex/hex.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
+import '../extensions.dart';
 
 extension StringExtensions on String {
   Uint8List get toUint8ListFromUtf8 => Uint8List.fromList(utf8.encode(this));

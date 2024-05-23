@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+import '../conditional_parent.dart';
 
 const double kDesktopAppBarHeight = 96.0;
 const double kDesktopAppBarHeightCompact = 82.0;

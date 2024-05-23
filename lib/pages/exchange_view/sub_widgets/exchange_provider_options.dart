@@ -10,17 +10,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/aggregate_currency.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_option.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../models/exchange/aggregate_currency.dart';
+import 'exchange_provider_option.dart';
+import '../../../providers/providers.dart';
+import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../../../services/exchange/exchange.dart';
+import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../../../services/exchange/trocador/trocador_exchange.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/prefs.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class ExchangeProviderOptions extends ConsumerStatefulWidget {
   const ExchangeProviderOptions({

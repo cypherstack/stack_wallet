@@ -9,10 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
+import '../services/exchange/change_now/change_now_exchange.dart';
+import '../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../services/exchange/simpleswap/simpleswap_exchange.dart';
+import '../services/exchange/trocador/trocador_exchange.dart';
 
 abstract class Assets {
   static const svg = _SVG();

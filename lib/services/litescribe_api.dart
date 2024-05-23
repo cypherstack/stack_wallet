@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
-import 'package:stackwallet/dto/ordinals/litescribe_response.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../dto/ordinals/inscription_data.dart';
+import '../dto/ordinals/litescribe_response.dart';
+import '../networking/http.dart';
+import 'tor_service.dart';
+import '../utilities/prefs.dart';
 
 class LitescribeAPI {
   static final LitescribeAPI _instance = LitescribeAPI._internal();

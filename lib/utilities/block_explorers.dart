@@ -8,9 +8,9 @@
  *
  */
 
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/block_explorer.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../db/isar/main_db.dart';
+import '../models/isar/models/block_explorer.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 // Returns internal Isar ID for the inserted object/record
 Future<int> setBlockExplorerForCoin({

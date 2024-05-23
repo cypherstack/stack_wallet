@@ -10,8 +10,8 @@
 
 import 'dart:typed_data';
 
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
+import 'constants.dart';
+import 'enums/backup_frequency_type.dart';
 
 abstract class Format {
   static String shorten(String value, int beginCount, int endCount) {

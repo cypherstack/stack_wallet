@@ -10,8 +10,8 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../app_config.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 @Deprecated("Use lib/models/isar/models/contact_entry.dart instead")
 class ContactAddressEntry {

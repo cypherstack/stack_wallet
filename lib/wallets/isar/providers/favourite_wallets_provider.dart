@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../app_config.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../models/wallet_info.dart';
 
 class _Watcher extends ChangeNotifier {
   final bool isFavourite;

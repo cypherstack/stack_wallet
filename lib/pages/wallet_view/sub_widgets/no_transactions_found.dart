@@ -9,8 +9,8 @@
  */
 
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class NoTransActionsFound extends StatelessWidget {
   const NoTransActionsFound({Key? key}) : super(key: key);

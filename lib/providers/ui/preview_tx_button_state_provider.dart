@@ -9,10 +9,10 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../wallet/public_private_balance_state_provider.dart';
+import '../../utilities/amount/amount.dart';
+import '../../wallets/crypto_currency/coins/firo.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
 final pSendAmount = StateProvider.autoDispose<Amount?>((_) => null);
 final pValidSendToAddress = StateProvider.autoDispose<bool>((_) => false);

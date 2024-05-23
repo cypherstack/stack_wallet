@@ -11,17 +11,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/debug_info_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/desktop_manage_block_explorers_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/stack_privacy_dialog.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../../pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
+import 'debug_info_dialog.dart';
+import 'desktop_manage_block_explorers_dialog.dart';
+import 'stack_privacy_dialog.dart';
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
 
 class AdvancedSettings extends ConsumerStatefulWidget {
   const AdvancedSettings({Key? key}) : super(key: key);

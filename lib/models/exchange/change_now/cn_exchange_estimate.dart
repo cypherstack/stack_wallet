@@ -9,7 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import '../../../utilities/logger.dart';
 
 enum CNEstimateType { direct, reverse }
 

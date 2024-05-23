@@ -11,11 +11,11 @@
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/pages_desktop_specific/coin_control/utxo_row.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/blockchain_data/utxo.dart';
+import 'utxo_row.dart';
+import '../../utilities/logger.dart';
+import '../../widgets/desktop/primary_button.dart';
 
 class FreezeButton extends StatefulWidget {
   const FreezeButton({

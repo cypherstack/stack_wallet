@@ -1,8 +1,8 @@
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_currency.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../crypto_currency/intermediate/bip39_currency.dart';
+import '../wallet.dart';
+import '../wallet_mixin_interfaces/mnemonic_interface.dart';
 
 abstract class Bip39Wallet<T extends Bip39Currency> extends Wallet<T>
     with MnemonicInterface {

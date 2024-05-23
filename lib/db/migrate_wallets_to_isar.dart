@@ -2,17 +2,17 @@ import 'dart:convert';
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
-import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
+import '../app_config.dart';
+import 'hive/db.dart';
+import 'isar/main_db.dart';
+import '../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../models/isar/models/isar_models.dart';
+import '../utilities/flutter_secure_storage_interface.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/isar/models/token_wallet_info.dart';
+import '../wallets/isar/models/wallet_info.dart';
+import '../wallets/isar/models/wallet_info_meta.dart';
+import '../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 
 Future<void> migrateWalletsToIsar({
   required SecureStorageInterface secureStore,

@@ -13,14 +13,14 @@ import 'dart:isolate';
 import 'package:cw_core/wallet_info.dart' as xmr;
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../../app_config.dart';
+import '../../models/exchange/response_objects/trade.dart';
+import '../../models/node_model.dart';
+import '../../models/notification_model.dart';
+import '../../models/trade_wallet_lookup.dart';
+import '../../services/wallets_service.dart';
+import '../../utilities/logger.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class DB {
   // legacy (required for migrations)

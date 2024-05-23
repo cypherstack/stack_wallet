@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/tor_subscription.dart';
+import '../pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
+import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../services/tor_service.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/assets.dart';
+import 'custom_buttons/app_bar_icon_button.dart';
+import 'tor_subscription.dart';
 
 class SmallTorIcon extends ConsumerStatefulWidget {
   const SmallTorIcon({super.key});

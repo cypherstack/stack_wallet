@@ -7,20 +7,20 @@ import 'package:isar/isar.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart'
     as isar;
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../models/node_model.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/node_service.dart';
+import '../../../services/tor_service.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/coins/solana.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_wallet.dart';
 import 'package:tuple/tuple.dart';
 
 class SolanaWallet extends Bip39Wallet<Solana> {

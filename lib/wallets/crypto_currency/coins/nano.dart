@@ -1,10 +1,10 @@
 import 'package:nanodart/nanodart.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../intermediate/nano_currency.dart';
 
 class Nano extends NanoCurrency {
   Nano(super.network) {

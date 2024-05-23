@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/utilities/logger.dart';
+import '../../../../utilities/logger.dart';
 
 class BalanceRefreshedEvent {
   final String walletId;

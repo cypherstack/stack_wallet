@@ -11,10 +11,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/pages/token_view/sub_widgets/my_token_select_item.dart';
-import 'package:stackwallet/utilities/util.dart';
+import '../../../db/isar/main_db.dart';
+import '../../../models/isar/models/ethereum/eth_contract.dart';
+import 'my_token_select_item.dart';
+import '../../../utilities/util.dart';
 
 class MyTokensList extends StatelessWidget {
   const MyTokensList({

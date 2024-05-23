@@ -1,13 +1,13 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../interfaces/electrumx_currency_interface.dart';
+import '../intermediate/bip39_hd_currency.dart';
+import '../../wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Firo(super.network) {

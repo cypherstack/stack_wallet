@@ -10,11 +10,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../../../../providers/global/prefs_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/constants.dart';
+import '../../../../../utilities/enums/backup_frequency_type.dart';
+import '../../../../../utilities/text_styles.dart';
 
 class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
   const BackupFrequencyTypeSelectSheet({

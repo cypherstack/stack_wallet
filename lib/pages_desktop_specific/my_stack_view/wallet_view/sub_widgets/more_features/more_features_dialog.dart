@@ -11,20 +11,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../../../../providers/global/prefs_provider.dart';
+import '../../../../../providers/global/wallets_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../wallets/crypto_currency/coins/banano.dart';
+import '../../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../../widgets/rounded_container.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({

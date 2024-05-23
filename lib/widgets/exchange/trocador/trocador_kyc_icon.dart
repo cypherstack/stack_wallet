@@ -10,9 +10,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/widgets/exchange/trocador/trocador_rating_type_enum.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import 'trocador_rating_type_enum.dart';
 
 class TrocadorKYCIcon extends StatelessWidget {
   const TrocadorKYCIcon({

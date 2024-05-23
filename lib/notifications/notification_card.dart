@@ -13,18 +13,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../app_config.dart';
+import '../models/isar/stack_theme.dart';
+import '../models/notification_model.dart';
+import '../themes/coin_icon_provider.dart';
+import '../themes/stack_colors.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/format.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import '../widgets/conditional_parent.dart';
+import '../widgets/rounded_container.dart';
+import '../widgets/rounded_white_container.dart';
 
 class NotificationCard extends ConsumerWidget {
   const NotificationCard({

@@ -11,17 +11,17 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/languages_enum.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../db/hive/db.dart';
+import '../services/event_bus/events/global/tor_status_changed_event.dart';
+import '../services/event_bus/global_event_bus.dart';
+import '../app_config.dart';
+import 'amount/amount_unit.dart';
+import 'constants.dart';
+import 'enums/backup_frequency_type.dart';
+import 'enums/languages_enum.dart';
+import 'enums/sync_type_enum.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {

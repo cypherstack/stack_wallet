@@ -13,19 +13,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/custom_buttons/favorite_toggle.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../providers/db/main_db_provider.dart';
+import '../themes/coin_icon_provider.dart';
+import '../themes/stack_colors.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/amount/amount.dart';
+import '../utilities/amount/amount_formatter.dart';
+import '../utilities/constants.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import '../wallets/crypto_currency/coins/firo.dart';
+import '../wallets/isar/providers/wallet_info_provider.dart';
+import 'custom_buttons/favorite_toggle.dart';
+import 'rounded_white_container.dart';
 
 class ManagedFavorite extends ConsumerStatefulWidget {
   const ManagedFavorite({

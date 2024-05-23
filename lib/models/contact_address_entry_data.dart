@@ -9,8 +9,8 @@
  */
 
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/models/isar/models/contact_entry.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'isar/models/contact_entry.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 class AddressEntryData extends ChangeNotifier {
   late int id;

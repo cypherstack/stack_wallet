@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
+import '../models/isar/stack_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
   final String themeId;

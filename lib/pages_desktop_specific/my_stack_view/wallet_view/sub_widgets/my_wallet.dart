@@ -10,21 +10,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_stack_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_receive.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_token_send.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/widgets/custom_tab_view.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/frost_scaffold.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../../frost_route_generator.dart';
+import '../../../../pages/send_view/frost_ms/frost_send_view.dart';
+import '../../../../pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
+import '../../my_stack_view.dart';
+import 'desktop_receive.dart';
+import 'desktop_send.dart';
+import 'desktop_token_send.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../widgets/custom_tab_view.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/frost_scaffold.dart';
+import '../../../../widgets/rounded_white_container.dart';
 
 class MyWallet extends ConsumerStatefulWidget {
   const MyWallet({

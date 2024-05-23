@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/dialogs/frost/frost_error_dialog.dart';
-import 'package:stackwallet/widgets/frost_step_user_steps.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
+
+import '../../../../../frost_route_generator.dart';
+import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../../../services/frost.dart';
+import '../../../../../utilities/logger.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../widgets/custom_buttons/checkbox_text_button.dart';
+import '../../../../../widgets/custom_buttons/frost_qr_dialog_button.dart';
+import '../../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../../widgets/desktop/primary_button.dart';
+import '../../../../../widgets/detail_item.dart';
+import '../../../../../widgets/dialogs/frost/frost_error_dialog.dart';
+import '../../../../../widgets/frost_step_user_steps.dart';
+import '../../../../../widgets/stack_dialog.dart';
+import '../../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 
 class FrostCreateStep3 extends ConsumerStatefulWidget {
   const FrostCreateStep3({super.key});

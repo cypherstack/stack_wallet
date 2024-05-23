@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:electrum_adapter/electrum_adapter.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 class ClientManager {
   ClientManager._();

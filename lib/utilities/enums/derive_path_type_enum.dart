@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import '../../models/isar/models/blockchain_data/address.dart';
 
 enum DerivePathType {
   bip44,

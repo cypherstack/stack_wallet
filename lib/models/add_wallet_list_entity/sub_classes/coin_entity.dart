@@ -8,8 +8,8 @@
  *
  */
 
-import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../add_wallet_list_entity.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 class CoinEntity extends AddWalletListEntity {
   CoinEntity(this._coin);

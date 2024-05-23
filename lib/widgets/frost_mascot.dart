@@ -9,8 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/widgets/dialogs/frost/frost_step_explanation_dialog.dart';
+import '../utilities/assets.dart';
+import 'dialogs/frost/frost_step_explanation_dialog.dart';
 
 class FrostMascot extends StatelessWidget {
   final String title;

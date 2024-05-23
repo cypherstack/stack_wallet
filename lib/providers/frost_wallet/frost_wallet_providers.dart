@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frostdart/frostdart_bindings_generated.dart';
-import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/wallets/models/incomplete_frost_wallet.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
+import '../../services/frost.dart';
+import '../../wallets/models/incomplete_frost_wallet.dart';
+import '../../wallets/models/tx_data.dart';
 
 // =================== wallet creation =========================================
 final pFrostMultisigConfig = StateProvider<String?>((ref) => null);

@@ -9,8 +9,8 @@
  */
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
+import '../../../app_config.dart';
+import 'pair.dart';
 
 part 'currency.g.dart';
 

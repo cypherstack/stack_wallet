@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../../../frost_route_generator.dart';
+import '../../../utilities/text_styles.dart';
+import '../../desktop/primary_button.dart';
+import '../../stack_dialog.dart';
 
 class FrostErrorDialog extends ConsumerWidget {
   const FrostErrorDialog({

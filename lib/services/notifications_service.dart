@@ -11,21 +11,21 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../app_config.dart';
+import '../db/hive/db.dart';
+import '../electrumx_rpc/electrumx_client.dart';
+import '../exceptions/electrumx/no_such_transaction.dart';
+import '../models/exchange/response_objects/trade.dart';
+import '../models/notification_model.dart';
+import 'exchange/exchange_response.dart';
+import 'node_service.dart';
+import 'notifications_api.dart';
+import 'trade_service.dart';
+import 'wallets.dart';
+import '../utilities/logger.dart';
+import '../utilities/prefs.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 import 'exchange/exchange.dart';
 

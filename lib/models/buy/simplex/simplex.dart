@@ -9,10 +9,10 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/buy/response_objects/crypto.dart';
-import 'package:stackwallet/models/buy/response_objects/fiat.dart';
-import 'package:stackwallet/models/buy/response_objects/order.dart';
-import 'package:stackwallet/models/buy/response_objects/quote.dart';
+import '../response_objects/crypto.dart';
+import '../response_objects/fiat.dart';
+import '../response_objects/order.dart';
+import '../response_objects/quote.dart';
 
 class Simplex {
   List<Crypto> supportedCryptos = [];

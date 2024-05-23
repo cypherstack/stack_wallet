@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/app_config.dart';
+import '../app_config.dart';
 
 abstract class FeaturedPaynyms {
   // TODO: replace with actual value

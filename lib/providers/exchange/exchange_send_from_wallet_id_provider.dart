@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 final exchangeSendFromWalletIdStateProvider =

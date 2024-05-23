@@ -12,13 +12,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../app_config.dart';
+import '../db/hive/db.dart';
+import '../models/node_model.dart';
+import '../utilities/default_nodes.dart';
+import '../utilities/flutter_secure_storage_interface.dart';
+import '../utilities/logger.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 const kStackCommunityNodesEndpoint = "https://extras.stackwallet.com";
 

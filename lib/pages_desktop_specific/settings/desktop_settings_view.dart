@@ -10,21 +10,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings/appearance_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/currency_settings/currency_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/security_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import 'settings_menu.dart';
+import 'settings_menu/advanced_settings/advanced_settings.dart';
+import 'settings_menu/appearance_settings/appearance_settings.dart';
+import 'settings_menu/backup_and_restore/backup_and_restore_settings.dart';
+import 'settings_menu/currency_settings/currency_settings.dart';
+import 'settings_menu/language_settings/language_settings.dart';
+import 'settings_menu/nodes_settings.dart';
+import 'settings_menu/security_settings.dart';
+import 'settings_menu/syncing_preferences_settings.dart';
+import 'settings_menu/tor_settings/tor_settings.dart';
+import '../../route_generator.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
 
 class DesktopSettingsView extends ConsumerStatefulWidget {
   const DesktopSettingsView({Key? key}) : super(key: key);

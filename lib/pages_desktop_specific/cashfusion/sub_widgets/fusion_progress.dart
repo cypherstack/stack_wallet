@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
-import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
-import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../../pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
+import 'fusion_dialog.dart';
+import '../../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/rounded_container.dart';
 
 class FusionProgress extends ConsumerWidget {
   const FusionProgress({super.key, required this.walletId});

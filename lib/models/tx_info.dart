@@ -8,9 +8,9 @@
  *
  */
 
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/wallets/models/tx_recipient.dart';
+import 'isar/models/blockchain_data/utxo.dart';
+import '../utilities/amount/amount.dart';
+import '../wallets/models/tx_recipient.dart';
 
 // TODO use something like this instead of Map<String, dynamic> transactionObject
 

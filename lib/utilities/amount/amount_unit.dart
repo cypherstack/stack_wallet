@@ -11,14 +11,14 @@
 import 'dart:math' as math;
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import 'amount.dart';
+import '../util.dart';
+import '../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../wallets/crypto_currency/coins/monero.dart';
+import '../../wallets/crypto_currency/coins/wownero.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 
 // preserve index order as index is used to store value in preferences
 enum AmountUnit {

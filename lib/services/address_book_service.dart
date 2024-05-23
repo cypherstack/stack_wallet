@@ -10,8 +10,8 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/contact_entry.dart';
+import '../db/isar/main_db.dart';
+import '../models/isar/models/contact_entry.dart';
 
 class AddressBookService extends ChangeNotifier {
   ContactEntry getContactById(String id) {

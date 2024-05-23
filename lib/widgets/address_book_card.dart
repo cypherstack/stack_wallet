@@ -13,20 +13,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/models/contact_entry.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../models/isar/models/contact_entry.dart';
+import '../pages/address_book_views/subviews/contact_popup.dart';
+import '../providers/global/address_book_service_provider.dart';
+import '../app_config.dart';
+import '../themes/stack_colors.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/assets.dart';
+import '../utilities/constants.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import 'conditional_parent.dart';
+import 'expandable.dart';
+import 'rounded_white_container.dart';
 
 class AddressBookCard extends ConsumerStatefulWidget {
   const AddressBookCard({

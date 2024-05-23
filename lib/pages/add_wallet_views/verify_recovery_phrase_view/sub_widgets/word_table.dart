@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/sub_widgets/word_table_item.dart';
+import 'word_table_item.dart';
 
 class WordTable extends ConsumerWidget {
   const WordTable({

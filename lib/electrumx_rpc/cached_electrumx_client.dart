@@ -11,10 +11,10 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../db/hive/db.dart';
+import 'electrumx_client.dart';
+import '../utilities/logger.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 import 'package:string_validator/string_validator.dart';
 
 class CachedElectrumXClient {

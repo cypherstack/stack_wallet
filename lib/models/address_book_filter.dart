@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 class AddressBookFilter extends ChangeNotifier {
   AddressBookFilter(Set<CryptoCurrency> coins) {

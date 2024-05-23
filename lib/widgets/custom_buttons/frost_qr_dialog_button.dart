@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/dialogs/frost/frost_step_qr_dialog.dart';
+import '../../frost_route_generator.dart';
+import '../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../desktop/secondary_button.dart';
+import '../dialogs/frost/frost_step_qr_dialog.dart';
 
 class FrostQrDialogPopupButton extends ConsumerWidget {
   const FrostQrDialogPopupButton({super.key, required this.data});

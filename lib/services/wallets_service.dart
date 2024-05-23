@@ -11,9 +11,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import '../app_config.dart';
+import '../db/hive/db.dart';
+import '../utilities/logger.dart';
 
 @Deprecated("Legacy support only. Do not use.")
 class WalletInfo {

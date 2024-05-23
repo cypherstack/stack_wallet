@@ -14,16 +14,16 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/pages/stack_privacy_calls.dart';
-import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import '../app_config.dart';
+import 'stack_privacy_calls.dart';
+import '../pages_desktop_specific/password/create_password_view.dart';
+import '../themes/stack_colors.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/prefs.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import '../widgets/background.dart';
+import '../widgets/desktop/secondary_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class IntroView extends ConsumerStatefulWidget {

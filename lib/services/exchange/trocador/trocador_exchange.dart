@@ -11,17 +11,17 @@
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_coin.dart';
-import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_quote.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_api.dart';
+import '../../../exceptions/exchange/exchange_exception.dart';
+import '../../../models/exchange/response_objects/estimate.dart';
+import '../../../models/exchange/response_objects/range.dart';
+import '../../../models/exchange/response_objects/trade.dart';
+import '../../../models/isar/exchange_cache/currency.dart';
+import '../../../models/isar/exchange_cache/pair.dart';
+import '../exchange.dart';
+import '../exchange_response.dart';
+import 'response_objects/trocador_coin.dart';
+import 'response_objects/trocador_quote.dart';
+import 'trocador_api.dart';
 import 'package:uuid/uuid.dart';
 
 class TrocadorExchange extends Exchange {

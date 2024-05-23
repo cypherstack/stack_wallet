@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/models/epicbox_server_model.dart';
+import '../models/epicbox_server_model.dart';
 
 abstract class DefaultEpicBoxes {
   static const String defaultName = "Default";

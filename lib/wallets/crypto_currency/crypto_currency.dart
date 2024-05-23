@@ -1,6 +1,6 @@
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
+import '../../models/isar/models/blockchain_data/address.dart';
+import '../../models/node_model.dart';
+import '../../utilities/enums/derive_path_type_enum.dart';
 
 export 'package:stackwallet/wallets/crypto_currency/coins/banano.dart';
 export 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';

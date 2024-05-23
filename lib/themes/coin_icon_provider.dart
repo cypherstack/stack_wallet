@@ -9,20 +9,20 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/monero.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/namecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../models/isar/stack_theme.dart';
+import 'theme_providers.dart';
+import '../wallets/crypto_currency/coins/bitcoin.dart';
+import '../wallets/crypto_currency/coins/bitcoincash.dart';
+import '../wallets/crypto_currency/coins/dogecoin.dart';
+import '../wallets/crypto_currency/coins/epiccash.dart';
+import '../wallets/crypto_currency/coins/ethereum.dart';
+import '../wallets/crypto_currency/coins/firo.dart';
+import '../wallets/crypto_currency/coins/litecoin.dart';
+import '../wallets/crypto_currency/coins/monero.dart';
+import '../wallets/crypto_currency/coins/namecoin.dart';
+import '../wallets/crypto_currency/coins/particl.dart';
+import '../wallets/crypto_currency/coins/wownero.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 final coinIconProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);

@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:electrum_adapter/electrum_adapter.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../services/tor_service.dart';
+import '../logger.dart';
+import '../prefs.dart';
 
 Future<bool> checkElectrumServer({
   required String host,

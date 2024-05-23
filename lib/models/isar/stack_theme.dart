@@ -13,12 +13,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
-import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
-import 'package:stackwallet/utilities/extensions/impl/string.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
+import '../../app_config.dart';
+import '../../utilities/extensions/impl/box_shadow.dart';
+import '../../utilities/extensions/impl/gradient.dart';
+import '../../utilities/extensions/impl/string.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/stack_file_system.dart';
 
 part 'stack_theme.g.dart';
 

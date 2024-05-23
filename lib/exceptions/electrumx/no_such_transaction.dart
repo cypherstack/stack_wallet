@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/exceptions/sw_exception.dart';
+import '../sw_exception.dart';
 
 class NoSuchTransactionException extends SWException {
   final String txid;

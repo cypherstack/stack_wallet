@@ -4,14 +4,14 @@ import 'package:bech32/bech32.dart';
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../interfaces/electrumx_currency_interface.dart';
+import '../intermediate/bip39_hd_currency.dart';
 
 class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Bitcoincash(super.network) {

@@ -1,5 +1,5 @@
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
+import 'wallets/crypto_currency/crypto_currency.dart';
+import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
 part 'app_config.g.dart';
 

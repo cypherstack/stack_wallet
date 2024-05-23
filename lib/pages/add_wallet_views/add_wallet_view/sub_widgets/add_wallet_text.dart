@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../../../utilities/text_styles.dart';
 
 class AddWalletText extends StatelessWidget {
   const AddWalletText({super.key, required this.isDesktop});

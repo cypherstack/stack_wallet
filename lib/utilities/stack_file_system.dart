@@ -11,8 +11,8 @@
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/util.dart';
+import 'logger.dart';
+import 'util.dart';
 
 abstract class StackFileSystem {
   static String? overrideDir;

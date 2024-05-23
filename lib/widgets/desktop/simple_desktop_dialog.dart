@@ -9,10 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
+import '../../utilities/text_styles.dart';
+import 'desktop_dialog.dart';
+import 'desktop_dialog_close_button.dart';
+import 'primary_button.dart';
 
 class SimpleDesktopDialog extends StatelessWidget {
   const SimpleDesktopDialog({

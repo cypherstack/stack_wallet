@@ -12,17 +12,17 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/models/buy/response_objects/crypto.dart';
-import 'package:stackwallet/models/buy/response_objects/fiat.dart';
-import 'package:stackwallet/models/buy/response_objects/order.dart';
-import 'package:stackwallet/models/buy/response_objects/quote.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/buy/buy_response.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/enums/fiat_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../../app_config.dart';
+import '../../../models/buy/response_objects/crypto.dart';
+import '../../../models/buy/response_objects/fiat.dart';
+import '../../../models/buy/response_objects/order.dart';
+import '../../../models/buy/response_objects/quote.dart';
+import '../../../networking/http.dart';
+import '../buy_response.dart';
+import '../../tor_service.dart';
+import '../../../utilities/enums/fiat_enum.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SimplexAPI {

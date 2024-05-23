@@ -1,9 +1,9 @@
 import 'package:cw_monero/api/wallet.dart' as monero_wallet;
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../intermediate/cryptonote_currency.dart';
 
 class Monero extends CryptonoteCurrency {
   Monero(super.network) {

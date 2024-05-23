@@ -9,8 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/step_indicator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
+import 'step_indicator.dart';
+import '../../../themes/stack_colors.dart';
 
 class StepRow extends StatelessWidget {
   const StepRow({

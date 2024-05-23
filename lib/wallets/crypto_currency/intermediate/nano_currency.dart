@@ -1,5 +1,5 @@
 import 'package:nanodart/nanodart.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_currency.dart';
+import 'bip39_currency.dart';
 
 abstract class NanoCurrency extends Bip39Currency {
   NanoCurrency(super.network);

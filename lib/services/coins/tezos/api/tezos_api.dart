@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/coins/tezos/api/tezos_account.dart';
-import 'package:stackwallet/services/coins/tezos/api/tezos_transaction.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../../../networking/http.dart';
+import 'tezos_account.dart';
+import 'tezos_transaction.dart';
+import '../../../tor_service.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/prefs.dart';
 
 abstract final class TezosAPI {
   static final HTTP _client = HTTP();

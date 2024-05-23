@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/isar/isar_id_interface.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
+import '../../../app_config.dart';
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../isar_id_interface.dart';
+import 'wallet_info_meta.dart';
 import 'package:uuid/uuid.dart';
 
 part 'wallet_info.g.dart';

@@ -9,8 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/constants.dart';
 
 enum Expandable2State {
   collapsed,

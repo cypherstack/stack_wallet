@@ -13,7 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
+import '../../themes/theme_providers.dart';
 
 class LivingStackIcon extends ConsumerStatefulWidget {
   const LivingStackIcon({

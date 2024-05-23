@@ -1,7 +1,7 @@
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
+import '../../db/isar/main_db.dart';
+import '../../dto/ordinals/inscription_data.dart';
+import 'models/isar_models.dart';
 
 part 'ordinal.g.dart';
 

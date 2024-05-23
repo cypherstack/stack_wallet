@@ -13,13 +13,13 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../app_config.dart';
+import '../db/hive/db.dart';
+import '../networking/http.dart';
+import 'tor_service.dart';
+import '../utilities/logger.dart';
+import '../utilities/prefs.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 class PriceAPI {

@@ -13,12 +13,12 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/price.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../db/isar/main_db.dart';
+import '../models/isar/models/isar_models.dart';
+import '../networking/http.dart';
+import 'price.dart';
+import '../app_config.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 class PriceService extends ChangeNotifier {

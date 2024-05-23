@@ -14,22 +14,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
-import 'package:stackwallet/pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
-import 'package:stackwallet/pages_desktop_specific/lelantus_coins/lelantus_coins_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/spark_coins/spark_coins_view.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
+import '../../../addresses/desktop_wallet_addresses_view.dart';
+import '../../../lelantus_coins/lelantus_coins_view.dart';
+import 'desktop_delete_wallet_dialog.dart';
+import '../../../spark_coins/spark_coins_view.dart';
+import '../../../../route_generator.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
+import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 
 enum _WalletOptions {
   addressList,

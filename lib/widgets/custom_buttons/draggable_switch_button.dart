@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
+import '../../themes/stack_colors.dart';
 
 class DraggableSwitchButton extends StatefulWidget {
   const DraggableSwitchButton({

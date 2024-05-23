@@ -9,7 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_object.dart';
+import 'mb_object.dart';
 
 class MBOrderCalculation extends MBObject {
   MBOrderCalculation({

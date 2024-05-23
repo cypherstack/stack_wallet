@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/dialogs/basic_dialog.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../desktop/primary_button.dart';
+import '../desktop/secondary_button.dart';
+import 'basic_dialog.dart';
 
 class TorWarningDialog extends StatelessWidget {
   final CryptoCurrency coin;

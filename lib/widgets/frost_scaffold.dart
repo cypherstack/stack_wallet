@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../frost_route_generator.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import 'background.dart';
+import 'conditional_parent.dart';
+import 'custom_buttons/blue_text_button.dart';
+import 'desktop/primary_button.dart';
+import 'desktop/secondary_button.dart';
+import 'progress_bar.dart';
+import 'stack_dialog.dart';
 
 class FrostStepScaffold extends ConsumerStatefulWidget {
   const FrostStepScaffold({super.key});

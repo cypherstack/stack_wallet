@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/exceptions/sw_exception.dart';
+import '../sw_exception.dart';
 
 class MainDBException extends SWException {
   MainDBException(super.message, this.originalError);

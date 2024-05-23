@@ -11,9 +11,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu_item.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'settings_menu_item.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 
 final selectedSettingsMenuItemStateProvider = StateProvider<int>((_) => 0);
 

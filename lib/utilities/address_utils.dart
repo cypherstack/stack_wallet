@@ -10,10 +10,10 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ecash.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'logger.dart';
+import '../wallets/crypto_currency/coins/bitcoincash.dart';
+import '../wallets/crypto_currency/coins/ecash.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 class AddressUtils {
   static String condenseAddress(String address) {

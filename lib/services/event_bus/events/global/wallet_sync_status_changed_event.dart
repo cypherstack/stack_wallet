@@ -8,8 +8,8 @@
  *
  */
 
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
 
 enum WalletSyncStatus { unableToSync, synced, syncing }
 

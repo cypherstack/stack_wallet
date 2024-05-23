@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";

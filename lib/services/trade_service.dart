@@ -9,8 +9,8 @@
  */
 
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import '../db/hive/db.dart';
+import '../models/exchange/response_objects/trade.dart';
 
 class TradesService extends ChangeNotifier {
   List<Trade> get trades {

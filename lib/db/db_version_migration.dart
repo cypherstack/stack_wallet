@@ -10,30 +10,30 @@
 
 import 'package:hive/hive.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/db/migrate_wallets_to_isar.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/models/contact.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/contact_entry.dart'
-    as isar_contact;
-import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/mixins/wallet_db.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
+
+import '../app_config.dart';
+import '../electrumx_rpc/electrumx_client.dart';
+import '../models/contact.dart';
+import '../models/exchange/change_now/exchange_transaction.dart';
+import '../models/exchange/response_objects/trade.dart';
+import '../models/isar/models/blockchain_data/address.dart';
+import '../models/isar/models/contact_entry.dart' as isar_contact;
+import '../models/isar/models/isar_models.dart' as isar_models;
+import '../models/models.dart';
+import '../models/node_model.dart';
+import '../services/mixins/wallet_db.dart';
+import '../services/node_service.dart';
+import '../services/wallets_service.dart';
+import '../utilities/amount/amount.dart';
+import '../utilities/constants.dart';
+import '../utilities/flutter_secure_storage_interface.dart';
+import '../utilities/logger.dart';
+import '../utilities/prefs.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import 'hive/db.dart';
+import 'isar/main_db.dart';
+import 'migrate_wallets_to_isar.dart';
 
 class DbVersionMigrator with WalletDB {
   Future<void> migrate(

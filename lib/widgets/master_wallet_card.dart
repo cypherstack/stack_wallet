@@ -11,16 +11,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/wallet_card.dart';
-import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/assets.dart';
+import '../utilities/constants.dart';
+import '../utilities/util.dart';
+import '../wallets/isar/providers/wallet_info_provider.dart';
+import 'animated_widgets/rotate_icon.dart';
+import 'expandable.dart';
+import 'rounded_white_container.dart';
+import 'wallet_card.dart';
+import 'wallet_info_row/wallet_info_row.dart';
 
 class MasterWalletCard extends ConsumerStatefulWidget {
   const MasterWalletCard({

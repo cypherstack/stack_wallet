@@ -10,7 +10,7 @@
 
 import 'dart:io';
 
-import 'package:stackwallet/utilities/util.dart';
+import 'util.dart';
 
 class _LayoutSizing {
   const _LayoutSizing();

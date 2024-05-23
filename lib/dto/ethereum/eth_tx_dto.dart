@@ -10,9 +10,9 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../../utilities/amount/amount.dart';
+import '../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class EthTxDTO {
   EthTxDTO({

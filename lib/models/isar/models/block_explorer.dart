@@ -9,8 +9,8 @@
  */
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../../../app_config.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 part 'block_explorer.g.dart';
 

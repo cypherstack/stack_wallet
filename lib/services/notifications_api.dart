@@ -9,9 +9,9 @@
  */
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/services/notifications_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../models/notification_model.dart';
+import 'notifications_service.dart';
+import '../utilities/prefs.dart';
 
 class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();

@@ -10,27 +10,27 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/address_book_view/desktop_address_book.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_stack_view.dart';
-import 'package:stackwallet/pages_desktop_specific/notifications/desktop_notifications_view.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/desktop_settings_view.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_about_view.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/desktop_support_view.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/providers/global/active_wallet_provider.dart';
-import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
-import 'package:stackwallet/providers/global/notifications_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
-import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/widgets/background.dart';
+import 'address_book_view/desktop_address_book.dart';
+import 'desktop_buy/desktop_buy_view.dart';
+import 'desktop_exchange/desktop_exchange_view.dart';
+import 'desktop_menu.dart';
+import 'my_stack_view/my_stack_view.dart';
+import 'notifications/desktop_notifications_view.dart';
+import 'settings/desktop_settings_view.dart';
+import 'settings/settings_menu/desktop_about_view.dart';
+import 'settings/settings_menu/desktop_support_view.dart';
+import '../providers/desktop/current_desktop_menu_item.dart';
+import '../providers/global/active_wallet_provider.dart';
+import '../providers/global/auto_swb_service_provider.dart';
+import '../providers/global/notifications_provider.dart';
+import '../providers/global/prefs_provider.dart';
+import '../providers/global/wallets_provider.dart';
+import '../providers/ui/transaction_filter_provider.dart';
+import '../providers/ui/unread_notifications_provider.dart';
+import '../route_generator.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/enums/backup_frequency_type.dart';
+import '../widgets/background.dart';
 
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({Key? key}) : super(key: key);
