@@ -66,3 +66,13 @@ flutter_libsparkmobile.dll
 secp256k1.dll
 /libisar.so
 /lib/app_config.g.dart
+
+## other generated project files
+
+/android/app/build.gradle
+/android/app/src/debug/AndroidManifest.xml
+/android/app/src/profile/AndroidManifest.xml
+/android/app/src/main/AndroidManifest.xml
+/android/app/src/main/profile/AndroidManifest.xml
+/android/app/src/main/kotlin/com/cypherstack/stackwallet/MainActivity.kt
+/android/app/src/main/res/**/ic_launcher.png
