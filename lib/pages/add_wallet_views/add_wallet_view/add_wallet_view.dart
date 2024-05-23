@@ -16,19 +16,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
+import '../../../app_config.dart';
 import '../../../db/isar/main_db.dart';
 import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
-import '../add_token_view/add_custom_token_view.dart';
-import '../add_token_view/sub_widgets/add_custom_token_selector.dart';
-import 'sub_widgets/add_wallet_text.dart';
-import 'sub_widgets/expanding_sub_list_item.dart';
-import 'sub_widgets/next_button.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/providers.dart';
-import '../../../app_config.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
@@ -46,6 +42,11 @@ import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import '../add_token_view/add_custom_token_view.dart';
+import '../add_token_view/sub_widgets/add_custom_token_selector.dart';
+import 'sub_widgets/add_wallet_text.dart';
+import 'sub_widgets/expanding_sub_list_item.dart';
+import 'sub_widgets/next_button.dart';
 
 class AddWalletView extends ConsumerStatefulWidget {
   const AddWalletView({super.key});
@@ -422,11 +423,12 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                             entities: filter(_searchTerm, coinEntities),
                             initialState: ExpandableState.expanded,
                           ),
-                          ExpandingSubListItem(
-                            title: "Tokens",
-                            entities: filter(_searchTerm, tokenEntities),
-                            initialState: ExpandableState.expanded,
-                          ),
+                          if (tokenEntities.isNotEmpty)
+                            ExpandingSubListItem(
+                              title: "Tokens",
+                              entities: filter(_searchTerm, tokenEntities),
+                              initialState: ExpandableState.expanded,
+                            ),
                         ],
                       ),
                     ),
