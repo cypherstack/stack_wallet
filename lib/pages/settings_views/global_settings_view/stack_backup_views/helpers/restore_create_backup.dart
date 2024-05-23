@@ -16,6 +16,10 @@ import 'dart:typed_data';
 import 'package:frostdart/frostdart.dart' as frost;
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
+import 'package:tuple/tuple.dart';
+import 'package:uuid/uuid.dart';
+import 'package:wakelock/wakelock.dart';
+
 import '../../../../../app_config.dart';
 import '../../../../../db/hive/db.dart';
 import '../../../../../db/isar/main_db.dart';
@@ -52,9 +56,6 @@ import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
-import 'package:tuple/tuple.dart';
-import 'package:uuid/uuid.dart';
-import 'package:wakelock/wakelock.dart';
 
 class PreRestoreState {
   final Set<String> walletIds;
@@ -776,7 +777,7 @@ abstract class SWB {
 
       final coin = AppConfig.getCryptoCurrencyFor(
         walletbackup['coinName'] as String,
-      );
+      )!;
 
       final walletName = walletbackup['name'] as String;
       final walletId = oldToNewWalletIdMap[walletbackup["id"] as String]!;

@@ -1,13 +1,14 @@
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../app_config.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../isar_id_interface.dart';
 import 'wallet_info_meta.dart';
-import 'package:uuid/uuid.dart';
 
 part 'wallet_info.g.dart';
 
@@ -96,7 +97,7 @@ class WalletInfo implements IsarId {
   }
 
   @ignore
-  CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName);
+  CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName)!;
 
   @ignore
   Balance get cachedBalance {
@@ -466,7 +467,7 @@ class WalletInfo implements IsarId {
   ) {
     final coin = AppConfig.getCryptoCurrencyFor(
       jsonObject["coin"] as String,
-    );
+    )!;
     return WalletInfo(
       coinName: coin.identifier,
       walletId: jsonObject["id"] as String,

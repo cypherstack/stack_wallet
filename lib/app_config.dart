@@ -13,21 +13,28 @@ abstract class AppConfig {
 
   static List<CryptoCurrency> get coins => _supportedCoins;
 
-  static CryptoCurrency getCryptoCurrencyFor(String coinIdentifier) =>
-      coins.firstWhere(
-        (e) => e.identifier == coinIdentifier,
-      );
+  static CryptoCurrency? getCryptoCurrencyFor(String coinIdentifier) {
+    try {
+      return coins.firstWhere((e) => e.identifier == coinIdentifier);
+    } catch (_) {
+      return null;
+    }
+  }
 
-  static CryptoCurrency getCryptoCurrencyForTicker(
+  static CryptoCurrency? getCryptoCurrencyForTicker(
     final String ticker, {
     bool caseInsensitive = true,
   }) {
     final _ticker = caseInsensitive ? ticker.toLowerCase() : ticker;
-    return coins.firstWhere(
-      caseInsensitive
-          ? (e) => e.ticker.toLowerCase() == _ticker && e is! FrostCurrency
-          : (e) => e.ticker == _ticker && e is! FrostCurrency,
-    );
+    try {
+      return coins.firstWhere(
+        caseInsensitive
+            ? (e) => e.ticker.toLowerCase() == _ticker && e is! FrostCurrency
+            : (e) => e.ticker == _ticker && e is! FrostCurrency,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Fuzzy logic. Use with caution!!

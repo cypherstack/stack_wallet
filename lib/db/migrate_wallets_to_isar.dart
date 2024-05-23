@@ -2,9 +2,8 @@ import 'dart:convert';
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
+
 import '../app_config.dart';
-import 'hive/db.dart';
-import 'isar/main_db.dart';
 import '../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../models/isar/models/isar_models.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
@@ -13,6 +12,8 @@ import '../wallets/isar/models/token_wallet_info.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/isar/models/wallet_info_meta.dart';
 import '../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
+import 'hive/db.dart';
+import 'isar/main_db.dart';
 
 Future<void> migrateWalletsToIsar({
   required SecureStorageInterface secureStore,
@@ -167,8 +168,8 @@ Future<void> migrateWalletsToIsar({
       coinName: old.coinIdentifier,
       walletId: old.walletId,
       name: old.name,
-      mainAddressType:
-          AppConfig.getCryptoCurrencyFor(old.coinIdentifier).primaryAddressType,
+      mainAddressType: AppConfig.getCryptoCurrencyFor(old.coinIdentifier)!
+          .primaryAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
       cachedChainHeight: walletBox.get(
             DBKeys.storedChainHeight,

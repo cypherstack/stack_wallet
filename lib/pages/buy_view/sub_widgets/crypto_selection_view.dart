@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../app_config.dart';
 import '../../../models/buy/response_objects/crypto.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -305,7 +306,7 @@ class CoinIconForTicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     try {
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker)!;
       return SvgPicture.file(
         File(
           ref.watch(coinIconProvider(coin)),

@@ -12,6 +12,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../app_config.dart';
 import '../../../models/exchange/response_objects/estimate.dart';
 import '../../../providers/exchange/exchange_form_state_provider.dart';
@@ -95,7 +96,8 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                         try {
                           decimals = AppConfig.getCryptoCurrencyForTicker(
                             receivingCurrency.ticker,
-                          ).fractionDigits;
+                          )!
+                              .fractionDigits;
                         } catch (_) {
                           decimals = 8; // some reasonable alternative
                         }

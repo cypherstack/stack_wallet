@@ -9,6 +9,7 @@
  */
 
 import 'package:isar/isar.dart';
+
 import '../../../app_config.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 
@@ -102,7 +103,7 @@ class ContactAddressEntry {
   late final String? other;
 
   @ignore
-  CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName);
+  CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName)!;
 
   ContactAddressEntry();
 

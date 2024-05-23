@@ -14,15 +14,11 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../models/exchange/response_objects/trade.dart';
 import '../../../pages/exchange_view/send_from_view.dart';
-import 'subwidgets/desktop_step_1.dart';
-import 'subwidgets/desktop_step_2.dart';
-import 'subwidgets/desktop_step_3.dart';
-import 'subwidgets/desktop_step_4.dart';
-import '../subwidgets/desktop_exchange_steps_indicator.dart';
 import '../../../providers/exchange/exchange_form_state_provider.dart';
 import '../../../providers/global/trades_service_provider.dart';
 import '../../../route_generator.dart';
@@ -41,12 +37,18 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/desktop/simple_desktop_dialog.dart';
 import '../../../widgets/fade_stack.dart';
+import '../subwidgets/desktop_exchange_steps_indicator.dart';
+import 'subwidgets/desktop_step_1.dart';
+import 'subwidgets/desktop_step_2.dart';
+import 'subwidgets/desktop_step_3.dart';
+import 'subwidgets/desktop_step_4.dart';
 
 final ssss = StateProvider<IncompleteExchangeModel?>((_) => null);
 
 final desktopExchangeModelProvider =
     ChangeNotifierProvider<IncompleteExchangeModel?>(
-        (ref) => ref.watch(ssss.state).state);
+  (ref) => ref.watch(ssss.state).state,
+);
 
 class StepScaffold extends ConsumerStatefulWidget {
   const StepScaffold({
@@ -120,8 +122,9 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
             context: context,
             barrierDismissible: true,
             builder: (_) => SimpleDesktopDialog(
-                title: "Failed to create trade",
-                message: response.exception?.toString() ?? ""),
+              title: "Failed to create trade",
+              message: response.exception?.toString() ?? "",
+            ),
           ),
         );
       }
@@ -193,7 +196,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   void sendFromStack() {
     final trade = ref.read(desktopExchangeModelProvider)!.trade!;
     final address = trade.payInAddress;
-    final coin = AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency);
+    final coin = AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency)!;
     final amount = Decimal.parse(trade.payInAmount).toAmount(
       fractionDigits: coin.fractionDigits,
     );
@@ -387,9 +390,11 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                                   child: QrImageView(
                                     // TODO: grab coin uri scheme from somewhere
                                     // data: "${coin.uriScheme}:$receivingAddress",
-                                    data: ref.watch(desktopExchangeModelProvider
-                                        .select((value) =>
-                                            value!.trade!.payInAddress)),
+                                    data: ref.watch(
+                                      desktopExchangeModelProvider.select(
+                                        (value) => value!.trade!.payInAddress,
+                                      ),
+                                    ),
                                     size: 290,
                                     foregroundColor: Theme.of(context)
                                         .extension<StackColors>()!

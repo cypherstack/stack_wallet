@@ -17,15 +17,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../app_config.dart';
 import '../../models/exchange/change_now/exchange_transaction_status.dart';
 import '../../models/isar/models/blockchain_data/transaction.dart';
 import '../../models/isar/stack_theme.dart';
 import '../../notifications/show_flush_bar.dart';
-import 'edit_trade_note_view.dart';
-import 'send_from_view.dart';
-import '../wallet_view/transaction_views/edit_note_view.dart';
-import '../wallet_view/transaction_views/transaction_details_view.dart';
 import '../../providers/global/trades_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
@@ -54,8 +53,10 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../wallet_view/transaction_views/edit_note_view.dart';
+import '../wallet_view/transaction_views/transaction_details_view.dart';
+import 'edit_trade_note_view.dart';
+import 'send_from_view.dart';
 
 class TradeDetailsView extends ConsumerStatefulWidget {
   const TradeDetailsView({
@@ -281,7 +282,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         try {
                           coin = AppConfig.getCryptoCurrencyForTicker(
                             trade.payInCurrency,
-                          );
+                          )!;
                         } catch (_) {
                           coin = AppConfig.getCryptoCurrencyByPrettyName(
                             trade.payInCurrency,
@@ -382,7 +383,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 final coin =
                                     AppConfig.getCryptoCurrencyForTicker(
                                   trade.payInCurrency,
-                                );
+                                )!;
                                 final amount = sendAmount.toAmount(
                                   fractionDigits: coin.fractionDigits,
                                 );
@@ -628,10 +629,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     CustomTextButton(
                       text: "View transaction",
                       onTap: () {
-                        final CryptoCurrency coin =
-                            AppConfig.getCryptoCurrencyForTicker(
+                        final coin = AppConfig.getCryptoCurrencyForTicker(
                           trade.payInCurrency,
-                        );
+                        )!;
 
                         if (isDesktop) {
                           Navigator.of(context).push(
@@ -737,7 +737,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       text: address,
                                     ),
                                   );
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     unawaited(
                                       showFloatingFlushBar(
                                         type: FlushBarType.info,
@@ -908,7 +908,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       text: address,
                                     ),
                                   );
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     unawaited(
                                       showFloatingFlushBar(
                                         type: FlushBarType.info,
@@ -1276,7 +1276,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           onTap: () async {
                             final data = ClipboardData(text: trade.tradeId);
                             await clipboard.setData(data);
-                            if (mounted) {
+                            if (context.mounted) {
                               unawaited(
                                 showFloatingFlushBar(
                                   type: FlushBarType.info,
@@ -1384,7 +1384,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   try {
                     coin = AppConfig.getCryptoCurrencyForTicker(
                       trade.payInCurrency,
-                    );
+                    )!;
                   } catch (_) {
                     coin = AppConfig.getCryptoCurrencyByPrettyName(
                       trade.payInCurrency,
@@ -1415,7 +1415,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider({Key? key}) : super(key: key);
+  const _Divider({super.key});
 
   @override
   Widget build(BuildContext context) {
