@@ -9,7 +9,8 @@
  */
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../../../app_config.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 part 'block_explorer.g.dart';
 
@@ -28,9 +29,9 @@ class TransactionBlockExplorer {
   late final String url;
 
   @ignore
-  Coin? get coin {
+  CryptoCurrency? get coin {
     try {
-      return coinFromTickerCaseInsensitive(ticker);
+      return AppConfig.getCryptoCurrencyForTicker(ticker);
     } catch (_) {
       return null;
     }

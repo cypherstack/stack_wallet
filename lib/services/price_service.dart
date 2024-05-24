@@ -13,11 +13,12 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/price.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../db/isar/main_db.dart';
+import '../models/isar/models/isar_models.dart';
+import '../networking/http.dart';
+import 'price.dart';
+import '../app_config.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 class PriceService extends ChangeNotifier {
@@ -28,15 +29,15 @@ class PriceService extends ChangeNotifier {
   final Duration updateInterval = const Duration(seconds: 60);
 
   Timer? _timer;
-  final Map<Coin, Tuple2<Decimal, double>> _cachedPrices = {
-    for (final coin in Coin.values) coin: Tuple2(Decimal.zero, 0.0)
+  final Map<CryptoCurrency, Tuple2<Decimal, double>> _cachedPrices = {
+    for (final coin in AppConfig.coins) coin: Tuple2(Decimal.zero, 0.0),
   };
 
   final Map<String, Tuple2<Decimal, double>> _cachedTokenPrices = {};
 
   final _priceAPI = PriceAPI(HTTP());
 
-  Tuple2<Decimal, double> getPrice(Coin coin) => _cachedPrices[coin]!;
+  Tuple2<Decimal, double> getPrice(CryptoCurrency coin) => _cachedPrices[coin]!;
 
   Tuple2<Decimal, double> getTokenPrice(String contractAddress) =>
       _cachedTokenPrices[contractAddress.toLowerCase()] ??

@@ -10,22 +10,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../providers/global/prefs_provider.dart';
+import '../../../providers/ui/address_book_providers/address_book_filter_provider.dart';
+import '../../../app_config.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class AddressBookFilterView extends ConsumerStatefulWidget {
-  const AddressBookFilterView({Key? key}) : super(key: key);
+  const AddressBookFilterView({super.key});
 
   static const String routeName = "/addressBookFilter";
 
@@ -35,19 +36,23 @@ class AddressBookFilterView extends ConsumerStatefulWidget {
 }
 
 class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
-  late final List<Coin> _coins;
+  late final List<CryptoCurrency> _coins;
 
   @override
   void initState() {
-    List<Coin> coins = [...Coin.values];
-    coins.remove(Coin.firoTestNet);
+    final coins = [...AppConfig.coins];
+    coins.removeWhere(
+      (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+    );
 
-    bool showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
+    final showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 
     if (showTestNet) {
       _coins = coins.toList(growable: false);
     } else {
-      _coins = coins.where((e) => !e.isTestNet).toList(growable: false);
+      _coins = coins
+          .where((e) => e.network != CryptoCurrencyNetwork.test)
+          .toList(growable: false);
     }
     super.initState();
   }

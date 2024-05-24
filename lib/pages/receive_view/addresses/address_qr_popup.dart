@@ -20,28 +20,28 @@ import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/stack_dialog.dart';
 
 class AddressQrPopup extends StatefulWidget {
   const AddressQrPopup({
-    Key? key,
+    super.key,
     required this.addressString,
     required this.coin,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String addressString;
-  final Coin coin;
+  final CryptoCurrency coin;
   final ClipboardInterface clipboard;
 
   @override
@@ -54,12 +54,12 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
 
   Future<void> _capturePng(bool shouldSaveInsteadOfShare) async {
     try {
-      RenderRepaintBoundary boundary =
+      final RenderRepaintBoundary boundary =
           _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage();
-      ByteData? byteData =
+      final ui.Image image = await boundary.toImage();
+      final ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
-      Uint8List pngBytes = byteData!.buffer.asUint8List();
+      final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       if (shouldSaveInsteadOfShare) {
         if (isDesktop) {

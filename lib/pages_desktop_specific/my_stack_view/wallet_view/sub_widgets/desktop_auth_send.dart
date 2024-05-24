@@ -13,16 +13,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/stack_text_field.dart';
 
 class DesktopAuthSend extends ConsumerStatefulWidget {
   const DesktopAuthSend({
@@ -30,7 +30,7 @@ class DesktopAuthSend extends ConsumerStatefulWidget {
     required this.coin,
   });
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<DesktopAuthSend> createState() => _DesktopAuthSendState();

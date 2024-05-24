@@ -8,19 +8,20 @@
  *
  */
 
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
 
 enum WalletSyncStatus { unableToSync, synced, syncing }
 
 class WalletSyncStatusChangedEvent {
   WalletSyncStatus newStatus;
   String walletId;
-  Coin coin;
+  CryptoCurrency coin;
 
   WalletSyncStatusChangedEvent(this.newStatus, this.walletId, this.coin) {
     Logging.instance.log(
-        "WalletSyncStatusChangedEvent fired in $walletId with arg newStatus = $newStatus",
-        level: LogLevel.Info);
+      "WalletSyncStatusChangedEvent fired in $walletId with arg newStatus = $newStatus",
+      level: LogLevel.Info,
+    );
   }
 }

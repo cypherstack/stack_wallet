@@ -14,14 +14,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_tor_status_button.dart';
-import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
+import '../app_config.dart';
+import 'desktop_menu_item.dart';
+import 'settings/settings_menu.dart';
+import '../providers/desktop/current_desktop_menu_item.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/assets.dart';
+import '../utilities/text_styles.dart';
+import '../widgets/desktop/desktop_tor_status_button.dart';
+import '../widgets/desktop/living_stack_icon.dart';
 
 enum DesktopMenuItemId {
   myStack,
@@ -138,7 +139,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               child: SizedBox(
                 height: 28,
                 child: Text(
-                  "Stack Wallet",
+                  AppConfig.appName,
                   style: STextStyles.desktopH2(context).copyWith(
                     fontSize: 18,
                     height: 23.4 / 18,
@@ -180,7 +181,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     DesktopMenuItem(
                       duration: duration,
                       icon: const DesktopMyStackIcon(),
-                      label: "My Stack",
+                      label: "My ${AppConfig.prefix}",
                       value: DesktopMenuItemId.myStack,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],

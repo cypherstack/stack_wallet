@@ -5,28 +5,28 @@ import 'package:flutter/foundation.dart';
 import 'package:frostdart/frostdart.dart' as frost;
 import 'package:frostdart/frostdart_bindings_generated.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
-import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
+import '../../../electrumx_rpc/cached_electrumx_client.dart';
+import '../../../electrumx_rpc/electrumx_client.dart';
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/frost.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/coins/bitcoin_frost.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/intermediate/frost_currency.dart';
+import '../../isar/models/frost_wallet_info.dart';
+import '../../models/tx_data.dart';
+import '../wallet.dart';
 
 class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   BitcoinFrostWallet(CryptoCurrencyNetwork network)
@@ -351,7 +351,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
         final tx = await electrumXCachedClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
-          coin: coin,
+          cryptoCurrency: coin,
         );
 
         if (!_duplicateTxCheck(allTransactions, tx["txid"] as String)) {
@@ -389,7 +389,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
 
           final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
-            coin: cryptoCurrency.coin,
+            cryptoCurrency: cryptoCurrency,
           );
 
           final prevOutJson = Map<String, dynamic>.from(
@@ -724,7 +724,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
           await _updateKnownSalts(updatedKnownSalts);
         } else {
           // clear cache
-          await electrumXCachedClient.clearSharedTransactionCache(coin: coin);
+          await electrumXCachedClient.clearSharedTransactionCache(
+            cryptoCurrency: coin,
+          );
           await mainDB.deleteWalletBlockchainData(walletId);
         }
 
@@ -1082,7 +1084,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
   // TODO [prio=low]: Use ElectrumXInterface method.
   Future<void> _updateElectrumX() async {
     final failovers = nodeService
-        .failoverNodesFor(coin: cryptoCurrency.coin)
+        .failoverNodesFor(currency: cryptoCurrency)
         .map(
           (e) => ElectrumXNode(
             address: e.host,
@@ -1137,7 +1139,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T> {
     final txn = await electrumXCachedClient.getTransaction(
       txHash: jsonUTXO["tx_hash"] as String,
       verbose: true,
-      coin: cryptoCurrency.coin,
+      cryptoCurrency: cryptoCurrency,
     );
 
     final vout = jsonUTXO["tx_pos"] as int;

@@ -13,7 +13,7 @@
 //
 // import 'package:stackwallet/themes/stack_colors.dart';
 // import 'package:stackwallet/utilities/assets.dart';
-// import 'package:stackwallet/utilities/enums/coin_enum.dart';
+//
 // import 'package:stackwallet/utilities/text_styles.dart';
 // import 'package:stackwallet/widgets/background.dart';
 // import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
@@ -163,7 +163,7 @@
 //
 //   @override
 //   Widget build(BuildContext context) {
-//     final Coin coin = ref.watch(managerProvider.select((value) => value.coin));
+//     final CryptoCurrency coin = ref.watch(managerProvider.select((value) => value.coin));
 //     final wallet =  ref.watch(walletsChangeNotifierProvider
 //         .select((value) => value.getWallet(widget.walletId)));
 //

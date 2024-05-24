@@ -9,17 +9,17 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
 
 class CreateRestoreWalletTitle extends StatelessWidget {
   const CreateRestoreWalletTitle({
-    Key? key,
+    super.key,
     required this.coin,
     required this.isDesktop,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final bool isDesktop;
 
   @override

@@ -13,15 +13,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../providers/providers.dart';
+import '../app_config.dart';
+import '../themes/coin_icon_provider.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/constants.dart';
+import '../utilities/text_styles.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import 'background.dart';
+import 'custom_buttons/app_bar_icon_button.dart';
+import 'rounded_white_container.dart';
 
 /*
  * This widget is used to choose a coin from a list of coins.
@@ -33,11 +34,11 @@ import 'package:stackwallet/widgets/rounded_white_container.dart';
 
 class ChooseCoinView extends ConsumerStatefulWidget {
   const ChooseCoinView({
-    Key? key,
+    super.key,
     required this.title,
     required this.coinAdditional,
     required this.nextRouteName,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/chooseCoin";
 
@@ -50,12 +51,14 @@ class ChooseCoinView extends ConsumerStatefulWidget {
 }
 
 class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
-  List<Coin> _coins = [...Coin.values];
+  List<CryptoCurrency> _coins = [...AppConfig.coins];
 
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.remove(Coin.firoTestNet);
+    _coins.removeWhere(
+      (e) => e.identifier == Firo(CryptoCurrencyNetwork.test).identifier,
+    );
     super.initState();
   }
 
@@ -66,12 +69,17 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
 
   @override
   Widget build(BuildContext context) {
-    bool showTestNet = ref.watch(
+    final bool showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    List<Coin> coins =
-        showTestNet ? _coins : _coins.where((e) => !e.isTestNet).toList();
+    final List<CryptoCurrency> coins = showTestNet
+        ? _coins
+        : _coins
+            .where(
+              (e) => e.network == CryptoCurrencyNetwork.main,
+            )
+            .toList();
 
     return Background(
       child: Scaffold(

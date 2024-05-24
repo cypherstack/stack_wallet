@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/frost_ms/initiate_resharing/complete_reshare_config_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'complete_reshare_config_view.dart';
+import '../../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import '../../../../../providers/db/main_db_provider.dart';
+import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../wallets/isar/models/frost_wallet_info.dart';
+import '../../../../../widgets/background.dart';
+import '../../../../../widgets/conditional_parent.dart';
+import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../../widgets/desktop/desktop_app_bar.dart';
+import '../../../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../../../widgets/desktop/primary_button.dart';
+import '../../../../../widgets/rounded_white_container.dart';
 
 final class InitiateResharingView extends ConsumerStatefulWidget {
   const InitiateResharingView({

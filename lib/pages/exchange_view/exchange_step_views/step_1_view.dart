@@ -9,16 +9,16 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../models/exchange/incomplete_exchange.dart';
+import 'step_2_view.dart';
+import '../sub_widgets/step_row.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class Step1View extends StatefulWidget {
   const Step1View({

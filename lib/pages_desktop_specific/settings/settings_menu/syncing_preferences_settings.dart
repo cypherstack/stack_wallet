@@ -11,15 +11,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
+import '../../../providers/global/prefs_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/enums/sync_type_enum.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/rounded_container.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class SyncingPreferencesSettings extends ConsumerStatefulWidget {
   const SyncingPreferencesSettings({Key? key}) : super(key: key);

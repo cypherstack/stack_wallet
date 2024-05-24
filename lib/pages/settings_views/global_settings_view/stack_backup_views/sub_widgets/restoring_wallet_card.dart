@@ -13,20 +13,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/wallet_restore_state.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/recovery_phrase_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
-import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../../../../models/wallet_restore_state.dart';
+import '../sub_views/recovery_phrase_view.dart';
+import 'restoring_item_card.dart';
+import '../../../../../providers/stack_restore/stack_restoring_ui_state_provider.dart';
+import '../../../../../route_generator.dart';
+import '../../../../../themes/coin_icon_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../themes/theme_providers.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/enums/stack_restoring_status.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../widgets/loading_indicator.dart';
+import '../../../../../widgets/rounded_container.dart';
 
 class RestoringWalletCard extends ConsumerStatefulWidget {
   const RestoringWalletCard({
@@ -89,9 +89,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
               height: 32,
               child: RoundedContainer(
                 padding: const EdgeInsets.all(0),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .colorForCoin(coin),
+                color: ref.watch(pCoinColor(coin)),
                 child: Center(
                   child: SvgPicture.file(
                     File(
@@ -212,9 +210,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                 height: 32,
                 child: RoundedContainer(
                   padding: const EdgeInsets.all(0),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .colorForCoin(coin),
+                  color: ref.watch(pCoinColor(coin)),
                   child: Center(
                     child: SvgPicture.file(
                       File(
@@ -239,7 +235,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       try {
                         // final mnemonicList = await manager.mnemonic;
                         // int maxUnusedAddressGap = 20;
-                        // if (coin == Coin.firo) {
+                        // if (coin is Firo) {
                         //   maxUnusedAddressGap = 50;
                         // }
                         // const maxNumberOfIndexesToCheck = 1000;

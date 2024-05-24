@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/db/hive/db.dart';
+import '../db/hive/db.dart';
 
 class TradeNotesService extends ChangeNotifier {
   Map<String, String> get all {

@@ -10,13 +10,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/toggle.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/toggle.dart';
 
 class RateTypeToggle extends ConsumerWidget {
   const RateTypeToggle({

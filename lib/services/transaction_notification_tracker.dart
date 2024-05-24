@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/db/hive/db.dart';
+import '../db/hive/db.dart';
 
 class TransactionNotificationTracker {
   final String walletId;

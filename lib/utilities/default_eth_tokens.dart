@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
+import '../models/isar/models/ethereum/eth_contract.dart';
 
 abstract class DefaultTokens {
   static List<EthContract> list = [

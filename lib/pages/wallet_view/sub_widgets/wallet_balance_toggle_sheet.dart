@@ -10,17 +10,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import '../../../models/balance.dart';
+import '../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/enums/wallet_balance_toggle_state.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
 enum _BalanceType {
   available,
@@ -44,7 +45,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     final maxHeight = MediaQuery.of(context).size.height * 0.90;
 
     final coin = ref.watch(pWalletCoin(walletId));
-    final isFiro = coin == Coin.firo || coin == Coin.firoTestNet;
+    final isFiro = coin is Firo;
 
     final balance = ref.watch(pWalletBalance(walletId));
 
@@ -305,7 +306,7 @@ class BalanceSelector<T> extends ConsumerWidget {
   });
 
   final String title;
-  final Coin coin;
+  final CryptoCurrency coin;
   final Amount balance;
   final VoidCallback onPressed;
   final void Function(T?) onChanged;

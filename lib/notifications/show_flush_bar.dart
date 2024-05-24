@@ -12,11 +12,12 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:another_flushbar/flushbar_route.dart' as flushRoute;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/flush_bar_type.dart';
 
-export 'package:stackwallet/utilities/enums/flush_bar_type.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/constants.dart';
+import '../utilities/enums/flush_bar_type.dart';
+
+export '../utilities/enums/flush_bar_type.dart';
 
 Future<dynamic> showFloatingFlushBar({
   required FlushBarType type,

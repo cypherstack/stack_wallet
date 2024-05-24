@@ -11,7 +11,7 @@
 import 'dart:convert';
 
 import 'package:hive/hive.dart';
-import 'package:stackwallet/models/epicbox_server_model.dart';
+import 'epicbox_server_model.dart';
 
 part 'type_adaptors/epicbox_config_model.g.dart';
 

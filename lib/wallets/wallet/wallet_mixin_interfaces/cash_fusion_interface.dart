@@ -5,22 +5,25 @@ import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:flutter/foundation.dart';
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/fusion_progress_ui_state.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
-import 'package:stackwallet/services/fusion_tor_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../../../models/fusion_progress_ui_state.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
+import '../../../pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
+import '../../../services/fusion_tor_service.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/stack_file_system.dart';
+import '../../crypto_currency/coins/bitcoincash.dart';
+import '../../crypto_currency/coins/ecash.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import 'coin_control_interface.dart';
+import 'electrumx_interface.dart';
 
 const String kReservedFusionAddress = "reserved_fusion_address";
 
-final kFusionServerInfoDefaults = Map<Coin, FusionInfo>.unmodifiable(const {
-  Coin.bitcoincash: FusionInfo(
+final kFusionServerInfoDefaults = Map<String, FusionInfo>.unmodifiable({
+  Bitcoincash(CryptoCurrencyNetwork.main).identifier: const FusionInfo(
     host: "fusion.servo.cash",
     port: 8789,
     ssl: true,
@@ -29,7 +32,7 @@ final kFusionServerInfoDefaults = Map<Coin, FusionInfo>.unmodifiable(const {
     // ssl: false,
     rounds: 0, // 0 is continuous
   ),
-  Coin.bitcoincashTestnet: FusionInfo(
+  Bitcoincash(CryptoCurrencyNetwork.test).identifier: const FusionInfo(
     host: "fusion.servo.cash",
     port: 8789,
     ssl: true,
@@ -38,7 +41,7 @@ final kFusionServerInfoDefaults = Map<Coin, FusionInfo>.unmodifiable(const {
     // ssl: false,
     rounds: 0, // 0 is continuous
   ),
-  Coin.eCash: FusionInfo(
+  Ecash(CryptoCurrencyNetwork.main).identifier: const FusionInfo(
     host: "fusion.tokamak.cash",
     port: 8788,
     ssl: true,
@@ -109,7 +112,8 @@ class FusionInfo {
   }
 }
 
-mixin CashFusionInterface on CoinControlInterface, ElectrumXInterface {
+mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
+    on CoinControlInterface<T>, ElectrumXInterface<T> {
   final _torService = FusionTorService.sharedInstance;
 
   // setting values on this should notify any listeners (the GUI)
@@ -307,7 +311,7 @@ mixin CashFusionInterface on CoinControlInterface, ElectrumXInterface {
     final futures = txidList.map(
       (e) => electrumXCachedClient.getTransaction(
         txHash: e,
-        coin: info.coin,
+        cryptoCurrency: info.coin,
       ),
     );
 
@@ -589,7 +593,7 @@ mixin CashFusionInterface on CoinControlInterface, ElectrumXInterface {
         checkUtxoExists: _checkUtxoExists,
         getTransactionJson: (String txid) async =>
             await electrumXCachedClient.getTransaction(
-          coin: info.coin,
+          cryptoCurrency: info.coin,
           txHash: txid,
         ),
         getPrivateKeyForPubKey: _getPrivateKeyForPubKey,

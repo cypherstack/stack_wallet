@@ -20,18 +20,18 @@ import 'package:flutter_libmonero/view_model/send/output.dart'
     as wownero_output;
 import 'package:flutter_libmonero/wownero/wownero.dart' as wow_dart;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/wownero.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../db/hive/db.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/coins/wownero.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/cryptonote_wallet.dart';
+import '../wallet.dart';
+import '../wallet_mixin_interfaces/cw_based_interface.dart';
 import 'package:tuple/tuple.dart';
 
 class WowneroWallet extends CryptonoteWallet with CwBasedInterface {

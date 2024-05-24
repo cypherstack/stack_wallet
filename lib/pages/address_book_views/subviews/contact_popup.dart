@@ -14,26 +14,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/send_view_auto_fill_data.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/contact_details_view.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
-import 'package:stackwallet/pages/send_view/send_view.dart';
-import 'package:stackwallet/providers/global/active_wallet_provider.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../models/send_view_auto_fill_data.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../../../providers/global/active_wallet_provider.dart';
+import '../../../providers/global/address_book_service_provider.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/app_icon.dart';
+import '../../../widgets/rounded_container.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../exchange_view/exchange_step_views/step_2_view.dart';
+import '../../send_view/send_view.dart';
+import 'contact_details_view.dart';
 
 final exchangeFromAddressBookAddressStateProvider =
     StateProvider<String>((ref) => "");
@@ -56,8 +56,8 @@ class ContactPopUp extends ConsumerWidget {
 
     final active = ref.read(currentWalletIdProvider);
 
-    bool hasActiveWallet = active != null;
-    bool isExchangeFlow =
+    final bool hasActiveWallet = active != null;
+    final bool isExchangeFlow =
         ref.watch(exchangeFlowIsActiveStateProvider.state).state;
 
     final addresses = contact.addressesSorted.where((e) {
@@ -118,16 +118,8 @@ class ContactPopUp extends ConsumerWidget {
                                         borderRadius: BorderRadius.circular(32),
                                       ),
                                       child: contact.customId == "default"
-                                          ? Center(
-                                              child: SvgPicture.file(
-                                                File(
-                                                  ref.watch(
-                                                    themeProvider.select(
-                                                      (value) => value
-                                                          .assets.stackIcon,
-                                                    ),
-                                                  ),
-                                                ),
+                                          ? const Center(
+                                              child: AppIcon(
                                                 width: 20,
                                               ),
                                             )

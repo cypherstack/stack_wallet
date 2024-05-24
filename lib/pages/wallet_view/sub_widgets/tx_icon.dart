@@ -13,25 +13,25 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../models/isar/stack_theme.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../themes/theme_providers.dart';
+import '../../../utilities/assets.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 class TxIcon extends ConsumerWidget {
   const TxIcon({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.currentHeight,
     required this.coin,
-  }) : super(key: key);
+  });
 
   final Object transaction;
   final int currentHeight;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   static const Size size = Size(32, 32);
 

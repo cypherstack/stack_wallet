@@ -9,7 +9,7 @@
  */
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/contract.dart';
+import '../contract.dart';
 
 part 'eth_contract.g.dart';
 

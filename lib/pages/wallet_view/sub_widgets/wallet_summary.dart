@@ -9,9 +9,9 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/widgets/coin_card.dart';
+import 'wallet_summary_info.dart';
+import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../widgets/coin_card.dart';
 
 class WalletSummary extends StatelessWidget {
   const WalletSummary({

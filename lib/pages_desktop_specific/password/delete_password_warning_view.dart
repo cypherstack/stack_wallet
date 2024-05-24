@@ -13,27 +13,27 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:hive/hive.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/intro_view.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+
+import '../../db/hive/db.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../pages/intro_view.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/stack_file_system.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
 
 class DeletePasswordWarningView extends ConsumerStatefulWidget {
   const DeletePasswordWarningView({
-    Key? key,
+    super.key,
     required this.shouldCreateNew,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/deletePasswordWarning";
 
@@ -119,14 +119,7 @@ class _ForgotPasswordDesktopViewState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SvgPicture.file(
-                  File(
-                    ref.watch(
-                      themeProvider.select(
-                        (value) => value.assets.stackIcon,
-                      ),
-                    ),
-                  ),
+                const AppIcon(
                   width: 100,
                 ),
                 const SizedBox(

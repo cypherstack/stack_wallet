@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
+import '../themes/stack_colors.dart';
 
 class STextStyles {
   static StackColors _theme(BuildContext context) =>

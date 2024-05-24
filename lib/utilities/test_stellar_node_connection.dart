@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:stackwallet/networking/http.dart' as http;
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../networking/http.dart' as http;
+import '../services/tor_service.dart';
+import 'prefs.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
 
 Future<bool> testStellarNodeConnection(String host, int port) async {

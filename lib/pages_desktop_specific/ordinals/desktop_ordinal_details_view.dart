@@ -5,28 +5,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/models/isar/ordinal.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../models/isar/models/blockchain_data/utxo.dart';
+import '../../models/isar/ordinal.dart';
+import '../../networking/http.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../pages/wallet_view/transaction_views/transaction_details_view.dart';
+import '../../providers/db/main_db_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../services/tor_service.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/prefs.dart';
+import '../../utilities/show_loading.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/rounded_white_container.dart';
 
 class DesktopOrdinalDetailsView extends ConsumerStatefulWidget {
   const DesktopOrdinalDetailsView({
@@ -298,7 +297,7 @@ class _DesktopOrdinalDetailsViewState
                                     : ref.watch(pAmountFormatter(coin)).format(
                                           Amount(
                                             rawValue: BigInt.from(utxo!.value),
-                                            fractionDigits: coin.decimals,
+                                            fractionDigits: coin.fractionDigits,
                                           ),
                                         ),
                               );

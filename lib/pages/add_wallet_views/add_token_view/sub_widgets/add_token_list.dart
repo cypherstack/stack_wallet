@@ -9,9 +9,9 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_custom_token_selector.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+import 'add_custom_token_selector.dart';
+import 'add_token_list_element.dart';
+import '../../../../widgets/conditional_parent.dart';
 
 class AddTokenList extends StatelessWidget {
   const AddTokenList({

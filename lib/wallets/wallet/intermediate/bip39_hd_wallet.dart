@@ -1,13 +1,13 @@
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../crypto_currency/intermediate/bip39_hd_currency.dart';
+import 'bip39_wallet.dart';
+import '../wallet_mixin_interfaces/multi_address_interface.dart';
 
 abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     with MultiAddressInterface<T> {
@@ -66,7 +66,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+      derivePathType: info.coin.primaryDerivePathType,
     );
 
     await mainDB.updateOrPutAddresses([address]);
@@ -88,7 +88,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+      derivePathType: info.coin.primaryDerivePathType,
     );
 
     await mainDB.updateOrPutAddresses([address]);
@@ -101,7 +101,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       final address = await _generateAddress(
         chain: 0, // receiving
         index: 0, // initial index
-        derivePathType: DerivePathTypeExt.primaryFor(info.coin),
+        derivePathType: info.coin.primaryDerivePathType,
       );
 
       await mainDB.updateOrPutAddresses([address]);

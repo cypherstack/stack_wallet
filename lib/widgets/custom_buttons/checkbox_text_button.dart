@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../utilities/text_styles.dart';
 
 class CheckboxTextButton extends StatefulWidget {
   const CheckboxTextButton({super.key, required this.label, this.onChanged});

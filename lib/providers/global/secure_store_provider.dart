@@ -10,9 +10,9 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/util.dart';
+import '../desktop/storage_crypto_handler_provider.dart';
+import '../../utilities/flutter_secure_storage_interface.dart';
+import '../../utilities/util.dart';
 
 final secureStoreProvider = Provider<SecureStorageInterface>((ref) {
   if (Util.isDesktop) {

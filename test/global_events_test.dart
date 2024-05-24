@@ -4,7 +4,8 @@ import 'package:stackwallet/services/event_bus/events/global/refresh_percent_cha
 import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
   test("NodeConnectionStatusChangedEvent", () async {
@@ -13,12 +14,18 @@ void main() {
         .listen((event) {
       expect(event.newStatus, NodeConnectionStatus.connected);
       expect(event.walletId, "some wallet ID");
-      expect(event.coin, Coin.bitcoin);
+      expect(event.coin, Bitcoin(CryptoCurrencyNetwork.main));
     });
     expect(
-        () => GlobalEventBus.instance.fire(NodeConnectionStatusChangedEvent(
-            NodeConnectionStatus.connected, "some wallet ID", Coin.bitcoin)),
-        returnsNormally);
+      () => GlobalEventBus.instance.fire(
+        NodeConnectionStatusChangedEvent(
+          NodeConnectionStatus.connected,
+          "some wallet ID",
+          Bitcoin(CryptoCurrencyNetwork.main),
+        ),
+      ),
+      returnsNormally,
+    );
     listener.cancel();
   });
 
@@ -30,9 +37,10 @@ void main() {
       expect(event.walletId, "some id");
     });
     expect(
-        () => GlobalEventBus.instance
-            .fire(RefreshPercentChangedEvent(0.5, "some id")),
-        returnsNormally);
+      () => GlobalEventBus.instance
+          .fire(RefreshPercentChangedEvent(0.5, "some id")),
+      returnsNormally,
+    );
     listener.cancel();
   });
 
@@ -43,9 +51,10 @@ void main() {
       expect(event.walletId, "wallet Id");
     });
     expect(
-        () => GlobalEventBus.instance
-            .fire(UpdatedInBackgroundEvent("some message string", "wallet Id")),
-        returnsNormally);
+      () => GlobalEventBus.instance
+          .fire(UpdatedInBackgroundEvent("some message string", "wallet Id")),
+      returnsNormally,
+    );
     listener.cancel();
   });
 
@@ -55,12 +64,18 @@ void main() {
         .listen((event) {
       expect(event.newStatus, WalletSyncStatus.syncing);
       expect(event.walletId, "wallet Id");
-      expect(event.coin, Coin.bitcoin);
+      expect(event.coin, Bitcoin(CryptoCurrencyNetwork.main));
     });
     expect(
-        () => GlobalEventBus.instance.fire(WalletSyncStatusChangedEvent(
-            WalletSyncStatus.syncing, "wallet Id", Coin.bitcoin)),
-        returnsNormally);
+      () => GlobalEventBus.instance.fire(
+        WalletSyncStatusChangedEvent(
+          WalletSyncStatus.syncing,
+          "wallet Id",
+          Bitcoin(CryptoCurrencyNetwork.main),
+        ),
+      ),
+      returnsNormally,
+    );
     listener.cancel();
   });
 }

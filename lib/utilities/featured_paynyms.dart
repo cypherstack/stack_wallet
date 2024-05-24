@@ -8,6 +8,8 @@
  *
  */
 
+import '../app_config.dart';
+
 abstract class FeaturedPaynyms {
   // TODO: replace with actual value
   // static const String samouraiWalletDevFund =
@@ -16,7 +18,7 @@ abstract class FeaturedPaynyms {
       "PM8TJdQcNk27JpxGRtNR7Hnh8VkJk4Nf17BthLx89fM3iX3UL2YshyaiTAvKgTCVvpgsAgY1DbojkAaUd3Rcn48NEn4uUBuqkaSddgKL8TPAAEQXNuE6";
 
   static Map<String, String> get featured => {
-        "Stack Wallet": stackWallet,
+        AppConfig.appName: stackWallet,
         // "Samourai Wallet Dev Fund": samouraiWalletDevFund,
       };
 }

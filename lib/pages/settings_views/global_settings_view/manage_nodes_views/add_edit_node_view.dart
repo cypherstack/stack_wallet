@@ -14,36 +14,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:solana/solana.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/test_epic_box_connection.dart';
-import 'package:stackwallet/utilities/test_eth_node_connection.dart';
-import 'package:stackwallet/utilities/test_monero_node_connection.dart';
-import 'package:stackwallet/utilities/test_stellar_node_connection.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/api/tezos/tezos_rpc_api.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import '../../../../models/node_model.dart';
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../providers/global/secure_store_provider.dart';
+import '../../../../providers/providers.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/flutter_secure_storage_interface.dart';
+import '../../../../utilities/test_node_connection.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/coins/epiccash.dart';
+import '../../../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../../../wallets/crypto_currency/coins/monero.dart';
+import '../../../../wallets/crypto_currency/coins/wownero.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/conditional_parent.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/stack_text_field.dart';
+import '../../../../widgets/textfield_icon_button.dart';
 import 'package:uuid/uuid.dart';
 // import 'package:web3dart/web3dart.dart';
 
@@ -51,17 +48,17 @@ enum AddEditNodeViewType { add, edit }
 
 class AddEditNodeView extends ConsumerStatefulWidget {
   const AddEditNodeView({
-    Key? key,
+    super.key,
     required this.viewType,
     required this.coin,
     required this.nodeId,
     required this.routeOnSuccessOrDelete,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/addEditNode";
 
   final AddEditNodeViewType viewType;
-  final Coin coin;
+  final CryptoCurrency coin;
   final String routeOnSuccessOrDelete;
   final String? nodeId;
 
@@ -71,192 +68,31 @@ class AddEditNodeView extends ConsumerStatefulWidget {
 
 class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late final AddEditNodeViewType viewType;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final String? nodeId;
   late final bool isDesktop;
 
   late bool saveEnabled;
   late bool testConnectionEnabled;
 
-  Future<bool> _xmrHelper(String url, int? port) async {
-    final uri = Uri.parse(url);
-
-    final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
-
-    final uriString = "${uri.scheme}://${uri.host}:${port ?? 0}$path";
-
-    ref.read(nodeFormDataProvider).useSSL = true;
-
-    final response = await testMoneroNodeConnection(
-      Uri.parse(uriString),
-      false,
-    );
-
-    if (response.cert != null) {
-      if (mounted) {
-        final shouldAllowBadCert = await showBadX509CertificateDialog(
-          response.cert!,
-          response.url!,
-          response.port!,
-          context,
-        );
-
-        if (shouldAllowBadCert) {
-          final response =
-              await testMoneroNodeConnection(Uri.parse(uriString), true);
-          ref.read(nodeFormDataProvider).host = url;
-          return response.success;
-        }
-      }
-    } else {
-      ref.read(nodeFormDataProvider).host = url;
-      return response.success;
+  void _onTestSuccess(NodeFormData data) {
+    if (coin is Epiccash) {
+      ref.read(nodeFormDataProvider).host = data.host;
+      ref.read(nodeFormDataProvider).port = data.port;
+      ref.read(nodeFormDataProvider).useSSL = data.useSSL;
+    } else if (coin is CryptonoteCurrency) {
+      ref.read(nodeFormDataProvider).host = data.host;
     }
-
-    return false;
-  }
-
-  Future<bool> _testConnection({bool showFlushBar = true}) async {
-    final formData = ref.read(nodeFormDataProvider);
-
-    bool testPassed = false;
-
-    switch (coin) {
-      case Coin.epicCash:
-        try {
-          final data = await testEpicNodeConnection(formData);
-
-          if (data != null) {
-            testPassed = true;
-            ref.read(nodeFormDataProvider).host = data.host;
-            ref.read(nodeFormDataProvider).port = data.port;
-            ref.read(nodeFormDataProvider).useSSL = data.useSSL;
-          }
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-        break;
-
-      case Coin.monero:
-      case Coin.wownero:
-        try {
-          final url = formData.host!;
-          final uri = Uri.tryParse(url);
-          if (uri != null) {
-            if (!uri.hasScheme) {
-              // try https first
-              testPassed = await _xmrHelper("https://$url", formData.port);
-
-              if (testPassed == false) {
-                // try http
-                testPassed = await _xmrHelper("http://$url", formData.port);
-              }
-            } else {
-              testPassed = await _xmrHelper(url, formData.port);
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-
-        break;
-
-      case Coin.bitcoin:
-      case Coin.bitcoincash:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.eCash:
-      case Coin.firo:
-      case Coin.namecoin:
-      case Coin.particl:
-      case Coin.peercoin:
-      case Coin.peercoinTestNet:
-      case Coin.bitcoinFrost:
-      case Coin.bitcoinFrostTestNet:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-        try {
-          testPassed = await checkElectrumServer(
-            host: formData.host!,
-            port: formData.port!,
-            useSSL: formData.useSSL!,
-            overridePrefs: ref.read(prefsChangeNotifierProvider),
-            overrideTorService: ref.read(pTorService),
-          );
-        } catch (_) {
-          testPassed = false;
-        }
-
-        break;
-
-      case Coin.ethereum:
-        try {
-          testPassed = await testEthNodeConnection(formData.host!);
-        } catch (_) {
-          testPassed = false;
-        }
-        break;
-
-      case Coin.stellar:
-      case Coin.stellarTestnet:
-        try {
-          testPassed =
-              await testStellarNodeConnection(formData.host!, formData.port!);
-        } catch (_) {}
-        break;
-
-      case Coin.nano:
-      case Coin.banano:
-        throw UnimplementedError();
-      //TODO: check network/node
-      case Coin.tezos:
-        try {
-          testPassed = await TezosRpcAPI.testNetworkConnection(
-            nodeInfo: (host: formData.host!, port: formData.port!),
-          );
-        } catch (_) {}
-        break;
-
-      case Coin.solana:
-        try {
-          RpcClient rpcClient;
-          if (formData.host!.startsWith("http") ||
-              formData.host!.startsWith("https")) {
-            rpcClient = RpcClient("${formData.host}:${formData.port}");
-          } else {
-            rpcClient = RpcClient("http://${formData.host}:${formData.port}");
-          }
-          await rpcClient.getEpochInfo().then((value) => testPassed = true);
-        } catch (_) {
-          testPassed = false;
-        }
-        break;
-    }
-
-    if (showFlushBar && mounted) {
-      if (testPassed) {
-        unawaited(showFloatingFlushBar(
-          type: FlushBarType.success,
-          message: "Server ping success",
-          context: context,
-        ));
-      } else {
-        unawaited(showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Server unreachable",
-          context: context,
-        ));
-      }
-    }
-
-    return testPassed;
   }
 
   Future<void> attemptSave() async {
-    final canConnect = await _testConnection(showFlushBar: false);
+    final canConnect = await testNodeConnection(
+      context: context,
+      onSuccess: _onTestSuccess,
+      cryptoCurrency: coin,
+      nodeFormData: ref.read(nodeFormDataProvider),
+      ref: ref,
+    );
 
     bool? shouldSave;
 
@@ -387,7 +223,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin == Coin.monero || coin == Coin.wownero) {
+    if (coin is Monero || coin is Wownero) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -404,7 +240,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           useSSL: formData.useSSL!,
           loginName: formData.login,
           enabled: true,
-          coinName: coin.name,
+          coinName: coin.identifier,
           isFailover: formData.isFailover!,
           trusted: formData.trusted!,
           isDown: false,
@@ -429,7 +265,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           useSSL: formData.useSSL!,
           loginName: formData.login,
           enabled: true,
-          coinName: coin.name,
+          coinName: coin.identifier,
           isFailover: formData.isFailover!,
           trusted: formData.trusted!,
           isDown: false,
@@ -652,7 +488,32 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: testConnectionEnabled
                         ? () async {
-                            await _testConnection();
+                            final testPassed = await testNodeConnection(
+                              context: context,
+                              onSuccess: _onTestSuccess,
+                              cryptoCurrency: coin,
+                              nodeFormData: ref.read(nodeFormDataProvider),
+                              ref: ref,
+                            );
+                            if (context.mounted) {
+                              if (testPassed) {
+                                unawaited(
+                                  showFloatingFlushBar(
+                                    type: FlushBarType.success,
+                                    message: "Server ping success",
+                                    context: context,
+                                  ),
+                                );
+                              } else {
+                                unawaited(
+                                  showFloatingFlushBar(
+                                    type: FlushBarType.warning,
+                                    message: "Server unreachable",
+                                    context: context,
+                                  ),
+                                );
+                              }
+                            }
                           }
                         : null,
                   ),
@@ -724,7 +585,7 @@ class NodeForm extends ConsumerStatefulWidget {
   final NodeModel? node;
   final SecureStorageInterface secureStore;
   final bool readOnly;
-  final Coin coin;
+  final CryptoCurrency coin;
   final void Function(bool canSave, bool canTestConnection)? onChanged;
 
   @override
@@ -754,39 +615,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
   void Function(bool canSave, bool canTestConnection)? onChanged;
 
-  bool _checkShouldEnableAuthFields(Coin coin) {
+  bool _checkShouldEnableAuthFields(CryptoCurrency coin) {
     // TODO: which coin servers can have username and password?
     switch (coin) {
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.namecoin:
-      case Coin.bitcoincash:
-      case Coin.particl:
-      case Coin.peercoin:
-      case Coin.peercoinTestNet:
-      case Coin.tezos:
-      case Coin.bitcoinTestNet:
-      case Coin.litecoinTestNet:
-      case Coin.bitcoincashTestnet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.epicCash:
-      case Coin.nano:
-      case Coin.banano:
-      case Coin.eCash:
-      case Coin.solana:
-      case Coin.stellar:
-      case Coin.stellarTestnet:
-      case Coin.bitcoinFrost:
-      case Coin.bitcoinFrostTestNet:
-        return false;
-
-      case Coin.ethereum:
-      case Coin.monero:
-      case Coin.wownero:
+      case Ethereum():
+      case CryptonoteCurrency():
         return true;
+
+      default:
+        return false;
     }
   }
 
@@ -862,7 +699,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
       _trusted = node.trusted ?? false;
-      if (widget.coin == Coin.epicCash) {
+      if (widget.coin is Epiccash) {
         enableSSLCheckbox = !node.host.startsWith("http");
       } else {
         enableSSLCheckbox = true;
@@ -961,9 +798,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             focusNode: _hostFocusNode,
             style: STextStyles.field(context),
             decoration: standardInputDecoration(
-              (widget.coin != Coin.monero && widget.coin != Coin.wownero)
-                  ? "IP address"
-                  : "Url",
+              (widget.coin is! CryptonoteCurrency) ? "IP address" : "Url",
               _hostFocusNode,
               context,
             ).copyWith(
@@ -987,7 +822,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   : null,
             ),
             onChanged: (newValue) {
-              if (widget.coin == Coin.epicCash) {
+              if (widget.coin is Epiccash) {
                 if (newValue.startsWith("https://")) {
                   _useSSL = true;
                   enableSSLCheckbox = false;
@@ -1151,7 +986,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero && widget.coin != Coin.wownero)
+        if (widget.coin is! CryptonoteCurrency)
           Row(
             children: [
               GestureDetector(
@@ -1202,7 +1037,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin == Coin.monero || widget.coin == Coin.wownero)
+        if (widget.coin is Monero || widget.coin is Wownero)
           Row(
             children: [
               GestureDetector(
@@ -1253,15 +1088,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin is! CryptonoteCurrency && widget.coin is! Epiccash)
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin != Coin.monero &&
-            widget.coin != Coin.wownero &&
-            widget.coin != Coin.epicCash)
+        if (widget.coin is! CryptonoteCurrency && widget.coin is! Epiccash)
           Row(
             children: [
               GestureDetector(

@@ -13,20 +13,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+import '../../../app_config.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../../../providers/desktop/storage_crypto_handler_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/progress_bar.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
 class SecuritySettings extends ConsumerStatefulWidget {
-  const SecuritySettings({Key? key}) : super(key: key);
+  const SecuritySettings({super.key});
 
   static const String routeName = "/settingsMenuSecurity";
 
@@ -186,7 +187,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                         height: 16,
                       ),
                       Text(
-                        "Protect your Stack Wallet with a strong password. Stack Wallet does not store "
+                        "Protect your ${AppConfig.appName} with a strong password. ${AppConfig.appName} does not store "
                         "your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),

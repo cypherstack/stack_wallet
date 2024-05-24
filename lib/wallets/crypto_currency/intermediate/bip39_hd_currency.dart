@@ -1,10 +1,10 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_currency.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import 'bip39_currency.dart';
 
 abstract class Bip39HDCurrency extends Bip39Currency {
   Bip39HDCurrency(super.network);

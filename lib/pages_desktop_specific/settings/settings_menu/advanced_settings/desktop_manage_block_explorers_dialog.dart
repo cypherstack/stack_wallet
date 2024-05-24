@@ -13,34 +13,37 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/block_explorers.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../app_config.dart';
+import '../../../../themes/coin_icon_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/block_explorers.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
 
 class DesktopManageBlockExplorersDialog extends ConsumerWidget {
   const DesktopManageBlockExplorersDialog({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    bool showTestNet = ref.watch(
+    final bool showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final List<Coin> coins = showTestNet
-        ? Coin.values
-        : Coin.values.where((e) => !e.isTestNet).toList();
+    final coins = AppConfig.coins
+        .where(
+          (e) => showTestNet || e.network == CryptoCurrencyNetwork.main,
+        )
+        .toList();
 
     return DesktopDialog(
       maxHeight: 850,
@@ -139,7 +142,7 @@ class _DesktopEditBlockExplorerDialog extends ConsumerStatefulWidget {
   const _DesktopEditBlockExplorerDialog({Key? key, required this.coin})
       : super(key: key);
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<_DesktopEditBlockExplorerDialog> createState() =>

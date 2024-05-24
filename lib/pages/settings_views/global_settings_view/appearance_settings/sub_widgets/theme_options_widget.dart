@@ -12,18 +12,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/sub_widgets/theme_option.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+import '../../../../../models/isar/stack_theme.dart';
+import 'theme_option.dart';
+import '../system_brightness_theme_selection_view.dart';
+import '../../../../../providers/db/main_db_provider.dart';
+import '../../../../../providers/global/prefs_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../themes/theme_providers.dart';
+import '../../../../../themes/theme_service.dart';
+import '../../../../../utilities/constants.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../widgets/conditional_parent.dart';
+import '../../../../../widgets/custom_buttons/blue_text_button.dart';
 import 'package:tuple/tuple.dart';
 
 class ThemeOptionsWidget extends ConsumerStatefulWidget {

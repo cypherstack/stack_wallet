@@ -11,19 +11,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../../../../providers/global/prefs_provider.dart';
+import '../../../../../providers/global/wallets_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../wallets/crypto_currency/coins/banano.dart';
+import '../../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../../widgets/rounded_container.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({
@@ -85,8 +86,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (wallet.info.coin == Coin.firo ||
-              wallet.info.coin == Coin.firoTestNet)
+          if (wallet.info.coin is Firo)
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
@@ -122,7 +122,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.ordinal,
               onPressed: () => widget.onOrdinalsPressed?.call(),
             ),
-          if (wallet.info.coin == Coin.banano)
+          if (wallet.info.coin is Banano)
             _MoreFeaturesItem(
               label: "MonKey",
               detail: "Generate Banano MonKey",
@@ -147,12 +147,12 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
 
 class _MoreFeaturesItem extends StatelessWidget {
   const _MoreFeaturesItem({
-    Key? key,
+    super.key,
     required this.label,
     required this.detail,
     required this.iconAsset,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   static const double iconSizeBG = 46;
   static const double iconSize = 24;
@@ -209,7 +209,7 @@ class _MoreFeaturesItem extends StatelessWidget {
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

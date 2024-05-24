@@ -5,26 +5,25 @@ import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/ethereum/ethereum_api.dart';
-import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/ethereum/ethereum_api.dart';
+import '../../../services/event_bus/events/global/updated_in_background_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/eth_commons.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/coins/ethereum.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_wallet.dart';
+import '../wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:web3dart/web3dart.dart' as web3;
 
 // Eth can not use tor with web3dart
@@ -239,7 +238,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     if (response.value == null) {
       Logging.instance.log(
-        "Failed to refresh transactions for ${cryptoCurrency.coin.prettyName} ${info.name} "
+        "Failed to refresh transactions for ${cryptoCurrency.prettyName} ${info.name} "
         "$walletId: ${response.exception}",
         level: LogLevel.Warning,
       );
@@ -349,7 +348,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       await mainDB.updateOrPutTransactionV2s(txns);
     } else {
       Logging.instance.log(
-        "Failed to refresh transactions with nonces for ${cryptoCurrency.coin.prettyName} "
+        "Failed to refresh transactions with nonces for ${cryptoCurrency.prettyName} "
         "${info.name} $walletId: ${txsResponse.exception}",
         level: LogLevel.Warning,
       );

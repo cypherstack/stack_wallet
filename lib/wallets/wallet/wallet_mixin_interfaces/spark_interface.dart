@@ -6,21 +6,22 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../models/signing_data.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../isar/models/spark_coin.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_hd_wallet.dart';
+import 'electrumx_interface.dart';
 
 const kDefaultSparkIndex = 1;
 
@@ -34,7 +35,8 @@ const OP_SPARKMINT = 0xd1;
 const OP_SPARKSMINT = 0xd2;
 const OP_SPARKSPEND = 0xd3;
 
-mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
+mixin SparkInterface<T extends ElectrumXCurrencyInterface>
+    on Bip39HDWallet<T>, ElectrumXInterface<T> {
   String? _sparkChangeAddressCached;
 
   /// Spark change address. Should generally not be exposed to end users.
@@ -258,7 +260,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     for (int i = 1; i <= currentId; i++) {
       final set = await electrumXCachedClient.getSparkAnonymitySet(
         groupId: i.toString(),
-        coin: info.coin,
+        cryptoCurrency: info.coin,
         useOnlyCacheIfNotEmpty: true,
       );
       set["coinGroupID"] = i;
@@ -619,12 +621,12 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
 
       final anonymitySetFuture = electrumXCachedClient.getSparkAnonymitySet(
         groupId: latestSparkCoinId.toString(),
-        coin: info.coin,
+        cryptoCurrency: info.coin,
         useOnlyCacheIfNotEmpty: false,
       );
 
-      final spentCoinTagsFuture =
-          electrumXCachedClient.getSparkUsedCoinsTags(coin: info.coin);
+      final spentCoinTagsFuture = electrumXCachedClient.getSparkUsedCoinsTags(
+          cryptoCurrency: info.coin);
 
       final futureResults = await Future.wait([
         anonymitySetFuture,
@@ -1600,7 +1602,7 @@ mixin SparkInterface on Bip39HDWallet, ElectrumXInterface {
     for (final coin in coinsToCheck) {
       final tx = await electrumXCachedClient.getTransaction(
         txHash: coin.txHash,
-        coin: info.coin,
+        cryptoCurrency: info.coin,
       );
       if (tx["height"] is int) {
         updatedCoins.add(coin.copyWith(height: tx["height"] as int));

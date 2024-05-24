@@ -11,15 +11,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/aggregate_currency.dart';
-import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+
+import '../../app_config.dart';
+import '../../models/exchange/aggregate_currency.dart';
+import '../../pages/buy_view/sub_widgets/crypto_selection_view.dart';
+import '../../providers/global/locale_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount_input_formatter.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../loading_indicator.dart';
 
 class ExchangeTextField extends ConsumerStatefulWidget {
   const ExchangeTextField({
@@ -173,7 +175,8 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                           ),
                           child: Builder(
                             builder: (context) {
-                              if (isStackCoin(widget.currency?.ticker)) {
+                              if (AppConfig.isStackCoin(
+                                  widget.currency?.ticker)) {
                                 return Center(
                                   child: CoinIconForTicker(
                                     size: 18,

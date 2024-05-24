@@ -1,0 +1,17 @@
+# flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+
+  android: false
+
+  ios: false
+
+  web:
+    generate: false
+
+  windows:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    icon_size: 48 # min:48, max:256, default: 48
+
+  macos:
+    generate: false

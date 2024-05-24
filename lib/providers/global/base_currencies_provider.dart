@@ -10,7 +10,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/services/price.dart';
+import '../../services/price.dart';
 
 final baseCurrenciesProvider =
     ChangeNotifierProvider<_BaseCurrencies>((_) => _BaseCurrencies());

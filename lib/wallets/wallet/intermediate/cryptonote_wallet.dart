@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../models/tx_data.dart';
+import '../wallet.dart';
+import '../wallet_mixin_interfaces/mnemonic_interface.dart';
 
 abstract class CryptonoteWallet<T extends CryptonoteCurrency> extends Wallet<T>
     with MnemonicInterface<T> {

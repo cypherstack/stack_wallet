@@ -4,31 +4,31 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
-import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/paynym_is_api.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
-import 'package:stackwallet/wallets/wallet/impl/peercoin_wallet.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../electrumx_rpc/cached_electrumx_client.dart';
+import '../../../electrumx_rpc/client_manager.dart';
+import '../../../electrumx_rpc/electrumx_client.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../models/signing_data.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/paynym_is_api.dart';
+import '../../crypto_currency/coins/firo.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../models/tx_data.dart';
+import '../impl/bitcoin_wallet.dart';
+import '../impl/peercoin_wallet.dart';
+import '../intermediate/bip39_hd_wallet.dart';
+import 'paynym_interface.dart';
 
-mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
+mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
+    on Bip39HDWallet<T> {
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
 
@@ -43,9 +43,11 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     }
 
     try {
-      _serverVersion ??= _parseServerVersion((await electrumXClient
-          .getServerFeatures()
-          .timeout(const Duration(seconds: 2)))["server_version"] as String);
+      _serverVersion ??= _parseServerVersion(
+        (await electrumXClient
+            .getServerFeatures()
+            .timeout(const Duration(seconds: 2)))["server_version"] as String,
+      );
     } catch (_) {
       // ignore failure as it doesn't matter
     }
@@ -133,22 +135,30 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     // don't care about sorting if using all utxos
     if (!coinControl) {
       // sort spendable by age (oldest first)
-      spendableOutputs.sort((a, b) => (b.blockTime ?? currentChainHeight)
-          .compareTo((a.blockTime ?? currentChainHeight)));
+      spendableOutputs.sort(
+        (a, b) => (b.blockTime ?? currentChainHeight)
+            .compareTo((a.blockTime ?? currentChainHeight)),
+      );
       // Null check operator changed to null assignment in order to resolve a
       // `Null check operator used on a null value` error.  currentChainHeight
       // used in order to sort these unconfirmed outputs as the youngest, but we
       // could just as well use currentChainHeight + 1.
     }
 
-    Logging.instance.log("spendableOutputs.length: ${spendableOutputs.length}",
-        level: LogLevel.Info);
-    Logging.instance.log("availableOutputs.length: ${availableOutputs.length}",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "spendableOutputs.length: ${spendableOutputs.length}",
+      level: LogLevel.Info,
+    );
+    Logging.instance.log(
+      "availableOutputs.length: ${availableOutputs.length}",
+      level: LogLevel.Info,
+    );
     Logging.instance
         .log("spendableOutputs: $spendableOutputs", level: LogLevel.Info);
-    Logging.instance.log("spendableSatoshiValue: $spendableSatoshiValue",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "spendableSatoshiValue: $spendableSatoshiValue",
+      level: LogLevel.Info,
+    );
     Logging.instance
         .log("satoshiAmountToSend: $satoshiAmountToSend", level: LogLevel.Info);
     // If the amount the user is trying to send is smaller than the amount that they have spendable,
@@ -299,7 +309,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
             [recipientAddress, (await getCurrentChangeAddress())!.value],
             [
               satoshiAmountToSend,
-              max(0, satoshisBeingUsed - satoshiAmountToSend - 1)
+              max(0, satoshisBeingUsed - satoshiAmountToSend - 1),
             ],
           ),
         ),
@@ -358,13 +368,18 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           Logging.instance.log('2 outputs in tx', level: LogLevel.Info);
           Logging.instance
               .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
-          Logging.instance.log('Recipient output size: $satoshiAmountToSend',
-              level: LogLevel.Info);
-          Logging.instance.log('Change Output Size: $changeOutputSize',
-              level: LogLevel.Info);
           Logging.instance.log(
-              'Difference (fee being paid): $feeBeingPaid sats',
-              level: LogLevel.Info);
+            'Recipient output size: $satoshiAmountToSend',
+            level: LogLevel.Info,
+          );
+          Logging.instance.log(
+            'Change Output Size: $changeOutputSize',
+            level: LogLevel.Info,
+          );
+          Logging.instance.log(
+            'Difference (fee being paid): $feeBeingPaid sats',
+            level: LogLevel.Info,
+          );
           Logging.instance
               .log('Estimated fee: $feeForTwoOutputs', level: LogLevel.Info);
 
@@ -386,19 +401,26 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
                 satoshisBeingUsed - satoshiAmountToSend - changeOutputSize;
             recipientsAmtArray.removeLast();
             recipientsAmtArray.add(changeOutputSize);
-            Logging.instance.log('Adjusted Input size: $satoshisBeingUsed',
-                level: LogLevel.Info);
             Logging.instance.log(
-                'Adjusted Recipient output size: $satoshiAmountToSend',
-                level: LogLevel.Info);
+              'Adjusted Input size: $satoshisBeingUsed',
+              level: LogLevel.Info,
+            );
             Logging.instance.log(
-                'Adjusted Change Output Size: $changeOutputSize',
-                level: LogLevel.Info);
+              'Adjusted Recipient output size: $satoshiAmountToSend',
+              level: LogLevel.Info,
+            );
             Logging.instance.log(
-                'Adjusted Difference (fee being paid): $feeBeingPaid sats',
-                level: LogLevel.Info);
-            Logging.instance.log('Adjusted Estimated fee: $feeForTwoOutputs',
-                level: LogLevel.Info);
+              'Adjusted Change Output Size: $changeOutputSize',
+              level: LogLevel.Info,
+            );
+            Logging.instance.log(
+              'Adjusted Difference (fee being paid): $feeBeingPaid sats',
+              level: LogLevel.Info,
+            );
+            Logging.instance.log(
+              'Adjusted Estimated fee: $feeForTwoOutputs',
+              level: LogLevel.Info,
+            );
             txn = await buildTransaction(
               utxoSigningData: utxoSigningData,
               txData: txData.copyWith(
@@ -423,11 +445,14 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
           Logging.instance.log('1 output in tx', level: LogLevel.Info);
           Logging.instance
               .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
-          Logging.instance.log('Recipient output size: $satoshiAmountToSend',
-              level: LogLevel.Info);
           Logging.instance.log(
-              'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
-              level: LogLevel.Info);
+            'Recipient output size: $satoshiAmountToSend',
+            level: LogLevel.Info,
+          );
+          Logging.instance.log(
+            'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
+            level: LogLevel.Info,
+          );
           Logging.instance
               .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
           final txn = await buildTransaction(
@@ -455,11 +480,14 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         Logging.instance.log('1 output in tx', level: LogLevel.Info);
         Logging.instance
             .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
-        Logging.instance.log('Recipient output size: $satoshiAmountToSend',
-            level: LogLevel.Info);
         Logging.instance.log(
-            'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
-            level: LogLevel.Info);
+          'Recipient output size: $satoshiAmountToSend',
+          level: LogLevel.Info,
+        );
+        Logging.instance.log(
+          'Difference (fee being paid): ${satoshisBeingUsed - satoshiAmountToSend} sats',
+          level: LogLevel.Info,
+        );
         Logging.instance
             .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
         final txn = await buildTransaction(
@@ -487,11 +515,14 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       Logging.instance.log('1 output in tx', level: LogLevel.Info);
       Logging.instance
           .log('Input size: $satoshisBeingUsed', level: LogLevel.Info);
-      Logging.instance.log('Recipient output size: $satoshiAmountToSend',
-          level: LogLevel.Info);
       Logging.instance.log(
-          'Fee being paid: ${satoshisBeingUsed - satoshiAmountToSend} sats',
-          level: LogLevel.Info);
+        'Recipient output size: $satoshiAmountToSend',
+        level: LogLevel.Info,
+      );
+      Logging.instance.log(
+        'Fee being paid: ${satoshisBeingUsed - satoshiAmountToSend} sats',
+        level: LogLevel.Info,
+      );
       Logging.instance
           .log('Estimated fee: $feeForOneOutput', level: LogLevel.Info);
       final txn = await buildTransaction(
@@ -515,8 +546,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       // pay for the transaction fee. Ideally, at this stage, we should check if the user has any
       // additional outputs they're able to spend and then recalculate fees.
       Logging.instance.log(
-          'Cannot pay tx fee - checking for more outputs and trying again',
-          level: LogLevel.Warning);
+        'Cannot pay tx fee - checking for more outputs and trying again',
+        level: LogLevel.Warning,
+      );
       // try adding more outputs
       if (spendableOutputs.length > inputsBeingConsumed) {
         return coinSelection(
@@ -589,7 +621,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
         if (keys == null) {
           throw Exception(
-              "Failed to fetch signing data. Local db corrupt. Rescan wallet.");
+            "Failed to fetch signing data. Local db corrupt. Rescan wallet.",
+          );
         }
 
         sd.keyPair = keys;
@@ -762,8 +795,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         );
       }
     } catch (e, s) {
-      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Caught exception while signing transaction: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
 
@@ -799,8 +834,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       );
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
-          level: LogLevel.Error);
+        "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
+        level: LogLevel.Error,
+      );
       // completer.completeError(e, s);
       // return Future.error(e, s);
       rethrow;
@@ -819,9 +855,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
   }) async {
     try {
       final response = await electrumXClient.getBatchHistory(
-          args: addresses
-              .map((e) => [cryptoCurrency.addressToScriptHash(address: e)])
-              .toList(growable: false));
+        args: addresses
+            .map((e) => [cryptoCurrency.addressToScriptHash(address: e)])
+            .toList(growable: false),
+      );
 
       final List<int> result = [];
       for (final entry in response) {
@@ -830,8 +867,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       return result;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown in _getBatchTxCount(address: $addresses: $e\n$s",
-          level: LogLevel.Error);
+        "Exception rethrown in _getBatchTxCount(address: $addresses: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -850,14 +888,16 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
   Future<void> updateElectrumX() async {
     final failovers = nodeService
-        .failoverNodesFor(coin: cryptoCurrency.coin)
-        .map((e) => ElectrumXNode(
-              address: e.host,
-              port: e.port,
-              name: e.name,
-              id: e.id,
-              useSSL: e.useSSL,
-            ))
+        .failoverNodesFor(currency: cryptoCurrency)
+        .map(
+          (e) => ElectrumXNode(
+            address: e.host,
+            port: e.port,
+            name: e.name,
+            id: e.id,
+            useSSL: e.useSSL,
+          ),
+        )
         .toList();
 
     final newNode = await _getCurrentElectrumXNode();
@@ -899,8 +939,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
             gapCounter < cryptoCurrency.maxUnusedAddressGap;
         index += txCountBatchSize) {
       Logging.instance.log(
-          "index: $index, \t GapCounter $chain ${type.name}: $gapCounter",
-          level: LogLevel.Info);
+        "index: $index, \t GapCounter $chain ${type.name}: $gapCounter",
+        level: LogLevel.Info,
+      );
 
       final List<String> txCountCallArgs = [];
 
@@ -979,8 +1020,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
             gapCounter < cryptoCurrency.maxUnusedAddressGap;
         index++) {
       Logging.instance.log(
-          "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
-          level: LogLevel.Info);
+        "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
+        level: LogLevel.Info,
+      );
 
       final derivePath = cryptoCurrency.constructDerivePath(
         derivePathType: type,
@@ -1107,7 +1149,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
     final txn = await electrumXCachedClient.getTransaction(
       txHash: jsonUTXO["tx_hash"] as String,
       verbose: true,
-      coin: cryptoCurrency.coin,
+      cryptoCurrency: cryptoCurrency,
     );
 
     final vout = jsonUTXO["tx_pos"] as int;
@@ -1194,15 +1236,15 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         numberOfBlocksSlow: s,
         fast: Amount.fromDecimal(
           fast,
-          fractionDigits: info.coin.decimals,
+          fractionDigits: info.coin.fractionDigits,
         ).raw.toInt(),
         medium: Amount.fromDecimal(
           medium,
-          fractionDigits: info.coin.decimals,
+          fractionDigits: info.coin.fractionDigits,
         ).raw.toInt(),
         slow: Amount.fromDecimal(
           slow,
-          fractionDigits: info.coin.decimals,
+          fractionDigits: info.coin.fractionDigits,
         ).raw.toInt(),
       );
 
@@ -1235,14 +1277,14 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     Amount runningBalance = Amount(
       rawValue: BigInt.zero,
-      fractionDigits: info.coin.decimals,
+      fractionDigits: info.coin.fractionDigits,
     );
     int inputCount = 0;
     for (final output in utxos) {
       if (!output.isBlocked) {
         runningBalance += Amount(
           rawValue: BigInt.from(output.value),
-          fractionDigits: info.coin.decimals,
+          fractionDigits: info.coin.fractionDigits,
         );
         inputCount++;
         if (runningBalance > amount) {
@@ -1366,7 +1408,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         if (isRescan) {
           // clear cache
           await electrumXCachedClient.clearSharedTransactionCache(
-              coin: info.coin);
+            cryptoCurrency: info.coin,
+          );
           // clear blockchain info
           await mainDB.deleteWalletBlockchainData(walletId);
         }
@@ -1459,12 +1502,16 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         }
 
         // remove extra addresses to help minimize risk of creating a large gap
-        addressesToStore.removeWhere((e) =>
-            e.subType == AddressSubType.change &&
-            e.derivationIndex > highestChangeIndexWithHistory);
-        addressesToStore.removeWhere((e) =>
-            e.subType == AddressSubType.receiving &&
-            e.derivationIndex > highestReceivingIndexWithHistory);
+        addressesToStore.removeWhere(
+          (e) =>
+              e.subType == AddressSubType.change &&
+              e.derivationIndex > highestChangeIndexWithHistory,
+        );
+        addressesToStore.removeWhere(
+          (e) =>
+              e.subType == AddressSubType.receiving &&
+              e.derivationIndex > highestReceivingIndexWithHistory,
+        );
 
         await mainDB.updateOrPutAddresses(addressesToStore);
 
@@ -1512,8 +1559,9 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
       unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from electrumx_mixin recover(): $e\n$s",
-          level: LogLevel.Info);
+        "Exception rethrown from electrumx_mixin recover(): $e\n$s",
+        level: LogLevel.Info,
+      );
 
       rethrow;
     }
@@ -1609,8 +1657,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Exception rethrown from confirmSend(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -1644,7 +1694,8 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
         if (result.fee!.raw.toInt() < result.vSize!) {
           throw Exception(
-              "Error in fee calculation: Transaction fee cannot be less than vSize");
+            "Error in fee calculation: Transaction fee cannot be less than vSize",
+          );
         }
 
         return result;
@@ -1700,8 +1751,10 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
         throw ArgumentError("Invalid fee rate argument provided!");
       }
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Exception rethrown from prepareSend(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -1777,7 +1830,7 @@ mixin ElectrumXInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
 
     return Amount(
           rawValue: available,
-          fractionDigits: info.coin.decimals,
+          fractionDigits: info.coin.fractionDigits,
         ) -
         estimatedFee;
   }

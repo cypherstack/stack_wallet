@@ -7,22 +7,20 @@ import 'package:isar/isar.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart'
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart'
     as isar;
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/solana.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../models/node_model.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/node_service.dart';
+import '../../../services/tor_service.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/coins/solana.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_wallet.dart';
 import 'package:tuple/tuple.dart';
 
 class SolanaWallet extends Bip39Wallet<Solana> {
@@ -49,7 +47,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       publicKey: List<int>.empty(),
       derivationIndex: 0,
       derivationPath: DerivationPath()..value = _addressDerivationPath,
-      type: cryptoCurrency.coin.primaryAddressType,
+      type: cryptoCurrency.primaryAddressType,
       subType: AddressSubType.receiving,
     );
     return addressStruct;
@@ -302,19 +300,19 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       final newBalance = Balance(
         total: Amount(
           rawValue: BigInt.from(balance.value),
-          fractionDigits: Coin.solana.decimals,
+          fractionDigits: cryptoCurrency.fractionDigits,
         ),
         spendable: Amount(
           rawValue: BigInt.from(spendableBalance),
-          fractionDigits: Coin.solana.decimals,
+          fractionDigits: cryptoCurrency.fractionDigits,
         ),
         blockedTotal: Amount(
           rawValue: BigInt.from(minimumRent),
-          fractionDigits: Coin.solana.decimals,
+          fractionDigits: cryptoCurrency.fractionDigits,
         ),
         pendingSpendable: Amount(
           rawValue: BigInt.zero,
-          fractionDigits: Coin.solana.decimals,
+          fractionDigits: cryptoCurrency.fractionDigits,
         ),
       );
 
@@ -358,8 +356,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   NodeModel getCurrentNode() {
     return _solNode ??
         NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(coin: info.coin) ??
-        DefaultNodes.getNodeFor(info.coin);
+            .getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode;
   }
 
   @override

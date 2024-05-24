@@ -11,13 +11,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/wallet_balance_toggle_state.dart';
+import '../../../../utilities/text_styles.dart';
 
 class DesktopBalanceToggleButton extends ConsumerWidget {
   const DesktopBalanceToggleButton({

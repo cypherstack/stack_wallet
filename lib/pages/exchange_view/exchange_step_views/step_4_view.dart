@@ -15,34 +15,35 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/exchange_view/confirm_change_now_send.dart';
-import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/step_row.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../../../app_config.dart';
+import '../../../models/exchange/incomplete_exchange.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../confirm_change_now_send.dart';
+import '../send_from_view.dart';
+import '../sub_widgets/step_row.dart';
+import '../../home_view/home_view.dart';
+import '../../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../../wallet_view/wallet_view.dart';
+import '../../../providers/providers.dart';
+import '../../../route_generator.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/models/tx_data.dart';
+import '../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/rounded_container.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 
 class Step4View extends ConsumerStatefulWidget {
@@ -71,7 +72,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   bool _isWalletCoinAndHasWallet(String ticker, WidgetRef ref) {
     try {
-      final coin = coinFromTickerCaseInsensitive(ticker);
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
       return ref
           .read(pWallets)
           .wallets
@@ -193,9 +194,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     );
   }
 
-  Future<void> _confirmSend(Tuple2<String, Coin> tuple) async {
+  Future<void> _confirmSend(Tuple2<String, CryptoCurrency> tuple) async {
     final bool firoPublicSend;
-    if (tuple.item2 == Coin.firo) {
+    if (tuple.item2 is Firo) {
       final result = await _showSendFromFiroBalanceSelectSheet(tuple.item1);
       if (result == null) {
         return;
@@ -209,7 +210,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     final wallet = ref.read(pWallets).getWallet(tuple.item1);
 
     final Amount amount = model.sendAmount.toAmount(
-      fractionDigits: wallet.info.coin.decimals,
+      fractionDigits: wallet.info.coin.fractionDigits,
     );
     final address = model.trade!.payInAddress;
 
@@ -257,8 +258,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           ),
         );
       } else {
-        final memo = wallet.info.coin == Coin.stellar ||
-                wallet.info.coin == Coin.stellarTestnet
+        final memo = wallet.info.coin is Stellar
             ? model.trade!.payInExtraId.isNotEmpty
                 ? model.trade!.payInExtraId
                 : null
@@ -815,7 +815,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                             if (isWalletCoin)
                               Builder(
                                 builder: (context) {
-                                  String buttonTitle = "Send from Stack Wallet";
+                                  String buttonTitle =
+                                      "Send from {$AppConfig.appName}";
 
                                   final tuple = ref
                                       .read(
@@ -849,16 +850,22 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                         .useMaterialPageRoute,
                                                 builder:
                                                     (BuildContext context) {
-                                                  final coin =
-                                                      coinFromTickerCaseInsensitive(
-                                                    model.trade!.payInCurrency,
+                                                  final coin = AppConfig.coins
+                                                      .firstWhere(
+                                                    (e) =>
+                                                        e.ticker
+                                                            .toLowerCase() ==
+                                                        model.trade!
+                                                            .payInCurrency
+                                                            .toLowerCase(),
                                                   );
+
                                                   return SendFromView(
                                                     coin: coin,
                                                     amount: model.sendAmount
                                                         .toAmount(
                                                       fractionDigits:
-                                                          coin.decimals,
+                                                          coin.fractionDigits,
                                                     ),
                                                     address: model
                                                         .trade!.payInAddress,

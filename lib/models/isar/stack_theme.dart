@@ -13,12 +13,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/extensions/impl/box_shadow.dart';
-import 'package:stackwallet/utilities/extensions/impl/gradient.dart';
-import 'package:stackwallet/utilities/extensions/impl/string.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
+import '../../app_config.dart';
+import '../../utilities/extensions/impl/box_shadow.dart';
+import '../../utilities/extensions/impl/gradient.dart';
+import '../../utilities/extensions/impl/string.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/stack_file_system.dart';
 
 part 'stack_theme.g.dart';
 
@@ -1482,10 +1482,10 @@ class StackTheme {
   // ==== coinColors =====================================================
 
   @ignore
-  Map<Coin, Color> get coinColors =>
+  Map<String, Color> get coinColors =>
       _coinColors ??= parseCoinColors(coinColorsJsonString);
   @ignore
-  Map<Coin, Color>? _coinColors;
+  Map<String, Color>? _coinColors;
   late final String coinColorsJsonString;
 
   // ==== assets =====================================================
@@ -1548,7 +1548,8 @@ class StackTheme {
           json["colors"]["box_shadows"]["home_view_button_bar"] == null
               ? null
               : jsonEncode(
-                  json["colors"]["box_shadows"]["home_view_button_bar"] as Map)
+                  json["colors"]["box_shadows"]["home_view_button_bar"] as Map,
+                )
       ..coinColorsJsonString = jsonEncode(json["colors"]['coin'] as Map)
       ..overlayInt = parseColor(json["colors"]["overlay"] as String)
       ..accentColorBlueInt =
@@ -1587,7 +1588,8 @@ class StackTheme {
       ..buttonBackBorderSecondaryInt =
           parseColor(json["colors"]["button_back_border_secondary"] as String)
       ..buttonBackBorderSecondaryDisabledInt = parseColor(
-          json["colors"]["button_back_border_secondary_disabled"] as String)
+        json["colors"]["button_back_border_secondary_disabled"] as String,
+      )
       ..numberBackDefaultInt =
           parseColor(json["colors"]["number_back_default"] as String)
       ..numpadBackDefaultInt =
@@ -1621,7 +1623,8 @@ class StackTheme {
       ..buttonTextBorderlessInt =
           parseColor(json["colors"]["button_text_borderless"] as String)
       ..buttonTextBorderlessDisabledInt = parseColor(
-          json["colors"]["button_text_borderless_disabled"] as String)
+        json["colors"]["button_text_borderless_disabled"] as String,
+      )
       ..numberTextDefaultInt =
           parseColor(json["colors"]["number_text_default"] as String)
       ..numpadTextDefaultInt =
@@ -1629,9 +1632,11 @@ class StackTheme {
       ..bottomNavTextInt =
           parseColor(json["colors"]["bottom_nav_text"] as String)
       ..customTextButtonEnabledTextInt = parseColor(
-          json["colors"]["custom_text_button_enabled_text"] as String)
+        json["colors"]["custom_text_button_enabled_text"] as String,
+      )
       ..customTextButtonDisabledTextInt = parseColor(
-          json["colors"]["custom_text_button_disabled_text"] as String)
+        json["colors"]["custom_text_button_disabled_text"] as String,
+      )
       ..switchBGOnInt = parseColor(json["colors"]["switch_bg_on"] as String)
       ..switchBGOffInt = parseColor(json["colors"]["switch_bg_off"] as String)
       ..switchBGDisabledInt =
@@ -1651,7 +1656,8 @@ class StackTheme {
       ..stepIndicatorBGLinesInt =
           parseColor(json["colors"]["step_indicator_bg_lines"] as String)
       ..stepIndicatorBGLinesInactiveInt = parseColor(
-          json["colors"]["step_indicator_bg_lines_inactive"] as String)
+        json["colors"]["step_indicator_bg_lines_inactive"] as String,
+      )
       ..stepIndicatorIconTextInt =
           parseColor(json["colors"]["step_indicator_icon_text"] as String)
       ..stepIndicatorIconNumberInt =
@@ -1687,7 +1693,8 @@ class StackTheme {
       ..bottomNavIconIconInt =
           parseColor(json["colors"]["bottom_nav_icon_icon"] as String)
       ..bottomNavIconIconHighlightedInt = parseColor(
-          json["colors"]["bottom_nav_icon_icon_highlighted"] as String)
+        json["colors"]["bottom_nav_icon_icon_highlighted"] as String,
+      )
       ..topNavIconPrimaryInt =
           parseColor(json["colors"]["top_nav_icon_primary"] as String)
       ..topNavIconGreenInt =
@@ -1717,13 +1724,17 @@ class StackTheme {
       ..textFieldSuccessBorderInt =
           parseColor(json["colors"]["text_field_success_border"] as String)
       ..textFieldActiveSearchIconLeftInt = parseColor(
-          json["colors"]["text_field_active_search_icon_left"] as String)
+        json["colors"]["text_field_active_search_icon_left"] as String,
+      )
       ..textFieldDefaultSearchIconLeftInt = parseColor(
-          json["colors"]["text_field_default_search_icon_left"] as String)
+        json["colors"]["text_field_default_search_icon_left"] as String,
+      )
       ..textFieldErrorSearchIconLeftInt = parseColor(
-          json["colors"]["text_field_error_search_icon_left"] as String)
+        json["colors"]["text_field_error_search_icon_left"] as String,
+      )
       ..textFieldSuccessSearchIconLeftInt = parseColor(
-          json["colors"]["text_field_success_search_icon_left"] as String)
+        json["colors"]["text_field_success_search_icon_left"] as String,
+      )
       ..textFieldActiveTextInt =
           parseColor(json["colors"]["text_field_active_text"] as String)
       ..textFieldDefaultTextInt =
@@ -1739,23 +1750,31 @@ class StackTheme {
       ..textFieldSuccessLabelInt =
           parseColor(json["colors"]["text_field_success_label"] as String)
       ..textFieldActiveSearchIconRightInt = parseColor(
-          json["colors"]["text_field_active_search_icon_right"] as String)
+        json["colors"]["text_field_active_search_icon_right"] as String,
+      )
       ..textFieldDefaultSearchIconRightInt = parseColor(
-          json["colors"]["text_field_default_search_icon_right"] as String)
+        json["colors"]["text_field_default_search_icon_right"] as String,
+      )
       ..textFieldErrorSearchIconRightInt = parseColor(
-          json["colors"]["text_field_error_search_icon_right"] as String)
+        json["colors"]["text_field_error_search_icon_right"] as String,
+      )
       ..textFieldSuccessSearchIconRightInt = parseColor(
-          json["colors"]["text_field_success_search_icon_right"] as String)
+        json["colors"]["text_field_success_search_icon_right"] as String,
+      )
       ..settingsItem2ActiveBGInt = parseColor(
-          json["colors"]["settings_item_level_two_active_bg"] as String)
+        json["colors"]["settings_item_level_two_active_bg"] as String,
+      )
       ..settingsItem2ActiveTextInt = parseColor(
-          json["colors"]["settings_item_level_two_active_text"] as String)
+        json["colors"]["settings_item_level_two_active_text"] as String,
+      )
       ..settingsItem2ActiveSubInt = parseColor(
-          json["colors"]["settings_item_level_two_active_sub"] as String)
+        json["colors"]["settings_item_level_two_active_sub"] as String,
+      )
       ..radioButtonIconBorderInt =
           parseColor(json["colors"]["radio_button_icon_border"] as String)
       ..radioButtonIconBorderDisabledInt = parseColor(
-          json["colors"]["radio_button_icon_border_disabled"] as String)
+        json["colors"]["radio_button_icon_border_disabled"] as String,
+      )
       ..radioButtonBorderEnabledInt =
           parseColor(json["colors"]["radio_button_border_enabled"] as String)
       ..radioButtonBorderDisabledInt =
@@ -1809,9 +1828,11 @@ class StackTheme {
       ..rateTypeToggleColorOffInt =
           parseColor(json["colors"]["rate_type_toggle_color_off"] as String)
       ..rateTypeToggleDesktopColorOnInt = parseColor(
-          json["colors"]["rate_type_toggle_desktop_color_on"] as String)
+        json["colors"]["rate_type_toggle_desktop_color_on"] as String,
+      )
       ..rateTypeToggleDesktopColorOffInt = parseColor(
-          json["colors"]["rate_type_toggle_desktop_color_off"] as String)
+        json["colors"]["rate_type_toggle_desktop_color_off"] as String,
+      )
       ..ethTagTextInt = parseColor(json["colors"]["eth_tag_text"] as String)
       ..ethTagBGInt = parseColor(json["colors"]["eth_tag_bg"] as String)
       ..ethWalletTagTextInt =
@@ -1851,20 +1872,20 @@ class StackTheme {
   }
 
   /// parse coin colors json and fetch color or use default
-  static Map<Coin, Color> parseCoinColors(String jsonString) {
+  static Map<String, Color> parseCoinColors(String jsonString) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
 
-    final Map<Coin, Color> result = {};
+    final Map<String, Color> result = {};
 
-    for (final coin in Coin.values.map((e) => e.mainNetVersion)) {
-      if (map[coin.name] is String) {
-        result[coin] = Color(
-          (map[coin.name] as String).toBigIntFromHex.toInt(),
+    for (final mainNetId in AppConfig.coins.map((e) => e.mainNetId)) {
+      if (map[mainNetId] is String) {
+        result[mainNetId] = Color(
+          (map[mainNetId] as String).toBigIntFromHex.toInt(),
         );
       } else {
         Logging.instance.log(
-          "Color not found in theme for $coin",
+          "Color not found in theme for $mainNetId",
           level: LogLevel.Error,
         );
       }
@@ -2080,31 +2101,31 @@ class ThemeAssetsV2 implements IThemeAssets {
   late final String coinPlaceholder;
 
   @ignore
-  Map<Coin, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
+  Map<String, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
         coinIconsString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinIcons;
+  Map<String, String>? _coinIcons;
   late final String coinIconsString;
 
   @ignore
-  Map<Coin, String> get coinImages => _coinImages ??= parseCoinAssetsString(
+  Map<String, String> get coinImages => _coinImages ??= parseCoinAssetsString(
         coinImagesString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinImages;
+  Map<String, String>? _coinImages;
   late final String coinImagesString;
 
   @ignore
-  Map<Coin, String> get coinSecondaryImages =>
+  Map<String, String> get coinSecondaryImages =>
       _coinSecondaryImages ??= parseCoinAssetsString(
         coinSecondaryImagesString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinSecondaryImages;
+  Map<String, String>? _coinSecondaryImages;
   late final String coinSecondaryImagesString;
 
   ThemeAssetsV2();
@@ -2166,17 +2187,17 @@ class ThemeAssetsV2 implements IThemeAssets {
     return jsonEncode(map);
   }
 
-  static Map<Coin, String> parseCoinAssetsString(
+  static Map<String, String> parseCoinAssetsString(
     String jsonString, {
     required String placeHolder,
   }) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
 
-    final Map<Coin, String> result = {};
+    final Map<String, String> result = {};
 
-    for (final coin in Coin.values) {
-      result[coin] = map[coin.name] as String? ?? placeHolder;
+    for (final coin in AppConfig.coins) {
+      result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
     }
 
     return result;
@@ -2350,35 +2371,35 @@ class ThemeAssetsV3 implements IThemeAssets {
   late final String? dummy3;
 
   @ignore
-  Map<Coin, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
+  Map<String, String> get coinIcons => _coinIcons ??= parseCoinAssetsString(
         coinIconsString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinIcons;
+  Map<String, String>? _coinIcons;
   late final String coinIconsString;
 
   @ignore
-  Map<Coin, String> get coinImages => _coinImages ??= parseCoinAssetsString(
+  Map<String, String> get coinImages => _coinImages ??= parseCoinAssetsString(
         coinImagesString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinImages;
+  Map<String, String>? _coinImages;
   late final String coinImagesString;
 
   @ignore
-  Map<Coin, String> get coinSecondaryImages =>
+  Map<String, String> get coinSecondaryImages =>
       _coinSecondaryImages ??= parseCoinAssetsString(
         coinSecondaryImagesString,
         placeHolder: coinPlaceholder,
       );
   @ignore
-  Map<Coin, String>? _coinSecondaryImages;
+  Map<String, String>? _coinSecondaryImages;
   late final String coinSecondaryImagesString;
 
   @ignore
-  Map<Coin, String>? get coinCardImages =>
+  Map<String, String>? get coinCardImages =>
       _coinCardImages ??= coinCardImagesString == null
           ? null
           : parseCoinAssetsString(
@@ -2386,11 +2407,11 @@ class ThemeAssetsV3 implements IThemeAssets {
               placeHolder: coinPlaceholder,
             );
   @ignore
-  Map<Coin, String>? _coinCardImages;
+  Map<String, String>? _coinCardImages;
   late final String? coinCardImagesString;
 
   @ignore
-  Map<Coin, String>? get coinCardFavoritesImages =>
+  Map<String, String>? get coinCardFavoritesImages =>
       _coinCardFavoritesImages ??= coinCardFavoritesImagesString == null
           ? null
           : parseCoinAssetsString(
@@ -2398,7 +2419,7 @@ class ThemeAssetsV3 implements IThemeAssets {
               placeHolder: coinPlaceholder,
             );
   @ignore
-  Map<Coin, String>? _coinCardFavoritesImages;
+  Map<String, String>? _coinCardFavoritesImages;
   @Name("otherStringParam1")
   late final String? coinCardFavoritesImagesString;
 
@@ -2501,19 +2522,18 @@ class ThemeAssetsV3 implements IThemeAssets {
     return jsonEncode(map);
   }
 
-  static Map<Coin, String> parseCoinAssetsString(
+  static Map<String, String> parseCoinAssetsString(
     String jsonString, {
     required String placeHolder,
   }) {
     final json = jsonDecode(jsonString) as Map;
     final map = Map<String, dynamic>.from(json);
 
-    final Map<Coin, String> result = {};
+    final Map<String, String> result = {};
 
-    for (final coin in Coin.values) {
-      result[coin] = map[coin.name] as String? ?? placeHolder;
-
-      result[coin] = prependIfNeeded(result[coin]!);
+    for (final coin in AppConfig.coins) {
+      result[coin.mainNetId] = map[coin.mainNetId] as String? ?? placeHolder;
+      result[coin.mainNetId] = prependIfNeeded(result[coin.mainNetId]!);
     }
 
     return result;

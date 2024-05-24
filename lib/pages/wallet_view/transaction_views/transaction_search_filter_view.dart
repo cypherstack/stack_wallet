@@ -12,31 +12,31 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/transaction_filter.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/date_picker/date_picker.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import '../../../models/transaction_filter.dart';
+import '../../../providers/global/locale_provider.dart';
+import '../../../providers/ui/transaction_filter_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../themes/theme_providers.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/amount/amount_input_formatter.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/format.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/date_picker/date_picker.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 class TransactionSearchFilterView extends ConsumerStatefulWidget {
   const TransactionSearchFilterView({
@@ -46,7 +46,7 @@ class TransactionSearchFilterView extends ConsumerStatefulWidget {
 
   static const String routeName = "/transactionSearchFilter";
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<TransactionSearchFilterView> createState() =>
@@ -665,7 +665,7 @@ class _TransactionSearchViewState
                     ),
               inputFormatters: [
                 AmountInputFormatter(
-                  decimals: widget.coin.decimals,
+                  decimals: widget.coin.fractionDigits,
                   unit: ref.watch(pAmountUnit(widget.coin)),
                   locale: ref.watch(
                     localeServiceChangeNotifierProvider
@@ -896,9 +896,9 @@ class _TransactionSearchViewState
     if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
       amount = amountText.contains(",")
           ? Decimal.parse(amountText.replaceFirst(",", "."))
-              .toAmount(fractionDigits: widget.coin.decimals)
+              .toAmount(fractionDigits: widget.coin.fractionDigits)
           : Decimal.parse(amountText)
-              .toAmount(fractionDigits: widget.coin.decimals);
+              .toAmount(fractionDigits: widget.coin.fractionDigits);
     }
 
     final TransactionFilter filter = TransactionFilter(

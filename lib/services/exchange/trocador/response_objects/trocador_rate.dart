@@ -9,7 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_quote.dart';
+import 'trocador_quote.dart';
 
 class TrocadorRate {
   final String tradeId;

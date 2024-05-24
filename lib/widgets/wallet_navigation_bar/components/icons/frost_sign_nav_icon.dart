@@ -11,8 +11,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
 
 class FrostSignNavIcon extends ConsumerWidget {
   const FrostSignNavIcon({super.key});

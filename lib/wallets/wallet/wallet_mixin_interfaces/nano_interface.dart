@@ -3,23 +3,21 @@ import 'dart:convert';
 
 import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/nano_api.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/extensions/impl/string.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/node_model.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../networking/http.dart';
+import '../../../services/nano_api.dart';
+import '../../../services/node_service.dart';
+import '../../../services/tor_service.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/extensions/impl/string.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/intermediate/nano_currency.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_wallet.dart';
 import 'package:tuple/tuple.dart';
 
 const _kWorkServer = "https://rpc.nano.to";
@@ -81,7 +79,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       publicKey: publicKey.toUint8ListFromHex,
       derivationIndex: 0,
       derivationPath: null,
-      type: cryptoCurrency.coin.primaryAddressType,
+      type: cryptoCurrency.primaryAddressType,
       subType: AddressSubType.receiving,
     );
   }
@@ -138,7 +136,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     final BigInt txAmount = BigInt.parse(amountRaw);
     final BigInt balanceAfterTx = currentBalance + txAmount;
 
-    String frontier = infoData["frontier"].toString();
+    final String frontier = infoData["frontier"].toString();
     String representative = infoData["representative"].toString();
 
     if (openBlock) {
@@ -153,7 +151,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         NanoAccounts.createAccount(NanoAccountType.BANANO, blockHash);
 
     // construct the receive block:
-    Map<String, String> receiveBlock = {
+    final Map<String, String> receiveBlock = {
       "type": "state",
       "account": publicAddress,
       "previous": openBlock
@@ -300,8 +298,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   @override
   Future<void> updateNode() async {
     _cachedNode = NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(coin: info.coin) ??
-        DefaultNodes.getNodeFor(info.coin);
+            .getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode;
 
     unawaited(refresh());
   }
@@ -310,8 +308,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   NodeModel getCurrentNode() {
     return _cachedNode ??
         NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(coin: info.coin) ??
-        DefaultNodes.getNodeFor(info.coin);
+            .getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode;
   }
 
   @override
@@ -407,7 +405,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       final String link = NanoAccounts.extractPublicKey(linkAsAccount);
 
       // construct the send block:
-      Map<String, String> sendBlock = {
+      final Map<String, String> sendBlock = {
         "type": "state",
         "account": publicAddress,
         "previous": frontier,
@@ -505,14 +503,15 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
     final data = await jsonDecode(response.body);
-    final transactions =
-        data["history"] is List ? data["history"] as List<dynamic> : [];
+    final transactions = data["history"] is List
+        ? data["history"] as List<dynamic>
+        : <dynamic>[];
     if (transactions.isEmpty) {
       return;
     } else {
-      List<Tuple2<Transaction, Address?>> transactionList = [];
-      for (var tx in transactions) {
-        var typeString = tx["type"].toString();
+      final List<Tuple2<Transaction, Address?>> transactionList = [];
+      for (final tx in transactions) {
+        final typeString = tx["type"].toString();
         TransactionType transactionType = TransactionType.unknown;
         if (typeString == "send") {
           transactionType = TransactionType.outgoing;
@@ -524,7 +523,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
           fractionDigits: cryptoCurrency.fractionDigits,
         );
 
-        var transaction = Transaction(
+        final transaction = Transaction(
           walletId: walletId,
           txid: tx["hash"].toString(),
           timestamp: int.parse(tx["local_timestamp"].toString()),
@@ -544,7 +543,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
           numberOfMessages: null,
         );
 
-        Address address = transactionType == TransactionType.incoming
+        final Address address = transactionType == TransactionType.incoming
             ? receivingAddress
             : Address(
                 walletId: walletId,
@@ -555,7 +554,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
                 type: info.coin.primaryAddressType,
                 subType: AddressSubType.nonWallet,
               );
-        Tuple2<Transaction, Address> tuple = Tuple2(transaction, address);
+        final Tuple2<Transaction, Address> tuple = Tuple2(transaction, address);
         transactionList.add(tuple);
       }
 

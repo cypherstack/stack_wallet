@@ -1,24 +1,52 @@
 import 'dart:typed_data';
 
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../intermediate/bip39_hd_currency.dart';
+import '../intermediate/frost_currency.dart';
 
 class BitcoinFrost extends FrostCurrency {
   BitcoinFrost(super.network) {
+    _idMain = "bitcoinFrost";
+    _uriScheme = "bitcoin";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.bitcoinFrost;
+        _id = _idMain;
+        _name = "Bitcoin Frost";
+        _ticker = "BTC";
       case CryptoCurrencyNetwork.test:
-        coin = Coin.bitcoinFrostTestNet;
+        _id = "bitcoinFrostTestNet";
+        _name = "tBitcoin Frost";
+        _ticker = "tBTC";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   @override
   int get minConfirms => 1;
@@ -30,10 +58,30 @@ class BitcoinFrost extends FrostCurrency {
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return DefaultNodes.bitcoin;
+        return NodeModel(
+          host: "bitcoin.stackwallet.com",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
 
       case CryptoCurrencyNetwork.test:
-        return DefaultNodes.bitcoinTestnet;
+        return NodeModel(
+          host: "bitcoin-testnet.stackwallet.com",
+          port: 51002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
 
       default:
         throw UnimplementedError();
@@ -67,17 +115,89 @@ class BitcoinFrost extends FrostCurrency {
     }
   }
 
+  coinlib.Network get networkParams {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return coinlib.Network(
+          wifPrefix: 0x80,
+          p2pkhPrefix: 0x00,
+          p2shPrefix: 0x05,
+          privHDPrefix: 0x0488ade4,
+          pubHDPrefix: 0x0488b21e,
+          bech32Hrp: "bc",
+          messagePrefix: '\x18Bitcoin Signed Message:\n',
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: dustLimit.raw, // TODO.
+          feePerKb: BigInt.from(1), // TODO.
+        );
+      case CryptoCurrencyNetwork.test:
+        return coinlib.Network(
+          wifPrefix: 0xef,
+          p2pkhPrefix: 0x6f,
+          p2shPrefix: 0xc4,
+          privHDPrefix: 0x04358394,
+          pubHDPrefix: 0x043587cf,
+          bech32Hrp: "tb",
+          messagePrefix: "\x18Bitcoin Signed Message:\n",
+          minFee: BigInt.from(1), // TODO [prio=high].
+          minOutput: dustLimit.raw, // TODO.
+          feePerKb: BigInt.from(1), // TODO.
+        );
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
+
   @override
   bool validateAddress(String address) {
-    // TODO: implement validateAddress for frost addresses
-    return true;
+    try {
+      coinlib.Address.fromString(address, networkParams);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is BitcoinFrost && other.network == network;
-  }
+  int get defaultSeedPhraseLength => 0;
 
   @override
-  int get hashCode => Object.hash(BitcoinFrost, network);
+  int get fractionDigits => 8;
+
+  @override
+  bool get hasBuySupport => false;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => false;
+
+  @override
+  List<int> get possibleMnemonicLengths => [];
+
+  @override
+  AddressType get primaryAddressType => AddressType.frostMS;
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(100000000);
+
+  @override
+  int get targetBlockTimeSeconds => 600;
+
+  @override
+  DerivePathType get primaryDerivePathType => throw UnsupportedError(
+        "$runtimeType does not use bitcoin style derivation paths",
+      );
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://mempool.space/tx/$txid");
+      case CryptoCurrencyNetwork.test:
+        return Uri.parse("https://mempool.space/testnet/tx/$txid");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
 }

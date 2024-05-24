@@ -12,16 +12,16 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
-import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_coin.dart';
-import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_rate.dart';
-import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_trade.dart';
-import 'package:stackwallet/services/exchange/trocador/response_objects/trocador_trade_new.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../../exceptions/exchange/exchange_exception.dart';
+import '../../../networking/http.dart';
+import '../exchange_response.dart';
+import 'response_objects/trocador_coin.dart';
+import 'response_objects/trocador_rate.dart';
+import 'response_objects/trocador_trade.dart';
+import 'response_objects/trocador_trade_new.dart';
+import '../../tor_service.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 
 const kTrocadorApiKey = "8rFqf7QLxX1mUBiNPEMaLUpV2biz6n";
 const kTrocadorRefCode = "9eHm9BkQfS";

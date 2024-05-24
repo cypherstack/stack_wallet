@@ -12,38 +12,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/transaction_card.dart';
+import '../../../db/isar/main_db.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/isar_models.dart';
+import 'address_tag.dart';
+import '../../wallet_view/sub_widgets/no_transactions_found.dart';
+import '../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../widgets/custom_buttons/simple_edit_button.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/transaction_card.dart';
 
 class AddressDetailsView extends ConsumerStatefulWidget {
   const AddressDetailsView({
-    Key? key,
+    super.key,
     required this.addressId,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/addressDetailsView";
 
@@ -398,7 +397,11 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     height: 12,
                   ),
                 if (!isDesktop)
-                  coin == Coin.bitcoincash || coin == Coin.bitcoincashTestnet
+                  ref
+                              .watch(pWallets)
+                              .getWallet(widget.walletId)
+                              .isarTransactionVersion ==
+                          2
                       ? _AddressDetailsTxV2List(
                           walletId: widget.walletId,
                           address: address,
@@ -418,10 +421,10 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
 class _AddressDetailsTxList extends StatelessWidget {
   const _AddressDetailsTxList({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.address,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Address address;

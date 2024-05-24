@@ -12,8 +12,8 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
 import "package:hex/hex.dart";
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../wallets/crypto_currency/coins/ethereum.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 class GasTracker {
   final Decimal average;
@@ -37,7 +37,8 @@ class GasTracker {
   });
 
   factory GasTracker.fromJson(Map<String, dynamic> json) {
-    final targetTime = Constants.targetBlockTimeInSeconds(Coin.ethereum);
+    final targetTime =
+        Ethereum(CryptoCurrencyNetwork.main).targetBlockTimeSeconds;
     return GasTracker(
       fast: Decimal.parse(json["FastGasPrice"].toString()),
       average: Decimal.parse(json["ProposeGasPrice"].toString()),

@@ -11,21 +11,22 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/add_wallet_views/name_your_wallet_view/name_your_wallet_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/add_wallet_type_enum.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../name_your_wallet_view/name_your_wallet_view.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/enums/add_wallet_type_enum.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/coins/wownero.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 class CreateWalletButtonGroup extends StatelessWidget {
   const CreateWalletButtonGroup({
-    Key? key,
+    super.key,
     required this.coin,
     required this.isDesktop,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final bool isDesktop;
 
   @override
@@ -34,7 +35,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
       crossAxisAlignment:
           isDesktop ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
       children: [
-        if (Platform.isAndroid || coin != Coin.wownero)
+        if (Platform.isAndroid || coin is! Wownero)
           ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: isDesktop ? 70 : 0,
@@ -61,7 +62,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
               ),
             ),
           ),
-        if (Platform.isAndroid || coin != Coin.wownero)
+        if (Platform.isAndroid || coin is! Wownero)
           SizedBox(
             height: isDesktop ? 16 : 12,
           ),

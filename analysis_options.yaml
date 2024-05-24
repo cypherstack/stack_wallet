@@ -82,7 +82,7 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    always_use_package_imports: true
+    prefer_relative_imports: true
     avoid_relative_lib_imports: true
     no_leading_underscores_for_local_identifiers: false
     no_leading_underscores_for_library_prefixes: false

@@ -4,9 +4,9 @@ import 'package:hive_test/hive_test.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
   bool wasRegistered = false;
@@ -24,7 +24,9 @@ void main() {
     test("getPrimaryNodeFor", () {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      final node = service.getPrimaryNodeFor(coin: Coin.bitcoin);
+      final node = service.getPrimaryNodeFor(
+        currency: Bitcoin(CryptoCurrencyNetwork.main),
+      );
       expect(node, null);
       expect(fakeStore.interactions, 0);
     });
@@ -32,7 +34,9 @@ void main() {
     test("setPrimaryNodeFor", () async {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      final node = service.getPrimaryNodeFor(coin: Coin.bitcoin);
+      final node = service.getPrimaryNodeFor(
+        currency: Bitcoin(CryptoCurrencyNetwork.main),
+      );
       expect(node, null);
       final node1 = NodeModel(
         host: "host",
@@ -46,20 +50,24 @@ void main() {
         isDown: false,
       );
       await service.setPrimaryNodeFor(
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
         node: node1,
         shouldNotifyListeners: true,
       );
 
-      expect(service.getPrimaryNodeFor(coin: Coin.bitcoin).toString(),
-          node1.toString());
+      expect(
+        service
+            .getPrimaryNodeFor(currency: Bitcoin(CryptoCurrencyNetwork.main))
+            .toString(),
+        node1.toString(),
+      );
       expect(fakeStore.interactions, 0);
     });
 
     test("getNodesFor", () {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      final nodes = service.getNodesFor(Coin.bitcoin);
+      final nodes = service.getNodesFor(Bitcoin(CryptoCurrencyNetwork.main));
       expect(nodes.isEmpty, true);
       expect(fakeStore.interactions, 0);
     });
@@ -83,7 +91,9 @@ void main() {
     test("get failover nodes", () {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      final nodes = service.failoverNodesFor(coin: Coin.bitcoin);
+      final nodes = service.failoverNodesFor(
+        currency: Bitcoin(CryptoCurrencyNetwork.main),
+      );
       expect(nodes.isEmpty, true);
       expect(fakeStore.interactions, 0);
     });
@@ -100,7 +110,10 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.updateDefaults();
-      expect(service.nodes.length, DefaultNodes.all.length);
+      expect(
+        service.nodes.length,
+        AppConfig.coins.map((e) => e.defaultNode).length,
+      );
       expect(fakeStore.interactions, 0);
     });
   });
@@ -148,11 +161,22 @@ void main() {
     test("setPrimaryNodeFor and getPrimaryNodeFor", () async {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      expect(service.getPrimaryNodeFor(coin: Coin.bitcoin), null);
+      expect(
+        service.getPrimaryNodeFor(
+          currency: Bitcoin(CryptoCurrencyNetwork.main),
+        ),
+        null,
+      );
       await service.setPrimaryNodeFor(
-          coin: Coin.bitcoin, node: DefaultNodes.bitcoin);
-      expect(service.getPrimaryNodeFor(coin: Coin.bitcoin).toString(),
-          DefaultNodes.bitcoin.toString());
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        node: Bitcoin(CryptoCurrencyNetwork.main).defaultNode,
+      );
+      expect(
+        service
+            .getPrimaryNodeFor(currency: Bitcoin(CryptoCurrencyNetwork.main))
+            .toString(),
+        Bitcoin(CryptoCurrencyNetwork.main).defaultNode.toString(),
+      );
       expect(fakeStore.interactions, 0);
     });
 
@@ -160,11 +184,20 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.setPrimaryNodeFor(
-          coin: Coin.bitcoin, node: DefaultNodes.bitcoin);
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        node: Bitcoin(CryptoCurrencyNetwork.main).defaultNode,
+      );
       await service.setPrimaryNodeFor(
-          coin: Coin.monero, node: DefaultNodes.monero);
-      expect(service.primaryNodes.toString(),
-          [DefaultNodes.bitcoin, DefaultNodes.monero].toString());
+        coin: Monero(CryptoCurrencyNetwork.main),
+        node: Monero(CryptoCurrencyNetwork.main).defaultNode,
+      );
+      expect(
+        service.primaryNodes.toString(),
+        [
+          Bitcoin(CryptoCurrencyNetwork.main).defaultNode,
+          Monero(CryptoCurrencyNetwork.main).defaultNode,
+        ].toString(),
+      );
       expect(fakeStore.interactions, 0);
     });
 
@@ -172,10 +205,10 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.nodes;
-      final defaults = DefaultNodes.all;
+      final defaults = AppConfig.coins.map((e) => e.defaultNode).toList();
 
-      nodes.sort((a, b) => a.host.compareTo(b.host));
-      defaults.sort((a, b) => a.host.compareTo(b.host));
+      nodes.sort((a, b) => a.id.compareTo(b.id));
+      defaults.sort((a, b) => a.id.compareTo(b.id));
 
       expect(nodes.length, defaults.length);
       expect(nodes.toString(), defaults.toString());
@@ -186,7 +219,10 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.add(nodeA, null, true);
-      expect(service.nodes.length, DefaultNodes.all.length + 1);
+      expect(
+        service.nodes.length,
+        AppConfig.coins.map((e) => e.defaultNode).length + 1,
+      );
       expect(fakeStore.interactions, 0);
     });
 
@@ -194,7 +230,10 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.add(nodeA, "some password", true);
-      expect(service.nodes.length, DefaultNodes.all.length + 1);
+      expect(
+        service.nodes.length,
+        AppConfig.coins.map((e) => e.defaultNode).length + 1,
+      );
       expect(fakeStore.interactions, 1);
       expect(fakeStore.writes, 1);
     });
@@ -202,11 +241,20 @@ void main() {
     group("Additional nodes in storage tests", () {
       setUp(() async {
         await DB.instance.put<NodeModel>(
-            boxName: DB.boxNameNodeModels, key: nodeA.id, value: nodeA);
+          boxName: DB.boxNameNodeModels,
+          key: nodeA.id,
+          value: nodeA,
+        );
         await DB.instance.put<NodeModel>(
-            boxName: DB.boxNameNodeModels, key: nodeB.id, value: nodeB);
+          boxName: DB.boxNameNodeModels,
+          key: nodeB.id,
+          value: nodeB,
+        );
         await DB.instance.put<NodeModel>(
-            boxName: DB.boxNameNodeModels, key: nodeC.id, value: nodeC);
+          boxName: DB.boxNameNodeModels,
+          key: nodeC.id,
+          value: nodeC,
+        );
       });
 
       test("edit a node with a password", () async {
@@ -220,11 +268,14 @@ void main() {
 
         expect(service.nodes.length, currentLength);
 
-        expect(service.getNodeById(id: nodeA.id).toString(),
-            editedNode.toString());
         expect(
-            (await service.getNodeById(id: nodeA.id)!.getPassword(fakeStore))!,
-            "123456");
+          service.getNodeById(id: nodeA.id).toString(),
+          editedNode.toString(),
+        );
+        expect(
+          (await service.getNodeById(id: nodeA.id)!.getPassword(fakeStore))!,
+          "123456",
+        );
 
         expect(fakeStore.interactions, 2);
         expect(fakeStore.reads, 1);
@@ -237,9 +288,14 @@ void main() {
 
         await service.delete(nodeB.id, true);
 
-        expect(service.nodes.length, DefaultNodes.all.length + 2);
         expect(
-            service.nodes.where((element) => element.id == nodeB.id).length, 0);
+          service.nodes.length,
+          AppConfig.coins.map((e) => e.defaultNode).length + 2,
+        );
+        expect(
+          service.nodes.where((element) => element.id == nodeB.id).length,
+          0,
+        );
 
         expect(fakeStore.interactions, 1);
         expect(fakeStore.deletes, 1);

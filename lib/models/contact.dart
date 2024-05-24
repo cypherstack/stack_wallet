@@ -10,7 +10,7 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'contact_address_entry.dart';
 import 'package:uuid/uuid.dart';
 
 @Deprecated("Use lib/models/isar/models/contact_entry.dart instead")

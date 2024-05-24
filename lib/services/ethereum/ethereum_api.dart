@@ -11,20 +11,21 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
-import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
-import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
-import 'package:stackwallet/dto/ethereum/eth_tx_dto.dart';
-import 'package:stackwallet/dto/ethereum/pending_eth_tx_dto.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../dto/ethereum/eth_token_tx_dto.dart';
+import '../../dto/ethereum/eth_token_tx_extra_dto.dart';
+import '../../dto/ethereum/eth_tx_dto.dart';
+import '../../dto/ethereum/pending_eth_tx_dto.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/paymint/fee_object_model.dart';
+import '../../networking/http.dart';
+import '../tor_service.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/eth_commons.dart';
+import '../../utilities/extensions/extensions.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/prefs.dart';
+import '../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 class EthApiException implements Exception {
@@ -47,7 +48,8 @@ class EthereumResponse<T> {
 }
 
 abstract class EthereumAPI {
-  static String get stackBaseServer => DefaultNodes.ethereum.host;
+  static String get stackBaseServer =>
+      Ethereum(CryptoCurrencyNetwork.main).defaultNode.host;
 
   static HTTP client = HTTP();
 

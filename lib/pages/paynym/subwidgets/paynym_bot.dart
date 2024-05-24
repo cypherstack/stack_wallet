@@ -11,9 +11,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../../networking/http.dart';
+import '../../../services/tor_service.dart';
+import '../../../utilities/prefs.dart';
 
 class PayNymBot extends StatelessWidget {
   const PayNymBot({

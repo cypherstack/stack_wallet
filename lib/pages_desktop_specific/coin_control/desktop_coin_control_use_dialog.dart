@@ -14,39 +14,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/pages_desktop_specific/coin_control/utxo_row.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/expandable2.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
-import 'package:stackwallet/widgets/toggle.dart';
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/blockchain_data/utxo.dart';
+import 'utxo_row.dart';
+import '../../themes/coin_icon_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../widgets/animated_widgets/rotate_icon.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/dropdown_button.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/expandable2.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfield_icon_button.dart';
+import '../../widgets/toggle.dart';
 
 final desktopUseUTXOs = StateProvider((ref) => <UTXO>{});
 
 class DesktopCoinControlUseDialog extends ConsumerStatefulWidget {
   const DesktopCoinControlUseDialog({
-    Key? key,
+    super.key,
     required this.walletId,
     this.amountToSend,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Amount? amountToSend;
@@ -59,7 +59,7 @@ class DesktopCoinControlUseDialog extends ConsumerStatefulWidget {
 class _DesktopCoinControlUseDialogState
     extends ConsumerState<DesktopCoinControlUseDialog> {
   late final TextEditingController _searchController;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   final searchFieldFocusNode = FocusNode();
 
   final Set<UtxoRowData> _selectedUTXOsData = {};
@@ -110,7 +110,7 @@ class _DesktopCoinControlUseDialogState
         filter: _filter,
         sort: _sort,
         searchTerm: _searchString,
-        coin: coin,
+        cryptoCurrency: coin,
       );
     } else {
       _map = null;
@@ -119,18 +119,18 @@ class _DesktopCoinControlUseDialogState
         filter: _filter,
         sort: _sort,
         searchTerm: _searchString,
-        coin: coin,
+        cryptoCurrency: coin,
       );
     }
 
     final Amount selectedSum = _selectedUTXOs.map((e) => e.value).fold(
           Amount(
             rawValue: BigInt.zero,
-            fractionDigits: coin.decimals,
+            fractionDigits: coin.fractionDigits,
           ),
           (value, element) => value += Amount(
             rawValue: BigInt.from(element),
-            fractionDigits: coin.decimals,
+            fractionDigits: coin.fractionDigits,
           ),
         );
 
@@ -486,7 +486,7 @@ class _DesktopCoinControlUseDialogState
                                   ),
                                   Text(
                                     "${widget.amountToSend!.decimal.toStringAsFixed(
-                                      coin.decimals,
+                                      coin.fractionDigits,
                                     )}"
                                     " ${coin.ticker}",
                                     style:
@@ -521,7 +521,7 @@ class _DesktopCoinControlUseDialogState
                             ),
                             Text(
                               "${selectedSum.decimal.toStringAsFixed(
-                                coin.decimals,
+                                coin.fractionDigits,
                               )} ${coin.ticker}",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                       context)

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/detail_item.dart';
+
+import '../../../../frost_route_generator.dart';
+import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../../utilities/util.dart';
+import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
+import '../../../../widgets/custom_buttons/frost_qr_dialog_button.dart';
+import '../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/detail_item.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostReshareStep3c extends ConsumerStatefulWidget {
   const FrostReshareStep3c({super.key});

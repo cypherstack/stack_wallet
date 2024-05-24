@@ -1,4 +1,5 @@
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../crypto_currency.dart';
 
 abstract class CryptonoteCurrency extends CryptoCurrency {
   CryptonoteCurrency(super.network);
@@ -7,4 +8,7 @@ abstract class CryptonoteCurrency extends CryptoCurrency {
   String get genesisHash {
     return "not used in stack's cryptonote coins";
   }
+
+  @override
+  AddressType get primaryAddressType => AddressType.cryptonote;
 }

@@ -9,48 +9,54 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../models/isar/stack_theme.dart';
+import 'theme_providers.dart';
+import '../wallets/crypto_currency/coins/bitcoin.dart';
+import '../wallets/crypto_currency/coins/bitcoincash.dart';
+import '../wallets/crypto_currency/coins/dogecoin.dart';
+import '../wallets/crypto_currency/coins/epiccash.dart';
+import '../wallets/crypto_currency/coins/ethereum.dart';
+import '../wallets/crypto_currency/coins/firo.dart';
+import '../wallets/crypto_currency/coins/litecoin.dart';
+import '../wallets/crypto_currency/coins/monero.dart';
+import '../wallets/crypto_currency/coins/namecoin.dart';
+import '../wallets/crypto_currency/coins/particl.dart';
+import '../wallets/crypto_currency/coins/wownero.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
-final coinIconProvider = Provider.family<String, Coin>((ref, coin) {
+final coinIconProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
   if (assets is ThemeAssets) {
-    switch (coin) {
-      case Coin.bitcoin:
-      case Coin.bitcoinTestNet:
+    switch (coin.runtimeType) {
+      case const (Bitcoin):
         return assets.bitcoin;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
+      case const (Litecoin):
         return assets.litecoin;
-      case Coin.bitcoincash:
-      case Coin.bitcoincashTestnet:
+      case const (Bitcoincash):
         return assets.bitcoincash;
-      case Coin.dogecoin:
-      case Coin.dogecoinTestNet:
+      case const (Dogecoin):
         return assets.dogecoin;
-      case Coin.epicCash:
+      case const (Epiccash):
         return assets.epicCash;
-      case Coin.firo:
-      case Coin.firoTestNet:
+      case const (Firo):
         return assets.firo;
-      case Coin.monero:
+      case const (Monero):
         return assets.monero;
-      case Coin.wownero:
+      case const (Wownero):
         return assets.wownero;
-      case Coin.namecoin:
+      case const (Namecoin):
         return assets.namecoin;
-      case Coin.particl:
+      case const (Particl):
         return assets.particl;
-      case Coin.ethereum:
+      case const (Ethereum):
         return assets.ethereum;
       default:
         return assets.stackIcon;
     }
   } else if (assets is ThemeAssetsV2) {
-    return (assets).coinIcons[coin.mainNetVersion]!;
+    return (assets).coinIcons[coin.mainNetId]!;
   } else {
-    return (assets as ThemeAssetsV3).coinIcons[coin.mainNetVersion]!;
+    return (assets as ThemeAssetsV3).coinIcons[coin.mainNetId]!;
   }
 });

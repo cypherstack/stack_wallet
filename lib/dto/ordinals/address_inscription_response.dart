@@ -1,5 +1,5 @@
-import 'package:stackwallet/dto/ordinals/litescribe_response.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
+import 'litescribe_response.dart';
+import 'inscription_data.dart';
 
 class AddressInscriptionResponse extends LitescribeResponse<AddressInscriptionResponse> {
   final int status;

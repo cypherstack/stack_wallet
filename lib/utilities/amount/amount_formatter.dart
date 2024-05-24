@@ -1,19 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../providers/global/locale_provider.dart';
+import '../../providers/global/prefs_provider.dart';
+import 'amount.dart';
+import 'amount_unit.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
-final pAmountUnit = Provider.family<AmountUnit, Coin>(
+final pAmountUnit = Provider.family<AmountUnit, CryptoCurrency>(
   (ref, coin) => ref.watch(
     prefsChangeNotifierProvider.select(
       (value) => value.amountUnit(coin),
     ),
   ),
 );
-final pMaxDecimals = Provider.family<int, Coin>(
+final pMaxDecimals = Provider.family<int, CryptoCurrency>(
   (ref, coin) => ref.watch(
     prefsChangeNotifierProvider.select(
       (value) => value.maxDecimals(coin),
@@ -21,7 +21,8 @@ final pMaxDecimals = Provider.family<int, Coin>(
   ),
 );
 
-final pAmountFormatter = Provider.family<AmountFormatter, Coin>((ref, coin) {
+final pAmountFormatter =
+    Provider.family<AmountFormatter, CryptoCurrency>((ref, coin) {
   final locale = ref.watch(
     localeServiceChangeNotifierProvider.select((value) => value.locale),
   );
@@ -37,7 +38,7 @@ final pAmountFormatter = Provider.family<AmountFormatter, Coin>((ref, coin) {
 class AmountFormatter {
   final AmountUnit unit;
   final String locale;
-  final Coin coin;
+  final CryptoCurrency coin;
   final int maxDecimals;
 
   AmountFormatter({

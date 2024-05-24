@@ -12,40 +12,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/master_wallet_card.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
-import 'package:stackwallet/widgets/wallet_card.dart';
+import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
+import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
+import '../../providers/db/main_db_provider.dart';
+import '../../providers/providers.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/models/wallet_info.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/master_wallet_card.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfield_icon_button.dart';
+import '../../widgets/wallet_card.dart';
 import 'package:tuple/tuple.dart';
 
 class WalletsOverview extends ConsumerStatefulWidget {
   const WalletsOverview({
-    Key? key,
+    super.key,
     required this.coin,
     this.navigatorState,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final NavigatorState? navigatorState;
 
   static const routeName = "/walletsOverview";
@@ -116,7 +117,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         ref.read(mainDBProvider).isar.walletInfo.where().findAllSync();
     walletsData.removeWhere((e) => e.coin != widget.coin);
 
-    if (widget.coin == Coin.ethereum) {
+    if (widget.coin is Ethereum) {
       for (final data in walletsData) {
         final List<EthContract> contracts = [];
         final contractAddresses =

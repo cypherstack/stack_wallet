@@ -9,103 +9,33 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../models/isar/stack_theme.dart';
+import 'theme_providers.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
-final coinImageProvider = Provider.family<String, Coin>((ref, coin) {
+final coinImageProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
   if (assets is ThemeAssets) {
-    switch (coin) {
-      case Coin.bitcoin:
-        return assets.bitcoinImage;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return assets.litecoinImage;
-      case Coin.bitcoincash:
-        return assets.bitcoincashImage;
-      case Coin.dogecoin:
-        return assets.dogecoinImage;
-      case Coin.eCash:
-        return assets.bitcoinImage;
-      case Coin.epicCash:
-        return assets.epicCashImage;
-      case Coin.firo:
-        return assets.firoImage;
-      case Coin.monero:
-        return assets.moneroImage;
-      case Coin.wownero:
-        return assets.wowneroImage;
-      case Coin.namecoin:
-        return assets.namecoinImage;
-      case Coin.particl:
-        return assets.particlImage;
-      case Coin.bitcoinTestNet:
-        return assets.bitcoinImage;
-      case Coin.bitcoincashTestnet:
-        return assets.bitcoincashImage;
-      case Coin.firoTestNet:
-        return assets.firoImage;
-      case Coin.dogecoinTestNet:
-        return assets.dogecoinImage;
-      case Coin.ethereum:
-        return assets.ethereumImage;
-      default:
-        return assets.stackIcon;
-    }
+    // just update your wallet or theme
+    return assets.stackIcon;
   } else if (assets is ThemeAssetsV2) {
-    return (assets).coinImages[coin.mainNetVersion]!;
+    return (assets).coinImages[coin.mainNetId]!;
   } else {
-    return (assets as ThemeAssetsV3).coinImages[coin.mainNetVersion]!;
+    return (assets as ThemeAssetsV3).coinImages[coin.mainNetId]!;
   }
 });
 
-final coinImageSecondaryProvider = Provider.family<String, Coin>((ref, coin) {
+final coinImageSecondaryProvider =
+    Provider.family<String, CryptoCurrency>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
   if (assets is ThemeAssets) {
-    switch (coin) {
-      case Coin.bitcoin:
-        return assets.bitcoinImageSecondary;
-      case Coin.litecoin:
-      case Coin.litecoinTestNet:
-        return assets.litecoinImageSecondary;
-      case Coin.bitcoincash:
-        return assets.bitcoincashImageSecondary;
-      case Coin.dogecoin:
-        return assets.dogecoinImageSecondary;
-      case Coin.eCash:
-        return assets.bitcoinImageSecondary;
-      case Coin.epicCash:
-        return assets.epicCashImageSecondary;
-      case Coin.firo:
-        return assets.firoImageSecondary;
-      case Coin.monero:
-        return assets.moneroImageSecondary;
-      case Coin.wownero:
-        return assets.wowneroImageSecondary;
-      case Coin.namecoin:
-        return assets.namecoinImageSecondary;
-      case Coin.particl:
-        return assets.particlImageSecondary;
-      case Coin.bitcoinTestNet:
-        return assets.bitcoinImageSecondary;
-      case Coin.bitcoincashTestnet:
-        return assets.bitcoincashImageSecondary;
-      case Coin.firoTestNet:
-        return assets.firoImageSecondary;
-      case Coin.dogecoinTestNet:
-        return assets.dogecoinImageSecondary;
-      case Coin.ethereum:
-        return assets.ethereumImageSecondary;
-
-      default:
-        return assets.stackIcon;
-    }
+    // just update your wallet or theme
+    return assets.stackIcon;
   } else if (assets is ThemeAssetsV2) {
-    return (assets).coinSecondaryImages[coin.mainNetVersion]!;
+    return (assets).coinSecondaryImages[coin.mainNetId]!;
   } else {
-    return (assets as ThemeAssetsV3).coinSecondaryImages[coin.mainNetVersion]!;
+    return (assets as ThemeAssetsV3).coinSecondaryImages[coin.mainNetId]!;
   }
 });

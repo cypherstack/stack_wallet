@@ -9,9 +9,9 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../../widgets/rounded_white_container.dart';
 
 class RestoringItemCard extends StatelessWidget {
   const RestoringItemCard({

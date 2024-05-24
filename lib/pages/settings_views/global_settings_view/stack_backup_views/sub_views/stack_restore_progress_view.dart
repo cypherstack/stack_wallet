@@ -13,32 +13,33 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/dialogs/cancel_stack_restore_dialog.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/stack_backup_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_wallet_card.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../../../../app_config.dart';
+import '../../../../home_view/home_view.dart';
+import '../dialogs/cancel_stack_restore_dialog.dart';
+import '../helpers/restore_create_backup.dart';
+import '../restore_from_encrypted_string_view.dart';
+import '../stack_backup_view.dart';
+import '../sub_widgets/restoring_item_card.dart';
+import '../sub_widgets/restoring_wallet_card.dart';
+import '../../../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../../../pages_desktop_specific/desktop_menu.dart';
+import '../../../../../providers/desktop/current_desktop_menu_item.dart';
+import '../../../../../providers/global/secure_store_provider.dart';
+import '../../../../../providers/providers.dart';
+import '../../../../../providers/stack_restore/stack_restoring_ui_state_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/enums/stack_restoring_status.dart';
+import '../../../../../utilities/logger.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../widgets/conditional_parent.dart';
+import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../../widgets/desktop/primary_button.dart';
+import '../../../../../widgets/desktop/secondary_button.dart';
+import '../../../../../widgets/icon_widgets/addressbook_icon.dart';
+import '../../../../../widgets/loading_indicator.dart';
+import '../../../../../widgets/rounded_container.dart';
 
 class StackRestoreProgressView extends ConsumerStatefulWidget {
   const StackRestoreProgressView({
@@ -263,7 +264,7 @@ class _StackRestoreProgressViewState
                 },
               ),
               title: Text(
-                "Restoring Stack wallet",
+                "Restoring {$AppConfig.appName}",
                 style: STextStyles.navBarTitle(context),
               ),
             ),

@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of Stack Wallet.
  * 
  * Copyright (c) 2023 Cypher Stack
@@ -11,34 +11,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/contact_entry.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/add_address_book_entry_view.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/address_book_filter_view.dart';
-import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_book_scaffold.dart';
-import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_contact_details.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import 'package:stackwallet/widgets/address_book_card.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import '../../app_config.dart';
+import '../../models/isar/models/blockchain_data/address.dart';
+import '../../models/isar/models/contact_entry.dart';
+import '../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
+import '../../pages/address_book_views/subviews/address_book_filter_view.dart';
+import 'subwidgets/desktop_address_book_scaffold.dart';
+import 'subwidgets/desktop_contact_details.dart';
+import '../../providers/db/main_db_provider.dart';
+import '../../providers/global/address_book_service_provider.dart';
+import '../../providers/providers.dart';
+import '../../providers/ui/address_book_providers/address_book_filter_provider.dart';
+import '../../app_config.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../widgets/address_book_card.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfield_icon_button.dart';
 
 class DesktopAddressBook extends ConsumerStatefulWidget {
   const DesktopAddressBook({super.key});
@@ -96,8 +98,10 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     ref.refresh(addressBookFilterProvider);
 
     // if (widget.coin == null) {
-    final List<Coin> coins = Coin.values.toList();
-    coins.remove(Coin.firoTestNet);
+    final coins = AppConfig.coins.toList();
+    coins.removeWhere(
+      (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+    );
 
     final bool showTestNet =
         ref.read(prefsChangeNotifierProvider).showTestNetCoins;
@@ -105,9 +109,10 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     if (showTestNet) {
       ref.read(addressBookFilterProvider).addAll(coins, false);
     } else {
-      ref
-          .read(addressBookFilterProvider)
-          .addAll(coins.where((e) => !e.isTestNet), false);
+      ref.read(addressBookFilterProvider).addAll(
+            coins.where((e) => e.network != CryptoCurrencyNetwork.test),
+            false,
+          );
     }
     // } else {
     //   ref.read(addressBookFilterProvider).add(widget.coin!, false);
@@ -132,14 +137,14 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
 
         addresses.add(
           ContactAddressEntry()
-            ..coinName = wallet.info.coin.name
+            ..coinName = wallet.info.coin.identifier
             ..address = addressString
             ..label = "Current Receiving"
             ..other = wallet.info.name,
         );
       }
       final self = ContactEntry(
-        name: "My Stack",
+        name: "My ${AppConfig.prefix}",
         addresses: addresses,
         isFavorite: true,
         customId: "default",

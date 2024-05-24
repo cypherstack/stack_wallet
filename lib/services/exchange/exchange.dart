@@ -9,16 +9,16 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
+import '../../models/exchange/response_objects/estimate.dart';
+import '../../models/exchange/response_objects/range.dart';
+import '../../models/exchange/response_objects/trade.dart';
+import '../../models/isar/exchange_cache/currency.dart';
+import '../../models/isar/exchange_cache/pair.dart';
+import 'change_now/change_now_exchange.dart';
+import 'exchange_response.dart';
+import 'majestic_bank/majestic_bank_exchange.dart';
+import 'simpleswap/simpleswap_exchange.dart';
+import 'trocador/trocador_exchange.dart';
 
 abstract class Exchange {
   static Exchange get defaultExchange => ChangeNowExchange.instance;

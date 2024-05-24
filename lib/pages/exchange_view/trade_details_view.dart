@@ -17,54 +17,56 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/exchange_view/edit_trade_note_view.dart';
-import 'package:stackwallet/pages/exchange_view/send_from_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/edit_note_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../app_config.dart';
+import '../../models/exchange/change_now/exchange_transaction_status.dart';
+import '../../models/isar/models/blockchain_data/transaction.dart';
+import '../../models/isar/stack_theme.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/trades_service_provider.dart';
+import '../../providers/providers.dart';
+import '../../route_generator.dart';
+import '../../services/exchange/change_now/change_now_exchange.dart';
+import '../../services/exchange/exchange.dart';
+import '../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../../services/exchange/simpleswap/simpleswap_exchange.dart';
+import '../../services/exchange/trocador/trocador_exchange.dart';
+import '../../themes/stack_colors.dart';
+import '../../themes/theme_providers.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/clipboard_interface.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/format.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
+import '../wallet_view/transaction_views/edit_note_view.dart';
+import '../wallet_view/transaction_views/transaction_details_view.dart';
+import 'edit_trade_note_view.dart';
+import 'send_from_view.dart';
+
 class TradeDetailsView extends ConsumerStatefulWidget {
   const TradeDetailsView({
-    Key? key,
+    super.key,
     required this.tradeId,
     required this.transactionIfSentFromStack,
     required this.walletId,
     required this.walletName,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/tradeDetails";
 
@@ -83,18 +85,6 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   late final ClipboardInterface clipboard;
   late final Transaction? transactionIfSentFromStack;
   late final String? walletId;
-
-  bool isStackCoin(String ticker) {
-    try {
-      try {
-        coinFromTickerCaseInsensitive(ticker);
-      } catch (_) {}
-      coinFromPrettyName(ticker);
-      return true;
-    } on ArgumentError catch (_) {
-      return false;
-    }
-  }
 
   @override
   initState() {
@@ -167,8 +157,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     final bool sentFromStack =
         transactionIfSentFromStack != null && walletId != null;
 
-    final trade = ref.watch(tradesServiceProvider.select(
-        (value) => value.trades.firstWhere((e) => e.tradeId == tradeId)));
+    final trade = ref.watch(
+      tradesServiceProvider.select(
+        (value) => value.trades.firstWhere((e) => e.tradeId == tradeId),
+      ),
+    );
 
     final bool hasTx = sentFromStack ||
         !(trade.status == "New" ||
@@ -255,7 +248,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     ),
                   ),
                   if (!hasTx &&
-                      isStackCoin(trade.payInCurrency) &&
+                      AppConfig.isStackCoin(trade.payInCurrency) &&
                       (trade.status == "New" ||
                           trade.status == "new" ||
                           trade.status == "waiting" ||
@@ -264,7 +257,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       height: 32,
                     ),
                   if (!hasTx &&
-                      isStackCoin(trade.payInCurrency) &&
+                      AppConfig.isStackCoin(trade.payInCurrency) &&
                       (trade.status == "New" ||
                           trade.status == "new" ||
                           trade.status == "waiting" ||
@@ -273,16 +266,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       label: "Send from Stack",
                       buttonHeight: ButtonHeight.l,
                       onPressed: () {
-                        Coin coin;
+                        CryptoCurrency coin;
                         try {
-                          coin = coinFromTickerCaseInsensitive(
-                              trade.payInCurrency);
+                          coin = AppConfig.getCryptoCurrencyForTicker(
+                            trade.payInCurrency,
+                          )!;
                         } catch (_) {
-                          coin = coinFromPrettyName(trade.payInCurrency);
+                          coin = AppConfig.getCryptoCurrencyByPrettyName(
+                            trade.payInCurrency,
+                          );
                         }
                         final amount = Amount.fromDecimal(
                           sendAmount,
-                          fractionDigits: coin.decimals,
+                          fractionDigits: coin.fractionDigits,
                         );
                         final address = trade.payInAddress;
 
@@ -368,28 +364,34 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           const SizedBox(
                             height: 4,
                           ),
-                          Builder(builder: (context) {
-                            String text;
-                            try {
-                              final coin = coinFromTickerCaseInsensitive(
-                                  trade.payInCurrency);
-                              final amount = sendAmount.toAmount(
-                                  fractionDigits: coin.decimals);
-                              text = ref
-                                  .watch(pAmountFormatter(coin))
-                                  .format(amount);
-                            } catch (_) {
-                              text = sendAmount.toStringAsFixed(
+                          Builder(
+                            builder: (context) {
+                              String text;
+                              try {
+                                final coin =
+                                    AppConfig.getCryptoCurrencyForTicker(
+                                  trade.payInCurrency,
+                                )!;
+                                final amount = sendAmount.toAmount(
+                                  fractionDigits: coin.fractionDigits,
+                                );
+                                text = ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(amount);
+                              } catch (_) {
+                                text = sendAmount.toStringAsFixed(
                                   trade.payInCurrency.toLowerCase() == "xmr"
                                       ? 12
-                                      : 8);
-                            }
+                                      : 8,
+                                );
+                              }
 
-                            return SelectableText(
-                              "-$text ${trade.payInCurrency.toUpperCase()}",
-                              style: STextStyles.itemSubtitle(context),
-                            );
-                          }),
+                              return SelectableText(
+                                "-$text ${trade.payInCurrency.toUpperCase()}",
+                                style: STextStyles.itemSubtitle(context),
+                              );
+                            },
+                          ),
                         ],
                       ),
                       if (!isDesktop)
@@ -464,7 +466,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               ),
                             ),
                           ],
-                        )
+                        ),
                     ],
                   ),
                   const SizedBox(
@@ -512,7 +514,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               Text(
                                 "Amount",
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                    context),
+                                  context,
+                                ),
                               ),
                               const SizedBox(
                                 height: 2,
@@ -520,8 +523,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                               Text(
                                 "${trade.payInAmount} ${trade.payInCurrency.toUpperCase()}",
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
@@ -542,43 +545,44 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   ),
                   child: RichText(
                     text: TextSpan(
-                        text:
-                            "You must send at least ${sendAmount.toStringAsFixed(
-                          trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
-                        )} ${trade.payInCurrency.toUpperCase()}. ",
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorRed)
-                            : STextStyles.label(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .warningForeground,
-                              ),
-                        children: [
-                          TextSpan(
-                            text:
-                                "If you send less than ${sendAmount.toStringAsFixed(
-                              trade.payInCurrency.toLowerCase() == "xmr"
-                                  ? 12
-                                  : 8,
-                            )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorRed)
-                                : STextStyles.label(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .warningForeground,
-                                  ),
-                          ),
-                        ]),
+                      text:
+                          "You must send at least ${sendAmount.toStringAsFixed(
+                        trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
+                      )} ${trade.payInCurrency.toUpperCase()}. ",
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorRed,
+                            )
+                          : STextStyles.label(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .warningForeground,
+                            ),
+                      children: [
+                        TextSpan(
+                          text:
+                              "If you send less than ${sendAmount.toStringAsFixed(
+                            trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8,
+                          )} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorRed,
+                                )
+                              : STextStyles.label(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .warningForeground,
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -613,8 +617,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     CustomTextButton(
                       text: "View transaction",
                       onTap: () {
-                        final Coin coin =
-                            coinFromTickerCaseInsensitive(trade.payInCurrency);
+                        final coin = AppConfig.getCryptoCurrencyForTicker(
+                          trade.payInCurrency,
+                        )!;
 
                         if (isDesktop) {
                           Navigator.of(context).push(
@@ -638,7 +643,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           Navigator.of(context).pushNamed(
                             TransactionDetailsView.routeName,
                             arguments: Tuple3(
-                                transactionIfSentFromStack!, coin, walletId!),
+                              transactionIfSentFromStack!,
+                              coin,
+                              walletId!,
+                            ),
                           );
                         }
                       },
@@ -717,7 +725,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       text: address,
                                     ),
                                   );
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     unawaited(
                                       showFloatingFlushBar(
                                         type: FlushBarType.info,
@@ -787,14 +795,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                         width: width + 20,
                                         height: width + 20,
                                         child: QrImageView(
-                                            data: trade.payInAddress,
-                                            size: width,
-                                            backgroundColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .popupBG,
-                                            foregroundColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark),
+                                          data: trade.payInAddress,
+                                          size: width,
+                                          backgroundColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .popupBG,
+                                          foregroundColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -812,14 +821,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
                                             .getSecondaryEnabledButtonStyle(
-                                                context),
+                                              context,
+                                            ),
                                         child: Text(
                                           "Cancel",
                                           style: STextStyles.button(context)
                                               .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -885,7 +896,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       text: address,
                                     ),
                                   );
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     unawaited(
                                       showFloatingFlushBar(
                                         type: FlushBarType.info,
@@ -1005,8 +1016,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     height: 4,
                   ),
                   SelectableText(
-                    ref.watch(tradeNoteServiceProvider
-                        .select((value) => value.getNote(tradeId: tradeId))),
+                    ref.watch(
+                      tradeNoteServiceProvider
+                          .select((value) => value.getNote(tradeId: tradeId)),
+                    ),
                     style: STextStyles.itemSubtitle12(context),
                   ),
                 ],
@@ -1132,7 +1145,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       if (isDesktop)
                         SelectableText(
                           Format.extractDateFrom(
-                              trade.timestamp.millisecondsSinceEpoch ~/ 1000),
+                            trade.timestamp.millisecondsSinceEpoch ~/ 1000,
+                          ),
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
                             color: Theme.of(context)
@@ -1145,13 +1159,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   if (!isDesktop)
                     SelectableText(
                       Format.extractDateFrom(
-                          trade.timestamp.millisecondsSinceEpoch ~/ 1000),
+                        trade.timestamp.millisecondsSinceEpoch ~/ 1000,
+                      ),
                       style: STextStyles.itemSubtitle12(context),
                     ),
                   if (isDesktop)
                     IconCopyButton(
                       data: Format.extractDateFrom(
-                          trade.timestamp.millisecondsSinceEpoch ~/ 1000),
+                        trade.timestamp.millisecondsSinceEpoch ~/ 1000,
+                      ),
                     ),
                 ],
               ),
@@ -1248,7 +1264,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           onTap: () async {
                             final data = ClipboardData(text: trade.tradeId);
                             await clipboard.setData(data);
-                            if (mounted) {
+                            if (context.mounted) {
                               unawaited(
                                 showFloatingFlushBar(
                                   type: FlushBarType.info,
@@ -1265,7 +1281,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 .infoItemIcons,
                             width: 12,
                           ),
-                        )
+                        ),
                       ],
                     ),
                 ],
@@ -1344,7 +1360,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               ),
             if (!isDesktop &&
                 !hasTx &&
-                isStackCoin(trade.payInCurrency) &&
+                AppConfig.isStackCoin(trade.payInCurrency) &&
                 (trade.status == "New" ||
                     trade.status == "new" ||
                     trade.status == "waiting" ||
@@ -1352,15 +1368,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               SecondaryButton(
                 label: "Send from Stack",
                 onPressed: () {
-                  Coin coin;
+                  CryptoCurrency coin;
                   try {
-                    coin = coinFromTickerCaseInsensitive(trade.payInCurrency);
+                    coin = AppConfig.getCryptoCurrencyForTicker(
+                      trade.payInCurrency,
+                    )!;
                   } catch (_) {
-                    coin = coinFromPrettyName(trade.payInCurrency);
+                    coin = AppConfig.getCryptoCurrencyByPrettyName(
+                      trade.payInCurrency,
+                    );
                   }
                   final amount = Amount.fromDecimal(
                     sendAmount,
-                    fractionDigits: coin.decimals,
+                    fractionDigits: coin.fractionDigits,
                   );
                   final address = trade.payInAddress;
 
@@ -1383,7 +1403,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider({Key? key}) : super(key: key);
+  const _Divider({super.key});
 
   @override
   Widget build(BuildContext context) {

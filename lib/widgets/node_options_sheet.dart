@@ -14,38 +14,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:solana/solana.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
-import 'package:stackwallet/providers/global/active_wallet_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/test_epic_box_connection.dart';
-import 'package:stackwallet/utilities/test_eth_node_connection.dart';
-import 'package:stackwallet/utilities/test_monero_node_connection.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../models/node_model.dart';
+import '../notifications/show_flush_bar.dart';
+import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
+import '../providers/global/active_wallet_provider.dart';
+import '../providers/providers.dart';
+import '../services/tor_service.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/assets.dart';
+import '../utilities/connection_check/electrum_connection_check.dart';
+import '../utilities/constants.dart';
+import '../utilities/default_nodes.dart';
+import '../utilities/enums/sync_type_enum.dart';
+import '../utilities/logger.dart';
+import '../utilities/test_epic_box_connection.dart';
+import '../utilities/test_eth_node_connection.dart';
+import '../utilities/test_monero_node_connection.dart';
+import '../utilities/text_styles.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import 'rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
 class NodeOptionsSheet extends ConsumerWidget {
   const NodeOptionsSheet({
-    Key? key,
+    super.key,
     required this.nodeId,
     required this.coin,
     required this.popBackToRoute,
-  }) : super(key: key);
+  });
 
   final String nodeId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final String popBackToRoute;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
@@ -82,11 +82,14 @@ class NodeOptionsSheet extends ConsumerWidget {
   }
 
   Future<bool> _testConnection(
-      NodeModel node, BuildContext context, WidgetRef ref) async {
+    NodeModel node,
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     bool testPassed = false;
 
-    switch (coin) {
-      case Coin.epicCash:
+    switch (coin.runtimeType) {
+      case const (Epiccash):
         try {
           testPassed = await testEpicNodeConnection(
                 NodeFormData()
@@ -100,14 +103,15 @@ class NodeOptionsSheet extends ConsumerWidget {
         }
         break;
 
-      case Coin.monero:
-      case Coin.wownero:
+      case const (Monero):
+      case const (Wownero):
         try {
           final uri = Uri.parse(node.host);
           if (uri.scheme.startsWith("http")) {
             final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
 
-            String uriString = "${uri.scheme}://${uri.host}:${node.port}$path";
+            final String uriString =
+                "${uri.scheme}://${uri.host}:${node.port}$path";
 
             final response = await testMoneroNodeConnection(
               Uri.parse(uriString),
@@ -139,23 +143,16 @@ class NodeOptionsSheet extends ConsumerWidget {
 
         break;
 
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.particl:
-      case Coin.bitcoinTestNet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.litecoinTestNet:
-      case Coin.namecoin:
-      case Coin.bitcoincashTestnet:
-      case Coin.eCash:
-      case Coin.bitcoinFrost:
-      case Coin.bitcoinFrostTestNet:
-      case Coin.peercoin:
-      case Coin.peercoinTestNet:
+      case const (Bitcoin):
+      case const (Litecoin):
+      case const (Dogecoin):
+      case const (Firo):
+      case const (Particl):
+      case const (Bitcoincash):
+      case const (Namecoin):
+      case const (Ecash):
+      case const (BitcoinFrost):
+      case const (Peercoin):
         try {
           testPassed = await checkElectrumServer(
             host: node.host,
@@ -170,7 +167,7 @@ class NodeOptionsSheet extends ConsumerWidget {
 
         break;
 
-      case Coin.ethereum:
+      case const (Ethereum):
         try {
           testPassed = await testEthNodeConnection(node.host);
         } catch (_) {
@@ -178,15 +175,14 @@ class NodeOptionsSheet extends ConsumerWidget {
         }
         break;
 
-      case Coin.nano:
-      case Coin.banano:
-      case Coin.tezos:
-      case Coin.stellar:
-      case Coin.stellarTestnet:
+      case const (Nano):
+      case const (Banano):
+      case const (Tezos):
+      case const (Stellar):
         throw UnimplementedError();
       //TODO: check network/node
 
-      case Coin.solana:
+      case const (Solana):
         try {
           RpcClient rpcClient;
           if (node.host.startsWith("http") || node.host.startsWith("https")) {
@@ -208,12 +204,14 @@ class NodeOptionsSheet extends ConsumerWidget {
       //   context: context,
       // );
     } else {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        iconAsset: Assets.svg.circleAlert,
-        message: "Could not connect to node",
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          iconAsset: Assets.svg.circleAlert,
+          message: "Could not connect to node",
+          context: context,
+        ),
+      );
     }
 
     return testPassed;
@@ -222,12 +220,16 @@ class NodeOptionsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
-    final node = ref.watch(nodeServiceChangeNotifierProvider
-        .select((value) => value.getNodeById(id: nodeId)))!;
+    final node = ref.watch(
+      nodeServiceChangeNotifierProvider
+          .select((value) => value.getNodeById(id: nodeId)),
+    )!;
 
     final status = ref
-                .watch(nodeServiceChangeNotifierProvider
-                    .select((value) => value.getPrimaryNodeFor(coin: coin)))
+                .watch(
+                  nodeServiceChangeNotifierProvider.select(
+                      (value) => value.getPrimaryNodeFor(currency: coin)),
+                )
                 ?.id !=
             nodeId
         ? "Disconnected"
@@ -301,7 +303,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                             height: 15,
                             width: 19,
                             color: node.id.startsWith(
-                                    DefaultNodes.defaultNodeIdPrefix)
+                              DefaultNodes.defaultNodeIdPrefix,
+                            )
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorDark
@@ -367,9 +370,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           "Details",
                           style: STextStyles.button(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
+                          ),
                         ),
                       ),
                     ),

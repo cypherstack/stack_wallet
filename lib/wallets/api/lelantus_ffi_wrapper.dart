@@ -2,17 +2,17 @@ import 'package:bip32/bip32.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:flutter/foundation.dart';
 import 'package:lelantus/lelantus.dart' as lelantus;
-import 'package:stackwallet/models/isar/models/isar_models.dart' as isar_models;
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/lelantus_fee_data.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/extensions/impl/string.dart';
-import 'package:stackwallet/utilities/extensions/impl/uint8_list.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
+import '../../models/isar/models/isar_models.dart' as isar_models;
+import '../../models/isar/models/isar_models.dart';
+import '../../models/lelantus_fee_data.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/extensions/impl/string.dart';
+import '../../utilities/extensions/impl/uint8_list.dart';
+import '../../utilities/format.dart';
+import '../../utilities/logger.dart';
+import '../crypto_currency/crypto_currency.dart';
+import '../crypto_currency/intermediate/bip39_hd_currency.dart';
+import '../models/tx_data.dart';
 
 abstract final class LelantusFfiWrapper {
   static const MINT_LIMIT = 5001 * 100000000;

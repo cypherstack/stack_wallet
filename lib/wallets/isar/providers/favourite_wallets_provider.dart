@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../app_config.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../models/wallet_info.dart';
 
 class _Watcher extends ChangeNotifier {
   final bool isFavourite;
@@ -17,6 +19,10 @@ class _Watcher extends ChangeNotifier {
   _Watcher(this._value, this.isFavourite, Isar isar) {
     _streamSubscription = isar.walletInfo
         .filter()
+        .anyOf<String, CryptoCurrency>(
+          AppConfig.coins.map((e) => e.identifier),
+          (q, element) => q.coinNameMatches(element),
+        )
         .isFavouriteEqualTo(isFavourite)
         .sortByFavouriteOrderIndex()
         .watch(fireImmediately: true)
@@ -40,6 +46,10 @@ final _wiProvider = ChangeNotifierProvider.family<_Watcher, bool>(
     final watcher = _Watcher(
       isar.walletInfo
           .filter()
+          .anyOf<String, CryptoCurrency>(
+            AppConfig.coins.map((e) => e.identifier),
+            (q, element) => q.coinNameMatches(element),
+          )
           .isFavouriteEqualTo(isFavourite)
           .sortByFavouriteOrderIndex()
           .findAllSync(),

@@ -1,12 +1,14 @@
 import 'package:isar/isar.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/models/isar/ordinal.dart';
-import 'package:stackwallet/services/litescribe_api.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../../../dto/ordinals/inscription_data.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
+import '../../../models/isar/ordinal.dart';
+import '../../../services/litescribe_api.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import 'electrumx_interface.dart';
 
-mixin OrdinalsInterface on ElectrumXInterface {
+mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
+    on ElectrumXInterface<T> {
   final LitescribeAPI _litescribeAPI =
       LitescribeAPI(baseUrl: 'https://litescribe.io/api');
 

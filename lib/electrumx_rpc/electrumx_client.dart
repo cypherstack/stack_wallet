@@ -20,17 +20,17 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
-import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'client_manager.dart';
+import '../exceptions/electrumx/no_such_transaction.dart';
+import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../services/event_bus/events/global/tor_status_changed_event.dart';
+import '../services/event_bus/global_event_bus.dart';
+import '../services/tor_service.dart';
+import '../utilities/logger.dart';
+import '../utilities/prefs.dart';
+import '../wallets/crypto_currency/coins/dogecoin.dart';
+import '../wallets/crypto_currency/coins/firo.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 class WifiOnlyException implements Exception {}

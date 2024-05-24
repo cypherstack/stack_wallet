@@ -2,26 +2,27 @@ import 'dart:convert';
 
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
-import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/ethereum/ethereum_api.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
+
+import '../../../../dto/ethereum/eth_token_tx_dto.dart';
+import '../../../../dto/ethereum/eth_token_tx_extra_dto.dart';
+import '../../../../models/balance.dart';
+import '../../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../../models/paymint/fee_object_model.dart';
+import '../../../../services/ethereum/ethereum_api.dart';
+import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/eth_commons.dart';
+import '../../../../utilities/extensions/extensions.dart';
+import '../../../../utilities/logger.dart';
+import '../../../isar/models/token_wallet_info.dart';
+import '../../../models/tx_data.dart';
+import '../../wallet.dart';
+import '../ethereum_wallet.dart';
 
 class EthTokenWallet extends Wallet {
   @override

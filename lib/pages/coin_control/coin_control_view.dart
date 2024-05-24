@@ -14,32 +14,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/coin_control/utxo_card.dart';
-import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
-import 'package:stackwallet/widgets/app_bar_field.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/expandable2.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/toggle.dart';
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/isar_models.dart';
+import 'utxo_card.dart';
+import 'utxo_details_view.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../widgets/animated_widgets/rotate_icon.dart';
+import '../../widgets/app_bar_field.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/dropdown_button.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/expandable2.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/toggle.dart';
 import 'package:tuple/tuple.dart';
 
 enum CoinControlViewType {
@@ -49,12 +48,12 @@ enum CoinControlViewType {
 
 class CoinControlView extends ConsumerStatefulWidget {
   const CoinControlView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.type,
     this.requestedTotal,
     this.selectedUTXOs,
-  }) : super(key: key);
+  });
 
   static const routeName = "/coinControl";
 
@@ -128,7 +127,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         filter: CCFilter.all,
         sort: _sort,
         searchTerm: "",
-        coin: coin,
+        cryptoCurrency: coin,
       );
     } else {
       _map = null;
@@ -141,7 +140,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                 : CCFilter.available,
         sort: _sort,
         searchTerm: _isSearching ? searchController.text : "",
-        coin: coin,
+        cryptoCurrency: coin,
       );
     }
 
@@ -682,7 +681,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       );
                                           final selectedSum =
                                               selectedSumInt.toAmountAsRaw(
-                                            fractionDigits: coin.decimals,
+                                            fractionDigits: coin.fractionDigits,
                                           );
                                           return Text(
                                             ref

@@ -8,38 +8,37 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/contact_entry.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/add_new_contact_address_view.dart';
-import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_address_card.dart';
-import 'package:stackwallet/pages_desktop_specific/address_book_view/subwidgets/desktop_contact_options_menu_popup.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../models/isar/models/contact_entry.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../pages/address_book_views/subviews/add_new_contact_address_view.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/address_book_service_provider.dart';
+import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/app_icon.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/loading_indicator.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/transaction_card.dart';
+import 'desktop_address_card.dart';
+import 'desktop_contact_options_menu_popup.dart';
 
 class DesktopContactDetails extends ConsumerStatefulWidget {
   const DesktopContactDetails({
-    Key? key,
+    super.key,
     required this.contactId,
-  }) : super(key: key);
+  });
 
   final String contactId;
 
@@ -120,15 +119,8 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             borderRadius: BorderRadius.circular(32),
                           ),
                           child: contact.customId == "default"
-                              ? Center(
-                                  child: SvgPicture.file(
-                                    File(
-                                      ref.watch(
-                                        themeProvider.select(
-                                          (value) => value.assets.stackIcon,
-                                        ),
-                                      ),
-                                    ),
+                              ? const Center(
+                                  child: AppIcon(
                                     width: 32,
                                   ),
                                 )

@@ -10,15 +10,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import '../../../db/isar/main_db.dart';
+import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
 class WalletInfoRowBalance extends ConsumerWidget {
   const WalletInfoRowBalance({

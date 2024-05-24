@@ -9,8 +9,8 @@
  */
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
+import 'isar/models/isar_models.dart';
+import '../utilities/enums/derive_path_type_enum.dart';
 
 class SigningData {
   SigningData({

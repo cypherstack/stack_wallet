@@ -13,8 +13,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/transaction_note.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
+import '../../models/isar/models/transaction_note.dart';
+import '../db/main_db_provider.dart';
 
 class _TransactionNoteWatcher extends ChangeNotifier {
   final ({String walletId, String txid}) key;

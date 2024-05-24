@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:nanodart/nanodart.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../networking/http.dart';
+import 'tor_service.dart';
+import '../utilities/prefs.dart';
 
 class NanoAPI {
   static Future<

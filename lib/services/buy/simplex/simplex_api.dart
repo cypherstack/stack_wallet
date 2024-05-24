@@ -12,18 +12,19 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/buy/response_objects/crypto.dart';
-import 'package:stackwallet/models/buy/response_objects/fiat.dart';
-import 'package:stackwallet/models/buy/response_objects/order.dart';
-import 'package:stackwallet/models/buy/response_objects/quote.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/buy/buy_response.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fiat_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../app_config.dart';
+import '../../../models/buy/response_objects/crypto.dart';
+import '../../../models/buy/response_objects/fiat.dart';
+import '../../../models/buy/response_objects/order.dart';
+import '../../../models/buy/response_objects/quote.dart';
+import '../../../networking/http.dart';
+import '../../../utilities/enums/fiat_enum.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
+import '../../tor_service.dart';
+import '../buy_response.dart';
 
 class SimplexAPI {
   static const String authority = "buycrypto.stackwallet.com";
@@ -47,30 +48,34 @@ class SimplexAPI {
 
   Future<BuyResponse<List<Crypto>>> getSupportedCryptos() async {
     try {
-      Map<String, String> headers = {
+      final Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Map<String, String> data = {
+      final Map<String, String> data = {
         'ROUTE': 'supported_cryptos',
       };
-      Uri url = _buildUri('api.php', data);
+      final Uri url = _buildUri('api.php', data);
 
-      var res = await client.post(
+      final res = await client.post(
         url: url,
         headers: headers,
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       if (res.code != 200) {
         throw Exception(
-            'getAvailableCurrencies exception: statusCode= ${res.code}');
+          'getAvailableCurrencies exception: statusCode= ${res.code}',
+        );
       }
       final jsonArray = jsonDecode(res.body); // TODO handle if invalid json
 
       return _parseSupportedCryptos(jsonArray);
     } catch (e, s) {
-      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "getAvailableCurrencies exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -82,19 +87,20 @@ class SimplexAPI {
 
   BuyResponse<List<Crypto>> _parseSupportedCryptos(dynamic jsonArray) {
     try {
-      List<Crypto> cryptos = [];
-      List<Fiat> fiats = [];
+      final List<Crypto> cryptos = [];
 
       for (final crypto in jsonArray as List) {
         // TODO validate jsonArray
-        if (isStackCoin("${crypto['ticker_symbol']}")) {
-          cryptos.add(Crypto.fromJson({
-            'ticker': "${crypto['ticker_symbol']}",
-            'name': crypto['name'],
-            'network': "${crypto['network']}",
-            'contractAddress': "${crypto['contractAddress']}",
-            'image': "",
-          }));
+        if (AppConfig.isStackCoin("${crypto['ticker_symbol']}")) {
+          cryptos.add(
+            Crypto.fromJson({
+              'ticker': "${crypto['ticker_symbol']}",
+              'name': crypto['name'],
+              'network': "${crypto['network']}",
+              'contractAddress': "${crypto['contractAddress']}",
+              'image': "",
+            }),
+          );
         }
       }
 
@@ -113,30 +119,34 @@ class SimplexAPI {
 
   Future<BuyResponse<List<Fiat>>> getSupportedFiats() async {
     try {
-      Map<String, String> headers = {
+      final Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Map<String, String> data = {
+      final Map<String, String> data = {
         'ROUTE': 'supported_fiats',
       };
-      Uri url = _buildUri('api.php', data);
+      final Uri url = _buildUri('api.php', data);
 
-      var res = await client.post(
+      final res = await client.post(
         url: url,
         headers: headers,
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       if (res.code != 200) {
         throw Exception(
-            'getAvailableCurrencies exception: statusCode= ${res.code}');
+          'getAvailableCurrencies exception: statusCode= ${res.code}',
+        );
       }
       final jsonArray = jsonDecode(res.body); // TODO validate json
 
       return _parseSupportedFiats(jsonArray);
     } catch (e, s) {
-      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "getAvailableCurrencies exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -148,20 +158,22 @@ class SimplexAPI {
 
   BuyResponse<List<Fiat>> _parseSupportedFiats(dynamic jsonArray) {
     try {
-      List<Crypto> cryptos = [];
-      List<Fiat> fiats = [];
+      final List<Crypto> cryptos = [];
+      final List<Fiat> fiats = [];
 
       for (final fiat in jsonArray as List) {
         if (isSimplexFiat("${fiat['ticker_symbol']}")) {
           // TODO validate list
-          fiats.add(Fiat.fromJson({
-            'ticker': "${fiat['ticker_symbol']}",
-            'name': fiatFromTickerCaseInsensitive("${fiat['ticker_symbol']}")
-                .prettyName,
-            'minAmount': "${fiat['min_amount']}",
-            'maxAmount': "${fiat['max_amount']}",
-            'image': "",
-          }));
+          fiats.add(
+            Fiat.fromJson({
+              'ticker': "${fiat['ticker_symbol']}",
+              'name': fiatFromTickerCaseInsensitive("${fiat['ticker_symbol']}")
+                  .prettyName,
+              'minAmount': "${fiat['min_amount']}",
+              'maxAmount': "${fiat['max_amount']}",
+              'image': "",
+            }),
+          );
         } // TODO handle else
       }
 
@@ -181,12 +193,12 @@ class SimplexAPI {
   Future<BuyResponse<SimplexQuote>> getQuote(SimplexQuote quote) async {
     try {
       await _prefs.init();
-      String? userID = _prefs.userID;
+      final String? userID = _prefs.userID;
 
-      Map<String, String> headers = {
+      final Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Map<String, String> data = {
+      final Map<String, String> data = {
         'ROUTE': 'quote',
         'CRYPTO_TICKER': quote.crypto.ticker.toUpperCase(),
         'FIAT_TICKER': quote.fiat.ticker.toUpperCase(),
@@ -200,13 +212,14 @@ class SimplexAPI {
       if (userID != null) {
         data['USER_ID'] = userID;
       }
-      Uri url = _buildUri('api.php', data);
+      final Uri url = _buildUri('api.php', data);
 
-      var res = await client.get(
+      final res = await client.get(
         url: url,
         headers: headers,
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       if (res.code != 200) {
         throw Exception('getQuote exception: statusCode= ${res.code}');
@@ -238,10 +251,11 @@ class SimplexAPI {
       // final Map<String, dynamic> lol =
       //     Map<String, dynamic>.from(jsonArray as Map);
 
-      double? cryptoAmount = jsonArray['digital_money']?['amount'] as double?;
+      final double? cryptoAmount =
+          jsonArray['digital_money']?['amount'] as double?;
 
       if (cryptoAmount == null) {
-        String error = jsonArray['error'] as String;
+        final String error = jsonArray['error'] as String;
         return BuyResponse(
           exception: BuyException(
             error,
@@ -250,7 +264,7 @@ class SimplexAPI {
         );
       }
 
-      SimplexQuote quote = jsonArray['quote'] as SimplexQuote;
+      final SimplexQuote quote = jsonArray['quote'] as SimplexQuote;
       final SimplexQuote _quote = SimplexQuote(
         crypto: quote.crypto,
         fiat: quote.fiat,
@@ -287,13 +301,13 @@ class SimplexAPI {
     //      -d '{"account_details": {"app_provider_id": "$publicKey", "app_version_id": "123", "app_end_user_id": "01e7a0b9-8dfc-4988-a28d-84a34e5f0a63", "signup_login": {"timestamp": "1994-11-05T08:15:30-05:00", "ip": "207.66.86.226"}}, "transaction_details": {"payment_details": {"quote_id": "3b58f4b4-ed6f-447c-b96a-ffe97d7b6803", "payment_id": "baaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "order_id": "789", "original_http_ref_url": "https://stackwallet.com/simplex", "destination_wallet": {"currency": "BTC", "address": "bc1qjvj9ca8gdsv3g58yrzrk6jycvgnjh9uj35rja2"}}}}'
     try {
       await _prefs.init();
-      String? userID = _prefs.userID;
-      int? signupEpoch = _prefs.signupEpoch;
+      final String? userID = _prefs.userID;
+      final int? signupEpoch = _prefs.signupEpoch;
 
-      Map<String, String> headers = {
+      final Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Map<String, String> data = {
+      final Map<String, String> data = {
         'ROUTE': 'order',
         'QUOTE_ID': quote.id,
         'ADDRESS': quote.receivingAddress,
@@ -303,17 +317,19 @@ class SimplexAPI {
         data['USER_ID'] = userID;
       }
       if (signupEpoch != null && signupEpoch != 0) {
-        DateTime date = DateTime.fromMillisecondsSinceEpoch(signupEpoch * 1000);
+        final DateTime date =
+            DateTime.fromMillisecondsSinceEpoch(signupEpoch * 1000);
         data['SIGNUP_TIMESTAMP'] =
             date.toIso8601String() + timeZoneFormatter(date.timeZoneOffset);
       }
-      Uri url = _buildUri('api.php', data);
+      final Uri url = _buildUri('api.php', data);
 
-      var res = await client.get(
+      final res = await client.get(
         url: url,
         headers: headers,
-        proxyInfo:
-            Prefs.instance.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
       if (res.code != 200) {
         throw Exception('newOrder exception: statusCode= ${res.code}');
@@ -325,7 +341,7 @@ class SimplexAPI {
         }
       }
 
-      SimplexOrder _order = SimplexOrder(
+      final SimplexOrder _order = SimplexOrder(
         quote: quote,
         paymentId: "${jsonArray['paymentId']}",
         orderId: "${jsonArray['orderId']}",
@@ -346,16 +362,16 @@ class SimplexAPI {
 
   Future<BuyResponse<bool>> redirect(SimplexOrder order) async {
     try {
-      Map<String, String> headers = {
+      final Map<String, String> headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
       };
-      Map<String, String> data = {
+      final Map<String, String> data = {
         'ROUTE': 'redirect',
         'PAYMENT_ID': order.paymentId,
       };
-      Uri url = _buildUri('api.php', data);
+      final Uri url = _buildUri('api.php', data);
 
-      bool status = await launchUrl(
+      final bool status = await launchUrl(
         url,
         mode: LaunchMode.externalApplication,
       );
@@ -364,10 +380,11 @@ class SimplexAPI {
     } catch (e, s) {
       Logging.instance.log("newOrder exception: $e\n$s", level: LogLevel.Error);
       return BuyResponse(
-          exception: BuyException(
-        e.toString(),
-        BuyExceptionType.generic,
-      ));
+        exception: BuyException(
+          e.toString(),
+          BuyExceptionType.generic,
+        ),
+      );
     }
   }
 
@@ -383,15 +400,4 @@ class SimplexAPI {
   // See https://github.com/dart-lang/sdk/issues/43391#issuecomment-1229656422
   String timeZoneFormatter(Duration offset) =>
       "${offset.isNegative ? "-" : "+"}${offset.inHours.abs().toString().padLeft(2, "0")}:${(offset.inMinutes - offset.inHours * 60).abs().toString().padLeft(2, "0")}";
-}
-
-bool isStackCoin(String? ticker) {
-  if (ticker == null) return false;
-
-  try {
-    coinFromTickerCaseInsensitive(ticker);
-    return true;
-  } on ArgumentError catch (_) {
-    return false;
-  }
 }

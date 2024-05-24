@@ -14,19 +14,22 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/stack_privacy_calls.dart';
-import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../app_config.dart';
+import '../pages_desktop_specific/password/create_password_view.dart';
+import '../themes/stack_colors.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/prefs.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import '../widgets/app_icon.dart';
+import '../widgets/background.dart';
+import '../widgets/desktop/secondary_button.dart';
+import 'stack_privacy_calls.dart';
+
 class IntroView extends ConsumerStatefulWidget {
-  const IntroView({Key? key}) : super(key: key);
+  const IntroView({super.key});
 
   static const String routeName = "/introView";
 
@@ -131,18 +134,10 @@ class _IntroViewState extends ConsumerState<IntroView> {
                       const Spacer(
                         flex: 2,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 130,
                         height: 130,
-                        child: SvgPicture.file(
-                          File(
-                            ref.watch(
-                              themeProvider.select(
-                                (value) => value.assets.stackIcon,
-                              ),
-                            ),
-                          ),
-                        ),
+                        child: AppIcon(),
                       ),
                       const Spacer(
                         flex: 42,
@@ -199,7 +194,10 @@ class AppNameText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      "Stack Wallet",
+      AppConfig.appName,
+      // TODO [prio=high]: appName is now static due to `'appName' can't be
+      // accessed using static access.`", check that that doesn't cause issues
+      // elsewhere.
       textAlign: TextAlign.center,
       style: !isDesktop
           ? STextStyles.pageTitleH1(context)
@@ -243,7 +241,7 @@ class PrivacyAndTOSText extends StatelessWidget {
       text: TextSpan(
         style: STextStyles.label(context).copyWith(fontSize: fontSize),
         children: [
-          const TextSpan(text: "By using Stack Wallet, you agree to the "),
+          TextSpan(text: "By using ${AppConfig.appName}, you agree to the "),
           TextSpan(
             text: "Terms of service",
             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),

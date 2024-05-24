@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/db/isar/main_db.dart';
+import '../../db/isar/main_db.dart';
 
 @Deprecated("Legacy support")
 mixin WalletDB {

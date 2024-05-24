@@ -10,18 +10,18 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/exchange/active_pair.dart';
-import 'package:stackwallet/models/exchange/aggregate_currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
+import '../../db/hive/db.dart';
+import '../../models/exchange/active_pair.dart';
+import '../../models/exchange/aggregate_currency.dart';
+import '../../models/isar/exchange_cache/currency.dart';
+import '../../models/isar/exchange_cache/pair.dart';
+import 'change_now/change_now_exchange.dart';
+import 'majestic_bank/majestic_bank_exchange.dart';
+import 'trocador/trocador_exchange.dart';
+import '../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/prefs.dart';
+import '../../utilities/stack_file_system.dart';
 import 'package:tuple/tuple.dart';
 
 class ExchangeDataLoadingService {

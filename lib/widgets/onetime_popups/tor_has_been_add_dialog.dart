@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../../db/hive/db.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../conditional_parent.dart';
+import '../desktop/desktop_dialog.dart';
+import '../desktop/desktop_dialog_close_button.dart';
+import '../desktop/primary_button.dart';
+import '../stack_dialog.dart';
 
 const _kOneTimeTorHasBeenAddedDialogWasShown =
     "oneTimeTorHasBeenAddedDialogWasShown";

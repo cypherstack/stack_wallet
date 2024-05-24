@@ -1,25 +1,51 @@
 import 'package:coinlib/src/network.dart';
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../interfaces/electrumx_currency_interface.dart';
+import '../intermediate/bip39_hd_currency.dart';
 
-class Peercoin extends Bip39HDCurrency {
+class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Peercoin(super.network) {
+    _idMain = "peercoin";
+    _uriScheme = "peercoin";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.peercoin;
+        _id = "peercoin";
+        _name = "Peercoin";
+        _ticker = "PPC";
       case CryptoCurrencyNetwork.test:
-        coin = Coin.peercoinTestNet;
+        _id = "peercoinTestNet";
+        _name = "tPeercoin";
+        _ticker = "tPPC";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   @override
   int get minConfirms => 1;
@@ -66,9 +92,31 @@ class Peercoin extends Bip39HDCurrency {
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return DefaultNodes.peercoin;
+        return NodeModel(
+          host: "electrum.peercoinexplorer.net",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
+
       case CryptoCurrencyNetwork.test:
-        return DefaultNodes.peercoinTestNet;
+        return NodeModel(
+          host: "testnet-electrum.peercoinexplorer.net",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
+
       default:
         throw UnimplementedError();
     }
@@ -76,8 +124,9 @@ class Peercoin extends Bip39HDCurrency {
 
   @override
   Amount get dustLimit => Amount(
+        // TODO should this be 10000 instead of 294 for peercoin?
         rawValue: BigInt.from(294),
-        fractionDigits: Coin.peercoin.decimals,
+        fractionDigits: fractionDigits,
       );
 
   @override
@@ -162,10 +211,45 @@ class Peercoin extends Bip39HDCurrency {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Peercoin && other.network == network;
-  }
+  int get defaultSeedPhraseLength => 12;
 
   @override
-  int get hashCode => Object.hash(Peercoin, network);
+  int get fractionDigits => 6;
+
+  @override
+  bool get hasBuySupport => false;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => true;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+
+  @override
+  AddressType get primaryAddressType => AddressType.p2wpkh;
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(1000000); // 1*10^6.
+
+  @override
+  int get targetBlockTimeSeconds => 600;
+
+  @override
+  DerivePathType get primaryDerivePathType => DerivePathType.bip84;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://chainz.cryptoid.info/ppc/tx.dws?$txid.htm");
+      case CryptoCurrencyNetwork.test:
+        return Uri.parse(
+          "https://chainz.cryptoid.info/ppc-test/search.dws?q=$txid.htm",
+        );
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
 }

@@ -10,16 +10,18 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/active_pair.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
+import '../../models/exchange/active_pair.dart';
+import '../../models/exchange/response_objects/estimate.dart';
+import '../../models/exchange/response_objects/range.dart';
+import '../global/locale_provider.dart';
+import '../../services/exchange/exchange.dart';
+import '../../services/exchange/exchange_response.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_unit.dart';
+
+import '../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../wallets/crypto_currency/coins/nano.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 
 final efEstimatesListProvider = StateProvider.family<
@@ -56,8 +58,9 @@ final efSendAmountStringProvider = StateProvider<String>((ref) {
       string = AmountUnit.normal.displayAmount(
         amount: amount,
         locale: locale,
-        coin: Coin
-            .nano, // use nano just to ensure decimal.scale < Coin.value.decimals
+        coin: Nano(
+          CryptoCurrencyNetwork.main,
+        ), // use nano just to ensure decimal.scale < Coin.value.decimals
         withUnitName: false,
         maxDecimalPlaces: decimal.scale,
       );
@@ -81,8 +84,9 @@ final efReceiveAmountStringProvider = StateProvider<String>((ref) {
       string = AmountUnit.normal.displayAmount(
         amount: amount,
         locale: locale,
-        coin: Coin
-            .nano, // use nano just to ensure decimal.scale < Coin.value.decimals
+        coin: Nano(
+          CryptoCurrencyNetwork.main,
+        ), // use nano just to ensure decimal.scale < Coin.value.decimals
         withUnitName: false,
         maxDecimalPlaces: decimal.scale,
       );

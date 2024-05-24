@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -x -e
 
 # libepiccash requires old rust
 source ../rust_version.sh

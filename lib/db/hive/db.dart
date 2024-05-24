@@ -13,13 +13,14 @@ import 'dart:isolate';
 import 'package:cw_core/wallet_info.dart' as xmr;
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import '../../app_config.dart';
+import '../../models/exchange/response_objects/trade.dart';
+import '../../models/node_model.dart';
+import '../../models/notification_model.dart';
+import '../../models/trade_wallet_lookup.dart';
+import '../../services/wallets_service.dart';
+import '../../utilities/logger.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class DB {
   // legacy (required for migrations)
@@ -48,17 +49,18 @@ class DB {
   static const String boxNamePrefs = "prefs";
   static const String boxNameOneTimeDialogsShown = "oneTimeDialogsShown";
 
-  String _boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
+  String _boxNameTxCache({required CryptoCurrency currency}) =>
+      "${currency.identifier}_txCache";
 
   // firo only
-  String _boxNameSetCache({required Coin coin}) =>
-      "${coin.name}_anonymitySetCache";
-  String _boxNameSetSparkCache({required Coin coin}) =>
-      "${coin.name}_anonymitySetSparkCache";
-  String _boxNameUsedSerialsCache({required Coin coin}) =>
-      "${coin.name}_usedSerialsCache";
-  String _boxNameSparkUsedCoinsTagsCache({required Coin coin}) =>
-      "${coin.name}_sparkUsedCoinsTagsCache";
+  String _boxNameSetCache({required CryptoCurrency currency}) =>
+      "${currency.identifier}_anonymitySetCache";
+  String _boxNameSetSparkCache({required CryptoCurrency currency}) =>
+      "${currency.identifier}_anonymitySetSparkCache";
+  String _boxNameUsedSerialsCache({required CryptoCurrency currency}) =>
+      "${currency.identifier}_usedSerialsCache";
+  String _boxNameSparkUsedCoinsTagsCache({required CryptoCurrency currency}) =>
+      "${currency.identifier}_sparkUsedCoinsTagsCache";
 
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
@@ -77,11 +79,11 @@ class DB {
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
 
-  final Map<Coin, Box<dynamic>> _txCacheBoxes = {};
-  final Map<Coin, Box<dynamic>> _setCacheBoxes = {};
-  final Map<Coin, Box<dynamic>> _setSparkCacheBoxes = {};
-  final Map<Coin, Box<dynamic>> _usedSerialsCacheBoxes = {};
-  final Map<Coin, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
+  final Map<String, Box<dynamic>> _txCacheBoxes = {};
+  final Map<String, Box<dynamic>> _setCacheBoxes = {};
+  final Map<String, Box<dynamic>> _setSparkCacheBoxes = {};
+  final Map<String, Box<dynamic>> _usedSerialsCacheBoxes = {};
+  final Map<String, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
 
   // exposed for monero
   Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource!;
@@ -97,7 +99,8 @@ class DB {
     // TODO: make sure this works properly
     if (Isolate.current.debugName != "main") {
       throw Exception(
-          "DB.instance should not be accessed outside the main isolate!");
+        "DB.instance should not be accessed outside the main isolate!",
+      );
     }
 
     return _instance;
@@ -160,17 +163,22 @@ class DB {
     names.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
       try {
-        Coin.values.byName(jsonObject["coin"] as String);
+        AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
         Logging.instance.log(
-            "Error, ${jsonObject["coin"]} does not exist, $name wallet cannot be loaded",
-            level: LogLevel.Error);
+          "Error, ${jsonObject["coin"]} does not exist, $name wallet cannot be loaded",
+          level: LogLevel.Error,
+        );
         return true;
       }
     });
-    final mapped = Map<String, dynamic>.from(names).map((name, dyn) => MapEntry(
-        name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
+    final mapped = Map<String, dynamic>.from(names).map(
+      (name, dyn) => MapEntry(
+        name,
+        WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map)),
+      ),
+    );
 
     for (final entry in mapped.entries) {
       if (Hive.isBoxOpen(entry.value.walletId)) {
@@ -183,70 +191,90 @@ class DB {
     }
   }
 
-  Future<Box<dynamic>> getTxCacheBox({required Coin coin}) async {
-    if (_txCacheBoxes[coin]?.isOpen != true) {
-      _txCacheBoxes.remove(coin);
+  Future<Box<dynamic>> getTxCacheBox({required CryptoCurrency currency}) async {
+    if (_txCacheBoxes[currency.identifier]?.isOpen != true) {
+      _txCacheBoxes.remove(currency.identifier);
     }
-    return _txCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(_boxNameTxCache(coin: coin));
+    return _txCacheBoxes[currency.identifier] ??=
+        await Hive.openBox<dynamic>(_boxNameTxCache(currency: currency));
   }
 
-  Future<void> closeTxCacheBox({required Coin coin}) async {
-    await _txCacheBoxes[coin]?.close();
+  Future<void> closeTxCacheBox({required CryptoCurrency currency}) async {
+    await _txCacheBoxes[currency.identifier]?.close();
   }
 
-  Future<Box<dynamic>> getAnonymitySetCacheBox({required Coin coin}) async {
-    if (_setCacheBoxes[coin]?.isOpen != true) {
-      _setCacheBoxes.remove(coin);
+  Future<Box<dynamic>> getAnonymitySetCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    if (_setCacheBoxes[currency.identifier]?.isOpen != true) {
+      _setCacheBoxes.remove(currency.identifier);
     }
-    return _setCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(_boxNameSetCache(coin: coin));
+    return _setCacheBoxes[currency.identifier] ??=
+        await Hive.openBox<dynamic>(_boxNameSetCache(currency: currency));
   }
 
-  Future<Box<dynamic>> getSparkAnonymitySetCacheBox(
-      {required Coin coin}) async {
-    if (_setSparkCacheBoxes[coin]?.isOpen != true) {
-      _setSparkCacheBoxes.remove(coin);
+  Future<Box<dynamic>> getSparkAnonymitySetCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    if (_setSparkCacheBoxes[currency.identifier]?.isOpen != true) {
+      _setSparkCacheBoxes.remove(currency.identifier);
     }
-    return _setSparkCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(_boxNameSetSparkCache(coin: coin));
+    return _setSparkCacheBoxes[currency.identifier] ??=
+        await Hive.openBox<dynamic>(_boxNameSetSparkCache(currency: currency));
   }
 
-  Future<void> closeAnonymitySetCacheBox({required Coin coin}) async {
-    await _setCacheBoxes[coin]?.close();
+  Future<void> closeAnonymitySetCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    await _setCacheBoxes[currency.identifier]?.close();
   }
 
-  Future<Box<dynamic>> getUsedSerialsCacheBox({required Coin coin}) async {
-    if (_usedSerialsCacheBoxes[coin]?.isOpen != true) {
-      _usedSerialsCacheBoxes.remove(coin);
+  Future<Box<dynamic>> getUsedSerialsCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    if (_usedSerialsCacheBoxes[currency.identifier]?.isOpen != true) {
+      _usedSerialsCacheBoxes.remove(currency.identifier);
     }
-    return _usedSerialsCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(_boxNameUsedSerialsCache(coin: coin));
-  }
-
-  Future<Box<dynamic>> getSparkUsedCoinsTagsCacheBox(
-      {required Coin coin}) async {
-    if (_getSparkUsedCoinsTagsCacheBoxes[coin]?.isOpen != true) {
-      _getSparkUsedCoinsTagsCacheBoxes.remove(coin);
-    }
-    return _getSparkUsedCoinsTagsCacheBoxes[coin] ??=
+    return _usedSerialsCacheBoxes[currency.identifier] ??=
         await Hive.openBox<dynamic>(
-            _boxNameSparkUsedCoinsTagsCache(coin: coin));
+      _boxNameUsedSerialsCache(currency: currency),
+    );
   }
 
-  Future<void> closeUsedSerialsCacheBox({required Coin coin}) async {
-    await _usedSerialsCacheBoxes[coin]?.close();
+  Future<Box<dynamic>> getSparkUsedCoinsTagsCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    if (_getSparkUsedCoinsTagsCacheBoxes[currency.identifier]?.isOpen != true) {
+      _getSparkUsedCoinsTagsCacheBoxes.remove(currency.identifier);
+    }
+    return _getSparkUsedCoinsTagsCacheBoxes[currency.identifier] ??=
+        await Hive.openBox<dynamic>(
+      _boxNameSparkUsedCoinsTagsCache(currency: currency),
+    );
+  }
+
+  Future<void> closeUsedSerialsCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    await _usedSerialsCacheBoxes[currency.identifier]?.close();
   }
 
   /// Clear all cached transactions for the specified coin
-  Future<void> clearSharedTransactionCache({required Coin coin}) async {
-    await deleteAll<dynamic>(boxName: _boxNameTxCache(coin: coin));
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
-      await deleteAll<dynamic>(boxName: _boxNameSetSparkCache(coin: coin));
-      await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
+  Future<void> clearSharedTransactionCache({
+    required CryptoCurrency currency,
+  }) async {
+    await deleteAll<dynamic>(boxName: _boxNameTxCache(currency: currency));
+    if (currency is Firo) {
+      await deleteAll<dynamic>(boxName: _boxNameSetCache(currency: currency));
       await deleteAll<dynamic>(
-          boxName: _boxNameSparkUsedCoinsTagsCache(coin: coin));
+        boxName: _boxNameSetSparkCache(currency: currency),
+      );
+      await deleteAll<dynamic>(
+        boxName: _boxNameUsedSerialsCache(currency: currency),
+      );
+      await deleteAll<dynamic>(
+        boxName: _boxNameSparkUsedCoinsTagsCache(currency: currency),
+      );
     }
   }
 
@@ -284,23 +312,28 @@ class DB {
 
   // writes
 
-  Future<void> put<T>(
-          {required String boxName,
-          required dynamic key,
-          required T value}) async =>
+  Future<void> put<T>({
+    required String boxName,
+    required dynamic key,
+    required T value,
+  }) async =>
       await mutex
           .protect(() async => await Hive.box<T>(boxName).put(key, value));
 
   Future<void> add<T>({required String boxName, required T value}) async =>
       await mutex.protect(() async => await Hive.box<T>(boxName).add(value));
 
-  Future<void> addAll<T>(
-          {required String boxName, required Iterable<T> values}) async =>
+  Future<void> addAll<T>({
+    required String boxName,
+    required Iterable<T> values,
+  }) async =>
       await mutex
           .protect(() async => await Hive.box<T>(boxName).addAll(values));
 
-  Future<void> delete<T>(
-          {required dynamic key, required String boxName}) async =>
+  Future<void> delete<T>({
+    required dynamic key,
+    required String boxName,
+  }) async =>
       await mutex.protect(() async => await Hive.box<T>(boxName).delete(key));
 
   Future<void> deleteAll<T>({required String boxName}) async {

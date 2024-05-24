@@ -1,22 +1,58 @@
 import 'package:nanodart/nanodart.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/nano_currency.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../intermediate/nano_currency.dart';
 
 class Nano extends NanoCurrency {
   Nano(super.network) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.nano;
+        _id = "nano";
+        _idMain = "nano";
+        _name = "Nano";
+        _uriScheme = "nano";
+        _ticker = "XNO";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
 
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
+
+  @override
+  int get fractionDigits => 30;
+
+  @override
+  BigInt get satsPerCoin => BigInt.parse(
+        "1000000000000000000000000000000",
+      ); // 1*10^30
+
   @override
   int get minConfirms => 1;
+
+  @override
+  AddressType get primaryAddressType => AddressType.nano;
 
   @override
   String get defaultRepresentative =>
@@ -33,10 +69,10 @@ class Nano extends NanoCurrency {
           host: "https://rainstorm.city/api",
           port: 443,
           name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.nano),
+          id: DefaultNodes.buildId(this),
           useSSL: true,
           enabled: true,
-          coinName: Coin.nano.name,
+          coinName: identifier,
           isFailover: true,
           isDown: false,
         );
@@ -47,10 +83,19 @@ class Nano extends NanoCurrency {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Nano && other.network == network;
-  }
+  DerivePathType get primaryDerivePathType => throw UnsupportedError(
+        "$runtimeType does not use bitcoin style derivation paths",
+      );
 
   @override
-  int get hashCode => Object.hash(Nano, network);
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://www.nanolooker.com/block/$txid");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
 }

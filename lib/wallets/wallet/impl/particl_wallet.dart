@@ -2,29 +2,31 @@ import 'dart:typed_data';
 
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/extensions/impl/uint8_list.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/particl.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/signing_data.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/extensions/impl/uint8_list.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/coins/particl.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_hd_wallet.dart';
+import '../wallet_mixin_interfaces/coin_control_interface.dart';
+import '../wallet_mixin_interfaces/electrumx_interface.dart';
 
-class ParticlWallet extends Bip39HDWallet
-    with ElectrumXInterface, CoinControlInterface {
+class ParticlWallet<T extends ElectrumXCurrencyInterface>
+    extends Bip39HDWallet<T>
+    with ElectrumXInterface<T>, CoinControlInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 
-  ParticlWallet(CryptoCurrencyNetwork network) : super(Particl(network));
+  ParticlWallet(CryptoCurrencyNetwork network) : super(Particl(network) as T);
 
   // TODO: double check these filter operations are correct and do not require additional parameters
   @override
@@ -162,7 +164,7 @@ class ParticlWallet extends Bip39HDWallet
         final tx = await electrumXCachedClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
-          coin: cryptoCurrency.coin,
+          cryptoCurrency: cryptoCurrency,
         );
 
         // Only tx to list once.
@@ -204,7 +206,7 @@ class ParticlWallet extends Bip39HDWallet
 
           final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
-            coin: cryptoCurrency.coin,
+            cryptoCurrency: cryptoCurrency,
           );
 
           final prevOutJson = Map<String, dynamic>.from(

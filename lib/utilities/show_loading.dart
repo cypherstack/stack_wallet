@@ -11,9 +11,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import '../themes/stack_colors.dart';
+import 'logger.dart';
+import '../widgets/custom_loading_overlay.dart';
 
 Future<T?> showLoading<T>({
   required Future<T> whileFuture,

@@ -11,31 +11,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
-import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
+import '../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
 import 'package:tuple/tuple.dart';
 
 class DesktopChooseFromStack extends ConsumerStatefulWidget {
   const DesktopChooseFromStack({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<DesktopChooseFromStack> createState() =>
@@ -282,9 +283,9 @@ class _DesktopChooseFromStackState
 
 class _BalanceDisplay extends ConsumerWidget {
   const _BalanceDisplay({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -292,7 +293,7 @@ class _BalanceDisplay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(pWalletCoin(walletId));
     Amount total = ref.watch(pWalletBalance(walletId)).total;
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+    if (coin is Firo) {
       total += ref.watch(pWalletBalanceSecondary(walletId)).total;
       total += ref.watch(pWalletBalanceTertiary(walletId)).total;
     }

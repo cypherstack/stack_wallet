@@ -1,6 +1,26 @@
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../../models/isar/models/blockchain_data/address.dart';
+import '../../models/node_model.dart';
+import '../../utilities/enums/derive_path_type_enum.dart';
+
+export 'coins/banano.dart';
+export 'coins/bitcoin.dart';
+export 'coins/bitcoin_frost.dart';
+export 'coins/bitcoincash.dart';
+export 'coins/dogecoin.dart';
+export 'coins/ecash.dart';
+export 'coins/epiccash.dart';
+export 'coins/ethereum.dart';
+export 'coins/firo.dart';
+export 'coins/litecoin.dart';
+export 'coins/monero.dart';
+export 'coins/namecoin.dart';
+export 'coins/nano.dart';
+export 'coins/particl.dart';
+export 'coins/peercoin.dart';
+export 'coins/solana.dart';
+export 'coins/stellar.dart';
+export 'coins/tezos.dart';
+export 'coins/wownero.dart';
 
 enum CryptoCurrencyNetwork {
   main,
@@ -9,12 +29,25 @@ enum CryptoCurrencyNetwork {
 }
 
 abstract class CryptoCurrency {
-  @Deprecated("[prio=low] Should eventually move away from Coin enum")
-  late final Coin coin;
+  // @Deprecated("[prio=low] Should eventually move away from Coin enum")
+  // late final CryptoCurrency coin;
 
   final CryptoCurrencyNetwork network;
 
   CryptoCurrency(this.network);
+
+  // Identifier should be unique.
+  /// This [identifier] should also match the old `Coin` enum name for each
+  /// respective coin as it is used to differentiate between coins in persistent
+  /// storage.
+  String get identifier;
+
+  /// Should be the [identifier] of the main net version of the currency
+  String get mainNetId;
+
+  String get ticker;
+  String get prettyName;
+  String get uriScheme;
 
   // override in subclass if the currency has tokens on it's network
   // (used for eth currently)
@@ -22,10 +55,6 @@ abstract class CryptoCurrency {
 
   // Override in subclass if the currency has Tor support:
   bool get torSupport => false;
-
-  // TODO: [prio=low] require these be overridden in concrete implementations to remove reliance on [coin]
-  int get fractionDigits => coin.decimals;
-  BigInt get satsPerCoin => Constants.satsPerCoin(coin);
 
   int get minConfirms;
 
@@ -35,4 +64,26 @@ abstract class CryptoCurrency {
   bool validateAddress(String address);
 
   NodeModel get defaultNode;
+
+  int get defaultSeedPhraseLength;
+  int get fractionDigits;
+  bool get hasBuySupport;
+  bool get hasMnemonicPassphraseSupport;
+  List<int> get possibleMnemonicLengths;
+  AddressType get primaryAddressType;
+  BigInt get satsPerCoin;
+  int get targetBlockTimeSeconds;
+  DerivePathType get primaryDerivePathType;
+
+  Uri defaultBlockExplorer(String txid);
+
+  @override
+  bool operator ==(Object other) {
+    return other is CryptoCurrency &&
+        other.runtimeType == runtimeType &&
+        other.network == network;
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, network);
 }

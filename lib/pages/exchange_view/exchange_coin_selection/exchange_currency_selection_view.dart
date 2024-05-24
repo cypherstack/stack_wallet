@@ -13,43 +13,44 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/exceptions/exchange/unsupported_currency_exception.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/pages/buy_view/sub_widgets/crypto_selection_view.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../app_config.dart';
+import '../../../exceptions/exchange/unsupported_currency_exception.dart';
+import '../../../models/isar/exchange_cache/currency.dart';
+import '../../../models/isar/exchange_cache/pair.dart';
+import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../../../services/exchange/exchange.dart';
+import '../../../services/exchange/exchange_data_loading_service.dart';
+import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../../../services/exchange/trocador/trocador_exchange.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/prefs.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_loading_overlay.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/loading_indicator.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_dialog.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
+import '../../buy_view/sub_widgets/crypto_selection_view.dart';
 
 class ExchangeCurrencySelectionView extends StatefulWidget {
   const ExchangeCurrencySelectionView({
-    Key? key,
+    super.key,
     required this.willChangeTicker,
     required this.pairedTicker,
     required this.isFixedRate,
     required this.willChangeIsSend,
-  }) : super(key: key);
+  });
 
   final String? willChangeTicker;
   final String? pairedTicker;
@@ -143,7 +144,8 @@ class _ExchangeCurrencySelectionViewState
               onPressed: () async {
                 Navigator.of(context, rootNavigator: isDesktop).pop();
                 _currencies = await _showUpdatingCurrencies(
-                    whileFuture: _loadCurrencies());
+                  whileFuture: _loadCurrencies(),
+                );
                 setState(() {});
               },
             ),
@@ -164,15 +166,17 @@ class _ExchangeCurrencySelectionViewState
         .filter()
         .isFiatEqualTo(false)
         .and()
-        .group((q) => widget.isFixedRate
-            ? q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.fixed)
-            : q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.estimated))
+        .group(
+          (q) => widget.isFixedRate
+              ? q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.fixed)
+              : q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.estimated),
+        )
         .sortByIsStackCoin()
         .thenByName()
         .findAll();
@@ -180,9 +184,10 @@ class _ExchangeCurrencySelectionViewState
     // If using Tor, filter exchanges which do not support Tor.
     if (Prefs.instance.useTor) {
       if (Exchange.exchangeNamesWithTorSupport.isNotEmpty) {
-        currencies.removeWhere((element) => !Exchange
-            .exchangeNamesWithTorSupport
-            .contains(element.exchangeName));
+        currencies.removeWhere(
+          (element) => !Exchange.exchangeNamesWithTorSupport
+              .contains(element.exchangeName),
+        );
       }
     }
 
@@ -193,7 +198,8 @@ class _ExchangeCurrencySelectionViewState
     final List<Currency> distinctCurrencies = [];
     for (final currency in currencies) {
       if (!distinctCurrencies.any(
-          (e) => e.ticker.toLowerCase() == currency.ticker.toLowerCase())) {
+        (e) => e.ticker.toLowerCase() == currency.ticker.toLowerCase(),
+      )) {
         distinctCurrencies.add(currency);
       }
     }
@@ -207,23 +213,29 @@ class _ExchangeCurrencySelectionViewState
       }
 
       return _currencies
-          .where((e) =>
-              e.name.toLowerCase().contains(text.toLowerCase()) ||
-              e.ticker.toLowerCase().contains(text.toLowerCase()))
+          .where(
+            (e) =>
+                e.name.toLowerCase().contains(text.toLowerCase()) ||
+                e.ticker.toLowerCase().contains(text.toLowerCase()),
+          )
           .toList();
     } else {
       if (text.isEmpty) {
         return _currencies
-            .where((e) =>
-                e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase())
+            .where(
+              (e) =>
+                  e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase(),
+            )
             .toList();
       }
 
       return _currencies
-          .where((e) =>
-              e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
-              (e.name.toLowerCase().contains(text.toLowerCase()) ||
-                  e.ticker.toLowerCase().contains(text.toLowerCase())))
+          .where(
+            (e) =>
+                e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
+                (e.name.toLowerCase().contains(text.toLowerCase()) ||
+                    e.ticker.toLowerCase().contains(text.toLowerCase())),
+          )
           .toList();
     }
   }
@@ -266,7 +278,8 @@ class _ExchangeCurrencySelectionViewState
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 50));
+                      const Duration(milliseconds: 50),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -353,18 +366,24 @@ class _ExchangeCurrencySelectionViewState
           Flexible(
             child: Builder(
               builder: (context) {
-                final coins = Coin.values.where((e) =>
-                    e.ticker.toLowerCase() !=
-                    widget.pairedTicker?.toLowerCase());
+                final coins = AppConfig.coins.where(
+                  (e) =>
+                      e.ticker.toLowerCase() !=
+                      widget.pairedTicker?.toLowerCase(),
+                );
 
                 final items = filter(_searchString);
 
                 final walletCoins = items
-                    .where((currency) => coins
-                        .where((coin) =>
-                            coin.ticker.toLowerCase() ==
-                            currency.ticker.toLowerCase())
-                        .isNotEmpty)
+                    .where(
+                      (currency) => coins
+                          .where(
+                            (coin) =>
+                                coin.ticker.toLowerCase() ==
+                                currency.ticker.toLowerCase(),
+                          )
+                          .isNotEmpty,
+                    )
                     .toList();
 
                 // sort alphabetically by name
@@ -400,25 +419,28 @@ class _ExchangeCurrencySelectionViewState
                                 SizedBox(
                                   width: 24,
                                   height: 24,
-                                  child: isStackCoin(items[index].ticker)
-                                      ? CoinIconForTicker(
-                                          ticker: items[index].ticker, size: 24)
-                                      // ? getIconForTicker(
-                                      //     items[index].ticker,
-                                      //     size: 24,
-                                      //   )
-                                      : hasImageUrl
-                                          ? SvgPicture.network(
-                                              items[index].image,
-                                              width: 24,
-                                              height: 24,
-                                              placeholderBuilder: (_) =>
-                                                  const LoadingIndicator(),
+                                  child:
+                                      AppConfig.isStackCoin(items[index].ticker)
+                                          ? CoinIconForTicker(
+                                              ticker: items[index].ticker,
+                                              size: 24,
                                             )
-                                          : const SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                            ),
+                                          // ? getIconForTicker(
+                                          //     items[index].ticker,
+                                          //     size: 24,
+                                          //   )
+                                          : hasImageUrl
+                                              ? SvgPicture.network(
+                                                  items[index].image,
+                                                  width: 24,
+                                                  height: 24,
+                                                  placeholderBuilder: (_) =>
+                                                      const LoadingIndicator(),
+                                                )
+                                              : const SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                ),
                                 ),
                                 const SizedBox(
                                   width: 10,

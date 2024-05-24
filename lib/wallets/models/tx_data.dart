@@ -1,11 +1,11 @@
 import 'package:cw_monero/pending_monero_transaction.dart';
 import 'package:cw_wownero/pending_wownero_transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
+import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../models/isar/models/isar_models.dart';
+import '../../models/paynym/paynym_account_lite.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../isar/models/spark_coin.dart';
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
