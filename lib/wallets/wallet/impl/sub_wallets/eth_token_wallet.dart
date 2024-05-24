@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:isar/isar.dart';
+import 'package:web3dart/web3dart.dart' as web3dart;
+
 import '../../../../dto/ethereum/eth_token_tx_dto.dart';
 import '../../../../dto/ethereum/eth_token_tx_extra_dto.dart';
 import '../../../../models/balance.dart';
@@ -19,9 +21,8 @@ import '../../../../utilities/extensions/extensions.dart';
 import '../../../../utilities/logger.dart';
 import '../../../isar/models/token_wallet_info.dart';
 import '../../../models/tx_data.dart';
-import '../ethereum_wallet.dart';
 import '../../wallet.dart';
-import 'package:web3dart/web3dart.dart' as web3dart;
+import '../ethereum_wallet.dart';
 
 class EthTokenWallet extends Wallet {
   @override
