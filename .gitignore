@@ -81,7 +81,7 @@ pubspec.yaml
 
 /ios/Runner/Info.plist
 /ios/Runner.xcodeproj/project.pbxproj
-/ios/Runner/Assets.xcassets/AppIcon.appiconset
+/ios/Runner/Assets.xcassets/AppIcon.appiconset/*.png
 
 /linux/CMakeLists.txt
 /linux/my_application.cc
@@ -89,7 +89,7 @@ pubspec.yaml
 /macos/Runner/Configs/AppInfo.xcconfig
 /macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme
 /macos/Runner.xcodeproj/project.pbxproj
-/macos/Runner/Assets.xcassets/AppIcon.appiconset
+/macos/Runner/Assets.xcassets/AppIcon.appiconset/*.png
 
 /windows/runner/Runner.rc
 /windows/runner/main.cpp
