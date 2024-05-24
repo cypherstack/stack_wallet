@@ -140,6 +140,29 @@ class AboutView extends ConsumerWidget {
                                         CrossAxisAlignment.stretch,
                                     children: [
                                       Text(
+                                        "Build commit",
+                                        style: STextStyles.titleBold12(context),
+                                      ),
+                                      const SizedBox(
+                                        height: 4,
+                                      ),
+                                      SelectableText(
+                                        GitStatus.appCommitHash,
+                                        style:
+                                            STextStyles.itemSubtitle(context),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 12,
+                                ),
+                                RoundedWhiteContainer(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Text(
                                         "Build signature",
                                         style: STextStyles.titleBold12(context),
                                       ),

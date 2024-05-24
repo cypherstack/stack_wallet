@@ -9,6 +9,7 @@ import 'package:lelantus/git_versions.dart' as firo_versions;
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
+import '../app_config.dart';
 
 const kGithubAPI = "https://api.github.com";
 const kGithubSearch = "/search/commits";
@@ -20,6 +21,8 @@ abstract class GitStatus {
   static String get firoCommit => firo_versions.getPluginVersion();
   static String get epicCashCommit => epic_versions.getPluginVersion();
   static String get moneroCommit => monero_versions.getPluginVersion();
+
+  static String get appCommitHash => AppConfig.commitHash;
 
   static CommitStatus? _cachedFiroStatus;
   static Future<CommitStatus> getFiroCommitStatus() async {

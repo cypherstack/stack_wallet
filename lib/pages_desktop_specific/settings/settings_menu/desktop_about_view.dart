@@ -207,7 +207,7 @@ class DesktopAboutView extends ConsumerWidget {
                                               ],
                                             ),
                                             const SizedBox(
-                                              width: 64,
+                                              width: 16,
                                             ),
                                             Column(
                                               mainAxisSize: MainAxisSize.min,
@@ -233,6 +233,40 @@ class DesktopAboutView extends ConsumerWidget {
                                                 ),
                                                 SelectableText(
                                                   build,
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                    context,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(
+                                              width: 16,
+                                            ),
+                                            Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "Build commit",
+                                                  style: STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(
+                                                      context,
+                                                    )
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .textDark,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 2,
+                                                ),
+                                                SelectableText(
+                                                  GitStatus.appCommitHash,
                                                   style:
                                                       STextStyles.itemSubtitle(
                                                     context,

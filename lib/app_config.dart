@@ -10,6 +10,7 @@ abstract class AppConfig {
   static const suffix = _suffix;
 
   static String get appDefaultDataDirName => _appDataDirName;
+  static String get commitHash => _commitHash;
 
   static ({String light, String dark})? get appIconAsset => _appIconAsset;
 

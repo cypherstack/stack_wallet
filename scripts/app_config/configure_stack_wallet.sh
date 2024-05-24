@@ -23,7 +23,9 @@ else
   sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
 fi
 
-
+pushd "${APP_PROJECT_ROOT_DIR}"
+BUILT_COMMIT_HASH=$(git log -1 --pretty=format:"%H")
+popd
 
 APP_CONFIG_DART_FILE="${APP_PROJECT_ROOT_DIR}/lib/app_config.g.dart"
 rm -f "$APP_CONFIG_DART_FILE"
@@ -36,6 +38,7 @@ const _prefix = "Stack";
 const _separator = " ";
 const _suffix = "Wallet";
 const _appDataDirName = "stackwallet";
+const _commitHash = "$BUILT_COMMIT_HASH";
 
 const ({String light, String dark})? _appIconAsset = null;
 
