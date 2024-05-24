@@ -46,7 +46,7 @@ import '../../../../../utilities/format.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/prefs.dart';
 import '../../../../../utilities/util.dart';
-import '../../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../../wallets/isar/models/frost_wallet_info.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
@@ -777,7 +777,11 @@ abstract class SWB {
 
       final coin = AppConfig.getCryptoCurrencyFor(
         walletbackup['coinName'] as String,
-      )!;
+      );
+
+      if (coin == null) {
+        continue;
+      }
 
       final walletName = walletbackup['name'] as String;
       final walletId = oldToNewWalletIdMap[walletbackup["id"] as String]!;
@@ -963,14 +967,23 @@ abstract class SWB {
         // pre restore state has contact
         if (contact != null) {
           // ensure this contact's data matches the pre restore state
-          List<ContactAddressEntry> addresses = [];
-          for (var address in (contact['addresses'] as List<dynamic>)) {
+          final List<ContactAddressEntry> addresses = [];
+          for (final address in (contact['addresses'] as List<dynamic>)) {
+            final entry = ContactAddressEntry()
+              ..coinName = address['coin'] as String
+              ..address = address['address'] as String
+              ..label = address['label'] as String
+              ..other = address['other'] as String?;
+
+            try {
+              entry.coin;
+            } catch (_) {
+              // coin not supported so ignore this entry
+              continue;
+            }
+
             addresses.add(
-              ContactAddressEntry()
-                ..coinName = address['coin'] as String
-                ..address = address['address'] as String
-                ..label = address['label'] as String
-                ..other = address['other'] as String?,
+              entry,
             );
           }
           await addressBookService.editContact(
@@ -1013,19 +1026,20 @@ abstract class SWB {
           // node existed before restore attempt
           // revert to pre restore node
           await nodeService.edit(
-              node.copyWith(
-                host: nodeData['host'] as String,
-                port: nodeData['port'] as int,
-                name: nodeData['name'] as String,
-                useSSL: nodeData['useSSL'] == "false" ? false : true,
-                enabled: nodeData['enabled'] == "false" ? false : true,
-                coinName: nodeData['coinName'] as String,
-                loginName: nodeData['loginName'] as String?,
-                isFailover: nodeData['isFailover'] as bool,
-                isDown: nodeData['isDown'] as bool,
-              ),
-              nodeData['password'] as String?,
-              true);
+            node.copyWith(
+              host: nodeData['host'] as String,
+              port: nodeData['port'] as int,
+              name: nodeData['name'] as String,
+              useSSL: nodeData['useSSL'] == "false" ? false : true,
+              enabled: nodeData['enabled'] == "false" ? false : true,
+              coinName: nodeData['coinName'] as String,
+              loginName: nodeData['loginName'] as String?,
+              isFailover: nodeData['isFailover'] as bool,
+              isDown: nodeData['isDown'] as bool,
+            ),
+            nodeData['password'] as String?,
+            true,
+          );
         } else {
           await nodeService.delete(node.id, true);
         }
@@ -1036,10 +1050,17 @@ abstract class SWB {
     if (primaryNodes != null) {
       for (final node in primaryNodes) {
         try {
-          await nodeService.setPrimaryNodeFor(
-            coin: AppConfig.getCryptoCurrencyByPrettyName(
+          final CryptoCurrency coin;
+          try {
+            coin = AppConfig.getCryptoCurrencyByPrettyName(
               node['coinName'] as String,
-            ),
+            );
+          } catch (_) {
+            continue;
+          }
+
+          await nodeService.setPrimaryNodeFor(
+            coin: coin,
             node: nodeService.getNodeById(id: node['id'] as String)!,
           );
         } catch (e, s) {
@@ -1175,23 +1196,34 @@ abstract class SWB {
     for (final contact in addressBookEntries) {
       final List<ContactAddressEntry> addresses = [];
       for (final address in (contact['addresses'] as List<dynamic>)) {
+        final entry = ContactAddressEntry()
+          ..coinName = address['coin'] as String
+          ..address = address['address'] as String
+          ..label = address['label'] as String
+          ..other = address['other'] as String?;
+
+        try {
+          entry.coin;
+        } catch (_) {
+          // coin not supported so ignore this entry
+          continue;
+        }
+
         addresses.add(
-          ContactAddressEntry()
-            ..coinName = address['coin'] as String
-            ..address = address['address'] as String
-            ..label = address['label'] as String
-            ..other = address['other'] as String?,
+          entry,
         );
       }
-      await addressBookService.addContact(
-        ContactEntry(
-          emojiChar: contact['emoji'] as String?,
-          name: contact['name'] as String,
-          addresses: addresses,
-          isFavorite: contact['isFavorite'] as bool,
-          customId: contact['id'] as String,
-        ),
-      );
+      if (addresses.isNotEmpty) {
+        await addressBookService.addContact(
+          ContactEntry(
+            emojiChar: contact['emoji'] as String?,
+            name: contact['name'] as String,
+            addresses: addresses,
+            isFavorite: contact['isFavorite'] as bool,
+            customId: contact['id'] as String,
+          ),
+        );
+      }
     }
   }
 
@@ -1225,11 +1257,18 @@ abstract class SWB {
     }
     if (primaryNodes != null) {
       for (final node in primaryNodes) {
+        final CryptoCurrency coin;
+        try {
+          coin = AppConfig.getCryptoCurrencyByPrettyName(
+            node['coinName'] as String,
+          );
+        } catch (_) {
+          continue;
+        }
+
         try {
           await nodeService.setPrimaryNodeFor(
-            coin: AppConfig.getCryptoCurrencyByPrettyName(
-              node['coinName'] as String,
-            ),
+            coin: coin,
             node: nodeService.getNodeById(id: node['id'] as String)!,
           );
         } catch (e, s) {
