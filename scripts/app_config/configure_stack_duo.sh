@@ -38,7 +38,9 @@ const _appDataDirName = "stackduo";
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoin(CryptoCurrencyNetwork.main),
   Monero(CryptoCurrencyNetwork.main),
+  BitcoinFrost(CryptoCurrencyNetwork.main),
   Bitcoin(CryptoCurrencyNetwork.test),
+  BitcoinFrost(CryptoCurrencyNetwork.test),
 ]);
 
 EOF
