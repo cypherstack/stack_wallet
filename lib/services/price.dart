@@ -13,16 +13,40 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:tuple/tuple.dart';
+
 import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../networking/http.dart';
-import 'tor_service.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'package:tuple/tuple.dart';
+import 'tor_service.dart';
 
 class PriceAPI {
+  // coingecko coin ids
+  static const Map<Type, String> _coinToIdMap = {
+    Bitcoin: "bitcoin",
+    BitcoinFrost: "bitcoin",
+    Litecoin: "litecoin",
+    Bitcoincash: "bitcoin-cash",
+    Dogecoin: "dogecoin",
+    Epiccash: "epic-cash",
+    Ecash: "ecash",
+    Ethereum: "ethereum",
+    Firo: "zcoin",
+    Monero: "monero",
+    Particl: "particl",
+    Peercoin: "peercoin",
+    Solana: "solana",
+    Stellar: "stellar",
+    Tezos: "tezos",
+    Wownero: "wownero",
+    Namecoin: "namecoin",
+    Nano: "nano",
+    Banano: "banano",
+  };
+
   static const refreshInterval = 60;
 
   // initialize to older than current time minus at least refreshInterval
@@ -83,6 +107,12 @@ class PriceAPI {
     return result;
   }
 
+  String get _coinIds => AppConfig.coins
+      .where((e) => e.network == CryptoCurrencyNetwork.main)
+      .map((e) => _coinToIdMap[e.runtimeType])
+      .where((e) => e != null)
+      .join(",");
+
   Future<Map<CryptoCurrency, Tuple2<Decimal, double>>> getPricesAnd24hChange({
     required String baseCurrency,
   }) async {
@@ -107,11 +137,10 @@ class PriceAPI {
     final Map<CryptoCurrency, Tuple2<Decimal, double>> result = {};
     try {
       final uri = Uri.parse(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency"
-          "=${baseCurrency.toLowerCase()}"
-          "&ids=monero,bitcoin,litecoin,ecash,epic-cash,zcoin,dogecoin,"
-          "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar,tezos,solana"
-          "&order=market_cap_desc&per_page=50&page=1&sparkline=false");
+        "https://api.coingecko.com/api/v3/coins/markets?vs_currency"
+        "=${baseCurrency.toLowerCase()}&ids=$_coinIds&order=market_cap_desc"
+        "&per_page=50&page=1&sparkline=false",
+      );
 
       final coinGeckoResponse = await client.get(
         url: uri,
@@ -191,7 +220,8 @@ class PriceAPI {
   }) async {
     final Map<String, Tuple2<Decimal, double>> tokenPrices = {};
 
-    if (contractAddresses.isEmpty) return tokenPrices;
+    if (AppConfig.coins.whereType<Ethereum>().isEmpty ||
+        contractAddresses.isEmpty) return tokenPrices;
 
     final externalCalls = Prefs.instance.externalCalls;
     if ((!Logger.isTestEnv && !externalCalls) ||
