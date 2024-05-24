@@ -69,6 +69,8 @@ fi
 confirmDisclaimer
 set -x
 
+source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_files.sh"
+
 # checks for the correct platform dir and pushes it for later
 if printf '%s\0' "${APP_PLATFORMS[@]}" | grep -Fxqz -- "${APP_BUILD_PLATFORM}"; then
     pushd "${APP_PROJECT_ROOT_DIR}/scripts/${APP_BUILD_PLATFORM}"
@@ -79,10 +81,10 @@ fi
 
 # apply config project wide change changes
 if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
-    if [ -f "${APP_PROJECT_ROOT_DIR}/pubspec.yaml" ]; then
-      rm "${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
+    if cmp -s "${ACTUAL_PUBSPEC}" "${T_PUBSPEC}"; then
+      rm "${ACTUAL_PUBSPEC}"
+      cp "${T_PUBSPEC}" "${ACTUAL_PUBSPEC}"
     fi
-    cp "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/pubspec.template" "${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/update_version.sh" -v "${APP_VERSION_STRING}" -b "${APP_BUILD_NUMBER}"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}"
     # shellcheck disable=SC1090

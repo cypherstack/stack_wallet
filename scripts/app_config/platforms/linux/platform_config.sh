@@ -2,20 +2,16 @@
 
 set -x -e
 
-F0="linux/CMakeLists.txt"
-F1="linux/my_application.cc"
-
-TEMPLATES="${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates"
-
 for (( i=0; i<=1; i++ )); do
-  VAR="F${i}"
+  VAR="LINUX_TF_${i}"
   FILE="${APP_PROJECT_ROOT_DIR}/${!VAR}"
-  if [ -f "${FILE}" ]; then
+  TEMPLATE="${TEMPLATES_DIR}/${!VAR}"
+  if cmp -s "${TEMPLATE}" "${FILE}"; then
     rm "${FILE}"
+    cp -rp "${TEMPLATE}" "${FILE}"
   fi
-  cp "${TEMPLATES}/${!VAR}" "${FILE}"
 done
 
 # Configure Linux for Duo.
-sed -i "s/${APP_BASIC_NAME_PLACEHOLDER}/${NEW_BASIC_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${F0}"
-sed -i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${F1}"
+sed -i "s/${APP_BASIC_NAME_PLACEHOLDER}/${NEW_BASIC_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${LINUX_TF_0}"
+sed -i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${LINUX_TF_1}"
