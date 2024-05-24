@@ -79,6 +79,12 @@ else
     usage
 fi
 
+PLAY_STORE_ICON_FILE="${APP_PROJECT_ROOT_DIR}/android/app/src/main/app_icon-playstore.png"
+if [ -f "${PLAY_STORE_ICON_FILE}" ]; then
+  rm "${PLAY_STORE_ICON_FILE}"
+fi
+cp -rp "${APP_PROJECT_ROOT_DIR}/asset_sources/other/playstore_icon/${APP_NAMED_ID}/app_icon-playstore.png" "${PLAY_STORE_ICON_FILE}"
+
 # apply config project wide change changes
 if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
     if cmp -s "${ACTUAL_PUBSPEC}" "${T_PUBSPEC}"; then
