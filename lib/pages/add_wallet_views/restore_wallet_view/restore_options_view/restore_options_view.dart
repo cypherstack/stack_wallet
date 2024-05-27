@@ -12,13 +12,8 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
-import 'sub_widgets/mobile_mnemonic_length_selector.dart';
-import 'sub_widgets/restore_from_date_picker.dart';
-import 'sub_widgets/restore_options_next_button.dart';
-import 'sub_widgets/restore_options_platform_layout.dart';
-import '../restore_wallet_view.dart';
-import '../sub_widgets/mnemonic_word_count_select_sheet.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -27,9 +22,6 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../../../wallets/crypto_currency/coins/monero.dart';
-import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -39,7 +31,13 @@ import '../../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../../widgets/expandable.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_text_field.dart';
-import 'package:tuple/tuple.dart';
+import '../../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
+import '../restore_wallet_view.dart';
+import '../sub_widgets/mnemonic_word_count_select_sheet.dart';
+import 'sub_widgets/mobile_mnemonic_length_selector.dart';
+import 'sub_widgets/restore_from_date_picker.dart';
+import 'sub_widgets/restore_options_next_button.dart';
+import 'sub_widgets/restore_options_platform_layout.dart';
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
   const RestoreOptionsView({
@@ -220,8 +218,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 height: isDesktop ? 40 : 24,
               ),
               if ((coin is Monero &&
-                  ref.watch(mnemonicWordCountStateProvider.state).state ==
-                      25)  ||
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -237,9 +235,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-              if ((coin is Monero  &&
-    ref.watch(mnemonicWordCountStateProvider.state).state ==
-    25) ||
+              if ((coin is Monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -247,9 +245,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 SizedBox(
                   height: isDesktop ? 16 : 8,
                 ),
-              if ((coin is Monero  &&
-    ref.watch(mnemonicWordCountStateProvider.state).state ==
-    25) ||
+              if ((coin is Monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -259,8 +257,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     onTap: chooseDate,
                     controller: _dateController,
                   ),
-              if ((coin is Monero  &&
-    ref.watch(mnemonicWordCountStateProvider.state).state == 25) ||
+              if ((coin is Monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -272,8 +271,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     controller: _dateController,
                   ),
               if ((coin is Monero &&
-    ref.watch(mnemonicWordCountStateProvider.state).state ==
-    25)  ||
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -281,9 +280,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 const SizedBox(
                   height: 8,
                 ),
-              if ((coin is Monero  &&
-    ref.watch(mnemonicWordCountStateProvider.state).state ==
-    25) ||
+              if ((coin is Monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -304,9 +303,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ),
                   ),
                 ),
-              if ((coin is Monero  &&
-    ref.watch(mnemonicWordCountStateProvider.state).state ==
-    25) ||
+              if ((coin is Monero &&
+                      ref.watch(mnemonicWordCountStateProvider.state).state ==
+                          25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -411,8 +410,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                             "Advanced",
                             style: isDesktop
                                 ? STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                    context,
+                                  ).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .textDark3,
@@ -474,7 +473,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                                       ),
                                       GestureDetector(
                                         key: const Key(
-                                            "mnemonicPassphraseFieldShowPasswordButtonKey"),
+                                          "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                        ),
                                         onTap: () async {
                                           setState(() {
                                             hidePassword = !hidePassword;

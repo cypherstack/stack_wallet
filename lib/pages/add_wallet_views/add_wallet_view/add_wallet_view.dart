@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -149,8 +148,10 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
       if (contracts.isEmpty) {
         contracts.addAll(DefaultTokens.list);
-        MainDB.instance.putEthContracts(contracts).then((value) =>
-            ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
+        MainDB.instance.putEthContracts(contracts).then(
+              (value) =>
+                  ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
+            );
       }
 
       tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
@@ -349,63 +350,63 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                     height: 16,
                   ),
                   ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: Semantics(
-                        label:
-                            "Search Text Field. Inputs Text To Search In Wallets.",
-                        excludeSemantics: true,
-                        child: TextField(
-                          autofocus: isDesktop,
-                          autocorrect: !isDesktop,
-                          enableSuggestions: !isDesktop,
-                          controller: _searchFieldController,
-                          focusNode: _searchFocusNode,
-                          onChanged: (value) =>
-                              setState(() => _searchTerm = value),
-                          style: STextStyles.field(context),
-                          decoration: standardInputDecoration(
-                            "Search",
-                            _searchFocusNode,
-                            context,
-                            desktopMed: isDesktop,
-                          ).copyWith(
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 16,
-                              ),
-                              child: SvgPicture.asset(
-                                Assets.svg.search,
-                                width: 16,
-                                height: 16,
-                              ),
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: Semantics(
+                      label:
+                          "Search Text Field. Inputs Text To Search In Wallets.",
+                      excludeSemantics: true,
+                      child: TextField(
+                        autofocus: isDesktop,
+                        autocorrect: !isDesktop,
+                        enableSuggestions: !isDesktop,
+                        controller: _searchFieldController,
+                        focusNode: _searchFocusNode,
+                        onChanged: (value) =>
+                            setState(() => _searchTerm = value),
+                        style: STextStyles.field(context),
+                        decoration: standardInputDecoration(
+                          "Search",
+                          _searchFocusNode,
+                          context,
+                          desktopMed: isDesktop,
+                        ).copyWith(
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 16,
                             ),
-                            suffixIcon: _searchFieldController.text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _searchFieldController.text =
-                                                    "";
-                                                _searchTerm = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : null,
+                            child: SvgPicture.asset(
+                              Assets.svg.search,
+                              width: 16,
+                              height: 16,
+                            ),
                           ),
+                          suffixIcon: _searchFieldController.text.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              _searchFieldController.text = "";
+                                              _searchTerm = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : null,
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
                   const SizedBox(
                     height: 10,
                   ),

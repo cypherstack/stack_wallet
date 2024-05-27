@@ -20,21 +20,24 @@ import 'package:flutter_libmonero/view_model/send/output.dart'
     as wownero_output;
 import 'package:flutter_libmonero/wownero/wownero.dart' as wow_dart;
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../db/hive/db.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/wownero.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/cryptonote_wallet.dart';
 import '../wallet.dart';
 import '../wallet_mixin_interfaces/cw_based_interface.dart';
-import 'package:tuple/tuple.dart';
 
 class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
   WowneroWallet(CryptoCurrencyNetwork network) : super(Wownero(network)) {
@@ -524,16 +527,17 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         );
         try {
           walletInfo = WalletInfo.external(
-              id: WalletBase.idFor(name, WalletType.wownero),
-              name: name,
-              type: WalletType.wownero,
-              isRecovery: false,
-              restoreHeight: credentials.height ?? 0,
-              date: DateTime.now(),
-              path: path,
-              dirPath: dirPath,
-              // TODO: find out what to put for address
-              address: '');
+            id: WalletBase.idFor(name, WalletType.wownero),
+            name: name,
+            type: WalletType.wownero,
+            isRecovery: false,
+            restoreHeight: credentials.height ?? 0,
+            date: DateTime.now(),
+            path: path,
+            dirPath: dirPath,
+            // TODO: find out what to put for address
+            address: '',
+          );
           credentials.walletInfo = walletInfo;
 
           final cwWalletCreationService = WalletCreationService(
@@ -577,8 +581,9 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         CwBasedInterface.cwWalletBase?.close();
       } catch (e, s) {
         Logging.instance.log(
-            "Exception rethrown from recoverFromMnemonic(): $e\n$s",
-            level: LogLevel.Error);
+          "Exception rethrown from recoverFromMnemonic(): $e\n$s",
+          level: LogLevel.Error,
+        );
         rethrow;
       }
     });
@@ -636,8 +641,10 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
                 CwBasedInterface.cwWalletBase!.createTransaction(tmp);
           });
         } catch (e, s) {
-          Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
-              level: LogLevel.Warning);
+          Logging.instance.log(
+            "Exception rethrown from prepareSend(): $e\n$s",
+            level: LogLevel.Warning,
+          );
         }
 
         final PendingWowneroTransaction pendingWowneroTransaction =
@@ -655,8 +662,10 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         throw ArgumentError("Invalid fee rate argument provided!");
       }
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from prepare send(): $e\n$s",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "Exception rethrown from prepare send(): $e\n$s",
+        level: LogLevel.Info,
+      );
 
       if (e.toString().contains("Incorrect unlocked balance")) {
         throw Exception("Insufficient balance!");
@@ -674,17 +683,22 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
       try {
         await txData.pendingWowneroTransaction!.commit();
         Logging.instance.log(
-            "transaction ${txData.pendingWowneroTransaction!.id} has been sent",
-            level: LogLevel.Info);
+          "transaction ${txData.pendingWowneroTransaction!.id} has been sent",
+          level: LogLevel.Info,
+        );
         return txData.copyWith(txid: txData.pendingWowneroTransaction!.id);
       } catch (e, s) {
-        Logging.instance.log("${info.name} wownero confirmSend: $e\n$s",
-            level: LogLevel.Error);
+        Logging.instance.log(
+          "${info.name} wownero confirmSend: $e\n$s",
+          level: LogLevel.Error,
+        );
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "Exception rethrown from confirmSend(): $e\n$s",
+        level: LogLevel.Info,
+      );
       rethrow;
     }
   }

@@ -19,15 +19,19 @@ import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 import 'package:flutter_libmonero/monero/monero.dart' as xmr_dart;
 import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../db/hive/db.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../../services/event_bus/events/global/tor_status_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/monero.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/cryptonote_wallet.dart';
@@ -390,7 +394,8 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
 
         // subtract a couple days to ensure we have a buffer for SWB
         final bufferedCreateHeight = xmr_dart.monero.getHeigthByDate(
-            date: DateTime.now().subtract(const Duration(days: 2)));
+          date: DateTime.now().subtract(const Duration(days: 2)),
+        );
 
         await info.updateRestoreHeight(
           newRestoreHeight: bufferedCreateHeight,
@@ -528,8 +533,9 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
         CwBasedInterface.cwWalletBase?.close();
       } catch (e, s) {
         Logging.instance.log(
-            "Exception rethrown from recoverFromMnemonic(): $e\n$s",
-            level: LogLevel.Error);
+          "Exception rethrown from recoverFromMnemonic(): $e\n$s",
+          level: LogLevel.Error,
+        );
         rethrow;
       }
     });
@@ -586,8 +592,10 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
                 CwBasedInterface.cwWalletBase!.createTransaction(tmp);
           });
         } catch (e, s) {
-          Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
-              level: LogLevel.Warning);
+          Logging.instance.log(
+            "Exception rethrown from prepareSend(): $e\n$s",
+            level: LogLevel.Warning,
+          );
         }
 
         final PendingMoneroTransaction pendingMoneroTransaction =
@@ -605,8 +613,10 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
         throw ArgumentError("Invalid fee rate argument provided!");
       }
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from prepare send(): $e\n$s",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "Exception rethrown from prepare send(): $e\n$s",
+        level: LogLevel.Info,
+      );
 
       if (e.toString().contains("Incorrect unlocked balance")) {
         throw Exception("Insufficient balance!");
@@ -624,17 +634,22 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
       try {
         await txData.pendingMoneroTransaction!.commit();
         Logging.instance.log(
-            "transaction ${txData.pendingMoneroTransaction!.id} has been sent",
-            level: LogLevel.Info);
+          "transaction ${txData.pendingMoneroTransaction!.id} has been sent",
+          level: LogLevel.Info,
+        );
         return txData.copyWith(txid: txData.pendingMoneroTransaction!.id);
       } catch (e, s) {
-        Logging.instance.log("${info.name} monero confirmSend: $e\n$s",
-            level: LogLevel.Error);
+        Logging.instance.log(
+          "${info.name} monero confirmSend: $e\n$s",
+          level: LogLevel.Error,
+        );
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "Exception rethrown from confirmSend(): $e\n$s",
+        level: LogLevel.Info,
+      );
       rethrow;
     }
   }

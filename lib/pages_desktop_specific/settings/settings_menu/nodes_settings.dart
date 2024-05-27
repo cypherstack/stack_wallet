@@ -13,10 +13,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../../app_config.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import '../../../providers/providers.dart';
 import '../../../route_generator.dart';
-import '../../../app_config.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
