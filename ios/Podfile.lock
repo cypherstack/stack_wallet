@@ -9,63 +9,6 @@ PODS:
   - connectivity_plus (0.0.1):
     - Flutter
     - ReachabilitySwift
-  - cw_monero (0.0.2):
-    - cw_monero/Boost (= 0.0.2)
-    - cw_monero/Monero (= 0.0.2)
-    - cw_monero/OpenSSL (= 0.0.2)
-    - cw_monero/Sodium (= 0.0.2)
-    - cw_monero/Unbound (= 0.0.2)
-    - cw_shared_external
-    - Flutter
-  - cw_monero/Boost (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_monero/Monero (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_monero/OpenSSL (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_monero/Sodium (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_monero/Unbound (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_shared_external (0.0.1):
-    - cw_shared_external/Boost (= 0.0.1)
-    - cw_shared_external/OpenSSL (= 0.0.1)
-    - cw_shared_external/Sodium (= 0.0.1)
-    - Flutter
-  - cw_shared_external/Boost (0.0.1):
-    - Flutter
-  - cw_shared_external/OpenSSL (0.0.1):
-    - Flutter
-  - cw_shared_external/Sodium (0.0.1):
-    - Flutter
-  - cw_wownero (0.0.2):
-    - cw_shared_external
-    - cw_wownero/Boost (= 0.0.2)
-    - cw_wownero/OpenSSL (= 0.0.2)
-    - cw_wownero/Sodium (= 0.0.2)
-    - cw_wownero/Unbound (= 0.0.2)
-    - cw_wownero/Wownero (= 0.0.2)
-    - Flutter
-  - cw_wownero/Boost (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_wownero/OpenSSL (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_wownero/Sodium (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_wownero/Unbound (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_wownero/Wownero (0.0.2):
-    - cw_shared_external
-    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - devicelocale (0.0.1):
@@ -155,9 +98,6 @@ DEPENDENCIES:
   - barcode_scan2 (from `.symlinks/plugins/barcode_scan2/ios`)
   - coinlib_flutter (from `.symlinks/plugins/coinlib_flutter/darwin`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
-  - cw_monero (from `.symlinks/plugins/cw_monero/ios`)
-  - cw_shared_external (from `.symlinks/plugins/cw_shared_external/ios`)
-  - cw_wownero (from `.symlinks/plugins/cw_wownero/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
@@ -199,12 +139,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/coinlib_flutter/darwin"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
-  cw_monero:
-    :path: ".symlinks/plugins/cw_monero/ios"
-  cw_shared_external:
-    :path: ".symlinks/plugins/cw_shared_external/ios"
-  cw_wownero:
-    :path: ".symlinks/plugins/cw_wownero/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   devicelocale:
@@ -256,9 +190,6 @@ SPEC CHECKSUMS:
   barcode_scan2: 0af2bb63c81b4565aab6cd78278e4c0fa136dbb0
   coinlib_flutter: 6abec900d67762a6e7ccfd567a3cd3ae00bbee35
   connectivity_plus: 07c49e96d7fc92bc9920617b83238c4d178b446a
-  cw_monero: 9816991daff0e3ad0a8be140e31933b5526babd4
-  cw_shared_external: 2972d872b8917603478117c9957dfca611845a92
-  cw_wownero: ac53899fa5c6ff46b3fb490aa3b7ca36301fa832
   device_info_plus: 7545d84d8d1b896cb16a4ff98c19f07ec4b298ea
   devicelocale: b22617f40038496deffba44747101255cee005b0
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
@@ -272,7 +203,7 @@ SPEC CHECKSUMS:
   flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
   flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
   frostdart: 4c72b69ccac2f13ede744107db046a125acce597
-  integration_test: 13825b8a9334a850581300559b8839134b124670
+  integration_test: ce0a3ffa1de96d1a89ca0ac26fca7ea18a749ef4
   isar_flutter_libs: b69f437aeab9c521821c3f376198c4371fa21073
   lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
   local_auth: 1740f55d7af0a2e2a8684ce225fe79d8931e808c

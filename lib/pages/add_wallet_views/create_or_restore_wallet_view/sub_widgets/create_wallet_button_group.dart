@@ -8,16 +8,14 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import '../../name_your_wallet_view/name_your_wallet_view.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/enums/add_wallet_type_enum.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import 'package:tuple/tuple.dart';
+import '../../name_your_wallet_view/name_your_wallet_view.dart';
 
 class CreateWalletButtonGroup extends StatelessWidget {
   const CreateWalletButtonGroup({
@@ -35,37 +33,35 @@ class CreateWalletButtonGroup extends StatelessWidget {
       crossAxisAlignment:
           isDesktop ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
       children: [
-        if (Platform.isAndroid || coin is! Wownero)
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: isDesktop ? 70 : 0,
-              minWidth: isDesktop ? 480 : 0,
-            ),
-            child: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonStyle(context),
-              onPressed: () {
-                Navigator.of(context).pushNamed(
-                  NameYourWalletView.routeName,
-                  arguments: Tuple2(
-                    AddWalletType.New,
-                    coin,
-                  ),
-                );
-              },
-              child: Text(
-                "Create new wallet",
-                style: isDesktop
-                    ? STextStyles.desktopButtonEnabled(context)
-                    : STextStyles.button(context),
-              ),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: isDesktop ? 70 : 0,
+            minWidth: isDesktop ? 480 : 0,
+          ),
+          child: TextButton(
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonStyle(context),
+            onPressed: () {
+              Navigator.of(context).pushNamed(
+                NameYourWalletView.routeName,
+                arguments: Tuple2(
+                  AddWalletType.New,
+                  coin,
+                ),
+              );
+            },
+            child: Text(
+              "Create new wallet",
+              style: isDesktop
+                  ? STextStyles.desktopButtonEnabled(context)
+                  : STextStyles.button(context),
             ),
           ),
-        if (Platform.isAndroid || coin is! Wownero)
-          SizedBox(
-            height: isDesktop ? 16 : 12,
-          ),
+        ),
+        SizedBox(
+          height: isDesktop ? 16 : 12,
+        ),
         ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: isDesktop ? 70 : 0,
