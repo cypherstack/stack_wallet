@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -18,6 +19,8 @@ import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 import 'package:flutter_libmonero/monero/monero.dart' as xmr_dart;
 import 'package:flutter_libmonero/view_model/send/output.dart' as monero_output;
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../db/hive/db.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -30,14 +33,44 @@ import '../../models/tx_data.dart';
 import '../intermediate/cryptonote_wallet.dart';
 import '../wallet.dart';
 import '../wallet_mixin_interfaces/cw_based_interface.dart';
-import 'package:tuple/tuple.dart';
 
 class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
-  MoneroWallet(CryptoCurrencyNetwork network) : super(Monero(network));
+  MoneroWallet(CryptoCurrencyNetwork network) : super(Monero(network)) {
+    final bus = GlobalEventBus.instance;
+
+    // Listen for tor status changes.
+    _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        switch (event.newStatus) {
+          case TorConnectionStatus.connecting:
+            if (!_torConnectingLock.isLocked) {
+              await _torConnectingLock.acquire();
+            }
+            _requireMutex = true;
+            break;
+
+          case TorConnectionStatus.connected:
+          case TorConnectionStatus.disconnected:
+            if (_torConnectingLock.isLocked) {
+              _torConnectingLock.release();
+            }
+            _requireMutex = false;
+            break;
+        }
+      },
+    );
+
+    // Listen for tor preference changes.
+    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
+      (event) async {
+        await updateNode();
+      },
+    );
+  }
 
   @override
   Address addressFor({required int index, int account = 0}) {
-    String address = (CwBasedInterface.cwWalletBase as MoneroWalletBase)
+    final String address = (CwBasedInterface.cwWalletBase as MoneroWalletBase)
         .getTransactionAddress(account, index);
 
     final newReceivingAddress = Address(
@@ -153,13 +186,35 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
     final node = getCurrentNode();
 
     final host = Uri.parse(node.host).host;
-    await CwBasedInterface.cwWalletBase?.connectToNode(
-      node: Node(
-        uri: "$host:${node.port}",
-        type: WalletType.monero,
-        trusted: node.trusted ?? false,
-      ),
-    );
+    ({InternetAddress host, int port})? proxy;
+    if (prefs.useTor) {
+      proxy = TorService.sharedInstance.getProxyInfo();
+    }
+    if (_requireMutex) {
+      await _torConnectingLock.protect(() async {
+        await CwBasedInterface.cwWalletBase?.connectToNode(
+          node: Node(
+            uri: "$host:${node.port}",
+            type: WalletType.monero,
+            trusted: node.trusted ?? false,
+          ),
+          socksProxyAddress:
+              proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+        );
+      });
+    } else {
+      await CwBasedInterface.cwWalletBase?.connectToNode(
+        node: Node(
+          uri: "$host:${node.port}",
+          type: WalletType.monero,
+          trusted: node.trusted ?? false,
+        ),
+        socksProxyAddress:
+            proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+      );
+    }
+
+    return;
   }
 
   @override
@@ -379,7 +434,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
         // clear blockchain info
         await mainDB.deleteWalletBlockchainData(walletId);
 
-        var restoreHeight =
+        final restoreHeight =
             CwBasedInterface.cwWalletBase?.walletInfo.restoreHeight;
         highestPercentCached = 0;
         await CwBasedInterface.cwWalletBase?.rescan(height: restoreHeight ?? 0);
@@ -392,7 +447,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
       final mnemonic = await getMnemonic();
       final seedLength = mnemonic.trim().split(" ").length;
 
-      if (seedLength != 25) {
+      if (seedLength != 25 && seedLength != 16) {
         throw Exception("Invalid monero mnemonic length found: $seedLength");
       }
 
@@ -408,7 +463,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
             .createMoneroWalletService(DB.instance.moneroWalletInfoBox);
         WalletInfo walletInfo;
         WalletCredentials credentials;
-        String name = walletId;
+        final String name = walletId;
         final dirPath =
             await pathForWalletDir(name: name, type: WalletType.monero);
         final path = await pathForWallet(name: name, type: WalletType.monero);
@@ -510,12 +565,12 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
             isSendAll = true;
           }
 
-          List<monero_output.Output> outputs = [];
+          final List<monero_output.Output> outputs = [];
           for (final recipient in txData.recipients!) {
             final output = monero_output.Output(CwBasedInterface.cwWalletBase!);
             output.address = recipient.address;
             output.sendAll = isSendAll;
-            String amountToSend = recipient.amount.decimal.toString();
+            final String amountToSend = recipient.amount.decimal.toString();
             output.setCryptoAmount(amountToSend);
             outputs.add(output);
           }
@@ -535,7 +590,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
               level: LogLevel.Warning);
         }
 
-        PendingMoneroTransaction pendingMoneroTransaction =
+        final PendingMoneroTransaction pendingMoneroTransaction =
             await (awaitPendingTransaction!) as PendingMoneroTransaction;
         final realFee = Amount.fromDecimal(
           Decimal.parse(pendingMoneroTransaction.feeFormatted),
@@ -617,7 +672,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
               ?.entries;
       if (balanceEntries != null) {
         int bal = 0;
-        for (var element in balanceEntries) {
+        for (final element in balanceEntries) {
           bal = bal + element.value.fullBalance;
         }
         return Amount(
@@ -630,7 +685,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
                 .transactionHistory!
                 .transactions;
         int transactionBalance = 0;
-        for (var tx in transactions!.entries) {
+        for (final tx in transactions!.entries) {
           if (tx.value.direction == TransactionDirection.incoming) {
             transactionBalance += tx.value.amount!;
           } else {
@@ -647,4 +702,12 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
       return info.cachedBalance.total;
     }
   }
+
+  // ============== Private ====================================================
+
+  StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
+  StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
+
+  final Mutex _torConnectingLock = Mutex();
+  bool _requireMutex = false;
 }

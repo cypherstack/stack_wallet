@@ -6,11 +6,11 @@ set -x -e
 source ../rust_version.sh
 set_rust_to_1671
 
-(cd ../../crypto_plugins/flutter_liblelantus/scripts/macos && ./build_all.sh ) &
-(cd ../../crypto_plugins/flutter_libepiccash/scripts/macos && ./build_all.sh )  &
-(cd ../../crypto_plugins/flutter_libmonero/scripts/macos/ && ./build_all.sh  ) &&
-set_rust_to_1720 &&
-(cd ../../crypto_plugins/frostdart/scripts/macos && ./build_all.sh ) &
+(cd ../../crypto_plugins/flutter_liblelantus/scripts/macos && ./build_all.sh )
+(cd ../../crypto_plugins/flutter_libepiccash/scripts/macos && ./build_all.sh )
+(cd ../../crypto_plugins/flutter_libmonero/scripts/macos/ && ./build_all.sh  )
+set_rust_to_1720
+(cd ../../crypto_plugins/frostdart/scripts/macos && ./build_all.sh )
 
 wait
 echo "Done building"

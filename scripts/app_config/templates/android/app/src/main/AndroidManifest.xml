@@ -23,7 +23,8 @@
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
-        android:fullBackupContent="false">
+        android:fullBackupContent="false"
+        android:extractNativeLibs="true">
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait"

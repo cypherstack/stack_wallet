@@ -70,13 +70,6 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
     _coins.removeWhere(
       (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
     );
-    if (Platform.isWindows) {
-      _coins.removeWhere(
-        (e) => e is Monero && e is Wownero,
-      );
-    } else if (Platform.isLinux) {
-      _coins.removeWhere((e) => e is Wownero);
-    }
 
     searchNodeController = TextEditingController();
     searchNodeFocusNode = FocusNode();

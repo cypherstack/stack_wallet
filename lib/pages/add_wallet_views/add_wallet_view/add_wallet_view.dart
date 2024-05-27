@@ -132,11 +132,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
     // _coinsTestnet.remove(Coin.firoTestNet);
-    if (Platform.isWindows) {
-      _coins.removeWhere((e) => e is Monero || e is Wownero);
-    } else if (Platform.isLinux) {
-      _coins.removeWhere((e) => e is Wownero);
-    }
 
     if (Util.isDesktop && !kDebugMode) {
       _coins.removeWhere((e) => e is BitcoinFrost);

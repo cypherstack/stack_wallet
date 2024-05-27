@@ -219,7 +219,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(
                 height: isDesktop ? 40 : 24,
               ),
-              if (coin is Monero ||
+              if ((coin is Monero &&
+                  ref.watch(mnemonicWordCountStateProvider.state).state ==
+                      25)  ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -235,7 +237,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-              if (coin is Monero ||
+              if ((coin is Monero  &&
+    ref.watch(mnemonicWordCountStateProvider.state).state ==
+    25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -243,7 +247,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 SizedBox(
                   height: isDesktop ? 16 : 8,
                 ),
-              if (coin is Monero ||
+              if ((coin is Monero  &&
+    ref.watch(mnemonicWordCountStateProvider.state).state ==
+    25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -253,7 +259,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     onTap: chooseDate,
                     controller: _dateController,
                   ),
-              if (coin is Monero ||
+              if ((coin is Monero  &&
+    ref.watch(mnemonicWordCountStateProvider.state).state == 25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -264,7 +271,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     onTap: chooseDesktopDate,
                     controller: _dateController,
                   ),
-              if (coin is Monero ||
+              if ((coin is Monero &&
+    ref.watch(mnemonicWordCountStateProvider.state).state ==
+    25)  ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -272,7 +281,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 const SizedBox(
                   height: 8,
                 ),
-              if (coin is Monero ||
+              if ((coin is Monero  &&
+    ref.watch(mnemonicWordCountStateProvider.state).state ==
+    25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
@@ -293,7 +304,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ),
                   ),
                 ),
-              if (coin is Monero ||
+              if ((coin is Monero  &&
+    ref.watch(mnemonicWordCountStateProvider.state).state ==
+    25) ||
                   coin is Epiccash ||
                   (coin is Wownero &&
                       ref.watch(mnemonicWordCountStateProvider.state).state ==
