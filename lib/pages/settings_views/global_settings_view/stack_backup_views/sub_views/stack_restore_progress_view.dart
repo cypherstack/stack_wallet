@@ -13,14 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../../app_config.dart';
-import '../../../../home_view/home_view.dart';
-import '../dialogs/cancel_stack_restore_dialog.dart';
-import '../helpers/restore_create_backup.dart';
-import '../restore_from_encrypted_string_view.dart';
-import '../stack_backup_view.dart';
-import '../sub_widgets/restoring_item_card.dart';
-import '../sub_widgets/restoring_wallet_card.dart';
 import '../../../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../../../pages_desktop_specific/desktop_menu.dart';
 import '../../../../../providers/desktop/current_desktop_menu_item.dart';
@@ -40,6 +34,13 @@ import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../../widgets/loading_indicator.dart';
 import '../../../../../widgets/rounded_container.dart';
+import '../../../../home_view/home_view.dart';
+import '../dialogs/cancel_stack_restore_dialog.dart';
+import '../helpers/restore_create_backup.dart';
+import '../restore_from_encrypted_string_view.dart';
+import '../stack_backup_view.dart';
+import '../sub_widgets/restoring_item_card.dart';
+import '../sub_widgets/restoring_wallet_card.dart';
 
 class StackRestoreProgressView extends ConsumerStatefulWidget {
   const StackRestoreProgressView({
@@ -264,7 +265,7 @@ class _StackRestoreProgressViewState
                 },
               ),
               title: Text(
-                "Restoring {$AppConfig.appName}",
+                "Restoring ${AppConfig.appName}",
                 style: STextStyles.navBarTitle(context),
               ),
             ),

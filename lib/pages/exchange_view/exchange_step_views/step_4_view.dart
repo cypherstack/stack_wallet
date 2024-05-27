@@ -15,15 +15,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../notifications/show_flush_bar.dart';
-import '../confirm_change_now_send.dart';
-import '../send_from_view.dart';
-import '../sub_widgets/step_row.dart';
-import '../../home_view/home_view.dart';
-import '../../send_view/sub_widgets/building_transaction_dialog.dart';
-import '../../wallet_view/wallet_view.dart';
 import '../../../providers/providers.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
@@ -44,7 +40,12 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
+import '../../home_view/home_view.dart';
+import '../../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../../wallet_view/wallet_view.dart';
+import '../confirm_change_now_send.dart';
+import '../send_from_view.dart';
+import '../sub_widgets/step_row.dart';
 
 class Step4View extends ConsumerStatefulWidget {
   const Step4View({
@@ -816,7 +817,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               Builder(
                                 builder: (context) {
                                   String buttonTitle =
-                                      "Send from {$AppConfig.appName}";
+                                      "Send from ${AppConfig.appName}";
 
                                   final tuple = ref
                                       .read(

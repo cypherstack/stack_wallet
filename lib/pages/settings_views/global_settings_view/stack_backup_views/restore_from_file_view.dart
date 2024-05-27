@@ -15,11 +15,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
-import 'helpers/restore_create_backup.dart';
-import 'helpers/swb_file_system.dart';
-import 'sub_views/stack_restore_progress_view.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -36,7 +35,9 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/stack_text_field.dart';
-import 'package:tuple/tuple.dart';
+import 'helpers/restore_create_backup.dart';
+import 'helpers/swb_file_system.dart';
+import 'sub_views/stack_restore_progress_view.dart';
 
 class RestoreFromFileView extends ConsumerStatefulWidget {
   const RestoreFromFileView({Key? key}) : super(key: key);
@@ -537,7 +538,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                                         .all(
                                                                         32),
                                                                 child: Text(
-                                                                  "Restore {$AppConfig.appName}",
+                                                                  "Restore ${AppConfig.appName}",
                                                                   style: STextStyles
                                                                       .desktopH3(
                                                                           context),
