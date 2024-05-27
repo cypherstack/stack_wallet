@@ -15,10 +15,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
-import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/assets.dart';
@@ -33,6 +32,8 @@ import '../../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
+import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class WalletBackupView extends ConsumerWidget {
   const WalletBackupView({
@@ -94,12 +95,14 @@ class WalletBackupView extends ConsumerWidget {
                   onPressed: () async {
                     await clipboardInterface
                         .setData(ClipboardData(text: mnemonic.join(" ")));
-                    unawaited(showFloatingFlushBar(
-                      type: FlushBarType.info,
-                      message: "Copied to clipboard",
-                      iconAsset: Assets.svg.copy,
-                      context: context,
-                    ));
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.info,
+                        message: "Copied to clipboard",
+                        iconAsset: Assets.svg.copy,
+                        context: context,
+                      ),
+                    );
                   },
                 ),
               ),
@@ -256,7 +259,8 @@ class WalletBackupView extends ConsumerWidget {
                         color:
                             Theme.of(context).extension<StackColors>()!.popupBG,
                         borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius),
+                          Constants.size.circularBorderRadius,
+                        ),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
@@ -285,7 +289,8 @@ class WalletBackupView extends ConsumerWidget {
                           .extension<StackColors>()!
                           .getPrimaryEnabledButtonStyle(context),
                       onPressed: () {
-                        String data = AddressUtils.encodeQRSeedData(mnemonic);
+                        final String data =
+                            AddressUtils.encodeQRSeedData(mnemonic);
 
                         showDialog<dynamic>(
                           context: context,
@@ -313,14 +318,15 @@ class WalletBackupView extends ConsumerWidget {
                                         width: width + 20,
                                         height: width + 20,
                                         child: QrImageView(
-                                            data: data,
-                                            size: width,
-                                            backgroundColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .popupBG,
-                                            foregroundColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark),
+                                          data: data,
+                                          size: width,
+                                          backgroundColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .popupBG,
+                                          foregroundColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -338,14 +344,16 @@ class WalletBackupView extends ConsumerWidget {
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
                                             .getSecondaryEnabledButtonStyle(
-                                                context),
+                                              context,
+                                            ),
                                         child: Text(
                                           "Cancel",
                                           style: STextStyles.button(context)
                                               .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark,
+                                          ),
                                         ),
                                       ),
                                     ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:electrum_adapter/electrum_adapter.dart';
+
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/tor_service.dart';
 import '../logger.dart';
@@ -33,7 +34,8 @@ Future<bool> checkElectrumServer({
         } else {
           // ... But if the killswitch is set, then we throw an exception.
           throw Exception(
-              "Tor preference and killswitch set but Tor is not enabled, not connecting to Electrum adapter");
+            "Tor preference and killswitch set but Tor is not enabled, not connecting to Electrum adapter",
+          );
           // TODO [prio=low]: Try to start Tor.
         }
       } else {

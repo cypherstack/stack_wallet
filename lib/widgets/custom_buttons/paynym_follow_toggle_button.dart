@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/paynym/paynym_response.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -35,11 +36,11 @@ enum PaynymFollowToggleButtonStyle {
 
 class PaynymFollowToggleButton extends ConsumerStatefulWidget {
   const PaynymFollowToggleButton({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.paymentCodeStringToFollow,
     this.style = PaynymFollowToggleButtonStyle.primary,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String paymentCodeStringToFollow;
@@ -83,8 +84,11 @@ class _PaynymFollowToggleButtonState
     // sign token with notification private key
     String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref.read(paynymAPIProvider).follow(token.value!,
-        signature, followedAccount.value!.nonSegwitPaymentCode.code);
+    var result = await ref.read(paynymAPIProvider).follow(
+          token.value!,
+          signature,
+          followedAccount.value!.nonSegwitPaymentCode.code,
+        );
 
     int i = 0;
     for (;
@@ -96,8 +100,11 @@ class _PaynymFollowToggleButtonState
       // sign token with notification private key
       signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref.read(paynymAPIProvider).follow(token.value!, signature,
-          followedAccount.value!.nonSegwitPaymentCode.code);
+      result = await ref.read(paynymAPIProvider).follow(
+            token.value!,
+            signature,
+            followedAccount.value!.nonSegwitPaymentCode.code,
+          );
       await Future<void>.delayed(const Duration(milliseconds: 200));
 
       print("RRR result: $result");
@@ -181,8 +188,11 @@ class _PaynymFollowToggleButtonState
     // sign token with notification private key
     String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref.read(paynymAPIProvider).unfollow(token.value!,
-        signature, followedAccount.value!.nonSegwitPaymentCode.code);
+    var result = await ref.read(paynymAPIProvider).unfollow(
+          token.value!,
+          signature,
+          followedAccount.value!.nonSegwitPaymentCode.code,
+        );
 
     int i = 0;
     for (;
@@ -194,8 +204,11 @@ class _PaynymFollowToggleButtonState
       // sign token with notification private key
       signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref.read(paynymAPIProvider).unfollow(token.value!,
-          signature, followedAccount.value!.nonSegwitPaymentCode.code);
+      result = await ref.read(paynymAPIProvider).unfollow(
+            token.value!,
+            signature,
+            followedAccount.value!.nonSegwitPaymentCode.code,
+          );
       await Future<void>.delayed(const Duration(milliseconds: 200));
       print("unfollow RRR result: $result");
     }

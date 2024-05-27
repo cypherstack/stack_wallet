@@ -12,6 +12,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../models/transaction_filter.dart';
 import '../../../providers/global/locale_provider.dart';
 import '../../../providers/ui/transaction_filter_provider.dart';
@@ -117,9 +118,10 @@ class _TransactionSearchViewState
     return Text(
       isDateSelected ? "From..." : _fromDateString,
       style: STextStyles.fieldLabel(context).copyWith(
-          color: isDateSelected
-              ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-              : Theme.of(context).extension<StackColors>()!.accentColorDark),
+        color: isDateSelected
+            ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+            : Theme.of(context).extension<StackColors>()!.accentColorDark,
+      ),
     );
   }
 
@@ -128,9 +130,10 @@ class _TransactionSearchViewState
     return Text(
       isDateSelected ? "To..." : _toDateString,
       style: STextStyles.fieldLabel(context).copyWith(
-          color: isDateSelected
-              ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-              : Theme.of(context).extension<StackColors>()!.accentColorDark),
+        color: isDateSelected
+            ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+            : Theme.of(context).extension<StackColors>()!.accentColorDark,
+      ),
     );
   }
 
@@ -173,7 +176,8 @@ class _TransactionSearchViewState
                       !_selectedFromDate!.isBefore(_selectedToDate!);
                   if (flag) {
                     _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
-                        _selectedFromDate!.millisecondsSinceEpoch);
+                      _selectedFromDate!.millisecondsSinceEpoch,
+                    );
                   }
 
                   setState(() {
@@ -227,7 +231,7 @@ class _TransactionSearchViewState
                       child: FittedBox(
                         child: _dateFromText,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -263,7 +267,8 @@ class _TransactionSearchViewState
                       !_selectedToDate!.isAfter(_selectedFromDate!);
                   if (flag) {
                     _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
-                        _selectedToDate!.millisecondsSinceEpoch);
+                      _selectedToDate!.millisecondsSinceEpoch,
+                    );
                   }
 
                   setState(() {
@@ -317,7 +322,7 @@ class _TransactionSearchViewState
                       child: FittedBox(
                         child: _dateToText,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -449,7 +454,8 @@ class _TransactionSearchViewState
                             width: 20,
                             child: Checkbox(
                               key: const Key(
-                                  "transactionSearchViewSentCheckboxKey"),
+                                "transactionSearchViewSentCheckboxKey",
+                              ),
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               value: _isActiveSentCheckbox,
@@ -481,7 +487,7 @@ class _TransactionSearchViewState
                                 ],
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -508,7 +514,8 @@ class _TransactionSearchViewState
                             width: 20,
                             child: Checkbox(
                               key: const Key(
-                                  "transactionSearchViewReceivedCheckboxKey"),
+                                "transactionSearchViewReceivedCheckboxKey",
+                              ),
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               value: _isActiveReceivedCheckbox,
@@ -540,7 +547,7 @@ class _TransactionSearchViewState
                                 ],
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -567,7 +574,8 @@ class _TransactionSearchViewState
                             width: 20,
                             child: Checkbox(
                               key: const Key(
-                                  "transactionSearchViewSentCheckboxKey"),
+                                "transactionSearchViewSentCheckboxKey",
+                              ),
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               value: _isActiveTradeCheckbox,
@@ -599,7 +607,7 @@ class _TransactionSearchViewState
                                 ],
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),

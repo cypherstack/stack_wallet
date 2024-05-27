@@ -26,9 +26,9 @@ import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class PaynymQrPopup extends StatelessWidget {
   const PaynymQrPopup({
-    Key? key,
+    super.key,
     required this.paynymAccount,
-  }) : super(key: key);
+  });
 
   final PaynymAccount paynymAccount;
 
@@ -166,7 +166,7 @@ class PaynymQrPopup extends StatelessWidget {
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

@@ -27,7 +27,7 @@ import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 
 class DesktopSettingsView extends ConsumerStatefulWidget {
-  const DesktopSettingsView({Key? key}) : super(key: key);
+  const DesktopSettingsView({super.key});
 
   static const String routeName = "/desktopSettings";
 
@@ -123,7 +123,7 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
 }
 
 class DesktopSettingsTitle extends StatelessWidget {
-  const DesktopSettingsTitle({Key? key}) : super(key: key);
+  const DesktopSettingsTitle({super.key});
 
   @override
   Widget build(BuildContext context) {

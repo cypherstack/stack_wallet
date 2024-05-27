@@ -10,15 +10,18 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../desktop/storage_crypto_handler_provider.dart';
+
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/util.dart';
+import '../desktop/storage_crypto_handler_provider.dart';
 
 final secureStoreProvider = Provider<SecureStorageInterface>((ref) {
   if (Util.isDesktop) {
     final handler = ref.read(storageCryptoHandlerProvider).handler;
     return SecureStorageWrapper(
-        store: DesktopSecureStore(handler), isDesktop: true);
+      store: DesktopSecureStore(handler),
+      isDesktop: true,
+    );
   } else {
     return const SecureStorageWrapper(
       store: FlutterSecureStorage(),

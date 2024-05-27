@@ -16,9 +16,9 @@ import '../../utilities/text_styles.dart';
 
 class ExitToMyStackButton extends StatelessWidget {
   const ExitToMyStackButton({
-    Key? key,
+    super.key,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressed;
 

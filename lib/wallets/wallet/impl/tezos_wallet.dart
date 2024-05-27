@@ -14,7 +14,6 @@ import '../../../utilities/logger.dart';
 import '../../api/tezos/tezos_account.dart';
 import '../../api/tezos/tezos_api.dart';
 import '../../api/tezos/tezos_rpc_api.dart';
-import '../../crypto_currency/coins/tezos.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';

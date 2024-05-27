@@ -25,7 +25,7 @@ import '../loading_indicator.dart';
 
 class ExchangeTextField extends ConsumerStatefulWidget {
   const ExchangeTextField({
-    Key? key,
+    super.key,
     this.borderRadius = 0,
     this.background,
     required this.controller,
@@ -40,7 +40,7 @@ class ExchangeTextField extends ConsumerStatefulWidget {
     required this.isWalletCoin,
     this.currency,
     this.readOnly = false,
-  }) : super(key: key);
+  });
 
   final double borderRadius;
   final Color? background;
@@ -136,8 +136,10 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                 inputFormatters: [
                   AmountInputFormatter(
                     decimals: 8, // todo change this
-                    locale: ref.watch(localeServiceChangeNotifierProvider
-                        .select((value) => value.locale)),
+                    locale: ref.watch(
+                      localeServiceChangeNotifierProvider
+                          .select((value) => value.locale),
+                    ),
                   ),
                   // // regex to validate a crypto amount with 8 decimal places
                   // TextInputFormatter.withFunction((oldValue, newValue) =>
@@ -176,7 +178,8 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                           child: Builder(
                             builder: (context) {
                               if (AppConfig.isStackCoin(
-                                  widget.currency?.ticker)) {
+                                widget.currency?.ticker,
+                              )) {
                                 return Center(
                                   child: CoinIconForTicker(
                                     size: 18,

@@ -9,9 +9,10 @@
  */
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 import '../models/notification_model.dart';
-import 'notifications_service.dart';
 import '../utilities/prefs.dart';
+import 'notifications_service.dart';
 
 class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();
@@ -19,11 +20,13 @@ class NotificationApi {
 
   static Future<NotificationDetails> _notificationDetails() async {
     return const NotificationDetails(
-      android: AndroidNotificationDetails('channel id', 'channel name',
-          channelDescription: 'channel description',
-          // importance: Importance.max,
-          priority: Priority.high,
-          ticker: 'ticker'),
+      android: AndroidNotificationDetails(
+        'channel id', 'channel name',
+        channelDescription: 'channel description',
+        // importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'ticker',
+      ),
       iOS: DarwinNotificationDetails(),
       macOS: DarwinNotificationDetails(),
     );
@@ -33,7 +36,8 @@ class NotificationApi {
     const android = AndroidInitializationSettings('app_icon_alpha');
     const iOS = DarwinInitializationSettings();
     const linux = LinuxInitializationSettings(
-        defaultActionName: "temporary_stack_wallet");
+      defaultActionName: "temporary_stack_wallet",
+    );
     const macOS = DarwinInitializationSettings();
     const settings = InitializationSettings(
       android: android,

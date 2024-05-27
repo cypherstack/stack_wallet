@@ -16,18 +16,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import '../../../pages/token_view/my_tokens_view.dart';
 import '../../../pages/wallet_view/sub_widgets/transactions_list.dart';
 import '../../../pages/wallet_view/transaction_views/all_transactions_view.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
-import 'sub_widgets/desktop_wallet_features.dart';
-import 'sub_widgets/desktop_wallet_summary.dart';
-import 'sub_widgets/my_wallet.dart';
-import 'sub_widgets/network_info_button.dart';
-import 'sub_widgets/wallet_keys_button.dart';
-import 'sub_widgets/wallet_options_button.dart';
 import '../../../providers/global/active_wallet_provider.dart';
 import '../../../providers/global/auto_swb_service_provider.dart';
 import '../../../providers/providers.dart';
@@ -48,14 +43,20 @@ import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/hover_text_field.dart';
 import '../../../widgets/rounded_white_container.dart';
+import 'sub_widgets/desktop_wallet_features.dart';
+import 'sub_widgets/desktop_wallet_summary.dart';
+import 'sub_widgets/my_wallet.dart';
+import 'sub_widgets/network_info_button.dart';
+import 'sub_widgets/wallet_keys_button.dart';
+import 'sub_widgets/wallet_options_button.dart';
 
 /// [eventBus] should only be set during testing
 class DesktopWalletView extends ConsumerStatefulWidget {
   const DesktopWalletView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/desktopWalletView";
 
@@ -127,8 +128,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) =>
-        ref.read(currentWalletIdProvider.notifier).state = wallet.walletId);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(currentWalletIdProvider.notifier).state = wallet.walletId,
+    );
 
     if (!wallet.shouldAutoSync) {
       //   // enable auto sync if it wasn't enabled when loading wallet

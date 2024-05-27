@@ -13,8 +13,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../notifications/show_flush_bar.dart';
-import '../home_view/home_view.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -25,13 +25,14 @@ import '../../utilities/text_styles.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_pin_put/custom_pin_put.dart';
+import '../home_view/home_view.dart';
 
 class CreatePinView extends ConsumerStatefulWidget {
   const CreatePinView({
-    Key? key,
+    super.key,
     this.popOnSuccess = false,
     this.biometrics = const Biometrics(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/createPin";
 
@@ -265,8 +266,9 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                         // if (!Platform.isLinux)
                         //   assert((await _secureStore.read(key: "stack_pin")) ==
                         //       null);
-                        assert(ref.read(prefsChangeNotifierProvider).hasPin ==
-                            false);
+                        assert(
+                          ref.read(prefsChangeNotifierProvider).hasPin == false,
+                        );
 
                         await _secureStore.write(key: "stack_pin", value: pin);
 
@@ -275,7 +277,8 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                         ref.read(prefsChangeNotifierProvider).hasPin = true;
 
                         await Future<void>.delayed(
-                            const Duration(milliseconds: 200));
+                          const Duration(milliseconds: 200),
+                        );
 
                         if (mounted) {
                           if (!widget.popOnSuccess) {

@@ -27,9 +27,9 @@ import '../../../widgets/rounded_white_container.dart';
 
 class PaynymFollowingList extends ConsumerStatefulWidget {
   const PaynymFollowingList({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 

@@ -30,11 +30,11 @@ import '../../../../widgets/desktop/secondary_button.dart';
 
 class DeleteWalletKeysPopup extends ConsumerStatefulWidget {
   const DeleteWalletKeysPopup({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.words,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String walletId;
   final List<String> words;
@@ -188,9 +188,9 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
 
 class ConfirmDelete extends ConsumerStatefulWidget {
   const ConfirmDelete({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 

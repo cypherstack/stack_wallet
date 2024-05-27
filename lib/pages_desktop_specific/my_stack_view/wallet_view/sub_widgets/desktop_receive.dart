@@ -17,6 +17,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
@@ -41,7 +43,6 @@ import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
 
 class DesktopReceive extends ConsumerStatefulWidget {
   const DesktopReceive({
@@ -345,8 +346,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                     _sparkAddress ?? "Error",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
-                                                context)
-                                            .copyWith(
+                                      context,
+                                    ).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
                                           .textDark,
@@ -370,7 +371,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               onTap: () {
                 clipboard.setData(
                   ClipboardData(
-                      text: ref.watch(pWalletReceivingAddress(walletId))),
+                    text: ref.watch(pWalletReceivingAddress(walletId)),
+                  ),
                 );
                 showFloatingFlushBar(
                   type: FlushBarType.info,
@@ -435,8 +437,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                             child: Text(
                               ref.watch(pWalletReceivingAddress(walletId)),
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textDark,

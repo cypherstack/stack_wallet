@@ -10,9 +10,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../models/balance.dart';
 import '../../../../pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
-import 'desktop_balance_toggle_button.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
@@ -26,14 +26,15 @@ import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import 'desktop_balance_toggle_button.dart';
 
 class DesktopWalletSummary extends ConsumerStatefulWidget {
   const DesktopWalletSummary({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.initialSyncStatus,
     this.isToken = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
@@ -65,7 +66,8 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final isFiro = coin is Firo;
     final locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
@@ -75,10 +77,14 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
         : null;
 
     final priceTuple = widget.isToken
-        ? ref.watch(priceAnd24hChangeNotifierProvider
-            .select((value) => value.getTokenPrice(tokenContract!.address)))
-        : ref.watch(priceAnd24hChangeNotifierProvider
-            .select((value) => value.getPrice(coin)));
+        ? ref.watch(
+            priceAnd24hChangeNotifierProvider
+                .select((value) => value.getTokenPrice(tokenContract!.address)),
+          )
+        : ref.watch(
+            priceAnd24hChangeNotifierProvider
+                .select((value) => value.getPrice(coin)),
+          );
 
     final _showAvailable =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
@@ -103,9 +109,12 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
           break;
       }
     } else {
-      Balance balance = widget.isToken
-          ? ref.watch(pTokenBalance(
-              (walletId: walletId, contractAddress: tokenContract!.address)))
+      final Balance balance = widget.isToken
+          ? ref.watch(
+              pTokenBalance(
+                (walletId: walletId, contractAddress: tokenContract!.address),
+              ),
+            )
           : ref.watch(pWalletBalance(walletId));
 
       balanceToShow = _showAvailable ? balance.spendable : balance.total;

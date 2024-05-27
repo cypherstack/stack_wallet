@@ -11,10 +11,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/isar_models.dart';
-import 'address_card.dart';
-import 'address_details_view.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -23,13 +23,14 @@ import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/loading_indicator.dart';
-import 'package:tuple/tuple.dart';
+import 'address_card.dart';
+import 'address_details_view.dart';
 
 class WalletAddressesView extends ConsumerStatefulWidget {
   const WalletAddressesView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/walletAddressesView";
 
@@ -53,14 +54,16 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
       return MainDB.instance
           .getAddresses(widget.walletId)
           .filter()
-          .group((q) => q
-              .subTypeEqualTo(AddressSubType.change)
-              .or()
-              .subTypeEqualTo(AddressSubType.receiving)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymReceive)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymNotification))
+          .group(
+            (q) => q
+                .subTypeEqualTo(AddressSubType.change)
+                .or()
+                .subTypeEqualTo(AddressSubType.receiving)
+                .or()
+                .subTypeEqualTo(AddressSubType.paynymReceive)
+                .or()
+                .subTypeEqualTo(AddressSubType.paynymNotification),
+          )
           .and()
           .not()
           .typeEqualTo(AddressType.nonWallet)
@@ -95,15 +98,19 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
         .getAddresses(widget.walletId)
         .filter()
         .anyOf<AddressLabel, Address>(
-            labels, (q, e) => q.valueEqualTo(e.addressString))
-        .group((q) => q
-            .subTypeEqualTo(AddressSubType.change)
-            .or()
-            .subTypeEqualTo(AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(AddressSubType.paynymReceive)
-            .or()
-            .subTypeEqualTo(AddressSubType.paynymNotification))
+          labels,
+          (q, e) => q.valueEqualTo(e.addressString),
+        )
+        .group(
+          (q) => q
+              .subTypeEqualTo(AddressSubType.change)
+              .or()
+              .subTypeEqualTo(AddressSubType.receiving)
+              .or()
+              .subTypeEqualTo(AddressSubType.paynymReceive)
+              .or()
+              .subTypeEqualTo(AddressSubType.paynymNotification),
+        )
         .and()
         .not()
         .typeEqualTo(AddressType.nonWallet)

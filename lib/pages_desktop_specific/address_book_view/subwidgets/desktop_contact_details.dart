@@ -63,12 +63,14 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
         .transactions
         .where()
         .filter()
-        .anyOf(contact.addresses.map((e) => e.address),
-            (q, String e) => q.address((q) => q.valueEqualTo(e)))
+        .anyOf(
+          contact.addresses.map((e) => e.address),
+          (q, String e) => q.address((q) => q.valueEqualTo(e)),
+        )
         .sortByTimestampDesc()
         .findAll();
 
-    List<Tuple2<String, Transaction>> result = [];
+    final List<Tuple2<String, Transaction>> result = [];
 
     for (final tx in transactions) {
       result.add(Tuple2(tx.walletId, tx));
@@ -85,8 +87,10 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
     // provider hack to prevent trying to update widget with deleted contact
     ContactEntry? _contact;
     try {
-      _contact = ref.watch(addressBookServiceProvider
-          .select((value) => value.getContactById(widget.contactId)));
+      _contact = ref.watch(
+        addressBookServiceProvider
+            .select((value) => value.getContactById(widget.contactId)),
+      );
     } catch (_) {
       return Container();
     }
@@ -186,7 +190,8 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             text: "Add new",
                             onTap: () async {
                               ref.refresh(
-                                  addressEntryDataProviderFamilyRefresher);
+                                addressEntryDataProviderFamilyRefresher,
+                              );
 
                               await showDialog<void>(
                                 context: context,
@@ -280,9 +285,11 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                       ),
                       FutureBuilder(
                         future: _filteredTransactionsByContact(),
-                        builder: (_,
-                            AsyncSnapshot<List<Tuple2<String, Transaction>>>
-                                snapshot) {
+                        builder: (
+                          _,
+                          AsyncSnapshot<List<Tuple2<String, Transaction>>>
+                              snapshot,
+                        ) {
                           if (snapshot.connectionState ==
                                   ConnectionState.done &&
                               snapshot.hasData) {
@@ -300,7 +307,8 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                     ..._cachedTransactions.map(
                                       (e) => TransactionCard(
                                         key: Key(
-                                            "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey"),
+                                          "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                        ),
                                         transaction: e.item2,
                                         walletId: e.item1,
                                       ),
@@ -334,7 +342,8 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                     ..._cachedTransactions.map(
                                       (e) => TransactionCard(
                                         key: Key(
-                                            "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey"),
+                                          "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                        ),
                                         transaction: e.item2,
                                         walletId: e.item1,
                                       ),

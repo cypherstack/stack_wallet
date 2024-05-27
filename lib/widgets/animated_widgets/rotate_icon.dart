@@ -18,13 +18,13 @@ class RotateIconController {
 
 class RotateIcon extends StatefulWidget {
   const RotateIcon({
-    Key? key,
+    super.key,
     required this.icon,
     required this.curve,
     this.controller,
     this.animationDurationMultiplier = 1.0,
     this.rotationPercent = 0.5,
-  }) : super(key: key);
+  });
 
   final Widget icon;
   final Curve curve;

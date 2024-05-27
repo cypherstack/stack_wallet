@@ -86,7 +86,7 @@ class NodeModel {
   }
 
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {};
+    final Map<String, dynamic> map = {};
     map['host'] = host;
     map['port'] = port;
     map['name'] = name;

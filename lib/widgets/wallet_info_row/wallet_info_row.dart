@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages/token_view/sub_widgets/token_summary.dart';
 import '../../providers/db/main_db_provider.dart';
@@ -23,12 +24,12 @@ import 'sub_widgets/wallet_info_row_coin_icon.dart';
 
 class WalletInfoRow extends ConsumerWidget {
   const WalletInfoRow({
-    Key? key,
+    super.key,
     required this.walletId,
     this.onPressedDesktop,
     this.contractAddress,
     this.padding = const EdgeInsets.all(0),
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String? contractAddress;
@@ -41,8 +42,10 @@ class WalletInfoRow extends ConsumerWidget {
 
     EthContract? contract;
     if (contractAddress != null) {
-      contract = ref.watch(mainDBProvider
-          .select((value) => value.getEthContractSync(contractAddress!)));
+      contract = ref.watch(
+        mainDBProvider
+            .select((value) => value.getEthContractSync(contractAddress!)),
+      );
     }
 
     if (Util.isDesktop) {
@@ -114,7 +117,7 @@ class WalletInfoRow extends ConsumerWidget {
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),

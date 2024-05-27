@@ -20,7 +20,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/stack_dialog.dart';
 
 class RestoreSucceededDialog extends StatelessWidget {
-  const RestoreSucceededDialog({Key? key}) : super(key: key);
+  const RestoreSucceededDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

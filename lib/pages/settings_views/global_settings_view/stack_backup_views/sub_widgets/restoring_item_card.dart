@@ -15,7 +15,7 @@ import '../../../../../widgets/rounded_white_container.dart';
 
 class RestoringItemCard extends StatelessWidget {
   const RestoringItemCard({
-    Key? key,
+    super.key,
     required this.left,
     required this.right,
     required this.title,
@@ -23,7 +23,7 @@ class RestoringItemCard extends StatelessWidget {
     this.leftSize = 32.0,
     this.button,
     this.onRightTapped,
-  }) : super(key: key);
+  });
 
   final Widget left;
   final Widget right;

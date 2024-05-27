@@ -15,7 +15,7 @@ import 'package:stackwallet/services/wallets_service.dart';
 // import 'change_pin_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
+  MockSpec<WalletsService>(),
 ])
 void main() {
 //   testWidgets("ChangePinView builds correctly", (tester) async {

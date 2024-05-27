@@ -27,9 +27,9 @@ import '../../../../widgets/textfield_icon_button.dart';
 
 class RenameWalletView extends ConsumerStatefulWidget {
   const RenameWalletView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/renameWallet";
 

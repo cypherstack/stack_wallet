@@ -14,8 +14,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../wallet_view/wallet_view.dart';
-import '../wallets_overview.dart';
+
 import '../../../providers/providers.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -24,11 +23,12 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../widgets/dialogs/tor_warning_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../wallet_view/wallet_view.dart';
+import '../wallets_overview.dart';
 
 class WalletListItem extends ConsumerWidget {
   const WalletListItem({
@@ -128,16 +128,19 @@ class WalletListItem extends ConsumerWidget {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final tuple = ref.watch(priceAnd24hChangeNotifierProvider
-                      .select((value) => value.getPrice(coin)));
+                  final tuple = ref.watch(
+                    priceAnd24hChangeNotifierProvider
+                        .select((value) => value.getPrice(coin)),
+                  );
                   final calls =
                       ref.watch(prefsChangeNotifierProvider).externalCalls;
 
                   final priceString =
                       tuple.item1.toAmount(fractionDigits: 2).fiatString(
                             locale: ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale)),
+                              localeServiceChangeNotifierProvider
+                                  .select((value) => value.locale),
+                            ),
                           );
 
                   final double percentChange = tuple.item2;

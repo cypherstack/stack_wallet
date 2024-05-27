@@ -6,6 +6,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
+
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -626,7 +627,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
 
       final spentCoinTagsFuture = electrumXCachedClient.getSparkUsedCoinsTags(
-          cryptoCurrency: info.coin);
+        cryptoCurrency: info.coin,
+      );
 
       final futureResults = await Future.wait([
         anonymitySetFuture,

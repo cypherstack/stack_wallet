@@ -14,7 +14,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
 class SendNavIcon extends StatelessWidget {
-  const SendNavIcon({Key? key}) : super(key: key);
+  const SendNavIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

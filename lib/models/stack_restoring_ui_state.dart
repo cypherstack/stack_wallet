@@ -10,9 +10,10 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'wallet_restore_state.dart';
+
 import '../utilities/enums/stack_restoring_status.dart';
 import '../wallets/wallet/wallet.dart';
+import 'wallet_restore_state.dart';
 
 class StackRestoringUIState extends ChangeNotifier {
   bool _walletsWasSet = false;
@@ -94,7 +95,7 @@ class StackRestoringUIState extends ChangeNotifier {
   }
 
   List<Wallet> get wallets {
-    List<Wallet> _wallets = [];
+    final List<Wallet> _wallets = [];
     for (final item in _walletStates.values) {
       if (item.wallet != null) {
         _wallets.add(item.wallet!);
@@ -125,7 +126,8 @@ class StackRestoringUIState extends ChangeNotifier {
   }
 
   ChangeNotifierProvider<WalletRestoreState> getWalletRestoreStateProvider(
-      String walletId) {
+    String walletId,
+  ) {
     return _walletStateProviders[walletId]!;
   }
 

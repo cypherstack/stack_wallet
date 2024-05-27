@@ -25,9 +25,9 @@ import '../../../../widgets/stack_dialog.dart';
 
 class WalletSettingsWalletSettingsView extends ConsumerWidget {
   const WalletSettingsWalletSettingsView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/walletSettingsWalletSettings";
 

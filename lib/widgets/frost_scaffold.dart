@@ -186,7 +186,7 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                             width: 500,
                             child: child,
                           ),
-                        )
+                        ),
                       ],
                     ),
                     child: ConditionalParent(

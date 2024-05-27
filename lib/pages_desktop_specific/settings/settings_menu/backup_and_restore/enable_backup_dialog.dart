@@ -18,7 +18,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 
 class EnableBackupDialog extends StatelessWidget {
-  const EnableBackupDialog({Key? key}) : super(key: key);
+  const EnableBackupDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +88,7 @@ class EnableBackupDialog extends StatelessWidget {
                       createAutoBackup();
                     },
                   ),
-                )
+                ),
               ],
             ),
           ),

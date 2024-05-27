@@ -33,9 +33,9 @@ import '../../widgets/desktop/primary_button.dart';
 
 class PaynymClaimView extends ConsumerStatefulWidget {
   const PaynymClaimView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -113,7 +113,7 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   Text(
                     "PayNym",
                     style: STextStyles.desktopH3(context),
-                  )
+                  ),
                 ],
               ),
             )

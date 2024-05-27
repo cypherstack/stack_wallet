@@ -17,7 +17,7 @@ import '../stack_dialog.dart';
 
 class BasicDialog extends StatelessWidget {
   const BasicDialog({
-    Key? key,
+    super.key,
     this.leftButton,
     this.rightButton,
     this.icon,
@@ -27,7 +27,7 @@ class BasicDialog extends StatelessWidget {
     this.desktopWidth = 641,
     this.canPopWithBackButton = false,
     this.flex = false,
-  }) : super(key: key);
+  });
 
   final Widget? leftButton;
   final Widget? rightButton;
@@ -103,7 +103,7 @@ class BasicDialog extends StatelessWidget {
                         : const Spacer(),
                   ],
                 ),
-              )
+              ),
           ],
         ),
       );

@@ -51,8 +51,10 @@ class ContactPopUp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.6;
-    final contact = ref.watch(addressBookServiceProvider
-        .select((value) => value.getContactById(contactId)));
+    final contact = ref.watch(
+      addressBookServiceProvider
+          .select((value) => value.getContactById(contactId)),
+    );
 
     final active = ref.read(currentWalletIdProvider);
 
@@ -157,7 +159,8 @@ class ContactPopUp extends ConsumerWidget {
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
                                             .getSecondaryEnabledButtonStyle(
-                                                context)!
+                                              context,
+                                            )!
                                             .copyWith(
                                               minimumSize:
                                                   MaterialStateProperty.all<
@@ -165,10 +168,14 @@ class ContactPopUp extends ConsumerWidget {
                                             ),
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 18),
-                                          child: Text("Details",
-                                              style: STextStyles.buttonSmall(
-                                                  context)),
+                                            horizontal: 18,
+                                          ),
+                                          child: Text(
+                                            "Details",
+                                            style: STextStyles.buttonSmall(
+                                              context,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                   ],
@@ -186,7 +193,8 @@ class ContactPopUp extends ConsumerWidget {
                               if (addresses.isEmpty)
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 20),
+                                    horizontal: 20,
+                                  ),
                                   child: RoundedWhiteContainer(
                                     child: Center(
                                       child: Text(
@@ -237,14 +245,16 @@ class ContactPopUp extends ConsumerWidget {
                                                 e.other!,
                                                 style:
                                                     STextStyles.itemSubtitle12(
-                                                        context),
+                                                  context,
+                                                ),
                                               ),
                                             if (contact.customId != "default")
                                               Text(
                                                 "${e.label} (${e.coin.ticker})",
                                                 style:
                                                     STextStyles.itemSubtitle12(
-                                                        context),
+                                                  context,
+                                                ),
                                               ),
                                             const SizedBox(
                                               height: 2,
@@ -252,8 +262,8 @@ class ContactPopUp extends ConsumerWidget {
                                             Text(
                                               e.address,
                                               style: STextStyles.itemSubtitle(
-                                                      context)
-                                                  .copyWith(
+                                                context,
+                                              ).copyWith(
                                                 fontSize: 8,
                                               ),
                                             ),
@@ -286,12 +296,13 @@ class ContactPopUp extends ConsumerWidget {
                                                   .textFieldDefaultBG,
                                               padding: const EdgeInsets.all(6),
                                               child: SvgPicture.asset(
-                                                  Assets.svg.copy,
-                                                  width: 16,
-                                                  height: 16,
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark),
+                                                Assets.svg.copy,
+                                                width: 16,
+                                                height: 16,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorDark,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -310,12 +321,15 @@ class ContactPopUp extends ConsumerWidget {
                                               onTap: () {
                                                 ref
                                                     .read(
-                                                        exchangeFromAddressBookAddressStateProvider
-                                                            .state)
+                                                      exchangeFromAddressBookAddressStateProvider
+                                                          .state,
+                                                    )
                                                     .state = e.address;
                                                 Navigator.of(context).popUntil(
-                                                    ModalRoute.withName(
-                                                        Step2View.routeName));
+                                                  ModalRoute.withName(
+                                                    Step2View.routeName,
+                                                  ),
+                                                );
                                               },
                                               child: RoundedContainer(
                                                 color: Theme.of(context)
@@ -324,13 +338,13 @@ class ContactPopUp extends ConsumerWidget {
                                                 padding:
                                                     const EdgeInsets.all(6),
                                                 child: SvgPicture.asset(
-                                                    Assets.svg.chevronRight,
-                                                    width: 16,
-                                                    height: 16,
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .accentColorDark),
+                                                  Assets.svg.chevronRight,
+                                                  width: 16,
+                                                  height: 16,
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .accentColorDark,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -363,7 +377,8 @@ class ContactPopUp extends ConsumerWidget {
                                                     arguments: Tuple3(
                                                       active,
                                                       ref.read(
-                                                          pWalletCoin(active)),
+                                                        pWalletCoin(active),
+                                                      ),
                                                       SendViewAutoFillData(
                                                         address: address,
                                                         contactLabel:
@@ -381,18 +396,15 @@ class ContactPopUp extends ConsumerWidget {
                                                   Util.isDesktop ? 4 : 6,
                                                 ),
                                                 child: SvgPicture.asset(
-                                                    Assets
-                                                        .svg.circleArrowUpRight,
-                                                    width: Util.isDesktop
-                                                        ? 12
-                                                        : 16,
-                                                    height: Util.isDesktop
-                                                        ? 12
-                                                        : 16,
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .accentColorDark),
+                                                  Assets.svg.circleArrowUpRight,
+                                                  width:
+                                                      Util.isDesktop ? 12 : 16,
+                                                  height:
+                                                      Util.isDesktop ? 12 : 16,
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .accentColorDark,
+                                                ),
                                               ),
                                             ),
                                           ],

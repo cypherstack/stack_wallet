@@ -18,8 +18,8 @@ import 'package:stackwallet/services/wallets_service.dart';
 // import 'create_pin_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<NodeService>(returnNullOnMissingStub: true),
+  MockSpec<WalletsService>(),
+  MockSpec<NodeService>(),
 ])
 void main() {
 //   testWidgets("CreatePinView builds correctly", (tester) async {

@@ -11,18 +11,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
-import 'my_token_select_item.dart';
 import '../../../utilities/util.dart';
+import 'my_token_select_item.dart';
 
 class MyTokensList extends StatelessWidget {
   const MyTokensList({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.searchTerm,
     required this.tokenContracts,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String searchTerm;
@@ -39,7 +40,9 @@ class MyTokensList extends StatelessWidget {
           .getEthContracts()
           .filter()
           .anyOf<String, EthContract>(
-              tokenContracts, (q, e) => q.addressEqualTo(e))
+            tokenContracts,
+            (q, e) => q.addressEqualTo(e),
+          )
           .and()
           .group(
             (q) => q
@@ -57,7 +60,9 @@ class MyTokensList extends StatelessWidget {
         .getEthContracts()
         .filter()
         .anyOf<String, EthContract>(
-            tokenContracts, (q, e) => q.addressEqualTo(e))
+          tokenContracts,
+          (q, e) => q.addressEqualTo(e),
+        )
         .findAllSync();
   }
 

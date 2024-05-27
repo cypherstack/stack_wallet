@@ -12,6 +12,7 @@ import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/constants.dart';
@@ -25,8 +26,8 @@ import 'textfield_icon_button.dart';
 
 class EmojiSelectSheet extends ConsumerStatefulWidget {
   const EmojiSelectSheet({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final double horizontalPadding = 24;
   final double emojiSize = 24;
@@ -55,11 +56,13 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
     text = text.toLowerCase();
 
     return Emoji.all()
-        .where((e) => e.keywords
-            .where(
-              (e) => e.contains(text),
-            )
-            .isNotEmpty)
+        .where(
+          (e) => e.keywords
+              .where(
+                (e) => e.contains(text),
+              )
+              .isNotEmpty,
+        )
         .toList(growable: false);
   }
 
@@ -239,7 +242,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
                       );
                     },
                   ),
-                )
+                ),
               ],
             ),
           ),

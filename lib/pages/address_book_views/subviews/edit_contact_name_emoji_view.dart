@@ -14,6 +14,7 @@ import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -33,9 +34,9 @@ import '../../../widgets/textfield_icon_button.dart';
 
 class EditContactNameEmojiView extends ConsumerStatefulWidget {
   const EditContactNameEmojiView({
-    Key? key,
+    super.key,
     required this.contactId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/editContactNameEmoji";
 
@@ -82,8 +83,10 @@ class _EditContactNameEmojiViewState
 
   @override
   Widget build(BuildContext context) {
-    final contact = ref.watch(addressBookServiceProvider
-        .select((value) => value.getContactById(contactId)));
+    final contact = ref.watch(
+      addressBookServiceProvider
+          .select((value) => value.getContactById(contactId)),
+    );
 
     final isDesktop = Util.isDesktop;
     final double emojiSize = isDesktop ? 56 : 48;
@@ -152,23 +155,24 @@ class _EditContactNameEmojiViewState
                   }
                   if (isDesktop) {
                     showDialog<dynamic>(
-                        barrierColor: Colors.transparent,
-                        context: context,
-                        builder: (context) {
-                          return const DesktopDialog(
-                            maxHeight: 700,
-                            maxWidth: 600,
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                left: 32,
-                                right: 20,
-                                top: 32,
-                                bottom: 32,
-                              ),
-                              child: EmojiSelectSheet(),
+                      barrierColor: Colors.transparent,
+                      context: context,
+                      builder: (context) {
+                        return const DesktopDialog(
+                          maxHeight: 700,
+                          maxWidth: 600,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              left: 32,
+                              right: 20,
+                              top: 32,
+                              bottom: 32,
                             ),
-                          );
-                        }).then((value) {
+                            child: EmojiSelectSheet(),
+                          ),
+                        );
+                      },
+                    ).then((value) {
                       if (value is Emoji) {
                         setState(() {
                           _selectedEmoji = value;
@@ -229,10 +233,11 @@ class _EditContactNameEmojiViewState
                           height: 14,
                           width: 14,
                           decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark),
+                            borderRadius: BorderRadius.circular(14),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
+                          ),
                           child: Center(
                             child: _selectedEmoji == null
                                 ? SvgPicture.asset(
@@ -253,7 +258,7 @@ class _EditContactNameEmojiViewState
                                   ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -362,7 +367,8 @@ class _EditContactNameEmojiViewState
                     if (!isDesktop && FocusScope.of(context).hasFocus) {
                       FocusScope.of(context).unfocus();
                       await Future<void>.delayed(
-                          const Duration(milliseconds: 75));
+                        const Duration(milliseconds: 75),
+                      );
                     }
                     if (mounted) {
                       Navigator.of(context).pop();
@@ -403,7 +409,7 @@ class _EditContactNameEmojiViewState
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

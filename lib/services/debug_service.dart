@@ -14,6 +14,7 @@ import 'dart:io';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+
 import '../models/isar/models/log.dart';
 import '../utilities/logger.dart';
 
@@ -44,7 +45,11 @@ class DebugService extends ChangeNotifier {
     // });
   }
 
-  List<Log> get recentLogs => isar.logs.where().sortByTimestampInMillisUTCDesc().limit(100).findAllSync();
+  List<Log> get recentLogs => isar.logs
+      .where()
+      .sortByTimestampInMillisUTCDesc()
+      .limit(100)
+      .findAllSync();
 
   // Future<void> updateRecentLogs() async {
   //   int totalCount = await isar.logs.count();
@@ -95,7 +100,7 @@ class DebugService extends ChangeNotifier {
     final filename =
         "Stack_Wallet_logs_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.txt";
     final filepath = "$directory/$filename";
-    File file = await File(filepath).create();
+    final File file = await File(filepath).create();
 
     final sink = file.openWrite();
     final logs = await isar.logs.where().anyTimestampInMillisUTC().findAll();

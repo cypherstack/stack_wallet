@@ -17,10 +17,10 @@ import '../../../utilities/prefs.dart';
 
 class PayNymBot extends StatelessWidget {
   const PayNymBot({
-    Key? key,
+    super.key,
     required this.paymentCodeString,
     this.size = 60.0,
-  }) : super(key: key);
+  });
 
   final String paymentCodeString;
   final double size;

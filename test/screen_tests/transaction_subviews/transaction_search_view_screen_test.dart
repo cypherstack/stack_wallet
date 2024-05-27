@@ -14,7 +14,7 @@ import 'package:stackwallet/services/address_book_service.dart';
 // import 'transaction_search_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<AddressBookService>(returnNullOnMissingStub: true),
+  MockSpec<AddressBookService>(),
 ])
 void main() {
 //   testWidgets("TransactionSearchView builds correctly", (tester) async {

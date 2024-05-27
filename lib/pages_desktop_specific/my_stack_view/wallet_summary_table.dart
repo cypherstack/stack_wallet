@@ -186,7 +186,7 @@ class _DesktopWalletSummaryRowState
                             .extension<StackColors>()!
                             .textDark,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -218,7 +218,7 @@ class _DesktopWalletSummaryRowState
 }
 
 class TablePriceInfo extends ConsumerWidget {
-  const TablePriceInfo({Key? key, required this.coin}) : super(key: key);
+  const TablePriceInfo({super.key, required this.coin});
 
   final CryptoCurrency coin;
 

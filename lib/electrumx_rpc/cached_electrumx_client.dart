@@ -11,11 +11,12 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:string_validator/string_validator.dart';
+
 import '../db/hive/db.dart';
-import 'electrumx_client.dart';
 import '../utilities/logger.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'package:string_validator/string_validator.dart';
+import 'electrumx_client.dart';
 
 class CachedElectrumXClient {
   final ElectrumXClient electrumXClient;
@@ -331,8 +332,9 @@ class CachedElectrumXClient {
   }
 
   /// Clear all cached transactions for the specified coin
-  Future<void> clearSharedTransactionCache(
-      {required CryptoCurrency cryptoCurrency}) async {
+  Future<void> clearSharedTransactionCache({
+    required CryptoCurrency cryptoCurrency,
+  }) async {
     await DB.instance.clearSharedTransactionCache(currency: cryptoCurrency);
     await DB.instance.closeAnonymitySetCacheBox(currency: cryptoCurrency);
   }

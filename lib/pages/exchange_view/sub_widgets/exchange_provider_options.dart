@@ -24,10 +24,10 @@ import '../../../widgets/rounded_white_container.dart';
 
 class ExchangeProviderOptions extends ConsumerStatefulWidget {
   const ExchangeProviderOptions({
-    Key? key,
+    super.key,
     required this.fixedRate,
     required this.reversed,
-  }) : super(key: key);
+  });
 
   final bool fixedRate;
   final bool reversed;

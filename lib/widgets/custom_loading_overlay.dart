@@ -21,13 +21,13 @@ import 'loading_indicator.dart';
 
 class CustomLoadingOverlay extends ConsumerStatefulWidget {
   const CustomLoadingOverlay({
-    Key? key,
+    super.key,
     required this.message,
     this.subMessage,
     required this.eventBus,
     this.textColor,
     this.actionButton,
-  }) : super(key: key);
+  });
 
   final String message;
   final String? subMessage;

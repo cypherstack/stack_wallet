@@ -33,10 +33,10 @@ class WalletNavigationBarItemData {
 
 class WalletNavigationBarItem extends ConsumerWidget {
   const WalletNavigationBarItem({
-    Key? key,
+    super.key,
     required this.data,
     required this.disableDuration,
-  }) : super(key: key);
+  });
 
   final WalletNavigationBarItemData data;
   final Duration disableDuration;
@@ -95,9 +95,9 @@ class WalletNavigationBarItem extends ConsumerWidget {
 
 class WalletNavigationBarMoreItem extends ConsumerWidget {
   const WalletNavigationBarMoreItem({
-    Key? key,
+    super.key,
     required this.data,
-  }) : super(key: key);
+  });
 
   final WalletNavigationBarItemData data;
 

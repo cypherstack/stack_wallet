@@ -15,11 +15,11 @@ import '../../utilities/assets.dart';
 
 class AddressBookIcon extends StatelessWidget {
   const AddressBookIcon({
-    Key? key,
+    super.key,
     this.width = 16,
     this.height = 16,
     this.color,
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;

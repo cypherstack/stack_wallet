@@ -14,7 +14,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
 class CoinControlNavIcon extends StatelessWidget {
-  const CoinControlNavIcon({Key? key}) : super(key: key);
+  const CoinControlNavIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

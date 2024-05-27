@@ -22,7 +22,7 @@ import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/managed_favorite.dart';
 
 class ManageFavoritesView extends StatelessWidget {
-  const ManageFavoritesView({Key? key}) : super(key: key);
+  const ManageFavoritesView({super.key});
 
   static const routeName = "/manageFavorites";
 
@@ -219,7 +219,7 @@ class ManageFavoritesView extends StatelessWidget {
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
                     ),

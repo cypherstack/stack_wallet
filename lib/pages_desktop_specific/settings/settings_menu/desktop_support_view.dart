@@ -17,7 +17,7 @@ import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 
 class DesktopSupportView extends ConsumerStatefulWidget {
-  const DesktopSupportView({Key? key}) : super(key: key);
+  const DesktopSupportView({super.key});
 
   static const String routeName = "/desktopSupportView";
 
@@ -42,17 +42,17 @@ class _DesktopSupportView extends ConsumerState<DesktopSupportView> {
             Text(
               "Support",
               style: STextStyles.desktopH3(context),
-            )
+            ),
           ],
         ),
       ),
-      body: Column(
+      body: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 10, 0, 0),
+            padding: EdgeInsets.fromLTRB(24, 10, 0, 0),
             child: Row(
-              children: const [
+              children: [
                 SizedBox(
                   width: 576,
                   child: SupportView(),

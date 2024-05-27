@@ -152,7 +152,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                         _attemptAnonymize(),
                       );
                     },
-                  )
+                  ),
                 ],
               ),
             ],
@@ -261,7 +261,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),

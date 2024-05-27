@@ -22,9 +22,9 @@ import '../utilities/util.dart';
 
 class DesktopWalletNameField extends ConsumerStatefulWidget {
   const DesktopWalletNameField({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 

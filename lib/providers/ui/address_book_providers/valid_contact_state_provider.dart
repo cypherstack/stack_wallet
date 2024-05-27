@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'address_entry_data_provider.dart';
 
 final validContactStateProvider =
@@ -19,10 +20,12 @@ final validContactStateProvider =
 
   for (int i = 0; i < ids.length; i++) {
     final _valid = ref.watch(
-        addressEntryDataProvider(ids[i]).select((value) => value.isValid));
+      addressEntryDataProvider(ids[i]).select((value) => value.isValid),
+    );
 
     final _isEmpty = ref.watch(
-        addressEntryDataProvider(ids[i]).select((value) => value.isEmpty));
+      addressEntryDataProvider(ids[i]).select((value) => value.isEmpty),
+    );
 
     isValid = isValid && (_valid || _isEmpty);
     if (_valid) {

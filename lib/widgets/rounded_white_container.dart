@@ -14,7 +14,7 @@ import 'rounded_container.dart';
 
 class RoundedWhiteContainer extends StatelessWidget {
   const RoundedWhiteContainer({
-    Key? key,
+    super.key,
     this.child,
     this.padding = const EdgeInsets.all(12),
     this.radiusMultiplier = 1.0,
@@ -24,7 +24,7 @@ class RoundedWhiteContainer extends StatelessWidget {
     this.hoverColor,
     this.boxShadow,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final Widget? child;
   final EdgeInsets padding;

@@ -31,7 +31,7 @@ extension BigIntExtensions on BigInt {
       throw Exception("BigInt value is negative");
     }
     BigInt number = this;
-    int bytes = (number.bitLength + 7) >> 3;
+    final int bytes = (number.bitLength + 7) >> 3;
     final b256 = BigInt.from(256);
     final result = Uint8List(bytes);
     for (int i = 0; i < bytes; i++) {

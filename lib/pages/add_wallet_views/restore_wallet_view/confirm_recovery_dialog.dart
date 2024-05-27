@@ -21,8 +21,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class ConfirmRecoveryDialog extends StatelessWidget {
-  const ConfirmRecoveryDialog({Key? key, required this.onConfirm})
-      : super(key: key);
+  const ConfirmRecoveryDialog({super.key, required this.onConfirm});
 
   final VoidCallback onConfirm;
 
@@ -85,10 +84,10 @@ class ConfirmRecoveryDialog extends StatelessWidget {
                         onConfirm.call();
                       },
                     ),
-                  )
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       );

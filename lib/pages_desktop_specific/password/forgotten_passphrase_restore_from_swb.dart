@@ -42,7 +42,7 @@ import '../../widgets/stack_text_field.dart';
 import 'create_password_view.dart';
 
 class ForgottenPassphraseRestoreFromSWB extends ConsumerStatefulWidget {
-  const ForgottenPassphraseRestoreFromSWB({Key? key}) : super(key: key);
+  const ForgottenPassphraseRestoreFromSWB({super.key});
 
   static const String routeName = "/forgottenPassphraseRestoreFromSWB";
 
@@ -360,7 +360,8 @@ class _ForgottenPassphraseRestoreFromSWBState
                               ),
                               GestureDetector(
                                 key: const Key(
-                                    "restoreFromFilePasswordFieldShowPasswordButtonKey"),
+                                  "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                ),
                                 onTap: () async {
                                   setState(() {
                                     hidePassword = !hidePassword;

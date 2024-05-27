@@ -2,6 +2,7 @@ import 'package:bip32/bip32.dart';
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:flutter/foundation.dart';
 import 'package:lelantus/lelantus.dart' as lelantus;
+
 import '../../models/isar/models/isar_models.dart' as isar_models;
 import '../../models/isar/models/isar_models.dart';
 import '../../models/lelantus_fee_data.dart';
@@ -70,8 +71,8 @@ abstract final class LelantusFfiWrapper {
       String partialDerivationPath,
     }) args,
   ) async {
-    List<int> jindexes = [];
-    List<isar_models.LelantusCoin> lelantusCoins = [];
+    final List<int> jindexes = [];
+    final List<isar_models.LelantusCoin> lelantusCoins = [];
 
     final List<String> spendTxIds = [];
     int lastFoundIndex = 0;
@@ -121,10 +122,12 @@ abstract final class LelantusFfiWrapper {
             );
             final bool isUsed = args.usedSerialNumbers.contains(serialNumber);
 
-            lelantusCoins.removeWhere((e) =>
-                e.txid == txId &&
-                e.mintIndex == currentIndex &&
-                e.anonymitySetId != setId);
+            lelantusCoins.removeWhere(
+              (e) =>
+                  e.txid == txId &&
+                  e.mintIndex == currentIndex &&
+                  e.anonymitySetId != setId,
+            );
 
             lelantusCoins.add(
               isar_models.LelantusCoin(
@@ -164,10 +167,12 @@ abstract final class LelantusFfiWrapper {
               );
               final bool isUsed = args.usedSerialNumbers.contains(serialNumber);
 
-              lelantusCoins.removeWhere((e) =>
-                  e.txid == txId &&
-                  e.mintIndex == currentIndex &&
-                  e.anonymitySetId != setId);
+              lelantusCoins.removeWhere(
+                (e) =>
+                    e.txid == txId &&
+                    e.mintIndex == currentIndex &&
+                    e.anonymitySetId != setId,
+              );
 
               lelantusCoins.add(
                 isar_models.LelantusCoin(
@@ -218,12 +223,13 @@ abstract final class LelantusFfiWrapper {
   }
 
   static Future<LelantusFeeData> _estimateJoinSplitFee(
-      ({
-        int spendAmount,
-        bool subtractFeeFromAmount,
-        List<lelantus.DartLelantusEntry> lelantusEntries,
-        bool isTestNet,
-      }) data) async {
+    ({
+      int spendAmount,
+      bool subtractFeeFromAmount,
+      List<lelantus.DartLelantusEntry> lelantusEntries,
+      bool isTestNet,
+    }) data,
+  ) async {
     debugPrint("estimateJoinSplit fee");
     // for (int i = 0; i < lelantusEntries.length; i++) {
     //   Logging.instance.log(lelantusEntries[i], addToDebugMessagesDB: false);
@@ -232,8 +238,8 @@ abstract final class LelantusFfiWrapper {
       "${data.spendAmount} ${data.subtractFeeFromAmount}",
     );
 
-    List<int> changeToMint = List.empty(growable: true);
-    List<int> spendCoinIndexes = List.empty(growable: true);
+    final List<int> changeToMint = List.empty(growable: true);
+    final List<int> spendCoinIndexes = List.empty(growable: true);
     // Logging.instance.log(lelantusEntries, addToDebugMessagesDB: false);
     final fee = lelantus.estimateFee(
       data.spendAmount,
@@ -286,18 +292,19 @@ abstract final class LelantusFfiWrapper {
   }
 
   static Future<TxData> _createJoinSplitTransaction(
-      ({
-        TxData txData,
-        bool subtractFeeFromAmount,
-        int index,
-        List<lelantus.DartLelantusEntry> lelantusEntries,
-        int locktime,
-        Bip39HDCurrency cryptoCurrency,
-        List<Map<dynamic, dynamic>> anonymitySetsArg,
-        String partialDerivationPath,
-        String hexRootPrivateKey,
-        Uint8List chaincode,
-      }) arg) async {
+    ({
+      TxData txData,
+      bool subtractFeeFromAmount,
+      int index,
+      List<lelantus.DartLelantusEntry> lelantusEntries,
+      int locktime,
+      Bip39HDCurrency cryptoCurrency,
+      List<Map<dynamic, dynamic>> anonymitySetsArg,
+      String partialDerivationPath,
+      String hexRootPrivateKey,
+      Uint8List chaincode,
+    }) arg,
+  ) async {
     final spendAmount = arg.txData.recipients!.first.amount.raw.toInt();
     final address = arg.txData.recipients!.first.address;
     final isChange = arg.txData.recipients!.first.isChange;
@@ -401,12 +408,13 @@ abstract final class LelantusFfiWrapper {
       if (!setIds.contains(anonymitySetId)) {
         setIds.add(anonymitySetId);
         final anonymitySet = arg.anonymitySetsArg.firstWhere(
-            (element) => element["setId"] == anonymitySetId,
-            orElse: () => <String, dynamic>{});
+          (element) => element["setId"] == anonymitySetId,
+          orElse: () => <String, dynamic>{},
+        );
         if (anonymitySet.isNotEmpty) {
           anonymitySetHashes.add(anonymitySet['setHash'] as String);
           groupBlockHashes.add(anonymitySet['blockHash'] as String);
-          List<String> list = [];
+          final List<String> list = [];
           for (int i = 0; i < (anonymitySet['coins'] as List).length; i++) {
             list.add(anonymitySet['coins'][i][0] as String);
           }
@@ -447,7 +455,8 @@ abstract final class LelantusFfiWrapper {
     final extTx = finalTx.buildIncomplete();
     extTx.addInput(
       Format.stringToUint8List(
-          '0000000000000000000000000000000000000000000000000000000000000000'),
+        '0000000000000000000000000000000000000000000000000000000000000000',
+      ),
       4294967295,
       4294967295,
       Format.stringToUint8List("c9"),
@@ -467,7 +476,7 @@ abstract final class LelantusFfiWrapper {
       txid: txId,
       raw: txHex,
       recipients: [
-        (address: address, amount: amountAmount, isChange: isChange)
+        (address: address, amount: amountAmount, isChange: isChange),
       ],
       fee: Amount(
         rawValue: BigInt.from(fee),
@@ -509,14 +518,15 @@ abstract final class LelantusFfiWrapper {
   // ===========================================================================
 
   static Future<String> _getMintScriptWrapper(
-      ({
-        int amount,
-        String privateKeyHex,
-        int index,
-        String seedId,
-        bool isTestNet
-      }) data) async {
-    String mintHex = lelantus.getMintScript(
+    ({
+      int amount,
+      String privateKeyHex,
+      int index,
+      String seedId,
+      bool isTestNet
+    }) data,
+  ) async {
+    final String mintHex = lelantus.getMintScript(
       data.amount,
       data.privateKeyHex,
       data.index,

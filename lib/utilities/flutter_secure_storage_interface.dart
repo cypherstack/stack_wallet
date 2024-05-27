@@ -11,6 +11,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
+
 import '../models/isar/models/encrypted_string_value.dart';
 import 'stack_file_system.dart';
 
@@ -140,9 +141,11 @@ class SecureStorageWrapper implements SecureStorageInterface {
   const SecureStorageWrapper({
     required dynamic store,
     required bool isDesktop,
-  })  : assert(isDesktop
-            ? store is DesktopSecureStore
-            : store is FlutterSecureStorage),
+  })  : assert(
+          isDesktop
+              ? store is DesktopSecureStore
+              : store is FlutterSecureStorage,
+        ),
         _store = store,
         _isDesktop = isDesktop;
 

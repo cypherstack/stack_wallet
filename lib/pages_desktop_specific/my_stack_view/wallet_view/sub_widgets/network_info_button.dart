@@ -30,10 +30,10 @@ import 'package:tuple/tuple.dart';
 
 class NetworkInfoButton extends ConsumerStatefulWidget {
   const NetworkInfoButton({
-    Key? key,
+    super.key,
     required this.walletId,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final EventBus? eventBus;

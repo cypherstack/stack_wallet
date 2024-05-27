@@ -14,10 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
-import 'utxo_card.dart';
-import 'utxo_details_view.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -39,7 +39,8 @@ import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/toggle.dart';
-import 'package:tuple/tuple.dart';
+import 'utxo_card.dart';
+import 'utxo_details_view.dart';
 
 enum CoinControlViewType {
   manage,
@@ -148,7 +149,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       onWillPop: () async {
         unawaited(_refreshBalance());
         Navigator.of(context).pop(
-            widget.type == CoinControlViewType.use ? _selectedAvailable : null);
+          widget.type == CoinControlViewType.use ? _selectedAvailable : null,
+        );
         return false;
       },
       child: Background(
@@ -179,9 +181,10 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                         onPressed: () {
                           unawaited(_refreshBalance());
                           Navigator.of(context).pop(
-                              widget.type == CoinControlViewType.use
-                                  ? _selectedAvailable
-                                  : null);
+                            widget.type == CoinControlViewType.use
+                                ? _selectedAvailable
+                                : null,
+                          );
                         },
                       ),
             title: _isSearching
@@ -336,7 +339,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
                                 return UtxoCard(
                                   key: Key(
-                                      "${utxo.walletId}_${utxo.id}_$isSelected"),
+                                    "${utxo.walletId}_${utxo.id}_$isSelected",
+                                  ),
                                   walletId: widget.walletId,
                                   utxo: utxo,
                                   canSelect: widget.type ==
@@ -398,7 +402,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
                                       return UtxoCard(
                                         key: Key(
-                                            "${utxo.walletId}_${utxo.id}_$isSelected"),
+                                          "${utxo.walletId}_${utxo.id}_$isSelected",
+                                        ),
                                         walletId: widget.walletId,
                                         utxo: utxo,
                                         canSelect: widget.type ==
@@ -486,7 +491,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       entry.key,
                                                       style:
                                                           STextStyles.w600_14(
-                                                              context),
+                                                        context,
+                                                      ),
                                                     ),
                                                     const SizedBox(
                                                       height: 2,
@@ -496,8 +502,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       "output${entry.value.length > 1 ? "s" : ""}",
                                                       style:
                                                           STextStyles.w500_12(
-                                                                  context)
-                                                              .copyWith(
+                                                        context,
+                                                      ).copyWith(
                                                         color: Theme.of(context)
                                                             .extension<
                                                                 StackColors>()!
@@ -538,7 +544,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
                                             return UtxoCard(
                                               key: Key(
-                                                  "${utxo.walletId}_${utxo.id}_$isSelected"),
+                                                "${utxo.walletId}_${utxo.id}_$isSelected",
+                                              ),
                                               walletId: widget.walletId,
                                               utxo: utxo,
                                               canSelect: widget.type ==
@@ -615,22 +622,26 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                         label: _showBlocked ? "Unfreeze" : "Freeze",
                         onPressed: () async {
                           if (_showBlocked) {
-                            await MainDB.instance.putUTXOs(_selectedBlocked
-                                .map(
-                                  (e) => e.copyWith(
-                                    isBlocked: false,
-                                  ),
-                                )
-                                .toList());
+                            await MainDB.instance.putUTXOs(
+                              _selectedBlocked
+                                  .map(
+                                    (e) => e.copyWith(
+                                      isBlocked: false,
+                                    ),
+                                  )
+                                  .toList(),
+                            );
                             _selectedBlocked.clear();
                           } else {
-                            await MainDB.instance.putUTXOs(_selectedAvailable
-                                .map(
-                                  (e) => e.copyWith(
-                                    isBlocked: true,
-                                  ),
-                                )
-                                .toList());
+                            await MainDB.instance.putUTXOs(
+                              _selectedAvailable
+                                  .map(
+                                    (e) => e.copyWith(
+                                      isBlocked: true,
+                                    ),
+                                  )
+                                  .toList(),
+                            );
                             _selectedAvailable.clear();
                           }
                           setState(() {});
@@ -689,7 +700,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                 .format(selectedSum),
                                             style: widget.requestedTotal == null
                                                 ? STextStyles.w600_14(context)
-                                                : STextStyles.w600_14(context).copyWith(
+                                                : STextStyles.w600_14(context)
+                                                    .copyWith(
                                                     color: selectedSum >=
                                                             widget
                                                                 .requestedTotal!
@@ -700,7 +712,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                         : Theme.of(context)
                                                             .extension<
                                                                 StackColors>()!
-                                                            .accentColorRed),
+                                                            .accentColorRed,
+                                                  ),
                                           );
                                         },
                                       ),

@@ -124,7 +124,7 @@ class _DesktopMyStackTitleState extends ConsumerState<DesktopMyStackTitle> {
         Text(
           "My ${AppConfig.prefix}",
           style: STextStyles.desktopH3(context),
-        )
+        ),
       ],
     );
   }

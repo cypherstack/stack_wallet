@@ -14,14 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/contact_entry.dart';
 import '../../../models/isar/models/transaction_note.dart';
 import '../../../models/transaction_filter.dart';
 import '../../../notifications/show_flush_bar.dart';
-import '../sub_widgets/tx_icon.dart';
-import 'transaction_details_view.dart';
-import 'transaction_search_filter_view.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../providers/providers.dart';
@@ -34,7 +33,6 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/format.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/epiccash.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/conditional_parent.dart';
@@ -49,7 +47,9 @@ import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 import '../../../widgets/transaction_card.dart';
-import 'package:tuple/tuple.dart';
+import '../sub_widgets/tx_icon.dart';
+import 'transaction_details_view.dart';
+import 'transaction_search_filter_view.dart';
 
 typedef _GroupedTransactions = ({
   String label,
@@ -94,8 +94,10 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
   }
 
   // TODO: optimise search+filter
-  List<Transaction> filter(
-      {required List<Transaction> transactions, TransactionFilter? filter}) {
+  List<Transaction> filter({
+    required List<Transaction> transactions,
+    TransactionFilter? filter,
+  }) {
     if (filter == null) {
       return transactions;
     }
@@ -147,8 +149,12 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
     }).toList();
   }
 
-  bool _isKeywordMatch(Transaction tx, String keyword,
-      List<ContactEntry> contacts, List<TransactionNote> notes) {
+  bool _isKeywordMatch(
+    Transaction tx,
+    String keyword,
+    List<ContactEntry> contacts,
+    List<TransactionNote> notes,
+  ) {
     if (keyword.isEmpty) {
       return true;
     }
@@ -157,11 +163,13 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
 
     // check if address book name contains
     contains |= contacts
-        .where((e) =>
-            e.addresses
-                .where((a) => a.address == tx.address.value?.value)
-                .isNotEmpty &&
-            e.name.toLowerCase().contains(keyword))
+        .where(
+          (e) =>
+              e.addresses
+                  .where((a) => a.address == tx.address.value?.value)
+                  .isNotEmpty &&
+              e.name.toLowerCase().contains(keyword),
+        )
         .isNotEmpty;
 
     // check if address contains
@@ -218,9 +226,9 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
   List<_GroupedTransactions> groupTransactionsByMonth(
     List<Transaction> transactions,
   ) {
-    Map<String, _GroupedTransactions> map = {};
+    final Map<String, _GroupedTransactions> map = {};
 
-    for (var tx in transactions) {
+    for (final tx in transactions) {
       final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
       final monthYear = "${Constants.monthMap[date.month]} ${date.year}";
       if (map[monthYear] == null) {
@@ -285,7 +293,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 75));
+                      const Duration(milliseconds: 75),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -486,39 +495,45 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                       ref.watch(transactionFilterProvider.state).state;
 
                   return FutureBuilder(
-                    future: ref.watch(mainDBProvider).isar.transactions.buildQuery<
-                            Transaction>(
-                        whereClauses: [
-                          IndexWhereClause.equalTo(
-                            indexName: 'walletId',
-                            value: [widget.walletId],
-                          )
-                        ],
-                        // TODO: [prio=med] add filters to wallet or cryptocurrency class
-                        // eth tokens should all be on v2 txn now so this should not be needed here
-                        // filter: widget.contractAddress != null
-                        //     ? FilterGroup.and([
-                        //         FilterCondition.equalTo(
-                        //           property: r"contractAddress",
-                        //           value: widget.contractAddress!,
-                        //         ),
-                        //         const FilterCondition.equalTo(
-                        //           property: r"subType",
-                        //           value: TransactionSubType.ethToken,
-                        //         ),
-                        //       ])
-                        //     : null,
-                        sortBy: [
-                          const SortProperty(
-                            property: "timestamp",
-                            sort: Sort.desc,
-                          ),
-                        ]).findAll(),
+                    future: ref
+                        .watch(mainDBProvider)
+                        .isar
+                        .transactions
+                        .buildQuery<Transaction>(
+                      whereClauses: [
+                        IndexWhereClause.equalTo(
+                          indexName: 'walletId',
+                          value: [widget.walletId],
+                        ),
+                      ],
+                      // TODO: [prio=med] add filters to wallet or cryptocurrency class
+                      // eth tokens should all be on v2 txn now so this should not be needed here
+                      // filter: widget.contractAddress != null
+                      //     ? FilterGroup.and([
+                      //         FilterCondition.equalTo(
+                      //           property: r"contractAddress",
+                      //           value: widget.contractAddress!,
+                      //         ),
+                      //         const FilterCondition.equalTo(
+                      //           property: r"subType",
+                      //           value: TransactionSubType.ethToken,
+                      //         ),
+                      //       ])
+                      //     : null,
+                      sortBy: [
+                        const SortProperty(
+                          property: "timestamp",
+                          sort: Sort.desc,
+                        ),
+                      ],
+                    ).findAll(),
                     builder: (_, AsyncSnapshot<List<Transaction>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
                         final filtered = filter(
-                            transactions: snapshot.data!, filter: criteria);
+                          transactions: snapshot.data!,
+                          filter: criteria,
+                        );
 
                         final searched = search(_searchString, filtered);
                         searched.sort((a, b) {
@@ -570,7 +585,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                           padding: const EdgeInsets.all(4),
                                           child: DesktopTransactionCardRow(
                                             key: Key(
-                                                "transactionCard_key_${month.transactions[index].txid}"),
+                                              "transactionCard_key_${month.transactions[index].txid}",
+                                            ),
                                             transaction:
                                                 month.transactions[index],
                                             walletId: walletId,
@@ -586,7 +602,8 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
                                           ...month.transactions.map(
                                             (tx) => TransactionCard(
                                               key: Key(
-                                                  "transactionCard_key_${tx.txid}"),
+                                                "transactionCard_key_${tx.txid}",
+                                              ),
                                               transaction: tx,
                                               walletId: walletId,
                                             ),
@@ -616,7 +633,7 @@ class _TransactionDetailsViewState extends ConsumerState<AllTransactionsView> {
 }
 
 class TransactionFilterOptionBar extends ConsumerStatefulWidget {
-  const TransactionFilterOptionBar({Key? key}) : super(key: key);
+  const TransactionFilterOptionBar({super.key});
 
   @override
   ConsumerState<TransactionFilterOptionBar> createState() =>
@@ -774,10 +791,10 @@ class _TransactionFilterOptionBarState
 
 class TransactionFilterOptionBarItem extends StatelessWidget {
   const TransactionFilterOptionBarItem({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final String label;
   final void Function(String)? onPressed;
@@ -789,9 +806,10 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
       child: Container(
         height: 32,
         decoration: BoxDecoration(
-            color:
-                Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
-            borderRadius: BorderRadius.circular(1000)),
+          color:
+              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          borderRadius: BorderRadius.circular(1000),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 14,
@@ -894,7 +912,8 @@ class _DesktopTransactionCardRowState
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
@@ -902,8 +921,10 @@ class _DesktopTransactionCardRowState
     final coin = ref.watch(pWalletCoin(walletId));
 
     final price = ref
-        .watch(priceAnd24hChangeNotifierProvider
-            .select((value) => value.getPrice(coin)))
+        .watch(
+          priceAnd24hChangeNotifierProvider
+              .select((value) => value.getPrice(coin)),
+        )
         .item1;
 
     late final String prefix;
@@ -1028,8 +1049,10 @@ class _DesktopTransactionCardRowState
                   },
                 ),
               ),
-              if (ref.watch(prefsChangeNotifierProvider
-                  .select((value) => value.externalCalls)))
+              if (ref.watch(
+                prefsChangeNotifierProvider
+                    .select((value) => value.externalCalls),
+              ))
                 Expanded(
                   flex: 4,
                   child: Builder(

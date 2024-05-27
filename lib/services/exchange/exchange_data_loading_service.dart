@@ -10,19 +10,20 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../db/hive/db.dart';
 import '../../models/exchange/active_pair.dart';
 import '../../models/exchange/aggregate_currency.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import '../../models/isar/exchange_cache/pair.dart';
-import 'change_now/change_now_exchange.dart';
-import 'majestic_bank/majestic_bank_exchange.dart';
-import 'trocador/trocador_exchange.dart';
 import '../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/stack_file_system.dart';
-import 'package:tuple/tuple.dart';
+import 'change_now/change_now_exchange.dart';
+import 'majestic_bank/majestic_bank_exchange.dart';
+import 'trocador/trocador_exchange.dart';
 
 class ExchangeDataLoadingService {
   ExchangeDataLoadingService._();
@@ -40,8 +41,9 @@ class ExchangeDataLoadingService {
 
   static int get currentCacheVersion =>
       DB.instance.get<dynamic>(
-          boxName: DB.boxNameDBInfo,
-          key: "exchange_data_cache_version") as int? ??
+        boxName: DB.boxNameDBInfo,
+        key: "exchange_data_cache_version",
+      ) as int? ??
       0;
 
   Future<void> _updateCurrentCacheVersion(int version) async {
@@ -102,15 +104,17 @@ class ExchangeDataLoadingService {
   ) async {
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .filter()
-        .group((q) => rateType == ExchangeRateType.fixed
-            ? q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.fixed)
-            : q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.estimated))
+        .group(
+          (q) => rateType == ExchangeRateType.fixed
+              ? q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.fixed)
+              : q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.estimated),
+        )
         .and()
         .tickerEqualTo(
           ticker,
@@ -213,8 +217,9 @@ class ExchangeDataLoadingService {
       });
     } else {
       Logging.instance.log(
-          "Failed to load changeNOW currencies: ${responseCurrencies.exception?.message}",
-          level: LogLevel.Error);
+        "Failed to load changeNOW currencies: ${responseCurrencies.exception?.message}",
+        level: LogLevel.Error,
+      );
       return;
     }
   }

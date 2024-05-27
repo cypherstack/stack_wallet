@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
 import '../../../../frost_route_generator.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../providers/db/main_db_provider.dart';
@@ -73,13 +74,14 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
           .getUTXOs(wallet.walletId)
           .filter()
           .anyOf(
-              data.inputs,
-              (q, e) => q
-                  .txidEqualTo(Format.uint8listToString(e.hash))
-                  .and()
-                  .valueEqualTo(e.value)
-                  .and()
-                  .voutEqualTo(e.vout))
+            data.inputs,
+            (q, e) => q
+                .txidEqualTo(Format.uint8listToString(e.hash))
+                .and()
+                .valueEqualTo(e.value)
+                .and()
+                .voutEqualTo(e.vout),
+          )
           .findAll();
 
       // TODO add more data from 'data' and display to user ?

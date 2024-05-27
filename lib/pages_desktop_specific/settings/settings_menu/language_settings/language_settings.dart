@@ -11,14 +11,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'language_dialog.dart';
+
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import 'language_dialog.dart';
 
 class LanguageOptionSettings extends ConsumerStatefulWidget {
-  const LanguageOptionSettings({Key? key}) : super(key: key);
+  const LanguageOptionSettings({super.key});
 
   static const String routeName = "/settingsMenuLanguage";
 
@@ -78,7 +79,8 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                               text:
                                   "\n\nSelect the language of your wallet. We use your system language by default.",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
+                                context,
+                              ),
                             ),
                           ],
                         ),

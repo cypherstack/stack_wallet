@@ -274,9 +274,11 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
 }
 
 class CardOverlayStack extends StatelessWidget {
-  const CardOverlayStack(
-      {Key? key, required this.background, required this.child})
-      : super(key: key);
+  const CardOverlayStack({
+    super.key,
+    required this.background,
+    required this.child,
+  });
 
   final Widget background;
   final Widget child;

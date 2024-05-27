@@ -5,6 +5,8 @@ import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
+import 'package:web3dart/web3dart.dart' as web3;
+
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -19,12 +21,10 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/eth_commons.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/ethereum.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../wallet_mixin_interfaces/private_key_interface.dart';
-import 'package:web3dart/web3dart.dart' as web3;
 
 // Eth can not use tor with web3dart
 
@@ -142,7 +142,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   @override
   Future<bool> pingCheck() async {
-    web3.Web3Client client = getEthClient();
+    final web3.Web3Client client = getEthClient();
     try {
       await client.getBlockNumber();
       return true;
@@ -158,7 +158,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
       final addressHex = (await getCurrentReceivingAddress())!.value;
       final address = web3.EthereumAddress.fromHex(addressHex);
-      web3.EtherAmount ethBalance = await client.getBalance(address);
+      final web3.EtherAmount ethBalance = await client.getBalance(address);
       final balance = Balance(
         total: Amount(
           rawValue: ethBalance.getInWei,
@@ -287,7 +287,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         final List<OutputV2> outputs = [];
         final List<InputV2> inputs = [];
 
-        OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+        final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "00",
           valueStringSats: transactionAmount.raw.toString(),
           addresses: [
@@ -295,7 +295,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
           ],
           walletOwns: addressTo == thisAddress,
         );
-        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+        final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: null,
           scriptSigAsm: null,
           sequence: null,
@@ -413,8 +413,10 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     // );
 
     final nonce = txData.nonce ??
-        await client.getTransactionCount(myWeb3Address,
-            atBlock: const web3.BlockNum.pending());
+        await client.getTransactionCount(
+          myWeb3Address,
+          atBlock: const web3.BlockNum.pending(),
+        );
 
     // final nResponse = await EthereumAPI.getAddressNonce(address: myAddress);
     // print("==============================================================");

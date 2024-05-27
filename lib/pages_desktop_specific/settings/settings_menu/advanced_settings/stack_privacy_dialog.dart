@@ -14,6 +14,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../db/hive/db.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/price_provider.dart';
@@ -31,7 +32,7 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class StackPrivacyDialog extends ConsumerStatefulWidget {
-  const StackPrivacyDialog({Key? key}) : super(key: key);
+  const StackPrivacyDialog({super.key});
 
   @override
   ConsumerState<StackPrivacyDialog> createState() => _StackPrivacyDialog();
@@ -80,7 +81,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
             height: 35,
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: PrivacyToggle(
               externalCallsEnabled: isEasy,
               onChanged: (externalCalls) {
@@ -110,16 +111,19 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                         ? [
                             if (Constants.enableExchange)
                               const TextSpan(
-                                  text:
-                                      "Exchange data preloaded for a seamless experience."),
-                            const TextSpan(
                                 text:
-                                    "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency)."),
+                                    "Exchange data preloaded for a seamless experience.",
+                              ),
+                            const TextSpan(
+                              text:
+                                  "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).",
+                            ),
                             TextSpan(
                               text: "\n\nRecommended for most crypto users.",
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall600(
-                                      context)
+                                      context,
+                                    )
                                   : TextStyle(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
@@ -130,17 +134,20 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                           ]
                         : [
                             const TextSpan(
-                                text:
-                                    "Exchange data not preloaded (slower experience)."),
+                              text:
+                                  "Exchange data not preloaded (slower experience).",
+                            ),
                             const TextSpan(
-                                text:
-                                    "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies)."),
+                              text:
+                                  "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies).",
+                            ),
                             TextSpan(
                               text:
                                   "\n\nRecommended for the privacy conscious.",
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall600(
-                                      context)
+                                      context,
+                                    )
                                   : TextStyle(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
@@ -179,9 +186,10 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
 
                       DB.instance
                           .put<dynamic>(
-                              boxName: DB.boxNamePrefs,
-                              key: "externalCalls",
-                              value: isEasy)
+                        boxName: DB.boxNamePrefs,
+                        key: "externalCalls",
+                        value: isEasy,
+                      )
                           .then((_) {
                         if (isEasy) {
                           unawaited(
@@ -197,7 +205,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                       }
                     },
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -209,10 +217,10 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
 
 class PrivacyToggle extends ConsumerStatefulWidget {
   const PrivacyToggle({
-    Key? key,
+    super.key,
     required this.externalCallsEnabled,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   final bool externalCallsEnabled;
   final void Function(bool)? onChanged;

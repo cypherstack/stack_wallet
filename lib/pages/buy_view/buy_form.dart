@@ -439,7 +439,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       buyWithFiat: buyWithFiat,
     );
 
-    BuyResponse<SimplexQuote> quoteResponse = await _loadQuote(quote);
+    final BuyResponse<SimplexQuote> quoteResponse = await _loadQuote(quote);
     shouldPop = true;
     if (mounted) {
       Navigator.of(context, rootNavigator: isDesktop).pop();
@@ -767,8 +767,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    Locale locale = Localizations.localeOf(context);
-    var format = NumberFormat.simpleCurrency(locale: locale.toString());
+    final Locale locale = Localizations.localeOf(context);
+    final format = NumberFormat.simpleCurrency(locale: locale.toString());
     // See https://stackoverflow.com/a/67055685
 
     return ConditionalParent(

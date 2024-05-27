@@ -37,10 +37,10 @@ enum DesktopMenuItemId {
 
 class DesktopMenu extends ConsumerStatefulWidget {
   const DesktopMenu({
-    Key? key,
+    super.key,
     this.onSelectionChanged,
     this.onSelectionWillChange,
-  }) : super(key: key);
+  });
 
   final void Function(DesktopMenuItemId)? onSelectionChanged;
   final void Function(DesktopMenuItemId)? onSelectionWillChange;
@@ -70,7 +70,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   void toggleMinimize() {
     final expanded = _width == expandedWidth;
 
-    for (var e in controllers) {
+    for (final e in controllers) {
       e.toggle?.call();
     }
 
@@ -102,7 +102,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   @override
   void dispose() {
-    for (var e in controllers) {
+    for (final e in controllers) {
       e.dispose();
     }
     torButtonController.dispose();

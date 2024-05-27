@@ -546,7 +546,8 @@ class DesktopAboutView extends ConsumerWidget {
                                                 onTap: () {
                                                   launchUrl(
                                                     Uri.parse(
-                                                        "https://tzkt.io"),
+                                                      "https://tzkt.io",
+                                                    ),
                                                     mode: LaunchMode
                                                         .externalApplication,
                                                   );

@@ -216,7 +216,7 @@ class _WalletNetworkSettingsViewState
   }
 
   String _percentString(double value) {
-    double realPercent = (value * 10000).ceil().clamp(0, 10000) / 100.0;
+    final double realPercent = (value * 10000).ceil().clamp(0, 10000) / 100.0;
     if (realPercent > 99.99 && _currentSyncStatus == WalletSyncStatus.syncing) {
       return "99.99%";
     }

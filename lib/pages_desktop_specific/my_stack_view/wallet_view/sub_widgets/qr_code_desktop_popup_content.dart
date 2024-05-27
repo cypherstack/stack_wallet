@@ -16,9 +16,9 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class QRCodeDesktopPopupContent extends StatelessWidget {
   const QRCodeDesktopPopupContent({
-    Key? key,
+    super.key,
     required this.value,
-  }) : super(key: key);
+  });
 
   final String value;
 

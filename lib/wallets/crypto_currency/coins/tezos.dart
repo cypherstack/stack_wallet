@@ -3,14 +3,15 @@ import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart';
+import 'package:tezart/src/crypto/crypto.dart';
+import 'package:tezart/tezart.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
-import 'package:tezart/src/crypto/crypto.dart';
-import 'package:tezart/tezart.dart';
 
 class Tezos extends Bip39Currency {
   Tezos(super.network) {
@@ -128,12 +129,15 @@ class Tezos extends Bip39Currency {
   // =========== Private =======================================================
 
   static ({Uint8List privateKey, Uint8List chainCode}) _deriveRootNode(
-      Uint8List seed) {
+    Uint8List seed,
+  ) {
     return _deriveNode(seed, Uint8List.fromList(utf8.encode("ed25519 seed")));
   }
 
   static ({Uint8List privateKey, Uint8List chainCode}) _deriveNode(
-      Uint8List msg, Uint8List key) {
+    Uint8List msg,
+    Uint8List key,
+  ) {
     final hMac = hmacSha512(key, msg);
     final privateKey = hMac.sublist(0, 32);
     final chainCode = hMac.sublist(32);
@@ -141,11 +145,13 @@ class Tezos extends Bip39Currency {
   }
 
   static ({Uint8List privateKey, Uint8List chainCode}) _deriveChildNode(
-      ({Uint8List privateKey, Uint8List chainCode}) node, int index) {
-    Uint8List indexBuf = Uint8List(4);
+    ({Uint8List privateKey, Uint8List chainCode}) node,
+    int index,
+  ) {
+    final Uint8List indexBuf = Uint8List(4);
     ByteData.view(indexBuf.buffer).setUint32(0, index, Endian.big);
 
-    Uint8List message = Uint8List.fromList([
+    final Uint8List message = Uint8List.fromList([
       Uint8List(1)[0],
       ...node.privateKey,
       ...indexBuf,

@@ -14,13 +14,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
-import '../../../addresses/desktop_wallet_addresses_view.dart';
-import '../../../lelantus_coins/lelantus_coins_view.dart';
-import 'desktop_delete_wallet_dialog.dart';
-import '../../../spark_coins/spark_coins_view.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -30,6 +27,10 @@ import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../addresses/desktop_wallet_addresses_view.dart';
+import '../../../lelantus_coins/lelantus_coins_view.dart';
+import '../../../spark_coins/spark_coins_view.dart';
+import 'desktop_delete_wallet_dialog.dart';
 
 enum _WalletOptions {
   addressList,
@@ -327,8 +328,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             child: Text(
                               _WalletOptions.addressList.prettyName,
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textDark,
@@ -364,8 +365,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                               child: Text(
                                 _WalletOptions.changeRepresentative.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
@@ -401,8 +402,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                               child: Text(
                                 _WalletOptions.lelantusCoins.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
@@ -438,8 +439,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                               child: Text(
                                 _WalletOptions.sparkCoins.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
@@ -475,8 +476,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                               child: Text(
                                 _WalletOptions.frostOptions.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
@@ -512,8 +513,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                               child: Text(
                                 _WalletOptions.showXpub.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
@@ -547,8 +548,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             child: Text(
                               _WalletOptions.deleteWallet.prettyName,
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textDark,
@@ -571,10 +572,10 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
 
 class TransparentButton extends StatelessWidget {
   const TransparentButton({
-    Key? key,
+    super.key,
     required this.child,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final Widget child;
   final VoidCallback? onPressed;

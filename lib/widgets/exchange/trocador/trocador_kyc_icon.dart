@@ -16,11 +16,11 @@ import 'trocador_rating_type_enum.dart';
 
 class TrocadorKYCIcon extends StatelessWidget {
   const TrocadorKYCIcon({
-    Key? key,
+    super.key,
     required this.kycType,
     this.width = 18,
     this.height = 18,
-  }) : super(key: key);
+  });
 
   final TrocadorKYCType kycType;
   final double width;

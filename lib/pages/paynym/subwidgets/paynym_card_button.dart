@@ -23,10 +23,10 @@ import '../../../widgets/rounded_container.dart';
 
 class PaynymCardButton extends ConsumerStatefulWidget {
   const PaynymCardButton({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.accountLite,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final PaynymAccountLite accountLite;

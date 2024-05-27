@@ -14,10 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
-import 'freeze_button.dart';
-import 'utxo_row.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -36,12 +35,14 @@ import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import 'freeze_button.dart';
+import 'utxo_row.dart';
 
 class DesktopCoinControlView extends ConsumerStatefulWidget {
   const DesktopCoinControlView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/desktopCoinControl";
 
@@ -308,7 +309,8 @@ class _DesktopCoinControlViewState
 
                         return UtxoRow(
                           key: Key(
-                              "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
+                            "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                          ),
                           data: data,
                           walletId: widget.walletId,
                           onSelectionChanged: (value) {
@@ -374,7 +376,8 @@ class _DesktopCoinControlViewState
                                     "output${entry.value.length > 1 ? "s" : ""}",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
-                                            context),
+                                      context,
+                                    ),
                                   ),
                                 ),
                                 RotateIcon(
@@ -404,7 +407,8 @@ class _DesktopCoinControlViewState
 
                               return UtxoRow(
                                 key: Key(
-                                    "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
+                                  "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                                ),
                                 data: data,
                                 walletId: widget.walletId,
                                 raiseOnSelected: false,

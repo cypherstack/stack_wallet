@@ -16,7 +16,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../themes/theme_providers.dart';
 
 class BuyNavIcon extends ConsumerWidget {
-  const BuyNavIcon({Key? key}) : super(key: key);
+  const BuyNavIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -24,8 +24,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 class SupportView extends StatelessWidget {
   const SupportView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/support";
 
@@ -131,13 +131,13 @@ class SupportView extends StatelessWidget {
 
 class AboutItem extends StatelessWidget {
   const AboutItem({
-    Key? key,
+    super.key,
     required this.linkUrl,
     required this.label,
     required this.buttonText,
     required this.iconAsset,
     required this.isDesktop,
-  }) : super(key: key);
+  });
 
   final String linkUrl;
   final String label;
@@ -218,7 +218,7 @@ class AboutItem extends StatelessWidget {
                 Text(
                   buttonText,
                   style: STextStyles.desktopTextExtraExtraSmall(context),
-                )
+                ),
               // BlueTextButton(
               //   text: buttonText,
               //   onTap: () {

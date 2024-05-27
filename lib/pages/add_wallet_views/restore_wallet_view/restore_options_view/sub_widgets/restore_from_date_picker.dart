@@ -17,10 +17,10 @@ import '../../../../../utilities/util.dart';
 
 class RestoreFromDatePicker extends StatefulWidget {
   const RestoreFromDatePicker({
-    Key? key,
+    super.key,
     required this.onTap,
     required this.controller,
-  }) : super(key: key);
+  });
 
   final VoidCallback onTap;
   final TextEditingController controller;

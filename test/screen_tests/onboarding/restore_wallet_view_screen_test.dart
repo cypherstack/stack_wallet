@@ -24,8 +24,8 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 @GenerateMocks([
   BarcodeScannerWrapper
 ], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<NodeService>(returnNullOnMissingStub: true),
+  MockSpec<WalletsService>(),
+  MockSpec<NodeService>(),
 ])
 void main() {
 //   testWidgets("RestoreWalletView builds correctly", (tester) async {

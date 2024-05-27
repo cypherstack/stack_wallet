@@ -20,9 +20,9 @@ import '../../../../../utilities/util.dart';
 
 class MobileMnemonicLengthSelector extends ConsumerWidget {
   const MobileMnemonicLengthSelector({
-    Key? key,
+    super.key,
     required this.chooseMnemonicLength,
-  }) : super(key: key);
+  });
 
   final VoidCallback chooseMnemonicLength;
 
@@ -66,7 +66,7 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }

@@ -13,9 +13,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:zxcvbn/zxcvbn.dart';
+
 import '../../notifications/show_flush_bar.dart';
-import '../desktop_home_view.dart';
-import 'forgotten_passphrase_restore_from_swb.dart';
 import '../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../providers/providers.dart';
@@ -29,13 +29,14 @@ import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/progress_bar.dart';
 import '../../widgets/stack_text_field.dart';
-import 'package:zxcvbn/zxcvbn.dart';
+import '../desktop_home_view.dart';
+import 'forgotten_passphrase_restore_from_swb.dart';
 
 class CreatePasswordView extends ConsumerStatefulWidget {
   const CreatePasswordView({
-    Key? key,
+    super.key,
     this.restoreFromSWB = false,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/createPasswordDesktop";
   final bool restoreFromSWB;
@@ -77,20 +78,24 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     final String repeatPassphrase = passwordRepeatController.text;
 
     if (passphrase.isEmpty) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "A password is required",
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "A password is required",
+          context: context,
+        ),
+      );
       _nextLock = false;
       return;
     }
     if (passphrase != repeatPassphrase) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Password does not match",
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Password does not match",
+          context: context,
+        ),
+      );
       _nextLock = false;
       return;
     }
@@ -98,7 +103,8 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     try {
       if (await ref.read(storageCryptoHandlerProvider).hasPassword()) {
         throw Exception(
-            "Tried creating a new password and attempted to overwrite an existing entry!");
+          "Tried creating a new password and attempted to overwrite an existing entry!",
+        );
       }
 
       await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
@@ -110,11 +116,13 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         await ref.read(nodeServiceChangeNotifierProvider).updateDefaults();
       }
     } catch (e) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Error: $e",
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Error: $e",
+          context: context,
+        ),
+      );
       _nextLock = false;
       return;
     }
@@ -136,11 +144,13 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     }
 
     if (!widget.restoreFromSWB && mounted) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.success,
-        message: "Your password is set up",
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.success,
+          message: "Your password is set up",
+          context: context,
+        ),
+      );
     }
     _nextLock = false;
   }
@@ -231,7 +241,8 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                                 children: [
                                   GestureDetector(
                                     key: const Key(
-                                        "createDesktopPasswordFieldShowPasswordButtonKey"),
+                                      "createDesktopPasswordFieldShowPasswordButtonKey",
+                                    ),
                                     onTap: () async {
                                       setState(() {
                                         hidePassword = !hidePassword;
@@ -279,7 +290,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                           }
                           final result = zxcvbn.evaluate(newValue);
                           String suggestionsAndTips = "";
-                          for (var sug
+                          for (final sug
                               in result.feedback.suggestions!.toSet()) {
                             suggestionsAndTips += "$sug\n";
                           }
@@ -293,7 +304,9 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                           // hack fix to format back string returned from zxcvbn
                           if (feedback.contains("phrasesNo need")) {
                             feedback = feedback.replaceFirst(
-                                "phrasesNo need", "phrases\nNo need");
+                              "phrasesNo need",
+                              "phrases\nNo need",
+                            );
                           }
 
                           if (feedback.endsWith("\n")) {
@@ -385,7 +398,8 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                                 children: [
                                   GestureDetector(
                                     key: const Key(
-                                        "createDesktopPasswordFieldShowPasswordButtonKey2"),
+                                      "createDesktopPasswordFieldShowPasswordButtonKey2",
+                                    ),
                                     onTap: () async {
                                       setState(() {
                                         hidePassword = !hidePassword;

@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/address_label.dart';
 import '../../../themes/stack_colors.dart';
@@ -28,9 +29,9 @@ import '../../../widgets/textfield_icon_button.dart';
 
 class EditAddressLabelView extends ConsumerStatefulWidget {
   const EditAddressLabelView({
-    Key? key,
+    super.key,
     required this.addressLabelId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/editAddressLabel";
 
@@ -89,7 +90,8 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                     if (FocusScope.of(context).hasFocus) {
                       FocusScope.of(context).unfocus();
                       await Future<void>.delayed(
-                          const Duration(milliseconds: 75));
+                        const Duration(milliseconds: 75),
+                      );
                     }
                     if (mounted) {
                       Navigator.of(context).pop();
@@ -241,7 +243,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                     "Save",
                     style: STextStyles.button(context),
                   ),
-                )
+                ),
             ],
           ),
         ),

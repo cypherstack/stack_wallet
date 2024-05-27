@@ -11,7 +11,6 @@
 import 'dart:convert';
 
 import '../../utilities/amount/amount.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class EthTxDTO {

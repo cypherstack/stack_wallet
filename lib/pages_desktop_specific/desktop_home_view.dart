@@ -10,15 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'address_book_view/desktop_address_book.dart';
-import 'desktop_buy/desktop_buy_view.dart';
-import 'desktop_exchange/desktop_exchange_view.dart';
-import 'desktop_menu.dart';
-import 'my_stack_view/my_stack_view.dart';
-import 'notifications/desktop_notifications_view.dart';
-import 'settings/desktop_settings_view.dart';
-import 'settings/settings_menu/desktop_about_view.dart';
-import 'settings/settings_menu/desktop_support_view.dart';
+
 import '../providers/desktop/current_desktop_menu_item.dart';
 import '../providers/global/active_wallet_provider.dart';
 import '../providers/global/auto_swb_service_provider.dart';
@@ -31,9 +23,18 @@ import '../route_generator.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/enums/backup_frequency_type.dart';
 import '../widgets/background.dart';
+import 'address_book_view/desktop_address_book.dart';
+import 'desktop_buy/desktop_buy_view.dart';
+import 'desktop_exchange/desktop_exchange_view.dart';
+import 'desktop_menu.dart';
+import 'my_stack_view/my_stack_view.dart';
+import 'notifications/desktop_notifications_view.dart';
+import 'settings/desktop_settings_view.dart';
+import 'settings/settings_menu/desktop_about_view.dart';
+import 'settings/settings_menu/desktop_support_view.dart';
 
 class DesktopHomeView extends ConsumerStatefulWidget {
-  const DesktopHomeView({Key? key}) : super(key: key);
+  const DesktopHomeView({super.key});
 
   static const String routeName = "/desktopHome";
 
@@ -144,11 +145,13 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
           ref.read(unreadNotificationsStateProvider.state).state;
 
       if (unreadNotificationIds.isNotEmpty) {
-        List<Future<void>> futures = [];
+        final List<Future<void>> futures = [];
         for (int i = 0; i < unreadNotificationIds.length - 1; i++) {
-          futures.add(ref
-              .read(notificationsProvider)
-              .markAsRead(unreadNotificationIds.elementAt(i), false));
+          futures.add(
+            ref
+                .read(notificationsProvider)
+                .markAsRead(unreadNotificationIds.elementAt(i), false),
+          );
         }
 
         // wait for multiple to update if any

@@ -21,11 +21,11 @@ import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 
 class RecoverPhraseView extends StatelessWidget {
   const RecoverPhraseView({
-    Key? key,
+    super.key,
     required this.walletName,
     required this.mnemonic,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/recoverPhrase";
 

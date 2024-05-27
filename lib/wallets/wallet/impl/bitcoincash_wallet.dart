@@ -1,18 +1,17 @@
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../services/coins/bitcoincash/bch_utils.dart';
-import '../../../services/coins/bitcoincash/cashtokens.dart'
-    as cash_tokens;
+import '../../../services/coins/bitcoincash/cashtokens.dart' as cash_tokens;
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/bitcoincash.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
@@ -76,10 +75,12 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
         .not()
         .typeEqualTo(AddressType.nonWallet)
         .and()
-        .group((q) => q
-            .subTypeEqualTo(AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(AddressSubType.change))
+        .group(
+          (q) => q
+              .subTypeEqualTo(AddressSubType.receiving)
+              .or()
+              .subTypeEqualTo(AddressSubType.change),
+        )
         .findAll();
     return allAddresses;
   }
@@ -100,14 +101,15 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> updateTransactions() async {
-    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
+    final List<Address> allAddressesOld =
+        await fetchAddressesForElectrumXScan();
 
-    Set<String> receivingAddresses = allAddressesOld
+    final Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => convertAddressString(e.value))
         .toSet();
 
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => convertAddressString(e.value))
         .toSet();
@@ -117,7 +119,7 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
     final List<Map<String, dynamic>> allTxHashes =
         await fetchHistory(allAddressesSet);
 
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
       // final storedTx = await mainDB.isar.transactionV2s
@@ -177,8 +179,9 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
 
           try {
             final prevOutJson = Map<String, dynamic>.from(
-                (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                    as Map);
+              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
+                  as Map,
+            );
             final prevOut = OutputV2.fromElectrumXJson(
               prevOutJson,
               decimalPlaces: cryptoCurrency.fractionDigits,
@@ -194,8 +197,9 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
             addresses.addAll(prevOut.addresses);
           } catch (e, s) {
             Logging.instance.log(
-                "Error getting prevOutJson: $e\nStack trace: $s",
-                level: LogLevel.Warning);
+              "Error getting prevOutJson: $e\nStack trace: $s",
+              level: LogLevel.Warning,
+            );
           }
         }
 
@@ -360,8 +364,10 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
-      rawValue: BigInt.from(((181 * inputCount) + (34 * outputCount) + 10) *
-          (feeRatePerKB / 1000).ceil()),
+      rawValue: BigInt.from(
+        ((181 * inputCount) + (34 * outputCount) + 10) *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: info.coin.fractionDigits,
     );
   }

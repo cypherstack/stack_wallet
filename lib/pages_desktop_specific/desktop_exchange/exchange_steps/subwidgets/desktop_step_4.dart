@@ -12,19 +12,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../app_config.dart';
-import '../step_scaffold.dart';
-import 'desktop_step_item.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../step_scaffold.dart';
+import 'desktop_step_item.dart';
 
 class DesktopStep4 extends ConsumerStatefulWidget {
   const DesktopStep4({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<DesktopStep4> createState() => _DesktopStep4State();
@@ -147,26 +148,34 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                 vertical: true,
                 label:
                     "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to this address",
-                value: ref.watch(desktopExchangeModelProvider
-                        .select((value) => value!.trade?.payInAddress)) ??
+                value: ref.watch(
+                      desktopExchangeModelProvider
+                          .select((value) => value!.trade?.payInAddress),
+                    ) ??
                     "Error",
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              if (ref.watch(desktopExchangeModelProvider
-                      .select((value) => value!.trade?.payInExtraId)) !=
+              if (ref.watch(
+                    desktopExchangeModelProvider
+                        .select((value) => value!.trade?.payInExtraId),
+                  ) !=
                   null)
                 DesktopStepItem(
                   vertical: true,
                   label: "Memo",
-                  value: ref.watch(desktopExchangeModelProvider
-                          .select((value) => value!.trade?.payInExtraId)) ??
+                  value: ref.watch(
+                        desktopExchangeModelProvider
+                            .select((value) => value!.trade?.payInExtraId),
+                      ) ??
                       "Error",
                 ),
-              if (ref.watch(desktopExchangeModelProvider
-                      .select((value) => value!.trade?.payInExtraId)) !=
+              if (ref.watch(
+                    desktopExchangeModelProvider
+                        .select((value) => value!.trade?.payInExtraId),
+                  ) !=
                   null)
                 Container(
                   height: 1,
@@ -183,8 +192,10 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               ),
               DesktopStepItem(
                 label: "Trade ID",
-                value: ref.watch(desktopExchangeModelProvider
-                        .select((value) => value!.trade?.tradeId)) ??
+                value: ref.watch(
+                      desktopExchangeModelProvider
+                          .select((value) => value!.trade?.tradeId),
+                    ) ??
                     "Error",
               ),
               Container(

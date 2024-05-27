@@ -14,7 +14,7 @@ import 'conditional_parent.dart';
 
 class RoundedContainer extends StatelessWidget {
   const RoundedContainer({
-    Key? key,
+    super.key,
     this.child,
     required this.color,
     this.padding = const EdgeInsets.all(12),
@@ -25,7 +25,7 @@ class RoundedContainer extends StatelessWidget {
     this.hoverColor,
     this.boxShadow,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final Widget? child;
   final Color color;

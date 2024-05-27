@@ -5,10 +5,13 @@ import 'package:mockito/annotations.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets_service.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<NodeService>(returnNullOnMissingStub: true),
-])
+@GenerateMocks(
+  [],
+  customMocks: [
+    MockSpec<WalletsService>(),
+    MockSpec<NodeService>(),
+  ],
+)
 void main() {
   testWidgets("LockscreenView builds correctly", (tester) async {
     // final navigator = mockingjay.MockNavigator();

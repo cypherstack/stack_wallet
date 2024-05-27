@@ -63,8 +63,10 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   Future<void> _checkDesktopMigrate() async {
     if (Util.isDesktop) {
-      int dbVersion = DB.instance.get<dynamic>(
-              boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
+      final int dbVersion = DB.instance.get<dynamic>(
+            boxName: DB.boxNameDBInfo,
+            key: "hive_data_version",
+          ) as int? ??
           0;
       if (dbVersion < Constants.currentDataVersion) {
         try {
@@ -73,8 +75,11 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             secureStore: ref.read(secureStoreProvider),
           );
         } catch (e, s) {
-          Logging.instance.log("Cannot migrate desktop database\n$e $s",
-              level: LogLevel.Error, printFullLength: true);
+          Logging.instance.log(
+            "Cannot migrate desktop database\n$e $s",
+            level: LogLevel.Error,
+            printFullLength: true,
+          );
         }
       }
     }
@@ -249,12 +254,16 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                           hoverColor: Colors.transparent,
                           enabledBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
-                                color: Colors.transparent, width: 1),
+                              color: Colors.transparent,
+                              width: 1,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
-                                color: Colors.transparent, width: 1),
+                              color: Colors.transparent,
+                              width: 1,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           contentPadding: const EdgeInsets.only(
@@ -273,7 +282,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                   ),
                                   GestureDetector(
                                     key: const Key(
-                                        "restoreFromFilePasswordFieldShowPasswordButtonKey"),
+                                      "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                    ),
                                     onTap: () async {
                                       setState(() {
                                         hidePassword = !hidePassword;

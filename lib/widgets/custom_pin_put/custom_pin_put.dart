@@ -15,7 +15,7 @@ import 'pin_keyboard.dart';
 
 class CustomPinPut extends StatefulWidget {
   const CustomPinPut({
-    Key? key,
+    super.key,
     required this.fieldsCount,
     required this.isRandom,
     this.height,
@@ -64,7 +64,7 @@ class CustomPinPut extends StatefulWidget {
     this.autofillHints,
     this.customKey,
     this.onPinLengthChanged,
-  }) : super(key: key);
+  });
 
   final void Function(int)? onPinLengthChanged;
 

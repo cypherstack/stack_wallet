@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import '../utilities/text_styles.dart';
-import '../wallets/crypto_currency/coins/dogecoin.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 class FeeSlider extends StatefulWidget {

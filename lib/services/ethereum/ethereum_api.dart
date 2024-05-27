@@ -11,6 +11,8 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../dto/ethereum/eth_token_tx_dto.dart';
 import '../../dto/ethereum/eth_token_tx_extra_dto.dart';
 import '../../dto/ethereum/eth_tx_dto.dart';
@@ -18,15 +20,13 @@ import '../../dto/ethereum/pending_eth_tx_dto.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/paymint/fee_object_model.dart';
 import '../../networking/http.dart';
-import '../tor_service.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/eth_commons.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import 'package:tuple/tuple.dart';
+import '../tor_service.dart';
 
 class EthApiException implements Exception {
   EthApiException(this.message);
@@ -117,7 +117,8 @@ abstract class EthereumAPI {
   }
 
   static Future<EthereumResponse<PendingEthTxDto>> getEthTransactionByHash(
-      String txid) async {
+    String txid,
+  ) async {
     try {
       final response = await post(
         Uri.parse(
@@ -600,16 +601,18 @@ abstract class EthereumAPI {
     final feesSlow = fees.slow.shift(9).toBigInt();
 
     return FeeObject(
-        numberOfBlocksFast: fees.numberOfBlocksFast,
-        numberOfBlocksAverage: fees.numberOfBlocksAverage,
-        numberOfBlocksSlow: fees.numberOfBlocksSlow,
-        fast: feesFast.toInt(),
-        medium: feesStandard.toInt(),
-        slow: feesSlow.toInt());
+      numberOfBlocksFast: fees.numberOfBlocksFast,
+      numberOfBlocksAverage: fees.numberOfBlocksAverage,
+      numberOfBlocksSlow: fees.numberOfBlocksSlow,
+      fast: feesFast.toInt(),
+      medium: feesStandard.toInt(),
+      slow: feesSlow.toInt(),
+    );
   }
 
   static Future<EthereumResponse<EthContract>> getTokenContractInfoByAddress(
-      String contractAddress) async {
+    String contractAddress,
+  ) async {
     try {
       final response = await client.get(
         url: Uri.parse(
@@ -648,7 +651,8 @@ abstract class EthereumAPI {
             );
           } else {
             throw EthApiException(
-                "Unsupported token type found: ${map["type"]}");
+              "Unsupported token type found: ${map["type"]}",
+            );
           }
 
           return EthereumResponse(
@@ -732,7 +736,8 @@ abstract class EthereumAPI {
     try {
       final response = await client.get(
         url: Uri.parse(
-            "$stackBaseServer/state?addrs=$contractAddress&parts=proxy"),
+          "$stackBaseServer/state?addrs=$contractAddress&parts=proxy",
+        ),
         proxyInfo: Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,

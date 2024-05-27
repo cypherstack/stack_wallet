@@ -1,6 +1,7 @@
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
@@ -154,7 +155,8 @@ class _FrostStepFieldState extends State<FrostStepField> {
                           if (FocusScope.of(context).hasFocus) {
                             FocusScope.of(context).unfocus();
                             await Future<void>.delayed(
-                                const Duration(milliseconds: 75));
+                              const Duration(milliseconds: 75),
+                            );
                           }
 
                           final qrResult = await BarcodeScanner.scan();

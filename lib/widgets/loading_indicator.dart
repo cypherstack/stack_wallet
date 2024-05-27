@@ -18,10 +18,10 @@ import '../utilities/assets.dart';
 
 class LoadingIndicator extends ConsumerWidget {
   const LoadingIndicator({
-    Key? key,
+    super.key,
     this.width,
     this.height,
-  }) : super(key: key);
+  });
 
   final double? width;
   final double? height;

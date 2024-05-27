@@ -21,9 +21,9 @@ import '../../widgets/rounded_white_container.dart';
 
 class NotificationsView extends ConsumerStatefulWidget {
   const NotificationsView({
-    Key? key,
+    super.key,
     this.walletId,
-  }) : super(key: key);
+  });
 
   final String? walletId;
 
@@ -112,7 +112,7 @@ class _NotificationsViewState extends ConsumerState<NotificationsView> {
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
         ),

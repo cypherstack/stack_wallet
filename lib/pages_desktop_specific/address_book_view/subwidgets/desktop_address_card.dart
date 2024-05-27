@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../models/isar/models/contact_entry.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/address_book_views/subviews/edit_contact_address_view.dart';
@@ -22,7 +23,6 @@ import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
-
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
@@ -30,11 +30,11 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 
 class DesktopAddressCard extends ConsumerWidget {
   const DesktopAddressCard({
-    Key? key,
+    super.key,
     required this.entry,
     required this.contactId,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final ContactAddressEntry entry;
   final String contactId;
@@ -103,7 +103,8 @@ class DesktopAddressCard extends ConsumerWidget {
                           text: "Edit",
                           onTap: () async {
                             ref.refresh(
-                                addressEntryDataProviderFamilyRefresher);
+                              addressEntryDataProviderFamilyRefresher,
+                            );
                             ref.read(addressEntryDataProvider(0)).address =
                                 entry.address;
                             ref.read(addressEntryDataProvider(0)).addressLabel =
@@ -155,7 +156,7 @@ class DesktopAddressCard extends ConsumerWidget {
                       },
                     ),
                 ],
-              )
+              ),
             ],
           ),
         ),

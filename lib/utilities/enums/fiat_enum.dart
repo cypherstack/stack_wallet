@@ -1161,6 +1161,9 @@ Fiats fiatFromTickerCaseInsensitive(String ticker) {
       return Fiats.ZWD;
     default:
       throw ArgumentError.value(
-          ticker, "name", "No Fiat enum value with that ticker");
+        ticker,
+        "name",
+        "No Fiat enum value with that ticker",
+      );
   }
 }

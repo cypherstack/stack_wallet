@@ -37,12 +37,6 @@ import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/crypto_currency/coins/bitcoincash.dart';
-import '../../../../wallets/crypto_currency/coins/ecash.dart';
-import '../../../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../../../wallets/crypto_currency/coins/firo.dart';
-import '../../../../wallets/crypto_currency/coins/monero.dart';
-import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/models/spark_coin.dart';
@@ -1276,7 +1270,7 @@ class _TransactionV2DetailsViewState
                                     : const EdgeInsets.all(12),
                                 child: Builder(
                                   builder: (context) {
-                                    String feeString = showFeePending
+                                    final String feeString = showFeePending
                                         ? _transaction.isConfirmed(
                                             currentHeight,
                                             minConfirms,

@@ -550,7 +550,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
 }
 
 class _Div extends StatelessWidget {
-  const _Div({Key? key}) : super(key: key);
+  const _Div({super.key});
 
   @override
   Widget build(BuildContext context) {

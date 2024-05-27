@@ -21,7 +21,6 @@ import '../../../services/frost.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/bitcoin_frost.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/intermediate/frost_currency.dart';
 import '../../isar/models/frost_wallet_info.dart';

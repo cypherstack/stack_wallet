@@ -18,7 +18,7 @@ class NanoAPI {
     NAccountInfo? accountInfo;
     Exception? exception;
 
-    HTTP client = HTTP();
+    final HTTP client = HTTP();
 
     try {
       final response = await client.post(
@@ -65,7 +65,7 @@ class NanoAPI {
     required String privateKey,
     required String work,
   }) async {
-    Map<String, String> block = {
+    final Map<String, String> block = {
       "type": "state",
       "account": account,
       "previous": previousBlock,
@@ -112,7 +112,7 @@ class NanoAPI {
     required Uri server,
     required Map<String, dynamic> block,
   }) async {
-    HTTP client = HTTP();
+    final HTTP client = HTTP();
 
     final response = await client.post(
       url: server,

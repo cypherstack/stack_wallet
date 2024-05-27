@@ -22,6 +22,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../notifications/show_flush_bar.dart';
@@ -84,7 +85,8 @@ class _AddressCardState extends ConsumerState<AddressCard> {
           final dir = Directory("${Platform.environment['HOME']}");
           if (!dir.existsSync()) {
             throw Exception(
-                "Home dir not found while trying to open filepicker on QR image save");
+              "Home dir not found while trying to open filepicker on QR image save",
+            );
           }
           final path = await FilePicker.platform.saveFile(
             fileName: "qrcode.png",
@@ -127,8 +129,10 @@ class _AddressCardState extends ConsumerState<AddressCard> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
-            text: "Receive URI QR Code");
+        await Share.shareFiles(
+          ["${tempDir.path}/qrcode.png"],
+          text: "Receive URI QR Code",
+        );
       }
     } catch (e) {
       //todo: comeback to this
@@ -362,7 +366,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                           ),
                                         ),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             );

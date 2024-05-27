@@ -12,7 +12,7 @@ import 'package:stackwallet/services/wallets_service.dart';
 // import 'name_your_wallet_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
+  MockSpec<WalletsService>(),
 ])
 void main() {
 //   testWidgets("NameYourWalletView builds correctly with testnet option",

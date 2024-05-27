@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'delete_wallet_recovery_phrase_view.dart';
+
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
@@ -19,6 +19,7 @@ import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.da
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_container.dart';
+import 'delete_wallet_recovery_phrase_view.dart';
 
 class DeleteWalletWarningView extends ConsumerWidget {
   const DeleteWalletWarningView({
@@ -87,9 +88,10 @@ class DeleteWalletWarningView extends ConsumerWidget {
                 child: Text(
                   "Cancel",
                   style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                  ),
                 ),
               ),
               const SizedBox(

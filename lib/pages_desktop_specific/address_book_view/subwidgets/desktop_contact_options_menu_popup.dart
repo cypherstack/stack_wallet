@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import '../../../providers/global/address_book_service_provider.dart';
@@ -23,8 +24,7 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 
 class DesktopContactOptionsMenuPopup extends ConsumerStatefulWidget {
-  const DesktopContactOptionsMenuPopup({Key? key, required this.contactId})
-      : super(key: key);
+  const DesktopContactOptionsMenuPopup({super.key, required this.contactId});
 
   final String contactId;
 
@@ -169,7 +169,7 @@ class _DesktopContactOptionsMenuPopupState
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -256,20 +256,23 @@ class _DesktopContactOptionsMenuPopupState
                               width: 12,
                             ),
                             Text(
-                              ref.watch(addressBookServiceProvider.select(
-                                      (value) => value
-                                          .getContactById(widget.contactId)
-                                          .isFavorite))
+                              ref.watch(
+                                addressBookServiceProvider.select(
+                                  (value) => value
+                                      .getContactById(widget.contactId)
+                                      .isFavorite,
+                                ),
+                              )
                                   ? "Remove from favorites"
                                   : "Add to favorites",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textDark,
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -326,13 +329,13 @@ class _DesktopContactOptionsMenuPopupState
                               Text(
                                 "Edit contact",
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -389,13 +392,13 @@ class _DesktopContactOptionsMenuPopupState
                               Text(
                                 "Delete contact",
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                  context,
+                                ).copyWith(
                                   color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textDark,
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),

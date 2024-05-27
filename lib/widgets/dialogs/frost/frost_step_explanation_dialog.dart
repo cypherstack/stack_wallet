@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../utilities/text_styles.dart';
 import '../../desktop/secondary_button.dart';
 import '../../stack_dialog.dart';
@@ -16,7 +17,8 @@ import '../../stack_dialog.dart';
 class FrostStepExplanationDialog extends StatelessWidget {
   final String title;
   final String body;
-  const FrostStepExplanationDialog({super.key, required this.title, required this.body});
+  const FrostStepExplanationDialog(
+      {super.key, required this.title, required this.body});
 
   @override
   Widget build(BuildContext context) {

@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../pages/ordinals/widgets/ordinals_list.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
@@ -41,7 +42,7 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
   late final TextEditingController searchController;
   late final FocusNode searchFocusNode;
 
-  String _searchTerm = "";
+  final String _searchTerm = "";
 
   @override
   void initState() {
@@ -106,7 +107,7 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
               Text(
                 "Ordinals",
                 style: STextStyles.desktopH3(context),
-              )
+              ),
             ],
           ),
         ),
@@ -210,15 +211,16 @@ class _DesktopOrdinals extends ConsumerState<DesktopOrdinalsView> {
                   onPressed: () async {
                     // show loading for a minimum of 2 seconds on refreshing
                     await showLoading(
-                        rootNavigator: true,
-                        whileFuture: Future.wait<void>([
-                          Future.delayed(const Duration(seconds: 2)),
-                          (ref.read(pWallets).getWallet(widget.walletId)
-                                  as OrdinalsInterface)
-                              .refreshInscriptions()
-                        ]),
-                        context: context,
-                        message: "Refreshing...");
+                      rootNavigator: true,
+                      whileFuture: Future.wait<void>([
+                        Future.delayed(const Duration(seconds: 2)),
+                        (ref.read(pWallets).getWallet(widget.walletId)
+                                as OrdinalsInterface)
+                            .refreshInscriptions(),
+                      ]),
+                      context: context,
+                      message: "Refreshing...",
+                    );
                   },
                 ),
               ],

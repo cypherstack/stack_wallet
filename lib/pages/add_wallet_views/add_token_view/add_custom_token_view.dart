@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../services/ethereum/ethereum_api.dart';
 import '../../../themes/stack_colors.dart';
@@ -29,8 +30,8 @@ import '../../../widgets/stack_dialog.dart';
 
 class AddCustomTokenView extends ConsumerStatefulWidget {
   const AddCustomTokenView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const routeName = "/addCustomToken";
 
@@ -138,7 +139,8 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
               onPressed: () async {
                 final response = await showLoading(
                   whileFuture: EthereumAPI.getTokenContractInfoByAddress(
-                      contractController.text),
+                    contractController.text,
+                  ),
                   context: context,
                   message: "Looking up contract",
                 );
@@ -212,10 +214,12 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                       controller: decimalsController,
                       style: STextStyles.field(context),
                       inputFormatters: [
-                        TextInputFormatter.withFunction((oldValue, newValue) =>
-                            RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
-                                ? newValue
-                                : oldValue),
+                        TextInputFormatter.withFunction(
+                          (oldValue, newValue) =>
+                              RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
+                                  ? newValue
+                                  : oldValue,
+                        ),
                       ],
                       keyboardType: const TextInputType.numberWithOptions(
                         signed: false,
@@ -253,10 +257,12 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                 controller: decimalsController,
                 style: STextStyles.field(context),
                 inputFormatters: [
-                  TextInputFormatter.withFunction((oldValue, newValue) =>
-                      RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
-                          ? newValue
-                          : oldValue),
+                  TextInputFormatter.withFunction(
+                    (oldValue, newValue) =>
+                        RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
+                            ? newValue
+                            : oldValue,
+                  ),
                 ],
                 keyboardType: const TextInputType.numberWithOptions(
                   signed: false,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../frost_route_generator.dart';
-import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../services/frost.dart';
@@ -17,6 +17,7 @@ import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostSendStep2 extends ConsumerStatefulWidget {
   const FrostSendStep2({super.key});
@@ -209,18 +210,20 @@ class _FrostSendStep2State extends ConsumerState<FrostSendStep2> {
           const SizedBox(
             height: 12,
           ),
-          Builder(builder: (context) {
-            final count = countPreprocesses();
-            final colors = Theme.of(context).extension<StackColors>()!;
-            return DetailItem(
-              title: "Required preprocesses",
-              detail: "$count of $threshold",
-              horizontal: true,
-              overrideDetailTextColor: count >= threshold
-                  ? colors.accentColorGreen
-                  : colors.accentColorRed,
-            );
-          }),
+          Builder(
+            builder: (context) {
+              final count = countPreprocesses();
+              final colors = Theme.of(context).extension<StackColors>()!;
+              return DetailItem(
+                title: "Required preprocesses",
+                detail: "$count of $threshold",
+                horizontal: true,
+                overrideDetailTextColor: count >= threshold
+                    ? colors.accentColorGreen
+                    : colors.accentColorRed,
+              );
+            },
+          ),
           const SizedBox(
             height: 12,
           ),

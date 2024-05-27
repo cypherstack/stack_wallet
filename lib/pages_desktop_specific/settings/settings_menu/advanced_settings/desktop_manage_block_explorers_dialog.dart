@@ -13,8 +13,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../../../providers/global/prefs_provider.dart';
+
 import '../../../../app_config.dart';
+import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -139,8 +140,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
 }
 
 class _DesktopEditBlockExplorerDialog extends ConsumerStatefulWidget {
-  const _DesktopEditBlockExplorerDialog({Key? key, required this.coin})
-      : super(key: key);
+  const _DesktopEditBlockExplorerDialog({super.key, required this.coin});
 
   final CryptoCurrency coin;
 
@@ -157,10 +157,10 @@ class _DesktopEditBlockExplorerDialogState
   @override
   void initState() {
     _textEditingController = TextEditingController(
-        text:
-            getBlockExplorerTransactionUrlFor(coin: widget.coin, txid: "[TXID]")
-                .toString()
-                .replaceAll("%5BTXID%5D", "[TXID]"));
+      text: getBlockExplorerTransactionUrlFor(coin: widget.coin, txid: "[TXID]")
+          .toString()
+          .replaceAll("%5BTXID%5D", "[TXID]"),
+    );
     _focusNode = FocusNode();
     super.initState();
   }
@@ -268,10 +268,10 @@ class _DesktopEditBlockExplorerDialogState
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

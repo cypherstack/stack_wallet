@@ -42,7 +42,8 @@ abstract class StackFileSystem {
         appDirectory = Directory(_overrideDesktopDirPath!);
       } else {
         appDirectory = Directory(
-            "${Platform.environment['HOME']}/.${AppConfig.appDefaultDataDirName}");
+          "${Platform.environment['HOME']}/.${AppConfig.appDefaultDataDirName}",
+        );
       }
     } else if (Platform.isWindows) {
       if (_overrideDesktopDirPath != null) {
@@ -56,7 +57,8 @@ abstract class StackFileSystem {
       } else {
         appDirectory = await getLibraryDirectory();
         appDirectory = Directory(
-            "${appDirectory.path}/${AppConfig.appDefaultDataDirName}");
+          "${appDirectory.path}/${AppConfig.appDefaultDataDirName}",
+        );
       }
     } else if (Platform.isIOS) {
       // todo: check if we need different behaviour here

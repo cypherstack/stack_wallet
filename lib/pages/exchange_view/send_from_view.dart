@@ -31,8 +31,6 @@ import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/firo.dart';
-import '../../wallets/crypto_currency/coins/stellar.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
@@ -48,14 +46,14 @@ import '../../widgets/stack_dialog.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
-    Key? key,
+    super.key,
     required this.coin,
     required this.trade,
     required this.amount,
     required this.address,
     this.shouldPopRoot = false,
     this.fromDesktopStep4 = false,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/sendFrom";
 

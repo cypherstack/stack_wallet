@@ -120,7 +120,8 @@ class Stellar extends Bip39Currency {
 
   @override
   DerivePathType get primaryDerivePathType => throw UnsupportedError(
-    "$runtimeType does not use bitcoin style derivation paths",);
+        "$runtimeType does not use bitcoin style derivation paths",
+      );
 
   @override
   Uri defaultBlockExplorer(String txid) {

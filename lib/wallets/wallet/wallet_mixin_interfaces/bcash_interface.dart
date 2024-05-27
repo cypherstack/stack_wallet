@@ -1,6 +1,7 @@
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bitbox/src/utils/network.dart' as bitbox_utils;
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -112,8 +113,10 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
         );
       }
     } catch (e, s) {
-      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Caught exception while signing transaction: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
 

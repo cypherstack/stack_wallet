@@ -28,7 +28,7 @@ import '../../../../../widgets/rounded_container.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.onPaynymPressed,
     required this.onCoinControlPressed,
@@ -37,7 +37,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onOrdinalsPressed,
     required this.onMonkeyPressed,
     required this.onFusionPressed,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final VoidCallback? onPaynymPressed;

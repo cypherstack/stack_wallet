@@ -625,7 +625,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
 }
 
 class TransactionFilterOptionBar extends ConsumerStatefulWidget {
-  const TransactionFilterOptionBar({Key? key}) : super(key: key);
+  const TransactionFilterOptionBar({super.key});
 
   @override
   ConsumerState<TransactionFilterOptionBar> createState() =>
@@ -783,10 +783,10 @@ class _TransactionFilterOptionBarState
 
 class TransactionFilterOptionBarItem extends StatelessWidget {
   const TransactionFilterOptionBarItem({
-    Key? key,
+    super.key,
     required this.label,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final String label;
   final void Function(String)? onPressed;
@@ -841,10 +841,10 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
 
 class DesktopTransactionCardRow extends ConsumerStatefulWidget {
   const DesktopTransactionCardRow({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final TransactionV2 transaction;
   final String walletId;

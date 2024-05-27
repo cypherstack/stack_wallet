@@ -24,10 +24,10 @@ import 'wallet_info_row/wallet_info_row.dart';
 
 class MasterWalletCard extends ConsumerStatefulWidget {
   const MasterWalletCard({
-    Key? key,
+    super.key,
     required this.walletId,
     this.popPrevious = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final bool popPrevious;

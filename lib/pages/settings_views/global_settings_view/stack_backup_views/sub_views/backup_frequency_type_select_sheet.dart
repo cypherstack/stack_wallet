@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/constants.dart';
@@ -18,8 +19,8 @@ import '../../../../../utilities/text_styles.dart';
 
 class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
   const BackupFrequencyTypeSelectSheet({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   String prettyFrequencyType(BackupFrequencyType type) {
     switch (type) {
@@ -117,9 +118,10 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                         .radioButtonIconEnabled,
                                     value: BackupFrequencyType.values[i],
                                     groupValue: ref.watch(
-                                        prefsChangeNotifierProvider.select(
-                                            (value) =>
-                                                value.backupFrequencyType)),
+                                      prefsChangeNotifierProvider.select(
+                                        (value) => value.backupFrequencyType,
+                                      ),
+                                    ),
                                     onChanged: (x) {
                                       ref
                                               .read(prefsChangeNotifierProvider)
@@ -137,7 +139,8 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                     children: [
                                       Text(
                                         prettyFrequencyType(
-                                            BackupFrequencyType.values[i]),
+                                          BackupFrequencyType.values[i],
+                                        ),
                                         style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),

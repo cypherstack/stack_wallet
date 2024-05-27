@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -16,9 +17,9 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../conditional_parent.dart';
 import '../../desktop/secondary_button.dart';
-import '../simple_mobile_dialog.dart';
 import '../../rounded_container.dart';
 import '../../rounded_white_container.dart';
+import '../simple_mobile_dialog.dart';
 
 class FrostStepQrDialog extends StatefulWidget {
   const FrostStepQrDialog({
@@ -52,7 +53,8 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
           final dir = Directory("${Platform.environment['HOME']}");
           if (!dir.existsSync()) {
             throw Exception(
-                "Home dir not found while trying to open filepicker on QR image save");
+              "Home dir not found while trying to open filepicker on QR image save",
+            );
           }
           final path = await FilePicker.platform.saveFile(
             fileName: "qrcode.png",
@@ -91,8 +93,10 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
-            text: "Receive URI QR Code");
+        await Share.shareFiles(
+          ["${tempDir.path}/qrcode.png"],
+          text: "Receive URI QR Code",
+        );
       }
     } catch (e) {
       //todo: comeback to this
@@ -111,7 +115,7 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
             key: _qrKey,
             child: RoundedWhiteContainer(
               boxShadow: [
-                Theme.of(context).extension<StackColors>()!.standardBoxShadow
+                Theme.of(context).extension<StackColors>()!.standardBoxShadow,
               ],
               child: Column(
                 mainAxisSize: MainAxisSize.min,

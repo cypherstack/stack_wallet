@@ -1,4 +1,3 @@
-import '../../crypto_currency/coins/nano.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/intermediate/nano_currency.dart';
 import '../intermediate/bip39_wallet.dart';

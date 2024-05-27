@@ -37,7 +37,7 @@ import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 
 class DebugInfoDialog extends ConsumerStatefulWidget {
-  const DebugInfoDialog({Key? key}) : super(key: key);
+  const DebugInfoDialog({super.key});
 
   @override
   ConsumerState<DebugInfoDialog> createState() => _DebugInfoDialog();

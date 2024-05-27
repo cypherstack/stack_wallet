@@ -13,10 +13,10 @@ import '../utilities/text_styles.dart';
 
 class AppBarSearchField extends StatefulWidget {
   const AppBarSearchField({
-    Key? key,
+    super.key,
     required this.controller,
     this.focusNode,
-  }) : super(key: key);
+  });
 
   final TextEditingController? controller;
   final FocusNode? focusNode;

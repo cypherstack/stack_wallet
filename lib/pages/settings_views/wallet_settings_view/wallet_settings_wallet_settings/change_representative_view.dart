@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -38,10 +39,10 @@ import '../../../../widgets/textfield_icon_button.dart';
 
 class ChangeRepresentativeView extends ConsumerStatefulWidget {
   const ChangeRepresentativeView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String walletId;
   final ClipboardInterface clipboardInterface;
@@ -80,21 +81,22 @@ class _ChangeRepresentativeViewState
     final changeFuture = wallet.changeRepresentative;
 
     final result = await showLoading(
-        whileFuture: changeFuture(_textController.text),
-        context: context,
-        message: "Updating representative...",
-        rootNavigator: Util.isDesktop,
-        onException: (ex) {
-          String msg = ex.toString();
-          while (msg.isNotEmpty && msg.startsWith("Exception:")) {
-            msg = msg.substring(10).trim();
-          }
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: msg,
-            context: context,
-          );
-        });
+      whileFuture: changeFuture(_textController.text),
+      context: context,
+      message: "Updating representative...",
+      rootNavigator: Util.isDesktop,
+      onException: (ex) {
+        String msg = ex.toString();
+        while (msg.isNotEmpty && msg.startsWith("Exception:")) {
+          msg = msg.substring(10).trim();
+        }
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: msg,
+          context: context,
+        );
+      },
+    );
 
     if (mounted) {
       if (result != null && result) {
@@ -129,12 +131,14 @@ class _ChangeRepresentativeViewState
     await _clipboardInterface
         .setData(ClipboardData(text: representative ?? ""));
     if (mounted) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.info,
-        message: "Copied to clipboard",
-        iconAsset: Assets.svg.copy,
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.info,
+          message: "Copied to clipboard",
+          iconAsset: Assets.svg.copy,
+          context: context,
+        ),
+      );
     }
   }
 
@@ -284,7 +288,8 @@ class _ChangeRepresentativeViewState
                                 Text(
                                   "Current representative",
                                   style: STextStyles.desktopTextExtraExtraSmall(
-                                      context),
+                                    context,
+                                  ),
                                 ),
                                 const SizedBox(
                                   height: 4,
@@ -300,8 +305,8 @@ class _ChangeRepresentativeViewState
                               representative!,
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall(
-                                          context)
-                                      .copyWith(
+                                      context,
+                                    ).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
                                           .textDark,

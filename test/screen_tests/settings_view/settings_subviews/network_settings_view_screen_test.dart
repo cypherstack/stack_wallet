@@ -13,7 +13,7 @@ import 'package:stackwallet/services/node_service.dart';
 // import 'network_settings_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<NodeService>(returnNullOnMissingStub: true),
+  MockSpec<NodeService>(),
 ])
 void main() {
 //   testWidgets("NetworkSettingsView builds correctly", (tester) async {

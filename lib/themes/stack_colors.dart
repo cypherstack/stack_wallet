@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../models/isar/stack_theme.dart';
 
 class StackColors extends ThemeExtension<StackColors> {
@@ -1429,18 +1430,20 @@ class StackColors extends ThemeExtension<StackColors> {
         t,
       )!,
       textFieldDefaultSearchIconRight: Color.lerp(
-          textFieldDefaultSearchIconRight,
-          other.textFieldDefaultSearchIconRight,
-          t)!,
+        textFieldDefaultSearchIconRight,
+        other.textFieldDefaultSearchIconRight,
+        t,
+      )!,
       textFieldErrorSearchIconRight: Color.lerp(
         textFieldErrorSearchIconRight,
         other.textFieldErrorSearchIconRight,
         t,
       )!,
       textFieldSuccessSearchIconRight: Color.lerp(
-          textFieldSuccessSearchIconRight,
-          other.textFieldSuccessSearchIconRight,
-          t)!,
+        textFieldSuccessSearchIconRight,
+        other.textFieldSuccessSearchIconRight,
+        t,
+      )!,
       settingsItem2ActiveBG: Color.lerp(
         settingsItem2ActiveBG,
         other.settingsItem2ActiveBG,

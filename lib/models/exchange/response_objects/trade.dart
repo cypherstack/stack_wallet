@@ -9,8 +9,9 @@
  */
 
 import 'package:hive/hive.dart';
-import '../change_now/exchange_transaction.dart';
+
 import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../change_now/exchange_transaction.dart';
 
 part 'trade.g.dart';
 
@@ -213,7 +214,9 @@ class Trade {
   }
 
   factory Trade.fromExchangeTransaction(
-      ExchangeTransaction exTx, bool reversed) {
+    ExchangeTransaction exTx,
+    bool reversed,
+  ) {
     return Trade(
       uuid: exTx.uuid,
       tradeId: exTx.id,

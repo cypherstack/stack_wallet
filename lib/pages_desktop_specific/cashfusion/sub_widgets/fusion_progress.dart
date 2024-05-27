@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
-import 'fusion_dialog.dart';
 import '../../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -10,6 +10,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/rounded_container.dart';
+import 'fusion_dialog.dart';
 
 class FusionProgress extends ConsumerWidget {
   const FusionProgress({super.key, required this.walletId});
@@ -22,42 +23,57 @@ class FusionProgress extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ProgressItem(
-            iconAsset: Assets.svg.node,
-            label: "Connecting to server",
-            state: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.connecting))),
+          iconAsset: Assets.svg.node,
+          label: "Connecting to server",
+          state: ref.watch(
+            fusionProgressUIStateProvider(walletId)
+                .select((value) => value.connecting),
+          ),
+        ),
         const SizedBox(
           height: 12,
         ),
         _ProgressItem(
-            iconAsset: Assets.svg.upFromLine,
-            label: "Allocating outputs",
-            state: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.outputs))),
+          iconAsset: Assets.svg.upFromLine,
+          label: "Allocating outputs",
+          state: ref.watch(
+            fusionProgressUIStateProvider(walletId)
+                .select((value) => value.outputs),
+          ),
+        ),
         const SizedBox(
           height: 12,
         ),
         _ProgressItem(
-            iconAsset: Assets.svg.peers,
-            label: "Waiting for peers",
-            state: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.peers))),
+          iconAsset: Assets.svg.peers,
+          label: "Waiting for peers",
+          state: ref.watch(
+            fusionProgressUIStateProvider(walletId)
+                .select((value) => value.peers),
+          ),
+        ),
         const SizedBox(
           height: 12,
         ),
         _ProgressItem(
-            iconAsset: Assets.svg.fusing,
-            label: "Fusing",
-            state: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.fusing))),
+          iconAsset: Assets.svg.fusing,
+          label: "Fusing",
+          state: ref.watch(
+            fusionProgressUIStateProvider(walletId)
+                .select((value) => value.fusing),
+          ),
+        ),
         const SizedBox(
           height: 12,
         ),
         _ProgressItem(
-            iconAsset: Assets.svg.checkCircle,
-            label: "Complete",
-            state: ref.watch(fusionProgressUIStateProvider(walletId)
-                .select((value) => value.complete))),
+          iconAsset: Assets.svg.checkCircle,
+          label: "Complete",
+          state: ref.watch(
+            fusionProgressUIStateProvider(walletId)
+                .select((value) => value.complete),
+          ),
+        ),
       ],
     );
   }

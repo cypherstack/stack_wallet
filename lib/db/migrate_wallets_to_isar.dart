@@ -207,7 +207,8 @@ Future<void> migrateWalletsToIsar({
   }
 
   await _cleanupOnSuccess(
-      walletIds: newInfo.map((e) => e.$1.walletId).toList());
+    walletIds: newInfo.map((e) => e.$1.walletId).toList(),
+  );
 }
 
 Future<void> _cleanupOnSuccess({required List<String> walletIds}) async {

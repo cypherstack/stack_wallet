@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -12,7 +13,6 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/impl/uint8_list.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/particl.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../models/tx_data.dart';
@@ -120,8 +120,9 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(
-          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-              (feeRatePerKB / 1000).ceil()),
+        ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
@@ -129,14 +130,15 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
   @override
   Future<void> updateTransactions() async {
     // Get all addresses.
-    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
+    final List<Address> allAddressesOld =
+        await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    Set<String> receivingAddresses = allAddressesOld
+    final Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => e.value)
         .toSet();
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => e.value)
         .toSet();
@@ -149,7 +151,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         await fetchHistory(allAddressesSet);
 
     // Only parse new txs (not in db yet).
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
       final storedTx = await mainDB.isar.transactionV2s
@@ -210,8 +212,8 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           );
 
           final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map,
+          );
 
           final prevOut = _parseOutput(
             prevOutJson,
@@ -285,7 +287,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           .fold(BigInt.zero, (value, element) => value + element);
 
       TransactionType type;
-      TransactionSubType subType = TransactionSubType.none;
+      final TransactionSubType subType = TransactionSubType.none;
 
       // Particl has special outputs like confidential amounts. We can check
       // for them here.  They're also checked in checkBlockUTXO.
@@ -342,8 +344,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     required TxData txData,
     required List<SigningData> utxoSigningData,
   }) async {
-    Logging.instance.log("Starting Particl buildTransaction ----------",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "Starting Particl buildTransaction ----------",
+      level: LogLevel.Info,
+    );
 
     // TODO: use coinlib (For this we need coinlib to support particl)
 
@@ -515,8 +519,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         );
       }
     } catch (e, s) {
-      Logging.instance.log("Caught exception while signing transaction: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Caught exception while signing transaction: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
 
@@ -530,8 +536,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     String hexString = builtTx.toHex(isParticl: true).toString();
     if (hexString.length % 2 != 0) {
       // Ensure the string has an even length.
-      Logging.instance.log("Hex string has odd length, which is unexpected.",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Hex string has odd length, which is unexpected.",
+        level: LogLevel.Error,
+      );
       throw Exception("Invalid hex string length.");
     }
     // int maxStrips = 3; // Strip up to 3 0x00s (match previous particl_wallet).

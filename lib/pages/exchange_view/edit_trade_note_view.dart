@@ -23,10 +23,10 @@ import '../../widgets/textfield_icon_button.dart';
 
 class EditTradeNoteView extends ConsumerStatefulWidget {
   const EditTradeNoteView({
-    Key? key,
+    super.key,
     required this.tradeId,
     required this.note,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/editTradeNote";
 
@@ -151,7 +151,7 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                               "Save",
                               style: STextStyles.button(context),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),

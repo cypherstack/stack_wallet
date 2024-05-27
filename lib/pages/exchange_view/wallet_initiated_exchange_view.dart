@@ -119,7 +119,7 @@ class _WalletInitiatedExchangeViewState
                 subMessage: "This could take a few minutes",
                 eventBus: null,
               ),
-            )
+            ),
           ],
         );
       },

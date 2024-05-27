@@ -4,6 +4,7 @@ import 'package:bech32/bech32.dart';
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/amount/amount.dart';
@@ -133,7 +134,8 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
       final addr = coinlib.Address.fromString(address, networkParams);
       return Bip39HDCurrency.convertBytesToScriptHash(
-          addr.program.script.compiled);
+        addr.program.script.compiled,
+      );
     } catch (e) {
       rethrow;
     }
@@ -159,7 +161,8 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
             break;
           default:
             throw Exception(
-                "DerivePathType $derivePathType not supported for coinType");
+              "DerivePathType $derivePathType not supported for coinType",
+            );
         }
         break;
       case 0xef:

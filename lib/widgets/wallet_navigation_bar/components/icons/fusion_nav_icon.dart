@@ -14,7 +14,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
 class FusionNavIcon extends StatelessWidget {
-  const FusionNavIcon({Key? key}) : super(key: key);
+  const FusionNavIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

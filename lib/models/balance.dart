@@ -72,7 +72,8 @@ class Balance {
             ),
       pendingSpendable: decoded["pendingSpendable"] is String
           ? Amount.fromSerializedJsonString(
-              decoded["pendingSpendable"] as String)
+              decoded["pendingSpendable"] as String,
+            )
           : Amount(
               rawValue: BigInt.from(decoded["pendingSpendable"] as int),
               fractionDigits: deprecatedValue,

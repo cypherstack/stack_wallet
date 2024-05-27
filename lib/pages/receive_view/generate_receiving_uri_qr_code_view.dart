@@ -22,6 +22,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../notifications/show_flush_bar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
@@ -31,8 +32,6 @@ import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/bitcoincash.dart';
-import '../../wallets/crypto_currency/coins/ecash.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -90,7 +89,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
           final dir = Directory("${Platform.environment['HOME']}");
           if (!dir.existsSync()) {
             throw Exception(
-                "Home dir not found while trying to open filepicker on QR image save");
+              "Home dir not found while trying to open filepicker on QR image save",
+            );
           }
           final path = await FilePicker.platform.saveFile(
             fileName: "qrcode.png",
@@ -129,8 +129,10 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
-            text: "Receive URI QR Code");
+        await Share.shareFiles(
+          ["${tempDir.path}/qrcode.png"],
+          text: "Receive URI QR Code",
+        );
       }
     } catch (e) {
       //todo: comeback to this
@@ -173,8 +175,10 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       queryParams,
     );
 
-    Logging.instance.log("Generated receiving QR code for: $uriString",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "Generated receiving QR code for: $uriString",
+      level: LogLevel.Info,
+    );
 
     return uriString;
   }
@@ -212,13 +216,14 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                     width: width + 20,
                     height: width + 20,
                     child: QrImageView(
-                        data: uriString,
-                        size: width,
-                        backgroundColor:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        foregroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      data: uriString,
+                      size: width,
+                      backgroundColor:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
+                      foregroundColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                 ),
               ),
@@ -552,14 +557,15 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                   width: 234,
                                   height: 234,
                                   child: QrImageView(
-                                      data: _uriString,
-                                      size: 220,
-                                      backgroundColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .popupBG,
-                                      foregroundColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
+                                    data: _uriString,
+                                    size: 220,
+                                    backgroundColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .popupBG,
+                                    foregroundColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
                                 ),
                               ),
                             ),
@@ -613,7 +619,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                   ),
                                 ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),

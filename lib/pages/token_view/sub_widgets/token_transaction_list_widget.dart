@@ -26,9 +26,9 @@ import '../../../widgets/loading_indicator.dart';
 
 class TokenTransactionsList extends ConsumerStatefulWidget {
   const TokenTransactionsList({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -81,7 +81,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
                 IndexWhereClause.equalTo(
                   indexName: 'walletId',
                   value: [widget.walletId],
-                )
+                ),
               ],
               filter: ref.read(pCurrentTokenWallet)!.transactionFilterOperation,
               sortBy: [

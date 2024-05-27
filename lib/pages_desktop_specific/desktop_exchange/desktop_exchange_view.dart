@@ -26,7 +26,7 @@ import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/rounded_white_container.dart';
 
 class DesktopExchangeView extends ConsumerStatefulWidget {
-  const DesktopExchangeView({Key? key}) : super(key: key);
+  const DesktopExchangeView({super.key});
 
   static const String routeName = "/desktopExchange";
 
@@ -95,7 +95,7 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                 subMessage: "This could take a few minutes",
                 eventBus: null,
               ),
-            )
+            ),
           ],
         );
       },
@@ -173,9 +173,9 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                     const SizedBox(
                       width: 16,
                     ),
-                    Expanded(
+                    const Expanded(
                       child: Row(
-                        children: const [
+                        children: [
                           Expanded(
                             child: DesktopTradeHistory(),
                           ),

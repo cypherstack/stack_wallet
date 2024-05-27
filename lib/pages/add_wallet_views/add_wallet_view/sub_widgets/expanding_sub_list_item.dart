@@ -10,27 +10,27 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
-import 'add_wallet_entity_list.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/animated_widgets/rotate_icon.dart';
 import '../../../../widgets/expandable.dart';
+import 'add_wallet_entity_list.dart';
 
 class ExpandingSubListItem extends StatefulWidget {
   const ExpandingSubListItem({
-    Key? key,
+    super.key,
     required this.title,
     required this.entities,
     this.trailing,
     required this.initialState,
     double? animationDurationMultiplier,
     this.curve = Curves.easeInOutCubicEmphasized,
-  })  : animationDurationMultiplier =
-            animationDurationMultiplier ?? entities.length * 0.11,
-        super(key: key);
+  }) : animationDurationMultiplier =
+            animationDurationMultiplier ?? entities.length * 0.11;
 
   final String title;
   final List<AddWalletListEntity> entities;

@@ -180,7 +180,8 @@ void main(List<String> args) async {
 
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
   await Hive.initFlutter(
-      (await StackFileSystem.applicationHiveDirectory()).path);
+    (await StackFileSystem.applicationHiveDirectory()).path,
+  );
 
   await Hive.openBox<dynamic>(DB.boxNameDBInfo);
   await Hive.openBox<dynamic>(DB.boxNamePrefs);
@@ -202,8 +203,10 @@ void main(List<String> args) async {
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
-    int dbVersion = DB.instance.get<dynamic>(
-            boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
+    final int dbVersion = DB.instance.get<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+        ) as int? ??
         0;
     if (dbVersion < Constants.currentDataVersion) {
       try {
@@ -215,8 +218,11 @@ void main(List<String> args) async {
           ),
         );
       } catch (e, s) {
-        Logging.instance.log("Cannot migrate mobile database\n$e $s",
-            level: LogLevel.Error, printFullLength: true);
+        Logging.instance.log(
+          "Cannot migrate mobile database\n$e $s",
+          level: LogLevel.Error,
+          printFullLength: true,
+        );
       }
     }
   }
@@ -262,7 +268,7 @@ void main(List<String> args) async {
 
 /// MyApp initialises relevant services with a MultiProvider
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -279,8 +285,8 @@ class MyApp extends StatelessWidget {
 
 class MaterialAppWithTheme extends ConsumerStatefulWidget {
   const MaterialAppWithTheme({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<MaterialAppWithTheme> createState() =>
@@ -382,7 +388,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         switch (ref.read(prefsChangeNotifierProvider).backupFrequencyType) {
           case BackupFrequencyType.everyTenMinutes:
             ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
-                duration: const Duration(minutes: 10));
+                  duration: const Duration(minutes: 10),
+                );
             break;
           case BackupFrequencyType.everyAppStart:
             unawaited(ref.read(autoSWBServiceProvider).doBackup());
@@ -448,7 +455,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           await loadingCompleter.future;
 
           await goToRestoreSWB(
-              ref.read(openedFromSWBFileStringStateProvider.state).state!);
+            ref.read(openedFromSWBFileStringStateProvider.state).state!,
+          );
           ref.read(openedFromSWBFileStringStateProvider.state).state = null;
         }
         // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
@@ -511,7 +519,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
               null) {
             await goToRestoreSWB(
-                ref.read(openedFromSWBFileStringStateProvider.state).state!);
+              ref.read(openedFromSWBFileStringStateProvider.state).state!,
+            );
             ref.read(openedFromSWBFileStringStateProvider.state).state = null;
           }
         }
@@ -559,8 +568,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     await resetOpenPath();
 
     Logging.instance.log(
-        "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
-        level: LogLevel.Info);
+      "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
+      level: LogLevel.Info,
+    );
   }
 
   /// should only be called on android currently
@@ -575,27 +585,31 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           .then((value) {
         if (value is! bool || value == false) {
           Navigator.of(navigatorKey.currentContext!).pushNamed(
-              RestoreFromEncryptedStringView.routeName,
-              arguments: encrypted);
+            RestoreFromEncryptedStringView.routeName,
+            arguments: encrypted,
+          );
         }
       });
     } else {
-      unawaited(Navigator.push(
-        navigatorKey.currentContext!,
-        RouteGenerator.getRoute(
-          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => LockscreenView(
-            showBackButton: true,
-            routeOnSuccess: RestoreFromEncryptedStringView.routeName,
-            routeOnSuccessArguments: encrypted,
-            biometricsCancelButtonString: "CANCEL",
-            biometricsLocalizedReason:
-                "Authenticate to restore ${AppConfig.appName} backup",
-            biometricsAuthenticationTitle: "Restore ${AppConfig.prefix} backup",
+      unawaited(
+        Navigator.push(
+          navigatorKey.currentContext!,
+          RouteGenerator.getRoute(
+            shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+            builder: (_) => LockscreenView(
+              showBackButton: true,
+              routeOnSuccess: RestoreFromEncryptedStringView.routeName,
+              routeOnSuccessArguments: encrypted,
+              biometricsCancelButtonString: "CANCEL",
+              biometricsLocalizedReason:
+                  "Authenticate to restore ${AppConfig.appName} backup",
+              biometricsAuthenticationTitle:
+                  "Restore ${AppConfig.prefix} backup",
+            ),
+            settings: const RouteSettings(name: "/swbrestorelockscreen"),
           ),
-          settings: const RouteSettings(name: "/swbrestorelockscreen"),
         ),
-      ));
+      );
     }
   }
 
@@ -655,7 +669,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             foregroundColor:
                 MaterialStateProperty.all(colorScheme.buttonTextSecondary),
             backgroundColor: MaterialStateProperty.all<Color>(
-                colorScheme.buttonBackSecondary),
+              colorScheme.buttonBackSecondary,
+            ),
             shape: MaterialStateProperty.all<OutlinedBorder>(
               RoundedRectangleBorder(
                 // 1000 to be relatively sure it keeps its pill shape

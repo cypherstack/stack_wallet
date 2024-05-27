@@ -14,7 +14,7 @@ void main() {
       final adapter = TransactionDataAdapter();
       final reader = MockBinaryReader();
 
-      List<int> readeByteResponses = [1, 0];
+      final List<int> readeByteResponses = [1, 0];
 
       when(reader.readByte()).thenAnswer((_) => readeByteResponses.removeAt(0));
 
@@ -100,11 +100,11 @@ void main() {
       final adapter = TransactionChunkAdapter();
       final reader = MockBinaryReader();
 
-      List<int> readByteResponses = [2, 0, 1];
+      final List<int> readByteResponses = [2, 0, 1];
 
       when(reader.readByte()).thenAnswer((_) => readByteResponses.removeAt(0));
 
-      List<dynamic> readResponses = [
+      final List<dynamic> readResponses = [
         3426523234,
         <Transaction>[],
       ];
@@ -195,14 +195,14 @@ void main() {
       final adapter = TransactionAdapter();
       final reader = MockBinaryReader();
 
-      List<int> readByteResponses = [20];
+      final List<int> readByteResponses = [20];
       for (int i = 0; i < 20; i++) {
         readByteResponses.add(i);
       }
 
       when(reader.readByte()).thenAnswer((_) => readByteResponses.removeAt(0));
 
-      List<dynamic> readResponses = [
+      final List<dynamic> readResponses = [
         "some txid",
         true,
         872346534,
@@ -425,14 +425,14 @@ void main() {
       final adapter = InputAdapter();
       final reader = MockBinaryReader();
 
-      List<int> readByteResponses = [9];
+      final List<int> readByteResponses = [9];
       for (int i = 0; i < 9; i++) {
         readByteResponses.add(i);
       }
 
       when(reader.readByte()).thenAnswer((_) => readByteResponses.removeAt(0));
 
-      List<dynamic> readResponses = [
+      final List<dynamic> readResponses = [
         "some txid",
         1,
         Output(scriptpubkeyAddress: "adr", value: 1),
@@ -565,14 +565,14 @@ void main() {
       final adapter = OutputAdapter();
       final reader = MockBinaryReader();
 
-      List<int> readByteResponses = [5];
+      final List<int> readByteResponses = [5];
       for (int i = 0; i < 5; i++) {
         readByteResponses.add(i);
       }
 
       when(reader.readByte()).thenAnswer((_) => readByteResponses.removeAt(0));
 
-      List<dynamic> readResponses = [
+      final List<dynamic> readResponses = [
         "some scriptpubkey",
         "some scriptpubkey asm",
         "some scriptpubkey type",

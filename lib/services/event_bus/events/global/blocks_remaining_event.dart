@@ -16,7 +16,8 @@ class BlocksRemainingEvent {
 
   BlocksRemainingEvent(this.blocksRemaining, this.walletId) {
     Logging.instance.log(
-        "RefreshPercentChangedEvent fired on $walletId with blocks remaining = $blocksRemaining",
-        level: LogLevel.Info);
+      "RefreshPercentChangedEvent fired on $walletId with blocks remaining = $blocksRemaining",
+      level: LogLevel.Info,
+    );
   }
 }

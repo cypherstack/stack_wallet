@@ -187,7 +187,7 @@ class _IntroViewState extends ConsumerState<IntroView> {
 }
 
 class AppNameText extends StatelessWidget {
-  const AppNameText({Key? key, required this.isDesktop}) : super(key: key);
+  const AppNameText({super.key, required this.isDesktop});
 
   final bool isDesktop;
 
@@ -209,7 +209,7 @@ class AppNameText extends StatelessWidget {
 }
 
 class IntroAboutText extends StatelessWidget {
-  const IntroAboutText({Key? key, required this.isDesktop}) : super(key: key);
+  const IntroAboutText({super.key, required this.isDesktop});
 
   final bool isDesktop;
 
@@ -228,8 +228,7 @@ class IntroAboutText extends StatelessWidget {
 }
 
 class PrivacyAndTOSText extends StatelessWidget {
-  const PrivacyAndTOSText({Key? key, required this.isDesktop})
-      : super(key: key);
+  const PrivacyAndTOSText({super.key, required this.isDesktop});
 
   final bool isDesktop;
 
@@ -241,7 +240,8 @@ class PrivacyAndTOSText extends StatelessWidget {
       text: TextSpan(
         style: STextStyles.label(context).copyWith(fontSize: fontSize),
         children: [
-          TextSpan(text: "By using ${AppConfig.appName}, you agree to the "),
+          const TextSpan(
+              text: "By using ${AppConfig.appName}, you agree to the "),
           TextSpan(
             text: "Terms of service",
             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
@@ -272,7 +272,7 @@ class PrivacyAndTOSText extends StatelessWidget {
 }
 
 class GetStartedButton extends StatelessWidget {
-  const GetStartedButton({Key? key, required this.isDesktop}) : super(key: key);
+  const GetStartedButton({super.key, required this.isDesktop});
 
   final bool isDesktop;
 

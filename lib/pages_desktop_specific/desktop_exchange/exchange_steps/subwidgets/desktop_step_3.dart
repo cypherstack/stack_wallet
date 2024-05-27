@@ -20,8 +20,8 @@ import '../../../../widgets/rounded_white_container.dart';
 
 class DesktopStep3 extends ConsumerStatefulWidget {
   const DesktopStep3({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<DesktopStep3> createState() => _DesktopStep3State();
@@ -71,13 +71,17 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
               DesktopStepItem(
-                label: ref.watch(desktopExchangeModelProvider
-                            .select((value) => value!.rateType)) ==
+                label: ref.watch(
+                          desktopExchangeModelProvider
+                              .select((value) => value!.rateType),
+                        ) ==
                         ExchangeRateType.estimated
                     ? "Estimated rate"
                     : "Fixed rate",
-                value: ref.watch(desktopExchangeModelProvider
-                    .select((value) => value!.rateInfo)),
+                value: ref.watch(
+                  desktopExchangeModelProvider
+                      .select((value) => value!.rateInfo),
+                ),
               ),
               Container(
                 height: 1,
@@ -87,8 +91,10 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
                 vertical: true,
                 label:
                     "Recipient ${ref.watch(desktopExchangeModelProvider.select((value) => value!.receiveTicker.toUpperCase()))} address",
-                value: ref.watch(desktopExchangeModelProvider
-                        .select((value) => value!.recipientAddress)) ??
+                value: ref.watch(
+                      desktopExchangeModelProvider
+                          .select((value) => value!.recipientAddress),
+                    ) ??
                     "Error",
               ),
               Container(
@@ -99,8 +105,10 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
                 vertical: true,
                 label:
                     "Refund ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} address",
-                value: ref.watch(desktopExchangeModelProvider
-                        .select((value) => value!.refundAddress)) ??
+                value: ref.watch(
+                      desktopExchangeModelProvider
+                          .select((value) => value!.refundAddress),
+                    ) ??
                     "Error",
               ),
             ],

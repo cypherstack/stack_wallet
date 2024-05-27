@@ -37,9 +37,9 @@ final newEthWalletTriggerTempUntilHiveCompletelyDeleted =
 
 class SelectWalletForTokenView extends ConsumerStatefulWidget {
   const SelectWalletForTokenView({
-    Key? key,
+    super.key,
     required this.entity,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/selectWalletForTokenView";
 

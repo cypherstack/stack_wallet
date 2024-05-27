@@ -22,9 +22,9 @@ enum FusionOption {
 
 class FusionRoundCountSelectSheet extends HookWidget {
   const FusionRoundCountSelectSheet({
-    Key? key,
+    super.key,
     required this.currentOption,
-  }) : super(key: key);
+  });
 
   final FusionOption currentOption;
 

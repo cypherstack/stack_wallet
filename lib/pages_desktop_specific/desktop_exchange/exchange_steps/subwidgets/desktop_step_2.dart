@@ -37,10 +37,10 @@ import '../step_scaffold.dart';
 
 class DesktopStep2 extends ConsumerStatefulWidget {
   const DesktopStep2({
-    Key? key,
+    super.key,
     required this.enableNextChanged,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final ClipboardInterface clipboard;
   final void Function(bool) enableNextChanged;

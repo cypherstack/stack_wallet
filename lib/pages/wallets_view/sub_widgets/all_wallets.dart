@@ -18,7 +18,7 @@ import '../../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 
 class AllWallets extends StatelessWidget {
-  const AllWallets({Key? key}) : super(key: key);
+  const AllWallets({super.key});
 
   @override
   Widget build(BuildContext context) {

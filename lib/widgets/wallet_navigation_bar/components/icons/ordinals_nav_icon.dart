@@ -14,7 +14,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
 class OrdinalsNavIcon extends StatelessWidget {
-  const OrdinalsNavIcon({Key? key}) : super(key: key);
+  const OrdinalsNavIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

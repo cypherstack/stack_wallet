@@ -12,11 +12,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../../../utilities/amount/amount.dart';
 import 'address.dart';
 import 'input.dart';
 import 'output.dart';
-import '../../../../utilities/amount/amount.dart';
-import 'package:tuple/tuple.dart';
 
 part 'transaction.g.dart';
 
@@ -65,24 +66,24 @@ class Transaction {
   }) {
     return Tuple2(
       Transaction(
-          walletId: walletId ?? this.walletId,
-          txid: txid ?? this.txid,
-          timestamp: timestamp ?? this.timestamp,
-          type: type ?? this.type,
-          subType: subType ?? this.subType,
-          amount: amount ?? this.amount,
-          amountString: amountString ?? this.amountString,
-          fee: fee ?? this.fee,
-          height: height ?? this.height,
-          isCancelled: isCancelled ?? this.isCancelled,
-          isLelantus: isLelantus ?? this.isLelantus,
-          slateId: slateId ?? this.slateId,
-          otherData: otherData ?? this.otherData,
-          nonce: nonce ?? this.nonce,
-          inputs: inputs ?? this.inputs,
-          outputs: outputs ?? this.outputs,
-          numberOfMessages: numberOfMessages ?? this.numberOfMessages)
-        ..id = id ?? this.id,
+        walletId: walletId ?? this.walletId,
+        txid: txid ?? this.txid,
+        timestamp: timestamp ?? this.timestamp,
+        type: type ?? this.type,
+        subType: subType ?? this.subType,
+        amount: amount ?? this.amount,
+        amountString: amountString ?? this.amountString,
+        fee: fee ?? this.fee,
+        height: height ?? this.height,
+        isCancelled: isCancelled ?? this.isCancelled,
+        isLelantus: isLelantus ?? this.isLelantus,
+        slateId: slateId ?? this.slateId,
+        otherData: otherData ?? this.otherData,
+        nonce: nonce ?? this.nonce,
+        inputs: inputs ?? this.inputs,
+        outputs: outputs ?? this.outputs,
+        numberOfMessages: numberOfMessages ?? this.numberOfMessages,
+      )..id = id ?? this.id,
       address ?? this.address.value,
     );
   }

@@ -30,9 +30,9 @@ import '../../widgets/textfield_icon_button.dart';
 
 class MyTokensView extends ConsumerStatefulWidget {
   const MyTokensView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/myTokens";
   final String walletId;

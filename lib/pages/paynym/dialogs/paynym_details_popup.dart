@@ -227,7 +227,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                               .extension<StackColors>()!
                                               .accentColorGreen,
                                         ),
-                                      )
+                                      ),
                                     ],
                                   );
                                 } else {

@@ -175,7 +175,9 @@ class SimpleSwapExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-      String forCurrency, bool fixedRate) {
+    String forCurrency,
+    bool fixedRate,
+  ) {
     // TODO: implement getPairedCurrencies
     throw UnimplementedError();
   }

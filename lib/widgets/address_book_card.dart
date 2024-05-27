@@ -61,8 +61,10 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
     // provider hack to prevent trying to update widget with deleted contact
     ContactEntry? _contact;
     try {
-      _contact = ref.watch(addressBookServiceProvider
-          .select((value) => value.getContactById(contactId)));
+      _contact = ref.watch(
+        addressBookServiceProvider
+            .select((value) => value.getContactById(contactId)),
+      );
     } catch (_) {
       return Container();
     }

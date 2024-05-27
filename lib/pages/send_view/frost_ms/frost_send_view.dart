@@ -14,10 +14,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../frost_route_generator.dart';
 import '../../../models/isar/models/isar_models.dart';
-import '../../coin_control/coin_control_view.dart';
-import 'recipient.dart';
 import '../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -46,7 +46,8 @@ import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
-import 'package:tuple/tuple.dart';
+import '../../coin_control/coin_control_view.dart';
+import 'recipient.dart';
 
 class FrostSendView extends ConsumerStatefulWidget {
   const FrostSendView({
@@ -164,9 +165,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -346,9 +348,11 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                ref.watch(pAmountFormatter(coin)).format(ref
-                                    .watch(pWalletBalance(walletId))
-                                    .spendable),
+                                ref.watch(pAmountFormatter(coin)).format(
+                                      ref
+                                          .watch(pWalletBalance(walletId))
+                                          .spendable,
+                                    ),
                                 style:
                                     STextStyles.titleBold12(context).copyWith(
                                   fontSize: 10,
@@ -358,7 +362,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                             ],
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -389,8 +393,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                           ? null
                           : () {
                               ref
-                                  .read(pRecipient(recipientWidgetIndexes[i])
-                                      .notifier)
+                                  .read(
+                                    pRecipient(recipientWidgetIndexes[i])
+                                        .notifier,
+                                  )
                                   .state = null;
                               recipientWidgetIndexes.removeAt(i);
                               setState(() {});

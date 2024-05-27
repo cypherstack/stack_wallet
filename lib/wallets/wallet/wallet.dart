@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:isar/isar.dart';
 import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
@@ -20,25 +21,6 @@ import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/paynym_is_api.dart';
 import '../../utilities/prefs.dart';
-import '../crypto_currency/coins/banano.dart';
-import '../crypto_currency/coins/bitcoin.dart';
-import '../crypto_currency/coins/bitcoin_frost.dart';
-import '../crypto_currency/coins/bitcoincash.dart';
-import '../crypto_currency/coins/dogecoin.dart';
-import '../crypto_currency/coins/ecash.dart';
-import '../crypto_currency/coins/epiccash.dart';
-import '../crypto_currency/coins/ethereum.dart';
-import '../crypto_currency/coins/firo.dart';
-import '../crypto_currency/coins/litecoin.dart';
-import '../crypto_currency/coins/monero.dart';
-import '../crypto_currency/coins/namecoin.dart';
-import '../crypto_currency/coins/nano.dart';
-import '../crypto_currency/coins/particl.dart';
-import '../crypto_currency/coins/peercoin.dart';
-import '../crypto_currency/coins/solana.dart';
-import '../crypto_currency/coins/stellar.dart';
-import '../crypto_currency/coins/tezos.dart';
-import '../crypto_currency/coins/wownero.dart';
 import '../crypto_currency/crypto_currency.dart';
 import '../isar/models/wallet_info.dart';
 import '../models/tx_data.dart';
@@ -122,7 +104,8 @@ abstract class Wallet<T extends CryptoCurrency> {
   bool _isConnected = false;
 
   void xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(
-      bool flag) {
+    bool flag,
+  ) {
     _isConnected = flag;
   }
 

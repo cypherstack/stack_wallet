@@ -18,9 +18,9 @@ import '../../../widgets/rounded_white_container.dart';
 
 class FeaturedPaynymsWidget extends StatelessWidget {
   const FeaturedPaynymsWidget({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 

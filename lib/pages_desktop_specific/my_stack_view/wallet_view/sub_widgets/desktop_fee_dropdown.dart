@@ -13,6 +13,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../models/models.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -25,10 +26,6 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../../../wallets/crypto_currency/coins/firo.dart';
-import '../../../../wallets/crypto_currency/coins/monero.dart';
-import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -76,9 +73,11 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
     switch (feeRateType) {
       case FeeRateType.fast:
         if (ref
-                .read(widget.isToken
-                    ? tokenFeeSessionCacheProvider
-                    : feeSheetSessionCacheProvider)
+                .read(
+                  widget.isToken
+                      ? tokenFeeSessionCacheProvider
+                      : feeSheetSessionCacheProvider,
+                )
                 .fast[amount] ==
             null) {
           if (widget.isToken == false) {
@@ -86,7 +85,9 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
 
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.fast.raw!);
+                amount,
+                MoneroTransactionPriority.fast.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else if (coin is Firo) {
               final Amount fee;
@@ -113,16 +114,20 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           }
         }
         return ref
-            .read(widget.isToken
-                ? tokenFeeSessionCacheProvider
-                : feeSheetSessionCacheProvider)
+            .read(
+              widget.isToken
+                  ? tokenFeeSessionCacheProvider
+                  : feeSheetSessionCacheProvider,
+            )
             .fast[amount]!;
 
       case FeeRateType.average:
         if (ref
-                .read(widget.isToken
-                    ? tokenFeeSessionCacheProvider
-                    : feeSheetSessionCacheProvider)
+                .read(
+                  widget.isToken
+                      ? tokenFeeSessionCacheProvider
+                      : feeSheetSessionCacheProvider,
+                )
                 .average[amount] ==
             null) {
           if (widget.isToken == false) {
@@ -130,7 +135,9 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
 
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.regular.raw!);
+                amount,
+                MoneroTransactionPriority.regular.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else if (coin is Firo) {
               final Amount fee;
@@ -157,16 +164,20 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           }
         }
         return ref
-            .read(widget.isToken
-                ? tokenFeeSessionCacheProvider
-                : feeSheetSessionCacheProvider)
+            .read(
+              widget.isToken
+                  ? tokenFeeSessionCacheProvider
+                  : feeSheetSessionCacheProvider,
+            )
             .average[amount]!;
 
       case FeeRateType.slow:
         if (ref
-                .read(widget.isToken
-                    ? tokenFeeSessionCacheProvider
-                    : feeSheetSessionCacheProvider)
+                .read(
+                  widget.isToken
+                      ? tokenFeeSessionCacheProvider
+                      : feeSheetSessionCacheProvider,
+                )
                 .slow[amount] ==
             null) {
           if (widget.isToken == false) {
@@ -174,7 +185,9 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
 
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.slow.raw!);
+                amount,
+                MoneroTransactionPriority.slow.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else if (coin is Firo) {
               final Amount fee;
@@ -201,9 +214,11 @@ class _DesktopFeeDropDownState extends ConsumerState<DesktopFeeDropDown> {
           }
         }
         return ref
-            .read(widget.isToken
-                ? tokenFeeSessionCacheProvider
-                : feeSheetSessionCacheProvider)
+            .read(
+              widget.isToken
+                  ? tokenFeeSessionCacheProvider
+                  : feeSheetSessionCacheProvider,
+            )
             .slow[amount]!;
       default:
         return Amount.zero;
@@ -295,13 +310,13 @@ final sendAmountProvider =
 
 class FeeDropDownChild extends ConsumerWidget {
   const FeeDropDownChild({
-    Key? key,
+    super.key,
     required this.feeObject,
     required this.feeRateType,
     required this.walletId,
     required this.feeFor,
     required this.isSelected,
-  }) : super(key: key);
+  });
 
   final FeeObject? feeObject;
   final FeeRateType feeRateType;
@@ -322,10 +337,12 @@ class FeeDropDownChild extends ConsumerWidget {
   ];
 
   String estimatedTimeToBeIncludedInNextBlock(
-      int targetBlockTime, int estimatedNumberOfBlocks) {
-    int time = targetBlockTime * estimatedNumberOfBlocks;
+    int targetBlockTime,
+    int estimatedNumberOfBlocks,
+  ) {
+    final int time = targetBlockTime * estimatedNumberOfBlocks;
 
-    int hours = (time / 3600).floor();
+    final int hours = (time / 3600).floor();
     if (hours > 1) {
       return "~$hours hours";
     } else if (hours == 1) {

@@ -7,7 +7,7 @@ import '../wallet_mixin_interfaces/mnemonic_interface.dart';
 
 abstract class CryptonoteWallet<T extends CryptonoteCurrency> extends Wallet<T>
     with MnemonicInterface<T> {
-  CryptonoteWallet(T currency) : super(currency);
+  CryptonoteWallet(super.currency);
 
   Completer<void>? walletOpenCompleter;
 

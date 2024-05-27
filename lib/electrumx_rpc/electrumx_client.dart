@@ -28,8 +28,6 @@ import '../services/event_bus/global_event_bus.dart';
 import '../services/tor_service.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
-import '../wallets/crypto_currency/coins/dogecoin.dart';
-import '../wallets/crypto_currency/coins/firo.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'package:stream_channel/stream_channel.dart';
 

@@ -17,8 +17,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../pages/cashfusion/fusion_rounds_selection_sheet.dart';
-import 'sub_widgets/fusion_dialog.dart';
 import '../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -38,6 +38,7 @@ import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
+import 'sub_widgets/fusion_dialog.dart';
 
 class DesktopCashFusionView extends ConsumerStatefulWidget {
   const DesktopCashFusionView({
@@ -77,7 +78,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-          "FusionProgressUIState was already set for ${widget.walletId}")) {
+            "FusionProgressUIState was already set for ${widget.walletId}",
+          )) {
         rethrow;
       }
     }
@@ -256,7 +258,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                                 Text(
                                                   "What is Fusion?",
                                                   style: STextStyles.desktopH2(
-                                                      context),
+                                                    context,
+                                                  ),
                                                 ),
                                                 DesktopDialogCloseButton(
                                                   onPressedOverride: () =>
@@ -276,8 +279,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                               "companies to track your coins.",
                                               style:
                                                   STextStyles.desktopTextMedium(
-                                                          context)
-                                                      .copyWith(
+                                                context,
+                                              ).copyWith(
                                                 color: Theme.of(context)
                                                     .extension<StackColors>()!
                                                     .textDark3,
@@ -337,7 +340,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             Text(
                               "Server settings",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
+                                context,
+                              ),
                             ),
                             CustomTextButton(
                               text: "Default",
@@ -396,7 +400,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             controller: portController,
                             focusNode: portFocusNode,
                             inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
+                              FilteringTextInputFormatter.digitsOnly,
                             ],
                             onChanged: (value) {
                               setState(() {
@@ -544,7 +548,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                       controller: fusionRoundController,
                                       focusNode: fusionRoundFocusNode,
                                       inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly
+                                        FilteringTextInputFormatter.digitsOnly,
                                       ],
                                       onChanged: (value) {
                                         setState(() {
@@ -562,8 +566,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                         context,
                                         desktopMed: true,
                                       ).copyWith(
-                                          labelText:
-                                              "Enter number of fusions.."),
+                                        labelText: "Enter number of fusions..",
+                                      ),
                                     ),
                                   ),
                                 ],

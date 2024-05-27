@@ -14,12 +14,12 @@ void main() {
       final adapter = UtxoDataAdapter();
       final reader = MockBinaryReader();
 
-      List<int> readByteResponses = [5];
+      final List<int> readByteResponses = [5];
       for (int i = 0; i < 5; i++) {
         readByteResponses.add(i);
       }
 
-      List<dynamic> readResponses = [
+      final List<dynamic> readResponses = [
         "100",
         100000000,
         "10",
@@ -135,12 +135,12 @@ void main() {
       final adapter = UtxoObjectAdapter();
       final reader = MockBinaryReader();
 
-      List<int> readByteResponses = [8];
+      final List<int> readByteResponses = [8];
       for (int i = 0; i < 8; i++) {
         readByteResponses.add(i);
       }
 
-      List<dynamic> readResponses = [
+      final List<dynamic> readResponses = [
         "100",
         1,
         Status(
@@ -286,12 +286,12 @@ void main() {
       final adapter = StatusAdapter();
       final reader = MockBinaryReader();
 
-      List<int> readByteResponses = [5];
+      final List<int> readByteResponses = [5];
       for (int i = 0; i < 5; i++) {
         readByteResponses.add(i);
       }
 
-      List<dynamic> readResponses = [
+      final List<dynamic> readResponses = [
         true,
         "some blockhash",
         4587364,

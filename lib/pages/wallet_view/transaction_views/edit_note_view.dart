@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../models/isar/models/transaction_note.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/providers.dart';
@@ -28,10 +29,10 @@ import '../../../widgets/textfield_icon_button.dart';
 
 class EditNoteView extends ConsumerStatefulWidget {
   const EditNoteView({
-    Key? key,
+    super.key,
     required this.txid,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/editNote";
 
@@ -92,7 +93,8 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                     if (FocusScope.of(context).hasFocus) {
                       FocusScope.of(context).unfocus();
                       await Future<void>.delayed(
-                          const Duration(milliseconds: 75));
+                        const Duration(milliseconds: 75),
+                      );
                     }
                     if (mounted) {
                       Navigator.of(context).pop();
@@ -230,7 +232,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                     "Save",
                     style: STextStyles.button(context),
                   ),
-                )
+                ),
             ],
           ),
         ),
@@ -241,9 +243,9 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
 
 class MobileEditNoteScaffold extends StatelessWidget {
   const MobileEditNoteScaffold({
-    Key? key,
+    super.key,
     required this.child,
-  }) : super(key: key);
+  });
 
   final Widget child;
 

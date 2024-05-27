@@ -12,10 +12,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../models/exchange/response_objects/trade.dart';
-import 'step_4_view.dart';
-import '../sub_widgets/step_row.dart';
 import '../../../providers/global/trades_service_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../services/exchange/exchange_response.dart';
@@ -31,13 +30,15 @@ import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_loading_overlay.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
+import '../sub_widgets/step_row.dart';
+import 'step_4_view.dart';
 
 class Step3View extends ConsumerStatefulWidget {
   const Step3View({
-    Key? key,
+    super.key,
     required this.model,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/exchangeStep3";
 
@@ -127,7 +128,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 Text(
                                   "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
                                   style: STextStyles.itemSubtitle12(context),
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -145,7 +146,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 Text(
                                   "${model.receiveAmount.toString()} ${model.receiveTicker.toUpperCase()}",
                                   style: STextStyles.itemSubtitle12(context),
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -163,7 +164,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 Text(
                                   model.rateInfo,
                                   style: STextStyles.itemSubtitle12(context),
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -184,7 +185,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 Text(
                                   model.recipientAddress!,
                                   style: STextStyles.itemSubtitle12(context),
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -207,7 +208,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   Text(
                                     model.refundAddress!,
                                     style: STextStyles.itemSubtitle12(context),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -321,22 +322,27 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                       Navigator.of(context).pop();
                                     }
 
-                                    unawaited(NotificationApi.showNotification(
-                                      changeNowId: model.trade!.tradeId,
-                                      title: status,
-                                      body: "Trade ID ${model.trade!.tradeId}",
-                                      walletId: "",
-                                      iconAssetName: Assets.svg.arrowRotate,
-                                      date: model.trade!.timestamp,
-                                      shouldWatchForUpdates: true,
-                                      coinName: "coinName",
-                                    ));
+                                    unawaited(
+                                      NotificationApi.showNotification(
+                                        changeNowId: model.trade!.tradeId,
+                                        title: status,
+                                        body:
+                                            "Trade ID ${model.trade!.tradeId}",
+                                        walletId: "",
+                                        iconAssetName: Assets.svg.arrowRotate,
+                                        date: model.trade!.timestamp,
+                                        shouldWatchForUpdates: true,
+                                        coinName: "coinName",
+                                      ),
+                                    );
 
                                     if (mounted) {
-                                      unawaited(Navigator.of(context).pushNamed(
-                                        Step4View.routeName,
-                                        arguments: model,
-                                      ));
+                                      unawaited(
+                                        Navigator.of(context).pushNamed(
+                                          Step4View.routeName,
+                                          arguments: model,
+                                        ),
+                                      );
                                     }
                                   },
                                   style: Theme.of(context)

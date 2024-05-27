@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -13,7 +14,6 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/util.dart';
-import '../../crypto_currency/coins/firo.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/spark_coin.dart';
@@ -259,9 +259,9 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
                   .toUint8ListFromHex
                   .first;
               if (opByte == OP_SPARKMINT || opByte == OP_SPARKSMINT) {
-                final serCoin = base64Encode(output.scriptPubKeyHex
-                    .substring(2, 488)
-                    .toUint8ListFromHex);
+                final serCoin = base64Encode(
+                  output.scriptPubKeyHex.substring(2, 488).toUint8ListFromHex,
+                );
                 final coin = sparkCoinsInvolved
                     .where((e) => e.serializedCoinB64!.startsWith(serCoin))
                     .firstOrNull;
@@ -384,8 +384,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           );
 
           final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map,
+          );
 
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
@@ -604,7 +604,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         if (isRescan) {
           // clear cache
           await electrumXCachedClient.clearSharedTransactionCache(
-              cryptoCurrency: info.coin);
+            cryptoCurrency: info.coin,
+          );
           // clear blockchain info
           await mainDB.deleteWalletBlockchainData(walletId);
         }
@@ -717,12 +718,16 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         }
 
         // remove extra addresses to help minimize risk of creating a large gap
-        addressesToStore.removeWhere((e) =>
-            e.subType == AddressSubType.change &&
-            e.derivationIndex > highestChangeIndexWithHistory);
-        addressesToStore.removeWhere((e) =>
-            e.subType == AddressSubType.receiving &&
-            e.derivationIndex > highestReceivingIndexWithHistory);
+        addressesToStore.removeWhere(
+          (e) =>
+              e.subType == AddressSubType.change &&
+              e.derivationIndex > highestChangeIndexWithHistory,
+        );
+        addressesToStore.removeWhere(
+          (e) =>
+              e.subType == AddressSubType.receiving &&
+              e.derivationIndex > highestReceivingIndexWithHistory,
+        );
 
         await mainDB.updateOrPutAddresses(addressesToStore);
 
@@ -774,8 +779,9 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from electrumx_mixin recover(): $e\n$s",
-          level: LogLevel.Info);
+        "Exception rethrown from electrumx_mixin recover(): $e\n$s",
+        level: LogLevel.Info,
+      );
 
       rethrow;
     }
@@ -784,8 +790,10 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
-      rawValue: BigInt.from(((181 * inputCount) + (34 * outputCount) + 10) *
-          (feeRatePerKB / 1000).ceil()),
+      rawValue: BigInt.from(
+        ((181 * inputCount) + (34 * outputCount) + 10) *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }

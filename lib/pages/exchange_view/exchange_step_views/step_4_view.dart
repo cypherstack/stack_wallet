@@ -49,10 +49,10 @@ import '../sub_widgets/step_row.dart';
 
 class Step4View extends ConsumerStatefulWidget {
   const Step4View({
-    Key? key,
+    super.key,
     required this.model,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/exchangeStep4";
 

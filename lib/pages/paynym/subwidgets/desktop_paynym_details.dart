@@ -41,10 +41,10 @@ import '../../../widgets/rounded_white_container.dart';
 
 class DesktopPaynymDetails extends ConsumerStatefulWidget {
   const DesktopPaynymDetails({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.accountLite,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final PaynymAccountLite accountLite;
@@ -216,7 +216,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                                           .extension<StackColors>()!
                                           .accentColorGreen,
                                     ),
-                                  )
+                                  ),
                                 ],
                               );
                             } else {

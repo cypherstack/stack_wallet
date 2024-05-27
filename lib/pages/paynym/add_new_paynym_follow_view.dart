@@ -13,9 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/paynym/paynym_account.dart';
-import 'subwidgets/featured_paynyms_widget.dart';
-import 'subwidgets/paynym_card.dart';
 import '../../providers/global/paynym_api_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/barcode_scanner_interface.dart';
@@ -37,12 +36,14 @@ import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import 'subwidgets/featured_paynyms_widget.dart';
+import 'subwidgets/paynym_card.dart';
 
 class AddNewPaynymFollowView extends ConsumerStatefulWidget {
   const AddNewPaynymFollowView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -283,8 +284,8 @@ class _AddNewPaynymFollowViewState
                                 });
                               },
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textFieldActiveText,
@@ -324,7 +325,8 @@ class _AddNewPaynymFollowViewState
                                               )
                                             : TextFieldIconButton(
                                                 key: const Key(
-                                                    "paynymPasteAddressFieldButtonKey"),
+                                                  "paynymPasteAddressFieldButtonKey",
+                                                ),
                                                 onTap: _paste,
                                                 child: RoundedContainer(
                                                   padding:
@@ -337,7 +339,8 @@ class _AddNewPaynymFollowViewState
                                               ),
                                         TextFieldIconButton(
                                           key: const Key(
-                                              "paynymScanQrButtonKey"),
+                                            "paynymScanQrButtonKey",
+                                          ),
                                           onTap: _scanQr,
                                           child: RoundedContainer(
                                             padding: const EdgeInsets.all(8),
@@ -346,7 +349,7 @@ class _AddNewPaynymFollowViewState
                                                 .buttonBackSecondary,
                                             child: const QrCodeIcon(),
                                           ),
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -398,7 +401,8 @@ class _AddNewPaynymFollowViewState
                                   )
                                 : TextFieldIconButton(
                                     key: const Key(
-                                        "paynymPasteAddressFieldButtonKey"),
+                                      "paynymPasteAddressFieldButtonKey",
+                                    ),
                                     onTap: _paste,
                                     child: const ClipboardIcon(),
                                   ),
@@ -406,7 +410,7 @@ class _AddNewPaynymFollowViewState
                               key: const Key("paynymScanQrButtonKey"),
                               onTap: _scanQr,
                               child: const QrCodeIcon(),
-                            )
+                            ),
                           ],
                         ),
                       ),

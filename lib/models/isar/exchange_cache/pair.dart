@@ -29,10 +29,12 @@ class Pair {
   @Index()
   final String exchangeName;
 
-  @Index(composite: [
-    CompositeIndex("exchangeName"),
-    CompositeIndex("to"),
-  ])
+  @Index(
+    composite: [
+      CompositeIndex("exchangeName"),
+      CompositeIndex("to"),
+    ],
+  )
   final String from;
 
   final String to;

@@ -2,6 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../providers/global/locale_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
@@ -39,7 +40,8 @@ final pBarcodeScanner =
 
 final pRecipient =
     StateProvider.family<({String address, Amount? amount})?, int>(
-        (ref, index) => null);
+  (ref, index) => null,
+);
 
 class Recipient extends ConsumerStatefulWidget {
   const Recipient({
@@ -233,7 +235,8 @@ class _RecipientState extends ConsumerState<Recipient> {
                                 semanticsLabel:
                                     "Clear Button. Clears The Address Field Input.",
                                 key: const Key(
-                                    "sendViewClearAddressFieldButtonKey"),
+                                  "sendViewClearAddressFieldButtonKey",
+                                ),
                                 onTap: () {
                                   addressController.text = "";
 
@@ -249,7 +252,8 @@ class _RecipientState extends ConsumerState<Recipient> {
                                 semanticsLabel:
                                     "Paste Button. Pastes From Clipboard To Address Field Input.",
                                 key: const Key(
-                                    "sendViewPasteAddressFieldButtonKey"),
+                                  "sendViewPasteAddressFieldButtonKey",
+                                ),
                                 onTap: () async {
                                   final ClipboardData? data = await ref
                                       .read(pClipboard)
@@ -259,7 +263,9 @@ class _RecipientState extends ConsumerState<Recipient> {
                                     String content = data.text!.trim();
                                     if (content.contains("\n")) {
                                       content = content.substring(
-                                          0, content.indexOf("\n"));
+                                        0,
+                                        content.indexOf("\n"),
+                                      );
                                     }
 
                                     addressController.text = content.trim();
@@ -433,9 +439,10 @@ class _RecipientState extends ConsumerState<Recipient> {
                         .watch(pAmountUnit(widget.coin))
                         .unitForCoin(widget.coin),
                     style: STextStyles.smallMed14(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                 ),
               ),

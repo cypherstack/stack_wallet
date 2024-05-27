@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import '../../../../networking/http.dart';
-import 'tezos_account.dart';
-import 'tezos_transaction.dart';
-import '../../../tor_service.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
+import '../../../tor_service.dart';
+import 'tezos_account.dart';
+import 'tezos_transaction.dart';
 
 abstract final class TezosAPI {
   static final HTTP _client = HTTP();
@@ -33,8 +33,10 @@ abstract final class TezosAPI {
     }
   }
 
-  static Future<TezosAccount> getAccount(String address,
-      {String type = "user"}) async {
+  static Future<TezosAccount> getAccount(
+    String address, {
+    String type = "user",
+  }) async {
     try {
       final uriString = "$_baseURL/v1/accounts/$address?legacy=false";
       final response = await _client.get(
@@ -74,8 +76,8 @@ abstract final class TezosAPI {
 
       final result = jsonDecode(response.body) as List;
 
-      List<TezosTransaction> txs = [];
-      for (var tx in result) {
+      final List<TezosTransaction> txs = [];
+      for (final tx in result) {
         if (tx["type"] == "transaction") {
           final theTx = TezosTransaction(
             id: tx["id"] as int,

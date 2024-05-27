@@ -16,10 +16,10 @@ import 'primary_button.dart';
 
 class SimpleDesktopDialog extends StatelessWidget {
   const SimpleDesktopDialog({
-    Key? key,
+    super.key,
     required this.title,
     required this.message,
-  }) : super(key: key);
+  });
 
   final String title;
   final String message;
@@ -80,7 +80,7 @@ class SimpleDesktopDialog extends StatelessWidget {
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

@@ -21,7 +21,7 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 @GenerateMocks([
   BarcodeScannerWrapper
 ], customMocks: [
-  MockSpec<AddressBookService>(returnNullOnMissingStub: true),
+  MockSpec<AddressBookService>(),
 ])
 void main() {
 //   testWidgets("AddAddressBookEntryView builds correctly", (tester) async {

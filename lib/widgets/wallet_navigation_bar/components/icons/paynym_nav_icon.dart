@@ -14,7 +14,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
 class PaynymNavIcon extends StatelessWidget {
-  const PaynymNavIcon({Key? key}) : super(key: key);
+  const PaynymNavIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -14,10 +14,10 @@ import 'word_table_item.dart';
 
 class WordTable extends ConsumerWidget {
   const WordTable({
-    Key? key,
+    super.key,
     required this.words,
     required this.isDesktop,
-  }) : super(key: key);
+  });
 
   final List<String> words;
   final bool isDesktop;

@@ -22,7 +22,7 @@ class ExpandableController {
 
 class Expandable extends StatefulWidget {
   const Expandable({
-    Key? key,
+    super.key,
     required this.header,
     required this.body,
     this.animationController,
@@ -34,7 +34,7 @@ class Expandable extends StatefulWidget {
     this.expandOverride,
     this.curve = Curves.easeInOut,
     this.initialState = ExpandableState.collapsed,
-  }) : super(key: key);
+  });
 
   final Widget header;
   final Widget body;

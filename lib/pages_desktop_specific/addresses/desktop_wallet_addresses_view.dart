@@ -12,9 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../models/isar/models/isar_models.dart';
 import '../../pages/receive_view/addresses/address_details_view.dart';
-import 'sub_widgets/desktop_address_list.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -22,14 +22,15 @@ import '../../utilities/text_styles.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
+import 'sub_widgets/desktop_address_list.dart';
 
 final desktopSelectedAddressId = StateProvider.autoDispose<Id?>((ref) => null);
 
 class DesktopWalletAddressesView extends ConsumerStatefulWidget {
   const DesktopWalletAddressesView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/desktopWalletAddressesView";
 
@@ -143,7 +144,8 @@ class _DesktopWalletAddressesViewState
                             child: SingleChildScrollView(
                               child: AddressDetailsView(
                                 key: Key(
-                                    "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId.state).state}"),
+                                  "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId.state).state}",
+                                ),
                                 walletId: widget.walletId,
                                 addressId: ref
                                     .watch(desktopSelectedAddressId.state)

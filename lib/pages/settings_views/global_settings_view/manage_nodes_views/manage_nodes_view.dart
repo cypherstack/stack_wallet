@@ -13,9 +13,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'coin_nodes_view.dart';
-import '../../../../providers/providers.dart';
+
 import '../../../../app_config.dart';
+import '../../../../providers/providers.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -24,6 +24,7 @@ import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import 'coin_nodes_view.dart';
 
 class ManageNodesView extends ConsumerStatefulWidget {
   const ManageNodesView({
@@ -90,8 +91,10 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                 ...coins.map(
                   (coin) {
                     final count = ref
-                        .watch(nodeServiceChangeNotifierProvider
-                            .select((value) => value.getNodesFor(coin)))
+                        .watch(
+                          nodeServiceChangeNotifierProvider
+                              .select((value) => value.getNodesFor(coin)),
+                        )
                         .length;
 
                     return Padding(
@@ -141,7 +144,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                                       style: STextStyles.label(context),
                                     ),
                                   ],
-                                )
+                                ),
                               ],
                             ),
                           ),

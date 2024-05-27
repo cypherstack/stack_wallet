@@ -1,4 +1,5 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/amount/amount.dart';
@@ -130,9 +131,10 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey(
-      {required coinlib.ECPublicKey publicKey,
-      required DerivePathType derivePathType}) {
+  ({coinlib.Address address, AddressType addressType}) getAddressForPublicKey({
+    required coinlib.ECPublicKey publicKey,
+    required DerivePathType derivePathType,
+  }) {
     switch (derivePathType) {
       // case DerivePathType.bip16:
 

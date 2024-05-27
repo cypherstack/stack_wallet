@@ -24,8 +24,8 @@ import '../../../../widgets/rounded_white_container.dart';
 
 class SecurityView extends StatelessWidget {
   const SecurityView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/security";
 

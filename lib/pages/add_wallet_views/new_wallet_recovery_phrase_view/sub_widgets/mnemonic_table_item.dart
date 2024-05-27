@@ -15,12 +15,12 @@ import '../../../../widgets/rounded_white_container.dart';
 
 class MnemonicTableItem extends StatelessWidget {
   const MnemonicTableItem({
-    Key? key,
+    super.key,
     required this.number,
     required this.word,
     required this.isDesktop,
     this.borderColor,
-  }) : super(key: key);
+  });
 
   final int number;
   final String word;

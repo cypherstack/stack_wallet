@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -170,7 +171,8 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
                       ),
                       GestureDetector(
                         key: const Key(
-                            "restoreFromFilePasswordFieldShowPasswordButtonKey"),
+                          "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                        ),
                         onTap: () async {
                           setState(() {
                             hidePassword = !hidePassword;
@@ -224,7 +226,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
               ),
             ),
           ],
-        )
+        ),
       ],
     );
   }

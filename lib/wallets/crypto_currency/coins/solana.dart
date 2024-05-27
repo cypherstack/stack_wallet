@@ -1,4 +1,5 @@
 import 'package:solana/solana.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -70,7 +71,8 @@ class Solana extends Bip39Currency {
   @override
   bool validateAddress(String address) {
     return isPointOnEd25519Curve(
-        Ed25519HDPublicKey.fromBase58(address).toByteArray());
+      Ed25519HDPublicKey.fromBase58(address).toByteArray(),
+    );
   }
 
   @override

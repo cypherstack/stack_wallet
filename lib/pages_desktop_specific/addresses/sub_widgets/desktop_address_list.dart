@@ -12,9 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/models/isar_models.dart';
 import '../../../pages/receive_view/addresses/address_card.dart';
-import '../desktop_wallet_addresses_view.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -26,6 +26,7 @@ import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import '../desktop_wallet_addresses_view.dart';
 
 class DesktopAddressList extends ConsumerStatefulWidget {
   const DesktopAddressList({
@@ -55,14 +56,16 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
           .read(mainDBProvider)
           .getAddresses(widget.walletId)
           .filter()
-          .group((q) => q
-              .subTypeEqualTo(AddressSubType.change)
-              .or()
-              .subTypeEqualTo(AddressSubType.receiving)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymReceive)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymNotification))
+          .group(
+            (q) => q
+                .subTypeEqualTo(AddressSubType.change)
+                .or()
+                .subTypeEqualTo(AddressSubType.receiving)
+                .or()
+                .subTypeEqualTo(AddressSubType.paynymReceive)
+                .or()
+                .subTypeEqualTo(AddressSubType.paynymNotification),
+          )
           .and()
           .not()
           .typeEqualTo(AddressType.nonWallet)
@@ -99,15 +102,19 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
         .getAddresses(widget.walletId)
         .filter()
         .anyOf<AddressLabel, Address>(
-            labels, (q, e) => q.valueEqualTo(e.addressString))
-        .group((q) => q
-            .subTypeEqualTo(AddressSubType.change)
-            .or()
-            .subTypeEqualTo(AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(AddressSubType.paynymReceive)
-            .or()
-            .subTypeEqualTo(AddressSubType.paynymNotification))
+          labels,
+          (q, e) => q.valueEqualTo(e.addressString),
+        )
+        .group(
+          (q) => q
+              .subTypeEqualTo(AddressSubType.change)
+              .or()
+              .subTypeEqualTo(AddressSubType.receiving)
+              .or()
+              .subTypeEqualTo(AddressSubType.paynymReceive)
+              .or()
+              .subTypeEqualTo(AddressSubType.paynymNotification),
+        )
         .and()
         .not()
         .typeEqualTo(AddressType.nonWallet)

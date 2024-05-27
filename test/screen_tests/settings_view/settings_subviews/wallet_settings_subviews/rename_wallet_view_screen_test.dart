@@ -14,7 +14,7 @@ import 'package:stackwallet/services/wallets_service.dart';
 // import 'rename_wallet_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
+  MockSpec<WalletsService>(),
 ])
 void main() {
 //   testWidgets("RenameWalletView builds correctly", (tester) async {

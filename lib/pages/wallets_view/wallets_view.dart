@@ -19,7 +19,7 @@ import '../../themes/theme_providers.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
 
 class WalletsView extends ConsumerWidget {
-  const WalletsView({Key? key}) : super(key: key);
+  const WalletsView({super.key});
 
   static const routeName = "/wallets";
 
@@ -28,8 +28,9 @@ class WalletsView extends ConsumerWidget {
     debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(pAllWalletsInfo).isNotEmpty;
 
-    final showFavorites = ref.watch(prefsChangeNotifierProvider
-        .select((value) => value.showFavoriteWallets));
+    final showFavorites = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.showFavoriteWallets),
+    );
 
     return SafeArea(
       child: hasWallets

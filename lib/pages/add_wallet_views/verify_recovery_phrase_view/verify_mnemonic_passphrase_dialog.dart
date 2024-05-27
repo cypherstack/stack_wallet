@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../notifications/show_flush_bar.dart';
-import '../new_wallet_options/new_wallet_options_view.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
@@ -15,6 +15,7 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../../../widgets/stack_text_field.dart';
+import '../new_wallet_options/new_wallet_options_view.dart';
 
 class VerifyMnemonicPassphraseDialog extends ConsumerStatefulWidget {
   const VerifyMnemonicPassphraseDialog({super.key});
@@ -154,7 +155,8 @@ class _VerifyMnemonicPassphraseDialogState
                           ),
                           GestureDetector(
                             key: const Key(
-                                "mnemonicPassphraseFieldShowPasswordButtonKey"),
+                              "mnemonicPassphraseFieldShowPasswordButtonKey",
+                            ),
                             onTap: () async {
                               setState(() {
                                 hidePassword = !hidePassword;

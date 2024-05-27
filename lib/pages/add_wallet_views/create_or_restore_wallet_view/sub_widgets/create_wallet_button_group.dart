@@ -87,7 +87,8 @@ class CreateWalletButtonGroup extends StatelessWidget {
                   : STextStyles.button(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
-                          .accentColorDark),
+                          .accentColorDark,
+                    ),
             ),
           ),
         ),

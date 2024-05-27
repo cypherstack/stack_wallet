@@ -18,7 +18,6 @@ import 'desktop_receive.dart';
 import 'desktop_send.dart';
 import 'desktop_token_send.dart';
 import '../../../../providers/global/wallets_provider.dart';
-import '../../../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../widgets/custom_tab_view.dart';

@@ -26,10 +26,10 @@ import '../../widgets/textfield_icon_button.dart';
 
 class SingleFieldEditView extends StatefulWidget {
   const SingleFieldEditView({
-    Key? key,
+    super.key,
     required this.initialValue,
     required this.label,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/singleFieldEdit";
 

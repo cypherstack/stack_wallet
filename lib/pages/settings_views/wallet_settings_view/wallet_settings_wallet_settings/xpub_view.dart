@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -35,10 +36,10 @@ import '../../../../widgets/rounded_white_container.dart';
 
 class XPubView extends ConsumerStatefulWidget {
   const XPubView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String walletId;
   final ClipboardInterface clipboardInterface;
@@ -73,12 +74,14 @@ class _XPubViewState extends ConsumerState<XPubView> {
   Future<void> _copy() async {
     await _clipboardInterface.setData(ClipboardData(text: xpub!));
     if (mounted) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.info,
-        message: "Copied to clipboard",
-        iconAsset: Assets.svg.copy,
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.info,
+          message: "Copied to clipboard",
+          iconAsset: Assets.svg.copy,
+          context: context,
+        ),
+      );
     }
   }
 
@@ -230,11 +233,11 @@ class _XPubViewState extends ConsumerState<XPubView> {
 
 class _XPub extends StatelessWidget {
   const _XPub({
-    Key? key,
+    super.key,
     required this.xpub,
     required this.height,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String xpub;
   final double height;

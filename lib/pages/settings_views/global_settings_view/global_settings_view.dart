@@ -11,8 +11,17 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import '../../../route_generator.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/rounded_white_container.dart';
 import '../../address_book_views/address_book_view.dart';
 import '../../pinpad_views/lock_screen_view.dart';
+import '../sub_widgets/settings_list_button.dart';
 import 'about_view.dart';
 import 'advanced_views/advanced_settings_view.dart';
 import 'appearance_settings/appearance_settings_view.dart';
@@ -26,19 +35,11 @@ import 'startup_preferences/startup_preferences_view.dart';
 import 'support_view.dart';
 import 'syncing_preferences_views/syncing_preferences_view.dart';
 import 'tor_settings/tor_settings_view.dart';
-import '../sub_widgets/settings_list_button.dart';
-import '../../../route_generator.dart';
-import '../../../themes/stack_colors.dart';
-import '../../../utilities/assets.dart';
-import '../../../utilities/text_styles.dart';
-import '../../../widgets/background.dart';
-import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../../widgets/rounded_white_container.dart';
 
 class GlobalSettingsView extends StatelessWidget {
   const GlobalSettingsView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/globalSettings";
 
@@ -116,7 +117,8 @@ class GlobalSettingsView extends StatelessWidget {
                                               "Stack backup",
                                         ),
                                         settings: const RouteSettings(
-                                            name: "/swblockscreen"),
+                                          name: "/swblockscreen",
+                                        ),
                                       ),
                                     );
                                   },
@@ -142,7 +144,8 @@ class GlobalSettingsView extends StatelessWidget {
                                   title: "Currency",
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(
-                                        BaseCurrencySettingsView.routeName);
+                                      BaseCurrencySettingsView.routeName,
+                                    );
                                   },
                                 ),
                                 const SizedBox(
@@ -154,7 +157,8 @@ class GlobalSettingsView extends StatelessWidget {
                                   title: "Language",
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(
-                                        LanguageSettingsView.routeName);
+                                      LanguageSettingsView.routeName,
+                                    );
                                   },
                                 ),
                                 const SizedBox(
@@ -190,7 +194,8 @@ class GlobalSettingsView extends StatelessWidget {
                                   title: "Syncing preferences",
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(
-                                        SyncingPreferencesView.routeName);
+                                      SyncingPreferencesView.routeName,
+                                    );
                                   },
                                 ),
                                 const SizedBox(
@@ -202,7 +207,8 @@ class GlobalSettingsView extends StatelessWidget {
                                   title: "Startup",
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(
-                                        StartupPreferencesView.routeName);
+                                      StartupPreferencesView.routeName,
+                                    );
                                   },
                                 ),
                                 const SizedBox(
@@ -229,7 +235,8 @@ class GlobalSettingsView extends StatelessWidget {
                                     title: "Delete account",
                                     onPressed: () async {
                                       await Navigator.of(context).pushNamed(
-                                          DeleteAccountView.routeName);
+                                        DeleteAccountView.routeName,
+                                      );
                                     },
                                   ),
                                 const SizedBox(
@@ -253,7 +260,8 @@ class GlobalSettingsView extends StatelessWidget {
                                   title: "Advanced",
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(
-                                        AdvancedSettingsView.routeName);
+                                      AdvancedSettingsView.routeName,
+                                    );
                                   },
                                 ),
                                 const SizedBox(
