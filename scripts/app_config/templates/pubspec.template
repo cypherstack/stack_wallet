@@ -183,6 +183,8 @@ dependencies:
       ref: a83e375678eb22fe544dc125d29bbec0fb833882
       path: packages/solana
   calendar_date_picker2: ^1.0.2
+  sqlite3: ^2.4.3
+  sqlite3_flutter_libs: ^0.5.22
 
 dev_dependencies:
   flutter_test:
