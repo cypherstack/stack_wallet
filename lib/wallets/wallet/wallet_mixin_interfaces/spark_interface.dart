@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 
+import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -259,17 +260,39 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     final List<Map<String, dynamic>> setMaps = [];
     final List<({int groupId, String blockHash})> idAndBlockHashes = [];
     for (int i = 1; i <= currentId; i++) {
-      final set = await electrumXCachedClient.getSparkAnonymitySet(
-        groupId: i.toString(),
-        cryptoCurrency: info.coin,
-        useOnlyCacheIfNotEmpty: true,
+      final resultSet = await FiroCacheCoordinator.getSetCoinsForGroupId(i);
+      if (resultSet.isEmpty) {
+        continue;
+      }
+
+      final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
+        i,
       );
-      set["coinGroupID"] = i;
-      setMaps.add(set);
+      if (info == null) {
+        throw Exception("The `info` should never be null here");
+      }
+
+      final Map<String, dynamic> setData = {
+        "blockHash": info.blockHash,
+        "setHash": info.setHash,
+        "coinGroupID": i,
+        "coins": resultSet
+            .map(
+              (row) => [
+                row["serialized"] as String,
+                row["txHash"] as String,
+                row["context"] as String,
+              ],
+            )
+            .toList(),
+      };
+
+      setData["coinGroupID"] = i;
+      setMaps.add(setData);
       idAndBlockHashes.add(
         (
           groupId: i,
-          blockHash: set["blockHash"] as String,
+          blockHash: setData["blockHash"] as String,
         ),
       );
     }
@@ -607,78 +630,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<void> refreshSparkData() async {
-    final sparkAddresses = await mainDB.isar.addresses
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .typeEqualTo(AddressType.spark)
-        .findAll();
-
-    final Set<String> paths =
-        sparkAddresses.map((e) => e.derivationPath!.value).toSet();
-
     try {
-      final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
-
-      final anonymitySetFuture = electrumXCachedClient.getSparkAnonymitySet(
-        groupId: latestSparkCoinId.toString(),
-        cryptoCurrency: info.coin,
-        useOnlyCacheIfNotEmpty: false,
-      );
-
-      final spentCoinTagsFuture = electrumXCachedClient.getSparkUsedCoinsTags(
+      final spentCoinTags = await electrumXCachedClient.getSparkUsedCoinsTags(
         cryptoCurrency: info.coin,
       );
 
-      final futureResults = await Future.wait([
-        anonymitySetFuture,
-        spentCoinTagsFuture,
-      ]);
-
-      final anonymitySet = futureResults[0] as Map<String, dynamic>;
-      final spentCoinTags = futureResults[1] as Set<String>;
-
-      final List<SparkCoin> myCoins = [];
-
-      if (anonymitySet["coins"] is List &&
-          (anonymitySet["coins"] as List).isNotEmpty) {
-        final root = await getRootHDNode();
-        final privateKeyHexSet = paths
-            .map(
-              (e) => root.derivePath(e).privateKey.data.toHex,
-            )
-            .toSet();
-
-        final identifiedCoins = await compute(
-          _identifyCoins,
-          (
-            anonymitySetCoins: anonymitySet["coins"] as List,
-            groupId: latestSparkCoinId,
-            spentCoinTags: spentCoinTags,
-            privateKeyHexSet: privateKeyHexSet,
-            walletId: walletId,
-            isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
-          ),
-        );
-
-        myCoins.addAll(identifiedCoins);
-      }
-
-      // check current coins
-      final currentCoins = await mainDB.isar.sparkCoins
-          .where()
-          .walletIdEqualToAnyLTagHash(walletId)
-          .filter()
-          .isUsedEqualTo(false)
-          .findAll();
-      for (final coin in currentCoins) {
-        if (spentCoinTags.contains(coin.lTagHash)) {
-          myCoins.add(coin.copyWith(isUsed: true));
-        }
-      }
-
-      // update wallet spark coins in isar
-      await _addOrUpdateSparkCoins(myCoins);
+      await _checkAndUpdateCoins(spentCoinTags, true);
 
       // refresh spark balance
       await refreshSparkBalance();
@@ -734,11 +691,14 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
+  // TODO: look into persistence for this?
+  Map<int, int> groupIdTimestampUTCMap = {};
+
   /// Should only be called within the standard wallet [recover] function due to
   /// mutex locking. Otherwise behaviour MAY be undefined.
   Future<void> recoverSparkWallet({
-    required Map<dynamic, dynamic> anonymitySet,
     required Set<String> spentCoinTags,
+    required int latestSparkCoinId,
   }) async {
     //   generate spark addresses if non existing
     if (await getCurrentReceivingSparkAddress() == null) {
@@ -746,35 +706,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       await mainDB.putAddress(address);
     }
 
-    final sparkAddresses = await mainDB.isar.addresses
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .typeEqualTo(AddressType.spark)
-        .findAll();
-
-    final Set<String> paths =
-        sparkAddresses.map((e) => e.derivationPath!.value).toSet();
-
     try {
-      final root = await getRootHDNode();
-      final privateKeyHexSet =
-          paths.map((e) => root.derivePath(e).privateKey.data.toHex).toSet();
-
-      final myCoins = await compute(
-        _identifyCoins,
-        (
-          anonymitySetCoins: anonymitySet["coins"] as List,
-          groupId: anonymitySet["coinGroupID"] as int,
-          spentCoinTags: spentCoinTags,
-          privateKeyHexSet: privateKeyHexSet,
-          walletId: walletId,
-          isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
-        ),
-      );
-
-      // update wallet spark coins in isar
-      await _addOrUpdateSparkCoins(myCoins);
+      await _checkAndUpdateCoins(spentCoinTags, false);
 
       // refresh spark balance
       await refreshSparkBalance();
@@ -784,6 +717,85 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         level: LogLevel.Error,
       );
       rethrow;
+    }
+  }
+
+  Future<void> _checkAndUpdateCoins(
+    Set<String> spentCoinTags,
+    bool checkUseds,
+  ) async {
+    final sparkAddresses = await mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .typeEqualTo(AddressType.spark)
+        .findAll();
+    final root = await getRootHDNode();
+    final Set<String> privateKeyHexSet = sparkAddresses
+        .map(
+          (e) => root.derivePath(e.derivationPath!.value).privateKey.data.toHex,
+        )
+        .toSet();
+
+    List<SparkCoin>? currentCoins;
+    if (checkUseds) {
+      currentCoins = await mainDB.isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .filter()
+          .isUsedEqualTo(false)
+          .findAll();
+    }
+
+    final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
+    for (int i = 1; i <= latestSparkCoinId; i++) {
+      final lastCheckedTimeStampUTC = groupIdTimestampUTCMap[i] ?? 0;
+      final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
+        i,
+      );
+      final anonymitySetResult =
+          await FiroCacheCoordinator.getSetCoinsForGroupId(
+        i,
+        newerThanTimeStamp: lastCheckedTimeStampUTC,
+      );
+      final coinsRaw = anonymitySetResult
+          .map(
+            (row) => [
+              row["serialized"] as String,
+              row["txHash"] as String,
+              row["context"] as String,
+            ],
+          )
+          .toList();
+
+      if (coinsRaw.isNotEmpty) {
+        final myCoins = await compute(
+          _identifyCoins,
+          (
+            anonymitySetCoins: coinsRaw,
+            groupId: i,
+            spentCoinTags: spentCoinTags,
+            privateKeyHexSet: privateKeyHexSet,
+            walletId: walletId,
+            isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+          ),
+        );
+
+        if (checkUseds && currentCoins != null) {
+          for (final coin in currentCoins) {
+            if (spentCoinTags.contains(coin.lTagHash)) {
+              myCoins.add(coin.copyWith(isUsed: true));
+            }
+          }
+        }
+
+        // update wallet spark coins in isar
+        await _addOrUpdateSparkCoins(myCoins);
+      }
+      groupIdTimestampUTCMap[i] = max(
+        lastCheckedTimeStampUTC,
+        info?.timestampUTC ?? lastCheckedTimeStampUTC,
+      );
     }
   }
 

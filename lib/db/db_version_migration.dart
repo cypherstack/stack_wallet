@@ -422,6 +422,20 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(12, secureStore: secureStore);
 
+      case 12:
+        // migrate
+        await _v12(secureStore);
+
+        // update version
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 13,
+        );
+
+        // try to continue migrating
+        return await migrate(13, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -700,5 +714,14 @@ class DbVersionMigrator with WalletDB {
 
   Future<void> _v11(SecureStorageInterface secureStore) async {
     await migrateWalletsToIsar(secureStore: secureStore);
+  }
+
+  Future<void> _v12(SecureStorageInterface secureStore) async {
+    await DB.instance.deleteBoxFromDisk(
+      boxName: "firo_anonymitySetSparkCache",
+    );
+    await DB.instance.deleteBoxFromDisk(
+      boxName: "firoTestNet_anonymitySetSparkCache",
+    );
   }
 }

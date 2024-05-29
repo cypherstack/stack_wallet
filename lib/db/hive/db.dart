@@ -13,6 +13,7 @@ import 'dart:isolate';
 import 'package:cw_core/wallet_info.dart' as xmr;
 import 'package:hive/hive.dart';
 import 'package:mutex/mutex.dart';
+
 import '../../app_config.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/node_model.dart';
@@ -55,8 +56,6 @@ class DB {
   // firo only
   String _boxNameSetCache({required CryptoCurrency currency}) =>
       "${currency.identifier}_anonymitySetCache";
-  String _boxNameSetSparkCache({required CryptoCurrency currency}) =>
-      "${currency.identifier}_anonymitySetSparkCache";
   String _boxNameUsedSerialsCache({required CryptoCurrency currency}) =>
       "${currency.identifier}_usedSerialsCache";
   String _boxNameSparkUsedCoinsTagsCache({required CryptoCurrency currency}) =>
@@ -81,7 +80,6 @@ class DB {
 
   final Map<String, Box<dynamic>> _txCacheBoxes = {};
   final Map<String, Box<dynamic>> _setCacheBoxes = {};
-  final Map<String, Box<dynamic>> _setSparkCacheBoxes = {};
   final Map<String, Box<dynamic>> _usedSerialsCacheBoxes = {};
   final Map<String, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
 
@@ -213,16 +211,6 @@ class DB {
         await Hive.openBox<dynamic>(_boxNameSetCache(currency: currency));
   }
 
-  Future<Box<dynamic>> getSparkAnonymitySetCacheBox({
-    required CryptoCurrency currency,
-  }) async {
-    if (_setSparkCacheBoxes[currency.identifier]?.isOpen != true) {
-      _setSparkCacheBoxes.remove(currency.identifier);
-    }
-    return _setSparkCacheBoxes[currency.identifier] ??=
-        await Hive.openBox<dynamic>(_boxNameSetSparkCache(currency: currency));
-  }
-
   Future<void> closeAnonymitySetCacheBox({
     required CryptoCurrency currency,
   }) async {
@@ -266,9 +254,6 @@ class DB {
     await deleteAll<dynamic>(boxName: _boxNameTxCache(currency: currency));
     if (currency is Firo) {
       await deleteAll<dynamic>(boxName: _boxNameSetCache(currency: currency));
-      await deleteAll<dynamic>(
-        boxName: _boxNameSetSparkCache(currency: currency),
-      );
       await deleteAll<dynamic>(
         boxName: _boxNameUsedSerialsCache(currency: currency),
       );

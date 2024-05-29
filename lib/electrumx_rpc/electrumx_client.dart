@@ -20,7 +20,8 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
-import 'client_manager.dart';
+import 'package:stream_channel/stream_channel.dart';
+
 import '../exceptions/electrumx/no_such_transaction.dart';
 import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
@@ -29,7 +30,7 @@ import '../services/tor_service.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'package:stream_channel/stream_channel.dart';
+import 'client_manager.dart';
 
 class WifiOnlyException implements Exception {}
 
@@ -910,10 +911,7 @@ class ElectrumXClient {
     String? requestID,
   }) async {
     try {
-      Logging.instance.log(
-        "attempting to fetch spark.getsparkanonymityset...",
-        level: LogLevel.Info,
-      );
+      final start = DateTime.now();
       await _checkElectrumAdapter();
       final Map<String, dynamic> response =
           await (getElectrumAdapter() as FiroElectrumClient)
@@ -922,7 +920,10 @@ class ElectrumXClient {
         startBlockHash: startBlockHash,
       );
       Logging.instance.log(
-        "Fetching spark.getsparkanonymityset finished",
+        "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
+        "=$coinGroupId, startBlockHash=$startBlockHash). "
+        ""
+        "Duration=${DateTime.now().difference(start)}",
         level: LogLevel.Info,
       );
       return response;

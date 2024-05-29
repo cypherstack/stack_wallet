@@ -35,6 +35,7 @@ import 'app_config.dart';
 import 'db/db_version_migration.dart';
 import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
+import 'db/sqlite/firo_cache.dart';
 import 'models/exchange/change_now/exchange_transaction.dart';
 import 'models/exchange/change_now/exchange_transaction_status.dart';
 import 'models/exchange/response_objects/trade.dart';
@@ -200,6 +201,7 @@ void main(List<String> args) async {
   }
 
   await StackFileSystem.initThemesDir();
+  await FiroCacheCoordinator.init();
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
