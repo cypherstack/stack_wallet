@@ -11,6 +11,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'models/buy/response_objects/quote.dart';
@@ -194,7 +196,6 @@ import 'wallets/models/tx_data.dart';
 import 'wallets/wallet/wallet.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
-import 'package:tuple/tuple.dart';
 
 /*
  * This file contains all the routes for the app.
@@ -1390,7 +1391,8 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreWalletView.routeName:
-        if (args is Tuple5<String, CryptoCurrency, int, DateTime, String>) {
+        if (args
+            is Tuple6<String, CryptoCurrency, int, DateTime, String, bool>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreWalletView(
@@ -1399,6 +1401,7 @@ class RouteGenerator {
               seedWordsLength: args.item3,
               restoreFromDate: args.item4,
               mnemonicPassphrase: args.item5,
+              enableLelantusScanning: args.item6 ?? false,
             ),
             settings: RouteSettings(
               name: settings.name,

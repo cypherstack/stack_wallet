@@ -72,6 +72,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   bool get supportsMnemonicPassphrase => coin.hasMnemonicPassphraseSupport;
 
+  bool enableLelantusScanning = false;
+  bool get supportsLelantus => coin is Firo;
+
   @override
   void initState() {
     walletName = widget.walletName;
@@ -107,12 +110,13 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     if (mounted) {
       await Navigator.of(context).pushNamed(
         RestoreWalletView.routeName,
-        arguments: Tuple5(
+        arguments: Tuple6(
           walletName,
           coin,
           ref.read(mnemonicWordCountStateProvider.state).state,
           _restoreFromDate,
           passwordController.text,
+          enableLelantusScanning,
         ),
       );
     }
@@ -437,6 +441,32 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     color: Colors.transparent,
                     child: Column(
                       children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: enableLelantusScanning,
+                              onChanged: (bool? newValue) {
+                                setState(() {
+                                  enableLelantusScanning = newValue ?? true;
+                                });
+                              },
+                            ),
+                            Text(
+                              'Scan for Lelantus transactions',
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
+                                    )
+                                  : STextStyles.itemSubtitle(context),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
