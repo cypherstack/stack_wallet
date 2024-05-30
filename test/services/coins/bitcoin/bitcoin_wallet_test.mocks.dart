@@ -425,21 +425,21 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             _i6.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i6.Future<Map<String, dynamic>>);
   @override
-  _i6.Future<Set<String>> getSparkUsedCoinsTags({
+  _i6.Future<List<String>> getSparkUnhashedUsedCoinsTags({
     String? requestID,
     required int? startNumber,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getSparkUsedCoinsTags,
+          #getSparkUnhashedUsedCoinsTags,
           [],
           {
             #requestID: requestID,
             #startNumber: startNumber,
           },
         ),
-        returnValue: _i6.Future<Set<String>>.value(<String>{}),
-      ) as _i6.Future<Set<String>>);
+        returnValue: _i6.Future<List<String>>.value(<String>[]),
+      ) as _i6.Future<List<String>>);
   @override
   _i6.Future<List<Map<String, dynamic>>> getSparkMintMetaData({
     String? requestID,
@@ -559,27 +559,6 @@ class MockCachedElectrumXClient extends _i1.Mock
             _i6.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i6.Future<Map<String, dynamic>>);
   @override
-  _i6.Future<Map<String, dynamic>> getSparkAnonymitySet({
-    required String? groupId,
-    String? blockhash = r'',
-    required _i2.CryptoCurrency? cryptoCurrency,
-    required bool? useOnlyCacheIfNotEmpty,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getSparkAnonymitySet,
-          [],
-          {
-            #groupId: groupId,
-            #blockhash: blockhash,
-            #cryptoCurrency: cryptoCurrency,
-            #useOnlyCacheIfNotEmpty: useOnlyCacheIfNotEmpty,
-          },
-        ),
-        returnValue:
-            _i6.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i6.Future<Map<String, dynamic>>);
-  @override
   String base64ToHex(String? source) => (super.noSuchMethod(
         Invocation.method(
           #base64ToHex,
@@ -642,17 +621,6 @@ class MockCachedElectrumXClient extends _i1.Mock
         ),
         returnValue: _i6.Future<List<String>>.value(<String>[]),
       ) as _i6.Future<List<String>>);
-  @override
-  _i6.Future<Set<String>> getSparkUsedCoinsTags(
-          {required _i2.CryptoCurrency? cryptoCurrency}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getSparkUsedCoinsTags,
-          [],
-          {#cryptoCurrency: cryptoCurrency},
-        ),
-        returnValue: _i6.Future<Set<String>>.value(<String>{}),
-      ) as _i6.Future<Set<String>>);
   @override
   _i6.Future<void> clearSharedTransactionCache(
           {required _i2.CryptoCurrency? cryptoCurrency}) =>

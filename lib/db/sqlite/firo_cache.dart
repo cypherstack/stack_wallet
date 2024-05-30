@@ -15,7 +15,7 @@ void _debugLog(Object? object) {
   if (kDebugMode) {
     Logging.instance.log(
       object,
-      level: LogLevel.Fatal,
+      level: LogLevel.Debug,
     );
   }
 }
