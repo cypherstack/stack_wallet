@@ -177,6 +177,7 @@ abstract class _FiroCache {
             blockHash TEXT NOT NULL,
             setHash TEXT NOT NULL,
             groupId INTEGER NOT NULL,
+            timestampUTC INTEGER NOT NULL,
             UNIQUE (blockHash, setHash, groupId)
         );
     
@@ -190,7 +191,6 @@ abstract class _FiroCache {
     
         CREATE TABLE SparkSetCoins (
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            timestampUTC INTEGER NOT NULL,
             setId INTEGER NOT NULL,
             coinId INTEGER NOT NULL,
             FOREIGN KEY (setId) REFERENCES SparkSet(id),
@@ -215,15 +215,15 @@ abstract class _FiroCache {
     int? newerThanTimeStamp,
   }) async {
     String query = """
-      SELECT sc.id, sc.serialized, sc.txHash, sc.context
-      FROM SparkSetCoins AS ssc
-      JOIN SparkSet AS ss ON ssc.setId = ss.id
+      SELECT sc.serialized, sc.txHash, sc.context
+      FROM SparkSet AS ss
+      JOIN SparkSetCoins AS ssc ON ss.id = ssc.setId
       JOIN SparkCoin AS sc ON ssc.coinId = sc.id
       WHERE ss.groupId = $groupId
     """;
 
     if (newerThanTimeStamp != null) {
-      query += " AND ssc.timestampUTC"
+      query += " AND ss.timestampUTC"
           " > $newerThanTimeStamp";
     }
 
@@ -234,11 +234,10 @@ abstract class _FiroCache {
     int groupId,
   ) async {
     final query = """
-      SELECT ss.blockHash, ss.setHash, ssc.timestampUTC
+      SELECT ss.blockHash, ss.setHash, ss.timestampUTC
       FROM SparkSet ss
-      JOIN SparkSetCoins ssc ON ss.id = ssc.setId
       WHERE ss.groupId = $groupId
-      ORDER BY ssc.timestampUTC DESC
+      ORDER BY ss.timestampUTC DESC
       LIMIT 1;
     """;
 
@@ -479,16 +478,17 @@ abstract class _FiroCache {
     try {
       db.execute(
         """
-          INSERT INTO SparkSet (blockHash, setHash, groupId)
-          VALUES (?, ?, ?);
+          INSERT INTO SparkSet (blockHash, setHash, groupId, timestampUTC)
+          VALUES (?, ?, ?, ?);
         """,
-        [blockHash, setHash, groupId],
+        [blockHash, setHash, groupId, timestamp],
       );
       final setId = db.lastInsertRowId;
 
       for (final coin in coins) {
         int coinId;
         try {
+          // try to insert and get row id
           db.execute(
             """
               INSERT INTO SparkCoin (serialized, txHash, context)
@@ -498,6 +498,8 @@ abstract class _FiroCache {
           );
           coinId = db.lastInsertRowId;
         } on SqliteException catch (e) {
+          // if there already is a matching coin in the db
+          // just grab its row id
           if (e.extendedResultCode == 2067) {
             final result = db.select(
               """
@@ -513,12 +515,13 @@ abstract class _FiroCache {
           }
         }
 
+        // finally add the row id to the newly added set
         db.execute(
           """
-            INSERT INTO SparkSetCoins (timestampUTC, setId, coinId)
-            VALUES (?, ?, ?);
+            INSERT INTO SparkSetCoins (setId, coinId)
+            VALUES (?, ?);
           """,
-          [timestamp, setId, coinId],
+          [setId, coinId],
         );
       }
 
