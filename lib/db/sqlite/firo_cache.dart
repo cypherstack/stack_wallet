@@ -35,7 +35,7 @@ abstract class FiroCacheCoordinator {
 
     final json = await client.getSparkAnonymitySet(
       coinGroupId: groupId.toString(),
-      startBlockHash: blockHash,
+      startBlockHash: blockHash.toHexReversedFromBase64,
     );
 
     await _FiroCache._updateWith(json, groupId);
