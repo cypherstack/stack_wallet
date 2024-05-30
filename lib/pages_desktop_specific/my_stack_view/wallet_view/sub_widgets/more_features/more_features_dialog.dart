@@ -59,7 +59,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
 }
 
 class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
-  bool? enableLelantusScanning = false;
+  bool _enableLelantusScanning = false;
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +72,9 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     // Parse otherDataJsonString to get the enableLelantusScanning value.
     if (wallet.info.otherDataJsonString != null) {
       final otherDataJson = json.decode(wallet.info.otherDataJsonString!);
-      enableLelantusScanning =
-          otherDataJson["enableLelantusScanning"] as bool? ?? false;
+      _enableLelantusScanning =
+          otherDataJson[WalletInfoKeys.enableLelantusScanning] as bool? ??
+              false;
     }
 
     final coinControlPrefEnabled = ref.watch(
@@ -169,16 +170,16 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       height: 20,
                       width: 40,
                       child: DraggableSwitchButton(
-                        isOn: enableLelantusScanning ?? false,
+                        isOn: _enableLelantusScanning,
                         onValueChanged: (newValue) {
                           // Toggle enableLelantusScanning in wallet info.
                           wallet.info.updateOtherData(newEntries: {
                             WalletInfoKeys.enableLelantusScanning:
-                                !(enableLelantusScanning ?? false)
+                                !(_enableLelantusScanning)
                           }, isar: ref.read(mainDBProvider).isar).then((value) {
                             // Should setState be used here?
-                            enableLelantusScanning =
-                                !(enableLelantusScanning ?? false);
+                            _enableLelantusScanning =
+                                !(_enableLelantusScanning);
                           });
                         },
                       ),

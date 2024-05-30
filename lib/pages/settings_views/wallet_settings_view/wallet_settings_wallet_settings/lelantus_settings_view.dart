@@ -64,7 +64,8 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
       if (wallet?.info.otherDataJsonString != null) {
         final otherDataJson = json.decode(wallet!.info.otherDataJsonString!);
         enableLelantusScanning =
-            otherDataJson["enableLelantusScanning"] as bool? ?? false;
+            otherDataJson[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                false;
       }
 
       _isInitialized = true; // Ensure this logic runs only once

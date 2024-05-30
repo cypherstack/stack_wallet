@@ -564,7 +564,8 @@ abstract class Wallet<T extends CryptoCurrency> {
         if (this.info.otherDataJsonString != null) {
           final otherDataJson = json.decode(this.info.otherDataJsonString!);
           enableLelantusScanning =
-              otherDataJson["enableLelantusScanning"] as bool? ?? false;
+              otherDataJson[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                  false;
         }
         if (enableLelantusScanning) {
           await (this as LelantusInterface).refreshLelantusData();

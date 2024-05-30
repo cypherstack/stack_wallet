@@ -615,7 +615,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         if (info.otherDataJsonString != null) {
           final otherDataJson = json.decode(info.otherDataJsonString!);
           enableLelantusScanning =
-              otherDataJson["enableLelantusScanning"] as bool? ?? false;
+              otherDataJson[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                  false;
         }
 
         // lelantus
