@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:isar/isar.dart';
 import 'package:meta/meta.dart';
@@ -558,7 +559,16 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is LelantusInterface) {
-        await (this as LelantusInterface).refreshLelantusData();
+        // Parse otherDataJsonString to get the enableLelantusScanning value.
+        bool enableLelantusScanning = false;
+        if (this.info.otherDataJsonString != null) {
+          final otherDataJson = json.decode(this.info.otherDataJsonString!);
+          enableLelantusScanning =
+              otherDataJson["enableLelantusScanning"] as bool? ?? false;
+        }
+        if (enableLelantusScanning) {
+          await (this as LelantusInterface).refreshLelantusData();
+        }
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 
