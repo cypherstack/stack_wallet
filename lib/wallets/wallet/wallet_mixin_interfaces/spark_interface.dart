@@ -631,12 +631,41 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   Future<void> refreshSparkData() async {
     try {
-      final spentCoinTags = await electrumXCachedClient.getSparkUsedCoinsTags(
-        cryptoCurrency: info.coin,
+      // start by checking if any previous sets are missing from db and add the
+      // missing groupIds to the list if sets to check and update
+      final latestGroupId = await electrumXClient.getSparkLatestCoinId();
+      final List<int> groupIds = [];
+      if (latestGroupId > 1) {
+        for (int id = 1; id < latestGroupId; id++) {
+          final setExists =
+              await FiroCacheCoordinator.checkSetInfoForGroupIdExists(
+            id,
+          );
+          if (!setExists) {
+            groupIds.add(id);
+          }
+        }
+      }
+      groupIds.add(latestGroupId);
+
+      // start fetch and update process for each set groupId as required
+      final possibleFutures = groupIds.map(
+        (e) =>
+            FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
+          e,
+          electrumXClient,
+        ),
       );
 
-      await _checkAndUpdateCoins(spentCoinTags, true);
+      // wait for each fetch and update to complete
+      await Future.wait([
+        ...possibleFutures,
+        FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
+          electrumXClient,
+        ),
+      ]);
 
+      await _checkAndUpdateCoins();
       // refresh spark balance
       await refreshSparkBalance();
     } catch (e, s) {
@@ -697,7 +726,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   /// Should only be called within the standard wallet [recover] function due to
   /// mutex locking. Otherwise behaviour MAY be undefined.
   Future<void> recoverSparkWallet({
-    required Set<String> spentCoinTags,
     required int latestSparkCoinId,
   }) async {
     //   generate spark addresses if non existing
@@ -707,7 +735,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
 
     try {
-      await _checkAndUpdateCoins(spentCoinTags, false);
+      await _checkAndUpdateCoins();
 
       // refresh spark balance
       await refreshSparkBalance();
@@ -720,10 +748,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<void> _checkAndUpdateCoins(
-    Set<String> spentCoinTags,
-    bool checkUseds,
-  ) async {
+  Future<void> _checkAndUpdateCoins() async {
     final sparkAddresses = await mainDB.isar.addresses
         .where()
         .walletIdEqualTo(walletId)
@@ -737,15 +762,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         )
         .toSet();
 
-    List<SparkCoin>? currentCoins;
-    if (checkUseds) {
-      currentCoins = await mainDB.isar.sparkCoins
-          .where()
-          .walletIdEqualToAnyLTagHash(walletId)
-          .filter()
-          .isUsedEqualTo(false)
-          .findAll();
-    }
+    final Map<int, List<List<String>>> rawCoinsBySetId = {};
 
     final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
     for (int i = 1; i <= latestSparkCoinId; i++) {
@@ -769,34 +786,62 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           .toList();
 
       if (coinsRaw.isNotEmpty) {
-        final myCoins = await compute(
-          _identifyCoins,
-          (
-            anonymitySetCoins: coinsRaw,
-            groupId: i,
-            spentCoinTags: spentCoinTags,
-            privateKeyHexSet: privateKeyHexSet,
-            walletId: walletId,
-            isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
-          ),
-        );
-
-        if (checkUseds && currentCoins != null) {
-          for (final coin in currentCoins) {
-            if (spentCoinTags.contains(coin.lTagHash)) {
-              myCoins.add(coin.copyWith(isUsed: true));
-            }
-          }
-        }
-
-        // update wallet spark coins in isar
-        await _addOrUpdateSparkCoins(myCoins);
+        rawCoinsBySetId[i] = coinsRaw;
       }
+
       groupIdTimestampUTCMap[i] = max(
         lastCheckedTimeStampUTC,
         info?.timestampUTC ?? lastCheckedTimeStampUTC,
       );
     }
+
+    final List<SparkCoin> newlyIdCoins = [];
+    for (final groupId in rawCoinsBySetId.keys) {
+      final myCoins = await compute(
+        _identifyCoins,
+        (
+          anonymitySetCoins: rawCoinsBySetId[groupId]!,
+          groupId: groupId,
+          privateKeyHexSet: privateKeyHexSet,
+          walletId: walletId,
+          isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+        ),
+      );
+      newlyIdCoins.addAll(myCoins);
+    }
+
+    await _checkAndMarkCoinsUsedInDB(coinsNotInDbYet: newlyIdCoins);
+  }
+
+  Future<void> _checkAndMarkCoinsUsedInDB({
+    List<SparkCoin> coinsNotInDbYet = const [],
+  }) async {
+    final List<SparkCoin> coins = await mainDB.isar.sparkCoins
+        .where()
+        .walletIdEqualToAnyLTagHash(walletId)
+        .filter()
+        .isUsedEqualTo(false)
+        .findAll();
+
+    final List<SparkCoin> coinsToWrite = [];
+
+    final spentCoinTags = await FiroCacheCoordinator.getUsedCoinTags(0);
+
+    for (final coin in coins) {
+      if (spentCoinTags.contains(coin.lTagHash)) {
+        coinsToWrite.add(coin.copyWith(isUsed: true));
+      }
+    }
+    for (final coin in coinsNotInDbYet) {
+      if (spentCoinTags.contains(coin.lTagHash)) {
+        coinsToWrite.add(coin.copyWith(isUsed: true));
+      } else {
+        coinsToWrite.add(coin);
+      }
+    }
+
+    // update wallet spark coins in isar
+    await _addOrUpdateSparkCoins(coinsToWrite);
   }
 
   // modelled on CSparkWallet::CreateSparkMintTransactions https://github.com/firoorg/firo/blob/39c41e5e7ec634ced3700fe3f4f5509dc2e480d0/src/spark/sparkwallet.cpp#L752
@@ -1713,7 +1758,6 @@ Future<List<SparkCoin>> _identifyCoins(
   ({
     List<dynamic> anonymitySetCoins,
     int groupId,
-    Set<String> spentCoinTags,
     Set<String> privateKeyHexSet,
     String walletId,
     bool isTestNet,
@@ -1756,7 +1800,7 @@ Future<List<SparkCoin>> _identifyCoins(
           SparkCoin(
             walletId: args.walletId,
             type: coinType,
-            isUsed: args.spentCoinTags.contains(coin.lTagHash!),
+            isUsed: false,
             groupId: args.groupId,
             nonce: coin.nonceHex?.toUint8ListFromHex,
             address: coin.address!,

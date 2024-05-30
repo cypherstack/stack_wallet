@@ -220,53 +220,6 @@ class CachedElectrumXClient {
     }
   }
 
-  Future<Set<String>> getSparkUsedCoinsTags({
-    required CryptoCurrency cryptoCurrency,
-  }) async {
-    try {
-      final box = await DB.instance.getSparkUsedCoinsTagsCacheBox(
-        currency: cryptoCurrency,
-      );
-
-      final _list = box.get("tags") as List?;
-
-      final Set<String> cachedTags =
-          _list == null ? {} : List<String>.from(_list).toSet();
-
-      final startNumber = max(
-        0,
-        cachedTags.length - 100, // 100 being some arbitrary buffer
-      );
-
-      final newTags = await electrumXClient.getSparkUsedCoinsTags(
-        startNumber: startNumber,
-      );
-
-      // ensure we are getting some overlap so we know we are not missing any
-      if (cachedTags.isNotEmpty && newTags.isNotEmpty) {
-        assert(cachedTags.intersection(newTags).isNotEmpty);
-      }
-
-      // Make newTags an Iterable<String>.
-      final Iterable<String> iterableTags = newTags.map((e) => e.toString());
-
-      cachedTags.addAll(iterableTags);
-
-      await box.put(
-        "tags",
-        cachedTags.toList(),
-      );
-
-      return cachedTags;
-    } catch (e, s) {
-      Logging.instance.log(
-        "Failed to process CachedElectrumX.getSparkUsedCoinsTags(): $e\n$s",
-        level: LogLevel.Error,
-      );
-      rethrow;
-    }
-  }
-
   /// Clear all cached transactions for the specified coin
   Future<void> clearSharedTransactionCache({
     required CryptoCurrency cryptoCurrency,

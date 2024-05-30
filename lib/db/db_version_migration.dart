@@ -717,11 +717,13 @@ class DbVersionMigrator with WalletDB {
   }
 
   Future<void> _v12(SecureStorageInterface secureStore) async {
-    await DB.instance.deleteBoxFromDisk(
-      boxName: "firo_anonymitySetSparkCache",
-    );
-    await DB.instance.deleteBoxFromDisk(
-      boxName: "firoTestNet_anonymitySetSparkCache",
-    );
+    for (final identifier in ["firo", "firoTestNet"]) {
+      await DB.instance.deleteBoxFromDisk(
+        boxName: "${identifier}_anonymitySetSparkCache",
+      );
+      await DB.instance.deleteBoxFromDisk(
+        boxName: "${identifier}_sparkUsedCoinsTagsCache",
+      );
+    }
   }
 }

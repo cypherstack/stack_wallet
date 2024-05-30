@@ -588,7 +588,9 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   Future<void> recover({required bool isRescan}) async {
+    // reset last checked values
     groupIdTimestampUTCMap = {};
+
     final start = DateTime.now();
     final root = await getRootHDNode();
 
@@ -633,8 +635,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           );
         }
         final sparkUsedCoinTagsFuture =
-            electrumXCachedClient.getSparkUsedCoinsTags(
-          cryptoCurrency: info.coin,
+            FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
+          electrumXClient,
         );
 
         // receiving addresses
@@ -754,9 +756,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         final usedSerialsSet = (futureResults[0] as List<String>).toSet();
         final setDataMap = futureResults[1] as Map<dynamic, dynamic>;
 
-        // spark
-        final sparkSpentCoinTags = futureResults[2] as Set<String>;
-
         if (Util.isDesktop) {
           await Future.wait([
             recoverLelantusWallet(
@@ -765,7 +764,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
               setDataMap: setDataMap,
             ),
             recoverSparkWallet(
-              spentCoinTags: sparkSpentCoinTags,
               latestSparkCoinId: latestSparkCoinId,
             ),
           ]);
@@ -776,7 +774,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             setDataMap: setDataMap,
           );
           await recoverSparkWallet(
-            spentCoinTags: sparkSpentCoinTags,
             latestSparkCoinId: latestSparkCoinId,
           );
         }

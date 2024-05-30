@@ -58,8 +58,6 @@ class DB {
       "${currency.identifier}_anonymitySetCache";
   String _boxNameUsedSerialsCache({required CryptoCurrency currency}) =>
       "${currency.identifier}_usedSerialsCache";
-  String _boxNameSparkUsedCoinsTagsCache({required CryptoCurrency currency}) =>
-      "${currency.identifier}_sparkUsedCoinsTagsCache";
 
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
@@ -229,18 +227,6 @@ class DB {
     );
   }
 
-  Future<Box<dynamic>> getSparkUsedCoinsTagsCacheBox({
-    required CryptoCurrency currency,
-  }) async {
-    if (_getSparkUsedCoinsTagsCacheBoxes[currency.identifier]?.isOpen != true) {
-      _getSparkUsedCoinsTagsCacheBoxes.remove(currency.identifier);
-    }
-    return _getSparkUsedCoinsTagsCacheBoxes[currency.identifier] ??=
-        await Hive.openBox<dynamic>(
-      _boxNameSparkUsedCoinsTagsCache(currency: currency),
-    );
-  }
-
   Future<void> closeUsedSerialsCacheBox({
     required CryptoCurrency currency,
   }) async {
@@ -256,9 +242,6 @@ class DB {
       await deleteAll<dynamic>(boxName: _boxNameSetCache(currency: currency));
       await deleteAll<dynamic>(
         boxName: _boxNameUsedSerialsCache(currency: currency),
-      );
-      await deleteAll<dynamic>(
-        boxName: _boxNameSparkUsedCoinsTagsCache(currency: currency),
       );
     }
   }
