@@ -336,8 +336,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             mnemonic: mnemonic,
           );
 
-          // TODO [prio=high]: Update wallet with widget.enableLelantusScanning.
-
           // TODO: extract interface with isRestore param
           switch (wallet.runtimeType) {
             case const (EpiccashWallet):
