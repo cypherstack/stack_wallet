@@ -47,7 +47,8 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
 
   bool _isInitialized = false;
   Wallet<CryptoCurrency>? wallet;
-  bool? enableLelantusScanning = false;
+  bool _enableLelantusScanning = false;
+  bool _isUpdatingLelantusScanning = false;
 
   @override
   void didChangeDependencies() {
@@ -63,7 +64,7 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
       // Parse otherDataJsonString to get the enableLelantusScanning value.
       if (wallet?.info.otherDataJsonString != null) {
         final otherDataJson = json.decode(wallet!.info.otherDataJsonString!);
-        enableLelantusScanning =
+        _enableLelantusScanning =
             otherDataJson[WalletInfoKeys.enableLelantusScanning] as bool? ??
                 false;
       }
@@ -106,16 +107,23 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
                     height: 20,
                     width: 40,
                     child: DraggableSwitchButton(
-                      isOn: enableLelantusScanning ?? false,
-                      onValueChanged: (newValue) {
+                      isOn: _enableLelantusScanning,
+                      onValueChanged: (newValue) async {
+                        if (_isUpdatingLelantusScanning) return;
+                        _isUpdatingLelantusScanning = true; // Lock mutex.
+
                         // Toggle enableLelantusScanning in wallet info.
-                        wallet?.info.updateOtherData(newEntries: {
-                          WalletInfoKeys.enableLelantusScanning:
-                              !(enableLelantusScanning ?? false)
-                        }, isar: ref.read(mainDBProvider).isar).then((value) {
-                          // Should setState be used here?
-                          enableLelantusScanning =
-                              !(enableLelantusScanning ?? false);
+                        await wallet?.info.updateOtherData(
+                          newEntries: {
+                            WalletInfoKeys.enableLelantusScanning:
+                                !_enableLelantusScanning,
+                          },
+                          isar: ref.read(mainDBProvider).isar,
+                        );
+
+                        setState(() {
+                          _enableLelantusScanning = !_enableLelantusScanning;
+                          _isUpdatingLelantusScanning = false; // Free mutex.
                         });
                       },
                     ),

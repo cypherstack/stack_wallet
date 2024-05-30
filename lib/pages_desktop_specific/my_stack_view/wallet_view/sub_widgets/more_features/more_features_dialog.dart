@@ -60,6 +60,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
 
 class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
   bool _enableLelantusScanning = false;
+  bool _isUpdatingLelantusScanning = false; // Mutex.
 
   @override
   Widget build(BuildContext context) {
@@ -171,15 +172,22 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       width: 40,
                       child: DraggableSwitchButton(
                         isOn: _enableLelantusScanning,
-                        onValueChanged: (newValue) {
+                        onValueChanged: (newValue) async {
+                          if (_isUpdatingLelantusScanning) return;
+                          _isUpdatingLelantusScanning = true; // Lock mutex.
+
                           // Toggle enableLelantusScanning in wallet info.
-                          wallet.info.updateOtherData(newEntries: {
-                            WalletInfoKeys.enableLelantusScanning:
-                                !(_enableLelantusScanning)
-                          }, isar: ref.read(mainDBProvider).isar).then((value) {
-                            // Should setState be used here?
-                            _enableLelantusScanning =
-                                !(_enableLelantusScanning);
+                          await wallet.info.updateOtherData(
+                            newEntries: {
+                              WalletInfoKeys.enableLelantusScanning:
+                                  !_enableLelantusScanning,
+                            },
+                            isar: ref.read(mainDBProvider).isar,
+                          );
+
+                          setState(() {
+                            _enableLelantusScanning = !_enableLelantusScanning;
+                            _isUpdatingLelantusScanning = false; // Free mutex.
                           });
                         },
                       ),
