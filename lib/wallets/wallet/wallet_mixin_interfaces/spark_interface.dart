@@ -1687,12 +1687,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
 }
 
-String base64ToReverseHex(String source) =>
-    base64Decode(LineSplitter.split(source).join())
-        .reversed
-        .map((e) => e.toRadixString(16).padLeft(2, '0'))
-        .join();
-
 /// Top level function which should be called wrapped in [compute]
 Future<
     ({
@@ -1774,7 +1768,7 @@ Future<List<SparkCoin>> _identifyCoins(
       }
 
       final serializedCoinB64 = data[0];
-      final txHash = base64ToReverseHex(data[1]);
+      final txHash = data[1].toHexReversedFromBase64;
       final contextB64 = data[2];
 
       final coin = LibSpark.identifyAndRecoverCoin(
