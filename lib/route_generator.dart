@@ -131,6 +131,7 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/lelantus_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_info.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'pages/special/firo_rescan_recovery_error_dialog.dart';
@@ -1965,6 +1966,15 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SparkInfoView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SparkInfoView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
 
       // == Desktop specific routes ============================================
       case CreatePasswordView.routeName:

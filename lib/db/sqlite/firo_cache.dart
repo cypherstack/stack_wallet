@@ -29,6 +29,34 @@ List<String> _ffiHashTagsComputeWrapper(List<String> base64Tags) {
 abstract class FiroCacheCoordinator {
   static Future<void> init() => _FiroCache.init();
 
+  static Future<void> clearSharedCache() async {
+    return await _FiroCache._deleteAllCache();
+  }
+
+  static Future<String> getSparkCacheSize() async {
+    final dir = await StackFileSystem.applicationSQLiteDirectory();
+    final cacheFile = File("${dir.path}/${_FiroCache.sqliteDbFileName}");
+    final int bytes;
+    if (await cacheFile.exists()) {
+      bytes = await cacheFile.length();
+    } else {
+      bytes = 0;
+    }
+
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1048576) {
+      final double kbSize = bytes / 1024;
+      return '${kbSize.toStringAsFixed(2)} KB';
+    } else if (bytes < 1073741824) {
+      final double mbSize = bytes / 1048576;
+      return '${mbSize.toStringAsFixed(2)} MB';
+    } else {
+      final double gbSize = bytes / 1073741824;
+      return '${gbSize.toStringAsFixed(2)} GB';
+    }
+  }
+
   static Future<void> runFetchAndUpdateSparkUsedCoinTags(
     ElectrumXClient client,
   ) async {
@@ -161,6 +189,23 @@ abstract class _FiroCache {
     _db = sqlite3.open(
       file.path,
       mode: OpenMode.readWrite,
+    );
+  }
+
+  static Future<void> _deleteAllCache() async {
+    final start = DateTime.now();
+    db.execute(
+      """
+        DELETE FROM SparkSet;
+        DELETE FROM SparkCoin;
+        DELETE FROM SparkSetCoins;
+        DELETE FROM SparkUsedCoinTags;
+        VACUUM;
+      """,
+    );
+    _debugLog(
+      "_deleteAllCache() "
+      "duration = ${DateTime.now().difference(start)}",
     );
   }
 
