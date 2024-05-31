@@ -25,6 +25,7 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
 import '../../../../widgets/date_picker/date_picker.dart';
 import '../../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../../widgets/desktop/desktop_scaffold.dart';
@@ -72,6 +73,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   bool get supportsMnemonicPassphrase => coin.hasMnemonicPassphraseSupport;
 
+  bool enableLelantusScanning = false;
+  bool get supportsLelantus => coin is Firo;
+
   @override
   void initState() {
     walletName = widget.walletName;
@@ -107,12 +111,13 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     if (mounted) {
       await Navigator.of(context).pushNamed(
         RestoreWalletView.routeName,
-        arguments: Tuple5(
+        arguments: Tuple6(
           walletName,
           coin,
           ref.read(mnemonicWordCountStateProvider.state).state,
           _restoreFromDate,
           passwordController.text,
+          enableLelantusScanning,
         ),
       );
     }
@@ -437,6 +442,17 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     color: Colors.transparent,
                     child: Column(
                       children: [
+                        CheckboxTextButton(
+                          label: "Scan for Lelantus transactions",
+                          onChanged: (newValue) {
+                            setState(() {
+                              enableLelantusScanning = newValue ?? true;
+                            });
+                          },
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,

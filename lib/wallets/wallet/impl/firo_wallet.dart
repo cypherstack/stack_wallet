@@ -610,13 +610,26 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           await mainDB.deleteWalletBlockchainData(walletId);
         }
 
+        // Parse otherDataJsonString to get the enableLelantusScanning value.
+        bool? enableLelantusScanning = false;
+        if (info.otherDataJsonString != null) {
+          final otherDataJson = json.decode(info.otherDataJsonString!);
+          enableLelantusScanning =
+              otherDataJson[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                  false;
+        }
+
         // lelantus
-        final latestSetId = await electrumXClient.getLelantusLatestCoinId();
-        final setDataMapFuture = getSetDataMap(latestSetId);
-        final usedSerialNumbersFuture =
-            electrumXCachedClient.getUsedCoinSerials(
-          cryptoCurrency: info.coin,
-        );
+        int? latestSetId;
+        Future<Map<int, dynamic>>? setDataMapFuture;
+        Future<List<String>>? usedSerialNumbersFuture;
+        if (enableLelantusScanning) {
+          latestSetId = await electrumXClient.getLelantusLatestCoinId();
+          setDataMapFuture = getSetDataMap(latestSetId);
+          usedSerialNumbersFuture = electrumXCachedClient.getUsedCoinSerials(
+            cryptoCurrency: info.coin,
+          );
+        }
 
         // spark
         final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
@@ -736,39 +749,52 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           updateUTXOs(),
         ]);
 
-        final futureResults = await Future.wait([
-          usedSerialNumbersFuture,
-          setDataMapFuture,
-          sparkAnonSetFuture,
-          sparkUsedCoinTagsFuture,
-        ]);
+        List<Future<dynamic>> futures = [];
+
+        futures.add(sparkAnonSetFuture);
+        futures.add(sparkUsedCoinTagsFuture);
+        if (enableLelantusScanning) {
+          futures.add(usedSerialNumbersFuture!);
+          futures.add(setDataMapFuture!);
+        }
+
+        final futureResults = await Future.wait(futures);
 
         // lelantus
-        final usedSerialsSet = (futureResults[0] as List<String>).toSet();
-        final setDataMap = futureResults[1] as Map<dynamic, dynamic>;
+        Set<String>? usedSerialsSet;
+        Map<dynamic, dynamic>? setDataMap;
+        if (enableLelantusScanning) {
+          usedSerialsSet = (futureResults[2] as List<String>).toSet();
+          setDataMap = futureResults[3] as Map<dynamic, dynamic>;
+        }
 
         // spark
-        final sparkAnonymitySet = futureResults[2] as Map<String, dynamic>;
-        final sparkSpentCoinTags = futureResults[3] as Set<String>;
+        final sparkAnonymitySet = futureResults[0] as Map<String, dynamic>;
+        final sparkSpentCoinTags = futureResults[1] as Set<String>;
 
         if (Util.isDesktop) {
-          await Future.wait([
-            recoverLelantusWallet(
-              latestSetId: latestSetId,
-              usedSerialNumbers: usedSerialsSet,
-              setDataMap: setDataMap,
-            ),
-            recoverSparkWallet(
-              anonymitySet: sparkAnonymitySet,
-              spentCoinTags: sparkSpentCoinTags,
-            ),
-          ]);
+          List<Future<dynamic>> futures = [];
+          if (enableLelantusScanning) {
+            futures.add(recoverLelantusWallet(
+              latestSetId: latestSetId!,
+              usedSerialNumbers: usedSerialsSet!,
+              setDataMap: setDataMap!,
+            ));
+          }
+          futures.add(recoverSparkWallet(
+            anonymitySet: sparkAnonymitySet,
+            spentCoinTags: sparkSpentCoinTags,
+          ));
+
+          await Future.wait(futures);
         } else {
-          await recoverLelantusWallet(
-            latestSetId: latestSetId,
-            usedSerialNumbers: usedSerialsSet,
-            setDataMap: setDataMap,
-          );
+          if (enableLelantusScanning) {
+            await recoverLelantusWallet(
+              latestSetId: latestSetId!,
+              usedSerialNumbers: usedSerialsSet!,
+              setDataMap: setDataMap!,
+            );
+          }
           await recoverSparkWallet(
             anonymitySet: sparkAnonymitySet,
             spentCoinTags: sparkSpentCoinTags,

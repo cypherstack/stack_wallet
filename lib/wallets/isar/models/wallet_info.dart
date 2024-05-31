@@ -507,4 +507,5 @@ abstract class WalletInfoKeys {
   static const String tezosDerivationPath = "tezosDerivationPathKey";
   static const String lelantusCoinIsarRescanRequired =
       "lelantusCoinIsarRescanRequired";
+  static const String enableLelantusScanning = "enableLelantusScanningKey";
 }
