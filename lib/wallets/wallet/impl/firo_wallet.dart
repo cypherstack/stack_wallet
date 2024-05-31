@@ -589,7 +589,12 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
   @override
   Future<void> recover({required bool isRescan}) async {
     // reset last checked values
-    groupIdTimestampUTCMap = {};
+    await info.updateOtherData(
+      newEntries: {
+        WalletInfoKeys.firoSparkCacheSetTimestampCache: <String, int>{},
+      },
+      isar: mainDB.isar,
+    );
 
     final start = DateTime.now();
     final root = await getRootHDNode();
@@ -753,7 +758,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           updateUTXOs(),
         ]);
 
-
         final List<Future<dynamic>> futures = [];
         if (enableLelantusScanning) {
           futures.add(lelantusFutures[0]);
@@ -776,10 +780,10 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           await Future.wait([
             if (enableLelantusScanning)
               recoverLelantusWallet(
-              latestSetId: latestSetId!,
-              usedSerialNumbers: usedSerialsSet!,
-              setDataMap: setDataMap!,
-            ),
+                latestSetId: latestSetId!,
+                usedSerialNumbers: usedSerialsSet!,
+                setDataMap: setDataMap!,
+              ),
             recoverSparkWallet(
               latestSparkCoinId: latestSparkCoinId,
             ),

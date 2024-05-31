@@ -21,6 +21,7 @@ import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/spark_coin.dart';
+import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'electrumx_interface.dart';
@@ -720,9 +721,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
-  // TODO: look into persistence for this?
-  Map<int, int> groupIdTimestampUTCMap = {};
-
   /// Should only be called within the standard wallet [recover] function due to
   /// mutex locking. Otherwise behaviour MAY be undefined.
   Future<void> recoverSparkWallet({
@@ -764,9 +762,15 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
     final Map<int, List<List<String>>> rawCoinsBySetId = {};
 
+    final groupIdTimestampUTCMap =
+        info.otherData[WalletInfoKeys.firoSparkCacheSetTimestampCache]
+                as Map? ??
+            {};
+
     final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
     for (int i = 1; i <= latestSparkCoinId; i++) {
-      final lastCheckedTimeStampUTC = groupIdTimestampUTCMap[i] ?? 0;
+      final lastCheckedTimeStampUTC =
+          groupIdTimestampUTCMap[i.toString()] as int? ?? 0;
       final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
         i,
       );
@@ -789,11 +793,18 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         rawCoinsBySetId[i] = coinsRaw;
       }
 
-      groupIdTimestampUTCMap[i] = max(
+      groupIdTimestampUTCMap[i.toString()] = max(
         lastCheckedTimeStampUTC,
         info?.timestampUTC ?? lastCheckedTimeStampUTC,
       );
     }
+
+    await info.updateOtherData(
+      newEntries: {
+        WalletInfoKeys.firoSparkCacheSetTimestampCache: groupIdTimestampUTCMap,
+      },
+      isar: mainDB.isar,
+    );
 
     final List<SparkCoin> newlyIdCoins = [];
     for (final groupId in rawCoinsBySetId.keys) {
