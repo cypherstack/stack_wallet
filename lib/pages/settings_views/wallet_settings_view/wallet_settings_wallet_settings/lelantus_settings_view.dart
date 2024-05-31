@@ -8,18 +8,14 @@
  *
  */
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/db/main_db_provider.dart';
-import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
-import '../../../../wallets/wallet/wallet.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
@@ -40,44 +36,24 @@ class LelantusSettingsView extends ConsumerStatefulWidget {
 }
 
 class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
-  late final TextEditingController _controller;
-  late final String walletId;
-
-  final _focusNode = FocusNode();
-
-  bool _isInitialized = false;
-  Wallet<CryptoCurrency>? wallet;
-  bool _enableLelantusScanning = false;
   bool _isUpdatingLelantusScanning = false;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      // Get the wallet.
-      wallet = ref.watch(
-        pWallets.select(
-          (value) => value.getWallet(widget.walletId),
-        ),
+  Future<void> _switchToggled(bool newValue) async {
+    if (_isUpdatingLelantusScanning) return;
+    _isUpdatingLelantusScanning = true; // Lock mutex.
+
+    try {
+      // Toggle enableLelantusScanning in wallet info.
+      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+        newEntries: {
+          WalletInfoKeys.enableLelantusScanning: newValue,
+        },
+        isar: ref.read(mainDBProvider).isar,
       );
-
-      // Parse otherDataJsonString to get the enableLelantusScanning value.
-      if (wallet?.info.otherDataJsonString != null) {
-        final otherDataJson = json.decode(wallet!.info.otherDataJsonString!);
-        _enableLelantusScanning =
-            otherDataJson[WalletInfoKeys.enableLelantusScanning] as bool? ??
-                false;
-      }
-
-      _isInitialized = true; // Ensure this logic runs only once
+    } finally {
+      // ensure _isUpdatingLelantusScanning is set to false no matter what
+      _isUpdatingLelantusScanning = false;
     }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    super.dispose();
   }
 
   @override
@@ -107,25 +83,12 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
                     height: 20,
                     width: 40,
                     child: DraggableSwitchButton(
-                      isOn: _enableLelantusScanning,
-                      onValueChanged: (newValue) async {
-                        if (_isUpdatingLelantusScanning) return;
-                        _isUpdatingLelantusScanning = true; // Lock mutex.
-
-                        // Toggle enableLelantusScanning in wallet info.
-                        await wallet?.info.updateOtherData(
-                          newEntries: {
-                            WalletInfoKeys.enableLelantusScanning:
-                                !_enableLelantusScanning,
-                          },
-                          isar: ref.read(mainDBProvider).isar,
-                        );
-
-                        setState(() {
-                          _enableLelantusScanning = !_enableLelantusScanning;
-                          _isUpdatingLelantusScanning = false; // Free mutex.
-                        });
-                      },
+                      isOn: ref.watch(
+                            pWalletInfo(widget.walletId)
+                                .select((value) => value.otherData),
+                          )[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                          false,
+                      onValueChanged: _switchToggled,
                     ),
                   ),
                   const SizedBox(
