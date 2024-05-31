@@ -616,12 +616,20 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         }
 
         // lelantus
-        final latestSetId = await electrumXClient.getLelantusLatestCoinId();
-        final setDataMapFuture = getSetDataMap(latestSetId);
-        final usedSerialNumbersFuture =
+        int? latestSetId;
+        final List<Future<dynamic>> lelantusFutures = [];
+        final enableLelantusScanning =
+            info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                false;
+        if (enableLelantusScanning) {
+          latestSetId = await electrumXClient.getLelantusLatestCoinId();
+          lelantusFutures.add(
             electrumXCachedClient.getUsedCoinSerials(
-          cryptoCurrency: info.coin,
-        );
+              cryptoCurrency: info.coin,
+            ),
+          );
+          lelantusFutures.add(getSetDataMap(latestSetId));
+        }
 
         // spark
         final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
@@ -745,34 +753,45 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           updateUTXOs(),
         ]);
 
-        final futureResults = await Future.wait([
-          usedSerialNumbersFuture,
-          setDataMapFuture,
-          sparkUsedCoinTagsFuture,
-          ...sparkAnonSetFutures,
-        ]);
+
+        final List<Future<dynamic>> futures = [];
+        if (enableLelantusScanning) {
+          futures.add(lelantusFutures[0]);
+          futures.add(lelantusFutures[1]);
+        }
+        futures.add(sparkUsedCoinTagsFuture);
+        futures.addAll(sparkAnonSetFutures);
+
+        final futureResults = await Future.wait(futures);
 
         // lelantus
-        final usedSerialsSet = (futureResults[0] as List<String>).toSet();
-        final setDataMap = futureResults[1] as Map<dynamic, dynamic>;
+        Set<String>? usedSerialsSet;
+        Map<dynamic, dynamic>? setDataMap;
+        if (enableLelantusScanning) {
+          usedSerialsSet = (futureResults[0] as List<String>).toSet();
+          setDataMap = futureResults[1] as Map<dynamic, dynamic>;
+        }
 
         if (Util.isDesktop) {
           await Future.wait([
-            recoverLelantusWallet(
-              latestSetId: latestSetId,
-              usedSerialNumbers: usedSerialsSet,
-              setDataMap: setDataMap,
+            if (enableLelantusScanning)
+              recoverLelantusWallet(
+              latestSetId: latestSetId!,
+              usedSerialNumbers: usedSerialsSet!,
+              setDataMap: setDataMap!,
             ),
             recoverSparkWallet(
               latestSparkCoinId: latestSparkCoinId,
             ),
           ]);
         } else {
-          await recoverLelantusWallet(
-            latestSetId: latestSetId,
-            usedSerialNumbers: usedSerialsSet,
-            setDataMap: setDataMap,
-          );
+          if (enableLelantusScanning) {
+            await recoverLelantusWallet(
+              latestSetId: latestSetId!,
+              usedSerialNumbers: usedSerialsSet!,
+              setDataMap: setDataMap!,
+            );
+          }
           await recoverSparkWallet(
             latestSparkCoinId: latestSparkCoinId,
           );
