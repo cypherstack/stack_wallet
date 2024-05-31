@@ -21,6 +21,7 @@ import '../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/progress_bar.dart';
@@ -62,7 +63,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
   String passwordFeedback =
       "Add another word or two. Uncommon words are better. Use a few words, avoid common phrases. No need for symbols, digits, or uppercase letters.";
 
-  Future<bool> attemptChangePW() async {
+  bool _changePWLock = false;
+  Future<(bool, FlushBarType, String)> _attemptChangePW() async {
     final String pw = passwordCurrentController.text;
     final String pwNew = passwordController.text;
     final String pwNewRepeat = passwordRepeatController.text;
@@ -74,14 +76,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
       if (pwNew != pwNewRepeat) {
         await Future<void>.delayed(const Duration(seconds: 1));
 
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: "New passphrase does not match!",
-            context: context,
-          ),
-        );
-        return false;
+        return (false, FlushBarType.warning, "New passphrase does not match!");
       } else {
         final success =
             await ref.read(storageCryptoHandlerProvider).changePassphrase(
@@ -92,38 +87,21 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         if (success) {
           await Future<void>.delayed(const Duration(seconds: 1));
 
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.success,
-              message: "Passphrase successfully changed",
-              context: context,
-            ),
+          return (
+            true,
+            FlushBarType.success,
+            "Passphrase successfully changed"
           );
-          return true;
         } else {
           await Future<void>.delayed(const Duration(seconds: 1));
 
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message: "Passphrase change failed",
-              context: context,
-            ),
-          );
-          return false;
+          return (false, FlushBarType.warning, "Passphrase change failed");
         }
       }
     } else {
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Current passphrase is not valid!",
-          context: context,
-        ),
-      );
-      return false;
+      return (false, FlushBarType.warning, "Current passphrase is not valid!");
     }
   }
 
@@ -522,12 +500,37 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     enabled: shouldEnableSave,
                                     label: "Save changes",
                                     onPressed: () async {
-                                      final didChangePW =
-                                          await attemptChangePW();
-                                      if (didChangePW) {
-                                        setState(() {
-                                          changePassword = false;
-                                        });
+                                      if (_changePWLock) {
+                                        return;
+                                      }
+                                      _changePWLock = true;
+
+                                      try {
+                                        final (didChangePW, type, message) =
+                                            (await showLoading(
+                                          whileFuture: _attemptChangePW(),
+                                          context: context,
+                                          message: "Updating...",
+                                          rootNavigator: true,
+                                        ))!;
+
+                                        if (mounted) {
+                                          unawaited(
+                                            showFloatingFlushBar(
+                                              type: type,
+                                              message: message,
+                                              context: context,
+                                            ),
+                                          );
+                                        }
+
+                                        if (didChangePW == true) {
+                                          setState(() {
+                                            changePassword = false;
+                                          });
+                                        }
+                                      } finally {
+                                        _changePWLock = false;
                                       }
                                     },
                                   ),

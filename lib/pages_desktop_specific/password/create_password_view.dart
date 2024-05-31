@@ -23,6 +23,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
@@ -68,12 +69,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
 
   bool _nextLock = false;
 
-  void onNextPressed() async {
-    if (_nextLock) {
-      return;
-    }
-    _nextLock = true;
-
+  Future<void> _onNextPressed() async {
     final String passphrase = passwordController.text;
     final String repeatPassphrase = passwordRepeatController.text;
 
@@ -85,7 +81,6 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
           context: context,
         ),
       );
-      _nextLock = false;
       return;
     }
     if (passphrase != repeatPassphrase) {
@@ -96,19 +91,31 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
           context: context,
         ),
       );
-      _nextLock = false;
       return;
     }
 
     try {
-      if (await ref.read(storageCryptoHandlerProvider).hasPassword()) {
-        throw Exception(
-          "Tried creating a new password and attempted to overwrite an existing entry!",
-        );
+      whileFuture() async {
+        if (await ref.read(storageCryptoHandlerProvider).hasPassword()) {
+          throw Exception(
+            "Tried creating a new password and attempted to overwrite an existing entry!",
+          );
+        }
+
+        await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
+        await (ref.read(secureStoreProvider).store as DesktopSecureStore)
+            .init();
       }
 
-      await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
-      await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
+      await showLoading(
+        whileFuture: whileFuture(),
+        context: context,
+        message: "Initializing...",
+        rootNavigator: true,
+        onException: (e) {
+          throw e;
+        },
+      );
 
       // load default nodes now as node service requires storage handler to exist
 
@@ -116,14 +123,15 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         await ref.read(nodeServiceChangeNotifierProvider).updateDefaults();
       }
     } catch (e) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Error: $e",
-          context: context,
-        ),
-      );
-      _nextLock = false;
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Error: $e",
+            context: context,
+          ),
+        );
+      }
       return;
     }
 
@@ -152,7 +160,19 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         ),
       );
     }
-    _nextLock = false;
+  }
+
+  void _onNextPressedWrapper() async {
+    if (_nextLock) {
+      return;
+    }
+    _nextLock = true;
+
+    try {
+      await _onNextPressed();
+    } finally {
+      _nextLock = false;
+    }
   }
 
   @override
@@ -464,7 +484,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                             : Theme.of(context)
                                 .extension<StackColors>()!
                                 .getPrimaryDisabledButtonStyle(context),
-                        onPressed: nextEnabled ? onNextPressed : null,
+                        onPressed: nextEnabled ? _onNextPressedWrapper : null,
                         child: Text(
                           "Next",
                           style: nextEnabled
