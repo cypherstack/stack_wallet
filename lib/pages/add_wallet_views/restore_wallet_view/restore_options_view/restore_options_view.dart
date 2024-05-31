@@ -25,6 +25,7 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
 import '../../../../widgets/date_picker/date_picker.dart';
 import '../../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../../widgets/desktop/desktop_scaffold.dart';
@@ -441,28 +442,13 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     color: Colors.transparent,
                     child: Column(
                       children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: enableLelantusScanning,
-                              onChanged: (bool? newValue) {
-                                setState(() {
-                                  enableLelantusScanning = newValue ?? true;
-                                });
-                              },
-                            ),
-                            Text(
-                              'Scan for Lelantus transactions',
-                              style: isDesktop
-                                  ? STextStyles.desktopTextExtraSmall(context)
-                                      .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
-                                    )
-                                  : STextStyles.itemSubtitle(context),
-                            ),
-                          ],
+                        CheckboxTextButton(
+                          label: "Scan for Lelantus transactions",
+                          onChanged: (newValue) {
+                            setState(() {
+                              enableLelantusScanning = newValue ?? true;
+                            });
+                          },
                         ),
                         const SizedBox(
                           height: 8,
