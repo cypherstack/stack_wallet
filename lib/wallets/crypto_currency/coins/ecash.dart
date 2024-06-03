@@ -282,10 +282,8 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          // host: "ecash.stackwallet.com",
-          // port: 59002,
-          host: "electrum.bitcoinabc.org",
-          port: 50002,
+          host: "ecash.stackwallet.com",
+          port: 59002,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
           useSSL: true,
