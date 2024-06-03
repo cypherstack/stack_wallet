@@ -48,6 +48,7 @@ import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/hover_text_field.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../coin_control/desktop_coin_control_use_dialog.dart';
 import 'sub_widgets/desktop_wallet_features.dart';
 import 'sub_widgets/desktop_wallet_summary.dart';
 import 'sub_widgets/my_wallet.dart';
@@ -134,7 +135,10 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => ref.read(currentWalletIdProvider.notifier).state = wallet.walletId,
+      (_) {
+        ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+        ref.read(desktopUseUTXOs.notifier).state = {};
+      },
     );
 
     if (!wallet.shouldAutoSync) {
