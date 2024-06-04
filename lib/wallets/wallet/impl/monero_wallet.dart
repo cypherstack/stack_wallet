@@ -126,6 +126,18 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
 
     await updateNode();
 
+    Address? currentAddress = await getCurrentReceivingAddress();
+    if (currentAddress == null) {
+      currentAddress = addressFor(index: 0);
+      await mainDB.updateOrPutAddresses([currentAddress]);
+    }
+    if (info.cachedReceivingAddress != currentAddress.value) {
+      await info.updateReceivingAddress(
+        newAddress: currentAddress.value,
+        isar: mainDB.isar,
+      );
+    }
+
     await CwBasedInterface.cwWalletBase?.startSync();
     unawaited(refresh());
     autoSaveTimer?.cancel();
