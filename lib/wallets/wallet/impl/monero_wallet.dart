@@ -201,6 +201,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
             uri: "$host:${node.port}",
             type: WalletType.monero,
             trusted: node.trusted ?? false,
+            useSSL: node.useSSL,
           ),
           socksProxyAddress:
               proxy == null ? null : "${proxy.host.address}:${proxy.port}",
@@ -212,6 +213,7 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
           uri: "$host:${node.port}",
           type: WalletType.monero,
           trusted: node.trusted ?? false,
+          useSSL: node.useSSL,
         ),
         socksProxyAddress:
             proxy == null ? null : "${proxy.host.address}:${proxy.port}",

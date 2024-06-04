@@ -190,6 +190,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
             uri: "$host:${node.port}",
             type: WalletType.wownero,
             trusted: node.trusted ?? false,
+            useSSL: node.useSSL,
           ),
           socksProxyAddress:
               proxy == null ? null : "${proxy.host.address}:${proxy.port}",
@@ -201,6 +202,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
           uri: "$host:${node.port}",
           type: WalletType.wownero,
           trusted: node.trusted ?? false,
+          useSSL: node.useSSL,
         ),
         socksProxyAddress:
             proxy == null ? null : "${proxy.host.address}:${proxy.port}",
