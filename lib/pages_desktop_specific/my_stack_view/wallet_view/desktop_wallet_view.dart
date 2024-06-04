@@ -42,6 +42,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/wallet_tools.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
+import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -264,7 +265,8 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                         ),
                       ],
                     ),
-                    if (wallet.isarTransactionVersion == 2)
+                    if (wallet.isarTransactionVersion == 2 &&
+                        wallet is FiroWallet)
                       Row(
                         children: [
                           const Text(
