@@ -243,8 +243,8 @@ dependency_overrides:
 
   file_picker:
     git:
-      url: https://github.com/muttsu-623/flutter_file_picker.git
-      ref: f0930d9fa79d347b2a0e25a7de4f5a4a88a9a907
+      url: https://github.com/cypherstack/flutter_file_picker.git
+      ref: 9abc0930081c9859884e073bd25ab88b2114d9e7
 
   crypto: 3.0.2
   analyzer: ^5.2.0
