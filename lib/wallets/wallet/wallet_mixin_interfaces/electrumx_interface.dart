@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
+
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
 import '../../../electrumx_rpc/client_manager.dart';
 import '../../../electrumx_rpc/electrumx_client.dart';
@@ -651,7 +652,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final List<coinlib.Output> prevOuts = [];
 
     coinlib.Transaction clTx = coinlib.Transaction(
-      version: 1, // TODO: check if we can use 3 (as is default in coinlib)
+      version: cryptoCurrency.transactionVersion,
       inputs: [],
       outputs: [],
     );
