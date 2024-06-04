@@ -12,11 +12,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'format.dart';
-import 'logger.dart';
+
 import '../widgets/desktop/primary_button.dart';
 import '../widgets/desktop/secondary_button.dart';
 import '../widgets/stack_dialog.dart';
+import 'format.dart';
+import 'logger.dart';
 
 class MoneroNodeConnectionResponse {
   final X509Certificate? cert;

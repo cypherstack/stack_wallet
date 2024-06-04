@@ -346,10 +346,10 @@ packages:
     dependency: transitive
     description:
       name: cross_file
-      sha256: fd832b5384d0d6da4f6df60b854d33accaaeb63aa9e10e736a87381f08dee2cb
+      sha256: "55d7b444feb71301ef6b8838dbc1ae02e63dd48c8773f3810ff53bb1e2945b32"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.3+5"
+    version: "0.3.4+1"
   crypto:
     dependency: "direct main"
     description:
@@ -616,11 +616,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f0930d9fa79d347b2a0e25a7de4f5a4a88a9a907
-      resolved-ref: f0930d9fa79d347b2a0e25a7de4f5a4a88a9a907
-      url: "https://github.com/muttsu-623/flutter_file_picker.git"
+      ref: "9abc0930081c9859884e073bd25ab88b2114d9e7"
+      resolved-ref: "9abc0930081c9859884e073bd25ab88b2114d9e7"
+      url: "https://github.com/cypherstack/flutter_file_picker.git"
     source: git
-    version: "5.3.3"
+    version: "8.0.3"
   fixnum:
     dependency: transitive
     description:
@@ -746,10 +746,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_plugin_android_lifecycle
-      sha256: f185ac890306b5779ecbd611f52502d8d4d63d27703ef73161ca0407e815f02c
+      sha256: "8cf40eebf5dec866a6d1956ad7b4f7016e6c0cc69847ab946833b7d43743809f"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.16"
+    version: "2.0.19"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -1390,10 +1390,10 @@ packages:
     dependency: transitive
     description:
       name: plugin_platform_interface
-      sha256: da3fdfeccc4d4ff2da8f8c556704c08f912542c5fb3cf2233ed75372384a034d
+      sha256: "4820fbfdb9478b1ebae27888254d445073732dae3d6ea81f0b7e06d5dedc3f02"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.6"
+    version: "2.1.8"
   pointycastle:
     dependency: "direct main"
     description:
@@ -2049,10 +2049,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: c97defd418eef4ec88c0d1652cdce84b9f7b63dd7198e266d06ac1710d527067
+      sha256: "464f5674532865248444b4c3daca12bd9bf2d7c47f759ce2617986e7229494a8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.8"
+    version: "5.2.0"
   win32_registry:
     dependency: transitive
     description:

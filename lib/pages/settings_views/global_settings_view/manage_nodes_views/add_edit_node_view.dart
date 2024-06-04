@@ -29,6 +29,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -221,7 +222,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin is Monero || coin is Wownero) {
+    if (coin is CwBasedInterface) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -332,7 +333,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   FocusScope.of(context).unfocus();
                   await Future<void>.delayed(const Duration(milliseconds: 75));
                 }
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               },
@@ -836,6 +837,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 } else {
                   enableSSLCheckbox = true;
                 }
+              } else if (widget.coin is CwBasedInterface) {
+                if (newValue.startsWith("https://")) {
+                  _useSSL = true;
+                } else if (newValue.startsWith("http://")) {
+                  _useSSL = false;
+                } else {
+                  _useSSL = true;
+                }
               }
               _updateState();
               setState(() {});
@@ -1043,7 +1052,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin is Monero || widget.coin is Wownero)
+        if (widget.coin is CwBasedInterface)
           Row(
             children: [
               GestureDetector(
