@@ -21,6 +21,7 @@ import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/lelantus_interface.dart';
 import '../wallet_mixin_interfaces/spark_interface.dart';
@@ -28,7 +29,11 @@ import '../wallet_mixin_interfaces/spark_interface.dart';
 const sparkStartBlock = 819300; // (approx 18 Jan 2024)
 
 class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
-    with ElectrumXInterface<T>, LelantusInterface<T>, SparkInterface<T> {
+    with
+        ElectrumXInterface<T>,
+        LelantusInterface<T>,
+        SparkInterface<T>,
+        CoinControlInterface<T> {
   // IMPORTANT: The order of the above mixins matters.
   // SparkInterface MUST come after LelantusInterface.
 
