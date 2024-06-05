@@ -123,7 +123,7 @@ abstract class StackFileSystem {
     if (Util.isDesktop) {
       final dir = Directory("${root.path}/sqlite/firo_cache");
       if (!dir.existsSync()) {
-        await dir.create();
+        await dir.create(recursive: true);
       }
       return dir;
     } else {
