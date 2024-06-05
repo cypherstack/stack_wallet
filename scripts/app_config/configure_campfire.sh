@@ -46,6 +46,8 @@ const _suffix = "";
 const _appDataDirName = "campfire";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
+const Set<AppFeature> _features = {};
+
 const ({String light, String dark})? _appIconAsset = (
   light: "assets/in_app_logo_icons/stack-duo-icon_light.svg",
   dark: "assets/in_app_logo_icons/stack-duo-icon_dark.svg",

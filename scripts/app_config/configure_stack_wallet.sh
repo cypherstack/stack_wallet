@@ -40,6 +40,12 @@ const _suffix = "Wallet";
 const _appDataDirName = "stackwallet";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
+const Set<AppFeature> _features = {
+  AppFeature.themeSelection,
+  AppFeature.buy,
+  AppFeature.swap
+};
+
 const ({String light, String dark})? _appIconAsset = null;
 
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
