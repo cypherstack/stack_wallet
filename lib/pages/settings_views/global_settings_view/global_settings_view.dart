@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../app_config.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -211,19 +212,23 @@ class GlobalSettingsView extends StatelessWidget {
                                     );
                                   },
                                 ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.sun,
-                                  iconSize: 18,
-                                  title: "Appearance",
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                      AppearanceSettingsView.routeName,
-                                    );
-                                  },
-                                ),
+                                if (AppConfig.hasFeature(
+                                    AppFeature.themeSelection))
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (AppConfig.hasFeature(
+                                    AppFeature.themeSelection))
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.sun,
+                                    iconSize: 18,
+                                    title: "Appearance",
+                                    onPressed: () {
+                                      Navigator.of(context).pushNamed(
+                                        AppearanceSettingsView.routeName,
+                                      );
+                                    },
+                                  ),
                                 if (Platform.isIOS)
                                   const SizedBox(
                                     height: 8,
