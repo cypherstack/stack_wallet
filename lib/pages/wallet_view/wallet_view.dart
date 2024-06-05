@@ -1069,7 +1069,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       onTap: () => _onExchangePressed(context),
                     ),
                   if (Constants.enableExchange &&
-                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency)
+                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
+                      AppConfig.hasFeature(AppFeature.buy))
                     WalletNavigationBarItemData(
                       label: "Buy",
                       icon: const BuyNavIcon(),

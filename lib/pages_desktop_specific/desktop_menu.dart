@@ -200,17 +200,19 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         onChanged: updateSelectedMenuItem,
                         controller: controllers[1],
                       ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    DesktopMenuItem(
-                      duration: duration,
-                      icon: const DesktopBuyIcon(),
-                      label: "Buy crypto",
-                      value: DesktopMenuItemId.buy,
-                      onChanged: updateSelectedMenuItem,
-                      controller: controllers[2],
-                    ),
+                    if (AppConfig.hasFeature(AppFeature.buy))
+                      const SizedBox(
+                        height: 2,
+                      ),
+                    if (AppConfig.hasFeature(AppFeature.buy))
+                      DesktopMenuItem(
+                        duration: duration,
+                        icon: const DesktopBuyIcon(),
+                        label: "Buy crypto",
+                        value: DesktopMenuItemId.buy,
+                        onChanged: updateSelectedMenuItem,
+                        controller: controllers[2],
+                      ),
                     const SizedBox(
                       height: 2,
                     ),

@@ -265,14 +265,16 @@ class TokenWalletOptions extends ConsumerWidget {
               ),
             ),
           ),
-        const SizedBox(
-          width: 16,
-        ),
-        TokenOptionsButton(
-          onPressed: () => _onBuyPressed(context),
-          subLabel: "Buy",
-          iconAssetPathSVG: Assets.svg.creditCard,
-        ),
+        if (AppConfig.hasFeature(AppFeature.buy))
+          const SizedBox(
+            width: 16,
+          ),
+        if (AppConfig.hasFeature(AppFeature.buy))
+          TokenOptionsButton(
+            onPressed: () => _onBuyPressed(context),
+            subLabel: "Buy",
+            iconAssetPathSVG: Assets.svg.creditCard,
+          ),
       ],
     );
   }

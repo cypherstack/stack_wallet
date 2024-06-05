@@ -383,11 +383,11 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             ),
             onPressed: () => _onSwapPressed(),
           ),
-        if (Constants.enableExchange)
+        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
           const SizedBox(
             width: 16,
           ),
-        if (Constants.enableExchange)
+        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
           SecondaryButton(
             label: "Buy",
             width: buttonWidth,
