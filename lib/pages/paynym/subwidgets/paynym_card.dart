@@ -18,11 +18,11 @@ import '../../../widgets/custom_buttons/paynym_follow_toggle_button.dart';
 
 class PaynymCard extends StatefulWidget {
   const PaynymCard({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.label,
     required this.paymentCodeString,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String label;

@@ -153,7 +153,9 @@ class MajesticBankExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-      String forCurrency, bool fixedRate) {
+    String forCurrency,
+    bool fixedRate,
+  ) {
     // TODO: change this if the api changes to allow getting by paired currency
     return getAllCurrencies(fixedRate);
   }

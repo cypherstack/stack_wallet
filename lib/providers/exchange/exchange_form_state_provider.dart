@@ -20,7 +20,6 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_unit.dart';
 
 import '../../utilities/enums/exchange_rate_type_enum.dart';
-import '../../wallets/crypto_currency/coins/nano.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import 'package:tuple/tuple.dart';
 

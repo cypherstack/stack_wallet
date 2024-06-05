@@ -21,7 +21,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 
 class EmptyWallets extends ConsumerWidget {
-  const EmptyWallets({Key? key}) : super(key: key);
+  const EmptyWallets({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -83,9 +83,9 @@ class EmptyWallets extends ConsumerWidget {
                   ),
                 ),
               if (!isDesktop)
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     AddWalletButton(
                       isDesktop: false,
                     ),
@@ -103,7 +103,7 @@ class EmptyWallets extends ConsumerWidget {
 }
 
 class AddWalletButton extends ConsumerWidget {
-  const AddWalletButton({Key? key, required this.isDesktop}) : super(key: key);
+  const AddWalletButton({super.key, required this.isDesktop});
 
   final bool isDesktop;
 

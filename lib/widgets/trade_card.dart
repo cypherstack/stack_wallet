@@ -14,6 +14,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../models/exchange/change_now/exchange_transaction_status.dart';
 import '../models/exchange/response_objects/trade.dart';
 import '../models/isar/stack_theme.dart';
@@ -26,10 +27,10 @@ import 'rounded_white_container.dart';
 
 class TradeCard extends ConsumerWidget {
   const TradeCard({
-    Key? key,
+    super.key,
     required this.trade,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   final Trade trade;
   final VoidCallback onTap;
@@ -139,7 +140,8 @@ class TradeCard extends ConsumerWidget {
                           ),
                         Text(
                           Format.extractDateFrom(
-                              trade.timestamp.millisecondsSinceEpoch ~/ 1000),
+                            trade.timestamp.millisecondsSinceEpoch ~/ 1000,
+                          ),
                           style: STextStyles.label(context),
                         ),
                         if (isDesktop)
@@ -151,7 +153,7 @@ class TradeCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),

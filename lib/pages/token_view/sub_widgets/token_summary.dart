@@ -31,7 +31,6 @@ import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
@@ -361,9 +360,9 @@ class TokenOptionsButton extends StatelessWidget {
 
 class CoinTickerTag extends ConsumerWidget {
   const CoinTickerTag({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 

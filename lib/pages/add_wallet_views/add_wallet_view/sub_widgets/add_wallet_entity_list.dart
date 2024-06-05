@@ -14,10 +14,10 @@ import 'coin_select_item.dart';
 
 class AddWalletEntityList extends StatelessWidget {
   const AddWalletEntityList({
-    Key? key,
+    super.key,
     required this.entities,
     this.trailing,
-  }) : super(key: key);
+  });
 
   final List<AddWalletListEntity> entities;
   final Widget? trailing;

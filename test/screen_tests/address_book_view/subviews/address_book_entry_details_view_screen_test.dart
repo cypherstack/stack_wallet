@@ -23,8 +23,8 @@ import 'package:stackwallet/services/locale_service.dart';
 // import 'address_book_entry_details_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<AddressBookService>(returnNullOnMissingStub: true),
-  MockSpec<LocaleService>(returnNullOnMissingStub: true),
+  MockSpec<AddressBookService>(),
+  MockSpec<LocaleService>(),
 ])
 void main() {
 //   testWidgets("AddressBookDetailsView builds correctly", (tester) async {

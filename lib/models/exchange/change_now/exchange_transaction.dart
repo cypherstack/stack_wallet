@@ -10,13 +10,15 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:hive/hive.dart';
-import 'exchange_transaction_status.dart';
 import 'package:uuid/uuid.dart';
+
+import 'exchange_transaction_status.dart';
 
 part '../../type_adaptors/exchange_transaction.g.dart';
 
 @Deprecated(
-    "Do not use. Migrated to Trade in db_version_migration to hive_data_version 2")
+  "Do not use. Migrated to Trade in db_version_migration to hive_data_version 2",
+)
 // @HiveType(typeId: 13)
 class ExchangeTransaction {
   /// You can use it to get transaction status at the Transaction status API endpoint
@@ -114,7 +116,8 @@ class ExchangeTransaction {
         statusString: json["statusString"] as String? ?? "",
         statusObject: json["statusObject"] is Map<String, dynamic>
             ? ExchangeTransactionStatus.fromJson(
-                json["statusObject"] as Map<String, dynamic>)
+                json["statusObject"] as Map<String, dynamic>,
+              )
             : null,
       );
     } catch (e) {

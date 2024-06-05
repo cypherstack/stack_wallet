@@ -44,12 +44,16 @@ class PaynymAccount {
             .map((e) => PaynymCode.fromMap(Map<String, dynamic>.from(e as Map)))
             .toList(),
         followers = (map["followers"] as List<dynamic>)
-            .map((e) =>
-                PaynymAccountLite.fromMap(Map<String, dynamic>.from(e as Map)))
+            .map(
+              (e) => PaynymAccountLite.fromMap(
+                  Map<String, dynamic>.from(e as Map)),
+            )
             .toList(),
         following = (map["following"] as List<dynamic>)
-            .map((e) =>
-                PaynymAccountLite.fromMap(Map<String, dynamic>.from(e as Map)))
+            .map(
+              (e) => PaynymAccountLite.fromMap(
+                  Map<String, dynamic>.from(e as Map)),
+            )
             .toList();
 
   PaynymAccount copyWith({

@@ -19,8 +19,7 @@ import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/stack_dialog.dart';
 
 class ConfirmFullRescanDialog extends StatelessWidget {
-  const ConfirmFullRescanDialog({Key? key, required this.onConfirm})
-      : super(key: key);
+  const ConfirmFullRescanDialog({super.key, required this.onConfirm});
 
   final VoidCallback onConfirm;
 
@@ -87,10 +86,10 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       );

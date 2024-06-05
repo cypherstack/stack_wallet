@@ -3,6 +3,12 @@ import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
 part 'app_config.g.dart';
 
+enum AppFeature {
+  themeSelection,
+  buy,
+  swap;
+}
+
 abstract class AppConfig {
   static const appName = _prefix + _separator + suffix;
 
@@ -11,6 +17,8 @@ abstract class AppConfig {
 
   static String get appDefaultDataDirName => _appDataDirName;
   static String get commitHash => _commitHash;
+
+  static bool hasFeature(AppFeature feature) => _features.contains(feature);
 
   static ({String light, String dark})? get appIconAsset => _appIconAsset;
 

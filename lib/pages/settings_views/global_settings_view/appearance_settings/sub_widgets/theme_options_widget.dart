@@ -27,7 +27,7 @@ import '../../../../../widgets/custom_buttons/blue_text_button.dart';
 import 'package:tuple/tuple.dart';
 
 class ThemeOptionsWidget extends ConsumerStatefulWidget {
-  const ThemeOptionsWidget({Key? key}) : super(key: key);
+  const ThemeOptionsWidget({super.key});
 
   @override
   ConsumerState<ThemeOptionsWidget> createState() => _ThemeOptionsWidgetState();

@@ -10,11 +10,11 @@ import 'lelantus_coin_adapter_test.mocks.dart';
 @GenerateMocks([BinaryReader, BinaryWriter])
 void main() {
   test("read", () {
-    LelantusCoinAdapter adapter = LelantusCoinAdapter();
+    final LelantusCoinAdapter adapter = LelantusCoinAdapter();
     final reader = MockBinaryReader();
 
-    List<int> readByteResponses = [6, 0, 1, 2, 3, 4, 5];
-    List<dynamic> readResponses = [
+    final List<int> readByteResponses = [6, 0, 1, 2, 3, 4, 5];
+    final List<dynamic> readResponses = [
       1,
       1000,
       "kjhxzcfg8u7ty23w8gbdsf87cfgsdf3",
@@ -35,8 +35,8 @@ void main() {
   });
 
   test("write", () {
-    LelantusCoinAdapter adapter = LelantusCoinAdapter();
-    LelantusCoin obj =
+    final LelantusCoinAdapter adapter = LelantusCoinAdapter();
+    final LelantusCoin obj =
         LelantusCoin(1, 100, "some public coin", "some txid", 1, true);
     final writer = MockBinaryWriter();
 

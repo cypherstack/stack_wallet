@@ -17,10 +17,9 @@ import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:electrum_adapter/methods/specific/firo.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
-import 'client_manager.dart';
+import 'package:stream_channel/stream_channel.dart';
+
 import '../exceptions/electrumx/no_such_transaction.dart';
 import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
@@ -28,10 +27,8 @@ import '../services/event_bus/global_event_bus.dart';
 import '../services/tor_service.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
-import '../wallets/crypto_currency/coins/dogecoin.dart';
-import '../wallets/crypto_currency/coins/firo.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'package:stream_channel/stream_channel.dart';
+import 'client_manager.dart';
 
 class WifiOnlyException implements Exception {}
 
@@ -912,10 +909,7 @@ class ElectrumXClient {
     String? requestID,
   }) async {
     try {
-      Logging.instance.log(
-        "attempting to fetch spark.getsparkanonymityset...",
-        level: LogLevel.Info,
-      );
+      final start = DateTime.now();
       await _checkElectrumAdapter();
       final Map<String, dynamic> response =
           await (getElectrumAdapter() as FiroElectrumClient)
@@ -924,7 +918,10 @@ class ElectrumXClient {
         startBlockHash: startBlockHash,
       );
       Logging.instance.log(
-        "Fetching spark.getsparkanonymityset finished",
+        "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
+        "=$coinGroupId, startBlockHash=$startBlockHash). "
+        "coins.length: ${(response["coins"] as List?)?.length}"
+        "Duration=${DateTime.now().difference(start)}",
         level: LogLevel.Info,
       );
       return response;
@@ -933,18 +930,15 @@ class ElectrumXClient {
     }
   }
 
+  // TODO: update when we get new call to include tx hashes in response
   /// Takes [startNumber], if it is 0, we get the full set,
   /// otherwise the used tags after that number
-  Future<Set<String>> getSparkUsedCoinsTags({
+  Future<List<String>> getSparkUnhashedUsedCoinsTags({
     String? requestID,
     required int startNumber,
   }) async {
     try {
-      // Use electrum_adapter package's getSparkUsedCoinsTags method.
-      Logging.instance.log(
-        "attempting to fetch spark.getusedcoinstags...",
-        level: LogLevel.Info,
-      );
+      final start = DateTime.now();
       await _checkElectrumAdapter();
       final Map<String, dynamic> response =
           await (getElectrumAdapter() as FiroElectrumClient)
@@ -956,8 +950,16 @@ class ElectrumXClient {
         level: LogLevel.Info,
       );
       final map = Map<String, dynamic>.from(response);
-      final set = Set<String>.from(map["tags"] as List);
-      return await compute(_ffiHashTagsComputeWrapper, set);
+      final tags = List<String>.from(map["tags"] as List);
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getSparkUnhashedUsedCoinsTags(startNumber"
+        "=$startNumber). "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return tags;
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
@@ -1017,6 +1019,64 @@ class ElectrumXClient {
         level: LogLevel.Info,
       );
       return response;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Returns the txids of the current transactions found in the mempool
+  Future<Set<String>> getMempoolTxids({
+    String? requestID,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "spark.getmempooltxids",
+      );
+
+      // TODO verify once server is live
+      final txids = List<String>.from(response as List).toSet();
+      // final map = Map<String, dynamic>.from(response as Map);
+      // final txids = List<String>.from(map["tags"] as List).toSet();
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getMempoolTxids(). "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return txids;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Returns the txids of the current transactions found in the mempool
+  Future<Map<String, dynamic>> getMempoolSparkData({
+    String? requestID,
+    required List<String> txids,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "spark.getmempooltxs",
+        args: txids,
+      );
+
+      // TODO verify once server is live
+      final map = Map<String, dynamic>.from(response as Map);
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getMempoolSparkData(txids: $txids). "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return map;
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
@@ -1093,8 +1153,4 @@ class ElectrumXClient {
       rethrow;
     }
   }
-}
-
-Set<String> _ffiHashTagsComputeWrapper(Set<String> base64Tags) {
-  return LibSpark.hashTags(base64Tags: base64Tags);
 }

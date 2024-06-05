@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../app_config.dart';
 import '../models/isar/stack_theme.dart';
 import '../models/notification_model.dart';
@@ -28,9 +29,9 @@ import '../widgets/rounded_white_container.dart';
 
 class NotificationCard extends ConsumerWidget {
   const NotificationCard({
-    Key? key,
+    super.key,
     required this.notification,
-  }) : super(key: key);
+  });
 
   final NotificationModel notification;
 
@@ -71,10 +72,11 @@ class NotificationCard extends ConsumerWidget {
                   ? SvgPicture.file(
                       File(
                         coinIconPath(
-                            ref.watch(
-                              themeAssetsProvider,
-                            ),
-                            ref),
+                          ref.watch(
+                            themeAssetsProvider,
+                          ),
+                          ref,
+                        ),
                       ),
                       width: isDesktop ? desktopIconSize : mobileIconSize,
                       height: isDesktop ? desktopIconSize : mobileIconSize,
@@ -89,10 +91,11 @@ class NotificationCard extends ConsumerWidget {
                       child: SvgPicture.file(
                         File(
                           coinIconPath(
-                              ref.watch(
-                                themeAssetsProvider,
-                              ),
-                              ref),
+                            ref.watch(
+                              themeAssetsProvider,
+                            ),
+                            ref,
+                          ),
                         ),
                         color: Theme.of(context)
                             .extension<StackColors>()!
@@ -123,7 +126,7 @@ class NotificationCard extends ConsumerWidget {
                                   .extension<StackColors>()!
                                   .accentColorGreen,
                             ),
-                          )
+                          ),
                         ],
                       ),
                       child: Text(

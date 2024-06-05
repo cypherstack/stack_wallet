@@ -15,11 +15,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../models/isar/models/isar_models.dart';
 import '../../../notifications/show_flush_bar.dart';
-import 'add_new_contact_address_view.dart';
-import 'edit_contact_address_view.dart';
-import 'edit_contact_name_emoji_view.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
@@ -36,7 +35,9 @@ import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../../../widgets/transaction_card.dart';
-import 'package:tuple/tuple.dart';
+import 'add_new_contact_address_view.dart';
+import 'edit_contact_address_view.dart';
+import 'edit_contact_name_emoji_view.dart';
 
 class ContactDetailsView extends ConsumerStatefulWidget {
   const ContactDetailsView({
@@ -73,8 +74,10 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
         .transactions
         .where()
         .filter()
-        .anyOf(contact.addresses.map((e) => e.address),
-            (q, String e) => q.address((q) => q.valueEqualTo(e)))
+        .anyOf(
+          contact.addresses.map((e) => e.address),
+          (q, String e) => q.address((q) => q.valueEqualTo(e)),
+        )
         .sortByTimestampDesc()
         .findAll();
 
@@ -107,8 +110,10 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final _contact = ref.watch(addressBookServiceProvider
-        .select((value) => value.getContactById(_contactId)));
+    final _contact = ref.watch(
+      addressBookServiceProvider
+          .select((value) => value.getContactById(_contactId)),
+    );
 
     return Background(
       child: Scaffold(
@@ -153,7 +158,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                     final bool isFavorite = _contact.isFavorite;
 
                     ref.read(addressBookServiceProvider).editContact(
-                        _contact.copyWith(isFavorite: !isFavorite));
+                          _contact.copyWith(isFavorite: !isFavorite),
+                        );
                   },
                 ),
               ),
@@ -289,18 +295,21 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                             .getSecondaryEnabledButtonStyle(context)!
                             .copyWith(
                               minimumSize: MaterialStateProperty.all<Size>(
-                                  const Size(46, 32)),
+                                const Size(46, 32),
+                              ),
                             ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Row(
                             children: [
-                              SvgPicture.asset(Assets.svg.pencil,
-                                  width: 10,
-                                  height: 10,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorDark),
+                              SvgPicture.asset(
+                                Assets.svg.pencil,
+                                width: 10,
+                                height: 10,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
+                              ),
                               const SizedBox(
                                 width: 4,
                               ),
@@ -463,9 +472,10 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                   ),
                   FutureBuilder(
                     future: _filteredTransactionsByContact(),
-                    builder: (_,
-                        AsyncSnapshot<List<Tuple2<String, Transaction>>>
-                            snapshot) {
+                    builder: (
+                      _,
+                      AsyncSnapshot<List<Tuple2<String, Transaction>>> snapshot,
+                    ) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
                         _cachedTransactions = snapshot.data!;
@@ -478,7 +488,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                 ..._cachedTransactions.map(
                                   (e) => TransactionCard(
                                     key: Key(
-                                        "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey"),
+                                      "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                    ),
                                     transaction: e.item2,
                                     walletId: e.item1,
                                   ),
@@ -508,7 +519,8 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                 ..._cachedTransactions.map(
                                   (e) => TransactionCard(
                                     key: Key(
-                                        "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey"),
+                                      "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                    ),
                                     transaction: e.item2,
                                     walletId: e.item1,
                                   ),

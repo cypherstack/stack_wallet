@@ -13,10 +13,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../models/isar/models/isar_models.dart';
-import '../../exchange_view/trade_details_view.dart';
-import 'no_transactions_found.dart';
-import '../wallet_view.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/trades_service_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
@@ -32,7 +31,9 @@ import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/trade_card.dart';
 import '../../../widgets/transaction_card.dart';
-import 'package:tuple/tuple.dart';
+import '../../exchange_view/trade_details_view.dart';
+import '../wallet_view.dart';
+import 'no_transactions_found.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
@@ -106,10 +107,12 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
             ),
             TradeCard(
               // this may mess with combined firo transactions
-              key: Key(tx.txid +
-                  tx.type.name +
-                  tx.address.value.toString() +
-                  trade.uuid), //
+              key: Key(
+                tx.txid +
+                    tx.type.name +
+                    tx.address.value.toString() +
+                    trade.uuid,
+              ), //
               trade: trade,
               onTap: () async {
                 final walletName = ref.read(pWalletName(widget.walletId));
@@ -184,7 +187,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                   );
                 }
               },
-            )
+            ),
           ],
         ),
       );

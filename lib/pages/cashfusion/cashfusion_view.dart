@@ -15,8 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'fusion_progress_view.dart';
-import 'fusion_rounds_selection_sheet.dart';
+
 import '../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -34,6 +33,8 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
+import 'fusion_progress_view.dart';
+import 'fusion_rounds_selection_sheet.dart';
 
 class CashFusionView extends ConsumerStatefulWidget {
   const CashFusionView({
@@ -73,7 +74,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-          "FusionProgressUIState was already set for ${widget.walletId}")) {
+            "FusionProgressUIState was already set for ${widget.walletId}",
+          )) {
         rethrow;
       }
     }
@@ -273,7 +275,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               controller: portController,
                               focusNode: portFocusNode,
                               inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
+                                FilteringTextInputFormatter.digitsOnly,
                               ],
                               keyboardType: TextInputType.number,
                               onChanged: (value) {
@@ -408,7 +410,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                 controller: fusionRoundController,
                                 focusNode: fusionRoundFocusNode,
                                 inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly
+                                  FilteringTextInputFormatter.digitsOnly,
                                 ],
                                 keyboardType: TextInputType.number,
                                 onChanged: (value) {
@@ -424,7 +426,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                   fusionRoundFocusNode,
                                   context,
                                 ).copyWith(
-                                    labelText: "Enter number of fusions.."),
+                                  labelText: "Enter number of fusions..",
+                                ),
                               ),
                             ),
                           const SizedBox(

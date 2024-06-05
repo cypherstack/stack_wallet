@@ -11,6 +11,7 @@ import 'package:cw_core/wallet_type.dart';
 import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
+
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/paymint/fee_object_model.dart';
@@ -344,7 +345,7 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
       if (entries != null) {
         for (final element in entries) {
           if (element.value.direction == TransactionDirection.incoming) {
-            int curAddressIndex =
+            final int curAddressIndex =
                 element.value.additionalInfo!['addressIndex'] as int;
             if (curAddressIndex > highestIndex) {
               highestIndex = curAddressIndex;
@@ -381,13 +382,15 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
-          "SocketException caught in _checkReceivingAddressForTransactions(): $se\n$s",
-          level: LogLevel.Error);
+        "SocketException caught in _checkReceivingAddressForTransactions(): $se\n$s",
+        level: LogLevel.Error,
+      );
       return;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions(): $e\n$s",
-          level: LogLevel.Error);
+        "Exception rethrown from _checkReceivingAddressForTransactions(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }

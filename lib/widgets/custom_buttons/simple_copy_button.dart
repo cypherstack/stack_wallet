@@ -20,9 +20,9 @@ import '../../utilities/text_styles.dart';
 
 class SimpleCopyButton extends StatelessWidget {
   const SimpleCopyButton({
-    Key? key,
+    super.key,
     required this.data,
-  }) : super(key: key);
+  });
 
   final String data;
 

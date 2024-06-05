@@ -11,7 +11,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../wallet/public_private_balance_state_provider.dart';
 import '../../utilities/amount/amount.dart';
-import '../../wallets/crypto_currency/coins/firo.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 
 final pSendAmount = StateProvider.autoDispose<Amount?>((_) => null);

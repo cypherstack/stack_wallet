@@ -11,8 +11,6 @@
 import 'dart:convert';
 
 import 'logger.dart';
-import '../wallets/crypto_currency/coins/bitcoincash.dart';
-import '../wallets/crypto_currency/coins/ecash.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 class AddressUtils {
@@ -217,8 +215,10 @@ class AddressUtils {
     try {
       result = Map<String, dynamic>.from(jsonDecode(data) as Map);
     } catch (e) {
-      Logging.instance.log("Exception caught in parseQRSeedData($data): $e",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Exception caught in parseQRSeedData($data): $e",
+        level: LogLevel.Error,
+      );
     }
     return result;
   }

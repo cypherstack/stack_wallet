@@ -38,10 +38,14 @@ class UTXO {
   @Index()
   late final String walletId;
 
-  @Index(unique: true, replace: true, composite: [
-    CompositeIndex("walletId"),
-    CompositeIndex("vout"),
-  ])
+  @Index(
+    unique: true,
+    replace: true,
+    composite: [
+      CompositeIndex("walletId"),
+      CompositeIndex("vout"),
+    ],
+  )
   late final String txid;
 
   late final int vout;

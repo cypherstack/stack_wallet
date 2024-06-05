@@ -33,7 +33,7 @@ import '../../../../widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
 
 class ManageThemesView extends ConsumerStatefulWidget {
-  const ManageThemesView({Key? key}) : super(key: key);
+  const ManageThemesView({super.key});
 
   static const String routeName = "/manageThemes";
 
@@ -220,9 +220,9 @@ class _ManageThemesViewState extends ConsumerState<ManageThemesView> {
 
 class IncognitoInstalledThemes extends ConsumerStatefulWidget {
   const IncognitoInstalledThemes({
-    Key? key,
+    super.key,
     required this.cardWidth,
-  }) : super(key: key);
+  });
 
   final double cardWidth;
 

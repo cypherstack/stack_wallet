@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:socks5_proxy/socks.dart';
+import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart' as stellar;
+
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -20,11 +22,9 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/test_stellar_node_connection.dart';
-import '../../crypto_currency/coins/stellar.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
-import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart' as stellar;
 
 class StellarWallet extends Bip39Wallet<Stellar> {
   StellarWallet(CryptoCurrencyNetwork network) : super(Stellar(network)) {
@@ -143,8 +143,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       }
     } catch (e, s) {
       Logging.instance.log(
-          "Error getting account  ${e.toString()} - ${s.toString()}",
-          level: LogLevel.Error);
+        "Error getting account  ${e.toString()} - ${s.toString()}",
+        level: LogLevel.Error,
+      );
     }
     return exists;
   }
@@ -235,8 +236,10 @@ class StellarWallet extends Bip39Wallet<Stellar> {
         ),
       );
     } catch (e, s) {
-      Logging.instance.log("$runtimeType prepareSend() failed: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "$runtimeType prepareSend() failed: $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -478,10 +481,12 @@ class StellarWallet extends Bip39Wallet<Stellar> {
             type = TransactionType.incoming;
           }
           final amount = Amount(
-            rawValue: BigInt.parse(float
-                .parse(por.amount!)
-                .toStringAsFixed(cryptoCurrency.fractionDigits)
-                .replaceAll(".", "")),
+            rawValue: BigInt.parse(
+              float
+                  .parse(por.amount!)
+                  .toStringAsFixed(cryptoCurrency.fractionDigits)
+                  .replaceAll(".", ""),
+            ),
             fractionDigits: cryptoCurrency.fractionDigits,
           );
 
@@ -560,10 +565,12 @@ class StellarWallet extends Bip39Wallet<Stellar> {
             type = TransactionType.incoming;
           }
           final amount = Amount(
-            rawValue: BigInt.parse(float
-                .parse(caor.startingBalance!)
-                .toStringAsFixed(cryptoCurrency.fractionDigits)
-                .replaceAll(".", "")),
+            rawValue: BigInt.parse(
+              float
+                  .parse(caor.startingBalance!)
+                  .toStringAsFixed(cryptoCurrency.fractionDigits)
+                  .replaceAll(".", ""),
+            ),
             fractionDigits: cryptoCurrency.fractionDigits,
           );
 
@@ -640,8 +647,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       await mainDB.updateOrPutTransactionV2s(transactionList);
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from updateTransactions(): $e\n$s",
-          level: LogLevel.Error);
+        "Exception rethrown from updateTransactions(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }

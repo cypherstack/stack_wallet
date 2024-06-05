@@ -16,7 +16,8 @@ class UpdatedInBackgroundEvent {
 
   UpdatedInBackgroundEvent(this.message, this.walletId) {
     Logging.instance.log(
-        "UpdatedInBackgroundEvent fired with message: $message",
-        level: LogLevel.Info);
+      "UpdatedInBackgroundEvent fired with message: $message",
+      level: LogLevel.Info,
+    );
   }
 }

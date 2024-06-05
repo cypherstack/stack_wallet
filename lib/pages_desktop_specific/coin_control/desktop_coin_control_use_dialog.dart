@@ -14,9 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
-import 'utxo_row.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -38,6 +38,7 @@ import '../../widgets/rounded_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../../widgets/toggle.dart';
+import 'utxo_row.dart';
 
 final desktopUseUTXOs = StateProvider((ref) => <UTXO>{});
 
@@ -295,7 +296,7 @@ class _DesktopCoinControlUseDialogState
                           }
                         },
                         displayPrefix: "Sort by",
-                      )
+                      ),
                     ],
                   ),
                   const SizedBox(
@@ -320,7 +321,8 @@ class _DesktopCoinControlUseDialogState
 
                               return UtxoRow(
                                 key: Key(
-                                    "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
+                                  "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                                ),
                                 data: data,
                                 compact: true,
                                 walletId: widget.walletId,
@@ -391,7 +393,8 @@ class _DesktopCoinControlUseDialogState
                                           "output${entry.value.length > 1 ? "s" : ""}",
                                           style: STextStyles
                                               .desktopTextExtraExtraSmall(
-                                                  context),
+                                            context,
+                                          ),
                                         ),
                                       ),
                                       RotateIcon(
@@ -422,7 +425,8 @@ class _DesktopCoinControlUseDialogState
 
                                     return UtxoRow(
                                       key: Key(
-                                          "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
+                                        "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                                      ),
                                       data: data,
                                       compact: true,
                                       compactWithBorder: false,
@@ -477,8 +481,8 @@ class _DesktopCoinControlUseDialogState
                                     "Amount to send",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
-                                                context)
-                                            .copyWith(
+                                      context,
+                                    ).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
                                           .textDark,
@@ -512,8 +516,8 @@ class _DesktopCoinControlUseDialogState
                             Text(
                               "Selected amount",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textDark,
@@ -524,8 +528,8 @@ class _DesktopCoinControlUseDialogState
                                 coin.fractionDigits,
                               )} ${coin.ticker}",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: widget.amountToSend == null
                                     ? Theme.of(context)
                                         .extension<StackColors>()!

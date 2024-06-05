@@ -5,6 +5,7 @@ import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:flutter/foundation.dart';
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar/isar.dart';
+
 import '../../../models/fusion_progress_ui_state.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -13,8 +14,6 @@ import '../../../pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dar
 import '../../../services/fusion_tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
-import '../../crypto_currency/coins/bitcoincash.dart';
-import '../../crypto_currency/coins/ecash.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'coin_control_interface.dart';
@@ -152,88 +151,113 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
     switch (status) {
       case fusion.FusionStatus.connecting:
         _uiState?.setConnecting(
-            CashFusionState(status: CashFusionStatus.running, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.running, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setOutputs(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setPeers(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setFusing(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setComplete(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: true);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: true,
+        );
         break;
       case fusion.FusionStatus.setup:
         _uiState?.setConnecting(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setOutputs(
-            CashFusionState(status: CashFusionStatus.running, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.running, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setPeers(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setFusing(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setComplete(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: true);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: true,
+        );
         break;
       case fusion.FusionStatus.waiting:
         _uiState?.setConnecting(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setOutputs(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setPeers(
-            CashFusionState(status: CashFusionStatus.running, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.running, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setFusing(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setComplete(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: true);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: true,
+        );
         break;
       case fusion.FusionStatus.running:
         _uiState?.setConnecting(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setOutputs(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setPeers(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setFusing(
-            CashFusionState(status: CashFusionStatus.running, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.running, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setComplete(
-            CashFusionState(status: CashFusionStatus.waiting, info: null),
-            shouldNotify: true);
+          CashFusionState(status: CashFusionStatus.waiting, info: null),
+          shouldNotify: true,
+        );
         break;
       case fusion.FusionStatus.complete:
         _uiState?.setConnecting(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setOutputs(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setPeers(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setFusing(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: false,
+        );
         _uiState?.setComplete(
-            CashFusionState(status: CashFusionStatus.success, info: null),
-            shouldNotify: true);
+          CashFusionState(status: CashFusionStatus.success, info: null),
+          shouldNotify: true,
+        );
         break;
       case fusion.FusionStatus.failed:
         failCurrentUiState(info);
@@ -243,24 +267,30 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
         break;
       case fusion.FusionStatus.reset:
         _uiState?.setConnecting(
-            CashFusionState(status: CashFusionStatus.waiting, info: info),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: info),
+          shouldNotify: false,
+        );
         _uiState?.setOutputs(
-            CashFusionState(status: CashFusionStatus.waiting, info: info),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: info),
+          shouldNotify: false,
+        );
         _uiState?.setPeers(
-            CashFusionState(status: CashFusionStatus.waiting, info: info),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: info),
+          shouldNotify: false,
+        );
         _uiState?.setFusing(
-            CashFusionState(status: CashFusionStatus.waiting, info: info),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: info),
+          shouldNotify: false,
+        );
         _uiState?.setComplete(
-            CashFusionState(status: CashFusionStatus.waiting, info: info),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: info),
+          shouldNotify: false,
+        );
 
         _uiState?.setFusionState(
-            CashFusionState(status: CashFusionStatus.waiting, info: info),
-            shouldNotify: false);
+          CashFusionState(status: CashFusionStatus.waiting, info: info),
+          shouldNotify: false,
+        );
 
         _uiState?.setFailed(false, shouldNotify: true);
         break;
@@ -271,32 +301,37 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
     // Check each _uiState value to see if it is running.  If so, set it to failed.
     if (_uiState?.connecting.status == CashFusionStatus.running) {
       _uiState?.setConnecting(
-          CashFusionState(status: CashFusionStatus.failed, info: info),
-          shouldNotify: true);
+        CashFusionState(status: CashFusionStatus.failed, info: info),
+        shouldNotify: true,
+      );
       return;
     }
     if (_uiState?.outputs.status == CashFusionStatus.running) {
       _uiState?.setOutputs(
-          CashFusionState(status: CashFusionStatus.failed, info: info),
-          shouldNotify: true);
+        CashFusionState(status: CashFusionStatus.failed, info: info),
+        shouldNotify: true,
+      );
       return;
     }
     if (_uiState?.peers.status == CashFusionStatus.running) {
       _uiState?.setPeers(
-          CashFusionState(status: CashFusionStatus.failed, info: info),
-          shouldNotify: true);
+        CashFusionState(status: CashFusionStatus.failed, info: info),
+        shouldNotify: true,
+      );
       return;
     }
     if (_uiState?.fusing.status == CashFusionStatus.running) {
       _uiState?.setFusing(
-          CashFusionState(status: CashFusionStatus.failed, info: info),
-          shouldNotify: true);
+        CashFusionState(status: CashFusionStatus.failed, info: info),
+        shouldNotify: true,
+      );
       return;
     }
     if (_uiState?.complete.status == CashFusionStatus.running) {
       _uiState?.setComplete(
-          CashFusionState(status: CashFusionStatus.failed, info: info),
-          shouldNotify: true);
+        CashFusionState(status: CashFusionStatus.failed, info: info),
+        shouldNotify: true,
+      );
       return;
     }
   }
@@ -329,10 +364,12 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
               .and()
               .derivationPathIsNotNull()
               .and()
-              .group((q) => q
-                  .subTypeEqualTo(AddressSubType.receiving)
-                  .or()
-                  .subTypeEqualTo(AddressSubType.change))
+              .group(
+                (q) => q
+                    .subTypeEqualTo(AddressSubType.receiving)
+                    .or()
+                    .subTypeEqualTo(AddressSubType.change),
+              )
               .findAll())
           .firstWhere((e) => e.publicKey.toString() == pubKey.toString())
           .derivationPath!
@@ -406,8 +443,11 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
         .where((e) => e.otherData == kReservedFusionAddress)
         .toList();
 
-    unusedReservedAddresses.addAll(await _reserveAddresses(
-        unusedChangeAddresses.where((e) => e.otherData == null)));
+    unusedReservedAddresses.addAll(
+      await _reserveAddresses(
+        unusedChangeAddresses.where((e) => e.otherData == null),
+      ),
+    );
 
     // Return the list of unused reserved change addresses.
     return unusedReservedAddresses
@@ -570,7 +610,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
       );
 
       // Use server host and port which ultimately come from text fields.
-      fusion.FusionParams serverParams = fusion.FusionParams(
+      final fusion.FusionParams serverParams = fusion.FusionParams(
         serverHost: fusionInfo.host,
         serverPort: fusionInfo.port,
         serverSsl: fusionInfo.ssl,
@@ -682,13 +722,17 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
               .getAddresses(walletId)
               .filter()
               .anyOf<String,
-                      QueryBuilder<Address, Address, QAfterFilterCondition>>(
-                  possibleAddresses, (q, e) => q.valueEqualTo(e))
+                  QueryBuilder<Address, Address, QAfterFilterCondition>>(
+                possibleAddresses,
+                (q, e) => q.valueEqualTo(e),
+              )
               .and()
-              .group((q) => q
-                  .subTypeEqualTo(AddressSubType.change)
-                  .or()
-                  .subTypeEqualTo(AddressSubType.receiving))
+              .group(
+                (q) => q
+                    .subTypeEqualTo(AddressSubType.change)
+                    .or()
+                    .subTypeEqualTo(AddressSubType.receiving),
+              )
               .and()
               .typeEqualTo(AddressType.p2pkh)
               .findFirst();
@@ -753,8 +797,9 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
           if (coinList.isEmpty ||
               e.toString().contains("Started with no coins")) {
             _updateStatus(
-                status: fusion.FusionStatus.failed,
-                info: "Started with no coins, stopping.");
+              status: fusion.FusionStatus.failed,
+              info: "Started with no coins, stopping.",
+            );
             _stopRequested = true;
             _uiState?.setFailed(true, shouldNotify: true);
           }
@@ -762,8 +807,9 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
           // If we fail too many times in a row, stop trying.
           if (_failedFuseCount >= maxFailedFuseCount) {
             _updateStatus(
-                status: fusion.FusionStatus.failed,
-                info: "Failed $maxFailedFuseCount times in a row, stopping.");
+              status: fusion.FusionStatus.failed,
+              info: "Failed $maxFailedFuseCount times in a row, stopping.",
+            );
             _stopRequested = true;
             _uiState?.setFailed(true, shouldNotify: true);
           }

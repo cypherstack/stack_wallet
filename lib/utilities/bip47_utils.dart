@@ -11,6 +11,7 @@
 import 'dart:typed_data';
 
 import 'package:bip47/src/util.dart';
+
 import '../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 
@@ -19,7 +20,8 @@ abstract class Bip47Utils {
   static Uint8List? getBlindedPaymentCodeBytesFrom(TransactionV2 transaction) {
     for (int i = 0; i < transaction.outputs.length; i++) {
       final bytes = getBlindedPaymentCodeBytesFromOutput(
-          transaction.outputs.elementAt(i));
+        transaction.outputs.elementAt(i),
+      );
       if (bytes != null) {
         return bytes;
       }
@@ -31,7 +33,7 @@ abstract class Bip47Utils {
   static Uint8List? getBlindedPaymentCodeBytesFromOutput(OutputV2 output) {
     Uint8List? blindedCodeBytes;
 
-    List<String>? scriptChunks = output.scriptPubKeyAsm?.split(" ");
+    final List<String>? scriptChunks = output.scriptPubKeyAsm?.split(" ");
     if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
       final blindedPaymentCode = scriptChunks![1];
       final bytes = blindedPaymentCode.fromHex;

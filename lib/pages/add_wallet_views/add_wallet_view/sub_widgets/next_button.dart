@@ -19,9 +19,9 @@ import '../../../../utilities/text_styles.dart';
 
 class AddWalletNextButton extends ConsumerWidget {
   const AddWalletNextButton({
-    Key? key,
+    super.key,
     required this.isDesktop,
-  }) : super(key: key);
+  });
 
   final bool isDesktop;
 

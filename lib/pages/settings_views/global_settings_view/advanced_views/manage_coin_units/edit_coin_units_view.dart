@@ -257,7 +257,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             SizedBox(

@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -6,14 +7,14 @@ import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/namecoin.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 
-class NamecoinWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
+class NamecoinWallet<T extends ElectrumXCurrencyInterface>
+    extends Bip39HDWallet<T>
     with ElectrumXInterface<T>, CoinControlInterface<T> {
   @override
   int get isarTransactionVersion => 2;
@@ -74,8 +75,9 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(
-          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-              (feeRatePerKB / 1000).ceil()),
+        ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
@@ -83,14 +85,15 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet
   @override
   Future<void> updateTransactions() async {
     // Get all addresses.
-    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
+    final List<Address> allAddressesOld =
+        await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    Set<String> receivingAddresses = allAddressesOld
+    final Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => e.value)
         .toSet();
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => e.value)
         .toSet();
@@ -103,7 +106,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet
         await fetchHistory(allAddressesSet);
 
     // Only parse new txs (not in db yet).
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
       final storedTx = await mainDB.isar.transactionV2s
@@ -164,8 +167,8 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet
           );
 
           final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map,
+          );
 
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
@@ -239,7 +242,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet
           .fold(BigInt.zero, (value, element) => value + element);
 
       TransactionType type;
-      TransactionSubType subType = TransactionSubType.none;
+      final TransactionSubType subType = TransactionSubType.none;
 
       // At least one input was owned by this wallet.
       if (wasSentFromThisWallet) {

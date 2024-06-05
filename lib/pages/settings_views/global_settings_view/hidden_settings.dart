@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/debug_service_provider.dart';
 import '../../../providers/providers.dart';
@@ -20,7 +21,6 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/crypto_currency/coins/stellar.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -285,28 +285,33 @@ class HiddenSettings extends StatelessWidget {
                             );
                           },
                         ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                //
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Do nothing",
-                                  style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                        // const SizedBox(
+                        //   height: 12,
+                        // ),
+                        // Consumer(
+                        //   builder: (_, ref, __) {
+                        //     return GestureDetector(
+                        //       onTap: () async {
+                        //         await showLoading(
+                        //           whileFuture: FiroCache.init(),
+                        //           context: context,
+                        //           rootNavigator: true,
+                        //           message: "initializing firo cache",
+                        //         );
+                        //       },
+                        //       child: RoundedWhiteContainer(
+                        //         child: Text(
+                        //           "init firo_cache",
+                        //           style: STextStyles.button(context).copyWith(
+                        //             color: Theme.of(context)
+                        //                 .extension<StackColors>()!
+                        //                 .accentColorDark,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     );
+                        //   },
+                        // ),
                       ],
                     ),
                   ),

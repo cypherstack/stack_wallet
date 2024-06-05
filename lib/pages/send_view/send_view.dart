@@ -18,15 +18,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/send_view_auto_fill_data.dart';
-import '../address_book_views/address_book_view.dart';
-import '../coin_control/coin_control_view.dart';
-import 'confirm_transaction_view.dart';
-import 'sub_widgets/building_transaction_dialog.dart';
-import 'sub_widgets/firo_balance_selection_sheet.dart';
-import 'sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
@@ -48,12 +44,6 @@ import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../wallets/crypto_currency/coins/firo.dart';
-import '../../wallets/crypto_currency/coins/monero.dart';
-import '../../wallets/crypto_currency/coins/stellar.dart';
-import '../../wallets/crypto_currency/coins/tezos.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -75,7 +65,12 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
-import 'package:tuple/tuple.dart';
+import '../address_book_views/address_book_view.dart';
+import '../coin_control/coin_control_view.dart';
+import 'confirm_transaction_view.dart';
+import 'sub_widgets/building_transaction_dialog.dart';
+import 'sub_widgets/firo_balance_selection_sheet.dart';
+import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
@@ -1003,14 +998,20 @@ class _SendViewState extends ConsumerState<SendView> {
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
-        );
+        ) &&
+        (coin is Firo
+            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            : true);
 
     if (isFiro) {
       ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
+        selectedUTXOs = {};
+
         if (ref.read(pSendAmount) == null) {
           setState(() {
             _calculateFeesFuture = calculateFees(
-                0.toAmountAsRaw(fractionDigits: coin.fractionDigits));
+              0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
+            );
           });
         } else {
           setState(() {

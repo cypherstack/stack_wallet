@@ -39,7 +39,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
   late final TextEditingController searchController;
   late final FocusNode searchFocus;
 
-  String _searchTerm = "";
+  final String _searchTerm = "";
 
   @override
   void initState() {
@@ -91,7 +91,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                         Future.delayed(const Duration(seconds: 2)),
                         (ref.read(pWallets).getWallet(widget.walletId)
                                 as OrdinalsInterface)
-                            .refreshInscriptions()
+                            .refreshInscriptions(),
                       ]),
                       context: context,
                       message: "Refreshing...",

@@ -29,9 +29,9 @@ import '../../widgets/rounded_white_container.dart';
 
 class BuyQuotePreviewView extends ConsumerStatefulWidget {
   const BuyQuotePreviewView({
-    Key? key,
+    super.key,
     required this.quote,
-  }) : super(key: key);
+  });
 
   final SimplexQuote quote;
 
@@ -56,8 +56,8 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
 
   @override
   Widget build(BuildContext context) {
-    Locale locale = Localizations.localeOf(context);
-    var format = NumberFormat.simpleCurrency(locale: locale.toString());
+    final Locale locale = Localizations.localeOf(context);
+    final format = NumberFormat.simpleCurrency(locale: locale.toString());
     // See https://stackoverflow.com/a/67055685
 
     return ConditionalParent(
@@ -240,7 +240,7 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
           PrimaryButton(
             label: "Buy",
             onPressed: _buyWarning,
-          )
+          ),
         ],
       ),
     );

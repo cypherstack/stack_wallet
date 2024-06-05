@@ -32,7 +32,7 @@ class PinWidgetState extends State<PinWidget> {
 
   @override
   Widget build(BuildContext context) {
-    bool submittedPinMatches = false;
+    final bool submittedPinMatches = false;
 
     return CustomPinPut(
       fieldsCount: pinCount,

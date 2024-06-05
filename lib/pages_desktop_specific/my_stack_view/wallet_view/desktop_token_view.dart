@@ -36,10 +36,10 @@ import '../../../widgets/rounded_white_container.dart';
 /// [eventBus] should only be set during testing
 class DesktopTokenView extends ConsumerStatefulWidget {
   const DesktopTokenView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/desktopTokenView";
 

@@ -24,7 +24,7 @@ import 'package:stackwallet/utilities/biometrics.dart';
   LocalAuthentication,
   Biometrics,
 ], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
+  MockSpec<WalletsService>(),
 ])
 void main() {
 //   testWidgets("WalletSettingsView builds correctly", (tester) async {

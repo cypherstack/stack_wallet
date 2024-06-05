@@ -23,11 +23,12 @@ class Fiat {
   /// Fiat name
   final Decimal maxAmount;
 
-  Fiat(
-      {required this.ticker,
-      required this.name,
-      required this.minAmount,
-      required this.maxAmount});
+  Fiat({
+    required this.ticker,
+    required this.name,
+    required this.minAmount,
+    required this.maxAmount,
+  });
 
   factory Fiat.fromJson(Map<String, dynamic> json) {
     try {

@@ -718,7 +718,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     );
     Logging.instance.log(spendTxs, level: LogLevel.Info);
 
-    for (var element in spendTxs.entries) {
+    for (final element in spendTxs.entries) {
       final address = element.value.address.value ??
           data[element.value.txid]?.item1 ??
           element.key;
@@ -840,7 +840,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       amount += signingData[i].utxo.value;
     }
 
-    for (var mintsElement in txData.mintsMapLelantus!) {
+    for (final mintsElement in txData.mintsMapLelantus!) {
       Logging.instance.log("using $mintsElement", level: LogLevel.Info);
       final Uint8List mintu8 =
           Format.stringToUint8List(mintsElement['script'] as String);
@@ -952,7 +952,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
     for (final value in data) {
       if (value.inputs.isNotEmpty) {
-        for (var element in value.inputs) {
+        for (final element in value.inputs) {
           if (lelantusCoins.any((e) => e.txid == value.txid) &&
               spendableOutputs.firstWhere(
                     (output) => output?.txid == element.txid,

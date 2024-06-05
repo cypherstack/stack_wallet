@@ -10,8 +10,9 @@
 
 import 'dart:convert';
 
-import '../../logger.dart';
 import 'package:web3dart/web3dart.dart';
+
+import '../../logger.dart';
 
 extension ContractAbiExtensions on ContractAbi {
   static ContractAbi fromJsonList({
@@ -112,12 +113,17 @@ extension ContractAbiExtensions on ContractAbi {
     }
   }
 
-  static CompositeFunctionParameter _parseTuple(String name, String typeName,
-      List<FunctionParameter<dynamic>> components) {
+  static CompositeFunctionParameter _parseTuple(
+    String name,
+    String typeName,
+    List<FunctionParameter<dynamic>> components,
+  ) {
     // The type will have the form tuple[3][]...[1], where the indices after the
     // tuple indicate that the type is part of an array.
-    assert(RegExp(r'^tuple(?:\[\d*\])*$').hasMatch(typeName),
-        '$typeName is an invalid tuple type');
+    assert(
+      RegExp(r'^tuple(?:\[\d*\])*$').hasMatch(typeName),
+      '$typeName is an invalid tuple type',
+    );
 
     final arrayLengths = <int?>[];
     var remainingName = typeName;

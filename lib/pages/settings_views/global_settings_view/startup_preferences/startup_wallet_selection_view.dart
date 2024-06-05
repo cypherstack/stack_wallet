@@ -26,7 +26,7 @@ import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class StartupWalletSelectionView extends ConsumerStatefulWidget {
-  const StartupWalletSelectionView({Key? key}) : super(key: key);
+  const StartupWalletSelectionView({super.key});
 
   static const String routeName = "/startupWalletSelection";
   @override

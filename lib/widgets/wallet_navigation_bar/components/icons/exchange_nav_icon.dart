@@ -16,7 +16,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../themes/theme_providers.dart';
 
 class ExchangeNavIcon extends ConsumerWidget {
-  const ExchangeNavIcon({Key? key}) : super(key: key);
+  const ExchangeNavIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

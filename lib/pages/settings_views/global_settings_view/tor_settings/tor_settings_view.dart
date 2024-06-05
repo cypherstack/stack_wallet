@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
+
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../../../services/tor_service.dart';
@@ -34,8 +35,8 @@ import '../../../../widgets/tor_subscription.dart';
 
 class TorSettingsView extends ConsumerStatefulWidget {
   const TorSettingsView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/torSettings";
 
@@ -563,24 +564,25 @@ class _UpperCaseTorTextState extends ConsumerState<UpperCaseTorText> {
   @override
   Widget build(BuildContext context) {
     return TorSubscription(
-        onTorStatusChanged: (status) {
-          setState(() {
-            _status = status;
-          });
-        },
-        child: Text(
-          _label(
+      onTorStatusChanged: (status) {
+        setState(() {
+          _status = status;
+        });
+      },
+      child: Text(
+        _label(
+          _status,
+        ),
+        style: STextStyles.pageTitleH2(
+          context,
+        ).copyWith(
+          color: _color(
             _status,
+            Theme.of(context).extension<StackColors>()!,
           ),
-          style: STextStyles.pageTitleH2(
-            context,
-          ).copyWith(
-            color: _color(
-              _status,
-              Theme.of(context).extension<StackColors>()!,
-            ),
-          ),
-        ));
+        ),
+      ),
+    );
   }
 }
 

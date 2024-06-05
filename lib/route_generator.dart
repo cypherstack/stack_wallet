@@ -11,6 +11,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'models/buy/response_objects/quote.dart';
@@ -127,7 +129,9 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/lelantus_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_info.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'pages/special/firo_rescan_recovery_error_dialog.dart';
@@ -194,7 +198,6 @@ import 'wallets/models/tx_data.dart';
 import 'wallets/wallet/wallet.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
-import 'package:tuple/tuple.dart';
 
 /*
  * This file contains all the routes for the app.
@@ -1390,7 +1393,8 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreWalletView.routeName:
-        if (args is Tuple5<String, CryptoCurrency, int, DateTime, String>) {
+        if (args
+            is Tuple6<String, CryptoCurrency, int, DateTime, String, bool>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreWalletView(
@@ -1399,6 +1403,7 @@ class RouteGenerator {
               seedWordsLength: args.item3,
               restoreFromDate: args.item4,
               mnemonicPassphrase: args.item5,
+              enableLelantusScanning: args.item6 ?? false,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1950,6 +1955,27 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case LelantusSettingsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => LelantusSettingsView(walletId: args),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SparkInfoView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const SparkInfoView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
+
       // == Desktop specific routes ============================================
       case CreatePasswordView.routeName:
         if (args is bool) {
@@ -2458,11 +2484,11 @@ class RouteGenerator {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => viewToInsert,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        var begin = const Offset(0.0, 1.0);
-        var end = Offset.zero;
-        var curve = Curves.easeInOut;
+        final begin = const Offset(0.0, 1.0);
+        final end = Offset.zero;
+        final curve = Curves.easeInOut;
 
-        var tween =
+        final tween =
             Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
         return SlideTransition(
@@ -2475,7 +2501,7 @@ class RouteGenerator {
 
   static Route<dynamic> _routeError(String message) {
     // Replace with robust ErrorView page
-    Widget errorView = Scaffold(
+    final Widget errorView = Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: const Text('Navigation error'),

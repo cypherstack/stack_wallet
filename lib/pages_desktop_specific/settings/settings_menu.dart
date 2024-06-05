@@ -11,16 +11,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'settings_menu_item.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import 'settings_menu_item.dart';
 
 final selectedSettingsMenuItemStateProvider = StateProvider<int>((_) => 0);
 
 class SettingsMenu extends ConsumerStatefulWidget {
   const SettingsMenu({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SettingsMenuState();
@@ -65,8 +66,10 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                         width: 11,
                         height: 11,
                         color: ref
-                                    .watch(selectedSettingsMenuItemStateProvider
-                                        .state)
+                                    .watch(
+                                      selectedSettingsMenuItemStateProvider
+                                          .state,
+                                    )
                                     .state ==
                                 i
                             ? Theme.of(context)

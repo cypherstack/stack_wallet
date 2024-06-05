@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:solana/solana.dart';
+import 'package:tuple/tuple.dart';
+
 import '../models/node_model.dart';
 import '../notifications/show_flush_bar.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -34,7 +36,6 @@ import '../utilities/test_monero_node_connection.dart';
 import '../utilities/text_styles.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
 
 class NodeOptionsSheet extends ConsumerWidget {
   const NodeOptionsSheet({
@@ -228,7 +229,8 @@ class NodeOptionsSheet extends ConsumerWidget {
     final status = ref
                 .watch(
                   nodeServiceChangeNotifierProvider.select(
-                      (value) => value.getPrimaryNodeFor(currency: coin)),
+                    (value) => value.getPrimaryNodeFor(currency: coin),
+                  ),
                 )
                 ?.id !=
             nodeId

@@ -23,8 +23,8 @@ import '../../../../widgets/rounded_white_container.dart';
 
 class StackBackupView extends StatelessWidget {
   const StackBackupView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/stackBackup";
 

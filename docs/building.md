@@ -53,7 +53,7 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 ### Build dependencies
 Install basic dependencies
 ```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils g++ gcc gperf
 ```
 
 Install [Rust](https://www.rust-lang.org/tools/install) with command:
@@ -180,7 +180,7 @@ Download and install [Homebrew](https://brew.sh/).  The following command can in
 
 After installing Homebrew, install the following packages:
 ```
-brew install autoconf automake boost berkeley-db ca-certificates cbindgen cmake cmake cocoapods curl git libssh2 make openssl@1.1 openssl@3 perl pkg-config rustup-init sodium unbound unzip xz zmq
+brew install autoconf automake boost berkeley-db ca-certificates cbindgen cmake cocoapods curl git libssh2 libsodium make openssl@1.1 openssl@3 perl pkg-config rustup-init unbound unzip xz zmq
 ```
 
 The following brew formula *may* be needed:

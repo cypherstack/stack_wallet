@@ -13,9 +13,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../../models/wallet_restore_state.dart';
-import '../sub_views/recovery_phrase_view.dart';
-import 'restoring_item_card.dart';
 import '../../../../../providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import '../../../../../route_generator.dart';
 import '../../../../../themes/coin_icon_provider.dart';
@@ -27,12 +26,14 @@ import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../widgets/loading_indicator.dart';
 import '../../../../../widgets/rounded_container.dart';
+import '../sub_views/recovery_phrase_view.dart';
+import 'restoring_item_card.dart';
 
 class RestoringWalletCard extends ConsumerStatefulWidget {
   const RestoringWalletCard({
-    Key? key,
+    super.key,
     required this.provider,
-  }) : super(key: key);
+  });
 
   final ChangeNotifierProvider<WalletRestoreState> provider;
 
@@ -106,8 +107,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                     final wallet = ref.read(provider).wallet!;
 
                     ref.read(stackRestoringUIStateProvider).update(
-                        walletId: wallet.walletId,
-                        restoringStatus: StackRestoringStatus.restoring);
+                          walletId: wallet.walletId,
+                          restoringStatus: StackRestoringStatus.restoring,
+                        );
 
                     try {
                       await wallet.recover(isRescan: true);
@@ -191,9 +193,10 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         child: Text(
                           "Show recovery phrase",
                           style: STextStyles.infoSmall(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
+                          ),
                         ),
                       ),
                     ),
@@ -229,8 +232,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       final wallet = ref.read(provider).wallet!;
 
                       ref.read(stackRestoringUIStateProvider).update(
-                          walletId: wallet.walletId,
-                          restoringStatus: StackRestoringStatus.restoring);
+                            walletId: wallet.walletId,
+                            restoringStatus: StackRestoringStatus.restoring,
+                          );
 
                       try {
                         // final mnemonicList = await manager.mnemonic;
@@ -339,9 +343,10 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                           child: Text(
                             "Show recovery phrase",
                             style: STextStyles.infoSmall(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
+                            ),
                           ),
                         ),
                       ),

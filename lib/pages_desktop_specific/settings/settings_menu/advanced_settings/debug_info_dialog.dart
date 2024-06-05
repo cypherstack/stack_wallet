@@ -10,16 +10,20 @@
 
 import 'dart:async';
 
+import 'package:event_bus/event_bus.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../models/isar/models/log.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/debug_service_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/enums/log_level_enum.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -28,11 +32,12 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/rounded_container.dart';
+import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 
 class DebugInfoDialog extends ConsumerStatefulWidget {
-  const DebugInfoDialog({Key? key}) : super(key: key);
+  const DebugInfoDialog({super.key});
 
   @override
   ConsumerState<DebugInfoDialog> createState() => _DebugInfoDialog();
@@ -52,7 +57,8 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
     }
     return unfiltered
         .where(
-            (e) => (e.toString().toLowerCase().contains(filter.toLowerCase())))
+          (e) => (e.toString().toLowerCase().contains(filter.toLowerCase())),
+        )
         .toList();
   }
 
@@ -75,6 +81,29 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
       );
     }
     return null;
+  }
+
+  bool _lock = false;
+  Future<(String?, bool)?> _saveFile() async {
+    final path = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: "Choose Log Save Location",
+      lockParentWindow: true,
+    );
+
+    if (path == null) {
+      return null;
+    }
+
+    bool logsSaved = true;
+    String? filename;
+    try {
+      filename =
+          await ref.read(debugServiceProvider).exportToFile(path, EventBus());
+    } catch (e, s) {
+      logsSaved = false;
+      Logging.instance.log("$e $s", level: LogLevel.Error);
+    }
+    return (filename, logsSaved);
   }
 
   @override
@@ -182,13 +211,16 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                 return [
                   SliverOverlapAbsorber(
                     handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context),
-                    sliver: SliverToBoxAdapter(
+                      context,
+                    ),
+                    sliver: const SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 32),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 32,
+                        ),
                         child: Column(
-                          children: const [],
+                          children: [],
                         ),
                       ),
                     ),
@@ -198,11 +230,11 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
               body: Builder(
                 builder: (context) {
                   final logs = filtered(
-                          ref.watch(debugServiceProvider
-                              .select((value) => value.recentLogs)),
-                          _searchTerm)
-                      .reversed
-                      .toList(growable: false);
+                    ref.watch(
+                      debugServiceProvider.select((value) => value.recentLogs),
+                    ),
+                    _searchTerm,
+                  ).reversed.toList(growable: false);
                   return CustomScrollView(
                     reverse: true,
                     // shrinkWrap: true,
@@ -220,7 +252,8 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
 
                             return Container(
                               key: Key(
-                                  "log_${log.id}_${log.timestampInMillisUTC}"),
+                                "log_${log.id}_${log.timestampInMillisUTC}",
+                              ),
                               decoration: BoxDecoration(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -231,7 +264,8 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                                 padding: const EdgeInsets.all(4),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 32),
+                                    horizontal: 32,
+                                  ),
                                   child: RoundedContainer(
                                     padding: const EdgeInsets.all(0),
                                     color: Theme.of(context)
@@ -296,9 +330,10 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                                                   SelectableText(
                                                     log.message,
                                                     style: STextStyles.baseXS(
-                                                            context)
-                                                        .copyWith(
-                                                            fontSize: 11.5),
+                                                      context,
+                                                    ).copyWith(
+                                                      fontSize: 11.5,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -333,12 +368,15 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                       await ref.read(debugServiceProvider).deleteAllLogs();
                       setState(() {});
 
-                      if (mounted) {
+                      if (context.mounted) {
                         Navigator.pop(context);
-                        unawaited(showFloatingFlushBar(
+                        unawaited(
+                          showFloatingFlushBar(
                             type: FlushBarType.info,
                             context: context,
-                            message: 'Logs cleared!'));
+                            message: 'Logs cleared!',
+                          ),
+                        );
                       }
                     },
                   ),
@@ -349,11 +387,47 @@ class _DebugInfoDialog extends ConsumerState<DebugInfoDialog> {
                 Expanded(
                   child: PrimaryButton(
                     label: "Save logs to file",
-                    onPressed: () {
-                      // TODO: save file dialog
+                    onPressed: () async {
+                      if (_lock) {
+                        return;
+                      }
+                      _lock = true;
+                      try {
+                        final results = await showLoading<(String?, bool)?>(
+                          whileFuture: _saveFile(),
+                          context: context,
+                          message: "Generating logs file...",
+                        );
+
+                        if (results != null) {
+                          if (results.$2) {
+                            unawaited(
+                              showDialog(
+                                context: context,
+                                builder: (context) => StackOkDialog(
+                                  title: "Logs saved to",
+                                  message: results.$1,
+                                ),
+                              ),
+                            );
+                          } else {
+                            unawaited(
+                              showDialog(
+                                context: context,
+                                builder: (context) => StackOkDialog(
+                                  title: "Error Saving Logs",
+                                  message: results.$1,
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      } finally {
+                        _lock = false;
+                      }
                     },
                   ),
-                )
+                ),
               ],
             ),
           ),

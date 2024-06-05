@@ -81,7 +81,9 @@ class WalletInfo implements IsarId {
       return Balance.zeroFor(currency: coin);
     } else {
       return Balance.fromJson(
-          cachedBalanceSecondaryString!, coin.fractionDigits);
+        cachedBalanceSecondaryString!,
+        coin.fractionDigits,
+      );
     }
   }
 
@@ -92,7 +94,9 @@ class WalletInfo implements IsarId {
       return Balance.zeroFor(currency: coin);
     } else {
       return Balance.fromJson(
-          cachedBalanceTertiaryString!, coin.fractionDigits);
+        cachedBalanceTertiaryString!,
+        coin.fractionDigits,
+      );
     }
   }
 
@@ -503,4 +507,7 @@ abstract class WalletInfoKeys {
   static const String tezosDerivationPath = "tezosDerivationPathKey";
   static const String lelantusCoinIsarRescanRequired =
       "lelantusCoinIsarRescanRequired";
+  static const String enableLelantusScanning = "enableLelantusScanningKey";
+  static const String firoSparkCacheSetTimestampCache =
+      "firoSparkCacheSetTimestampCacheKey";
 }

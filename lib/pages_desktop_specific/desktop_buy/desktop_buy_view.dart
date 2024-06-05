@@ -22,7 +22,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/tor_subscription.dart';
 
 class DesktopBuyView extends ConsumerStatefulWidget {
-  const DesktopBuyView({Key? key}) : super(key: key);
+  const DesktopBuyView({super.key});
 
   static const String routeName = "/desktopBuyView";
 

@@ -24,9 +24,9 @@ import '../../widgets/rounded_white_container.dart';
 
 class SparkCoinsView extends ConsumerStatefulWidget {
   const SparkCoinsView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/sparkCoinsView";
 

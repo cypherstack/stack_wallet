@@ -124,12 +124,14 @@ const _LoglogLevelEnumValueMap = {
   r'Warning': r'Warning',
   r'Error': r'Error',
   r'Fatal': r'Fatal',
+  r'Debug': r'Debug',
 };
 const _LoglogLevelValueEnumMap = {
   r'Info': LogLevel.Info,
   r'Warning': LogLevel.Warning,
   r'Error': LogLevel.Error,
   r'Fatal': LogLevel.Fatal,
+  r'Debug': LogLevel.Debug,
 };
 
 Id _logGetId(Log object) {

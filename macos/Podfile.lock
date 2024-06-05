@@ -5,48 +5,6 @@ PODS:
   - connectivity_plus (0.0.1):
     - FlutterMacOS
     - ReachabilitySwift
-  - cw_monero (0.0.1):
-    - cw_monero/Boost (= 0.0.1)
-    - cw_monero/Monero (= 0.0.1)
-    - cw_monero/OpenSSL (= 0.0.1)
-    - cw_monero/Sodium (= 0.0.1)
-    - cw_monero/Unbound (= 0.0.1)
-    - FlutterMacOS
-  - cw_monero/Boost (0.0.1):
-    - FlutterMacOS
-  - cw_monero/Monero (0.0.1):
-    - FlutterMacOS
-  - cw_monero/OpenSSL (0.0.1):
-    - FlutterMacOS
-  - cw_monero/Sodium (0.0.1):
-    - FlutterMacOS
-  - cw_monero/Unbound (0.0.1):
-    - FlutterMacOS
-  - cw_shared_external (0.0.1):
-    - cw_shared_external/Boost (= 0.0.1)
-    - cw_shared_external/OpenSSL (= 0.0.1)
-    - FlutterMacOS
-  - cw_shared_external/Boost (0.0.1):
-    - FlutterMacOS
-  - cw_shared_external/OpenSSL (0.0.1):
-    - FlutterMacOS
-  - cw_wownero (0.0.1):
-    - cw_wownero/Boost (= 0.0.1)
-    - cw_wownero/OpenSSL (= 0.0.1)
-    - cw_wownero/Sodium (= 0.0.1)
-    - cw_wownero/Unbound (= 0.0.1)
-    - cw_wownero/Wownero (= 0.0.1)
-    - FlutterMacOS
-  - cw_wownero/Boost (0.0.1):
-    - FlutterMacOS
-  - cw_wownero/OpenSSL (0.0.1):
-    - FlutterMacOS
-  - cw_wownero/Sodium (0.0.1):
-    - FlutterMacOS
-  - cw_wownero/Unbound (0.0.1):
-    - FlutterMacOS
-  - cw_wownero/Wownero (0.0.1):
-    - FlutterMacOS
   - desktop_drop (0.0.1):
     - FlutterMacOS
   - device_info_plus (0.0.1):
@@ -76,6 +34,21 @@ PODS:
   - ReachabilitySwift (5.0.0)
   - share_plus (0.0.1):
     - FlutterMacOS
+  - sqlite3 (3.46.0):
+    - sqlite3/common (= 3.46.0)
+  - sqlite3/common (3.46.0)
+  - sqlite3/fts5 (3.46.0):
+    - sqlite3/common
+  - sqlite3/perf-threadsafe (3.46.0):
+    - sqlite3/common
+  - sqlite3/rtree (3.46.0):
+    - sqlite3/common
+  - sqlite3_flutter_libs (0.0.1):
+    - FlutterMacOS
+    - sqlite3 (~> 3.46.0)
+    - sqlite3/fts5
+    - sqlite3/perf-threadsafe
+    - sqlite3/rtree
   - stack_wallet_backup (0.0.1):
     - FlutterMacOS
   - tor_ffi_plugin (0.0.1)
@@ -89,9 +62,6 @@ PODS:
 DEPENDENCIES:
   - coinlib_flutter (from `Flutter/ephemeral/.symlinks/plugins/coinlib_flutter/darwin`)
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
-  - cw_monero (from `Flutter/ephemeral/.symlinks/plugins/cw_monero/macos`)
-  - cw_shared_external (from `Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos`)
-  - cw_wownero (from `Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos`)
   - desktop_drop (from `Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - devicelocale (from `Flutter/ephemeral/.symlinks/plugins/devicelocale/macos`)
@@ -106,6 +76,7 @@ DEPENDENCIES:
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
+  - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/macos`)
   - stack_wallet_backup (from `Flutter/ephemeral/.symlinks/plugins/stack_wallet_backup/macos`)
   - tor_ffi_plugin (from `Flutter/ephemeral/.symlinks/plugins/tor_ffi_plugin/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
@@ -115,18 +86,13 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - ReachabilitySwift
+    - sqlite3
 
 EXTERNAL SOURCES:
   coinlib_flutter:
     :path: Flutter/ephemeral/.symlinks/plugins/coinlib_flutter/darwin
   connectivity_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos
-  cw_monero:
-    :path: Flutter/ephemeral/.symlinks/plugins/cw_monero/macos
-  cw_shared_external:
-    :path: Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos
-  cw_wownero:
-    :path: Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos
   desktop_drop:
     :path: Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos
   device_info_plus:
@@ -155,6 +121,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   share_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
+  sqlite3_flutter_libs:
+    :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/macos
   stack_wallet_backup:
     :path: Flutter/ephemeral/.symlinks/plugins/stack_wallet_backup/macos
   tor_ffi_plugin:
@@ -169,9 +137,6 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   coinlib_flutter: 6abec900d67762a6e7ccfd567a3cd3ae00bbee35
   connectivity_plus: 18d3c32514c886e046de60e9c13895109866c747
-  cw_monero: 7acce7238d217e3993ecac6ec2dec07be728769a
-  cw_shared_external: c6adfd29c9be4d64f84e1fa9c541ccbcbdb6b457
-  cw_wownero: bcd7f2ad6c0a3e8e2a51756fb14f0579b6f8b4ff
   desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
   device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
   devicelocale: 9f0f36ac651cabae2c33f32dcff4f32b61c38225
@@ -187,6 +152,8 @@ SPEC CHECKSUMS:
   path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
   share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
+  sqlite3: 154b084339ede06960a5b3c8160066adc9176b7d
+  sqlite3_flutter_libs: 1be4459672f8168ded2d8667599b8e3ca5e72b83
   stack_wallet_backup: 6ebc60b1bdcf11cf1f1cbad9aa78332e1e15778c
   tor_ffi_plugin: 2566c1ed174688cca560fa0c64b7a799c66f07cb
   url_launcher_macos: d2691c7dd33ed713bf3544850a623080ec693d95
@@ -195,4 +162,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.15.2

@@ -15,13 +15,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../notifications/show_flush_bar.dart';
-import 'add_new_paynym_follow_view.dart';
-import 'dialogs/paynym_qr_popup.dart';
-import 'subwidgets/desktop_paynym_details.dart';
-import 'subwidgets/paynym_bot.dart';
-import 'subwidgets/paynym_followers_list.dart';
-import 'subwidgets/paynym_following_list.dart';
 import '../../providers/ui/selected_paynym_details_item_Provider.dart';
 import '../../providers/wallet/my_paynym_account_state_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -41,12 +36,18 @@ import '../../widgets/icon_widgets/share_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/toggle.dart';
+import 'add_new_paynym_follow_view.dart';
+import 'dialogs/paynym_qr_popup.dart';
+import 'subwidgets/desktop_paynym_details.dart';
+import 'subwidgets/paynym_bot.dart';
+import 'subwidgets/paynym_followers_list.dart';
+import 'subwidgets/paynym_following_list.dart';
 
 class PaynymHomeView extends ConsumerStatefulWidget {
   const PaynymHomeView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -117,7 +118,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   Text(
                     "PayNym",
                     style: STextStyles.desktopH3(context),
-                  )
+                  ),
                 ],
               ),
               trailing: Padding(
@@ -169,8 +170,8 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                   "Follow",
                                   style:
                                       STextStyles.desktopButtonSecondaryEnabled(
-                                              context)
-                                          .copyWith(
+                                    context,
+                                  ).copyWith(
                                     fontSize: 16,
                                   ),
                                 ),
@@ -267,9 +268,11 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                       secretCount++;
                       if (secretCount > 5) {
                         debugPrint(
-                            "My Account: ${ref.read(myPaynymAccountStateProvider.state).state}");
+                          "My Account: ${ref.read(myPaynymAccountStateProvider.state).state}",
+                        );
                         debugPrint(
-                            "My Account: ${ref.read(myPaynymAccountStateProvider.state).state!.following}");
+                          "My Account: ${ref.read(myPaynymAccountStateProvider.state).state!.following}",
+                        );
                         secretCount = 0;
                       }
 
@@ -304,13 +307,14 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   ),
                   Text(
                     Format.shorten(
-                        ref
-                            .watch(myPaynymAccountStateProvider.state)
-                            .state!
-                            .nonSegwitPaymentCode
-                            .code,
-                        12,
-                        5),
+                      ref
+                          .watch(myPaynymAccountStateProvider.state)
+                          .state!
+                          .nonSegwitPaymentCode
+                          .code,
+                      12,
+                      5,
+                    ),
                     style: STextStyles.label(context).copyWith(
                       fontSize: 14,
                     ),
@@ -380,12 +384,13 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                             }
 
                             await Share.share(
-                                ref
-                                    .read(myPaynymAccountStateProvider.state)
-                                    .state!
-                                    .nonSegwitPaymentCode
-                                    .code,
-                                sharePositionOrigin: sharePositionOrigin);
+                              ref
+                                  .read(myPaynymAccountStateProvider.state)
+                                  .state!
+                                  .nonSegwitPaymentCode
+                                  .code,
+                              sharePositionOrigin: sharePositionOrigin,
+                            );
                           },
                         ),
                       ),
@@ -435,9 +440,11 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           secretCount++;
                           if (secretCount > 5) {
                             debugPrint(
-                                "My Account: ${ref.read(myPaynymAccountStateProvider.state).state}");
+                              "My Account: ${ref.read(myPaynymAccountStateProvider.state).state}",
+                            );
                             debugPrint(
-                                "My Account: ${ref.read(myPaynymAccountStateProvider.state).state!.following}");
+                              "My Account: ${ref.read(myPaynymAccountStateProvider.state).state!.following}",
+                            );
                             secretCount = 0;
                           }
 
@@ -475,13 +482,14 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           ),
                           Text(
                             Format.shorten(
-                                ref
-                                    .watch(myPaynymAccountStateProvider.state)
-                                    .state!
-                                    .nonSegwitPaymentCode
-                                    .code,
-                                12,
-                                5),
+                              ref
+                                  .watch(myPaynymAccountStateProvider.state)
+                                  .state!
+                                  .nonSegwitPaymentCode
+                                  .code,
+                              12,
+                              5,
+                            ),
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context),
                           ),
@@ -619,8 +627,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 child: DesktopPaynymDetails(
                                   walletId: widget.walletId,
                                   accountLite: ref
-                                      .watch(selectedPaynymDetailsItemProvider
-                                          .state)
+                                      .watch(
+                                        selectedPaynymDetailsItemProvider.state,
+                                      )
                                       .state!,
                                 ),
                               ),

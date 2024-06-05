@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/assets.dart';
@@ -126,9 +127,10 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
     return Text(
       isDateSelected ? "From..." : _fromDateString,
       style: STextStyles.fieldLabel(context).copyWith(
-          color: isDateSelected
-              ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-              : Theme.of(context).extension<StackColors>()!.accentColorDark),
+        color: isDateSelected
+            ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+            : Theme.of(context).extension<StackColors>()!.accentColorDark,
+      ),
     );
   }
 
@@ -137,9 +139,10 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
     return Text(
       isDateSelected ? "To..." : _toDateString,
       style: STextStyles.fieldLabel(context).copyWith(
-          color: isDateSelected
-              ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-              : Theme.of(context).extension<StackColors>()!.accentColorDark),
+        color: isDateSelected
+            ? Theme.of(context).extension<StackColors>()!.textSubtitle2
+            : Theme.of(context).extension<StackColors>()!.accentColorDark,
+      ),
     );
   }
 
@@ -182,7 +185,8 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
                       !_selectedFromDate!.isBefore(_selectedToDate!);
                   if (flag) {
                     _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
-                        _selectedFromDate!.millisecondsSinceEpoch);
+                      _selectedFromDate!.millisecondsSinceEpoch,
+                    );
                   }
 
                   setState(() {
@@ -236,7 +240,7 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
                       child: FittedBox(
                         child: _dateFromText,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -272,7 +276,8 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
                       !_selectedToDate!.isAfter(_selectedFromDate!);
                   if (flag) {
                     _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
-                        _selectedToDate!.millisecondsSinceEpoch);
+                      _selectedToDate!.millisecondsSinceEpoch,
+                    );
                   }
 
                   setState(() {
@@ -326,7 +331,7 @@ class _OrdinalsFilterViewState extends ConsumerState<OrdinalsFilterView> {
                       child: FittedBox(
                         child: _dateToText,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),

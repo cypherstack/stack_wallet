@@ -16,9 +16,9 @@ import '../custom_buttons/app_bar_icon_button.dart';
 
 class DesktopDialogCloseButton extends StatelessWidget {
   const DesktopDialogCloseButton({
-    Key? key,
+    super.key,
     this.onPressedOverride,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressedOverride;
 

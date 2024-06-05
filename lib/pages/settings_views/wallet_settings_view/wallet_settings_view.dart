@@ -13,9 +13,34 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../db/hive/db.dart';
+import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/epicbox_config_model.dart';
 import '../../../notifications/show_flush_bar.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../providers/ui/transaction_filter_provider.dart';
+import '../../../route_generator.dart';
+import '../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
+import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/show_loading.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/crypto_currency/intermediate/frost_currency.dart';
+import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
+import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_dialog.dart';
 import '../../address_book_views/address_book_view.dart';
 import '../../home_view/home_view.dart';
 import '../../pinpad_views/lock_screen_view.dart';
@@ -28,30 +53,6 @@ import 'wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'wallet_settings_wallet_settings/change_representative_view.dart';
 import 'wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'wallet_settings_wallet_settings/xpub_view.dart';
-import '../../../providers/global/wallets_provider.dart';
-import '../../../providers/ui/transaction_filter_provider.dart';
-import '../../../route_generator.dart';
-import '../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
-import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import '../../../services/event_bus/global_event_bus.dart';
-import '../../../themes/stack_colors.dart';
-import '../../../utilities/assets.dart';
-import '../../../utilities/show_loading.dart';
-import '../../../utilities/text_styles.dart';
-import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/firo.dart';
-import '../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../wallets/crypto_currency/intermediate/frost_currency.dart';
-import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
-import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import '../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import '../../../widgets/background.dart';
-import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../../widgets/desktop/secondary_button.dart';
-import '../../../widgets/rounded_white_container.dart';
-import '../../../widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
 
 /// [eventBus] should only be set during testing
 class WalletSettingsView extends ConsumerStatefulWidget {
@@ -325,8 +326,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                     "View recovery phrase",
                                               ),
                                               settings: const RouteSettings(
-                                                  name:
-                                                      "/viewRecoverPhraseLockscreen"),
+                                                name:
+                                                    "/viewRecoverPhraseLockscreen",
+                                              ),
                                             ),
                                           );
                                         }
@@ -357,7 +359,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                   title: "Syncing preferences",
                                   onPressed: () {
                                     Navigator.of(context).pushNamed(
-                                        SyncingPreferencesView.routeName);
+                                      SyncingPreferencesView.routeName,
+                                    );
                                   },
                                 ),
                                 if (xPubEnabled)
@@ -411,7 +414,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                             ),
                                           );
 
-                                          if (result == "OK" && mounted) {
+                                          if (result == "OK" &&
+                                              context.mounted) {
                                             await showLoading(
                                               whileFuture: Future.wait<void>(
                                                 [
@@ -424,6 +428,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                       .clearSharedTransactionCache(
                                                     currency: coin,
                                                   ),
+                                                  if (coin is Firo)
+                                                    FiroCacheCoordinator
+                                                        .clearSharedCache(),
                                                 ],
                                               ),
                                               context: context,
@@ -494,9 +501,10 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                 child: Text(
                                   "Log out",
                                   style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
                                 ),
                               );
                             },
@@ -517,9 +525,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
 
 class EpicBoxInfoForm extends ConsumerStatefulWidget {
   const EpicBoxInfoForm({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -603,9 +611,9 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             child: Text(
               "Save",
               style: STextStyles.button(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark),
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
+              ),
             ),
           ),
         ],

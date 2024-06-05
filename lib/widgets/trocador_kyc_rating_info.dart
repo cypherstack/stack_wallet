@@ -20,7 +20,7 @@ import 'exchange/trocador/trocador_rating_type_enum.dart';
 import 'stack_dialog.dart';
 
 class TrocadorKYCRatingInfo extends StatelessWidget {
-  const TrocadorKYCRatingInfo({Key? key}) : super(key: key);
+  const TrocadorKYCRatingInfo({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +71,7 @@ class TrocadorKYCRatingInfo extends StatelessWidget {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -138,7 +138,7 @@ class TrocadorKYCRatingInfo extends StatelessWidget {
                         label: "Close",
                         onPressed: Navigator.of(context).pop,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -151,10 +151,10 @@ class TrocadorKYCRatingInfo extends StatelessWidget {
 
 class _Rating extends StatelessWidget {
   const _Rating({
-    Key? key,
+    super.key,
     required this.kycType,
     required this.text,
-  }) : super(key: key);
+  });
 
   final TrocadorKYCType kycType;
   final String text;

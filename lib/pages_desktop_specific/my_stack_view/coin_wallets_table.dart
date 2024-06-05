@@ -117,9 +117,9 @@ class CoinWalletsTable extends ConsumerWidget {
 
 class WalletRowHoverOverlay extends StatefulWidget {
   const WalletRowHoverOverlay({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
 

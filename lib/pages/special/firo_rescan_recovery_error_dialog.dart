@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../pinpad_views/lock_screen_view.dart';
-import '../settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
-import '../settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
+
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -23,6 +21,9 @@ import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/stack_dialog.dart';
+import '../pinpad_views/lock_screen_view.dart';
+import '../settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
+import '../settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 
 enum FiroRescanRecoveryErrorViewOption {
   retry,
@@ -149,9 +150,10 @@ class _FiroRescanRecoveryErrorViewState
                                   child: Text(
                                     "Cancel",
                                     style: STextStyles.button(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
                                   ),
                                 ),
                                 rightButton: TextButton(
@@ -179,7 +181,8 @@ class _FiroRescanRecoveryErrorViewState
                                               "Delete wallet",
                                         ),
                                         settings: const RouteSettings(
-                                            name: "/deleteWalletLockscreen"),
+                                          name: "/deleteWalletLockscreen",
+                                        ),
                                       ),
                                     );
                                   },
@@ -249,7 +252,7 @@ class _FiroRescanRecoveryErrorViewState
                                     name: UnlockWalletKeysDesktop.routeName,
                                     arguments: widget.walletId,
                                   ),
-                                )
+                                ),
                               ];
                             },
                           ),
@@ -281,7 +284,8 @@ class _FiroRescanRecoveryErrorViewState
                                       "View recovery phrase",
                                 ),
                                 settings: const RouteSettings(
-                                    name: "/viewRecoverPhraseLockscreen"),
+                                  name: "/viewRecoverPhraseLockscreen",
+                                ),
                               ),
                             );
                           }

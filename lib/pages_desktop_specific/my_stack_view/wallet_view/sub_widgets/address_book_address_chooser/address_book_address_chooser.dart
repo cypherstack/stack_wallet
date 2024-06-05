@@ -11,8 +11,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../../models/isar/models/contact_entry.dart';
-import 'sub_widgets/contact_list_item.dart';
 import '../../../../../providers/global/address_book_service_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
@@ -23,6 +23,7 @@ import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../../widgets/stack_text_field.dart';
 import '../../../../../widgets/textfield_icon_button.dart';
+import 'sub_widgets/contact_list_item.dart';
 
 class AddressBookAddressChooser extends StatefulWidget {
   const AddressBookAddressChooser({
@@ -69,8 +70,9 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
 
   List<ContactEntry> filter(List<ContactEntry> contacts, String searchTerm) {
     if (widget.coin != null) {
-      contacts.removeWhere((e) =>
-          e.addressesSorted.where((a) => a.coin == widget.coin!).isEmpty);
+      contacts.removeWhere(
+        (e) => e.addressesSorted.where((a) => a.coin == widget.coin!).isEmpty,
+      );
     }
 
     contacts.retainWhere((e) => _matches(searchTerm, e));
@@ -202,8 +204,10 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
             child: Consumer(
               builder: (context, ref, _) {
                 List<ContactEntry> contacts = ref
-                    .watch(addressBookServiceProvider
-                        .select((value) => value.contacts))
+                    .watch(
+                      addressBookServiceProvider
+                          .select((value) => value.contacts),
+                    )
                     .toList();
 
                 contacts = filter(contacts, _searchTerm);
@@ -227,7 +231,8 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                     if (index == 0) {
                       return Padding(
                         key: const Key(
-                            "addressBookCAddressChooserFavoritesHeaderItemKey"),
+                          "addressBookCAddressChooserFavoritesHeaderItemKey",
+                        ),
                         padding: const EdgeInsets.only(
                           bottom: 10,
                         ),
@@ -247,7 +252,8 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                     } else if (index == favorites.length + 1) {
                       return Padding(
                         key: const Key(
-                            "addressBookCAddressChooserAllContactsHeaderItemKey"),
+                          "addressBookCAddressChooserAllContactsHeaderItemKey",
+                        ),
                         padding: const EdgeInsets.symmetric(
                           vertical: 10,
                         ),

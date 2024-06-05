@@ -11,11 +11,12 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:string_validator/string_validator.dart';
+
 import '../db/hive/db.dart';
-import 'electrumx_client.dart';
 import '../utilities/logger.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'package:string_validator/string_validator.dart';
+import 'electrumx_client.dart';
 
 class CachedElectrumXClient {
   final ElectrumXClient electrumXClient;
@@ -109,70 +110,6 @@ class CachedElectrumXClient {
     } catch (e, s) {
       Logging.instance.log(
         "Failed to process CachedElectrumX.getAnonymitySet(): $e\n$s",
-        level: LogLevel.Error,
-      );
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>> getSparkAnonymitySet({
-    required String groupId,
-    String blockhash = "",
-    required CryptoCurrency cryptoCurrency,
-    required bool useOnlyCacheIfNotEmpty,
-  }) async {
-    try {
-      final box = await DB.instance.getSparkAnonymitySetCacheBox(
-        currency: cryptoCurrency,
-      );
-      final cachedSet = box.get(groupId) as Map?;
-
-      Map<String, dynamic> set;
-
-      // null check to see if there is a cached set
-      if (cachedSet == null) {
-        set = {
-          "coinGroupID": int.parse(groupId),
-          "blockHash": blockhash,
-          "setHash": "",
-          "coins": <dynamic>[],
-        };
-      } else {
-        set = Map<String, dynamic>.from(cachedSet);
-        if (useOnlyCacheIfNotEmpty) {
-          return set;
-        }
-      }
-
-      final newSet = await electrumXClient.getSparkAnonymitySet(
-        coinGroupId: groupId,
-        startBlockHash: set["blockHash"] as String,
-      );
-
-      // update set with new data
-      if (newSet["setHash"] != "" && set["setHash"] != newSet["setHash"]) {
-        set["setHash"] = newSet["setHash"];
-        set["blockHash"] = newSet["blockHash"];
-        for (int i = (newSet["coins"] as List).length - 1; i >= 0; i--) {
-          // TODO verify this is correct (or append?)
-          if ((set["coins"] as List)
-              .where((e) => e[0] == newSet["coins"][i][0])
-              .isEmpty) {
-            set["coins"].insert(0, newSet["coins"][i]);
-          }
-        }
-        // save set to db
-        await box.put(groupId, set);
-        Logging.instance.log(
-          "Updated current anonymity set for ${cryptoCurrency.identifier} with group ID $groupId",
-          level: LogLevel.Info,
-        );
-      }
-
-      return set;
-    } catch (e, s) {
-      Logging.instance.log(
-        "Failed to process CachedElectrumX.getSparkAnonymitySet(): $e\n$s",
         level: LogLevel.Error,
       );
       rethrow;
@@ -283,56 +220,10 @@ class CachedElectrumXClient {
     }
   }
 
-  Future<Set<String>> getSparkUsedCoinsTags({
+  /// Clear all cached transactions for the specified coin
+  Future<void> clearSharedTransactionCache({
     required CryptoCurrency cryptoCurrency,
   }) async {
-    try {
-      final box = await DB.instance.getSparkUsedCoinsTagsCacheBox(
-        currency: cryptoCurrency,
-      );
-
-      final _list = box.get("tags") as List?;
-
-      final Set<String> cachedTags =
-          _list == null ? {} : List<String>.from(_list).toSet();
-
-      final startNumber = max(
-        0,
-        cachedTags.length - 100, // 100 being some arbitrary buffer
-      );
-
-      final newTags = await electrumXClient.getSparkUsedCoinsTags(
-        startNumber: startNumber,
-      );
-
-      // ensure we are getting some overlap so we know we are not missing any
-      if (cachedTags.isNotEmpty && newTags.isNotEmpty) {
-        assert(cachedTags.intersection(newTags).isNotEmpty);
-      }
-
-      // Make newTags an Iterable<String>.
-      final Iterable<String> iterableTags = newTags.map((e) => e.toString());
-
-      cachedTags.addAll(iterableTags);
-
-      await box.put(
-        "tags",
-        cachedTags.toList(),
-      );
-
-      return cachedTags;
-    } catch (e, s) {
-      Logging.instance.log(
-        "Failed to process CachedElectrumX.getSparkUsedCoinsTags(): $e\n$s",
-        level: LogLevel.Error,
-      );
-      rethrow;
-    }
-  }
-
-  /// Clear all cached transactions for the specified coin
-  Future<void> clearSharedTransactionCache(
-      {required CryptoCurrency cryptoCurrency}) async {
     await DB.instance.clearSharedTransactionCache(currency: cryptoCurrency);
     await DB.instance.closeAnonymitySetCacheBox(currency: cryptoCurrency);
   }

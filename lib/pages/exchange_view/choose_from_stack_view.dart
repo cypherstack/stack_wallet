@@ -131,7 +131,7 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
                                     ),
                                   ],
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),

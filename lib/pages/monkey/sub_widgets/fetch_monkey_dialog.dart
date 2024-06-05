@@ -20,9 +20,9 @@ import '../../../widgets/stack_dialog.dart';
 
 class FetchMonkeyDialog extends StatefulWidget {
   const FetchMonkeyDialog({
-    Key? key,
+    super.key,
     required this.onCancel,
-  }) : super(key: key);
+  });
 
   final Future<void> Function() onCancel;
 

@@ -14,7 +14,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
 class WhirlpoolNavIcon extends StatelessWidget {
-  const WhirlpoolNavIcon({Key? key}) : super(key: key);
+  const WhirlpoolNavIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

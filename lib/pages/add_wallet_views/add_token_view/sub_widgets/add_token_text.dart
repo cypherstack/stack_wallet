@@ -13,10 +13,10 @@ import '../../../../utilities/text_styles.dart';
 
 class AddTokenText extends StatelessWidget {
   const AddTokenText({
-    Key? key,
+    super.key,
     required this.isDesktop,
     this.walletName,
-  }) : super(key: key);
+  });
 
   final String? walletName;
   final bool isDesktop;

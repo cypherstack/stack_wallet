@@ -14,7 +14,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class RecoveryPhraseExplanationDialog extends StatelessWidget {
-  const RecoveryPhraseExplanationDialog({Key? key}) : super(key: key);
+  const RecoveryPhraseExplanationDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

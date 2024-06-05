@@ -15,7 +15,7 @@ import 'table_view_cell.dart';
 
 class TableViewRow extends StatefulWidget {
   const TableViewRow({
-    Key? key,
+    super.key,
     required this.cells,
     required this.expandingChild,
     this.decoration,
@@ -24,7 +24,7 @@ class TableViewRow extends StatefulWidget {
     this.padding = const EdgeInsets.all(0),
     this.spacing = 0.0,
     this.crossAxisAlignment = CrossAxisAlignment.center,
-  }) : super(key: key);
+  });
 
   final List<TableViewCell> cells;
   final Widget? expandingChild;

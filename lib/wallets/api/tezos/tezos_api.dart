@@ -33,8 +33,10 @@ abstract final class TezosAPI {
     }
   }
 
-  static Future<TezosAccount> getAccount(String address,
-      {String type = "user"}) async {
+  static Future<TezosAccount> getAccount(
+    String address, {
+    String type = "user",
+  }) async {
     try {
       final uriString = "$_baseURL/v1/accounts/$address?legacy=false";
       final response = await _client.get(
@@ -76,8 +78,8 @@ abstract final class TezosAPI {
 
       final result = jsonDecode(response.body) as List;
 
-      List<TezosTransaction> txs = [];
-      for (var tx in result) {
+      final List<TezosTransaction> txs = [];
+      for (final tx in result) {
         if (tx["type"] == "transaction") {
           final theTx = TezosTransaction(
             id: tx["id"] as int,

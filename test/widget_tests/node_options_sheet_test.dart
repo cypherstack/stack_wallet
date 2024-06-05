@@ -12,7 +12,6 @@ import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
 
@@ -166,7 +165,7 @@ void main() {
     await tester.tap(find.text("Details"));
     await tester.pumpAndSettle();
 
-    var currentRoute = navigatorKey.currentState?.overlay?.context;
+    final currentRoute = navigatorKey.currentState?.overlay?.context;
     expect(currentRoute, isNotNull);
   });
 

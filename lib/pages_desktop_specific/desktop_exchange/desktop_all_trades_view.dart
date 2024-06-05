@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/exchange/change_now/exchange_transaction_status.dart';
 import '../../models/exchange/response_objects/trade.dart';
@@ -41,10 +43,9 @@ import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
-import 'package:tuple/tuple.dart';
 
 class DesktopAllTradesView extends ConsumerStatefulWidget {
-  const DesktopAllTradesView({Key? key}) : super(key: key);
+  const DesktopAllTradesView({super.key});
 
   static const String routeName = "/desktopAllTrades";
 
@@ -60,10 +61,11 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
   String _searchString = "";
 
   List<Tuple2<String, List<Trade>>> groupTransactionsByMonth(
-      List<Trade> trades) {
-    Map<String, List<Trade>> map = {};
+    List<Trade> trades,
+  ) {
+    final Map<String, List<Trade>> map = {};
 
-    for (var trade in trades) {
+    for (final trade in trades) {
       final date = trade.timestamp;
       final monthYear = "${Constants.monthMap[date.month]} ${date.year}";
       if (map[monthYear] == null) {
@@ -72,7 +74,7 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
       map[monthYear]!.add(trade);
     }
 
-    List<Tuple2<String, List<Trade>>> result = [];
+    final List<Tuple2<String, List<Trade>>> result = [];
     map.forEach((key, value) {
       result.add(Tuple2(key, value));
     });
@@ -214,7 +216,8 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
               child: Consumer(
                 builder: (_, ref, __) {
                   List<Trade> trades = ref.watch(
-                      tradesServiceProvider.select((value) => value.trades));
+                    tradesServiceProvider.select((value) => value.trades),
+                  );
 
                   if (_searchString.isNotEmpty) {
                     final term = _searchString.toLowerCase();
@@ -261,7 +264,8 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
                                   padding: const EdgeInsets.all(4),
                                   child: DesktopTradeRowCard(
                                     key: Key(
-                                        "transactionCard_key_${month.item2[index].tradeId}"),
+                                      "transactionCard_key_${month.item2[index].tradeId}",
+                                    ),
                                     tradeId: month.item2[index].tradeId,
                                   ),
                                 ),
@@ -284,9 +288,9 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
 
 class DesktopTradeRowCard extends ConsumerStatefulWidget {
   const DesktopTradeRowCard({
-    Key? key,
+    super.key,
     required this.tradeId,
-  }) : super(key: key);
+  });
 
   final String tradeId;
 
@@ -563,7 +567,8 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                 flex: 4,
                 child: Text(
                   Format.extractDateFrom(
-                      trade.timestamp.millisecondsSinceEpoch ~/ 1000),
+                    trade.timestamp.millisecondsSinceEpoch ~/ 1000,
+                  ),
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ),

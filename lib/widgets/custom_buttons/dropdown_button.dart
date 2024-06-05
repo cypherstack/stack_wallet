@@ -10,18 +10,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../animated_widgets/rotate_icon.dart';
-import 'app_bar_icon_button.dart';
 import '../desktop/secondary_button.dart';
 import '../rounded_white_container.dart';
+import 'app_bar_icon_button.dart';
 
 class JDropdownButton<T> extends StatefulWidget {
   const JDropdownButton({
-    Key? key,
+    super.key,
     this.label,
     required this.items,
     this.width,
@@ -29,7 +30,7 @@ class JDropdownButton<T> extends StatefulWidget {
     this.groupValue,
     this.redrawOnScreenSizeChanged = false,
     this.showIcon = false,
-  }) : super(key: key);
+  });
 
   final String? label;
   final double? width;
@@ -137,14 +138,14 @@ class _JDropdownButtonState<T> extends State<JDropdownButton<T>> {
 
 class JDropdownIconButton<T> extends StatefulWidget {
   const JDropdownIconButton({
-    Key? key,
+    super.key,
     required this.items,
     required this.displayPrefix,
     this.onSelectionChanged,
     this.groupValue,
     this.redrawOnScreenSizeChanged = false,
     this.mobileAppBar = false,
-  }) : super(key: key);
+  });
 
   final String displayPrefix;
   final void Function(T?)? onSelectionChanged;
@@ -275,12 +276,12 @@ class _JDropdownIconButtonState<T> extends State<JDropdownIconButton<T>> {
 // =============================================================================
 
 class _JDropdownButtonMenu<T> extends StatefulWidget {
-  const _JDropdownButtonMenu(
-      {Key? key,
-      required this.items,
-      required this.size,
-      required this.position})
-      : super(key: key);
+  const _JDropdownButtonMenu({
+    super.key,
+    required this.items,
+    required this.size,
+    required this.position,
+  });
 
   final List<_JDropdownButtonItem<T>> items;
   final Size size;
@@ -335,13 +336,13 @@ class _JDropdownButtonMenuState<T> extends State<_JDropdownButtonMenu<T>> {
 
 class _JDropdownButtonItem<T> extends StatelessWidget {
   const _JDropdownButtonItem({
-    Key? key,
+    super.key,
     required this.value,
     required this.groupValue,
     required this.onSelected,
     this.height = 53,
     this.displayPrefix,
-  }) : super(key: key);
+  });
 
   final T value;
   final T? groupValue;

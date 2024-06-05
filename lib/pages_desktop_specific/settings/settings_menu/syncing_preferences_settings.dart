@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -22,7 +23,7 @@ import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 
 class SyncingPreferencesSettings extends ConsumerStatefulWidget {
-  const SyncingPreferencesSettings({Key? key}) : super(key: key);
+  const SyncingPreferencesSettings({super.key});
 
   static const String routeName = "/settingsMenuSyncingPref";
 
@@ -80,14 +81,18 @@ class _SyncingPreferencesSettings
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            _currentTypeDescription(ref.watch(
+                            _currentTypeDescription(
+                              ref.watch(
                                 prefsChangeNotifierProvider
-                                    .select((value) => value.syncType))),
+                                    .select((value) => value.syncType),
+                              ),
+                            ),
                             style: STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark2),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark2,
+                            ),
                             textAlign: TextAlign.left,
                           ),
                         ),
@@ -112,7 +117,8 @@ class _SyncingPreferencesSettings
                               text:
                                   "\n\nSet up your syncing preferences for all wallets in your Stack.",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
+                                context,
+                              ),
                             ),
                           ],
                         ),
@@ -124,46 +130,47 @@ class _SyncingPreferencesSettings
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                        padding: const EdgeInsets.all(
-                          10,
-                        ),
-                        child: changePrefs
-                            ? SizedBox(
-                                width: 512,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SyncingOptionsView(),
-                                    PrimaryButton(
-                                      width: 200,
-                                      buttonHeight: ButtonHeight.m,
-                                      enabled: true,
-                                      label: "Save",
-                                      onPressed: () {
-                                        setState(() {
-                                          changePrefs = false;
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : Column(
+                      padding: const EdgeInsets.all(
+                        10,
+                      ),
+                      child: changePrefs
+                          ? SizedBox(
+                              width: 512,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const SizedBox(height: 10),
+                                  const SyncingOptionsView(),
                                   PrimaryButton(
                                     width: 200,
                                     buttonHeight: ButtonHeight.m,
                                     enabled: true,
-                                    label: "Change preferences",
+                                    label: "Save",
                                     onPressed: () {
                                       setState(() {
-                                        changePrefs = true;
+                                        changePrefs = false;
                                       });
                                     },
                                   ),
                                 ],
-                              )),
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                const SizedBox(height: 10),
+                                PrimaryButton(
+                                  width: 200,
+                                  buttonHeight: ButtonHeight.m,
+                                  enabled: true,
+                                  label: "Change preferences",
+                                  onPressed: () {
+                                    setState(() {
+                                      changePrefs = true;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                    ),
                   ],
                 ),
               ],

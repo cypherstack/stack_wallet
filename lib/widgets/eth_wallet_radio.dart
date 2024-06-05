@@ -18,10 +18,10 @@ import 'wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
 
 class EthWalletRadio extends ConsumerStatefulWidget {
   const EthWalletRadio({
-    Key? key,
+    super.key,
     required this.walletId,
     this.selectedWalletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String? selectedWalletId;

@@ -17,11 +17,11 @@ import '../../../../utilities/text_styles.dart';
 
 class WordTableItem extends ConsumerWidget {
   const WordTableItem({
-    Key? key,
+    super.key,
     required this.number,
     required this.word,
     required this.isDesktop,
-  }) : super(key: key);
+  });
 
   final int number;
   final String word;

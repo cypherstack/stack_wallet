@@ -10,9 +10,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../app_config.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../providers/ui/address_book_providers/address_book_filter_provider.dart';
-import '../../../app_config.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -82,42 +83,44 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
             ),
             body: Padding(
               padding: const EdgeInsets.all(12),
-              child: LayoutBuilder(builder: (builderContext, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            RoundedWhiteContainer(
-                              child: Text(
-                                "Only selected cryptocurrency addresses will be displayed.",
-                                style: STextStyles.itemSubtitle(context),
+              child: LayoutBuilder(
+                builder: (builderContext, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              RoundedWhiteContainer(
+                                child: Text(
+                                  "Only selected cryptocurrency addresses will be displayed.",
+                                  style: STextStyles.itemSubtitle(context),
+                                ),
                               ),
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            Text(
-                              "Select cryptocurrency",
-                              style: STextStyles.smallMed12(context),
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            child,
-                          ],
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              Text(
+                                "Select cryptocurrency",
+                                style: STextStyles.smallMed12(context),
+                              ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              child,
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -230,8 +233,10 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                 width: 20,
                                 child: Checkbox(
                                   value: ref
-                                      .watch(addressBookFilterProvider
-                                          .select((value) => value.coins))
+                                      .watch(
+                                        addressBookFilterProvider
+                                            .select((value) => value.coins),
+                                      )
                                       .contains(coin),
                                   onChanged: (value) {
                                     if (value is bool) {
@@ -267,7 +272,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                     style: STextStyles.itemSubtitle(context),
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),

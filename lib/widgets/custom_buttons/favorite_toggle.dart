@@ -17,14 +17,14 @@ import '../../utilities/assets.dart';
 
 class FavoriteToggle extends ConsumerStatefulWidget {
   const FavoriteToggle({
-    Key? key,
+    super.key,
     this.backGround,
     this.borderRadius = BorderRadius.zero,
     this.initialState = false,
     this.on,
     this.off,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   final Color? backGround;
   final Color? on;

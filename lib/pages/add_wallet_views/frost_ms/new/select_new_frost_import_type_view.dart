@@ -167,7 +167,7 @@ class _SelectNewFrostImportTypeViewState
                   FrostStepScaffold.routeName,
                 );
               },
-            )
+            ),
           ],
         ),
       ),

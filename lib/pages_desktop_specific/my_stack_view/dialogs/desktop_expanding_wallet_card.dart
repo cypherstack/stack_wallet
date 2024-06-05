@@ -27,10 +27,10 @@ import 'package:tuple/tuple.dart';
 
 class DesktopExpandingWalletCard extends StatefulWidget {
   const DesktopExpandingWalletCard({
-    Key? key,
+    super.key,
     required this.data,
     required this.navigatorState,
-  }) : super(key: key);
+  });
 
   final Tuple2<Wallet, List<EthContract>> data;
   final NavigatorState navigatorState;

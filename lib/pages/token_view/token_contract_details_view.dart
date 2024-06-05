@@ -24,10 +24,10 @@ import '../../widgets/rounded_white_container.dart';
 
 class TokenContractDetailsView extends ConsumerStatefulWidget {
   const TokenContractDetailsView({
-    Key? key,
+    super.key,
     required this.contractAddress,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/tokenContractDetailsView";
 
@@ -154,11 +154,11 @@ class _TokenContractDetailsViewState
 
 class _Item extends StatelessWidget {
   const _Item({
-    Key? key,
+    super.key,
     required this.title,
     required this.data,
     required this.button,
-  }) : super(key: key);
+  });
 
   final String title;
   final String data;

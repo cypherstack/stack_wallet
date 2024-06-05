@@ -105,17 +105,17 @@ abstract class Logger {
       return;
     }
     final utcTime = withTimeStamp ? "${core.DateTime.now().toUtc()}: " : "";
-    core.int defaultPrintLength = 1020 - utcTime.length;
+    final core.int defaultPrintLength = 1020 - utcTime.length;
     if (normalLength) {
       debugPrint("$utcTime$object");
     } else if (object == null ||
         object.toString().length <= defaultPrintLength) {
       debugPrint("$utcTime$object");
     } else {
-      core.String log = object.toString();
+      final core.String log = object.toString();
       core.int start = 0;
       core.int endIndex = defaultPrintLength;
-      core.int logLength = log.length;
+      final core.int logLength = log.length;
       core.int tmpLogLength = log.length;
       while (endIndex < logLength) {
         debugPrint(utcTime + log.substring(start, endIndex));

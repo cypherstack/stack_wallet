@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/isar/models/ethereum/eth_contract.dart';
 import '../pages/token_view/token_view.dart';
 import '../pages/wallet_view/wallet_view.dart';
@@ -36,12 +37,12 @@ import 'wallet_info_row/wallet_info_row.dart';
 
 class SimpleWalletCard extends ConsumerWidget {
   const SimpleWalletCard({
-    Key? key,
+    super.key,
     required this.walletId,
     this.contractAddress,
     this.popPrevious = false,
     this.desktopNavigatorState,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String? contractAddress;
@@ -131,7 +132,11 @@ class SimpleWalletCard extends ConsumerWidget {
 
         final success = await showLoading<bool>(
           whileFuture: _loadTokenWallet(
-              desktopNavigatorState?.context ?? context, ref, wallet, contract),
+            desktopNavigatorState?.context ?? context,
+            ref,
+            wallet,
+            contract,
+          ),
           context: desktopNavigatorState?.context ?? context,
           opaqueBG: true,
           message: "Loading ${contract.name}",

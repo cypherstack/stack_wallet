@@ -20,8 +20,8 @@ import '../../../widgets/stack_dialog.dart';
 
 class ClaimingPaynymDialog extends StatefulWidget {
   const ClaimingPaynymDialog({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ClaimingPaynymDialog> createState() => _RestoringDialogState();

@@ -9,18 +9,19 @@
  */
 
 import 'package:flutter/material.dart';
-import 'step_indicator.dart';
+
 import '../../../themes/stack_colors.dart';
+import 'step_indicator.dart';
 
 class StepRow extends StatelessWidget {
   const StepRow({
-    Key? key,
+    super.key,
     required this.count,
     required this.current,
     required this.width,
     this.indicatorSize = 16,
     this.minSpacing = 4,
-  }) : super(key: key);
+  });
 
   final int count;
   final int current;
@@ -53,23 +54,29 @@ class StepRow extends StatelessWidget {
   }
 
   List<Widget> _buildList(double spacerWidth, BuildContext context) {
-    List<Widget> list = [];
+    final List<Widget> list = [];
     for (int i = 0; i < count - 1; i++) {
-      list.add(StepIndicator(
-        step: i + 1,
-        status: getStatus(i),
-      ));
-      list.add(_SpacerRow(
-        width: spacerWidth,
-        dotSize: 1.5,
-        spacing: 4,
-        color: getColor(i, context),
-      ));
+      list.add(
+        StepIndicator(
+          step: i + 1,
+          status: getStatus(i),
+        ),
+      );
+      list.add(
+        _SpacerRow(
+          width: spacerWidth,
+          dotSize: 1.5,
+          spacing: 4,
+          color: getColor(i, context),
+        ),
+      );
     }
-    list.add(StepIndicator(
-      step: count,
-      status: getStatus(count - 1),
-    ));
+    list.add(
+      StepIndicator(
+        step: count,
+        status: getStatus(count - 1),
+      ),
+    );
     return list;
   }
 
@@ -88,12 +95,12 @@ class StepRow extends StatelessWidget {
 
 class _SpacerRow extends StatelessWidget {
   const _SpacerRow({
-    Key? key,
+    super.key,
     required this.width,
     required this.dotSize,
     required this.spacing,
     required this.color,
-  }) : super(key: key);
+  });
 
   final Color color;
   final double width;
@@ -128,10 +135,10 @@ class _SpacerRow extends StatelessWidget {
 
 class _SpacerDot extends StatelessWidget {
   const _SpacerDot({
-    Key? key,
+    super.key,
     required this.color,
     this.size = 1.5,
-  }) : super(key: key);
+  });
 
   final double size;
   final Color color;

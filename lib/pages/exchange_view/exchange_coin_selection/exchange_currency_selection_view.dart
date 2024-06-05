@@ -110,7 +110,7 @@ class _ExchangeCurrencySelectionViewState
       return await _getCurrencies();
     }
     await ExchangeDataLoadingService.instance.initDB();
-    List<Currency> currencies = await ExchangeDataLoadingService
+    final List<Currency> currencies = await ExchangeDataLoadingService
         .instance.isar.currencies
         .where()
         .filter()

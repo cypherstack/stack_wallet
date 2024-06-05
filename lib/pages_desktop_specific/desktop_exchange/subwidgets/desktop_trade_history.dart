@@ -13,6 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
+import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../pages/exchange_view/trade_details_view.dart';
 import '../../../providers/exchange/trade_sent_from_stack_lookup_provider.dart';
@@ -27,10 +29,8 @@ import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/trade_card.dart';
 
-import '../../../db/isar/main_db.dart';
-
 class DesktopTradeHistory extends ConsumerStatefulWidget {
-  const DesktopTradeHistory({Key? key}) : super(key: key);
+  const DesktopTradeHistory({super.key});
 
   @override
   ConsumerState<DesktopTradeHistory> createState() =>
@@ -154,7 +154,8 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                                 Text(
                                                   "Trade details",
                                                   style: STextStyles.desktopH3(
-                                                      context),
+                                                    context,
+                                                  ),
                                                 ),
                                                 DesktopDialogCloseButton(
                                                   onPressedOverride:
@@ -173,8 +174,10 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                                 tradeId: tradeId,
                                                 transactionIfSentFromStack: tx,
                                                 walletName: ref.read(
-                                                    pWalletName(
-                                                        walletIds.first)),
+                                                  pWalletName(
+                                                    walletIds.first,
+                                                  ),
+                                                ),
                                                 walletId: walletIds.first,
                                               ),
                                             ),
@@ -220,7 +223,8 @@ class _DesktopTradeHistoryState extends ConsumerState<DesktopTradeHistory> {
                                                 Text(
                                                   "Trade details",
                                                   style: STextStyles.desktopH3(
-                                                      context),
+                                                    context,
+                                                  ),
                                                 ),
                                                 DesktopDialogCloseButton(
                                                   onPressedOverride:

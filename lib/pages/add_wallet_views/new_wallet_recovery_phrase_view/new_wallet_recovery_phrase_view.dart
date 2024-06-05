@@ -40,11 +40,11 @@ import 'sub_widgets/mnemonic_table.dart';
 
 class NewWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const NewWalletRecoveryPhraseView({
-    Key? key,
+    super.key,
     required this.wallet,
     required this.mnemonic,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const routeName = "/newWalletRecoveryPhrase";
 
@@ -91,12 +91,14 @@ class _NewWalletRecoveryPhraseViewState
   Future<void> _copy() async {
     final words = _mnemonic;
     await _clipboardInterface.setData(ClipboardData(text: words.join(" ")));
-    unawaited(showFloatingFlushBar(
-      type: FlushBarType.info,
-      message: "Copied to clipboard",
-      iconAsset: Assets.svg.copy,
-      context: context,
-    ));
+    unawaited(
+      showFloatingFlushBar(
+        type: FlushBarType.info,
+        message: "Copied to clipboard",
+        iconAsset: Assets.svg.copy,
+        context: context,
+      ),
+    );
   }
 
   @override
@@ -238,7 +240,8 @@ class _NewWalletRecoveryPhraseViewState
                               .background
                           : Theme.of(context).extension<StackColors>()!.popupBG,
                       borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius),
+                        Constants.size.circularBorderRadius,
+                      ),
                     ),
                     child: Padding(
                       padding: isDesktop
@@ -252,7 +255,8 @@ class _NewWalletRecoveryPhraseViewState
                             : STextStyles.label(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .accentColorDark),
+                                    .accentColorDark,
+                              ),
                       ),
                     ),
                   ),
@@ -300,8 +304,9 @@ class _NewWalletRecoveryPhraseViewState
                             Text(
                               "Copy to clipboard",
                               style: STextStyles.desktopButtonSecondaryEnabled(
-                                  context),
-                            )
+                                context,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -325,10 +330,12 @@ class _NewWalletRecoveryPhraseViewState
                             .read(verifyMnemonicCorrectWordStateProvider.state)
                             .update((state) => _mnemonic[next]);
 
-                        unawaited(Navigator.of(context).pushNamed(
-                          VerifyRecoveryPhraseView.routeName,
-                          arguments: Tuple2(_wallet, _mnemonic),
-                        ));
+                        unawaited(
+                          Navigator.of(context).pushNamed(
+                            VerifyRecoveryPhraseView.routeName,
+                            arguments: Tuple2(_wallet, _mnemonic),
+                          ),
+                        );
                       },
                       style: Theme.of(context)
                           .extension<StackColors>()!

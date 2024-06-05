@@ -15,11 +15,11 @@ import '../../utilities/assets.dart';
 
 class ShareIcon extends StatelessWidget {
   const ShareIcon({
-    Key? key,
+    super.key,
     this.width = 18,
     this.height = 18,
     this.color,
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;

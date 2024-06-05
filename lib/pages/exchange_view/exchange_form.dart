@@ -16,6 +16,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../models/exchange/aggregate_currency.dart';
 import '../../models/exchange/incomplete_exchange.dart';
 import '../../models/exchange/response_objects/estimate.dart';
@@ -23,11 +26,6 @@ import '../../models/exchange/response_objects/range.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import '../../models/isar/exchange_cache/pair.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import 'exchange_coin_selection/exchange_currency_selection_view.dart';
-import 'exchange_step_views/step_1_view.dart';
-import 'exchange_step_views/step_2_view.dart';
-import 'sub_widgets/exchange_provider_options.dart';
-import 'sub_widgets/rate_type_toggle.dart';
 import '../../pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import '../../providers/providers.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
@@ -43,7 +41,6 @@ import '../../utilities/constants.dart';
 import '../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/bitcoin.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_loading_overlay.dart';
@@ -55,8 +52,11 @@ import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/textfields/exchange_textfield.dart';
-import 'package:tuple/tuple.dart';
-import 'package:uuid/uuid.dart';
+import 'exchange_coin_selection/exchange_currency_selection_view.dart';
+import 'exchange_step_views/step_1_view.dart';
+import 'exchange_step_views/step_2_view.dart';
+import 'sub_widgets/exchange_provider_options.dart';
+import 'sub_widgets/rate_type_toggle.dart';
 
 class ExchangeForm extends ConsumerStatefulWidget {
   const ExchangeForm({
@@ -173,8 +173,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         .tryParse(
           value,
           locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          coin: Bitcoin(CryptoCurrencyNetwork
-              .main), // dummy value (not used due to override)
+          coin: Bitcoin(
+            CryptoCurrencyNetwork.main,
+          ), // dummy value (not used due to override)
           overrideWithDecimalPlacesFromString: true,
         )
         ?.decimal;
@@ -184,15 +185,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final rateType = ref.read(efRateTypeProvider);
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .filter()
-        .group((q) => rateType == ExchangeRateType.fixed
-            ? q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.fixed)
-            : q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.estimated))
+        .group(
+          (q) => rateType == ExchangeRateType.fixed
+              ? q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.fixed)
+              : q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.estimated),
+        )
         .and()
         .tickerEqualTo(
           currency.ticker,
@@ -364,7 +367,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   ],
                 ),
               );
-            })
+            },
+          )
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
               builder: (_) => ExchangeCurrencySelectionView(
@@ -489,7 +493,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                             ),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 );
@@ -949,7 +953,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ),
         ExchangeTextField(
           key: Key(
-              "exchangeTextFieldKeyFor1_${Theme.of(context).extension<StackColors>()!.themeId}"),
+            "exchangeTextFieldKeyFor1_${Theme.of(context).extension<StackColors>()!.themeId}",
+          ),
           focusNode: _receiveFocusNode,
           controller: _receiveController,
           textStyle: STextStyles.smallMed14(context).copyWith(
@@ -1011,7 +1016,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           enabled: ref.watch(efCanExchangeProvider),
           onPressed: onExchangePressed,
           label: "Swap",
-        )
+        ),
       ],
     );
   }

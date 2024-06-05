@@ -21,10 +21,10 @@ final walletNavBarMore = StateProvider.autoDispose((ref) => false);
 
 class WalletNavigationBar extends ConsumerStatefulWidget {
   const WalletNavigationBar({
-    Key? key,
+    super.key,
     required this.items,
     required this.moreItems,
-  }) : super(key: key);
+  });
 
   final List<WalletNavigationBarItemData> items;
   final List<WalletNavigationBarItemData> moreItems;
@@ -131,7 +131,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                         boxShadow: [
                           Theme.of(context)
                               .extension<StackColors>()!
-                              .standardBoxShadow
+                              .standardBoxShadow,
                         ],
                         borderRadius: BorderRadius.circular(
                           1000,

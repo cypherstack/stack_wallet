@@ -18,11 +18,11 @@ enum StepIndicatorStatus { current, completed, incomplete }
 
 class StepIndicator extends StatelessWidget {
   const StepIndicator({
-    Key? key,
+    super.key,
     required this.step,
     required this.status,
     this.size = 16,
-  }) : super(key: key);
+  });
 
   final int step;
   final StepIndicatorStatus status;

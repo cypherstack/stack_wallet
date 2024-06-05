@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
 import '../../db/hive/db.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -14,7 +15,8 @@ const _kOneTimeTorHasBeenAddedDialogWasShown =
     "oneTimeTorHasBeenAddedDialogWasShown";
 
 Future<void> showOneTimeTorHasBeenAddedDialogIfRequired(
-    BuildContext context) async {
+  BuildContext context,
+) async {
   final box = await Hive.openBox<bool>(DB.boxNameOneTimeDialogsShown);
 
   if (!box.get(
@@ -102,7 +104,7 @@ class _TorHasBeenAddedDialogState extends State<_TorHasBeenAddedDialog> {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

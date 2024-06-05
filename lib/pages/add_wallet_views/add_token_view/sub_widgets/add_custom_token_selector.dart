@@ -18,9 +18,9 @@ import '../../../../utilities/util.dart';
 
 class AddCustomTokenSelector extends StatelessWidget {
   const AddCustomTokenSelector({
-    Key? key,
+    super.key,
     required this.addFunction,
-  }) : super(key: key);
+  });
 
   final VoidCallback addFunction;
 

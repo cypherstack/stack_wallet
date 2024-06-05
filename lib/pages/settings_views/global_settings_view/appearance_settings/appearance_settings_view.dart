@@ -10,8 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'manage_themes.dart';
-import 'sub_widgets/theme_options_widget.dart';
+
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -21,9 +20,11 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import 'manage_themes.dart';
+import 'sub_widgets/theme_options_widget.dart';
 
 class AppearanceSettingsView extends ConsumerWidget {
-  const AppearanceSettingsView({Key? key}) : super(key: key);
+  const AppearanceSettingsView({super.key});
 
   static const String routeName = "/appearanceSettings";
 
@@ -89,17 +90,19 @@ class AppearanceSettingsView extends ConsumerWidget {
                                         child: DraggableSwitchButton(
                                           isOn: ref.watch(
                                             prefsChangeNotifierProvider.select(
-                                                (value) =>
-                                                    value.showFavoriteWallets),
+                                              (value) =>
+                                                  value.showFavoriteWallets,
+                                            ),
                                           ),
                                           onValueChanged: (newValue) {
                                             ref
                                                 .read(
-                                                    prefsChangeNotifierProvider)
+                                                  prefsChangeNotifierProvider,
+                                                )
                                                 .showFavoriteWallets = newValue;
                                           },
                                         ),
-                                      )
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -145,7 +148,7 @@ class AppearanceSettingsView extends ConsumerWidget {
                                     ManageThemesView.routeName,
                                   );
                                 },
-                              )
+                              ),
                             ],
                           ),
                         ),

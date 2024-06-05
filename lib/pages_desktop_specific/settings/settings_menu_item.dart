@@ -14,13 +14,13 @@ import '../../utilities/text_styles.dart';
 
 class SettingsMenuItem<T> extends StatelessWidget {
   const SettingsMenuItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
     required this.group,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   final Widget icon;
   final String label;

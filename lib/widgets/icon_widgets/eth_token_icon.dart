@@ -15,7 +15,6 @@ import 'package:isar/isar.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../themes/coin_icon_provider.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class EthTokenIcon extends ConsumerStatefulWidget {

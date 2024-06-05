@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../providers/providers.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -29,7 +30,7 @@ import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class WalletSyncingOptionsView extends ConsumerWidget {
-  const WalletSyncingOptionsView({Key? key}) : super(key: key);
+  const WalletSyncingOptionsView({super.key});
 
   static const String routeName = "/walletSyncingOptions";
 
@@ -78,160 +79,175 @@ class WalletSyncingOptionsView extends ConsumerWidget {
             child: child,
           );
         },
-        child: LayoutBuilder(builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight - 24,
-              ),
-              child: IntrinsicHeight(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        height: 4,
-                      ),
-                      Text(
-                        "Choose the wallets to sync automatically at startup",
-                        style: STextStyles.smallMed12(context),
-                      ),
-                      const SizedBox(
-                        height: 12,
-                      ),
-                      RoundedWhiteContainer(
-                        padding: const EdgeInsets.all(0),
-                        borderColor: !isDesktop
-                            ? Colors.transparent
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .background,
-                        child: Column(
-                          children: [
-                            ...walletInfos.map(
-                              (info) => Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Row(
-                                  key: Key(
-                                      "syncingPrefsSelectedWalletIdGroupKey_${info.walletId}"),
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: ref
-                                            .watch(pCoinColor(info.coin))
-                                            .withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius,
-                                        ),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(4),
-                                        child: SvgPicture.file(
-                                          File(
-                                            ref.watch(
-                                              coinIconProvider(info.coin),
-                                            ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 24,
+                ),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          height: 4,
+                        ),
+                        Text(
+                          "Choose the wallets to sync automatically at startup",
+                          style: STextStyles.smallMed12(context),
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        RoundedWhiteContainer(
+                          padding: const EdgeInsets.all(0),
+                          borderColor: !isDesktop
+                              ? Colors.transparent
+                              : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .background,
+                          child: Column(
+                            children: [
+                              ...walletInfos.map(
+                                (info) => Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Row(
+                                    key: Key(
+                                      "syncingPrefsSelectedWalletIdGroupKey_${info.walletId}",
+                                    ),
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: ref
+                                              .watch(pCoinColor(info.coin))
+                                              .withOpacity(0.5),
+                                          borderRadius: BorderRadius.circular(
+                                            Constants.size.circularBorderRadius,
                                           ),
-                                          width: 20,
-                                          height: 20,
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: SvgPicture.file(
+                                            File(
+                                              ref.watch(
+                                                coinIconProvider(info.coin),
+                                              ),
+                                            ),
+                                            width: 20,
+                                            height: 20,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(
-                                      width: 12,
-                                    ),
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          info.name,
-                                          style:
-                                              STextStyles.titleBold12(context),
-                                        ),
-                                        const SizedBox(
-                                          height: 2,
-                                        ),
-                                        Text(
-                                          ref
+                                      const SizedBox(
+                                        width: 12,
+                                      ),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            info.name,
+                                            style: STextStyles.titleBold12(
+                                                context),
+                                          ),
+                                          const SizedBox(
+                                            height: 2,
+                                          ),
+                                          Text(
+                                            ref
+                                                .watch(
+                                                  pAmountFormatter(info.coin),
+                                                )
+                                                .format(
+                                                  ref
+                                                      .watch(
+                                                        pWalletBalance(
+                                                          info.walletId,
+                                                        ),
+                                                      )
+                                                      .total,
+                                                ),
+                                            style: STextStyles.itemSubtitle(
+                                                context),
+                                          ),
+                                        ],
+                                      ),
+                                      const Spacer(),
+                                      SizedBox(
+                                        height: 20,
+                                        width: 40,
+                                        child: DraggableSwitchButton(
+                                          isOn: ref
                                               .watch(
-                                                  pAmountFormatter(info.coin))
-                                              .format(ref
-                                                  .watch(pWalletBalance(
-                                                      info.walletId))
-                                                  .total),
-                                          style:
-                                              STextStyles.itemSubtitle(context),
-                                        )
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    SizedBox(
-                                      height: 20,
-                                      width: 40,
-                                      child: DraggableSwitchButton(
-                                        isOn: ref
-                                            .watch(prefsChangeNotifierProvider
-                                                .select((value) => value
-                                                    .walletIdsSyncOnStartup))
-                                            .contains(info.walletId),
-                                        onValueChanged: (value) {
-                                          // final syncType = ref
-                                          //     .read(prefsChangeNotifierProvider)
-                                          //     .syncType;
-                                          final ids = ref
-                                              .read(prefsChangeNotifierProvider)
-                                              .walletIdsSyncOnStartup
-                                              .toList();
-                                          if (value) {
-                                            ids.add(info.walletId);
-                                          } else {
-                                            ids.remove(info.walletId);
-                                          }
+                                                prefsChangeNotifierProvider
+                                                    .select(
+                                                  (value) => value
+                                                      .walletIdsSyncOnStartup,
+                                                ),
+                                              )
+                                              .contains(info.walletId),
+                                          onValueChanged: (value) {
+                                            // final syncType = ref
+                                            //     .read(prefsChangeNotifierProvider)
+                                            //     .syncType;
+                                            final ids = ref
+                                                .read(
+                                                    prefsChangeNotifierProvider)
+                                                .walletIdsSyncOnStartup
+                                                .toList();
+                                            if (value) {
+                                              ids.add(info.walletId);
+                                            } else {
+                                              ids.remove(info.walletId);
+                                            }
 
-                                          // final wallet = ref
-                                          //     .read(pWallets)
-                                          //     .getWallet(info.walletId);
-                                          //
-                                          // switch (syncType) {
-                                          //   case SyncingType.currentWalletOnly:
-                                          //     if (info.walletId ==
-                                          //         ref.read(
-                                          //             currentWalletIdProvider)) {
-                                          //       wallet.shouldAutoSync = value;
-                                          //     }
-                                          //     break;
-                                          //   case SyncingType
-                                          //         .selectedWalletsAtStartup:
-                                          //   case SyncingType
-                                          //         .allWalletsOnStartup:
-                                          //     wallet.shouldAutoSync = value;
-                                          //     break;
-                                          // }
+                                            // final wallet = ref
+                                            //     .read(pWallets)
+                                            //     .getWallet(info.walletId);
+                                            //
+                                            // switch (syncType) {
+                                            //   case SyncingType.currentWalletOnly:
+                                            //     if (info.walletId ==
+                                            //         ref.read(
+                                            //             currentWalletIdProvider)) {
+                                            //       wallet.shouldAutoSync = value;
+                                            //     }
+                                            //     break;
+                                            //   case SyncingType
+                                            //         .selectedWalletsAtStartup:
+                                            //   case SyncingType
+                                            //         .allWalletsOnStartup:
+                                            //     wallet.shouldAutoSync = value;
+                                            //     break;
+                                            // }
 
-                                          ref
-                                              .read(prefsChangeNotifierProvider)
-                                              .walletIdsSyncOnStartup = ids;
-                                        },
+                                            ref
+                                                .read(
+                                                    prefsChangeNotifierProvider)
+                                                .walletIdsSyncOnStartup = ids;
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          },
+        ),
       ),
     );
   }

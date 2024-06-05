@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -90,83 +91,84 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
             ? Theme.of(context).extension<StackColors>()!.popupBG
             : Colors.transparent,
         child: StreamBuilder<UTXO?>(
-            stream: stream,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                utxo = snapshot.data!;
-              }
-              return Row(
-                children: [
-                  ConditionalParent(
-                    condition: widget.canSelect,
-                    builder: (child) => GestureDetector(
-                      onTap: () {
-                        _selected = !_selected;
-                        widget.onSelectedChanged(_selected);
-                        setState(() {});
-                      },
-                      child: child,
-                    ),
-                    child: UTXOStatusIcon(
-                      blocked: utxo.isBlocked,
-                      status: utxo.isConfirmed(
-                        currentHeight,
-                        ref
-                            .watch(pWallets)
-                            .getWallet(widget.walletId)
-                            .cryptoCurrency
-                            .minConfirms,
-                      )
-                          ? UTXOStatusIconStatus.confirmed
-                          : UTXOStatusIconStatus.unconfirmed,
-                      background:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      selected: _selected,
-                      width: 32,
-                      height: 32,
-                    ),
+          stream: stream,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              utxo = snapshot.data!;
+            }
+            return Row(
+              children: [
+                ConditionalParent(
+                  condition: widget.canSelect,
+                  builder: (child) => GestureDetector(
+                    onTap: () {
+                      _selected = !_selected;
+                      widget.onSelectedChanged(_selected);
+                      setState(() {});
+                    },
+                    child: child,
                   ),
-                  const SizedBox(
-                    width: 10,
+                  child: UTXOStatusIcon(
+                    blocked: utxo.isBlocked,
+                    status: utxo.isConfirmed(
+                      currentHeight,
+                      ref
+                          .watch(pWallets)
+                          .getWallet(widget.walletId)
+                          .cryptoCurrency
+                          .minConfirms,
+                    )
+                        ? UTXOStatusIconStatus.confirmed
+                        : UTXOStatusIconStatus.unconfirmed,
+                    background:
+                        Theme.of(context).extension<StackColors>()!.popupBG,
+                    selected: _selected,
+                    width: 32,
+                    height: 32,
                   ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          ref.watch(pAmountFormatter(coin)).format(
-                                utxo.value.toAmountAsRaw(
-                                  fractionDigits: coin.fractionDigits,
-                                ),
-                              ),
-                          style: STextStyles.w600_14(context),
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                utxo.name.isNotEmpty
-                                    ? utxo.name
-                                    : utxo.address ?? utxo.txid,
-                                style: STextStyles.w500_12(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
-                                ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        ref.watch(pAmountFormatter(coin)).format(
+                              utxo.value.toAmountAsRaw(
+                                fractionDigits: coin.fractionDigits,
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                        style: STextStyles.w600_14(context),
+                      ),
+                      const SizedBox(
+                        height: 2,
+                      ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              utxo.name.isNotEmpty
+                                  ? utxo.name
+                                  : utxo.address ?? utxo.txid,
+                              style: STextStyles.w500_12(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              );
-            }),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

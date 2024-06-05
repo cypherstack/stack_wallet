@@ -23,10 +23,12 @@ class Currency {
   final String exchangeName;
 
   /// Currency ticker
-  @Index(composite: [
-    CompositeIndex("exchangeName"),
-    CompositeIndex("name"),
-  ])
+  @Index(
+    composite: [
+      CompositeIndex("exchangeName"),
+      CompositeIndex("name"),
+    ],
+  )
   final String ticker;
 
   /// Currency name

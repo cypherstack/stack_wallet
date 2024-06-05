@@ -1,8 +1,8 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../frost_route_generator.dart';
-import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../services/frost.dart';
@@ -18,6 +18,7 @@ import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/frost_step_user_steps.dart';
 import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostSendStep3 extends ConsumerStatefulWidget {
   const FrostSendStep3({super.key});
@@ -64,7 +65,8 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
     participantsWithoutMe = frostInfo.participants
         .toSet()
         .intersection(
-            ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet())
+          ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet(),
+        )
         .toList();
 
     participantsWithoutMe.remove(myName);
@@ -181,8 +183,9 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
               final List<String> shares = [];
               for (final participant in participantsAll) {
                 if (participantsWithoutMe.contains(participant)) {
-                  shares.add(sharesCollected[
-                      participantsWithoutMe.indexOf(participant)]);
+                  shares.add(
+                    sharesCollected[participantsWithoutMe.indexOf(participant)],
+                  );
                 } else {
                   shares.add("");
                 }

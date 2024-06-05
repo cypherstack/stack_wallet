@@ -13,11 +13,11 @@ import 'mnemonic_table_item.dart';
 
 class MnemonicTable extends StatelessWidget {
   const MnemonicTable({
-    Key? key,
+    super.key,
     required this.words,
     required this.isDesktop,
     this.itemBorderColor,
-  }) : super(key: key);
+  });
 
   final List<String> words;
   final bool isDesktop;

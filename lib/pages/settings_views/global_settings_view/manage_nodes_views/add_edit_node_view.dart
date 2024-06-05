@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../../models/node_model.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -25,12 +27,9 @@ import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../../../wallets/crypto_currency/coins/monero.dart';
-import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -41,7 +40,6 @@ import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
-import 'package:uuid/uuid.dart';
 // import 'package:web3dart/web3dart.dart';
 
 enum AddEditNodeViewType { add, edit }
@@ -187,9 +185,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   child: Text(
                     "Cancel",
                     style: STextStyles.button(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                 ),
                 rightButton: TextButton(
@@ -223,7 +222,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin is Monero || coin is Wownero) {
+    if (coin is CwBasedInterface) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -232,7 +231,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     switch (viewType) {
       case AddEditNodeViewType.add:
-        NodeModel node = NodeModel(
+        final NodeModel node = NodeModel(
           host: address,
           port: formData.port!,
           name: formData.name!,
@@ -257,7 +256,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         }
         break;
       case AddEditNodeViewType.edit:
-        NodeModel node = NodeModel(
+        final NodeModel node = NodeModel(
           host: address,
           port: formData.port!,
           name: formData.name!,
@@ -315,8 +314,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   Widget build(BuildContext context) {
     final NodeModel? node =
         viewType == AddEditNodeViewType.edit && nodeId != null
-            ? ref.watch(nodeServiceChangeNotifierProvider
-                .select((value) => value.getNodeById(id: nodeId!)))
+            ? ref.watch(
+                nodeServiceChangeNotifierProvider
+                    .select((value) => value.getNodeById(id: nodeId!)),
+              )
             : null;
 
     return ConditionalParent(
@@ -332,7 +333,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   FocusScope.of(context).unfocus();
                   await Future<void>.delayed(const Duration(milliseconds: 75));
                 }
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               },
@@ -344,8 +345,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             actions: [
               if (viewType == AddEditNodeViewType.edit &&
                   ref
-                          .watch(nodeServiceChangeNotifierProvider
-                              .select((value) => value.getNodesFor(coin)))
+                          .watch(
+                            nodeServiceChangeNotifierProvider
+                                .select((value) => value.getNodesFor(coin)),
+                          )
                           .length >
                       1)
                 Padding(
@@ -372,8 +375,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                         height: 20,
                       ),
                       onPressed: () async {
-                        Navigator.popUntil(context,
-                            ModalRoute.withName(widget.routeOnSuccessOrDelete));
+                        Navigator.popUntil(
+                          context,
+                          ModalRoute.withName(widget.routeOnSuccessOrDelete),
+                        );
 
                         await ref
                             .read(nodeServiceChangeNotifierProvider)
@@ -433,7 +438,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   Text(
                     "Add new node",
                     style: STextStyles.desktopH3(context),
-                  )
+                  ),
                 ],
               ),
               Padding(
@@ -574,13 +579,13 @@ final nodeFormDataProvider = Provider<NodeFormData>((_) => NodeFormData());
 
 class NodeForm extends ConsumerStatefulWidget {
   const NodeForm({
-    Key? key,
+    super.key,
     this.node,
     required this.secureStore,
     required this.readOnly,
     required this.coin,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   final NodeModel? node;
   final SecureStorageInterface secureStore;
@@ -832,6 +837,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 } else {
                   enableSSLCheckbox = true;
                 }
+              } else if (widget.coin is CwBasedInterface) {
+                if (newValue.startsWith("https://")) {
+                  _useSSL = true;
+                } else if (newValue.startsWith("http://")) {
+                  _useSSL = false;
+                } else {
+                  _useSSL = true;
+                }
               }
               _updateState();
               setState(() {});
@@ -1008,9 +1021,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         child: Checkbox(
                           fillColor: !shouldBeReadOnly && enableSSLCheckbox
                               ? null
-                              : MaterialStateProperty.all(Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .checkboxBGDisabled),
+                              : MaterialStateProperty.all(
+                                  Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .checkboxBGDisabled,
+                                ),
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _useSSL,
@@ -1030,14 +1045,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       Text(
                         "Use SSL",
                         style: STextStyles.itemSubtitle12(context),
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
             ],
           ),
-        if (widget.coin is Monero || widget.coin is Wownero)
+        if (widget.coin is CwBasedInterface)
           Row(
             children: [
               GestureDetector(
@@ -1059,9 +1074,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         child: Checkbox(
                           fillColor: !widget.readOnly
                               ? null
-                              : MaterialStateProperty.all(Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .checkboxBGDisabled),
+                              : MaterialStateProperty.all(
+                                  Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .checkboxBGDisabled,
+                                ),
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _trusted,
@@ -1081,7 +1098,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       Text(
                         "Trusted",
                         style: STextStyles.itemSubtitle12(context),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -1144,7 +1161,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       Text(
                         "Use as failover",
                         style: STextStyles.itemSubtitle12(context),
-                      )
+                      ),
                     ],
                   ),
                 ),

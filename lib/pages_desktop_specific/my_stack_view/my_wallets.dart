@@ -10,16 +10,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import 'desktop_favorite_wallets.dart';
-import 'wallet_summary_table.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
+import 'desktop_favorite_wallets.dart';
+import 'wallet_summary_table.dart';
 
 class MyWallets extends ConsumerStatefulWidget {
-  const MyWallets({Key? key}) : super(key: key);
+  const MyWallets({super.key});
 
   @override
   ConsumerState<MyWallets> createState() => _MyWalletsState();
@@ -28,8 +29,9 @@ class MyWallets extends ConsumerStatefulWidget {
 class _MyWalletsState extends ConsumerState<MyWallets> {
   @override
   Widget build(BuildContext context) {
-    final showFavorites = ref.watch(prefsChangeNotifierProvider
-        .select((value) => value.showFavoriteWallets));
+    final showFavorites = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.showFavoriteWallets),
+    );
 
     return Padding(
       padding: const EdgeInsets.only(

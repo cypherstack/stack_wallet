@@ -200,7 +200,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 Text(
                   "My ${AppConfig.prefix}",
                   style: STextStyles.navBarTitle(context),
-                )
+                ),
               ],
             ),
             actions: [
@@ -232,8 +232,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    icon: ref.watch(notificationsProvider
-                            .select((value) => value.hasUnreadNotifications))
+                    icon: ref.watch(
+                      notificationsProvider
+                          .select((value) => value.hasUnreadNotifications),
+                    )
                         ? SvgPicture.file(
                             File(
                               ref.watch(
@@ -244,8 +246,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             ),
                             width: 20,
                             height: 20,
-                            color: ref.watch(notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications))
+                            color: ref.watch(
+                              notificationsProvider.select(
+                                (value) => value.hasUnreadNotifications,
+                              ),
+                            )
                                 ? null
                                 : Theme.of(context)
                                     .extension<StackColors>()!
@@ -255,8 +260,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             Assets.svg.bell,
                             width: 20,
                             height: 20,
-                            color: ref.watch(notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications))
+                            color: ref.watch(
+                              notificationsProvider.select(
+                                (value) => value.hasUnreadNotifications,
+                              ),
+                            )
                                 ? null
                                 : Theme.of(context)
                                     .extension<StackColors>()!
@@ -274,14 +282,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             .state;
                         if (unreadNotificationIds.isEmpty) return;
 
-                        List<Future<void>> futures = [];
+                        final List<Future<void>> futures = [];
                         for (int i = 0;
                             i < unreadNotificationIds.length - 1;
                             i++) {
-                          futures.add(ref
-                              .read(notificationsProvider)
-                              .markAsRead(
-                                  unreadNotificationIds.elementAt(i), false));
+                          futures.add(
+                            ref.read(notificationsProvider).markAsRead(
+                                  unreadNotificationIds.elementAt(i),
+                                  false,
+                                ),
+                          );
                         }
 
                         // wait for multiple to update if any

@@ -11,7 +11,7 @@
 import 'package:flutter/material.dart';
 
 class TermsOfServiceView extends StatelessWidget {
-  const TermsOfServiceView({Key? key}) : super(key: key);
+  const TermsOfServiceView({super.key});
 
   @override
   Widget build(BuildContext context) {

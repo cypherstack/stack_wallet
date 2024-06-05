@@ -22,7 +22,7 @@ import '../widgets/conditional_parent.dart';
 import '../widgets/rounded_container.dart';
 
 class LoadingView extends ConsumerWidget {
-  const LoadingView({Key? key}) : super(key: key);
+  const LoadingView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -20,11 +20,11 @@ import '../../../../widgets/stack_dialog.dart';
 
 class RestoreFailedDialog extends ConsumerStatefulWidget {
   const RestoreFailedDialog({
-    Key? key,
+    super.key,
     required this.errorMessage,
     required this.walletName,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String errorMessage;
   final String walletName;

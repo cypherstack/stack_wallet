@@ -19,7 +19,7 @@ export 'custom_text_button.dart';
 
 class SecondaryButton extends StatelessWidget {
   const SecondaryButton({
-    Key? key,
+    super.key,
     this.width,
     this.height,
     this.label,
@@ -30,7 +30,7 @@ class SecondaryButton extends StatelessWidget {
     this.buttonHeight,
     this.iconSpacing = 10,
     this.padding = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 
   final double? width;
   final double? height;

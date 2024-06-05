@@ -42,7 +42,8 @@ abstract class StackFileSystem {
         appDirectory = Directory(_overrideDesktopDirPath!);
       } else {
         appDirectory = Directory(
-            "${Platform.environment['HOME']}/.${AppConfig.appDefaultDataDirName}");
+          "${Platform.environment['HOME']}/.${AppConfig.appDefaultDataDirName}",
+        );
       }
     } else if (Platform.isWindows) {
       if (_overrideDesktopDirPath != null) {
@@ -56,7 +57,8 @@ abstract class StackFileSystem {
       } else {
         appDirectory = await getLibraryDirectory();
         appDirectory = Directory(
-            "${appDirectory.path}/${AppConfig.appDefaultDataDirName}");
+          "${appDirectory.path}/${AppConfig.appDefaultDataDirName}",
+        );
       }
     } else if (Platform.isIOS) {
       // todo: check if we need different behaviour here
@@ -89,10 +91,37 @@ abstract class StackFileSystem {
     }
   }
 
+  // Not used in general now. See applicationFiroCacheSQLiteDirectory()
+  // static Future<Directory> applicationSQLiteDirectory() async {
+  //   final root = await applicationRootDirectory();
+  //   if (Util.isDesktop) {
+  //     final dir = Directory("${root.path}/sqlite");
+  //     if (!dir.existsSync()) {
+  //       await dir.create();
+  //     }
+  //     return dir;
+  //   } else {
+  //     return root;
+  //   }
+  // }
+
   static Future<Directory> applicationTorDirectory() async {
     final root = await applicationRootDirectory();
     if (Util.isDesktop) {
       final dir = Directory("${root.path}/tor");
+      if (!dir.existsSync()) {
+        await dir.create();
+      }
+      return dir;
+    } else {
+      return root;
+    }
+  }
+
+  static Future<Directory> applicationFiroCacheSQLiteDirectory() async {
+    final root = await applicationRootDirectory();
+    if (Util.isDesktop) {
+      final dir = Directory("${root.path}/sqlite/firo_cache");
       if (!dir.existsSync()) {
         await dir.create();
       }

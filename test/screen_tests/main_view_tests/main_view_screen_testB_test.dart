@@ -16,8 +16,8 @@ import 'package:stackwallet/services/wallets_service.dart';
 // import 'main_view_screen_testB_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
-  MockSpec<LocaleService>(returnNullOnMissingStub: true),
+  MockSpec<WalletsService>(),
+  MockSpec<LocaleService>(),
 ])
 void main() {
 //   testWidgets("tap refresh", (tester) async {

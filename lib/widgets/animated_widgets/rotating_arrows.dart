@@ -23,13 +23,13 @@ class RotatingArrowsController {
 
 class RotatingArrows extends StatefulWidget {
   const RotatingArrows({
-    Key? key,
+    super.key,
     required this.height,
     required this.width,
     this.controller,
     this.color,
     this.spinByDefault = true,
-  }) : super(key: key);
+  });
 
   final double height;
   final double width;

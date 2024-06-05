@@ -25,7 +25,7 @@ import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/rounded_container.dart';
 
 class DesktopInstallTheme extends ConsumerStatefulWidget {
-  const DesktopInstallTheme({Key? key}) : super(key: key);
+  const DesktopInstallTheme({super.key});
 
   @override
   ConsumerState<DesktopInstallTheme> createState() =>
@@ -228,7 +228,7 @@ class _DesktopInstallThemeState extends ConsumerState<DesktopInstallTheme> {
                             ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
           ),

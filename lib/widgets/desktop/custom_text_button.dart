@@ -23,11 +23,11 @@ enum ButtonHeight {
 
 class CustomTextButtonBase extends StatelessWidget {
   const CustomTextButtonBase({
-    Key? key,
+    super.key,
     this.width,
     this.height,
     this.textButton,
-  }) : super(key: key);
+  });
 
   final double? width;
   final double? height;

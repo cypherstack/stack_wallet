@@ -15,11 +15,11 @@ import '../../utilities/assets.dart';
 
 class DiceIcon extends StatelessWidget {
   const DiceIcon({
-    Key? key,
+    super.key,
     this.width = 17,
     this.height = 17,
     this.color,
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;

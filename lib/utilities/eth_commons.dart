@@ -12,7 +12,6 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:decimal/decimal.dart';
 import "package:hex/hex.dart";
-import '../wallets/crypto_currency/coins/ethereum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 class GasTracker {

@@ -1,4 +1,3 @@
-import '../../crypto_currency/coins/banano.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/intermediate/nano_currency.dart';
 import '../../isar/models/wallet_info.dart';

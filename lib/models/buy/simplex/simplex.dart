@@ -9,6 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
+
 import '../response_objects/crypto.dart';
 import '../response_objects/fiat.dart';
 import '../response_objects/order.dart';
@@ -20,7 +21,8 @@ class Simplex {
   SimplexQuote quote = SimplexQuote(
     crypto: Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''}),
     fiat: Fiat.fromJson(
-        {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
+      {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''},
+    ),
     youPayFiatPrice: Decimal.parse("100"),
     youReceiveCryptoAmount: Decimal.parse("1.0238917"),
     id: "someID",
@@ -28,20 +30,22 @@ class Simplex {
     buyWithFiat: true,
   );
   SimplexOrder order = SimplexOrder(
-      quote: SimplexQuote(
-        crypto:
-            Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''}),
-        fiat: Fiat.fromJson(
-            {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''}),
-        youPayFiatPrice: Decimal.parse("100"),
-        youReceiveCryptoAmount: Decimal.parse("1.0238917"),
-        id: "someID",
-        receivingAddress: '',
-        buyWithFiat: true,
+    quote: SimplexQuote(
+      crypto:
+          Crypto.fromJson({'ticker': 'BTC', 'name': 'Bitcoin', 'image': ''}),
+      fiat: Fiat.fromJson(
+        {'ticker': 'USD', 'name': 'United States Dollar', 'image': ''},
       ),
-      orderId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-      paymentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-      userId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
+      youPayFiatPrice: Decimal.parse("100"),
+      youReceiveCryptoAmount: Decimal.parse("1.0238917"),
+      id: "someID",
+      receivingAddress: '',
+      buyWithFiat: true,
+    ),
+    orderId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    paymentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    userId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+  );
 
   void updateSupportedCryptos(List<Crypto> newCryptos) {
     supportedCryptos = newCryptos;

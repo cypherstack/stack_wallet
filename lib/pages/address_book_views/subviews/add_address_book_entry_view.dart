@@ -12,8 +12,9 @@ import 'package:emojis/emoji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../models/isar/models/contact_entry.dart';
-import 'new_contact_address_entry_form.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
 import '../../../providers/ui/address_book_providers/contact_name_is_not_empty_state_provider.dart';
@@ -37,14 +38,14 @@ import '../../../widgets/emoji_select_sheet.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
-import 'package:uuid/uuid.dart';
+import 'new_contact_address_entry_form.dart';
 
 class AddAddressBookEntryView extends ConsumerStatefulWidget {
   const AddAddressBookEntryView({
-    Key? key,
+    super.key,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/addAddressBookEntry";
 
@@ -129,64 +130,66 @@ class _AddAddressBookEntryViewState
       builder: (child) {
         return Background(
           child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                          const Duration(milliseconds: 75));
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  "New contact",
-                  style: STextStyles.navBarTitle(context),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 10,
-                      bottom: 10,
-                      right: 10,
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                        key: const Key("addAddressBookEntryFavoriteButtonKey"),
-                        size: 36,
-                        shadows: const [],
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                        icon: SvgPicture.asset(
-                          Assets.svg.star,
-                          color: _isFavorite
-                              ? Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .favoriteStarActive
-                              : Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .favoriteStarInactive,
-                          width: 20,
-                          height: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isFavorite = !_isFavorite;
-                          });
-                        },
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 75),
+                    );
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              title: Text(
+                "New contact",
+                style: STextStyles.navBarTitle(context),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("addAddressBookEntryFavoriteButtonKey"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.star,
+                        color: _isFavorite
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .favoriteStarActive
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .favoriteStarInactive,
+                        width: 20,
+                        height: 20,
                       ),
+                      onPressed: () {
+                        setState(() {
+                          _isFavorite = !_isFavorite;
+                        });
+                      },
                     ),
                   ),
-                ],
-              ),
-              body: child),
+                ),
+              ],
+            ),
+            body: child,
+          ),
         );
       },
       child: ConditionalParent(
@@ -267,22 +270,23 @@ class _AddAddressBookEntryViewState
                                           }
 
                                           showDialog<dynamic>(
-                                              context: context,
-                                              builder: (context) {
-                                                return const DesktopDialog(
-                                                  maxHeight: 700,
-                                                  maxWidth: 600,
-                                                  child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                      left: 32,
-                                                      right: 20,
-                                                      top: 32,
-                                                      bottom: 32,
-                                                    ),
-                                                    child: EmojiSelectSheet(),
+                                            context: context,
+                                            builder: (context) {
+                                              return const DesktopDialog(
+                                                maxHeight: 700,
+                                                maxWidth: 600,
+                                                child: Padding(
+                                                  padding: EdgeInsets.only(
+                                                    left: 32,
+                                                    right: 20,
+                                                    top: 32,
+                                                    bottom: 32,
                                                   ),
-                                                );
-                                              }).then((value) {
+                                                  child: EmojiSelectSheet(),
+                                                ),
+                                              );
+                                            },
+                                          ).then((value) {
                                             if (value is Emoji) {
                                               setState(() {
                                                 _selectedEmoji = value;
@@ -313,7 +317,8 @@ class _AddAddressBookEntryViewState
                                                         _selectedEmoji!.char,
                                                         style: STextStyles
                                                             .pageTitleH1(
-                                                                context),
+                                                          context,
+                                                        ),
                                                       ),
                                               ),
                                             ),
@@ -323,19 +328,21 @@ class _AddAddressBookEntryViewState
                                                 height: 14,
                                                 width: 14,
                                                 decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            14),
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .accentColorDark),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                    14,
+                                                  ),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .accentColorDark,
+                                                ),
                                                 child: Center(
                                                   child: _selectedEmoji == null
                                                       ? SvgPicture.asset(
                                                           Assets.svg.plus,
                                                           color: Theme.of(
-                                                                  context)
+                                                            context,
+                                                          )
                                                               .extension<
                                                                   StackColors>()!
                                                               .textWhite,
@@ -345,7 +352,8 @@ class _AddAddressBookEntryViewState
                                                       : SvgPicture.asset(
                                                           Assets.svg.thickX,
                                                           color: Theme.of(
-                                                                  context)
+                                                            context,
+                                                          )
                                                               .extension<
                                                                   StackColors>()!
                                                               .textWhite,
@@ -354,7 +362,7 @@ class _AddAddressBookEntryViewState
                                                         ),
                                                 ),
                                               ),
-                                            )
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -384,13 +392,15 @@ class _AddAddressBookEntryViewState
                                               STextStyles.fieldLabel(context),
                                           suffixIcon: ref
                                                   .read(
-                                                      contactNameIsNotEmptyStateProvider
-                                                          .state)
+                                                    contactNameIsNotEmptyStateProvider
+                                                        .state,
+                                                  )
                                                   .state
                                               ? Padding(
                                                   padding:
                                                       const EdgeInsets.only(
-                                                          right: 0),
+                                                    right: 0,
+                                                  ),
                                                   child: UnconstrainedBox(
                                                     child: Row(
                                                       children: [
@@ -412,8 +422,9 @@ class _AddAddressBookEntryViewState
                                         onChanged: (newValue) {
                                           ref
                                               .read(
-                                                  contactNameIsNotEmptyStateProvider
-                                                      .state)
+                                                contactNameIsNotEmptyStateProvider
+                                                    .state,
+                                              )
                                               .state = newValue.isNotEmpty;
                                         },
                                       ),
@@ -485,11 +496,12 @@ class _AddAddressBookEntryViewState
                                               height: 14,
                                               width: 14,
                                               decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(14),
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark),
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorDark,
+                                              ),
                                               child: Center(
                                                 child: _selectedEmoji == null
                                                     ? SvgPicture.asset(
@@ -512,7 +524,7 @@ class _AddAddressBookEntryViewState
                                                       ),
                                               ),
                                             ),
-                                          )
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -537,12 +549,14 @@ class _AddAddressBookEntryViewState
                                       ).copyWith(
                                         suffixIcon: ref
                                                 .read(
-                                                    contactNameIsNotEmptyStateProvider
-                                                        .state)
+                                                  contactNameIsNotEmptyStateProvider
+                                                      .state,
+                                                )
                                                 .state
                                             ? Padding(
                                                 padding: const EdgeInsets.only(
-                                                    right: 0),
+                                                  right: 0,
+                                                ),
                                                 child: UnconstrainedBox(
                                                   child: Row(
                                                     children: [
@@ -564,8 +578,9 @@ class _AddAddressBookEntryViewState
                                       onChanged: (newValue) {
                                         ref
                                             .read(
-                                                contactNameIsNotEmptyStateProvider
-                                                    .state)
+                                              contactNameIsNotEmptyStateProvider
+                                                  .state,
+                                            )
                                             .state = newValue.isNotEmpty;
                                       },
                                     ),
@@ -659,17 +674,22 @@ class _AddAddressBookEntryViewState
                             Expanded(
                               child: Builder(
                                 builder: (context) {
-                                  bool nameExists = ref
-                                      .watch(contactNameIsNotEmptyStateProvider
-                                          .state)
+                                  final bool nameExists = ref
+                                      .watch(
+                                        contactNameIsNotEmptyStateProvider
+                                            .state,
+                                      )
                                       .state;
 
-                                  bool validForms = ref.watch(
-                                      validContactStateProvider(forms
+                                  final bool validForms = ref.watch(
+                                    validContactStateProvider(
+                                      forms
                                           .map((e) => e.id)
-                                          .toList(growable: false)));
+                                          .toList(growable: false),
+                                    ),
+                                  );
 
-                                  bool shouldEnableSave =
+                                  final bool shouldEnableSave =
                                       validForms && nameExists;
 
                                   return PrimaryButton(
@@ -684,31 +704,38 @@ class _AddAddressBookEntryViewState
                                               FocusScope.of(context).unfocus();
                                               await Future<void>.delayed(
                                                 const Duration(
-                                                    milliseconds: 75),
+                                                  milliseconds: 75,
+                                                ),
                                               );
                                             }
-                                            List<ContactAddressEntry> entries =
-                                                [];
+                                            final List<ContactAddressEntry>
+                                                entries = [];
                                             for (int i = 0;
                                                 i < forms.length;
                                                 i++) {
-                                              entries.add(ref
-                                                  .read(
+                                              entries.add(
+                                                ref
+                                                    .read(
                                                       addressEntryDataProvider(
-                                                          forms[i].id))
-                                                  .buildAddressEntry());
+                                                        forms[i].id,
+                                                      ),
+                                                    )
+                                                    .buildAddressEntry(),
+                                              );
                                             }
-                                            ContactEntry contact = ContactEntry(
+                                            final ContactEntry contact =
+                                                ContactEntry(
                                               emojiChar: _selectedEmoji?.char,
                                               name: nameController.text,
                                               addresses: entries,
                                               isFavorite: _isFavorite,
-                                               customId: const Uuid().v1(),
+                                              customId: const Uuid().v1(),
                                             );
 
                                             if (await ref
                                                 .read(
-                                                    addressBookServiceProvider)
+                                                  addressBookServiceProvider,
+                                                )
                                                 .addContact(contact)) {
                                               if (mounted) {
                                                 Navigator.of(context).pop();

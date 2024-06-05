@@ -21,9 +21,9 @@ import '../../../../utilities/text_styles.dart';
 
 class DesktopBalanceToggleButton extends ConsumerWidget {
   const DesktopBalanceToggleButton({
-    Key? key,
+    super.key,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressed;
 
@@ -74,9 +74,9 @@ class DesktopBalanceToggleButton extends ConsumerWidget {
 
 class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
   const DesktopPrivateBalanceToggleButton({
-    Key? key,
+    super.key,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressed;
 

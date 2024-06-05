@@ -341,7 +341,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                               });
                             }
                           },
-                        )
+                        ),
                       ],
                     ),
                   ),

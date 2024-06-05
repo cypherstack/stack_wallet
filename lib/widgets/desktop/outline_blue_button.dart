@@ -19,7 +19,7 @@ export 'custom_text_button.dart';
 
 class OutlineBlueButton extends StatelessWidget {
   const OutlineBlueButton({
-    Key? key,
+    super.key,
     this.width,
     this.height,
     this.label,
@@ -28,7 +28,7 @@ class OutlineBlueButton extends StatelessWidget {
     this.enabled = true,
     this.buttonHeight,
     this.iconSpacing = 10,
-  }) : super(key: key);
+  });
 
   final double? width;
   final double? height;

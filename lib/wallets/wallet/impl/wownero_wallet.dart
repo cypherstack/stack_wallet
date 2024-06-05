@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -11,7 +12,6 @@ import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/exceptions/creation_transaction_exception.dart';
-import 'package:cw_wownero/api/wallet.dart';
 import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:cw_wownero/wownero_wallet.dart';
 import 'package:decimal/decimal.dart';
@@ -20,26 +20,62 @@ import 'package:flutter_libmonero/view_model/send/output.dart'
     as wownero_output;
 import 'package:flutter_libmonero/wownero/wownero.dart' as wow_dart;
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../db/hive/db.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../../services/event_bus/events/global/tor_status_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/wownero.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/cryptonote_wallet.dart';
 import '../wallet.dart';
 import '../wallet_mixin_interfaces/cw_based_interface.dart';
-import 'package:tuple/tuple.dart';
 
 class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
-  WowneroWallet(CryptoCurrencyNetwork network) : super(Wownero(network));
+  WowneroWallet(CryptoCurrencyNetwork network) : super(Wownero(network)) {
+    final bus = GlobalEventBus.instance;
+
+    // Listen for tor status changes.
+    _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen(
+      (event) async {
+        switch (event.newStatus) {
+          case TorConnectionStatus.connecting:
+            if (!_torConnectingLock.isLocked) {
+              await _torConnectingLock.acquire();
+            }
+            _requireMutex = true;
+            break;
+
+          case TorConnectionStatus.connected:
+          case TorConnectionStatus.disconnected:
+            if (_torConnectingLock.isLocked) {
+              _torConnectingLock.release();
+            }
+            _requireMutex = false;
+            break;
+        }
+      },
+    );
+
+    // Listen for tor preference changes.
+    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
+      (event) async {
+        await updateNode();
+      },
+    );
+  }
 
   @override
   Address addressFor({required int index, int account = 0}) {
-    String address = (CwBasedInterface.cwWalletBase as WowneroWalletBase)
+    final String address = (CwBasedInterface.cwWalletBase as WowneroWalletBase)
         .getTransactionAddress(account, index);
 
     final newReceivingAddress = Address(
@@ -143,13 +179,37 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
     final node = getCurrentNode();
 
     final host = Uri.parse(node.host).host;
-    await CwBasedInterface.cwWalletBase?.connectToNode(
-      node: Node(
-        uri: "$host:${node.port}",
-        type: WalletType.wownero,
-        trusted: node.trusted ?? false,
-      ),
-    );
+    ({InternetAddress host, int port})? proxy;
+    if (prefs.useTor) {
+      proxy = TorService.sharedInstance.getProxyInfo();
+    }
+    if (_requireMutex) {
+      await _torConnectingLock.protect(() async {
+        await CwBasedInterface.cwWalletBase?.connectToNode(
+          node: Node(
+            uri: "$host:${node.port}",
+            type: WalletType.wownero,
+            trusted: node.trusted ?? false,
+            useSSL: node.useSSL,
+          ),
+          socksProxyAddress:
+              proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+        );
+      });
+    } else {
+      await CwBasedInterface.cwWalletBase?.connectToNode(
+        node: Node(
+          uri: "$host:${node.port}",
+          type: WalletType.wownero,
+          trusted: node.trusted ?? false,
+          useSSL: node.useSSL,
+        ),
+        socksProxyAddress:
+            proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+      );
+    }
+
+    return;
   }
 
   @override
@@ -199,7 +259,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
     final List<Tuple2<Transaction, Address?>> txnsData = [];
 
     if (transactions != null) {
-      for (var tx in transactions.entries) {
+      for (final tx in transactions.entries) {
         Address? address;
         TransactionType type;
         if (tx.value.direction == TransactionDirection.incoming) {
@@ -330,7 +390,9 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         //     date: DateTime.now().subtract(const Duration(
         //         days:
         //         2))); // subtract a couple days to ensure we have a buffer for SWB
-        final bufferedCreateHeight = getSeedHeightSync(wallet!.seed.trim());
+        // TODO(mrcyjanek): implement
+        const bufferedCreateHeight =
+            1; //getSeedHeightSync(wallet!.seed.trim());
 
         await info.updateRestoreHeight(
           newRestoreHeight: bufferedCreateHeight,
@@ -390,6 +452,18 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
     await updateNode();
 
+    Address? currentAddress = await getCurrentReceivingAddress();
+    if (currentAddress == null) {
+      currentAddress = addressFor(index: 0);
+      await mainDB.updateOrPutAddresses([currentAddress]);
+    }
+    if (info.cachedReceivingAddress != currentAddress.value) {
+      await info.updateReceivingAddress(
+        newAddress: currentAddress.value,
+        isar: mainDB.isar,
+      );
+    }
+
     await (CwBasedInterface.cwWalletBase as WowneroWalletBase?)?.startSync();
     unawaited(refresh());
     autoSaveTimer?.cancel();
@@ -419,7 +493,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         // clear blockchain info
         await mainDB.deleteWalletBlockchainData(walletId);
 
-        var restoreHeight =
+        final restoreHeight =
             CwBasedInterface.cwWalletBase?.walletInfo.restoreHeight;
         highestPercentCached = 0;
         await CwBasedInterface.cwWalletBase?.rescan(height: restoreHeight ?? 0);
@@ -441,7 +515,8 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
         // extract seed height from 14 word seed
         if (seedLength == 14) {
-          height = getSeedHeightSync(mnemonic.trim());
+          // TODO(mrcyjanek): implement
+          height = 1; // getSeedHeightSync(mnemonic.trim());
         } else {
           height = max(height, 0);
         }
@@ -454,7 +529,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
             .createWowneroWalletService(DB.instance.moneroWalletInfoBox);
         WalletInfo walletInfo;
         WalletCredentials credentials;
-        String name = walletId;
+        final String name = walletId;
         final dirPath =
             await pathForWalletDir(name: name, type: WalletType.wownero);
         final path = await pathForWallet(name: name, type: WalletType.wownero);
@@ -466,16 +541,17 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         );
         try {
           walletInfo = WalletInfo.external(
-              id: WalletBase.idFor(name, WalletType.wownero),
-              name: name,
-              type: WalletType.wownero,
-              isRecovery: false,
-              restoreHeight: credentials.height ?? 0,
-              date: DateTime.now(),
-              path: path,
-              dirPath: dirPath,
-              // TODO: find out what to put for address
-              address: '');
+            id: WalletBase.idFor(name, WalletType.wownero),
+            name: name,
+            type: WalletType.wownero,
+            isRecovery: false,
+            restoreHeight: credentials.height ?? 0,
+            date: DateTime.now(),
+            path: path,
+            dirPath: dirPath,
+            // TODO: find out what to put for address
+            address: '',
+          );
           credentials.walletInfo = walletInfo;
 
           final cwWalletCreationService = WalletCreationService(
@@ -519,8 +595,9 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         CwBasedInterface.cwWalletBase?.close();
       } catch (e, s) {
         Logging.instance.log(
-            "Exception rethrown from recoverFromMnemonic(): $e\n$s",
-            level: LogLevel.Error);
+          "Exception rethrown from recoverFromMnemonic(): $e\n$s",
+          level: LogLevel.Error,
+        );
         rethrow;
       }
     });
@@ -556,13 +633,13 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
             isSendAll = true;
           }
 
-          List<wownero_output.Output> outputs = [];
+          final List<wownero_output.Output> outputs = [];
           for (final recipient in txData.recipients!) {
             final output =
                 wownero_output.Output(CwBasedInterface.cwWalletBase!);
             output.address = recipient.address;
             output.sendAll = isSendAll;
-            String amountToSend = recipient.amount.decimal.toString();
+            final String amountToSend = recipient.amount.decimal.toString();
             output.setCryptoAmount(amountToSend);
             outputs.add(output);
           }
@@ -578,11 +655,13 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
                 CwBasedInterface.cwWalletBase!.createTransaction(tmp);
           });
         } catch (e, s) {
-          Logging.instance.log("Exception rethrown from prepareSend(): $e\n$s",
-              level: LogLevel.Warning);
+          Logging.instance.log(
+            "Exception rethrown from prepareSend(): $e\n$s",
+            level: LogLevel.Warning,
+          );
         }
 
-        PendingWowneroTransaction pendingWowneroTransaction =
+        final PendingWowneroTransaction pendingWowneroTransaction =
             await (awaitPendingTransaction!) as PendingWowneroTransaction;
         final realFee = Amount.fromDecimal(
           Decimal.parse(pendingWowneroTransaction.feeFormatted),
@@ -597,8 +676,10 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         throw ArgumentError("Invalid fee rate argument provided!");
       }
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from prepare send(): $e\n$s",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "Exception rethrown from prepare send(): $e\n$s",
+        level: LogLevel.Info,
+      );
 
       if (e.toString().contains("Incorrect unlocked balance")) {
         throw Exception("Insufficient balance!");
@@ -616,17 +697,22 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
       try {
         await txData.pendingWowneroTransaction!.commit();
         Logging.instance.log(
-            "transaction ${txData.pendingWowneroTransaction!.id} has been sent",
-            level: LogLevel.Info);
+          "transaction ${txData.pendingWowneroTransaction!.id} has been sent",
+          level: LogLevel.Info,
+        );
         return txData.copyWith(txid: txData.pendingWowneroTransaction!.id);
       } catch (e, s) {
-        Logging.instance.log("${info.name} wownero confirmSend: $e\n$s",
-            level: LogLevel.Error);
+        Logging.instance.log(
+          "${info.name} wownero confirmSend: $e\n$s",
+          level: LogLevel.Error,
+        );
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
-          level: LogLevel.Info);
+      Logging.instance.log(
+        "Exception rethrown from confirmSend(): $e\n$s",
+        level: LogLevel.Info,
+      );
       rethrow;
     }
   }
@@ -665,7 +751,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
               ?.entries;
       if (balanceEntries != null) {
         int bal = 0;
-        for (var element in balanceEntries) {
+        for (final element in balanceEntries) {
           bal = bal + element.value.fullBalance;
         }
         return Amount(
@@ -676,7 +762,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         final transactions =
             CwBasedInterface.cwWalletBase!.transactionHistory!.transactions;
         int transactionBalance = 0;
-        for (var tx in transactions!.entries) {
+        for (final tx in transactions!.entries) {
           if (tx.value.direction == TransactionDirection.incoming) {
             transactionBalance += tx.value.amount!;
           } else {
@@ -693,4 +779,12 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
       return info.cachedBalance.total;
     }
   }
+
+  // ============== Private ====================================================
+
+  StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
+  StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
+
+  final Mutex _torConnectingLock = Mutex();
+  bool _requireMutex = false;
 }

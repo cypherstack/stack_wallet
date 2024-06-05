@@ -319,7 +319,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                     onPressed: onBack,
                   ),
                   secondChild: SecondaryButton(
-                    label: "Send from {$AppConfig.appName}",
+                    label: "Send from ${AppConfig.appName}",
                     buttonHeight: ButtonHeight.l,
                     onPressed: sendFromStack,
                   ),

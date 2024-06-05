@@ -12,12 +12,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/trade_wallet_lookup.dart';
-import '../pinpad_views/lock_screen_view.dart';
-import '../send_view/sub_widgets/sending_transaction_dialog.dart';
-import '../wallet_view/wallet_view.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
@@ -42,7 +41,9 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
-import 'package:uuid/uuid.dart';
+import '../pinpad_views/lock_screen_view.dart';
+import '../send_view/sub_widgets/sending_transaction_dialog.dart';
+import '../wallet_view/wallet_view.dart';
 
 class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
   const ConfirmChangeNowSendView({
@@ -342,7 +343,7 @@ class _ConfirmChangeNowSendViewState
                   Text(
                     "Confirm ${ref.watch(pWalletCoin(walletId)).ticker} transaction",
                     style: STextStyles.desktopH3(context),
-                  )
+                  ),
                 ],
               ),
               Padding(
@@ -384,8 +385,11 @@ class _ConfirmChangeNowSendViewState
                         children: [
                           Text(
                             ref
-                                .watch(pAmountFormatter(
-                                    ref.watch(pWalletCoin(walletId))))
+                                .watch(
+                                  pAmountFormatter(
+                                    ref.watch(pWalletCoin(walletId)),
+                                  ),
+                                )
                                 .format(widget.txData.fee!),
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context)
@@ -461,7 +465,7 @@ class _ConfirmChangeNowSendViewState
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -574,41 +578,49 @@ class _ConfirmChangeNowSendViewState
                     builder: (child) => Row(
                       children: [
                         child,
-                        Builder(builder: (context) {
-                          final coin = ref.watch(pWalletCoin(walletId));
-                          final price = ref.watch(
+                        Builder(
+                          builder: (context) {
+                            final coin = ref.watch(pWalletCoin(walletId));
+                            final price = ref.watch(
                               priceAnd24hChangeNotifierProvider
-                                  .select((value) => value.getPrice(coin)));
-                          final amountWithoutChange =
-                              widget.txData.amountWithoutChange!;
-                          final value =
-                              (price.item1 * amountWithoutChange.decimal)
-                                  .toAmount(fractionDigits: 2);
-                          final currency = ref.watch(prefsChangeNotifierProvider
-                              .select((value) => value.currency));
-                          final locale = ref.watch(
-                            localeServiceChangeNotifierProvider.select(
-                              (value) => value.locale,
-                            ),
-                          );
+                                  .select((value) => value.getPrice(coin)),
+                            );
+                            final amountWithoutChange =
+                                widget.txData.amountWithoutChange!;
+                            final value =
+                                (price.item1 * amountWithoutChange.decimal)
+                                    .toAmount(fractionDigits: 2);
+                            final currency = ref.watch(
+                              prefsChangeNotifierProvider
+                                  .select((value) => value.currency),
+                            );
+                            final locale = ref.watch(
+                              localeServiceChangeNotifierProvider.select(
+                                (value) => value.locale,
+                              ),
+                            );
 
-                          return Text(
-                            " | ${value.fiatString(locale: locale)} $currency",
-                            style:
-                                STextStyles.desktopTextExtraExtraSmall(context)
-                                    .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle2,
-                            ),
-                          );
-                        })
+                            return Text(
+                              " | ${value.fiatString(locale: locale)} $currency",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle2,
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                     child: Text(
                       ref
-                          .watch(pAmountFormatter(
-                              ref.watch(pWalletCoin(walletId))))
+                          .watch(
+                            pAmountFormatter(
+                              ref.watch(pWalletCoin(walletId)),
+                            ),
+                          )
                           .format((widget.txData.amountWithoutChange!)),
                       style: STextStyles.itemSubtitle12(context),
                       textAlign: TextAlign.right,
@@ -637,7 +649,8 @@ class _ConfirmChangeNowSendViewState
                   Text(
                     ref
                         .watch(
-                            pAmountFormatter(ref.read(pWalletCoin(walletId))))
+                          pAmountFormatter(ref.read(pWalletCoin(walletId))),
+                        )
                         .format(
                           widget.txData.fee!,
                         ),

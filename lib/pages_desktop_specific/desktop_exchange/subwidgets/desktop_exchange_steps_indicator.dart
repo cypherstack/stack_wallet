@@ -14,8 +14,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../widgets/rounded_container.dart';
 
 class DesktopExchangeStepsIndicator extends StatelessWidget {
-  const DesktopExchangeStepsIndicator({Key? key, required this.currentStep})
-      : super(key: key);
+  const DesktopExchangeStepsIndicator({super.key, required this.currentStep});
 
   final int currentStep;
 

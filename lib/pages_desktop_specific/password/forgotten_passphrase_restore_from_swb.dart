@@ -15,13 +15,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../app_config.dart';
 import '../../db/hive/db.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import '../../pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import '../../pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
-import 'create_password_view.dart';
 import '../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -38,10 +39,10 @@ import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/stack_text_field.dart';
-import 'package:tuple/tuple.dart';
+import 'create_password_view.dart';
 
 class ForgottenPassphraseRestoreFromSWB extends ConsumerStatefulWidget {
-  const ForgottenPassphraseRestoreFromSWB({Key? key}) : super(key: key);
+  const ForgottenPassphraseRestoreFromSWB({super.key});
 
   static const String routeName = "/forgottenPassphraseRestoreFromSWB";
 
@@ -155,7 +156,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Restoring {$AppConfig.appName}",
+                        "Restoring ${AppConfig.appName}",
                         style: STextStyles.desktopH3(context),
                       ),
                     ],
@@ -359,7 +360,8 @@ class _ForgottenPassphraseRestoreFromSWBState
                               ),
                               GestureDetector(
                                 key: const Key(
-                                    "restoreFromFilePasswordFieldShowPasswordButtonKey"),
+                                  "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                ),
                                 onTap: () async {
                                   setState(() {
                                     hidePassword = !hidePassword;

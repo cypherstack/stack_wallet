@@ -10,9 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../pinpad_views/lock_screen_view.dart';
-import 'delete_wallet_warning_view.dart';
-import 'rename_wallet_view.dart';
+
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -22,12 +20,17 @@ import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
+import '../../../pinpad_views/lock_screen_view.dart';
+import 'delete_wallet_warning_view.dart';
+import 'lelantus_settings_view.dart';
+import 'rename_wallet_view.dart';
+import 'spark_info.dart';
 
 class WalletSettingsWalletSettingsView extends ConsumerWidget {
   const WalletSettingsWalletSettingsView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/walletSettingsWalletSettings";
 
@@ -173,6 +176,73 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         children: [
                           Text(
                             "Delete wallet",
+                            style: STextStyles.titleBold12(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                RoundedWhiteContainer(
+                  padding: const EdgeInsets.all(0),
+                  child: RawMaterialButton(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        LelantusSettingsView.routeName,
+                        arguments: walletId,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 20,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Lelantus settings",
+                            style: STextStyles.titleBold12(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                RoundedWhiteContainer(
+                  padding: const EdgeInsets.all(0),
+                  child: RawMaterialButton(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        SparkInfoView.routeName,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 20,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Spark info",
                             style: STextStyles.titleBold12(context),
                           ),
                         ],

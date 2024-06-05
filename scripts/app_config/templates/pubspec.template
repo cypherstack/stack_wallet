@@ -33,7 +33,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 439727b278250c61a291f5335c298c0f2d952517
+      ref: 7a11d0cadf8c7a6a5d5144dab18cef9536aa5943
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
@@ -46,6 +46,11 @@ dependencies:
 
   cw_core:
     path: ./crypto_plugins/flutter_libmonero/cw_core
+
+  monero:
+    git:
+      url: https://www.github.com/mrcyjanek/monero.dart
+      ref: 6a17a405a1a260fa228b2f4fc94044088a4335ac
 
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
@@ -178,6 +183,8 @@ dependencies:
       ref: a83e375678eb22fe544dc125d29bbec0fb833882
       path: packages/solana
   calendar_date_picker2: ^1.0.2
+  sqlite3: ^2.4.3
+  sqlite3_flutter_libs: ^0.5.22
 
 dev_dependencies:
   flutter_test:
@@ -203,6 +210,11 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+
+  monero:
+    git:
+      url: https://www.github.com/mrcyjanek/monero.dart
+      ref: 6a17a405a1a260fa228b2f4fc94044088a4335ac
 
   bip47:
     git:
@@ -231,8 +243,8 @@ dependency_overrides:
 
   file_picker:
     git:
-      url: https://github.com/muttsu-623/flutter_file_picker.git
-      ref: f0930d9fa79d347b2a0e25a7de4f5a4a88a9a907
+      url: https://github.com/cypherstack/flutter_file_picker.git
+      ref: 9abc0930081c9859884e073bd25ab88b2114d9e7
 
   crypto: 3.0.2
   analyzer: ^5.2.0

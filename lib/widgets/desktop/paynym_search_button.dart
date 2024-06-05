@@ -16,9 +16,9 @@ import '../rounded_container.dart';
 
 class PaynymSearchButton extends StatefulWidget {
   const PaynymSearchButton({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
 

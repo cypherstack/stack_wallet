@@ -13,8 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../notifications/show_flush_bar.dart';
-import 'wallet_keys_desktop_popup.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
@@ -29,12 +29,13 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/stack_text_field.dart';
+import 'wallet_keys_desktop_popup.dart';
 
 class UnlockWalletKeysDesktop extends ConsumerStatefulWidget {
   const UnlockWalletKeysDesktop({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -218,7 +219,8 @@ class _UnlockWalletKeysDesktopState
                         children: [
                           GestureDetector(
                             key: const Key(
-                                "enterUnlockWalletKeysDesktopFieldShowPasswordButtonKey"),
+                              "enterUnlockWalletKeysDesktopFieldShowPasswordButtonKey",
+                            ),
                             onTap: () async {
                               setState(() {
                                 hidePassword = !hidePassword;
@@ -305,7 +307,8 @@ class _UnlockWalletKeysDesktopState
                             );
 
                             await Future<void>.delayed(
-                                const Duration(seconds: 1));
+                              const Duration(seconds: 1),
+                            );
 
                             final verified = await ref
                                 .read(storageCryptoHandlerProvider)
@@ -349,7 +352,8 @@ class _UnlockWalletKeysDesktopState
                               Navigator.of(context, rootNavigator: true).pop();
 
                               await Future<void>.delayed(
-                                  const Duration(milliseconds: 300));
+                                const Duration(milliseconds: 300),
+                              );
 
                               unawaited(
                                 showFloatingFlushBar(

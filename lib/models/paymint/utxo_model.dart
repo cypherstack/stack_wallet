@@ -35,8 +35,8 @@ class UtxoData {
   });
 
   factory UtxoData.fromJson(Map<String, dynamic> json) {
-    var outputList = json['outputArray'] as List;
-    List<UtxoObject> utxoList = outputList
+    final outputList = json['outputArray'] as List;
+    final List<UtxoObject> utxoList = outputList
         .map((output) => UtxoObject.fromJson(output as Map<String, dynamic>))
         .toList();
     final String totalUserCurr = json['total_user_currency'] as String? ?? "";
@@ -104,7 +104,7 @@ class UtxoObject {
 
   @override
   String toString() {
-    String utxo =
+    final String utxo =
         "{txid: $txid, vout: $vout, value: $value, fiat: $fiatWorth, blocked: $blocked, status: $status, is_coinbase: $isCoinbase}";
 
     return utxo;

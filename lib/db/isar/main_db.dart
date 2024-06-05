@@ -11,6 +11,8 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../exceptions/main_db/main_db_exception.dart';
 import '../../models/isar/models/block_explorer.dart';
 import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -26,7 +28,6 @@ import '../../wallets/isar/models/spark_coin.dart';
 import '../../wallets/isar/models/token_wallet_info.dart';
 import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/isar/models/wallet_info_meta.dart';
-import 'package:tuple/tuple.dart';
 
 part '../queries/queries.dart';
 
@@ -149,8 +150,9 @@ class MainDB {
   }
 
   // tx block explorers
-  TransactionBlockExplorer? getTransactionBlockExplorer(
-      {required CryptoCurrency cryptoCurrency}) {
+  TransactionBlockExplorer? getTransactionBlockExplorer({
+    required CryptoCurrency cryptoCurrency,
+  }) {
     return isar.transactionBlockExplorers
         .where()
         .tickerEqualTo(cryptoCurrency.ticker)

@@ -132,8 +132,9 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                               localeServiceChangeNotifierProvider
                                   .select((value) => value.locale),
                             ),
-                            coin: Bitcoin(CryptoCurrencyNetwork
-                                .main), // some sane default
+                            coin: Bitcoin(
+                              CryptoCurrencyNetwork.main,
+                            ), // some sane default
                             maxDecimals: 8, // some sane default
                           );
                           rateString = "1 ${sendCurrency.ticker.toUpperCase()} "
@@ -222,14 +223,14 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
 class _ProviderOption extends ConsumerStatefulWidget {
   const _ProviderOption({
-    Key? key,
+    super.key,
     required this.exchange,
     required this.estimate,
     required this.rateString,
     this.kycRating,
     this.loadingString = false,
     this.rateColor,
-  }) : super(key: key);
+  });
 
   final Exchange exchange;
   final Estimate? estimate;

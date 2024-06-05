@@ -20,7 +20,7 @@ import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/toggle.dart';
 
 class DesktopManageThemesDialog extends ConsumerStatefulWidget {
-  const DesktopManageThemesDialog({Key? key}) : super(key: key);
+  const DesktopManageThemesDialog({super.key});
 
   @override
   ConsumerState<DesktopManageThemesDialog> createState() =>

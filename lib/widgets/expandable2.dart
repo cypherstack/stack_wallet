@@ -24,7 +24,7 @@ class Expandable2Controller {
 
 class Expandable2 extends StatefulWidget {
   const Expandable2({
-    Key? key,
+    super.key,
     required this.header,
     required this.children,
     this.background = Colors.white,
@@ -36,7 +36,7 @@ class Expandable2 extends StatefulWidget {
     this.onExpandChanged,
     this.controller,
     this.expandOverride,
-  }) : super(key: key);
+  });
 
   final Widget header;
   final List<Widget> children;

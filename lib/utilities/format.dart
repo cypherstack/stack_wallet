@@ -113,7 +113,7 @@ abstract class Format {
 
   static String uint8listToString(Uint8List list) {
     String result = "";
-    for (var n in list) {
+    for (final n in list) {
       result +=
           (n.toRadixString(16).length == 1 ? "0" : "") + n.toRadixString(16);
     }
@@ -121,7 +121,7 @@ abstract class Format {
   }
 
   static Uint8List stringToUint8List(String string) {
-    List<int> list = [];
+    final List<int> list = [];
     for (var leg = 0; leg < string.length; leg = leg + 2) {
       list.add(int.parse(string.substring(leg, leg + 2), radix: 16));
     }

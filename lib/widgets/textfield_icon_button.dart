@@ -12,14 +12,14 @@ import 'package:flutter/material.dart';
 
 class TextFieldIconButton extends StatefulWidget {
   const TextFieldIconButton({
-    Key? key,
+    super.key,
     this.width = 40,
     this.height = 40,
     this.onTap,
     required this.child,
     this.color = Colors.transparent,
     this.semanticsLabel = "Button",
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;
@@ -66,7 +66,7 @@ class _TextFieldIconButtonState extends State<TextFieldIconButton> {
               ),
             ),
           ),
-        )
+        ),
       ),
     );
   }

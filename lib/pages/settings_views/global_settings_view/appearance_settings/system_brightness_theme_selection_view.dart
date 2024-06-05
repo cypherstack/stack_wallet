@@ -10,7 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'sub_widgets/theme_option.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../themes/theme_providers.dart';
@@ -19,10 +20,10 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
+import 'sub_widgets/theme_option.dart';
 
 class SystemBrightnessThemeSelectionView extends ConsumerStatefulWidget {
-  const SystemBrightnessThemeSelectionView({Key? key}) : super(key: key);
+  const SystemBrightnessThemeSelectionView({super.key});
 
   static const String routeName = "/chooseSystemTheme";
 
@@ -153,7 +154,8 @@ class _SystemBrightnessThemeSelectionViewState
                                           if (newValue == value &&
                                               ref
                                                       .read(
-                                                          prefsChangeNotifierProvider)
+                                                        prefsChangeNotifierProvider,
+                                                      )
                                                       .systemBrightnessLightThemeId !=
                                                   value) {
                                             _setTheme(
@@ -167,9 +169,11 @@ class _SystemBrightnessThemeSelectionViewState
                                         value:
                                             installedThemeIdNames[i ~/ 2].item1,
                                         groupValue: ref.watch(
-                                            prefsChangeNotifierProvider.select(
-                                                (value) => value
-                                                    .systemBrightnessLightThemeId)),
+                                          prefsChangeNotifierProvider.select(
+                                            (value) => value
+                                                .systemBrightnessLightThemeId,
+                                          ),
+                                        ),
                                       ),
                             ],
                           ),
@@ -215,7 +219,8 @@ class _SystemBrightnessThemeSelectionViewState
                                           if (newValue == value &&
                                               ref
                                                       .read(
-                                                          prefsChangeNotifierProvider)
+                                                        prefsChangeNotifierProvider,
+                                                      )
                                                       .systemBrightnessDarkThemeId !=
                                                   value) {
                                             _setTheme(
@@ -229,9 +234,11 @@ class _SystemBrightnessThemeSelectionViewState
                                         value:
                                             installedThemeIdNames[i ~/ 2].item1,
                                         groupValue: ref.watch(
-                                            prefsChangeNotifierProvider.select(
-                                                (value) => value
-                                                    .systemBrightnessDarkThemeId)),
+                                          prefsChangeNotifierProvider.select(
+                                            (value) => value
+                                                .systemBrightnessDarkThemeId,
+                                          ),
+                                        ),
                                       ),
                             ],
                           ),

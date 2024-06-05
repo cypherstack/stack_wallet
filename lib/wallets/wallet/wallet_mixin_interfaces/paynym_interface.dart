@@ -24,7 +24,6 @@ import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/format.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/dogecoin.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/paynym_currency_interface.dart';
 import '../../models/tx_data.dart';

@@ -12,10 +12,8 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'sub_widgets/token_summary.dart';
-import 'sub_widgets/token_transaction_list_widget.dart';
-import 'token_contract_details_view.dart';
-import '../wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -26,16 +24,19 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/icon_widgets/eth_token_icon.dart';
-import 'package:tuple/tuple.dart';
+import '../wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
+import 'sub_widgets/token_summary.dart';
+import 'sub_widgets/token_transaction_list_widget.dart';
+import 'token_contract_details_view.dart';
 
 /// [eventBus] should only be set during testing
 class TokenView extends ConsumerStatefulWidget {
   const TokenView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.popPrevious = false,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/token";
 
@@ -112,8 +113,10 @@ class _TokenViewState extends ConsumerState<TokenView> {
                       ),
                       Flexible(
                         child: Text(
-                          ref.watch(pCurrentTokenWallet
-                              .select((value) => value!.tokenContract.name)),
+                          ref.watch(
+                            pCurrentTokenWallet
+                                .select((value) => value!.tokenContract.name),
+                          ),
                           style: STextStyles.navBarTitle(context),
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -141,8 +144,10 @@ class _TokenViewState extends ConsumerState<TokenView> {
                       Navigator.of(context).pushNamed(
                         TokenContractDetailsView.routeName,
                         arguments: Tuple2(
-                          ref.watch(pCurrentTokenWallet
-                              .select((value) => value!.tokenContract.address)),
+                          ref.watch(
+                            pCurrentTokenWallet.select(
+                                (value) => value!.tokenContract.address),
+                          ),
                           widget.walletId,
                         ),
                       );

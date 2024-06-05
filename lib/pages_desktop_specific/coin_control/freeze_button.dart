@@ -19,9 +19,9 @@ import '../../widgets/desktop/primary_button.dart';
 
 class FreezeButton extends StatefulWidget {
   const FreezeButton({
-    Key? key,
+    super.key,
     required this.selectedUTXOs,
-  }) : super(key: key);
+  });
 
   final Set<UtxoRowData> selectedUTXOs;
 
@@ -51,7 +51,7 @@ class _FreezeButtonState extends State<FreezeButton> {
   }
 
   Future<void> _onFreezeStateButtonPressed() async {
-    List<UTXO> utxosToUpdate = [];
+    final List<UTXO> utxosToUpdate = [];
     switch (_freezeLabelCache) {
       case "Freeze":
         for (final e in widget.selectedUTXOs) {
@@ -95,7 +95,7 @@ class _FreezeButtonState extends State<FreezeButton> {
 
   @override
   void initState() {
-    List<Stream<UTXO?>> streams = [];
+    final List<Stream<UTXO?>> streams = [];
     for (final data in widget.selectedUTXOs) {
       final stream = MainDB.instance.watchUTXO(id: data.utxoId);
 

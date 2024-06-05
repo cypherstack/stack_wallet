@@ -129,11 +129,11 @@ class ProgressAndSuccessController {
 
 class ProgressAndSuccess extends StatefulWidget {
   const ProgressAndSuccess({
-    Key? key,
+    super.key,
     this.height = 24,
     this.width = 24,
     required this.controller,
-  }) : super(key: key);
+  });
 
   final double height;
   final double width;

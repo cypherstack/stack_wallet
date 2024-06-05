@@ -17,7 +17,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class CreateBackupInfoView extends StatelessWidget {
-  const CreateBackupInfoView({Key? key}) : super(key: key);
+  const CreateBackupInfoView({super.key});
 
   static const String routeName = "/createBackupInfo";
 

@@ -14,14 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../notifications/show_flush_bar.dart';
-import 'add_custom_token_view.dart';
-import 'sub_widgets/add_token_list.dart';
-import 'sub_widgets/add_token_list_element.dart';
-import 'sub_widgets/add_token_text.dart';
-import '../../home_view/home_view.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../providers/global/price_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
@@ -46,14 +42,19 @@ import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import '../../home_view/home_view.dart';
+import 'add_custom_token_view.dart';
+import 'sub_widgets/add_token_list.dart';
+import 'sub_widgets/add_token_list_element.dart';
+import 'sub_widgets/add_token_text.dart';
 
 class EditWalletTokensView extends ConsumerStatefulWidget {
   const EditWalletTokensView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.contractsToMarkSelected,
     this.isDesktopPopup = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final List<String>? contractsToMarkSelected;
@@ -178,7 +179,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     if (contracts.isEmpty) {
       contracts.addAll(DefaultTokens.list);
       MainDB.instance.putEthContracts(contracts).then(
-          (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
+            (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
+          );
     }
 
     tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
@@ -241,7 +243,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                             "Add custom token",
                             style:
                                 STextStyles.desktopButtonSmallSecondaryEnabled(
-                                    context),
+                              context,
+                            ),
                           ),
                         ),
                       ),

@@ -227,8 +227,9 @@ class MajesticBankAPI {
       return ExchangeResponse(value: result);
     } catch (e, s) {
       Logging.instance.log(
-          "calculateOrder $fromCurrency-$receiveCurrency exception: $e\n$s",
-          level: LogLevel.Error);
+        "calculateOrder $fromCurrency-$receiveCurrency exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -342,9 +343,12 @@ class MajesticBankAPI {
   Future<ExchangeResponse<MBOrderStatus>> trackOrder({
     required String orderId,
   }) async {
-    final uri = _buildUri(endpoint: "track", params: {
-      "trx": orderId,
-    });
+    final uri = _buildUri(
+      endpoint: "track",
+      params: {
+        "trx": orderId,
+      },
+    );
 
     try {
       final jsonObject = await _makeGetRequest(uri);

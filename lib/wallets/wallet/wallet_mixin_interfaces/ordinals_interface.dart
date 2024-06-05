@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+
 import '../../../dto/ordinals/inscription_data.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../models/isar/ordinal.dart';
@@ -37,7 +38,8 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
               .addressProperty()
               .findAll();
       final inscriptions = await _getInscriptionDataFromAddresses(
-          uniqueAddresses.cast<String>());
+        uniqueAddresses.cast<String>(),
+      );
 
       final ords = inscriptions
           .map((e) => Ordinal.fromInscriptionData(e, walletId))
@@ -111,11 +113,12 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
 
   // ===================== Private =============================================
   Future<List<InscriptionData>> _getInscriptionDataFromAddresses(
-      List<String> addresses) async {
-    List<InscriptionData> allInscriptions = [];
-    for (String address in addresses) {
+    List<String> addresses,
+  ) async {
+    final List<InscriptionData> allInscriptions = [];
+    for (final String address in addresses) {
       try {
-        var inscriptions =
+        final inscriptions =
             await _litescribeAPI.getInscriptionsByAddress(address);
         allInscriptions.addAll(inscriptions);
       } catch (e) {

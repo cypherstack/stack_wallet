@@ -20,9 +20,9 @@ import '../../../../widgets/stack_dialog.dart';
 
 class RestoringDialog extends StatefulWidget {
   const RestoringDialog({
-    Key? key,
+    super.key,
     required this.onCancel,
-  }) : super(key: key);
+  });
 
   final Future<void> Function() onCancel;
 

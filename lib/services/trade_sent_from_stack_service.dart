@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../db/hive/db.dart';
 import '../models/trade_wallet_lookup.dart';
 
@@ -56,9 +57,10 @@ class TradeSentFromStackService extends ChangeNotifier {
     required TradeWalletLookup tradeWalletLookup,
   }) async {
     await DB.instance.put(
-        boxName: DB.boxNameTradeLookup,
-        key: tradeWalletLookup.uuid,
-        value: tradeWalletLookup);
+      boxName: DB.boxNameTradeLookup,
+      key: tradeWalletLookup.uuid,
+      value: tradeWalletLookup,
+    );
     notifyListeners();
   }
 
@@ -66,6 +68,8 @@ class TradeSentFromStackService extends ChangeNotifier {
     required TradeWalletLookup tradeWalletLookup,
   }) async {
     await DB.instance.delete<TradeWalletLookup>(
-        key: tradeWalletLookup.uuid, boxName: DB.boxNameTradeLookup);
+      key: tradeWalletLookup.uuid,
+      boxName: DB.boxNameTradeLookup,
+    );
   }
 }

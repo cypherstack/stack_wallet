@@ -12,9 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
@@ -23,7 +24,6 @@ import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -37,7 +37,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../../widgets/wallet_card.dart';
-import 'package:tuple/tuple.dart';
+import '../add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 
 class WalletsOverview extends ConsumerStatefulWidget {
   const WalletsOverview({
@@ -296,7 +296,8 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                       if (isDesktop) {
                         return DesktopExpandingWalletCard(
                           key: Key(
-                              "${element.item1.info.name}_${element.item2.map((e) => e.address).join()}"),
+                            "${element.item1.info.name}_${element.item2.map((e) => e.address).join()}",
+                          ),
                           data: element,
                           navigatorState: widget.navigatorState!,
                         );

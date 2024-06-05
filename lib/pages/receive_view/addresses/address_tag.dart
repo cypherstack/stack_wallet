@@ -15,7 +15,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../widgets/rounded_container.dart';
 
 class AddressTag extends StatelessWidget {
-  const AddressTag({Key? key, required this.tag}) : super(key: key);
+  const AddressTag({super.key, required this.tag});
 
   final String tag;
 

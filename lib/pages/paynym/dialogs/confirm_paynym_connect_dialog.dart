@@ -122,7 +122,7 @@ class ConfirmPaynymConnectDialog extends ConsumerWidget {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       );

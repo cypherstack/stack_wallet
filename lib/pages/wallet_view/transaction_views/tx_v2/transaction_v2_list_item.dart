@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/isar_models.dart';
-import '../../../exchange_view/trade_details_view.dart';
-import 'fusion_tx_group_card.dart';
-import 'transaction_v2_card.dart';
 import '../../../../providers/global/trades_service_provider.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
@@ -17,7 +16,9 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/trade_card.dart';
-import 'package:tuple/tuple.dart';
+import '../../../exchange_view/trade_details_view.dart';
+import 'fusion_tx_group_card.dart';
+import 'transaction_v2_card.dart';
 
 class TxListItem extends ConsumerWidget {
   const TxListItem({
@@ -56,10 +57,12 @@ class TxListItem extends ConsumerWidget {
                 transaction: _tx,
               ),
               TradeCard(
-                key: Key(_tx.txid +
-                    _tx.type.name +
-                    _tx.hashCode.toString() +
-                    trade.uuid), //
+                key: Key(
+                  _tx.txid +
+                      _tx.type.name +
+                      _tx.hashCode.toString() +
+                      trade.uuid,
+                ), //
                 trade: trade,
                 onTap: () async {
                   if (Util.isDesktop) {
@@ -136,7 +139,7 @@ class TxListItem extends ConsumerWidget {
                     );
                   }
                 },
-              )
+              ),
             ],
           ),
         );

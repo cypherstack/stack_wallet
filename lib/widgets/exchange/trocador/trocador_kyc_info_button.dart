@@ -15,9 +15,9 @@ import '../../trocador_kyc_rating_info.dart';
 
 class TrocadorKYCInfoButton extends StatelessWidget {
   const TrocadorKYCInfoButton({
-    Key? key,
+    super.key,
     required this.kycType,
-  }) : super(key: key);
+  });
 
   final TrocadorKYCType kycType;
 

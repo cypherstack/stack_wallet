@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
 import '../../../../models/balance.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../providers/db/main_db_provider.dart';
@@ -53,7 +54,10 @@ final pTokenWalletInfo = Provider.family<TokenWalletInfo,
 final pTokenBalance =
     Provider.family<Balance, ({String walletId, String contractAddress})>(
   (ref, data) {
-    return ref.watch(_twiProvider(data).select(
-        (value) => (value.value as TokenWalletInfo).getCachedBalance()));
+    return ref.watch(
+      _twiProvider(data).select(
+        (value) => (value.value as TokenWalletInfo).getCachedBalance(),
+      ),
+    );
   },
 );

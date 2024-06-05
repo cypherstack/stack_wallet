@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../pages_desktop_specific/cashfusion/sub_widgets/fusion_progress.dart';
 import '../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import '../../providers/global/prefs_provider.dart';
@@ -244,7 +245,8 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-          "FusionProgressUIState was already set for ${widget.walletId}")) {
+            "FusionProgressUIState was already set for ${widget.walletId}",
+          )) {
         rethrow;
       }
     }

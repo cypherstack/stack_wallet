@@ -18,9 +18,9 @@ import '../../../../utilities/text_styles.dart';
 
 class WalletKeysButton extends StatelessWidget {
   const WalletKeysButton({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -44,7 +44,7 @@ class WalletKeysButton extends StatelessWidget {
                     name: UnlockWalletKeysDesktop.routeName,
                     arguments: walletId,
                   ),
-                )
+                ),
               ];
             },
           ),
@@ -71,7 +71,7 @@ class WalletKeysButton extends StatelessWidget {
             Text(
               "Wallet keys",
               style: STextStyles.desktopMenuItemSelected(context),
-            )
+            ),
           ],
         ),
       ),

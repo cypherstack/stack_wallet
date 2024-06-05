@@ -12,13 +12,13 @@ import 'package:flutter/cupertino.dart';
 
 class ProgressBar extends StatelessWidget {
   const ProgressBar({
-    Key? key,
+    super.key,
     required this.width,
     required this.height,
     required this.fillColor,
     required this.backgroundColor,
     required this.percent,
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;
@@ -49,7 +49,7 @@ class ProgressBar extends StatelessWidget {
                 color: fillColor,
                 borderRadius: BorderRadius.circular(height / 2),
               ),
-            )
+            ),
           ],
         ),
       ),

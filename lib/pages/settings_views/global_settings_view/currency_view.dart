@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../providers/global/base_currencies_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
@@ -30,7 +31,7 @@ import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 
 class BaseCurrencySettingsView extends ConsumerStatefulWidget {
-  const BaseCurrencySettingsView({Key? key}) : super(key: key);
+  const BaseCurrencySettingsView({super.key});
 
   static const String routeName = "/baseCurrencySettings";
 
@@ -155,7 +156,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 75));
+                      const Duration(milliseconds: 75),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -329,7 +331,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                           child: Padding(
                             padding: const EdgeInsets.all(4),
                             key: Key(
-                                "currencySelect_${currenciesWithoutSelected[index]}"),
+                              "currencySelect_${currenciesWithoutSelected[index]}",
+                            ),
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
                               color: currenciesWithoutSelected[index] == current
@@ -385,29 +388,34 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                                         index] ==
                                                     current)
                                                 ? const Key(
-                                                    "selectedCurrencySettingsCurrencyText")
+                                                    "selectedCurrencySettingsCurrencyText",
+                                                  )
                                                 : null,
                                             style: STextStyles.largeMedium14(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                           const SizedBox(
                                             height: 2,
                                           ),
                                           Text(
-                                            ref.watch(baseCurrenciesProvider
-                                                        .select((value) =>
-                                                            value.map))[
-                                                    currenciesWithoutSelected[
-                                                        index]] ??
+                                            ref.watch(
+                                                  baseCurrenciesProvider.select(
+                                                    (value) => value.map,
+                                                  ),
+                                                )[currenciesWithoutSelected[
+                                                    index]] ??
                                                 "",
                                             key: (currenciesWithoutSelected[
                                                         index] ==
                                                     current)
                                                 ? const Key(
-                                                    "selectedCurrencySettingsCurrencyTextDescription")
+                                                    "selectedCurrencySettingsCurrencyTextDescription",
+                                                  )
                                                 : null,
                                             style: STextStyles.itemSubtitle(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                         ],
                                       ),

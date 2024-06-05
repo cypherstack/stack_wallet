@@ -44,7 +44,7 @@ class Wownero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
-    return wownero_wallet.validateAddress(address);
+    return wownero_wallet.addressValid(address);
   }
 
   @override

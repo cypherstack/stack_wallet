@@ -16,18 +16,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
+
+import '../../../db/sqlite/firo_cache.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/isar_models.dart';
 import '../../../pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import '../../../pages/token_view/my_tokens_view.dart';
 import '../../../pages/wallet_view/sub_widgets/transactions_list.dart';
 import '../../../pages/wallet_view/transaction_views/all_transactions_view.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
-import 'sub_widgets/desktop_wallet_features.dart';
-import 'sub_widgets/desktop_wallet_summary.dart';
-import 'sub_widgets/my_wallet.dart';
-import 'sub_widgets/network_info_button.dart';
-import 'sub_widgets/wallet_keys_button.dart';
-import 'sub_widgets/wallet_options_button.dart';
+import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/active_wallet_provider.dart';
 import '../../../providers/global/auto_swb_service_provider.dart';
 import '../../../providers/providers.dart';
@@ -40,22 +40,31 @@ import '../../../utilities/assets.dart';
 import '../../../utilities/enums/backup_frequency_type.dart';
 import '../../../utilities/enums/sync_type_enum.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../utilities/wallet_tools.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
+import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/hover_text_field.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../coin_control/desktop_coin_control_use_dialog.dart';
+import 'sub_widgets/desktop_wallet_features.dart';
+import 'sub_widgets/desktop_wallet_summary.dart';
+import 'sub_widgets/my_wallet.dart';
+import 'sub_widgets/network_info_button.dart';
+import 'sub_widgets/wallet_keys_button.dart';
+import 'sub_widgets/wallet_options_button.dart';
 
 /// [eventBus] should only be set during testing
 class DesktopWalletView extends ConsumerStatefulWidget {
   const DesktopWalletView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/desktopWalletView";
 
@@ -127,8 +136,12 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     eventBus =
         widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) =>
-        ref.read(currentWalletIdProvider.notifier).state = wallet.walletId);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+        ref.read(desktopUseUTXOs.notifier).state = {};
+      },
+    );
 
     if (!wallet.shouldAutoSync) {
       //   // enable auto sync if it wasn't enabled when loading wallet
@@ -205,17 +218,89 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
               ),
               if (kDebugMode) const Spacer(),
               if (kDebugMode)
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Debug Height:",
+                    Row(
+                      children: [
+                        const Text(
+                          "dbgHeight: ",
+                        ),
+                        const SizedBox(
+                          width: 2,
+                        ),
+                        Text(
+                          ref
+                              .watch(pWalletChainHeight(widget.walletId))
+                              .toString(),
+                        ),
+                      ],
                     ),
-                    const SizedBox(
-                      width: 2,
+                    Row(
+                      children: [
+                        const Text(
+                          "dbgTxCount: ",
+                        ),
+                        const SizedBox(
+                          width: 2,
+                        ),
+                        Text(
+                          wallet.isarTransactionVersion == 2
+                              ? ref
+                                  .watch(mainDBProvider)
+                                  .isar
+                                  .transactionV2s
+                                  .where()
+                                  .walletIdEqualTo(widget.walletId)
+                                  .countSync()
+                                  .toString()
+                              : ref
+                                  .watch(mainDBProvider)
+                                  .isar
+                                  .transactions
+                                  .where()
+                                  .walletIdEqualTo(widget.walletId)
+                                  .countSync()
+                                  .toString(),
+                        ),
+                      ],
                     ),
-                    Text(
-                      ref.watch(pWalletChainHeight(widget.walletId)).toString(),
-                    ),
+                    if (wallet.isarTransactionVersion == 2 &&
+                        wallet is FiroWallet)
+                      Row(
+                        children: [
+                          const Text(
+                            "dbgBal: ",
+                          ),
+                          const SizedBox(
+                            width: 2,
+                          ),
+                          Text(
+                            WalletDevTools.checkFiroTransactionTally(
+                              widget.walletId,
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (wallet.isarTransactionVersion == 2 &&
+                        wallet is FiroWallet)
+                      Row(
+                        children: [
+                          const Text(
+                            "sparkCache: ",
+                          ),
+                          const SizedBox(
+                            width: 2,
+                          ),
+                          FutureBuilder(
+                            future: FiroCacheCoordinator.getSparkCacheSize(),
+                            builder: (_, snapshot) => Text(
+                              snapshot.data ?? "",
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               const Spacer(),

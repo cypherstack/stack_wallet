@@ -27,7 +27,7 @@ import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/stack_dialog.dart';
 
 class InstallThemeFromFileDialog extends ConsumerStatefulWidget {
-  const InstallThemeFromFileDialog({Key? key}) : super(key: key);
+  const InstallThemeFromFileDialog({super.key});
 
   @override
   ConsumerState<InstallThemeFromFileDialog> createState() =>
@@ -189,7 +189,7 @@ class _InstallThemeFromFileDialogState
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

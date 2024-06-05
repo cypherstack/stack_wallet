@@ -12,11 +12,11 @@ import 'package:flutter/material.dart';
 
 class ConditionalParent extends StatelessWidget {
   const ConditionalParent({
-    Key? key,
+    super.key,
     required this.condition,
     required this.builder,
     required this.child,
-  }) : super(key: key);
+  });
 
   final bool condition;
   final Widget Function(Widget) builder;
@@ -34,12 +34,12 @@ class ConditionalParent extends StatelessWidget {
 
 class BranchedParent extends StatelessWidget {
   const BranchedParent({
-    Key? key,
+    super.key,
     required this.condition,
     required this.conditionBranchBuilder,
     required this.otherBranchBuilder,
     required this.children,
-  }) : super(key: key);
+  });
 
   final bool condition;
   final Widget Function(List<Widget>) conditionBranchBuilder;

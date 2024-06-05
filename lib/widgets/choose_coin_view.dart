@@ -148,7 +148,7 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
                                       style: STextStyles.titleBold12(context),
                                     ),
                                   ],
-                                )
+                                ),
                               ],
                             ),
                           ),

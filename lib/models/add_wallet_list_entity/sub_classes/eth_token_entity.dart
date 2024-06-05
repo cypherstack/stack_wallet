@@ -10,7 +10,6 @@
 
 import '../add_wallet_list_entity.dart';
 import '../../isar/models/ethereum/eth_contract.dart';
-import '../../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 class EthTokenEntity extends AddWalletListEntity {

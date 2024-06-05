@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'wallet_syncing_options_view.dart';
+
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -23,9 +23,10 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import 'wallet_syncing_options_view.dart';
 
 class SyncingOptionsView extends ConsumerWidget {
-  const SyncingOptionsView({Key? key}) : super(key: key);
+  const SyncingOptionsView({super.key});
 
   static const String routeName = "/syncingOptions";
 
@@ -314,14 +315,18 @@ class SyncingOptionsView extends ConsumerWidget {
                     ),
                   ),
                 ),
-                if (ref.watch(prefsChangeNotifierProvider
-                        .select((value) => value.syncType)) !=
+                if (ref.watch(
+                      prefsChangeNotifierProvider
+                          .select((value) => value.syncType),
+                    ) !=
                     SyncingType.selectedWalletsAtStartup)
                   const SizedBox(
                     height: 12,
                   ),
-                if (ref.watch(prefsChangeNotifierProvider
-                        .select((value) => value.syncType)) ==
+                if (ref.watch(
+                      prefsChangeNotifierProvider
+                          .select((value) => value.syncType),
+                    ) ==
                     SyncingType.selectedWalletsAtStartup)
                   Container(
                     color: Colors.transparent,
@@ -351,7 +356,8 @@ class SyncingOptionsView extends ConsumerWidget {
                               onPressed: () {
                                 !isDesktop
                                     ? Navigator.of(context).pushNamed(
-                                        WalletSyncingOptionsView.routeName)
+                                        WalletSyncingOptionsView.routeName,
+                                      )
                                     : showDialog(
                                         context: context,
                                         useSafeArea: false,
@@ -370,7 +376,8 @@ class SyncingOptionsView extends ConsumerWidget {
                                                     Padding(
                                                       padding:
                                                           const EdgeInsets.all(
-                                                              32),
+                                                        32,
+                                                      ),
                                                       child: Text(
                                                         "Select wallets to sync",
                                                         style: STextStyles
@@ -389,7 +396,8 @@ class SyncingOptionsView extends ConsumerWidget {
                                               ],
                                             ),
                                           );
-                                        });
+                                        },
+                                      );
                               },
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

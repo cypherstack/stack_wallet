@@ -2,9 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../frost_route_generator.dart';
-import '../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
-import '../../../wallet_view/wallet_view.dart';
 import '../../../../pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -22,6 +21,8 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/expandable.dart';
 import '../../../../widgets/stack_dialog.dart';
+import '../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import '../../../wallet_view/wallet_view.dart';
 
 class FrostSendStep4 extends ConsumerStatefulWidget {
   const FrostSendStep4({super.key});
@@ -165,8 +166,9 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
           DetailItem(
             title: "Total",
             detail: ref.watch(pAmountFormatter(cryptoCurrency)).format(
-                ref.watch(pFrostTxData)!.fee! +
-                    recipients.map((e) => e.amount).reduce((v, e) => v += e)),
+                  ref.watch(pFrostTxData)!.fee! +
+                      recipients.map((e) => e.amount).reduce((v, e) => v += e),
+                ),
             horizontal: true,
           ),
           const SizedBox(

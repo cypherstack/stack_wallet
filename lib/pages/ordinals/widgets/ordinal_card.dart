@@ -9,10 +9,10 @@ import '../../../widgets/rounded_white_container.dart';
 
 class OrdinalCard extends StatelessWidget {
   const OrdinalCard({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.ordinal,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Ordinal ordinal;

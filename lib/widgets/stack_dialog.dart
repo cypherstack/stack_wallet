@@ -15,11 +15,11 @@ import '../utilities/util.dart';
 
 class StackDialogBase extends StatelessWidget {
   const StackDialogBase({
-    Key? key,
+    super.key,
     this.child,
     this.padding = const EdgeInsets.all(24),
     this.keyboardPaddingAmount = 0,
-  }) : super(key: key);
+  });
 
   final EdgeInsets padding;
   final Widget? child;
@@ -67,13 +67,13 @@ class StackDialogBase extends StatelessWidget {
 
 class StackDialog extends StatelessWidget {
   const StackDialog({
-    Key? key,
+    super.key,
     this.leftButton,
     this.rightButton,
     this.icon,
     required this.title,
     this.message,
-  }) : super(key: key);
+  });
 
   final Widget? leftButton;
   final Widget? rightButton;
@@ -132,7 +132,7 @@ class StackDialog extends StatelessWidget {
                     ? const Spacer()
                     : Expanded(child: rightButton!),
               ],
-            )
+            ),
         ],
       ),
     );
@@ -141,14 +141,14 @@ class StackDialog extends StatelessWidget {
 
 class StackOkDialog extends StatelessWidget {
   const StackOkDialog({
-    Key? key,
+    super.key,
     this.leftButton,
     this.onOkPressed,
     this.icon,
     required this.title,
     this.message,
     this.desktopPopRootNavigator = false,
-  }) : super(key: key);
+  });
 
   final bool desktopPopRootNavigator;
   final Widget? leftButton;
@@ -228,7 +228,7 @@ class StackOkDialog extends StatelessWidget {
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

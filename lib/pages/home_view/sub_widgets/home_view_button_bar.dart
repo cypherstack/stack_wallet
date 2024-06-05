@@ -15,7 +15,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 
 class HomeViewButtonBar extends ConsumerStatefulWidget {
-  const HomeViewButtonBar({Key? key}) : super(key: key);
+  const HomeViewButtonBar({super.key});
 
   @override
   ConsumerState<HomeViewButtonBar> createState() => _HomeViewButtonBarState();

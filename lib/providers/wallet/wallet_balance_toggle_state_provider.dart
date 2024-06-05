@@ -9,8 +9,10 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../utilities/enums/wallet_balance_toggle_state.dart';
 
 final walletBalanceToggleStateProvider =
     StateProvider.autoDispose<WalletBalanceToggleState>(
-        (ref) => WalletBalanceToggleState.full);
+  (ref) => WalletBalanceToggleState.full,
+);

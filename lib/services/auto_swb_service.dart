@@ -13,11 +13,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:tuple/tuple.dart';
+
 import '../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
-import 'package:tuple/tuple.dart';
 
 enum AutoSWBStatus {
   idle,
@@ -42,8 +43,9 @@ class AutoSWBService extends ChangeNotifier {
   Future<void> doBackup() async {
     if (_status == AutoSWBStatus.backingUp) {
       Logging.instance.log(
-          "AutoSWBService attempted to run doBackup() while a backup is in progress!",
-          level: LogLevel.Warning);
+        "AutoSWBService attempted to run doBackup() while a backup is in progress!",
+        level: LogLevel.Warning,
+      );
       return;
     }
     Logging.instance
@@ -61,8 +63,9 @@ class AutoSWBService extends ChangeNotifier {
       final autoBackupDirectoryPath = Prefs.instance.autoBackupLocation;
       if (autoBackupDirectoryPath == null) {
         Logging.instance.log(
-            "AutoSWBService attempted to run doBackup() when no auto backup directory was set!",
-            level: LogLevel.Error);
+          "AutoSWBService attempted to run doBackup() when no auto backup directory was set!",
+          level: LogLevel.Error,
+        );
         // set error backup status and notify listeners
         _status = AutoSWBStatus.error;
         notifyListeners();
@@ -70,7 +73,8 @@ class AutoSWBService extends ChangeNotifier {
       }
 
       final json = await SWB.createStackWalletJSON(
-          secureStorage: secureStorageInterface);
+        secureStorage: secureStorageInterface,
+      );
       final jsonString = jsonEncode(json);
 
       final adkString =
@@ -85,7 +89,11 @@ class AutoSWBService extends ChangeNotifier {
           createAutoBackupFilename(autoBackupDirectoryPath, now);
 
       final result = await SWB.encryptStackWalletWithADK(
-          fileToSave, adkString!, jsonString, adkVersion);
+        fileToSave,
+        adkString!,
+        jsonString,
+        adkVersion,
+      );
 
       if (!result) {
         throw Exception("stack auto backup service failed to create a backup");
@@ -99,7 +107,7 @@ class AutoSWBService extends ChangeNotifier {
       Logging.instance
           .log("AutoSWBService.doBackup() succeeded", level: LogLevel.Info);
     } on Exception catch (e, s) {
-      String err = getErrorMessageFromSWBException(e);
+      final String err = getErrorMessageFromSWBException(e);
       Logging.instance.log("$err\n$s", level: LogLevel.Error);
       // set error backup status and notify listeners
       _status = AutoSWBStatus.error;
@@ -124,13 +132,13 @@ class AutoSWBService extends ChangeNotifier {
     final List<Tuple2<DateTime, FileSystemEntity>> files = [];
 
     for (final file in dir.listSync()) {
-      String fileName = file.uri.pathSegments.last;
+      final String fileName = file.uri.pathSegments.last;
       // check that its a swb auto backup file
       if (fileName.startsWith("stackautobackup_") &&
           fileName.endsWith(".swb")) {
         // get date from filename
-        int a = fileName.indexOf("_") + 1;
-        int b = fileName.indexOf(".swb");
+        final int a = fileName.indexOf("_") + 1;
+        final int b = fileName.indexOf(".swb");
         final dateString = fileName.substring(a, b);
 
         // split date components
@@ -148,8 +156,9 @@ class AutoSWBService extends ChangeNotifier {
     }
 
     // sort from newest to oldest
-    files.sort((a, b) =>
-        b.item1.millisecondsSinceEpoch - a.item1.millisecondsSinceEpoch);
+    files.sort(
+      (a, b) => b.item1.millisecondsSinceEpoch - a.item1.millisecondsSinceEpoch,
+    );
 
     // delete any older backups if there are more than the number we want to keep
     while (files.length > numberToKeep) {

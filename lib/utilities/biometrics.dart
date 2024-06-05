@@ -10,9 +10,9 @@
 
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:local_auth/auth_strings.dart';
 import 'package:local_auth/local_auth.dart';
+
 import 'logger.dart';
 
 class Biometrics {
@@ -28,14 +28,16 @@ class Biometrics {
   }) async {
     if (!(Platform.isIOS || Platform.isAndroid)) {
       Logging.instance.log(
-          "Tried to use Biometrics.authenticate() on a platform that is not Android or iOS! ...returning false.",
-          level: LogLevel.Error);
+        "Tried to use Biometrics.authenticate() on a platform that is not Android or iOS! ...returning false.",
+        level: LogLevel.Error,
+      );
       return false;
     }
     if (integrationTestFlag) {
       Logging.instance.log(
-          "Tried to use Biometrics.authenticate() during integration testing. Returning false.",
-          level: LogLevel.Warning);
+        "Tried to use Biometrics.authenticate() during integration testing. Returning false.",
+        level: LogLevel.Warning,
+      );
       return false;
     }
 
@@ -49,7 +51,7 @@ class Biometrics {
     // debugPrint("isDeviceSupported: $isDeviceSupported");
 
     if (canCheckBiometrics && isDeviceSupported) {
-      List<BiometricType> availableSystems =
+      final List<BiometricType> availableSystems =
           await localAuth.getAvailableBiometrics();
 
       //todo: check if print needed
@@ -59,7 +61,7 @@ class Biometrics {
       if (Platform.isIOS) {
         if (availableSystems.contains(BiometricType.face)) {
           try {
-            bool didAuthenticate = await localAuth.authenticate(
+            final bool didAuthenticate = await localAuth.authenticate(
               biometricOnly: true,
               localizedReason: localizedReason,
               stickyAuth: true,
@@ -71,12 +73,13 @@ class Biometrics {
             }
           } catch (e) {
             Logging.instance.log(
-                "local_auth exception caught in Biometrics.authenticate(), e: $e",
-                level: LogLevel.Error);
+              "local_auth exception caught in Biometrics.authenticate(), e: $e",
+              level: LogLevel.Error,
+            );
           }
         } else if (availableSystems.contains(BiometricType.fingerprint)) {
           try {
-            bool didAuthenticate = await localAuth.authenticate(
+            final bool didAuthenticate = await localAuth.authenticate(
               biometricOnly: true,
               localizedReason: localizedReason,
               stickyAuth: true,
@@ -88,14 +91,15 @@ class Biometrics {
             }
           } catch (e) {
             Logging.instance.log(
-                "local_auth exception caught in Biometrics.authenticate(), e: $e",
-                level: LogLevel.Error);
+              "local_auth exception caught in Biometrics.authenticate(), e: $e",
+              level: LogLevel.Error,
+            );
           }
         }
       } else if (Platform.isAndroid) {
         if (availableSystems.contains(BiometricType.fingerprint)) {
           try {
-            bool didAuthenticate = await localAuth.authenticate(
+            final bool didAuthenticate = await localAuth.authenticate(
               biometricOnly: true,
               localizedReason: localizedReason,
               stickyAuth: true,
@@ -111,8 +115,9 @@ class Biometrics {
             }
           } catch (e) {
             Logging.instance.log(
-                "local_auth exception caught in Biometrics.authenticate(), e: $e",
-                level: LogLevel.Error);
+              "local_auth exception caught in Biometrics.authenticate(), e: $e",
+              level: LogLevel.Error,
+            );
           }
         }
       }

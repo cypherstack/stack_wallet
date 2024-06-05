@@ -13,7 +13,7 @@ import '../../../../widgets/animated_widgets/rotating_arrows.dart';
 import '../../../../widgets/stack_dialog.dart';
 
 class CancellingTransactionProgressDialog extends StatefulWidget {
-  const CancellingTransactionProgressDialog({Key? key}) : super(key: key);
+  const CancellingTransactionProgressDialog({super.key});
 
   @override
   State<CancellingTransactionProgressDialog> createState() =>

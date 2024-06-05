@@ -1,4 +1,5 @@
-import 'package:cw_monero/api/wallet.dart' as monero_wallet;
+import 'package:monero/monero.dart' as monero;
+
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
@@ -44,7 +45,12 @@ class Monero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
-    return monero_wallet.validateAddress(address);
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return monero.Wallet_addressValid(address, 0);
+      default:
+        throw Exception("Unsupported network: $network");
+    }
   }
 
   @override

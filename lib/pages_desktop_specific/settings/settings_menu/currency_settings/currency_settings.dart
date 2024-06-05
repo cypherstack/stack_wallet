@@ -20,7 +20,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class CurrencySettings extends ConsumerStatefulWidget {
-  const CurrencySettings({Key? key}) : super(key: key);
+  const CurrencySettings({super.key});
 
   static const String routeName = "/settingsMenuCurrency";
 

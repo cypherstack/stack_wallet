@@ -13,7 +13,7 @@ abstract final class TezosRpcAPI {
     required String address,
   }) async {
     try {
-      String balanceCall =
+      final String balanceCall =
           "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/context/contracts/$address/balance";
 
       final response = await _client.get(

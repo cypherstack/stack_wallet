@@ -42,11 +42,11 @@ import 'step_3_view.dart';
 
 class Step2View extends ConsumerStatefulWidget {
   const Step2View({
-    Key? key,
+    super.key,
     required this.model,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/exchangeStep2";
 

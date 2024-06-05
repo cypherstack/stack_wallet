@@ -10,8 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../../notifications/show_flush_bar.dart';
-import '../security_view.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/secure_store_provider.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -21,11 +21,12 @@ import '../../../../../utilities/text_styles.dart';
 import '../../../../../widgets/background.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/custom_pin_put/custom_pin_put.dart';
+import '../security_view.dart';
 
 class ChangePinView extends ConsumerStatefulWidget {
   const ChangePinView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/changePin";
 
@@ -207,8 +208,9 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                     onSubmit: (String pin) async {
                       if (_pinPutController1.text == _pinPutController2.text) {
                         // This should never fail as we are overwriting the existing pin
-                        assert((await _secureStore.read(key: "stack_pin")) !=
-                            null);
+                        assert(
+                          (await _secureStore.read(key: "stack_pin")) != null,
+                        );
                         await _secureStore.write(key: "stack_pin", value: pin);
 
                         showFloatingFlushBar(
@@ -219,7 +221,8 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                         );
 
                         await Future<void>.delayed(
-                            const Duration(milliseconds: 1200));
+                          const Duration(milliseconds: 1200),
+                        );
 
                         if (mounted) {
                           Navigator.of(context).popUntil(

@@ -19,9 +19,9 @@ import 'conditional_parent.dart';
 
 class Background extends ConsumerWidget {
   const Background({
-    Key? key,
+    super.key,
     required this.child,
-  }) : super(key: key);
+  });
 
   final Widget child;
 

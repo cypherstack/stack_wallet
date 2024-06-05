@@ -20,6 +20,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
@@ -66,7 +67,8 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
           final dir = Directory("${Platform.environment['HOME']}");
           if (!dir.existsSync()) {
             throw Exception(
-                "Home dir not found while trying to open filepicker on QR image save");
+              "Home dir not found while trying to open filepicker on QR image save",
+            );
           }
           final path = await FilePicker.platform.saveFile(
             fileName: "qrcode.png",
@@ -105,8 +107,10 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
-            text: "Receive URI QR Code");
+        await Share.shareFiles(
+          ["${tempDir.path}/qrcode.png"],
+          text: "Receive URI QR Code",
+        );
       }
     } catch (e) {
       //todo: comeback to this
@@ -194,7 +198,7 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

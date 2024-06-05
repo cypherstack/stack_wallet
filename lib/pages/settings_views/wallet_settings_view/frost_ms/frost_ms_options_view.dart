@@ -10,10 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../frost_route_generator.dart';
-import '../../sub_widgets/settings_list_button.dart';
-import 'frost_participants_view.dart';
-import 'initiate_resharing/initiate_resharing_view.dart';
 import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
@@ -31,6 +29,9 @@ import '../../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../../widgets/frost_scaffold.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../sub_widgets/settings_list_button.dart';
+import 'frost_participants_view.dart';
+import 'initiate_resharing/initiate_resharing_view.dart';
 
 class FrostMSWalletOptionsView extends ConsumerWidget {
   const FrostMSWalletOptionsView({
@@ -64,20 +65,21 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
         condition: !Util.isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                title: Text(
-                  "FROST Multisig options",
-                  style: STextStyles.navBarTitle(context),
-                ),
+            backgroundColor:
+                Theme.of(context).extension<StackColors>()!.background,
+            appBar: AppBar(
+              leading: AppBarBackButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
               ),
-              body: child),
+              title: Text(
+                "FROST Multisig options",
+                style: STextStyles.navBarTitle(context),
+              ),
+            ),
+            body: child,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.only(

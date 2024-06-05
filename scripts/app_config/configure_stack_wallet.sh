@@ -40,28 +40,34 @@ const _suffix = "Wallet";
 const _appDataDirName = "stackwallet";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
+const Set<AppFeature> _features = {
+  AppFeature.themeSelection,
+  AppFeature.buy,
+  AppFeature.swap
+};
+
 const ({String light, String dark})? _appIconAsset = null;
 
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoin(CryptoCurrencyNetwork.main),
-  BitcoinFrost(CryptoCurrencyNetwork.main),
-  Litecoin(CryptoCurrencyNetwork.main),
+  Monero(CryptoCurrencyNetwork.main),
+  Banano(CryptoCurrencyNetwork.main),
   Bitcoincash(CryptoCurrencyNetwork.main),
+  BitcoinFrost(CryptoCurrencyNetwork.main),
   Dogecoin(CryptoCurrencyNetwork.main),
-  Epiccash(CryptoCurrencyNetwork.main),
   Ecash(CryptoCurrencyNetwork.main),
+  Epiccash(CryptoCurrencyNetwork.main),
   Ethereum(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
-  Monero(CryptoCurrencyNetwork.main),
+  Litecoin(CryptoCurrencyNetwork.main),
+  Nano(CryptoCurrencyNetwork.main),
+  Namecoin(CryptoCurrencyNetwork.main),
   Particl(CryptoCurrencyNetwork.main),
   Peercoin(CryptoCurrencyNetwork.main),
   Solana(CryptoCurrencyNetwork.main),
   Stellar(CryptoCurrencyNetwork.main),
   Tezos(CryptoCurrencyNetwork.main),
   Wownero(CryptoCurrencyNetwork.main),
-  Namecoin(CryptoCurrencyNetwork.main),
-  Nano(CryptoCurrencyNetwork.main),
-  Banano(CryptoCurrencyNetwork.main),
   Bitcoin(CryptoCurrencyNetwork.test),
   BitcoinFrost(CryptoCurrencyNetwork.test),
   Litecoin(CryptoCurrencyNetwork.test),

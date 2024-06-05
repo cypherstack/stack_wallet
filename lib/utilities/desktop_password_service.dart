@@ -10,6 +10,7 @@
 
 import 'package:hive/hive.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
+
 import 'logger.dart';
 
 const String kBoxNameDesktopData = "desktopData";
@@ -44,7 +45,8 @@ class DPS {
   StorageCryptoHandler get handler {
     if (_handler == null) {
       throw Exception(
-          "DPS: attempted to access handler without proper authentication");
+        "DPS: attempted to access handler without proper authentication",
+      );
     }
     return _handler!;
   }
@@ -76,7 +78,8 @@ class DPS {
   Future<void> initFromExisting(String passphrase) async {
     if (_handler != null) {
       throw Exception(
-          "DPS: attempted to re initialize with existing passphrase");
+        "DPS: attempted to re initialize with existing passphrase",
+      );
     }
 
     try {
@@ -84,7 +87,8 @@ class DPS {
 
       if (keyBlob == null) {
         throw Exception(
-            "DPS: failed to find keyBlob while attempting to initialize with existing passphrase");
+          "DPS: failed to find keyBlob while attempting to initialize with existing passphrase",
+        );
       }
       final blobVersion = await _getStoredKeyBlobVersion();
       _handler = await StorageCryptoHandler.fromExisting(

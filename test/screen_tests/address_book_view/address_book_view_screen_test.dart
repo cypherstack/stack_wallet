@@ -13,7 +13,7 @@ import 'package:stackwallet/services/address_book_service.dart';
 // import 'address_book_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<AddressBookService>(returnNullOnMissingStub: true),
+  MockSpec<AddressBookService>(),
 ])
 void main() {
 //   testWidgets("AddressBookView builds correctly", (tester) async {

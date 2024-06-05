@@ -12,13 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
-import 'address_tag.dart';
-import '../../wallet_view/sub_widgets/no_transactions_found.dart';
-import '../../wallet_view/transaction_views/transaction_details_view.dart';
-import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -36,6 +33,10 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/transaction_card.dart';
+import '../../wallet_view/sub_widgets/no_transactions_found.dart';
+import '../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
+import 'address_tag.dart';
 
 class AddressDetailsView extends ConsumerStatefulWidget {
   const AddressDetailsView({
@@ -212,8 +213,8 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                             Text(
                               "Address details",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textSubtitle1,
@@ -244,8 +245,8 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                             Text(
                               "Transaction history",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textSubtitle1,
@@ -476,10 +477,10 @@ class _AddressDetailsTxList extends StatelessWidget {
 
 class _AddressDetailsTxV2List extends ConsumerWidget {
   const _AddressDetailsTxV2List({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.address,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Address address;
@@ -491,37 +492,38 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
 
     final query =
         ref.watch(mainDBProvider).isar.transactionV2s.buildQuery<TransactionV2>(
-            whereClauses: [
-              IndexWhereClause.equalTo(
-                indexName: 'walletId',
-                value: [walletId],
-              )
-            ],
-            filter: FilterGroup.and([
-              if (walletTxFilter != null) walletTxFilter,
-              FilterGroup.or([
-                ObjectFilter(
-                  property: 'inputs',
-                  filter: FilterCondition.contains(
-                    property: "addresses",
-                    value: address.value,
-                  ),
+              whereClauses: [
+                IndexWhereClause.equalTo(
+                  indexName: 'walletId',
+                  value: [walletId],
                 ),
-                ObjectFilter(
-                  property: 'outputs',
-                  filter: FilterCondition.contains(
-                    property: "addresses",
-                    value: address.value,
+              ],
+              filter: FilterGroup.and([
+                if (walletTxFilter != null) walletTxFilter,
+                FilterGroup.or([
+                  ObjectFilter(
+                    property: 'inputs',
+                    filter: FilterCondition.contains(
+                      property: "addresses",
+                      value: address.value,
+                    ),
                   ),
-                )
+                  ObjectFilter(
+                    property: 'outputs',
+                    filter: FilterCondition.contains(
+                      property: "addresses",
+                      value: address.value,
+                    ),
+                  ),
+                ]),
               ]),
-            ]),
-            sortBy: [
-              const SortProperty(
-                property: "timestamp",
-                sort: Sort.desc,
-              ),
-            ]);
+              sortBy: [
+                const SortProperty(
+                  property: "timestamp",
+                  sort: Sort.desc,
+                ),
+              ],
+            );
 
     final count = query.countSync();
 
@@ -561,9 +563,9 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
 
 class _Div extends StatelessWidget {
   const _Div({
-    Key? key,
+    super.key,
     required this.height,
-  }) : super(key: key);
+  });
 
   final double height;
 
@@ -585,9 +587,9 @@ class _Div extends StatelessWidget {
 
 class _Tags extends StatelessWidget {
   const _Tags({
-    Key? key,
+    super.key,
     required this.tags,
-  }) : super(key: key);
+  });
 
   final List<String>? tags;
 
@@ -643,11 +645,11 @@ class _Tags extends StatelessWidget {
 
 class _Item extends StatelessWidget {
   const _Item({
-    Key? key,
+    super.key,
     required this.title,
     required this.data,
     required this.button,
-  }) : super(key: key);
+  });
 
   final String title;
   final String data;

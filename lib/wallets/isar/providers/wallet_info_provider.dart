@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
 import '../../../models/balance.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -48,7 +49,8 @@ final pWalletBalanceSecondary = Provider.family<Balance, String>(
   (ref, walletId) {
     return ref.watch(
       _wiProvider(walletId).select(
-          (value) => (value.value as WalletInfo).cachedBalanceSecondary),
+        (value) => (value.value as WalletInfo).cachedBalanceSecondary,
+      ),
     );
   },
 );
@@ -92,7 +94,8 @@ final pWalletReceivingAddress = Provider.family<String, String>(
   (ref, walletId) {
     return ref.watch(
       _wiProvider(walletId).select(
-          (value) => (value.value as WalletInfo).cachedReceivingAddress),
+        (value) => (value.value as WalletInfo).cachedReceivingAddress,
+      ),
     );
   },
 );
@@ -101,7 +104,8 @@ final pWalletTokenAddresses = Provider.family<List<String>, String>(
   (ref, walletId) {
     return ref.watch(
       _wiProvider(walletId).select(
-          (value) => (value.value as WalletInfo).tokenContractAddresses),
+        (value) => (value.value as WalletInfo).tokenContractAddresses,
+      ),
     );
   },
 );

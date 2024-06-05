@@ -222,7 +222,7 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
                 _buttonLock = false;
               }
             },
-          )
+          ),
         ],
       ),
     );

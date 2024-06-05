@@ -22,15 +22,9 @@ import 'package:flutter_libmonero/monero/monero.dart' as libxmr;
 import 'package:flutter_libmonero/wownero/wownero.dart' as libwow;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:wakelock/wakelock.dart';
+
 import '../../../notifications/show_flush_bar.dart';
-import '../add_token_view/edit_wallet_tokens_view.dart';
-import 'confirm_recovery_dialog.dart';
-import 'sub_widgets/restore_failed_dialog.dart';
-import 'sub_widgets/restore_succeeded_dialog.dart';
-import 'sub_widgets/restoring_dialog.dart';
-import '../select_wallet_for_token_view.dart';
-import '../verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
-import '../../home_view/home_view.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/db/main_db_provider.dart';
@@ -48,11 +42,6 @@ import '../../../utilities/enums/form_input_status_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../../wallets/crypto_currency/coins/firo.dart';
-import '../../../wallets/crypto_currency/coins/monero.dart';
-import '../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
@@ -69,7 +58,14 @@ import '../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../widgets/table_view/table_view.dart';
 import '../../../widgets/table_view/table_view_cell.dart';
 import '../../../widgets/table_view/table_view_row.dart';
-import 'package:wakelock/wakelock.dart';
+import '../../home_view/home_view.dart';
+import '../add_token_view/edit_wallet_tokens_view.dart';
+import '../select_wallet_for_token_view.dart';
+import '../verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
+import 'confirm_recovery_dialog.dart';
+import 'sub_widgets/restore_failed_dialog.dart';
+import 'sub_widgets/restore_succeeded_dialog.dart';
+import 'sub_widgets/restoring_dialog.dart';
 
 class RestoreWalletView extends ConsumerStatefulWidget {
   const RestoreWalletView({
@@ -79,6 +75,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.seedWordsLength,
     required this.mnemonicPassphrase,
     required this.restoreFromDate,
+    this.enableLelantusScanning = false,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
   });
@@ -90,6 +87,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
   final String mnemonicPassphrase;
   final int seedWordsLength;
   final DateTime restoreFromDate;
+  final bool enableLelantusScanning;
 
   final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
@@ -261,6 +259,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         otherDataJsonString = jsonEncode(
           {
             WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
+            WalletInfoKeys.enableLelantusScanning:
+                widget.enableLelantusScanning,
           },
         );
       }

@@ -8,9 +8,13 @@
  *
  */
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/wallets_provider.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -18,17 +22,19 @@ import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../wallets/crypto_currency/coins/banano.dart';
 import '../../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/rounded_container.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.onPaynymPressed,
     required this.onCoinControlPressed,
@@ -37,7 +43,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onOrdinalsPressed,
     required this.onMonkeyPressed,
     required this.onFusionPressed,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final VoidCallback? onPaynymPressed;
@@ -53,6 +59,9 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
 }
 
 class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
+  bool _enableLelantusScanning = false;
+  bool _isUpdatingLelantusScanning = false; // Mutex.
+
   @override
   Widget build(BuildContext context) {
     final wallet = ref.watch(
@@ -60,6 +69,14 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
         (value) => value.getWallet(widget.walletId),
       ),
     );
+
+    // Parse otherDataJsonString to get the enableLelantusScanning value.
+    if (wallet.info.otherDataJsonString != null) {
+      final otherDataJson = json.decode(wallet.info.otherDataJsonString!);
+      _enableLelantusScanning =
+          otherDataJson[WalletInfoKeys.enableLelantusScanning] as bool? ??
+              false;
+    }
 
     final coinControlPrefEnabled = ref.watch(
       prefsChangeNotifierProvider.select(
@@ -135,6 +152,65 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               detail: "Decentralized mixing protocol",
               iconAsset: Assets.svg.cashFusion,
               onPressed: () => widget.onFusionPressed?.call(),
+            ),
+          if (wallet.info.coin is Firo)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 6,
+                horizontal: 32,
+              ),
+              child: RoundedContainer(
+                color: Colors.transparent,
+                borderColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                child: Row(
+                  children: [
+                    SizedBox(width: 3),
+                    SizedBox(
+                      height: 20,
+                      width: 40,
+                      child: DraggableSwitchButton(
+                        isOn: _enableLelantusScanning,
+                        onValueChanged: (newValue) async {
+                          if (_isUpdatingLelantusScanning) return;
+                          _isUpdatingLelantusScanning = true; // Lock mutex.
+
+                          // Toggle enableLelantusScanning in wallet info.
+                          await wallet.info.updateOtherData(
+                            newEntries: {
+                              WalletInfoKeys.enableLelantusScanning:
+                                  !_enableLelantusScanning,
+                            },
+                            isar: ref.read(mainDBProvider).isar,
+                          );
+
+                          setState(() {
+                            _enableLelantusScanning = !_enableLelantusScanning;
+                            _isUpdatingLelantusScanning = false; // Free mutex.
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Scan for Lelantus transactions",
+                          style: STextStyles.w600_20(context),
+                        ),
+                        // Text(
+                        //   detail,
+                        //   style: STextStyles.desktopTextExtraExtraSmall(context),
+                        // ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
           const SizedBox(
             height: 28,

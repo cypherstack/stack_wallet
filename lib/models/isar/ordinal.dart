@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../dto/ordinals/inscription_data.dart';
 import 'models/isar_models.dart';
@@ -11,10 +12,14 @@ class Ordinal {
 
   final String walletId;
 
-  @Index(unique: true, replace: true, composite: [
-    CompositeIndex("utxoTXID"),
-    CompositeIndex("utxoVOUT"),
-  ])
+  @Index(
+    unique: true,
+    replace: true,
+    composite: [
+      CompositeIndex("utxoTXID"),
+      CompositeIndex("utxoVOUT"),
+    ],
+  )
   final String inscriptionId;
 
   final int inscriptionNumber;

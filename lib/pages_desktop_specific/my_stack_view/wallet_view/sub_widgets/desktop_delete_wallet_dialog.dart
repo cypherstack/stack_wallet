@@ -13,8 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../notifications/show_flush_bar.dart';
-import 'desktop_attention_delete_wallet.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -26,12 +26,13 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/stack_text_field.dart';
+import 'desktop_attention_delete_wallet.dart';
 
 class DesktopDeleteWalletDialog extends ConsumerStatefulWidget {
   const DesktopDeleteWalletDialog({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -54,10 +55,10 @@ class _DesktopDeleteWalletDialog
     unawaited(
       showDialog(
         context: context,
-        builder: (context) => Column(
+        builder: (context) => const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: const [
+          children: [
             LoadingIndicator(
               width: 200,
               height: 200,
@@ -190,7 +191,8 @@ class _DesktopDeleteWalletDialog
                               ),
                               GestureDetector(
                                 key: const Key(
-                                    "desktopDeleteWalletShowPasswordButtonKey"),
+                                  "desktopDeleteWalletShowPasswordButtonKey",
+                                ),
                                 onTap: () async {
                                   setState(() {
                                     hidePassword = !hidePassword;
@@ -252,7 +254,7 @@ class _DesktopDeleteWalletDialog
                           : null,
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),

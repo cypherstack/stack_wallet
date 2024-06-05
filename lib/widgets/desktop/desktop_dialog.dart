@@ -13,11 +13,11 @@ import '../../themes/stack_colors.dart';
 
 class DesktopDialog extends StatelessWidget {
   const DesktopDialog({
-    Key? key,
+    super.key,
     this.child,
     this.maxWidth = 641,
     this.maxHeight = 474,
-  }) : super(key: key);
+  });
 
   final Widget? child;
   final double maxWidth;

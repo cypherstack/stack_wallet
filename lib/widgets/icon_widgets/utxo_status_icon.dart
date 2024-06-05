@@ -22,14 +22,14 @@ enum UTXOStatusIconStatus {
 
 class UTXOStatusIcon extends StatelessWidget {
   const UTXOStatusIcon({
-    Key? key,
+    super.key,
     required this.width,
     required this.height,
     required this.blocked,
     required this.selected,
     required this.status,
     required this.background,
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;

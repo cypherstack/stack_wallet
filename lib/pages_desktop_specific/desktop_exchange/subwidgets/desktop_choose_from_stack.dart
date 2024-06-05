@@ -11,6 +11,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
@@ -18,7 +20,6 @@ import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
@@ -28,7 +29,6 @@ import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 import '../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
-import 'package:tuple/tuple.dart';
 
 class DesktopChooseFromStack extends ConsumerStatefulWidget {
   const DesktopChooseFromStack({
@@ -194,8 +194,10 @@ class _DesktopChooseFromStackState
                   height: 5,
                 ),
                 itemBuilder: (context, index) {
-                  final wallet = ref.watch(pWallets
-                      .select((value) => value.getWallet(walletIds[index])));
+                  final wallet = ref.watch(
+                    pWallets
+                        .select((value) => value.getWallet(walletIds[index])),
+                  );
 
                   return RoundedWhiteContainer(
                     borderColor:
@@ -216,8 +218,8 @@ class _DesktopChooseFromStackState
                             Text(
                               wallet.info.name,
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textDark,
@@ -275,7 +277,7 @@ class _DesktopChooseFromStackState
               ),
             ),
           ],
-        )
+        ),
       ],
     );
   }

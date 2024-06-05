@@ -37,7 +37,6 @@ import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/eth/token_balance_provider.dart';

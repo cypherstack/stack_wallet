@@ -40,7 +40,7 @@ class LelantusCoin {
 
   @override
   String toString() {
-    String coin =
+    final String coin =
         "{index: $index, value: $value, publicCoin: $publicCoin, txId: $txId, anonymitySetId: $anonymitySetId, isUsed: $isUsed}";
     return coin;
   }

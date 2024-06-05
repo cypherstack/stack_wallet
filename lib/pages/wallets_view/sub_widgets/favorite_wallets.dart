@@ -13,18 +13,18 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../manage_favorites_view/manage_favorites_view.dart';
-import 'favorite_card.dart';
+
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/favourite_wallets_provider.dart';
-import '../../../widgets/custom_page_view/custom_page_view.dart'
-    as cpv;
+import '../../../widgets/custom_page_view/custom_page_view.dart' as cpv;
+import '../../manage_favorites_view/manage_favorites_view.dart';
+import 'favorite_card.dart';
 
 class FavoriteWallets extends ConsumerStatefulWidget {
-  const FavoriteWallets({Key? key}) : super(key: key);
+  const FavoriteWallets({super.key});
 
   @override
   ConsumerState<FavoriteWallets> createState() => _FavoriteWalletsState();
@@ -55,9 +55,11 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
 
     _pageController.addListener(() {
       if (_pageController.position.pixels > (cardWidth * (_favLength - 1))) {
-        _pageController.animateToPage(_favLength - 1,
-            duration: const Duration(milliseconds: 1),
-            curve: Curves.decelerate);
+        _pageController.animateToPage(
+          _favLength - 1,
+          duration: const Duration(milliseconds: 1),
+          curve: Curves.decelerate,
+        );
       }
     });
     super.initState();
@@ -76,7 +78,7 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
     final favorites = ref.watch(pFavouriteWalletInfos(true));
     _favLength = favorites.length;
 
-    bool hasFavorites = favorites.isNotEmpty;
+    final bool hasFavorites = favorites.isNotEmpty;
 
     final remaining = ((screenWidth - cardWidth) / cardWidth).ceil();
 
@@ -100,7 +102,8 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                 TextButton(
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all<Color>(
-                        Theme.of(context).extension<StackColors>()!.background),
+                      Theme.of(context).extension<StackColors>()!.background,
+                    ),
                   ),
                   child: SvgPicture.asset(
                     Assets.svg.ellipsis,
@@ -135,7 +138,8 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                         .extension<StackColors>()!
                         .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius),
+                      Constants.size.circularBorderRadius,
+                    ),
                   ),
                   child: MaterialButton(
                     splashColor:
@@ -145,7 +149,8 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius),
+                        Constants.size.circularBorderRadius,
+                      ),
                     ),
                     onPressed: () {
                       Navigator.of(context)

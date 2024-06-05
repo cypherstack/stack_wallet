@@ -12,6 +12,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
+
 import '../models/isar/models/isar_models.dart';
 import '../notifications/show_flush_bar.dart';
 import '../pages/wallet_view/sub_widgets/tx_icon.dart';
@@ -25,18 +27,15 @@ import '../utilities/constants.dart';
 import '../utilities/format.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
-import '../wallets/crypto_currency/coins/epiccash.dart';
-import '../wallets/crypto_currency/coins/ethereum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'desktop/desktop_dialog.dart';
-import 'package:tuple/tuple.dart';
 
 class TransactionCard extends ConsumerStatefulWidget {
   const TransactionCard({
-    Key? key,
+    super.key,
     required this.transaction,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final Transaction transaction;
   final String walletId;
@@ -141,19 +140,26 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
     final price = ref
-        .watch(priceAnd24hChangeNotifierProvider.select((value) => isTokenTx
-            ? value.getTokenPrice(_transaction.otherData!)
-            : value.getPrice(coin)))
+        .watch(
+          priceAnd24hChangeNotifierProvider.select(
+            (value) => isTokenTx
+                ? value.getTokenPrice(_transaction.otherData!)
+                : value.getPrice(coin),
+          ),
+        )
         .item1;
 
-    final currentHeight = ref.watch(pWallets
-        .select((value) => value.getWallet(walletId).info.cachedChainHeight));
+    final currentHeight = ref.watch(
+      pWallets
+          .select((value) => value.getWallet(walletId).info.cachedChainHeight),
+    );
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -172,13 +178,15 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
           ),
           onPressed: () async {
             if (coin is Epiccash && _transaction.slateId == null) {
-              unawaited(showFloatingFlushBar(
-                context: context,
-                message:
-                    "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
-                type: FlushBarType.warning,
-                duration: const Duration(seconds: 5),
-              ));
+              unawaited(
+                showFloatingFlushBar(
+                  context: context,
+                  message:
+                      "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
+                  type: FlushBarType.warning,
+                  duration: const Duration(seconds: 5),
+                ),
+              );
               return;
             }
             if (Util.isDesktop) {
@@ -280,13 +288,17 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               ),
                             ),
                           ),
-                          if (ref.watch(prefsChangeNotifierProvider
-                              .select((value) => value.externalCalls)))
+                          if (ref.watch(
+                            prefsChangeNotifierProvider
+                                .select((value) => value.externalCalls),
+                          ))
                             const SizedBox(
                               width: 10,
                             ),
-                          if (ref.watch(prefsChangeNotifierProvider
-                              .select((value) => value.externalCalls)))
+                          if (ref.watch(
+                            prefsChangeNotifierProvider
+                                .select((value) => value.externalCalls),
+                          ))
                             Flexible(
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,

@@ -34,29 +34,32 @@ class TransactionData {
   TransactionData({this.txChunks = const []});
 
   factory TransactionData.fromJson(Map<String, dynamic> json) {
-    var dateTimeChunks = json['dateTimeChunks'] as List;
-    List<TransactionChunk> chunksList = dateTimeChunks
-        .map((txChunk) =>
-            TransactionChunk.fromJson(txChunk as Map<String, dynamic>))
+    final dateTimeChunks = json['dateTimeChunks'] as List;
+    final List<TransactionChunk> chunksList = dateTimeChunks
+        .map(
+          (txChunk) =>
+              TransactionChunk.fromJson(txChunk as Map<String, dynamic>),
+        )
         .toList();
 
     return TransactionData(txChunks: chunksList);
   }
 
   factory TransactionData.fromMap(Map<String, Transaction> transactions) {
-    Map<String, List<Transaction>> chunks = {};
+    final Map<String, List<Transaction>> chunks = {};
     transactions.forEach((key, value) {
-      String date = extractDateFromTimestamp(value.timestamp);
+      final String date = extractDateFromTimestamp(value.timestamp);
       if (!chunks.containsKey(date)) {
         chunks[date] = [];
       }
       chunks[date]!.add(value);
     });
-    List<TransactionChunk> chunksList = [];
+    final List<TransactionChunk> chunksList = [];
     chunks.forEach((key, value) {
       value.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       chunksList.add(
-          TransactionChunk(timestamp: value[0].timestamp, transactions: value));
+        TransactionChunk(timestamp: value[0].timestamp, transactions: value),
+      );
     });
     chunksList.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return TransactionData(txChunks: chunksList);
@@ -64,9 +67,9 @@ class TransactionData {
 
   Transaction? findTransaction(String txid) {
     for (var i = 0; i < txChunks.length; i++) {
-      var txChunk = txChunks[i].transactions;
+      final txChunk = txChunks[i].transactions;
       for (var j = 0; j < txChunk.length; j++) {
-        var tx = txChunk[j];
+        final tx = txChunk[j];
         if (tx.txid == txid) {
           return tx;
         }
@@ -76,11 +79,11 @@ class TransactionData {
   }
 
   Map<String, Transaction> getAllTransactions() {
-    Map<String, Transaction> transactions = {};
+    final Map<String, Transaction> transactions = {};
     for (var i = 0; i < txChunks.length; i++) {
-      var txChunk = txChunks[i].transactions;
+      final txChunk = txChunks[i].transactions;
       for (var j = 0; j < txChunk.length; j++) {
-        var tx = txChunk[j];
+        final tx = txChunk[j];
         transactions[tx.txid] = tx;
       }
     }
@@ -98,14 +101,15 @@ class TransactionChunk {
   TransactionChunk({required this.timestamp, required this.transactions});
 
   factory TransactionChunk.fromJson(Map<String, dynamic> json) {
-    var txArray = json['transactions'] as List;
-    List<Transaction> txList = txArray
+    final txArray = json['transactions'] as List;
+    final List<Transaction> txList = txArray
         .map((tx) => Transaction.fromJson(tx as Map<String, dynamic>))
         .toList();
 
     return TransactionChunk(
-        timestamp: int.parse(json['timestamp'].toString()),
-        transactions: txList);
+      timestamp: int.parse(json['timestamp'].toString()),
+      transactions: txList,
+    );
   }
 
   @override
@@ -191,15 +195,16 @@ class Transaction {
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
-    var inputArray = json['inputs'] as List;
-    var outputArray = json['outputs'] as List;
+    final inputArray = json['inputs'] as List;
+    final outputArray = json['outputs'] as List;
 
-    List<Input> inputList = inputArray
+    final List<Input> inputList = inputArray
         .map((input) => Input.fromJson(Map<String, dynamic>.from(input as Map)))
         .toList();
-    List<Output> outputList = outputArray
-        .map((output) =>
-            Output.fromJson(Map<String, dynamic>.from(output as Map)))
+    final List<Output> outputList = outputArray
+        .map(
+          (output) => Output.fromJson(Map<String, dynamic>.from(output as Map)),
+        )
         .toList();
 
     return Transaction(
@@ -304,7 +309,7 @@ class Transaction {
 
   @override
   String toString() {
-    String transaction =
+    final String transaction =
         "{txid: $txid, type: $txType, subType: $subType, value: $amount, fee: $fees, height: $height, confirm: $confirmedStatus, confirmations: $confirmations, address: $address, timestamp: $timestamp, worthNow: $worthNow, inputs: $inputs, slateid: $slateId, numberOfMessages: $numberOfMessages }";
     return transaction;
   }
@@ -344,7 +349,7 @@ class Input {
   });
 
   factory Input.fromJson(Map<String, dynamic> json) {
-    bool iscoinBase = json['coinbase'] != null;
+    final bool iscoinBase = json['coinbase'] != null;
     return Input(
       txid: json['txid'] as String? ?? "",
       vout: json['vout'] as int? ?? -1,
@@ -361,7 +366,7 @@ class Input {
 
   @override
   String toString() {
-    String transaction = "{txid: $txid}";
+    final String transaction = "{txid: $txid}";
     return transaction;
   }
 }
@@ -383,12 +388,13 @@ class Output {
   // @HiveField(4)
   final int value;
 
-  Output(
-      {this.scriptpubkey,
-      this.scriptpubkeyAsm,
-      this.scriptpubkeyType,
-      required this.scriptpubkeyAddress,
-      required this.value});
+  Output({
+    this.scriptpubkey,
+    this.scriptpubkeyAsm,
+    this.scriptpubkeyType,
+    required this.scriptpubkeyAddress,
+    required this.value,
+  });
 
   factory Output.fromJson(Map<String, dynamic> json) {
     // TODO determine if any of this code is needed.
@@ -405,12 +411,13 @@ class Output {
       );
     } catch (s, e) {
       return Output(
-          // Return output object with null values; allows wallet history to be built
-          scriptpubkey: "",
-          scriptpubkeyAsm: "",
-          scriptpubkeyType: "",
-          scriptpubkeyAddress: "",
-          value: _parse(0.toString()));
+        // Return output object with null values; allows wallet history to be built
+        scriptpubkey: "",
+        scriptpubkeyAsm: "",
+        scriptpubkeyType: "",
+        scriptpubkeyAddress: "",
+        value: _parse(0.toString()),
+      );
     }
   }
 }

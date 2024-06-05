@@ -9,18 +9,18 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 
 class CustomTabView extends StatefulWidget {
   const CustomTabView({
-    Key? key,
+    super.key,
     required this.titles,
     required this.children,
     this.initialIndex = 0,
     this.childPadding,
-  })  : assert(titles.length == children.length),
-        super(key: key);
+  }) : assert(titles.length == children.length);
 
   final List<String> titles;
   final List<Widget> children;

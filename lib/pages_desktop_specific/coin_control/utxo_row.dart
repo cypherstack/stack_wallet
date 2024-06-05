@@ -48,14 +48,14 @@ class UtxoRowData {
 
 class UtxoRow extends ConsumerStatefulWidget {
   const UtxoRow({
-    Key? key,
+    super.key,
     required this.data,
     required this.walletId,
     this.onSelectionChanged,
     this.compact = false,
     this.compactWithBorder = true,
     this.raiseOnSelected = true,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final UtxoRowData data;

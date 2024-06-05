@@ -20,7 +20,6 @@ import '../../providers/db/main_db_provider.dart';
 import '../../providers/global/address_book_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/address_book_providers/address_book_filter_provider.dart';
-import '../../app_config.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';

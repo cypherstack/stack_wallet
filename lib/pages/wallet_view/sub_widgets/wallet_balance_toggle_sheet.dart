@@ -19,7 +19,6 @@ import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
@@ -360,7 +359,7 @@ class BalanceSelector<T> extends ConsumerWidget {
                         .extension<StackColors>()!
                         .textSubtitle1,
                   ),
-                )
+                ),
               ],
             ),
           ],

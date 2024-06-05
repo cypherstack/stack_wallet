@@ -36,13 +36,6 @@ import '../../../utilities/format.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/bitcoincash.dart';
-import '../../../wallets/crypto_currency/coins/ecash.dart';
-import '../../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../../wallets/crypto_currency/coins/firo.dart';
-import '../../../wallets/crypto_currency/coins/monero.dart';
-import '../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -1071,7 +1064,7 @@ class _TransactionDetailsViewState
                                     : const EdgeInsets.all(12),
                                 child: Builder(
                                   builder: (context) {
-                                    String feeString = showFeePending
+                                    final String feeString = showFeePending
                                         ? _transaction.isConfirmed(
                                             currentHeight,
                                             minConfirms,
@@ -1734,7 +1727,7 @@ class _TransactionDetailsViewState
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider({Key? key}) : super(key: key);
+  const _Divider({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1747,9 +1740,9 @@ class _Divider extends StatelessWidget {
 
 class IconCopyButton extends StatelessWidget {
   const IconCopyButton({
-    Key? key,
+    super.key,
     required this.data,
-  }) : super(key: key);
+  });
 
   final String data;
 
@@ -1793,9 +1786,9 @@ class IconCopyButton extends StatelessWidget {
 
 class IconPencilButton extends StatelessWidget {
   const IconPencilButton({
-    Key? key,
+    super.key,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressed;
 

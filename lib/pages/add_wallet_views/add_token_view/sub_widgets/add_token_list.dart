@@ -15,11 +15,11 @@ import '../../../../widgets/conditional_parent.dart';
 
 class AddTokenList extends StatelessWidget {
   const AddTokenList({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.items,
     required this.addFunction,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final List<AddTokenListElementData> items;

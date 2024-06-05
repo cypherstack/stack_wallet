@@ -11,10 +11,6 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../../utilities/text_styles.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../wallets/crypto_currency/coins/firo.dart';
-import '../../wallets/crypto_currency/coins/monero.dart';
-import '../../wallets/crypto_currency/coins/wownero.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
@@ -311,9 +307,9 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
     int targetBlockTime,
     int estimatedNumberOfBlocks,
   ) {
-    int time = targetBlockTime * estimatedNumberOfBlocks;
+    final int time = targetBlockTime * estimatedNumberOfBlocks;
 
-    int hours = (time / 3600).floor();
+    final int hours = (time / 3600).floor();
     if (hours > 1) {
       return "~$hours hours";
     } else if (hours == 1) {

@@ -1,4 +1,5 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/amount/amount.dart';
@@ -51,11 +52,12 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   // See https://github.com/cypherstack/stack_wallet/blob/d08b5c9b22b58db800ad07b2ceeb44c6d05f9cf3/lib/services/coins/particl/particl_wallet.dart#L68
-  String constructDerivePath(
-      {required DerivePathType derivePathType,
-      int account = 0,
-      required int chain,
-      required int index}) {
+  String constructDerivePath({
+    required DerivePathType derivePathType,
+    int account = 0,
+    required int chain,
+    required int index,
+  }) {
     String coinType;
     switch (networkParams.wifPrefix) {
       case 0x6c: // PART mainnet wif.

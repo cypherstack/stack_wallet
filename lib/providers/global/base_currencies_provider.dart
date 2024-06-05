@@ -31,7 +31,7 @@ class _BaseCurrencies extends ChangeNotifier {
       return;
     }
 
-    Map<String, String> newMap = {};
+    final Map<String, String> newMap = {};
 
     for (final entry in _kCurrencyMap.entries) {
       if (list.contains(entry.key.toLowerCase())) {

@@ -20,9 +20,9 @@ import '../../../widgets/toggle.dart';
 
 class RateTypeToggle extends ConsumerWidget {
   const RateTypeToggle({
-    Key? key,
+    super.key,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   final void Function(ExchangeRateType)? onChanged;
 

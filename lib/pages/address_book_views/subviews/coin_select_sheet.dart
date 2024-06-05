@@ -79,7 +79,7 @@ class CoinSelectSheet extends StatelessWidget {
               Flexible(
                 child: Consumer(
                   builder: (_, ref, __) {
-                    bool showTestNet = ref.watch(
+                    final bool showTestNet = ref.watch(
                       prefsChangeNotifierProvider
                           .select((value) => value.showTestNetCoins),
                     );

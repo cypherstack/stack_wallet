@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -7,7 +8,6 @@ import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/ordinal.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/coins/litecoin.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
@@ -54,14 +54,15 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
   @override
   Future<void> updateTransactions() async {
     // Get all addresses.
-    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
+    final List<Address> allAddressesOld =
+        await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    Set<String> receivingAddresses = allAddressesOld
+    final Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => e.value)
         .toSet();
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => e.value)
         .toSet();
@@ -78,7 +79,7 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         await fetchHistory(allAddressesSet);
 
     // Only parse new txs (not in db yet).
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
       final storedTx = await mainDB.isar.transactionV2s
@@ -141,8 +142,8 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
           );
 
           final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map,
+          );
 
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
@@ -310,8 +311,9 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(
-          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-              (feeRatePerKB / 1000).ceil()),
+        ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }

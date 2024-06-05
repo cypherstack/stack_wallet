@@ -21,10 +21,10 @@ class PaynymFollow {
         token = map["token"] as String;
 
   Map<String, dynamic> toMap() => {
-    "follower": follower,
-    "following": following,
-    "token": token,
-  };
+        "follower": follower,
+        "following": following,
+        "token": token,
+      };
 
   @override
   String toString() {

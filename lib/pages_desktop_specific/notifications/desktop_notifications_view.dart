@@ -20,7 +20,7 @@ import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/rounded_white_container.dart';
 
 class DesktopNotificationsView extends ConsumerStatefulWidget {
-  const DesktopNotificationsView({Key? key}) : super(key: key);
+  const DesktopNotificationsView({super.key});
 
   static const String routeName = "/desktopNotifications";
 

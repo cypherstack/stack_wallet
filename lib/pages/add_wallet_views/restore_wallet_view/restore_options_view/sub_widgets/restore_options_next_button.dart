@@ -14,10 +14,10 @@ import '../../../../../utilities/text_styles.dart';
 
 class RestoreOptionsNextButton extends StatelessWidget {
   const RestoreOptionsNextButton({
-    Key? key,
+    super.key,
     required this.isDesktop,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final bool isDesktop;
   final VoidCallback? onPressed;

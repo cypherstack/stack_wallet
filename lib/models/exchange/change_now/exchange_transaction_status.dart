@@ -9,6 +9,7 @@
  */
 
 import 'package:hive/hive.dart';
+
 import '../../../utilities/logger.dart';
 
 part '../../type_adaptors/exchange_transaction_status.g.dart';
@@ -38,7 +39,8 @@ ChangeNowTransactionStatus changeNowTransactionStatusFromStringIgnoreCase(
     }
   }
   throw ArgumentError(
-      "String value does not match any known ChangeNowTransactionStatus");
+    "String value does not match any known ChangeNowTransactionStatus",
+  );
 }
 
 @HiveType(typeId: 16)
@@ -189,7 +191,8 @@ class ExchangeTransactionStatus {
     try {
       return ExchangeTransactionStatus(
         status: changeNowTransactionStatusFromStringIgnoreCase(
-            json["status"] as String),
+          json["status"] as String,
+        ),
         payinAddress: json["payinAddress"] as String? ?? "",
         payoutAddress: json["payoutAddress"] as String? ?? "",
         fromCurrency: json["fromCurrency"] as String? ?? "",
