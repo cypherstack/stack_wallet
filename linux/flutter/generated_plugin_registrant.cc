@@ -12,6 +12,7 @@
 #include <flutter_libmonero/flutter_libmonero_plugin.h>
 #include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
 #include <isar_flutter_libs/isar_flutter_libs_plugin.h>
+#include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <stack_wallet_backup/stack_wallet_backup_plugin.h>
 #include <url_launcher_linux/url_launcher_plugin.h>
 #include <window_size/window_size_plugin.h>
@@ -35,6 +36,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) isar_flutter_libs_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "IsarFlutterLibsPlugin");
   isar_flutter_libs_plugin_register_with_registrar(isar_flutter_libs_registrar);
+  g_autoptr(FlPluginRegistrar) sqlite3_flutter_libs_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "Sqlite3FlutterLibsPlugin");
+  sqlite3_flutter_libs_plugin_register_with_registrar(sqlite3_flutter_libs_registrar);
   g_autoptr(FlPluginRegistrar) stack_wallet_backup_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "StackWalletBackupPlugin");
   stack_wallet_backup_plugin_register_with_registrar(stack_wallet_backup_registrar);

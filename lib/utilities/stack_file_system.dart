@@ -91,6 +91,19 @@ abstract class StackFileSystem {
     }
   }
 
+  static Future<Directory> applicationSQLiteDirectory() async {
+    final root = await applicationRootDirectory();
+    if (Util.isDesktop) {
+      final dir = Directory("${root.path}/sqlite");
+      if (!dir.existsSync()) {
+        await dir.create();
+      }
+      return dir;
+    } else {
+      return root;
+    }
+  }
+
   static Future<Directory> applicationTorDirectory() async {
     final root = await applicationRootDirectory();
     if (Util.isDesktop) {

@@ -13,5 +13,6 @@ export 'impl/box_shadow.dart';
 export 'impl/cl_transaction.dart';
 export 'impl/contract_abi.dart';
 export 'impl/gradient.dart';
+export 'impl/list.dart';
 export 'impl/string.dart';
 export 'impl/uint8_list.dart';

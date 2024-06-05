@@ -83,6 +83,21 @@ PODS:
   - SDWebImage/Core (5.13.2)
   - share_plus (0.0.1):
     - Flutter
+  - sqlite3 (3.46.0):
+    - sqlite3/common (= 3.46.0)
+  - sqlite3/common (3.46.0)
+  - sqlite3/fts5 (3.46.0):
+    - sqlite3/common
+  - sqlite3/perf-threadsafe (3.46.0):
+    - sqlite3/common
+  - sqlite3/rtree (3.46.0):
+    - sqlite3/common
+  - sqlite3_flutter_libs (0.0.1):
+    - Flutter
+    - sqlite3 (~> 3.46.0)
+    - sqlite3/fts5
+    - sqlite3/perf-threadsafe
+    - sqlite3/rtree
   - stack_wallet_backup (0.0.1):
     - Flutter
   - SwiftProtobuf (1.19.0)
@@ -117,6 +132,7 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
+  - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/ios`)
   - stack_wallet_backup (from `.symlinks/plugins/stack_wallet_backup/ios`)
   - tor_ffi_plugin (from `.symlinks/plugins/tor_ffi_plugin/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
@@ -129,6 +145,7 @@ SPEC REPOS:
     - MTBBarcodeScanner
     - ReachabilitySwift
     - SDWebImage
+    - sqlite3
     - SwiftProtobuf
     - SwiftyGif
 
@@ -177,6 +194,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
+  sqlite3_flutter_libs:
+    :path: ".symlinks/plugins/sqlite3_flutter_libs/ios"
   stack_wallet_backup:
     :path: ".symlinks/plugins/stack_wallet_backup/ios"
   tor_ffi_plugin:
@@ -203,7 +222,7 @@ SPEC CHECKSUMS:
   flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
   flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
   frostdart: 4c72b69ccac2f13ede744107db046a125acce597
-  integration_test: ce0a3ffa1de96d1a89ca0ac26fca7ea18a749ef4
+  integration_test: 13825b8a9334a850581300559b8839134b124670
   isar_flutter_libs: b69f437aeab9c521821c3f376198c4371fa21073
   lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
   local_auth: 1740f55d7af0a2e2a8684ce225fe79d8931e808c
@@ -214,6 +233,8 @@ SPEC CHECKSUMS:
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
   SDWebImage: 72f86271a6f3139cc7e4a89220946489d4b9a866
   share_plus: 599aa54e4ea31d4b4c0e9c911bcc26c55e791028
+  sqlite3: 154b084339ede06960a5b3c8160066adc9176b7d
+  sqlite3_flutter_libs: 0d611efdf6d1c9297d5ab03dab21b75aeebdae31
   stack_wallet_backup: 5b8563aba5d8ffbf2ce1944331ff7294a0ec7c03
   SwiftProtobuf: 6ef3f0e422ef90d6605ca20b21a94f6c1324d6b3
   SwiftyGif: 6c3eafd0ce693cad58bb63d2b2fb9bacb8552780

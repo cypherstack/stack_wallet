@@ -474,6 +474,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     if (refreshMutex.isLocked) {
       return;
     }
+    final start = DateTime.now();
 
     try {
       // this acquire should be almost instant due to above check.
@@ -619,6 +620,12 @@ abstract class Wallet<T extends CryptoCurrency> {
       );
     } finally {
       refreshMutex.release();
+
+      Logging.instance.log(
+        "Refresh for "
+        "${info.name}: ${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
     }
   }
 

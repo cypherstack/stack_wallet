@@ -689,8 +689,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "439727b278250c61a291f5335c298c0f2d952517"
-      resolved-ref: "439727b278250c61a291f5335c298c0f2d952517"
+      ref: "7a11d0cadf8c7a6a5d5144dab18cef9536aa5943"
+      resolved-ref: "7a11d0cadf8c7a6a5d5144dab18cef9536aa5943"
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.0.1"
@@ -1194,12 +1194,12 @@ packages:
     source: hosted
     version: "0.2.0"
   monero:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "."
       ref: "6a17a405a1a260fa228b2f4fc94044088a4335ac"
       resolved-ref: "6a17a405a1a260fa228b2f4fc94044088a4335ac"
-      url: "https://git.mrcyjanek.net/mrcyjanek/monero.dart"
+      url: "https://www.github.com/mrcyjanek/monero.dart"
     source: git
     version: "0.0.0"
   mutex:
@@ -1633,6 +1633,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
+  sqlite3:
+    dependency: "direct main"
+    description:
+      name: sqlite3
+      sha256: b384f598b813b347c5a7e5ffad82cbaff1bec3d1561af267041e66f6f0899295
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.3"
+  sqlite3_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: sqlite3_flutter_libs
+      sha256: "1e62698dc1ab396152ccaf3b3990d826244e9f3c8c39b51805f209adcd6dbea3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.22"
   stack_trace:
     dependency: transitive
     description:

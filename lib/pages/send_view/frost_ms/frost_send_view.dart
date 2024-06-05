@@ -20,6 +20,7 @@ import '../../../frost_route_generator.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../providers/providers.dart';
+import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
@@ -234,7 +235,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
-        );
+        ) &&
+        (coin is Firo
+            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            : true);
 
     return ConditionalParent(
       condition: !Util.isDesktop,

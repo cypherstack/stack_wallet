@@ -998,10 +998,15 @@ class _SendViewState extends ConsumerState<SendView> {
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
-        );
+        ) &&
+        (coin is Firo
+            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            : true);
 
     if (isFiro) {
       ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
+        selectedUTXOs = {};
+
         if (ref.read(pSendAmount) == null) {
           setState(() {
             _calculateFeesFuture = calculateFees(

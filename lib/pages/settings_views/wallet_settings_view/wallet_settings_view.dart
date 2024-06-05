@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../db/hive/db.dart';
+import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/epicbox_config_model.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/wallets_provider.dart';
@@ -413,7 +414,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                             ),
                                           );
 
-                                          if (result == "OK" && mounted) {
+                                          if (result == "OK" &&
+                                              context.mounted) {
                                             await showLoading(
                                               whileFuture: Future.wait<void>(
                                                 [
@@ -426,6 +428,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                       .clearSharedTransactionCache(
                                                     currency: coin,
                                                   ),
+                                                  if (coin is Firo)
+                                                    FiroCacheCoordinator
+                                                        .clearSharedCache(),
                                                 ],
                                               ),
                                               context: context,

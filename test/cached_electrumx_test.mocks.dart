@@ -428,21 +428,21 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
             _i7.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i7.Future<Map<String, dynamic>>);
   @override
-  _i7.Future<Set<String>> getSparkUsedCoinsTags({
+  _i7.Future<List<String>> getSparkUnhashedUsedCoinsTags({
     String? requestID,
     required int? startNumber,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getSparkUsedCoinsTags,
+          #getSparkUnhashedUsedCoinsTags,
           [],
           {
             #requestID: requestID,
             #startNumber: startNumber,
           },
         ),
-        returnValue: _i7.Future<Set<String>>.value(<String>{}),
-      ) as _i7.Future<Set<String>>);
+        returnValue: _i7.Future<List<String>>.value(<String>[]),
+      ) as _i7.Future<List<String>>);
   @override
   _i7.Future<List<Map<String, dynamic>>> getSparkMintMetaData({
     String? requestID,

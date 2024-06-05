@@ -17,16 +17,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import '../../../coin_control/desktop_coin_control_use_dialog.dart';
-import '../../../desktop_home_view.dart';
-import 'address_book_address_chooser/address_book_address_chooser.dart';
-import 'desktop_fee_dropdown.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
@@ -70,6 +67,10 @@ import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
+import '../../../coin_control/desktop_coin_control_use_dialog.dart';
+import '../../../desktop_home_view.dart';
+import 'address_book_address_chooser/address_book_address_chooser.dart';
+import 'desktop_fee_dropdown.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -947,7 +948,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             (value) => value.enableCoinControl,
           ),
         ) &&
-        ref.watch(pWallets).getWallet(walletId) is CoinControlInterface;
+        ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
+        (coin is Firo
+            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            : true);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1042,6 +1046,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ],
               onChanged: (value) {
                 if (value is FiroType) {
+                  if (value != FiroType.public) {
+                    ref.read(desktopUseUTXOs.state).state = {};
+                  }
                   setState(() {
                     ref.read(publicPrivateBalanceStateProvider.state).state =
                         value;

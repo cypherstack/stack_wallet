@@ -14,6 +14,7 @@ import 'dart:typed_data';
 import 'package:dart_bs58/dart_bs58.dart';
 import 'package:dart_bs58check/dart_bs58check.dart';
 import 'package:hex/hex.dart';
+
 import '../extensions.dart';
 
 extension StringExtensions on String {
@@ -27,4 +28,14 @@ extension StringExtensions on String {
   Uint8List get toUint8ListFromBase58CheckEncoded => bs58check.decode(this);
 
   BigInt get toBigIntFromHex => toUint8ListFromHex.toBigInt;
+
+  String get toHexFromBase64 => base64Decode(LineSplitter.split(this).join())
+      .map((e) => e.toRadixString(16).padLeft(2, '0'))
+      .join();
+
+  String get toHexReversedFromBase64 =>
+      base64Decode(LineSplitter.split(this).join())
+          .reversed
+          .map((e) => e.toRadixString(16).padLeft(2, '0'))
+          .join();
 }

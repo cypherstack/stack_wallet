@@ -24,6 +24,7 @@ import '../../../pinpad_views/lock_screen_view.dart';
 import 'delete_wallet_warning_view.dart';
 import 'lelantus_settings_view.dart';
 import 'rename_wallet_view.dart';
+import 'spark_info.dart';
 
 class WalletSettingsWalletSettingsView extends ConsumerWidget {
   const WalletSettingsWalletSettingsView({
@@ -209,6 +210,39 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         children: [
                           Text(
                             "Lelantus settings",
+                            style: STextStyles.titleBold12(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                RoundedWhiteContainer(
+                  padding: const EdgeInsets.all(0),
+                  child: RawMaterialButton(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        SparkInfoView.routeName,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 20,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Spark info",
                             style: STextStyles.titleBold12(context),
                           ),
                         ],
