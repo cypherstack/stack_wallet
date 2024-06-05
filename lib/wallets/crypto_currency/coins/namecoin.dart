@@ -252,4 +252,7 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         );
     }
   }
+
+  @override
+  int get transactionVersion => 1;
 }
