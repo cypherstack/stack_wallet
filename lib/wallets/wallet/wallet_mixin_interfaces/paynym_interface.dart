@@ -10,6 +10,8 @@ import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../exceptions/wallet/insufficient_balance_exception.dart';
 import '../../../exceptions/wallet/paynym_send_exception.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -29,7 +31,6 @@ import '../../crypto_currency/interfaces/paynym_currency_interface.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'electrumx_interface.dart';
-import 'package:tuple/tuple.dart';
 
 const String kPCodeKeyPrefix = "pCode_key_";
 
@@ -750,7 +751,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final List<coinlib.Output> prevOuts = [];
 
       coinlib.Transaction clTx = coinlib.Transaction(
-        version: 1,
+        version: cryptoCurrency.transactionVersion,
         inputs: [],
         outputs: [],
       );

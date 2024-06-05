@@ -30,6 +30,8 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
       testnet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
     );
 
+    builder.setVersion(cryptoCurrency.transactionVersion);
+
     // temp tx data to show in gui while waiting for real data from server
     final List<InputV2> tempInputs = [];
     final List<OutputV2> tempOutputs = [];

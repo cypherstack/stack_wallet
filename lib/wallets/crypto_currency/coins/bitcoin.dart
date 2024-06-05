@@ -1,4 +1,5 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/amount/amount.dart';
@@ -291,4 +292,7 @@ class Bitcoin extends Bip39HDCurrency
         );
     }
   }
+
+  @override
+  int get transactionVersion => 1;
 }

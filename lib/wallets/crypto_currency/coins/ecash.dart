@@ -336,4 +336,7 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         );
     }
   }
+
+  @override
+  int get transactionVersion => 2;
 }

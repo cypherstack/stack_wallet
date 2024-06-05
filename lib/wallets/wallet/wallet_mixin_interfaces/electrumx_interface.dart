@@ -623,7 +623,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final List<coinlib.Output> prevOuts = [];
 
     coinlib.Transaction clTx = coinlib.Transaction(
-      version: 1, // TODO: check if we can use 3 (as is default in coinlib)
+      version: cryptoCurrency.transactionVersion,
       inputs: [],
       outputs: [],
     );
