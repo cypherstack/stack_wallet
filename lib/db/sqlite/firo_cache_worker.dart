@@ -26,8 +26,10 @@ class _FiroCacheWorker {
   }
 
   static Future<_FiroCacheWorker> spawn() async {
-    final sqliteDir = await StackFileSystem.applicationSQLiteDirectory();
-    final dbFilePath = "${sqliteDir.path}/${_FiroCache.sqliteDbFileName}";
+    final dir = await StackFileSystem.applicationFiroCacheSQLiteDirectory();
+    final setCacheFilePath = "${dir.path}/${_FiroCache.sparkSetCacheFileName}";
+    final usedTagsCacheFilePath =
+        "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName}";
 
     final initPort = RawReceivePort();
     final connection = Completer<(ReceivePort, SendPort)>.sync();
@@ -45,7 +47,7 @@ class _FiroCacheWorker {
     try {
       await Isolate.spawn(
         _startWorkerIsolate,
-        (initPort.sendPort, dbFilePath),
+        (initPort.sendPort, setCacheFilePath, usedTagsCacheFilePath),
       );
     } catch (_) {
       initPort.close();
@@ -75,7 +77,8 @@ class _FiroCacheWorker {
   static void _handleCommandsToIsolate(
     ReceivePort receivePort,
     SendPort sendPort,
-    Database db,
+    Database setCacheDb,
+    Database usedTagsCacheDb,
     Mutex mutex,
   ) {
     receivePort.listen((message) {
@@ -87,11 +90,18 @@ class _FiroCacheWorker {
           switch (task.func) {
             case FCFuncName._updateSparkAnonSetCoinsWith:
               final data = task.data as (int, Map<String, dynamic>);
-              result = _updateSparkAnonSetCoinsWith(db, data.$2, data.$1);
+              result = _updateSparkAnonSetCoinsWith(
+                setCacheDb,
+                data.$2,
+                data.$1,
+              );
               break;
 
             case FCFuncName._updateSparkUsedTagsWith:
-              result = _updateSparkUsedTagsWith(db, task.data as List<String>);
+              result = _updateSparkUsedTagsWith(
+                usedTagsCacheDb,
+                task.data as List<String>,
+              );
               break;
           }
 
@@ -107,14 +117,24 @@ class _FiroCacheWorker {
     });
   }
 
-  static void _startWorkerIsolate((SendPort, String) args) {
+  static void _startWorkerIsolate((SendPort, String, String) args) {
     final receivePort = ReceivePort();
     args.$1.send(receivePort.sendPort);
     final mutex = Mutex();
-    final db = sqlite3.open(
+    final setCacheDb = sqlite3.open(
       args.$2,
       mode: OpenMode.readWrite,
     );
-    _handleCommandsToIsolate(receivePort, args.$1, db, mutex);
+    final usedTagsCacheDb = sqlite3.open(
+      args.$3,
+      mode: OpenMode.readWrite,
+    );
+    _handleCommandsToIsolate(
+      receivePort,
+      args.$1,
+      setCacheDb,
+      usedTagsCacheDb,
+      mutex,
+    );
   }
 }

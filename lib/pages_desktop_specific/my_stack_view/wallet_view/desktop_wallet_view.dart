@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 
+import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
@@ -278,6 +279,24 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                           Text(
                             WalletDevTools.checkFiroTransactionTally(
                               widget.walletId,
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (wallet.isarTransactionVersion == 2 &&
+                        wallet is FiroWallet)
+                      Row(
+                        children: [
+                          const Text(
+                            "sparkCache: ",
+                          ),
+                          const SizedBox(
+                            width: 2,
+                          ),
+                          FutureBuilder(
+                            future: FiroCacheCoordinator.getSparkCacheSize(),
+                            builder: (_, snapshot) => Text(
+                              snapshot.data ?? "",
                             ),
                           ),
                         ],

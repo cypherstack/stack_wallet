@@ -20,14 +20,18 @@ abstract class FiroCacheCoordinator {
   }
 
   static Future<String> getSparkCacheSize() async {
-    final dir = await StackFileSystem.applicationSQLiteDirectory();
-    final cacheFile = File("${dir.path}/${_FiroCache.sqliteDbFileName}");
-    final int bytes;
-    if (await cacheFile.exists()) {
-      bytes = await cacheFile.length();
-    } else {
-      bytes = 0;
-    }
+    final dir = await StackFileSystem.applicationFiroCacheSQLiteDirectory();
+    final setCacheFile = File(
+      "${dir.path}/${_FiroCache.sparkSetCacheFileName}",
+    );
+    final usedTagsCacheFile = File(
+      "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName}",
+    );
+    final int bytes =
+        ((await setCacheFile.exists()) ? await setCacheFile.length() : 0) +
+            ((await usedTagsCacheFile.exists())
+                ? await usedTagsCacheFile.length()
+                : 0);
 
     if (bytes < 1024) {
       return '$bytes B';
@@ -88,7 +92,7 @@ abstract class FiroCacheCoordinator {
   static Future<Set<String>> getUsedCoinTags(int startNumber) async {
     final result = await _Reader._getSparkUsedCoinTags(
       startNumber,
-      db: _FiroCache.db,
+      db: _FiroCache.usedTagsCacheDB,
     );
     return result.map((e) => e["tag"] as String).toSet();
   }
@@ -99,7 +103,7 @@ abstract class FiroCacheCoordinator {
   /// this table in practice.
   static Future<int> getUsedCoinTagsLastAddedRowId() async {
     final result = await _Reader._getUsedCoinTagsLastAddedRowId(
-      db: _FiroCache.db,
+      db: _FiroCache.usedTagsCacheDB,
     );
     if (result.isEmpty) {
       return 0;
@@ -112,7 +116,7 @@ abstract class FiroCacheCoordinator {
   ) async {
     return await _Reader._checkTagIsUsed(
       tag,
-      db: _FiroCache.db,
+      db: _FiroCache.usedTagsCacheDB,
     );
   }
 
@@ -122,7 +126,7 @@ abstract class FiroCacheCoordinator {
   }) async {
     return await _Reader._getSetCoinsForGroupId(
       groupId,
-      db: _FiroCache.db,
+      db: _FiroCache.setCacheDB,
       newerThanTimeStamp: newerThanTimeStamp,
     );
   }
@@ -137,7 +141,7 @@ abstract class FiroCacheCoordinator {
   ) async {
     final result = await _Reader._getLatestSetInfoForGroupId(
       groupId,
-      db: _FiroCache.db,
+      db: _FiroCache.setCacheDB,
     );
 
     if (result.isEmpty) {
@@ -156,7 +160,7 @@ abstract class FiroCacheCoordinator {
   ) async {
     return await _Reader._checkSetInfoForGroupIdExists(
       groupId,
-      db: _FiroCache.db,
+      db: _FiroCache.setCacheDB,
     );
   }
 }

@@ -15,8 +15,8 @@ import '../../utilities/stack_file_system.dart';
 
 part 'firo_cache_coordinator.dart';
 part 'firo_cache_reader.dart';
-part 'firo_cache_writer.dart';
 part 'firo_cache_worker.dart';
+part 'firo_cache_writer.dart';
 
 /// Temporary debugging log function for this file
 void _debugLog(Object? object) {
@@ -29,44 +29,73 @@ void _debugLog(Object? object) {
 }
 
 abstract class _FiroCache {
-  static const String sqliteDbFileName = "firo_ex_cache.sqlite3";
+  static const int _setCacheVersion = 1;
+  static const int _tagsCacheVersion = 1;
+  static const String sparkSetCacheFileName =
+      "spark_set_v$_setCacheVersion.sqlite3";
+  static const String sparkUsedTagsCacheFileName =
+      "spark_tags_v$_tagsCacheVersion.sqlite3";
 
-  static Database? _db;
-  static Database get db {
-    if (_db == null) {
+  static Database? _setCacheDB;
+  static Database? _usedTagsCacheDB;
+  static Database get setCacheDB {
+    if (_setCacheDB == null) {
       throw Exception(
         "FiroCache.init() must be called before accessing FiroCache.db!",
       );
     }
-    return _db!;
+    return _setCacheDB!;
+  }
+
+  static Database get usedTagsCacheDB {
+    if (_usedTagsCacheDB == null) {
+      throw Exception(
+        "FiroCache.init() must be called before accessing FiroCache.db!",
+      );
+    }
+    return _usedTagsCacheDB!;
   }
 
   static Future<void>? _initFuture;
   static Future<void> init() => _initFuture ??= _init();
 
   static Future<void> _init() async {
-    final sqliteDir = await StackFileSystem.applicationSQLiteDirectory();
+    final sqliteDir =
+        await StackFileSystem.applicationFiroCacheSQLiteDirectory();
 
-    final file = File("${sqliteDir.path}/$sqliteDbFileName");
+    final sparkSetCacheFile = File("${sqliteDir.path}/$sparkSetCacheFileName");
+    final sparkUsedTagsCacheFile =
+        File("${sqliteDir.path}/$sparkUsedTagsCacheFileName");
 
-    final exists = await file.exists();
-    if (!exists) {
-      await _createDb(file.path);
+    if (!(await sparkSetCacheFile.exists())) {
+      await _createSparkSetCacheDb(sparkSetCacheFile.path);
+    }
+    if (!(await sparkUsedTagsCacheFile.exists())) {
+      await _createSparkUsedTagsCacheDb(sparkUsedTagsCacheFile.path);
     }
 
-    _db = sqlite3.open(
-      file.path,
+    _setCacheDB = sqlite3.open(
+      sparkSetCacheFile.path,
+      mode: OpenMode.readWrite,
+    );
+    _usedTagsCacheDB = sqlite3.open(
+      sparkUsedTagsCacheFile.path,
       mode: OpenMode.readWrite,
     );
   }
 
   static Future<void> _deleteAllCache() async {
     final start = DateTime.now();
-    db.execute(
+    setCacheDB.execute(
       """
         DELETE FROM SparkSet;
         DELETE FROM SparkCoin;
         DELETE FROM SparkSetCoins;
+        VACUUM;
+      """,
+    );
+    usedTagsCacheDB.execute(
+      """
         DELETE FROM SparkUsedCoinTags;
         VACUUM;
       """,
@@ -77,7 +106,7 @@ abstract class _FiroCache {
     );
   }
 
-  static Future<void> _createDb(String file) async {
+  static Future<void> _createSparkSetCacheDb(String file) async {
     final db = sqlite3.open(
       file,
       mode: OpenMode.readWriteCreate,
@@ -109,7 +138,20 @@ abstract class _FiroCache {
           FOREIGN KEY (setId) REFERENCES SparkSet(id),
           FOREIGN KEY (coinId) REFERENCES SparkCoin(id)
         );
-        
+      """,
+    );
+
+    db.dispose();
+  }
+
+  static Future<void> _createSparkUsedTagsCacheDb(String file) async {
+    final db = sqlite3.open(
+      file,
+      mode: OpenMode.readWriteCreate,
+    );
+
+    db.execute(
+      """
         CREATE TABLE SparkUsedCoinTags (
           id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
           tag TEXT NOT NULL UNIQUE
