@@ -38,6 +38,16 @@ const OP_SPARKMINT = 0xd1;
 const OP_SPARKSMINT = 0xd2;
 const OP_SPARKSPEND = 0xd3;
 
+/// top level function for use with [compute]
+String _hashTag(String tag) {
+  final components = tag.split(",");
+  final x = components[0].substring(1);
+  final y = components[1].substring(0, components[1].length - 1);
+
+  final hash = LibSpark.hashTag(x, y);
+  return hash;
+}
+
 mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
   String? _sparkChangeAddressCached;
@@ -55,6 +65,14 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     required bool isTestNet,
   }) =>
       LibSpark.validateAddress(address: address, isTestNet: isTestNet);
+
+  Future<String> hashTag(String tag) async {
+    try {
+      return await compute(_hashTag, tag);
+    } catch (_) {
+      throw ArgumentError("Invalid tag string format", "tag");
+    }
+  }
 
   @override
   Future<void> init() async {
