@@ -930,6 +930,7 @@ class ElectrumXClient {
     }
   }
 
+  // TODO: update when we get new call to include tx hashes in response
   /// Takes [startNumber], if it is 0, we get the full set,
   /// otherwise the used tags after that number
   Future<List<String>> getSparkUnhashedUsedCoinsTags({
@@ -1018,6 +1019,64 @@ class ElectrumXClient {
         level: LogLevel.Info,
       );
       return response;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Returns the txids of the current transactions found in the mempool
+  Future<Set<String>> getMempoolTxids({
+    String? requestID,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "spark.getmempooltxids",
+      );
+
+      // TODO verify once server is live
+      final txids = List<String>.from(response as List).toSet();
+      // final map = Map<String, dynamic>.from(response as Map);
+      // final txids = List<String>.from(map["tags"] as List).toSet();
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getMempoolTxids(). "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return txids;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Returns the txids of the current transactions found in the mempool
+  Future<Map<String, dynamic>> getMempoolSparkData({
+    String? requestID,
+    required List<String> txids,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "spark.getmempooltxs",
+        args: txids,
+      );
+
+      // TODO verify once server is live
+      final map = Map<String, dynamic>.from(response as Map);
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getMempoolSparkData(txids: $txids). "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return map;
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
