@@ -54,13 +54,15 @@ TEMPLATE_FILES=(
   "${WIN_TF_2}"
 )
 
-if [ ! -f "${ACTUAL_PUBSPEC}" ]; then
-  cp "${T_PUBSPEC}" "${ACTUAL_PUBSPEC}"
+if [ -f "${ACTUAL_PUBSPEC}" ]; then
+  rm "${ACTUAL_PUBSPEC}"
 fi
+cp "${T_PUBSPEC}" "${ACTUAL_PUBSPEC}"
 
 for TF in "${TEMPLATE_FILES[@]}"; do
   FILE="${APP_PROJECT_ROOT_DIR}/${TF}"
-  if [ ! -f "${FILE}" ]; then
-    cp -rp "${TEMPLATES_DIR}/${TF}" "${FILE}"
+  if [ -f "${FILE}" ]; then
+    rm "${FILE}"
   fi
+  cp -rp "${TEMPLATES_DIR}/${TF}" "${FILE}"
 done

@@ -94,7 +94,7 @@ if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/update_version.sh" -v "${APP_VERSION_STRING}" -b "${APP_BUILD_NUMBER}"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
     # shellcheck disable=SC1090
-    source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh"
+    source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 
     if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
@@ -111,6 +111,8 @@ if [ "$BUILD_CRYPTO_PLUGINS" -eq 0 ]; then
         ./build_all.sh
     elif [[ "$APP_NAMED_ID" = "stack_duo" ]]; then
         ./build_all_duo.sh
+    elif [[ "$APP_NAMED_ID" = "campfire" ]]; then
+        ./build_all_campfire.sh
     else
         echo "Invalid app id: ${APP_NAMED_ID}"
         exit 1
