@@ -14,12 +14,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../../app_config.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
-import '../../buy_view/buy_in_wallet_view.dart';
-import '../../exchange_view/wallet_initiated_exchange_view.dart';
-import '../../receive_view/receive_view.dart';
-import '../../send_view/token_send_view.dart';
-import '../../wallet_view/sub_widgets/wallet_refresh_button.dart';
 import '../../../providers/global/locale_provider.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../providers/global/price_provider.dart';
@@ -37,7 +35,11 @@ import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/rounded_container.dart';
-import 'package:tuple/tuple.dart';
+import '../../buy_view/buy_in_wallet_view.dart';
+import '../../exchange_view/wallet_initiated_exchange_view.dart';
+import '../../receive_view/receive_view.dart';
+import '../../send_view/token_send_view.dart';
+import '../../wallet_view/sub_widgets/wallet_refresh_button.dart';
 
 class TokenSummary extends ConsumerWidget {
   const TokenSummary({
@@ -249,18 +251,20 @@ class TokenWalletOptions extends ConsumerWidget {
           subLabel: "Send",
           iconAssetPathSVG: Assets.svg.arrowUpRight,
         ),
-        const SizedBox(
-          width: 16,
-        ),
-        TokenOptionsButton(
-          onPressed: () => _onExchangePressed(context),
-          subLabel: "Swap",
-          iconAssetPathSVG: ref.watch(
-            themeProvider.select(
-              (value) => value.assets.exchange,
+        if (AppConfig.hasFeature(AppFeature.swap))
+          const SizedBox(
+            width: 16,
+          ),
+        if (AppConfig.hasFeature(AppFeature.swap))
+          TokenOptionsButton(
+            onPressed: () => _onExchangePressed(context),
+            subLabel: "Swap",
+            iconAssetPathSVG: ref.watch(
+              themeProvider.select(
+                (value) => value.assets.exchange,
+              ),
             ),
           ),
-        ),
         const SizedBox(
           width: 16,
         ),

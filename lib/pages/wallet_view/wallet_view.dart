@@ -16,31 +16,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../app_config.dart';
 import '../../frost_route_generator.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../buy_view/buy_in_wallet_view.dart';
-import '../cashfusion/cashfusion_view.dart';
-import '../coin_control/coin_control_view.dart';
-import '../exchange_view/wallet_initiated_exchange_view.dart';
-import '../home_view/home_view.dart';
-import '../monkey/monkey_view.dart';
-import '../notification_views/notifications_view.dart';
-import '../ordinals/ordinals_view.dart';
-import '../paynym/paynym_claim_view.dart';
-import '../paynym/paynym_home_view.dart';
-import '../receive_view/receive_view.dart';
-import '../send_view/frost_ms/frost_send_view.dart';
-import '../send_view/send_view.dart';
-import '../settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
-import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
-import '../special/firo_rescan_recovery_error_dialog.dart';
-import '../token_view/my_tokens_view.dart';
-import 'sub_widgets/transactions_list.dart';
-import 'sub_widgets/wallet_summary.dart';
-import 'transaction_views/all_transactions_view.dart';
-import 'transaction_views/tx_v2/all_transactions_v2_view.dart';
-import 'transaction_views/tx_v2/transaction_v2_list.dart';
 import '../../providers/global/active_wallet_provider.dart';
 import '../../providers/global/auto_swb_service_provider.dart';
 import '../../providers/global/paynym_api_provider.dart';
@@ -95,7 +76,28 @@ import '../../widgets/wallet_navigation_bar/components/icons/receive_nav_icon.da
 import '../../widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
 import '../../widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
-import 'package:tuple/tuple.dart';
+import '../buy_view/buy_in_wallet_view.dart';
+import '../cashfusion/cashfusion_view.dart';
+import '../coin_control/coin_control_view.dart';
+import '../exchange_view/wallet_initiated_exchange_view.dart';
+import '../home_view/home_view.dart';
+import '../monkey/monkey_view.dart';
+import '../notification_views/notifications_view.dart';
+import '../ordinals/ordinals_view.dart';
+import '../paynym/paynym_claim_view.dart';
+import '../paynym/paynym_home_view.dart';
+import '../receive_view/receive_view.dart';
+import '../send_view/frost_ms/frost_send_view.dart';
+import '../send_view/send_view.dart';
+import '../settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
+import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
+import '../special/firo_rescan_recovery_error_dialog.dart';
+import '../token_view/my_tokens_view.dart';
+import 'sub_widgets/transactions_list.dart';
+import 'sub_widgets/wallet_summary.dart';
+import 'transaction_views/all_transactions_view.dart';
+import 'transaction_views/tx_v2/all_transactions_v2_view.dart';
+import 'transaction_views/tx_v2/transaction_v2_list.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
@@ -1059,7 +1061,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     },
                   ),
                   if (Constants.enableExchange &&
-                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency)
+                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
+                      AppConfig.hasFeature(AppFeature.swap))
                     WalletNavigationBarItemData(
                       label: "Swap",
                       icon: const ExchangeNavIcon(),

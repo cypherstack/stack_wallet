@@ -14,15 +14,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../app_config.dart';
-import 'desktop_menu_item.dart';
-import 'settings/settings_menu.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
 import '../widgets/desktop/desktop_tor_status_button.dart';
 import '../widgets/desktop/living_stack_icon.dart';
+import 'desktop_menu_item.dart';
+import 'settings/settings_menu.dart';
 
 enum DesktopMenuItemId {
   myStack,
@@ -186,17 +187,19 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],
                     ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    DesktopMenuItem(
-                      duration: duration,
-                      icon: const DesktopExchangeIcon(),
-                      label: "Swap",
-                      value: DesktopMenuItemId.exchange,
-                      onChanged: updateSelectedMenuItem,
-                      controller: controllers[1],
-                    ),
+                    if (AppConfig.hasFeature(AppFeature.swap))
+                      const SizedBox(
+                        height: 2,
+                      ),
+                    if (AppConfig.hasFeature(AppFeature.swap))
+                      DesktopMenuItem(
+                        duration: duration,
+                        icon: const DesktopExchangeIcon(),
+                        label: "Swap",
+                        value: DesktopMenuItemId.exchange,
+                        onChanged: updateSelectedMenuItem,
+                        controller: controllers[1],
+                      ),
                     const SizedBox(
                       height: 2,
                     ),
