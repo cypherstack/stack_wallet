@@ -17,7 +17,7 @@ ASSETS_DIR="${APP_PROJECT_ROOT_DIR}/assets"
 
 # finally update symlinks
 
-for dirname in "default_themes" "icon" "lottie" "in_app_logo_icons"; do
+for dirname in "default_themes" "icon" "lottie" "in_app_logo_icons" "svg"; do
   LINK_SOURCE_DIR="${ASSET_SOURCES_DIR}/${dirname}/${SELECT_ASSETS_DIR}"
 
   rm -f "${ASSETS_DIR}/${dirname}"
