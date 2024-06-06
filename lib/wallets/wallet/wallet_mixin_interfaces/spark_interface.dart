@@ -297,10 +297,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         "coinGroupID": i,
         "coins": resultSet
             .map(
-              (row) => [
-                row["serialized"] as String,
-                row["txHash"] as String,
-                row["context"] as String,
+              (e) => [
+                e.serialized,
+                e.txHash,
+                e.context,
               ],
             )
             .toList(),
@@ -799,10 +799,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
       final coinsRaw = anonymitySetResult
           .map(
-            (row) => [
-              row["serialized"] as String,
-              row["txHash"] as String,
-              row["context"] as String,
+            (e) => [
+              e.serialized,
+              e.txHash,
+              e.context,
             ],
           )
           .toList();

@@ -120,15 +120,32 @@ abstract class FiroCacheCoordinator {
     );
   }
 
-  static Future<ResultSet> getSetCoinsForGroupId(
+  static Future<
+      List<
+          ({
+            String serialized,
+            String txHash,
+            String context,
+          })>> getSetCoinsForGroupId(
     int groupId, {
     int? newerThanTimeStamp,
   }) async {
-    return await _Reader._getSetCoinsForGroupId(
+    final resultSet = await _Reader._getSetCoinsForGroupId(
       groupId,
       db: _FiroCache.setCacheDB,
       newerThanTimeStamp: newerThanTimeStamp,
     );
+    return resultSet
+        .map(
+          (row) => (
+            serialized: row["serialized"] as String,
+            txHash: row["txHash"] as String,
+            context: row["context"] as String,
+          ),
+        )
+        .toList()
+        .reversed
+        .toList();
   }
 
   static Future<

@@ -104,7 +104,8 @@ FCResult _updateSparkAnonSetCoinsWith(
           e[2] as String,
         ],
       )
-      .toList();
+      .toList()
+      .reversed;
 
   final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
 
