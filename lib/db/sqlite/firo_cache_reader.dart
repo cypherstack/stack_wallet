@@ -75,11 +75,11 @@ abstract class _Reader {
     return db.select("$query;");
   }
 
-  static Future<ResultSet> _getUsedCoinTagsLastAddedRowId({
+  static Future<ResultSet> _getUsedCoinTagsCount({
     required Database db,
   }) async {
     const query = """
-      SELECT MAX(id) AS highestId
+      SELECT COUNT(*) AS count
       FROM SparkUsedCoinTags;
     """;
 

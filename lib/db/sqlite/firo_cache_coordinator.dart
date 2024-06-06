@@ -50,7 +50,7 @@ abstract class FiroCacheCoordinator {
   static Future<void> runFetchAndUpdateSparkUsedCoinTags(
     ElectrumXClient client,
   ) async {
-    final count = await FiroCacheCoordinator.getUsedCoinTagsLastAddedRowId();
+    final count = await FiroCacheCoordinator.getUsedCoinTagsCount();
     final unhashedTags = await client.getSparkUnhashedUsedCoinsTags(
       startNumber: count,
     );
@@ -101,14 +101,14 @@ abstract class FiroCacheCoordinator {
   /// Assuming the integrity of the data. Faster than actually calling count on
   /// a table where no records have been deleted. None should be deleted from
   /// this table in practice.
-  static Future<int> getUsedCoinTagsLastAddedRowId() async {
-    final result = await _Reader._getUsedCoinTagsLastAddedRowId(
+  static Future<int> getUsedCoinTagsCount() async {
+    final result = await _Reader._getUsedCoinTagsCount(
       db: _FiroCache.usedTagsCacheDB,
     );
     if (result.isEmpty) {
       return 0;
     }
-    return result.first["highestId"] as int? ?? 0;
+    return result.first["count"] as int? ?? 0;
   }
 
   static Future<bool> checkTagIsUsed(
