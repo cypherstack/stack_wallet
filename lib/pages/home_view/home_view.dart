@@ -126,8 +126,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
     _rotateIconController = RotateIconController();
     _children = [
       const WalletsView(),
-      if (Constants.enableExchange) const ExchangeView(),
-      if (Constants.enableExchange) const BuyView(),
+      if (AppConfig.hasFeature(AppFeature.swap) && Constants.enableExchange)
+        const ExchangeView(),
+      if (AppConfig.hasFeature(AppFeature.buy) && Constants.enableExchange)
+        const BuyView(),
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
@@ -343,7 +345,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ),
           body: Column(
             children: [
-              if (Constants.enableExchange)
+              if (_children.length > 1)
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context)
