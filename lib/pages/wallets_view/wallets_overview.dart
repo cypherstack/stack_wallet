@@ -14,6 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../app_config.dart';
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
@@ -44,10 +45,12 @@ class WalletsOverview extends ConsumerStatefulWidget {
     super.key,
     required this.coin,
     this.navigatorState,
+    this.overrideSimpleWalletCardPopPreviousValueWith,
   });
 
   final CryptoCurrency coin;
   final NavigatorState? navigatorState;
+  final bool? overrideSimpleWalletCardPopPreviousValueWith;
 
   static const routeName = "/walletsOverview";
 
@@ -176,7 +179,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   @override
   Widget build(BuildContext context) {
     return ConditionalParent(
-      condition: !isDesktop,
+      condition: !isDesktop && !AppConfig.isSingleCoinApp,
       builder: (child) => Background(
         child: Scaffold(
           backgroundColor:
@@ -321,7 +324,12 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                         ),
                         child: SimpleWalletCard(
                           walletId: element.item1.walletId,
-                          popPrevious: isDesktop,
+                          popPrevious: widget
+                                      .overrideSimpleWalletCardPopPreviousValueWith ==
+                                  null
+                              ? isDesktop
+                              : widget
+                                  .overrideSimpleWalletCardPopPreviousValueWith!,
                           desktopNavigatorState:
                               isDesktop ? widget.navigatorState : null,
                         ),

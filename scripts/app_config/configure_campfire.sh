@@ -55,7 +55,6 @@ const ({String light, String dark})? _appIconAsset = (
 
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Firo(CryptoCurrencyNetwork.main),
-  Firo(CryptoCurrencyNetwork.test),
 ]);
 
 EOF

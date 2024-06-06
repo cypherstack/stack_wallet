@@ -13,12 +13,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../add_wallet_views/add_wallet_view/add_wallet_view.dart';
+
+import '../../../app_config.dart';
+import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../themes/theme_providers.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../add_wallet_views/add_wallet_view/add_wallet_view.dart';
+import '../../add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 
 class EmptyWallets extends ConsumerWidget {
   const EmptyWallets({super.key});
@@ -116,13 +120,30 @@ class AddWalletButton extends ConsumerWidget {
           .extension<StackColors>()!
           .getPrimaryEnabledButtonStyle(context),
       onPressed: () {
-        if (isDesktop) {
-          Navigator.of(
-            context,
-            rootNavigator: true,
-          ).pushNamed(AddWalletView.routeName);
+        if (AppConfig.isSingleCoinApp) {
+          if (isDesktop) {
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pushNamed(
+              CreateOrRestoreWalletView.routeName,
+              arguments: CoinEntity(AppConfig.coins.first),
+            );
+          } else {
+            Navigator.of(context).pushNamed(
+              CreateOrRestoreWalletView.routeName,
+              arguments: CoinEntity(AppConfig.coins.first),
+            );
+          }
         } else {
-          Navigator.of(context).pushNamed(AddWalletView.routeName);
+          if (isDesktop) {
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pushNamed(AddWalletView.routeName);
+          } else {
+            Navigator.of(context).pushNamed(AddWalletView.routeName);
+          }
         }
       },
       child: Center(
