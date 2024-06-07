@@ -297,6 +297,6 @@ class Bitcoin extends Bip39HDCurrency
   int get transactionVersion => 1;
 
   @override
-  int get defaultFeeRate => 1000;
+  BigInt get defaultFeeRate => BigInt.from(1000);
   // https://github.com/bitcoin/bitcoin/blob/feab35189bc00bc4cf15e9dcb5cf6b34ff3a1e91/test/functional/mempool_limit.py#L259
 }

@@ -10,7 +10,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
@@ -26,6 +25,7 @@ import '../services/event_bus/events/global/tor_connection_status_changed_event.
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
 import '../services/tor_service.dart';
+import '../utilities/amount/amount.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
@@ -1115,22 +1115,24 @@ class ElectrumXClient {
         ],
       );
       try {
-        // If the response is -1 or null, fall back to the defaultFeeRate.
         if (response == null ||
             response == -1 ||
             Decimal.parse(response.toString()) == Decimal.parse("-1")) {
-          if (CryptoCurrency is! BitcoinFrost) {
-            // TODO [prio=low]: Take `blocks` into account.
-            return Decimal.parse(
-                ((cryptoCurrency as ElectrumXCurrencyInterface).defaultFeeRate /
-                        pow(10, cryptoCurrency.fractionDigits))
-                    .toString());
+          if (cryptoCurrency is BitcoinFrost) {
+            final rate = Amount(
+              rawValue: (cryptoCurrency as BitcoinFrost).defaultFeeRate,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            );
+            return rate.decimal;
+          } else if (cryptoCurrency is ElectrumXCurrencyInterface) {
+            final rate = Amount(
+              rawValue:
+                  (cryptoCurrency as ElectrumXCurrencyInterface).defaultFeeRate,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            );
+            return rate.decimal;
           } else {
-            // Use Bitcoin's default fee rate for Bitcoin Frost.
-            return Decimal.parse(
-                ((Bitcoin(CryptoCurrencyNetwork.main).defaultFeeRate /
-                        pow(10, cryptoCurrency.fractionDigits))
-                    .toString()));
+            throw Exception("Unexpected cryptoCurrency found!");
           }
         }
         return Decimal.parse(response.toString());

@@ -202,6 +202,7 @@ class BitcoinFrost extends FrostCurrency {
     }
   }
 
-  @override
-  int get defaultFeeRate => 1000;
+  // @override
+  BigInt get defaultFeeRate => BigInt.from(1000);
+  // https://github.com/bitcoin/bitcoin/blob/feab35189bc00bc4cf15e9dcb5cf6b34ff3a1e91/test/functional/mempool_limit.py#L259
 }

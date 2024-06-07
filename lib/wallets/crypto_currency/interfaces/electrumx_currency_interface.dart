@@ -4,5 +4,5 @@ mixin ElectrumXCurrencyInterface on Bip39HDCurrency {
   int get transactionVersion;
 
   /// The default fee rate in satoshis per kilobyte.
-  int get defaultFeeRate;
+  BigInt get defaultFeeRate;
 }
