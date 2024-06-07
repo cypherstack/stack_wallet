@@ -567,7 +567,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     String? label;
 
     if (jsonUTXO["value"] is int) {
-      // TODO: [prio=med] use special electrumx call to verify the 1000 Firo output is masternode
+      // TODO: [prio=high] use special electrumx call to verify the 1000 Firo output is masternode
+      // electrumx call should exist now. Unsure if it works though
       blocked = Amount.fromDecimal(
             Decimal.fromInt(
               1000, // 1000 firo output is a possible master node

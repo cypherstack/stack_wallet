@@ -29,9 +29,6 @@ enum CryptoCurrencyNetwork {
 }
 
 abstract class CryptoCurrency {
-  // @Deprecated("[prio=low] Should eventually move away from Coin enum")
-  // late final CryptoCurrency coin;
-
   final CryptoCurrencyNetwork network;
 
   CryptoCurrency(this.network);
