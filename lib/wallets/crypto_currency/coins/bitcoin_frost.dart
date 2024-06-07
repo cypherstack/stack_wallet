@@ -201,4 +201,7 @@ class BitcoinFrost extends FrostCurrency {
         );
     }
   }
+
+  @override
+  int get defaultFeeRate => 1000;
 }

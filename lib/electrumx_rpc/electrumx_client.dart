@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
@@ -28,6 +29,7 @@ import '../services/tor_service.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'client_manager.dart';
 
 class WifiOnlyException implements Exception {}
@@ -1113,17 +1115,23 @@ class ElectrumXClient {
         ],
       );
       try {
-        // If the response is -1 or null, return a temporary hardcoded value for
-        // Dogecoin.  This is a temporary fix until the fee estimation is fixed.
-        if (cryptoCurrency is Dogecoin &&
-            (response == null ||
-                response == -1 ||
-                Decimal.parse(response.toString()) == Decimal.parse("-1"))) {
-          // Return 0.05 for slow, 0.2 for average, and 1 for fast txs.
-          // These numbers produce tx fees in line with txs in the wild on
-          // https://dogechain.info/
-          return Decimal.parse((1 / blocks).toString());
-          // TODO [prio=med]: Fix fee estimation.
+        // If the response is -1 or null, fall back to the defaultFeeRate.
+        if (response == null ||
+            response == -1 ||
+            Decimal.parse(response.toString()) == Decimal.parse("-1")) {
+          if (CryptoCurrency is! BitcoinFrost) {
+            // TODO [prio=low]: Take `blocks` into account.
+            return Decimal.parse(
+                ((cryptoCurrency as ElectrumXCurrencyInterface).defaultFeeRate /
+                        pow(10, cryptoCurrency.fractionDigits))
+                    .toString());
+          } else {
+            // Use Bitcoin's default fee rate for Bitcoin Frost.
+            return Decimal.parse(
+                ((Bitcoin(CryptoCurrencyNetwork.main).defaultFeeRate /
+                        pow(10, cryptoCurrency.fractionDigits))
+                    .toString()));
+          }
         }
         return Decimal.parse(response.toString());
       } catch (e, s) {

@@ -257,4 +257,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   int get transactionVersion => 3;
+
+  @override
+  int get defaultFeeRate => 5000;
 }
