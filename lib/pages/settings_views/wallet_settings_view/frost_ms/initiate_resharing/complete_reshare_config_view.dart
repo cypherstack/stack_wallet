@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frostdart/frostdart.dart';
+
 import '../../../../../frost_route_generator.dart';
 import '../../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../../../providers/db/main_db_provider.dart';
@@ -426,7 +427,7 @@ class _CompleteReshareConfigViewState
             ),
             RoundedWhiteContainer(
               child: Text(
-                "The number of participants must be equal to or less than the"
+                "The number of participants must be equal to or greater than the"
                 " number of required signatures.",
                 style: STextStyles.w500_12(context).copyWith(
                   color:
