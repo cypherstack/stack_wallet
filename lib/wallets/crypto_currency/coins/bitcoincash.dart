@@ -101,9 +101,9 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
           messagePrefix: '\x18Bitcoin Signed Message:\n',
-          minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: dustLimit.raw, // TODO.
-          feePerKb: BigInt.from(1), // TODO.
+          minFee: BigInt.from(1), // Not used in stack wallet currently
+          minOutput: dustLimit.raw, // Not used in stack wallet currently
+          feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       case CryptoCurrencyNetwork.test:
         return coinlib.Network(
@@ -114,9 +114,9 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
           messagePrefix: "\x18Bitcoin Signed Message:\n",
-          minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: dustLimit.raw, // TODO.
-          feePerKb: BigInt.from(1), // TODO.
+          minFee: BigInt.from(1), // Not used in stack wallet currently
+          minOutput: dustLimit.raw, // Not used in stack wallet currently
+          feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       default:
         throw Exception("Unsupported network: $network");

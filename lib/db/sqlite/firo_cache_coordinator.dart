@@ -50,7 +50,7 @@ abstract class FiroCacheCoordinator {
   static Future<void> runFetchAndUpdateSparkUsedCoinTags(
     ElectrumXClient client,
   ) async {
-    final count = await FiroCacheCoordinator.getUsedCoinTagsLastAddedRowId();
+    final count = await FiroCacheCoordinator.getUsedCoinTagsCount();
     final unhashedTags = await client.getSparkUnhashedUsedCoinsTags(
       startNumber: count,
     );
@@ -101,14 +101,14 @@ abstract class FiroCacheCoordinator {
   /// Assuming the integrity of the data. Faster than actually calling count on
   /// a table where no records have been deleted. None should be deleted from
   /// this table in practice.
-  static Future<int> getUsedCoinTagsLastAddedRowId() async {
-    final result = await _Reader._getUsedCoinTagsLastAddedRowId(
+  static Future<int> getUsedCoinTagsCount() async {
+    final result = await _Reader._getUsedCoinTagsCount(
       db: _FiroCache.usedTagsCacheDB,
     );
     if (result.isEmpty) {
       return 0;
     }
-    return result.first["highestId"] as int? ?? 0;
+    return result.first["count"] as int? ?? 0;
   }
 
   static Future<bool> checkTagIsUsed(
@@ -120,15 +120,32 @@ abstract class FiroCacheCoordinator {
     );
   }
 
-  static Future<ResultSet> getSetCoinsForGroupId(
+  static Future<
+      List<
+          ({
+            String serialized,
+            String txHash,
+            String context,
+          })>> getSetCoinsForGroupId(
     int groupId, {
     int? newerThanTimeStamp,
   }) async {
-    return await _Reader._getSetCoinsForGroupId(
+    final resultSet = await _Reader._getSetCoinsForGroupId(
       groupId,
       db: _FiroCache.setCacheDB,
       newerThanTimeStamp: newerThanTimeStamp,
     );
+    return resultSet
+        .map(
+          (row) => (
+            serialized: row["serialized"] as String,
+            txHash: row["txHash"] as String,
+            context: row["context"] as String,
+          ),
+        )
+        .toList()
+        .reversed
+        .toList();
   }
 
   static Future<

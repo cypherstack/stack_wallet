@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 
 import '../../../db/sqlite/firo_cache.dart';
@@ -429,11 +428,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           if (lTags?.isNotEmpty == true) {
             final List<SparkCoin> usedCoins = [];
             for (final tag in lTags!) {
-              final components = (tag as String).split(",");
-              final x = components[0].substring(1);
-              final y = components[1].substring(0, components[1].length - 1);
-
-              final hash = LibSpark.hashTag(x, y);
+              final hash = await hashTag(tag as String);
               usedCoins.addAll(sparkCoins.where((e) => e.lTagHash == hash));
             }
 
@@ -572,7 +567,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     String? label;
 
     if (jsonUTXO["value"] is int) {
-      // TODO: [prio=med] use special electrumx call to verify the 1000 Firo output is masternode
+      // TODO: [prio=high] use special electrumx call to verify the 1000 Firo output is masternode
+      // electrumx call should exist now. Unsure if it works though
       blocked = Amount.fromDecimal(
             Decimal.fromInt(
               1000, // 1000 firo output is a possible master node

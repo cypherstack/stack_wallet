@@ -954,7 +954,7 @@ class ElectrumXClient {
 
       Logging.instance.log(
         "Finished ElectrumXClient.getSparkUnhashedUsedCoinsTags(startNumber"
-        "=$startNumber). "
+        "=$startNumber). # of tags fetched=${tags.length}, "
         "Duration=${DateTime.now().difference(start)}",
         level: LogLevel.Info,
       );

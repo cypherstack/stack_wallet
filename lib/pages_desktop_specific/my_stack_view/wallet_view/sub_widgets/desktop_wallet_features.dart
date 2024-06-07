@@ -15,16 +15,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/monkey/monkey_view.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
-import '../../../cashfusion/desktop_cashfusion_view.dart';
-import '../../../coin_control/desktop_coin_control_view.dart';
-import '../../../desktop_menu.dart';
-import '../desktop_wallet_view.dart';
-import 'more_features/more_features_dialog.dart';
-import '../../../ordinals/desktop_ordinals_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
@@ -48,6 +44,12 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
+import '../../../cashfusion/desktop_cashfusion_view.dart';
+import '../../../coin_control/desktop_coin_control_view.dart';
+import '../../../desktop_menu.dart';
+import '../../../ordinals/desktop_ordinals_view.dart';
+import '../desktop_wallet_view.dart';
+import 'more_features/more_features_dialog.dart';
 
 class DesktopWalletFeatures extends ConsumerStatefulWidget {
   const DesktopWalletFeatures({
@@ -366,7 +368,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     return Row(
       children: [
-        if (Constants.enableExchange)
+        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.swap))
           SecondaryButton(
             label: "Swap",
             width: buttonWidth,
@@ -381,11 +383,11 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             ),
             onPressed: () => _onSwapPressed(),
           ),
-        if (Constants.enableExchange)
+        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
           const SizedBox(
             width: 16,
           ),
-        if (Constants.enableExchange)
+        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
           SecondaryButton(
             label: "Buy",
             width: buttonWidth,

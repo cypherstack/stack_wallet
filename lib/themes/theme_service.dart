@@ -16,6 +16,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
+import '../app_config.dart';
 import '../db/isar/main_db.dart';
 import '../models/isar/stack_theme.dart';
 import '../networking/http.dart';
@@ -145,37 +147,38 @@ class ThemeService {
         );
       }
     }
-
-    if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
-      Logging.instance.log(
-        "Installing default dark theme... ",
-        level: LogLevel.Info,
-      );
-      final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-      await ThemeService.instance
-          .install(themeArchiveData: darkZip.buffer.asUint8List());
-      Logging.instance.log(
-        "Installing default dark theme... finished",
-        level: LogLevel.Info,
-      );
-    } else {
-      // check installed version
-      // final theme = ThemeService.instance.getTheme(themeId: "dark");
-      // Force update theme to add missing icons for now
-      // TODO: uncomment if statement in future when themes are version 4 or above
-      // if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
-      Logging.instance.log(
-        "Updating default dark theme...",
-        level: LogLevel.Info,
-      );
-      final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-      await ThemeService.instance
-          .install(themeArchiveData: darkZip.buffer.asUint8List());
-      Logging.instance.log(
-        "Updating default dark theme... finished",
-        level: LogLevel.Info,
-      );
-      // }
+    if (AppConfig.hasFeature(AppFeature.themeSelection)) {
+      if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
+        Logging.instance.log(
+          "Installing default dark theme... ",
+          level: LogLevel.Info,
+        );
+        final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
+        await ThemeService.instance
+            .install(themeArchiveData: darkZip.buffer.asUint8List());
+        Logging.instance.log(
+          "Installing default dark theme... finished",
+          level: LogLevel.Info,
+        );
+      } else {
+        // check installed version
+        // final theme = ThemeService.instance.getTheme(themeId: "dark");
+        // Force update theme to add missing icons for now
+        // TODO: uncomment if statement in future when themes are version 4 or above
+        // if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
+        Logging.instance.log(
+          "Updating default dark theme...",
+          level: LogLevel.Info,
+        );
+        final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
+        await ThemeService.instance
+            .install(themeArchiveData: darkZip.buffer.asUint8List());
+        Logging.instance.log(
+          "Updating default dark theme... finished",
+          level: LogLevel.Info,
+        );
+        // }
+      }
     }
   }
 

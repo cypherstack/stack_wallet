@@ -24,6 +24,8 @@ abstract class AppConfig {
 
   static List<CryptoCurrency> get coins => _supportedCoins;
 
+  static bool get isSingleCoinApp => coins.length == 1;
+
   static CryptoCurrency? getCryptoCurrencyFor(String coinIdentifier) {
     try {
       return coins.firstWhere((e) => e.identifier == coinIdentifier);

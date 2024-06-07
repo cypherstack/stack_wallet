@@ -165,9 +165,9 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           pubHDPrefix: 0x696e82d1,
           bech32Hrp: "pw",
           messagePrefix: '\x18Bitcoin Signed Message:\n',
-          minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: dustLimit.raw, // TODO.
-          feePerKb: BigInt.from(1), // TODO.
+          minFee: BigInt.from(1), // Not used in stack wallet currently
+          minOutput: dustLimit.raw, // Not used in stack wallet currently
+          feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       // case CryptoCurrencyNetwork.test:
       // TODO: [prio=low] Add testnet.

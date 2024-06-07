@@ -10,12 +10,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import 'wallet_list_item.dart';
+
+import '../../../app_config.dart';
+import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../add_wallet_views/add_wallet_view/add_wallet_view.dart';
+import '../../add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
+import '../wallets_overview.dart';
+import 'wallet_list_item.dart';
 
 class AllWallets extends StatelessWidget {
   const AllWallets({super.key});
@@ -37,7 +42,19 @@ class AllWallets extends StatelessWidget {
             CustomTextButton(
               text: "Add new",
               onTap: () {
-                Navigator.of(context).pushNamed(AddWalletView.routeName);
+                final String route;
+                final Object? args;
+                if (AppConfig.isSingleCoinApp) {
+                  route = CreateOrRestoreWalletView.routeName;
+                  args = CoinEntity(AppConfig.coins.first);
+                } else {
+                  route = AddWalletView.routeName;
+                  args = null;
+                }
+                Navigator.of(context).pushNamed(
+                  route,
+                  arguments: args,
+                );
               },
             ),
           ],
@@ -49,6 +66,12 @@ class AllWallets extends StatelessWidget {
           child: Consumer(
             builder: (_, ref, __) {
               final walletsByCoin = ref.watch(pAllWalletsInfoByCoin);
+
+              if (AppConfig.isSingleCoinApp && walletsByCoin.isNotEmpty) {
+                return WalletsOverview(
+                  coin: AppConfig.coins.first,
+                );
+              }
 
               return ListView.builder(
                 itemCount: walletsByCoin.length,

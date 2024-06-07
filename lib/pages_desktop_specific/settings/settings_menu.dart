@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../app_config.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import 'settings_menu_item.dart';
@@ -36,7 +37,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
     "Tor settings",
     "Nodes",
     "Syncing preferences",
-    "Appearance",
+    if (AppConfig.hasFeature(AppFeature.themeSelection)) "Appearance",
     "Advanced",
   ];
 

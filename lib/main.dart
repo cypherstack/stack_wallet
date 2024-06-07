@@ -370,20 +370,22 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
-      await ExchangeDataLoadingService.instance.initDB();
-      // run without awaiting
-      if (ref.read(prefsChangeNotifierProvider).externalCalls &&
-          await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
-        if (Constants.enableExchange) {
-          await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-            ref.read(efCurrencyPairProvider),
-            ref.read(efRateTypeProvider),
-          );
-          unawaited(ExchangeDataLoadingService.instance.loadAll());
+      if (AppConfig.hasFeature(AppFeature.swap)) {
+        await ExchangeDataLoadingService.instance.initDB();
+        // run without awaiting
+        if (ref.read(prefsChangeNotifierProvider).externalCalls &&
+            await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
+          if (Constants.enableExchange) {
+            await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+              ref.read(efCurrencyPairProvider),
+              ref.read(efRateTypeProvider),
+            );
+            unawaited(ExchangeDataLoadingService.instance.loadAll());
+          }
+          // if (Constants.enableBuy) {
+          //   unawaited(BuyDataLoadingService().loadAll(ref));
+          // }
         }
-        // if (Constants.enableBuy) {
-        //   unawaited(BuyDataLoadingService().loadAll(ref));
-        // }
       }
 
       if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
