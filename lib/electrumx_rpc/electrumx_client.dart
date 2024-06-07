@@ -25,9 +25,11 @@ import '../services/event_bus/events/global/tor_connection_status_changed_event.
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
 import '../services/tor_service.dart';
+import '../utilities/amount/amount.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'client_manager.dart';
 
 class WifiOnlyException implements Exception {}
@@ -1113,17 +1115,25 @@ class ElectrumXClient {
         ],
       );
       try {
-        // If the response is -1 or null, return a temporary hardcoded value for
-        // Dogecoin.  This is a temporary fix until the fee estimation is fixed.
-        if (cryptoCurrency is Dogecoin &&
-            (response == null ||
-                response == -1 ||
-                Decimal.parse(response.toString()) == Decimal.parse("-1"))) {
-          // Return 0.05 for slow, 0.2 for average, and 1 for fast txs.
-          // These numbers produce tx fees in line with txs in the wild on
-          // https://dogechain.info/
-          return Decimal.parse((1 / blocks).toString());
-          // TODO [prio=med]: Fix fee estimation.
+        if (response == null ||
+            response == -1 ||
+            Decimal.parse(response.toString()) == Decimal.parse("-1")) {
+          if (cryptoCurrency is BitcoinFrost) {
+            final rate = Amount(
+              rawValue: (cryptoCurrency as BitcoinFrost).defaultFeeRate,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            );
+            return rate.decimal;
+          } else if (cryptoCurrency is ElectrumXCurrencyInterface) {
+            final rate = Amount(
+              rawValue:
+                  (cryptoCurrency as ElectrumXCurrencyInterface).defaultFeeRate,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            );
+            return rate.decimal;
+          } else {
+            throw Exception("Unexpected cryptoCurrency found!");
+          }
         }
         return Decimal.parse(response.toString());
       } catch (e, s) {

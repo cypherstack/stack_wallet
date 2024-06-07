@@ -252,4 +252,8 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   int get transactionVersion => 1;
+
+  @override
+  BigInt get defaultFeeRate => BigInt.from(1000000);
+  // https://github.com/dogecoin/dogecoin/blob/master/doc/fee-recommendation.md
 }

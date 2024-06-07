@@ -367,4 +367,7 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   int get transactionVersion => 2;
+
+  @override
+  BigInt get defaultFeeRate => BigInt.from(1000);
 }

@@ -270,4 +270,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   int get transactionVersion => 1;
+
+  @override
+  BigInt get defaultFeeRate => BigInt.from(1000);
 }
