@@ -97,10 +97,6 @@ abstract class FiroCacheCoordinator {
     return result.map((e) => e["tag"] as String).toSet();
   }
 
-  /// This should be the equivalent of counting the number of tags in the db.
-  /// Assuming the integrity of the data. Faster than actually calling count on
-  /// a table where no records have been deleted. None should be deleted from
-  /// this table in practice.
   static Future<int> getUsedCoinTagsCount() async {
     final result = await _Reader._getUsedCoinTagsCount(
       db: _FiroCache.usedTagsCacheDB,
