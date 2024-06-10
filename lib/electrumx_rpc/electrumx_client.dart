@@ -932,41 +932,41 @@ class ElectrumXClient {
     }
   }
 
-  // TODO: update when we get new call to include tx hashes in response
+  /// NOT USED. See [getSparkUnhashedUsedCoinsTagsWithTxHashes]
   /// Takes [startNumber], if it is 0, we get the full set,
   /// otherwise the used tags after that number
-  Future<List<String>> getSparkUnhashedUsedCoinsTags({
-    String? requestID,
-    required int startNumber,
-  }) async {
-    try {
-      final start = DateTime.now();
-      await _checkElectrumAdapter();
-      final Map<String, dynamic> response =
-          await (getElectrumAdapter() as FiroElectrumClient)
-              .getUsedCoinsTags(startNumber: startNumber);
-      // TODO: Add 2 minute timeout.
-      // Why 2 minutes?
-      Logging.instance.log(
-        "Fetching spark.getusedcoinstags finished",
-        level: LogLevel.Info,
-      );
-      final map = Map<String, dynamic>.from(response);
-      final tags = List<String>.from(map["tags"] as List);
-
-      Logging.instance.log(
-        "Finished ElectrumXClient.getSparkUnhashedUsedCoinsTags(startNumber"
-        "=$startNumber). # of tags fetched=${tags.length}, "
-        "Duration=${DateTime.now().difference(start)}",
-        level: LogLevel.Info,
-      );
-
-      return tags;
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
-      rethrow;
-    }
-  }
+  // Future<List<String>> getSparkUnhashedUsedCoinsTags({
+  //   String? requestID,
+  //   required int startNumber,
+  // }) async {
+  //   try {
+  //     final start = DateTime.now();
+  //     await _checkElectrumAdapter();
+  //     final Map<String, dynamic> response =
+  //         await (getElectrumAdapter() as FiroElectrumClient)
+  //             .getUsedCoinsTags(startNumber: startNumber);
+  //     // TODO: Add 2 minute timeout.
+  //     // Why 2 minutes?
+  //     Logging.instance.log(
+  //       "Fetching spark.getusedcoinstags finished",
+  //       level: LogLevel.Info,
+  //     );
+  //     final map = Map<String, dynamic>.from(response);
+  //     final tags = List<String>.from(map["tags"] as List);
+  //
+  //     Logging.instance.log(
+  //       "Finished ElectrumXClient.getSparkUnhashedUsedCoinsTags(startNumber"
+  //       "=$startNumber). # of tags fetched=${tags.length}, "
+  //       "Duration=${DateTime.now().difference(start)}",
+  //       level: LogLevel.Info,
+  //     );
+  //
+  //     return tags;
+  //   } catch (e) {
+  //     Logging.instance.log(e, level: LogLevel.Error);
+  //     rethrow;
+  //   }
+  // }
 
   /// Takes a list of [sparkCoinHashes] and returns the set id and block height
   /// for each coin
@@ -1085,6 +1085,38 @@ class ElectrumXClient {
     }
   }
 
+  /// Takes [startNumber], if it is 0, we get the full set,
+  /// otherwise the used tags and txids after that number
+  Future<List<List<dynamic>>> getSparkUnhashedUsedCoinsTagsWithTxHashes({
+    String? requestID,
+    required int startNumber,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "spark.getusedcoinstagstxhashes",
+        args: [
+          "$startNumber",
+        ],
+      );
+
+      final map = Map<String, dynamic>.from(response as Map);
+      final tags = List<List<dynamic>>.from(map["tagsandtxids"] as List);
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getSparkUnhashedUsedCoinsTagsWithTxHashes("
+        "startNumber=$startNumber). # of tags fetched=${tags.length}, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return tags;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
   // ===========================================================================
 
   /// Get the current fee rate.

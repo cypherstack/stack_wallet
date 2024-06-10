@@ -100,7 +100,7 @@ class _FiroCacheWorker {
             case FCFuncName._updateSparkUsedTagsWith:
               result = _updateSparkUsedTagsWith(
                 usedTagsCacheDb,
-                task.data as List<String>,
+                task.data as List<List<dynamic>>,
               );
               break;
           }

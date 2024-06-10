@@ -15,10 +15,12 @@ class FCResult {
 /// returns true if successful, otherwise some exception
 FCResult _updateSparkUsedTagsWith(
   Database db,
-  List<String> tags,
+  List<List<dynamic>> tags,
 ) {
   // hash the tags here since this function is called in a background isolate
-  final hashedTags = LibSpark.hashTags(base64Tags: tags);
+  final hashedTags = LibSpark.hashTags(
+    base64Tags: tags.map((e) => e[0] as String),
+  );
 
   if (hashedTags.isEmpty) {
     // nothing to add, return early
@@ -27,13 +29,13 @@ FCResult _updateSparkUsedTagsWith(
 
   db.execute("BEGIN;");
   try {
-    for (final tag in hashedTags) {
+    for (int i = 0; i < hashedTags.length; i++) {
       db.execute(
         """
-          INSERT OR IGNORE INTO SparkUsedCoinTags (tag)
-          VALUES (?);
+          INSERT OR IGNORE INTO SparkUsedCoinTags (tag, txid)
+          VALUES (?, ?);
         """,
-        [tag],
+        [hashedTags[i], (tags[i][1] as String).toHexReversedFromBase64],
       );
     }
 

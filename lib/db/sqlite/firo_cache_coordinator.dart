@@ -51,7 +51,7 @@ abstract class FiroCacheCoordinator {
     ElectrumXClient client,
   ) async {
     final count = await FiroCacheCoordinator.getUsedCoinTagsCount();
-    final unhashedTags = await client.getSparkUnhashedUsedCoinsTags(
+    final unhashedTags = await client.getSparkUnhashedUsedCoinsTagsWithTxHashes(
       startNumber: count,
     );
     if (unhashedTags.isNotEmpty) {
