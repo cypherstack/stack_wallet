@@ -1,5 +1,7 @@
 part of 'firo_cache.dart';
 
+typedef LTagPair = ({String tag, String txid});
+
 /// Wrapper class for [_FiroCache] as [_FiroCache] should eventually be handled in a
 /// background isolate and [FiroCacheCoordinator] should manage that isolate
 abstract class FiroCacheCoordinator {
@@ -105,6 +107,40 @@ abstract class FiroCacheCoordinator {
       return 0;
     }
     return result.first["count"] as int? ?? 0;
+  }
+
+  static Future<List<LTagPair>> getUsedCoinTxidsFor({
+    required List<String> tags,
+  }) async {
+    if (tags.isEmpty) {
+      return [];
+    }
+    final result = await _Reader._getUsedCoinTxidsFor(
+      tags,
+      db: _FiroCache.usedTagsCacheDB,
+    );
+
+    if (result.isEmpty) {
+      return [];
+    }
+    return result.rows
+        .map(
+          (e) => (
+            tag: e[0] as String,
+            txid: e[1] as String,
+          ),
+        )
+        .toList();
+  }
+
+  static Future<Set<String>> getUsedCoinTagsFor({
+    required String txid,
+  }) async {
+    final result = await _Reader._getUsedCoinTagsFor(
+      txid,
+      db: _FiroCache.usedTagsCacheDB,
+    );
+    return result.map((e) => e["tag"] as String).toSet();
   }
 
   static Future<bool> checkTagIsUsed(

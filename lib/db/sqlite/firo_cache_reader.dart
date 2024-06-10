@@ -86,6 +86,35 @@ abstract class _Reader {
     return db.select("$query;");
   }
 
+  static Future<ResultSet> _getUsedCoinTxidsFor(
+    List<String> tags, {
+    required Database db,
+  }) async {
+    final tagsConcat = tags.join("', '");
+
+    final query = """
+      SELECT tag, GROUP_CONCAT(txid) AS txids
+      FROM SparkUsedCoinTags
+      WHERE tag IN ('$tagsConcat') 
+      GROUP BY tag;
+    """;
+
+    return db.select("$query;");
+  }
+
+  static Future<ResultSet> _getUsedCoinTagsFor(
+    String txid, {
+    required Database db,
+  }) async {
+    final query = """
+      SELECT tag
+      FROM SparkUsedCoinTags
+      WHERE txid = '$txid';
+    """;
+
+    return db.select("$query;");
+  }
+
   static Future<bool> _checkTagIsUsed(
     String tag, {
     required Database db,
