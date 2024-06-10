@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 
 import '../app_config.dart';
@@ -24,7 +23,8 @@ Future<void> migrateWalletsToIsar({
   await MainDB.instance.isar
       .writeTxn(() async => await MainDB.instance.isar.transactionV2s.clear());
 
-  final allWalletsBox = await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+  final allWalletsBox =
+      await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
 
   final names = DB.instance
       .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
@@ -55,7 +55,9 @@ Future<void> migrateWalletsToIsar({
   // Get current ordered list of favourite wallet Ids
   //
   final List<String> favourites =
-      (await Hive.openBox<String>(DB.boxNameFavoriteWallets)).values.toList();
+      (await DB.instance.hive.openBox<String>(DB.boxNameFavoriteWallets))
+          .values
+          .toList();
 
   final List<(WalletInfo, WalletInfoMeta)> newInfo = [];
   final List<TokenWalletInfo> tokenInfo = [];
@@ -65,7 +67,7 @@ Future<void> migrateWalletsToIsar({
   // Convert each old info into the new Isar WalletInfo
   //
   for (final old in oldInfo) {
-    final walletBox = await Hive.openBox<dynamic>(old.walletId);
+    final walletBox = await DB.instance.hive.openBox<dynamic>(old.walletId);
 
     //
     // First handle transaction notes
@@ -212,9 +214,9 @@ Future<void> migrateWalletsToIsar({
 }
 
 Future<void> _cleanupOnSuccess({required List<String> walletIds}) async {
-  await Hive.deleteBoxFromDisk(DB.boxNameFavoriteWallets);
-  await Hive.deleteBoxFromDisk(DB.boxNameAllWalletsData);
+  await DB.instance.hive.deleteBoxFromDisk(DB.boxNameFavoriteWallets);
+  await DB.instance.hive.deleteBoxFromDisk(DB.boxNameAllWalletsData);
   for (final walletId in walletIds) {
-    await Hive.deleteBoxFromDisk(walletId);
+    await DB.instance.hive.deleteBoxFromDisk(walletId);
   }
 }

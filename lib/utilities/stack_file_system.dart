@@ -29,6 +29,9 @@ abstract class StackFileSystem {
     _overrideDirSet = true;
   }
 
+  static bool get _createSubDirs =>
+      Util.isDesktop || AppConfig.appName == "Campfire";
+
   static Future<Directory> applicationRootDirectory() async {
     Directory appDirectory;
 
@@ -80,7 +83,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationIsarDirectory() async {
     final root = await applicationRootDirectory();
-    if (Util.isDesktop) {
+    if (_createSubDirs) {
       final dir = Directory("${root.path}/isar");
       if (!dir.existsSync()) {
         await dir.create();
@@ -94,7 +97,7 @@ abstract class StackFileSystem {
   // Not used in general now. See applicationFiroCacheSQLiteDirectory()
   // static Future<Directory> applicationSQLiteDirectory() async {
   //   final root = await applicationRootDirectory();
-  //   if (Util.isDesktop) {
+  //   if (_createSubDirs) {
   //     final dir = Directory("${root.path}/sqlite");
   //     if (!dir.existsSync()) {
   //       await dir.create();
@@ -107,7 +110,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationTorDirectory() async {
     final root = await applicationRootDirectory();
-    if (Util.isDesktop) {
+    if (_createSubDirs) {
       final dir = Directory("${root.path}/tor");
       if (!dir.existsSync()) {
         await dir.create();
@@ -120,7 +123,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationFiroCacheSQLiteDirectory() async {
     final root = await applicationRootDirectory();
-    if (Util.isDesktop) {
+    if (_createSubDirs) {
       final dir = Directory("${root.path}/sqlite/firo_cache");
       if (!dir.existsSync()) {
         await dir.create(recursive: true);
@@ -133,7 +136,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationHiveDirectory() async {
     final root = await applicationRootDirectory();
-    if (Util.isDesktop) {
+    if (_createSubDirs) {
       final dir = Directory("${root.path}/hive");
       if (!dir.existsSync()) {
         await dir.create();

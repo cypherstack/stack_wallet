@@ -13,7 +13,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
 import 'package:isar/isar.dart';
 
 import '../../db/hive/db.dart';
@@ -52,7 +51,7 @@ class _ForgotPasswordDesktopViewState
     final appRoot = await StackFileSystem.applicationRootDirectory();
 
     try {
-      await Hive.close();
+      await DB.instance.hive.close();
       if (Platform.isWindows) {
         final xmrDir = Directory("${appRoot.path}/wallets");
         if (xmrDir.existsSync()) {

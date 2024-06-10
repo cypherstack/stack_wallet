@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:hive/hive.dart';
 import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
@@ -40,14 +39,18 @@ class DbVersionMigrator with WalletDB {
     int fromVersion, {
     required SecureStorageInterface secureStore,
   }) async {
+    if (AppConfig.appName == "Campfire" && fromVersion < 12) {
+      // safe to skip to v11 for campfire
+      fromVersion = 11;
+    }
     Logging.instance.log(
       "Running migrate fromVersion $fromVersion",
       level: LogLevel.Warning,
     );
     switch (fromVersion) {
       case 0:
-        await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
-        await Hive.openBox<dynamic>(DB.boxNamePrefs);
+        await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+        await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
         final walletsService = WalletsService();
         final nodeService = NodeService(secureStorageInterface: secureStore);
         final prefs = Prefs.instance;
@@ -61,8 +64,8 @@ class DbVersionMigrator with WalletDB {
         // only instantiate client if there are firo wallets
         if (walletInfoList.values
             .any((element) => element.coinIdentifier == firo.identifier)) {
-          await Hive.openBox<NodeModel>(DB.boxNameNodeModels);
-          await Hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
+          await DB.instance.hive.openBox<NodeModel>(DB.boxNameNodeModels);
+          await DB.instance.hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
           final node =
               nodeService.getPrimaryNodeFor(currency: firo) ?? firo.defaultNode;
           final List<ElectrumXNode> failovers = nodeService
@@ -106,7 +109,7 @@ class DbVersionMigrator with WalletDB {
         for (final walletInfo in walletInfoList.values) {
           // migrate each firo wallet's lelantus coins
           if (walletInfo.coinIdentifier == firo.identifier) {
-            await Hive.openBox<dynamic>(walletInfo.walletId);
+            await DB.instance.hive.openBox<dynamic>(walletInfo.walletId);
             final _lelantusCoins = DB.instance.get<dynamic>(
               boxName: walletInfo.walletId,
               key: '_lelantus_coins',
@@ -157,8 +160,8 @@ class DbVersionMigrator with WalletDB {
         return await migrate(1, secureStore: secureStore);
 
       case 1:
-        await Hive.openBox<ExchangeTransaction>(DB.boxNameTrades);
-        await Hive.openBox<Trade>(DB.boxNameTradesV2);
+        await DB.instance.hive.openBox<ExchangeTransaction>(DB.boxNameTrades);
+        await DB.instance.hive.openBox<Trade>(DB.boxNameTradesV2);
         final trades =
             DB.instance.values<ExchangeTransaction>(boxName: DB.boxNameTrades);
 
@@ -184,7 +187,7 @@ class DbVersionMigrator with WalletDB {
         return await migrate(2, secureStore: secureStore);
 
       case 2:
-        await Hive.openBox<dynamic>(DB.boxNamePrefs);
+        await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
         final prefs = Prefs.instance;
         await prefs.init();
         if (!(await prefs.isExternalCallsSet())) {
@@ -233,8 +236,8 @@ class DbVersionMigrator with WalletDB {
 
       case 5:
         // migrate
-        await Hive.openBox<dynamic>("theme");
-        await Hive.openBox<dynamic>(DB.boxNamePrefs);
+        await DB.instance.hive.openBox<dynamic>("theme");
+        await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
 
         final themeName =
             DB.instance.get<dynamic>(boxName: "theme", key: "colorScheme")
@@ -347,7 +350,7 @@ class DbVersionMigrator with WalletDB {
 
       case 8:
         // migrate
-        await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+        await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
         final walletsService = WalletsService();
         final walletInfoList = await walletsService.walletNames;
         await MainDB.instance.initMainDB();
@@ -443,8 +446,8 @@ class DbVersionMigrator with WalletDB {
   }
 
   Future<void> _v4(SecureStorageInterface secureStore) async {
-    await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
-    await Hive.openBox<dynamic>(DB.boxNamePrefs);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
     final walletsService = WalletsService();
     final prefs = Prefs.instance;
     final walletInfoList = await walletsService.walletNames;
@@ -455,7 +458,7 @@ class DbVersionMigrator with WalletDB {
       final info = walletInfoList[walletId]!;
       assert(info.walletId == walletId);
 
-      final walletBox = await Hive.openBox<dynamic>(info.walletId);
+      final walletBox = await DB.instance.hive.openBox<dynamic>(info.walletId);
 
       const receiveAddressesPrefix = "receivingAddresses";
       const changeAddressesPrefix = "changeAddresses";
@@ -560,7 +563,7 @@ class DbVersionMigrator with WalletDB {
   }
 
   Future<void> _v7(SecureStorageInterface secureStore) async {
-    await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
     final walletsService = WalletsService();
     final walletInfoList = await walletsService.walletNames;
     await MainDB.instance.initMainDB();
@@ -601,7 +604,8 @@ class DbVersionMigrator with WalletDB {
   }
 
   Future<void> _v9() async {
-    final addressBookBox = await Hive.openBox<dynamic>(DB.boxNameAddressBook);
+    final addressBookBox =
+        await DB.instance.hive.openBox<dynamic>(DB.boxNameAddressBook);
     await MainDB.instance.initMainDB();
 
     final keys = List<String>.from(addressBookBox.keys);
@@ -649,8 +653,8 @@ class DbVersionMigrator with WalletDB {
   }
 
   Future<void> _v10(SecureStorageInterface secureStore) async {
-    await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
-    await Hive.openBox<dynamic>(DB.boxNamePrefs);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
     final walletsService = WalletsService();
     final prefs = Prefs.instance;
     final walletInfoList = await walletsService.walletNames;
@@ -669,7 +673,7 @@ class DbVersionMigrator with WalletDB {
                   .walletIdEqualTo(walletId)
                   .countSync() ==
               0) {
-        final walletBox = await Hive.openBox<dynamic>(walletId);
+        final walletBox = await DB.instance.hive.openBox<dynamic>(walletId);
 
         final hiveLCoins = DB.instance.get<dynamic>(
               boxName: walletId,
