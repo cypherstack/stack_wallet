@@ -232,7 +232,7 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  int get transactionVersion => 1;
+  int get transactionVersion => 160;
 
   @override
   BigInt get defaultFeeRate => BigInt.from(20000);

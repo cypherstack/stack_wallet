@@ -436,9 +436,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final txb = bitcoindart.TransactionBuilder(
       network: convertedNetwork,
     );
-    const version = 160; // buildTransaction overridden for Particl to set this.
-    // TODO: [prio=low] refactor overridden buildTransaction to use eg. cryptocurrency.networkParams.txVersion.
-    txb.setVersion(version);
+    txb.setVersion(cryptoCurrency.transactionVersion);
 
     // Temp tx data for GUI while waiting for real tx from server.
     final List<InputV2> tempInputs = [];
