@@ -180,8 +180,25 @@ Future<bool> testNodeConnection({
       break;
 
     case NanoCurrency():
-      //TODO: check network/node
-      throw UnimplementedError();
+      try {
+        final uri = Uri.parse(formData.host!);
+
+        final response = await HTTP().post(
+          url: uri,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(
+            {
+              "action": "version",
+            },
+          ),
+          proxyInfo: ref.read(prefsChangeNotifierProvider).useTor
+              ? ref.read(pTorService).getProxyInfo()
+              : null,
+        );
+
+        testPassed = response.code == 200;
+      } catch (_) {}
+      break;
 
     case Tezos():
       try {
