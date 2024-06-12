@@ -1779,6 +1779,52 @@ class _TransactionV2DetailsViewState
                               const SizedBox(
                                 height: 12,
                               ),
+                            if (whatIsIt(
+                                  _transaction,
+                                  currentHeight,
+                                ) !=
+                                "Sending")
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            // Show Replace By Fee UI/controls.
+                            if (whatIsIt(
+                                  _transaction,
+                                  currentHeight,
+                                ) !=
+                                "Sending")
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Boost transaction",
+                                          style: isDesktop
+                                              ? STextStyles
+                                                  .desktopTextExtraExtraSmall(
+                                                  context,
+                                                )
+                                              : STextStyles.itemSubtitle(
+                                                  context,
+                                                ),
+                                        ),
+                                        Text("TODO add RBF dialog."),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
                         ),
                       ),
