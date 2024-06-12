@@ -13,6 +13,7 @@ class BoostFeeSlider extends ConsumerStatefulWidget {
   final BigInt max;
 
   BoostFeeSlider({
+    super.key,
     required this.coin,
     required this.onFeeChanged,
     required this.min,
@@ -40,13 +41,17 @@ class _BoostFeeSliderState extends ConsumerState<BoostFeeSlider> {
           ),
     );
     _textEditingController.addListener(() {
-      BigInt? value =
-          BigInt.tryParse(_textEditingController.text.replaceAll(',', ''));
-      if (value != null && value >= widget.min && value <= widget.max) {
-        setState(() {
-          _currentSliderValue = value.toDouble();
-          widget.onFeeChanged(value);
-        });
+      final double? value =
+          double.tryParse(_textEditingController.text.replaceAll(',', ''));
+      if (value != null) {
+        final BigInt bigIntValue = BigInt.from(
+            value * BigInt.from(10).pow(widget.coin.fractionDigits).toInt());
+        if (bigIntValue >= widget.min && bigIntValue <= widget.max) {
+          setState(() {
+            _currentSliderValue = value;
+            widget.onFeeChanged(bigIntValue);
+          });
+        }
       }
     });
   }
@@ -87,28 +92,34 @@ class _BoostFeeSliderState extends ConsumerState<BoostFeeSlider> {
                   },
                 ),
               ),
-              SizedBox(width: 16),
-              Container(
-                width: 122,
+              SizedBox(
+                width: 16 + // Left and right padding.
+                    122 / 8 * widget.coin.fractionDigits + // Variable width.
+                    8 * widget.coin.ticker.length, // End padding for ticker.
                 child: TextField(
                   controller: _textEditingController,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                   ],
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) {
-                    BigInt? newValue =
-                        BigInt.tryParse(value.replaceAll(',', ''));
-                    if (newValue != null &&
-                        newValue >= widget.min &&
-                        newValue <= widget.max) {
-                      setState(() {
-                        _currentSliderValue = newValue.toDouble();
-                        widget.onFeeChanged(newValue);
-                      });
+                    final double? newValue =
+                        double.tryParse(value.replaceAll(',', ''));
+                    if (newValue != null) {
+                      final BigInt bigIntValue = BigInt.from(newValue *
+                          BigInt.from(10)
+                              .pow(widget.coin.fractionDigits)
+                              .toInt());
+                      if (bigIntValue >= widget.min &&
+                          bigIntValue <= widget.max) {
+                        setState(() {
+                          _currentSliderValue = newValue;
+                          widget.onFeeChanged(bigIntValue);
+                        });
+                      }
                     }
                   },
                 ),

@@ -1333,18 +1333,20 @@ class _TransactionV2DetailsViewState
                                                       ),
                                               ),
                                             if (whatIsIt(
-                                                  _transaction,
-                                                  currentHeight,
-                                                ) ==
-                                                "Sending")
+                                                      _transaction,
+                                                      currentHeight,
+                                                    ) ==
+                                                    "Sending" &&
+                                                coin is! NanoCurrency)
                                               const SizedBox(
                                                 height: 8,
                                               ),
                                             if (whatIsIt(
-                                                  _transaction,
-                                                  currentHeight,
-                                                ) ==
-                                                "Sending")
+                                                      _transaction,
+                                                      currentHeight,
+                                                    ) ==
+                                                    "Sending" &&
+                                                coin is! NanoCurrency)
                                               CustomTextButton(
                                                 text: "Boost transaction",
                                                 onTap: () async {
