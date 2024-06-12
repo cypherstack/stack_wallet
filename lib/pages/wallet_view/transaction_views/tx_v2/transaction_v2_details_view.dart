@@ -16,14 +16,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../../notifications/show_flush_bar.dart';
-import '../../sub_widgets/tx_icon.dart';
-import '../dialogs/cancelling_transaction_progress_dialog.dart';
-import '../edit_note_view.dart';
-import '../../wallet_view.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
@@ -55,8 +54,10 @@ import '../../../../widgets/icon_widgets/copy_icon.dart';
 import '../../../../widgets/icon_widgets/pencil_icon.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../sub_widgets/tx_icon.dart';
+import '../../wallet_view.dart';
+import '../dialogs/cancelling_transaction_progress_dialog.dart';
+import '../edit_note_view.dart';
 
 class TransactionV2DetailsView extends ConsumerStatefulWidget {
   const TransactionV2DetailsView({
@@ -1330,6 +1331,25 @@ class _TransactionV2DetailsViewState
                                                         context,
                                                       ),
                                               ),
+                                            if (whatIsIt(
+                                                  _transaction,
+                                                  currentHeight,
+                                                ) ==
+                                                "Sending")
+                                              const SizedBox(
+                                                height: 8,
+                                              ),
+                                            if (whatIsIt(
+                                                  _transaction,
+                                                  currentHeight,
+                                                ) ==
+                                                "Sending")
+                                              CustomTextButton(
+                                                text: "Boost transaction",
+                                                onTap: () async {
+                                                  // TODO [prio=high]: Show RBF UI.
+                                                },
+                                              ),
                                           ],
                                         ),
                                         if (!isDesktop)
@@ -1789,42 +1809,6 @@ class _TransactionV2DetailsViewState
                                   : const SizedBox(
                                       height: 12,
                                     ),
-                            // Show Replace By Fee UI/controls.
-                            if (whatIsIt(
-                                  _transaction,
-                                  currentHeight,
-                                ) !=
-                                "Sending")
-                              RoundedWhiteContainer(
-                                padding: isDesktop
-                                    ? const EdgeInsets.all(16)
-                                    : const EdgeInsets.all(12),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Boost transaction",
-                                          style: isDesktop
-                                              ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                  context,
-                                                )
-                                              : STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
-                                        ),
-                                        Text("TODO add RBF dialog."),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
                           ],
                         ),
                       ),
