@@ -31,7 +31,6 @@ import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
@@ -1252,127 +1251,107 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                             //     ],
                             //   ),
                             // ),
-                            if (coin is! NanoCurrency)
-                              isDesktop
-                                  ? const _Divider()
-                                  : const SizedBox(
-                                      height: 12,
-                                    ),
-                            if (coin is! NanoCurrency)
-                              RoundedWhiteContainer(
-                                padding: isDesktop
-                                    ? const EdgeInsets.all(16)
-                                    : const EdgeInsets.all(12),
-                                child: Builder(
-                                  builder: (context) {
-                                    final String feeString = showFeePending
-                                        ? _transaction.isConfirmed(
-                                            currentHeight,
-                                            minConfirms,
-                                          )
-                                            ? ref
-                                                .watch(pAmountFormatter(coin))
-                                                .format(
-                                                  fee,
-                                                )
-                                            : "Pending"
-                                        : ref
-                                            .watch(pAmountFormatter(coin))
-                                            .format(
-                                              fee,
-                                            );
-
-                                    return Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "Transaction fee",
-                                                  style: isDesktop
-                                                      ? STextStyles
-                                                          .desktopTextExtraExtraSmall(
-                                                          context,
-                                                        )
-                                                      : STextStyles
-                                                          .itemSubtitle(
-                                                          context,
-                                                        ),
-                                                ),
-                                                if (isDesktop)
-                                                  const SizedBox(
-                                                    height: 2,
-                                                  ),
-                                                if (isDesktop)
-                                                  SelectableText(
-                                                    feeString,
-                                                    style: isDesktop
-                                                        ? STextStyles
-                                                            .desktopTextExtraExtraSmall(
-                                                            context,
-                                                          ).copyWith(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .extension<
-                                                                    StackColors>()!
-                                                                .textDark,
-                                                          )
-                                                        : STextStyles
-                                                            .itemSubtitle12(
-                                                            context,
-                                                          ),
-                                                  ),
-                                              ],
-                                            ),
-                                            if (!isDesktop)
-                                              SelectableText(
-                                                feeString,
+                            isDesktop
+                                ? const _Divider()
+                                : const SizedBox(
+                                    height: 12,
+                                  ),
+                            RoundedWhiteContainer(
+                              padding: isDesktop
+                                  ? const EdgeInsets.all(16)
+                                  : const EdgeInsets.all(12),
+                              child: Builder(
+                                builder: (context) {
+                                  final String feeString = showFeePending
+                                      ? _transaction.isConfirmed(
+                                          currentHeight,
+                                          minConfirms,
+                                        )
+                                          ? ref
+                                              .watch(pAmountFormatter(coin))
+                                              .format(
+                                                fee,
+                                              )
+                                          : "Pending"
+                                      : ref
+                                          .watch(pAmountFormatter(coin))
+                                          .format(
+                                            fee,
+                                          );
+                                  return Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Transaction fee",
                                                 style: isDesktop
                                                     ? STextStyles
                                                         .desktopTextExtraExtraSmall(
                                                         context,
-                                                      ).copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                                StackColors>()!
-                                                            .textDark,
                                                       )
-                                                    : STextStyles
-                                                        .itemSubtitle12(
+                                                    : STextStyles.itemSubtitle(
                                                         context,
                                                       ),
                                               ),
-                                            // if (isDesktop)
-                                            //   IconCopyButton(data: feeString),
-                                          ],
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 12,
-                                            top: 16,
+                                              if (isDesktop)
+                                                const SizedBox(
+                                                  height: 2,
+                                                ),
+                                              if (isDesktop)
+                                                SelectableText(
+                                                  feeString,
+                                                  style: isDesktop
+                                                      ? STextStyles
+                                                          .desktopTextExtraExtraSmall(
+                                                          context,
+                                                        ).copyWith(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .extension<
+                                                                  StackColors>()!
+                                                              .textDark,
+                                                        )
+                                                      : STextStyles
+                                                          .itemSubtitle12(
+                                                          context,
+                                                        ),
+                                                ),
+                                            ],
                                           ),
-                                          child: BoostFeeSlider(
-                                            coin: coin,
-                                            onFeeChanged: (fee) {
-                                              customFee = fee;
-                                            },
-                                            min: fee.raw,
-                                            max: fee.raw * BigInt.from(4),
-                                            // TODO [prio=med]: The max fee should be set to an absurd fee.
-                                          ),
-                                        )
-                                      ],
-                                    );
-                                  },
-                                ),
+                                          if (!isDesktop)
+                                            SelectableText(
+                                              feeString,
+                                              style: isDesktop
+                                                  ? STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .textDark,
+                                                    )
+                                                  : STextStyles.itemSubtitle12(
+                                                      context,
+                                                    ),
+                                            ),
+                                          // if (isDesktop)
+                                          //   IconCopyButton(data: feeString),
+                                        ],
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
+                            ),
                             // isDesktop
                             //     ? const _Divider()
                             //     : const SizedBox(
@@ -1806,6 +1785,110 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                                   : const SizedBox(
                                       height: 12,
                                     ),
+
+                            isDesktop
+                                ? const _Divider()
+                                : const SizedBox(
+                                    height: 12,
+                                  ),
+                            RoundedWhiteContainer(
+                              padding: isDesktop
+                                  ? const EdgeInsets.all(16)
+                                  : const EdgeInsets.all(12),
+                              child: Builder(
+                                builder: (context) {
+                                  final String feeString = showFeePending
+                                      ? _transaction.isConfirmed(
+                                          currentHeight,
+                                          minConfirms,
+                                        )
+                                          ? ref
+                                              .watch(pAmountFormatter(coin))
+                                              .format(
+                                                fee,
+                                              )
+                                          : "Pending"
+                                      : ref
+                                          .watch(pAmountFormatter(coin))
+                                          .format(
+                                            fee,
+                                          );
+                                  return Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Boost fee",
+                                                style: isDesktop
+                                                    ? STextStyles
+                                                        .desktopTextExtraExtraSmall(
+                                                        context,
+                                                      )
+                                                    : STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (!isDesktop)
+                                            SelectableText(
+                                              feeString,
+                                              style: isDesktop
+                                                  ? STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .textDark,
+                                                    )
+                                                  : STextStyles.itemSubtitle12(
+                                                      context,
+                                                    ),
+                                            ),
+                                          // if (isDesktop)
+                                          //   IconCopyButton(data: feeString),
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                          top: 16,
+                                        ),
+                                        child: BoostFeeSlider(
+                                          coin: coin,
+                                          onFeeChanged: (fee) {
+                                            customFee = fee;
+                                          },
+                                          min: fee.raw,
+                                          max: fee.raw * BigInt.from(4),
+                                          // TODO [prio=med]: The max fee should be set to an absurd fee.
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 36,
+                                      ),
+                                      PrimaryButton(
+                                        buttonHeight: ButtonHeight.l,
+                                        label: "Preview send",
+                                        onPressed:
+                                            /* // TODO [prio=high]: define previewSend*/
+                                            () => null,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
                           ],
                         ),
                       ),

@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
-import '../transaction.dart';
-import 'input_v2.dart';
-import 'output_v2.dart';
+
 import '../../../../../utilities/amount/amount.dart';
 import '../../../../../utilities/extensions/extensions.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../transaction.dart';
+import 'input_v2.dart';
+import 'output_v2.dart';
 
 part 'transaction_v2.g.dart';
 
