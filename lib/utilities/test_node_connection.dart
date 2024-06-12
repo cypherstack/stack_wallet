@@ -1,27 +1,35 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solana/solana.dart';
+
+import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../providers/global/prefs_provider.dart';
 import '../services/tor_service.dart';
+import '../wallets/api/tezos/tezos_rpc_api.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../wallets/crypto_currency/intermediate/nano_currency.dart';
 import 'connection_check/electrum_connection_check.dart';
 import 'logger.dart';
 import 'test_epic_box_connection.dart';
 import 'test_eth_node_connection.dart';
 import 'test_monero_node_connection.dart';
 import 'test_stellar_node_connection.dart';
-import '../wallets/api/tezos/tezos_rpc_api.dart';
-import '../wallets/crypto_currency/crypto_currency.dart';
-import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
-import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
-import '../wallets/crypto_currency/intermediate/nano_currency.dart';
 
 Future<bool> _xmrHelper(
   NodeFormData nodeFormData,
   BuildContext context,
   void Function(NodeFormData)? onSuccess,
+  ({
+    InternetAddress host,
+    int port,
+  })? proxyInfo,
 ) async {
   final data = nodeFormData;
   final url = data.host!;
@@ -36,6 +44,7 @@ Future<bool> _xmrHelper(
   final response = await testMoneroNodeConnection(
     Uri.parse(uriString),
     false,
+    proxyInfo: proxyInfo,
   );
 
   if (response.cert != null) {
@@ -48,8 +57,11 @@ Future<bool> _xmrHelper(
       );
 
       if (shouldAllowBadCert) {
-        final response =
-            await testMoneroNodeConnection(Uri.parse(uriString), true);
+        final response = await testMoneroNodeConnection(
+          Uri.parse(uriString),
+          true,
+          proxyInfo: proxyInfo,
+        );
         onSuccess?.call(data..host = url);
         return response.success;
       }
@@ -90,6 +102,10 @@ Future<bool> testNodeConnection({
 
     case CryptonoteCurrency():
       try {
+        final proxyInfo = ref.read(prefsChangeNotifierProvider).useTor
+            ? ref.read(pTorService).getProxyInfo()
+            : null;
+
         final url = formData.host!;
         final uri = Uri.tryParse(url);
         if (uri != null) {
@@ -101,9 +117,10 @@ Future<bool> testNodeConnection({
                 ..useSSL = true,
               context,
               onSuccess,
+              proxyInfo,
             );
 
-            if (testPassed == false) {
+            if (testPassed == false && context.mounted) {
               // try http
               testPassed = await _xmrHelper(
                 formData
@@ -111,6 +128,7 @@ Future<bool> testNodeConnection({
                   ..useSSL = false,
                 context,
                 onSuccess,
+                proxyInfo,
               );
             }
           } else {
@@ -120,6 +138,7 @@ Future<bool> testNodeConnection({
                 ..useSSL = true,
               context,
               onSuccess,
+              proxyInfo,
             );
           }
         }

@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:socks5_proxy/socks.dart';
 
 import '../widgets/desktop/primary_button.dart';
 import '../widgets/desktop/secondary_button.dart';
@@ -30,12 +31,26 @@ class MoneroNodeConnectionResponse {
 
 Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
   Uri uri,
-  bool allowBadX509Certificate,
-) async {
-  final client = HttpClient();
+  bool allowBadX509Certificate, {
+  required ({
+    InternetAddress host,
+    int port,
+  })? proxyInfo,
+}) async {
+  final httpClient = HttpClient();
   MoneroNodeConnectionResponse? badCertResponse;
+
   try {
-    client.badCertificateCallback = (cert, url, port) {
+    if (proxyInfo != null) {
+      SocksTCPClient.assignToHttpClient(httpClient, [
+        ProxySettings(
+          proxyInfo.host,
+          proxyInfo.port,
+        ),
+      ]);
+    }
+
+    httpClient.badCertificateCallback = (cert, url, port) {
       if (allowBadX509Certificate) {
         return true;
       }
@@ -49,7 +64,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       return false;
     };
 
-    final request = await client.postUrl(uri);
+    final request = await httpClient.postUrl(uri);
 
     final body = utf8.encode(
       jsonEncode({
@@ -85,7 +100,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       return MoneroNodeConnectionResponse(null, null, null, false);
     }
   } finally {
-    client.close(force: true);
+    httpClient.close(force: true);
   }
 }
 
