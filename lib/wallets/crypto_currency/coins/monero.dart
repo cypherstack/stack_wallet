@@ -44,6 +44,9 @@ class Monero extends CryptonoteCurrency {
   int get minConfirms => 10;
 
   @override
+  bool get torSupport => true;
+
+  @override
   bool validateAddress(String address) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
