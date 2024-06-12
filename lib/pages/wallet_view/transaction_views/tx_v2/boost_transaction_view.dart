@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -27,7 +26,6 @@ import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
-import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
@@ -39,9 +37,9 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
+import '../../../../widgets/boost_fee_slider.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -93,6 +91,8 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
   bool showFeePending = false;
 
   String? _sparkMemo;
+
+  BigInt customFee = BigInt.one;
 
   @override
   void initState() {
@@ -1282,32 +1282,56 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                                               fee,
                                             );
 
-                                    return Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    return Column(
                                       children: [
-                                        Column(
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              "Transaction fee",
-                                              style: isDesktop
-                                                  ? STextStyles
-                                                      .desktopTextExtraExtraSmall(
-                                                      context,
-                                                    )
-                                                  : STextStyles.itemSubtitle(
-                                                      context,
-                                                    ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "Transaction fee",
+                                                  style: isDesktop
+                                                      ? STextStyles
+                                                          .desktopTextExtraExtraSmall(
+                                                          context,
+                                                        )
+                                                      : STextStyles
+                                                          .itemSubtitle(
+                                                          context,
+                                                        ),
+                                                ),
+                                                if (isDesktop)
+                                                  const SizedBox(
+                                                    height: 2,
+                                                  ),
+                                                if (isDesktop)
+                                                  SelectableText(
+                                                    feeString,
+                                                    style: isDesktop
+                                                        ? STextStyles
+                                                            .desktopTextExtraExtraSmall(
+                                                            context,
+                                                          ).copyWith(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .extension<
+                                                                    StackColors>()!
+                                                                .textDark,
+                                                          )
+                                                        : STextStyles
+                                                            .itemSubtitle12(
+                                                            context,
+                                                          ),
+                                                  ),
+                                              ],
                                             ),
-                                            if (isDesktop)
-                                              const SizedBox(
-                                                height: 2,
-                                              ),
-                                            if (isDesktop)
+                                            if (!isDesktop)
                                               SelectableText(
                                                 feeString,
                                                 style: isDesktop
@@ -1325,28 +1349,25 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                                                         context,
                                                       ),
                                               ),
-                                            // TODO [prio=high]: Boost tx fee UI.
+                                            // if (isDesktop)
+                                            //   IconCopyButton(data: feeString),
                                           ],
                                         ),
-                                        if (!isDesktop)
-                                          SelectableText(
-                                            feeString,
-                                            style: isDesktop
-                                                ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                    context,
-                                                  ).copyWith(
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                            StackColors>()!
-                                                        .textDark,
-                                                  )
-                                                : STextStyles.itemSubtitle12(
-                                                    context,
-                                                  ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 12,
+                                            top: 16,
                                           ),
-                                        if (isDesktop)
-                                          IconCopyButton(data: feeString),
+                                          child: BoostFeeSlider(
+                                            coin: coin,
+                                            onFeeChanged: (fee) {
+                                              customFee = fee;
+                                            },
+                                            min: fee.raw,
+                                            max: fee.raw * BigInt.from(4),
+                                            // TODO [prio=med]: The max fee should be set to an absurd fee.
+                                          ),
+                                        )
                                       ],
                                     );
                                   },
@@ -1493,142 +1514,142 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                             //       ],
                             //     ),
                             //   ),
-                            isDesktop
-                                ? const _Divider()
-                                : const SizedBox(
-                                    height: 12,
-                                  ),
-                            RoundedWhiteContainer(
-                              padding: isDesktop
-                                  ? const EdgeInsets.all(16)
-                                  : const EdgeInsets.all(12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Transaction ID",
-                                          style: isDesktop
-                                              ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                  context,
-                                                )
-                                              : STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
-                                        ),
-                                        const SizedBox(
-                                          height: 8,
-                                        ),
-                                        // Flexible(
-                                        //   child: FittedBox(
-                                        //     fit: BoxFit.scaleDown,
-                                        //     child:
-                                        SelectableText(
-                                          _transaction.txid,
-                                          style: isDesktop
-                                              ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                  context,
-                                                ).copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                )
-                                              : STextStyles.itemSubtitle12(
-                                                  context,
-                                                ),
-                                        ),
-                                        if (coin is! Epiccash)
-                                          const SizedBox(
-                                            height: 8,
-                                          ),
-                                        if (coin is! Epiccash)
-                                          CustomTextButton(
-                                            text: "Open in block explorer",
-                                            onTap: () async {
-                                              final uri =
-                                                  getBlockExplorerTransactionUrlFor(
-                                                coin: coin,
-                                                txid: _transaction.txid,
-                                              );
-
-                                              if (ref
-                                                      .read(
-                                                        prefsChangeNotifierProvider,
-                                                      )
-                                                      .hideBlockExplorerWarning ==
-                                                  false) {
-                                                final shouldContinue =
-                                                    await showExplorerWarning(
-                                                  "${uri.scheme}://${uri.host}",
-                                                );
-
-                                                if (!shouldContinue) {
-                                                  return;
-                                                }
-                                              }
-
-                                              // ref
-                                              //     .read(
-                                              //         shouldShowLockscreenOnResumeStateProvider
-                                              //             .state)
-                                              //     .state = false;
-                                              try {
-                                                await launchUrl(
-                                                  uri,
-                                                  mode: LaunchMode
-                                                      .externalApplication,
-                                                );
-                                              } catch (_) {
-                                                if (mounted) {
-                                                  unawaited(
-                                                    showDialog<void>(
-                                                      context: context,
-                                                      builder: (_) =>
-                                                          StackOkDialog(
-                                                        title:
-                                                            "Could not open in block explorer",
-                                                        message:
-                                                            "Failed to open \"${uri.toString()}\"",
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              } finally {
-                                                // Future<void>.delayed(
-                                                //   const Duration(seconds: 1),
-                                                //   () => ref
-                                                //       .read(
-                                                //           shouldShowLockscreenOnResumeStateProvider
-                                                //               .state)
-                                                //       .state = true,
-                                                // );
-                                              }
-                                            },
-                                          ),
-                                        //   ),
-                                        // ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (isDesktop)
-                                    const SizedBox(
-                                      width: 12,
-                                    ),
-                                  if (isDesktop)
-                                    IconCopyButton(
-                                      data: _transaction.txid,
-                                    ),
-                                ],
-                              ),
-                            ),
+                            // isDesktop
+                            //     ? const _Divider()
+                            //     : const SizedBox(
+                            //         height: 12,
+                            //       ),
+                            // RoundedWhiteContainer(
+                            //   padding: isDesktop
+                            //       ? const EdgeInsets.all(16)
+                            //       : const EdgeInsets.all(12),
+                            //   child: Row(
+                            //     crossAxisAlignment: CrossAxisAlignment.start,
+                            //     mainAxisAlignment:
+                            //         MainAxisAlignment.spaceBetween,
+                            //     children: [
+                            //       Expanded(
+                            //         child: Column(
+                            //           crossAxisAlignment:
+                            //               CrossAxisAlignment.start,
+                            //           children: [
+                            //             Text(
+                            //               "Transaction ID",
+                            //               style: isDesktop
+                            //                   ? STextStyles
+                            //                       .desktopTextExtraExtraSmall(
+                            //                       context,
+                            //                     )
+                            //                   : STextStyles.itemSubtitle(
+                            //                       context,
+                            //                     ),
+                            //             ),
+                            //             const SizedBox(
+                            //               height: 8,
+                            //             ),
+                            //             // Flexible(
+                            //             //   child: FittedBox(
+                            //             //     fit: BoxFit.scaleDown,
+                            //             //     child:
+                            //             SelectableText(
+                            //               _transaction.txid,
+                            //               style: isDesktop
+                            //                   ? STextStyles
+                            //                       .desktopTextExtraExtraSmall(
+                            //                       context,
+                            //                     ).copyWith(
+                            //                       color: Theme.of(context)
+                            //                           .extension<StackColors>()!
+                            //                           .textDark,
+                            //                     )
+                            //                   : STextStyles.itemSubtitle12(
+                            //                       context,
+                            //                     ),
+                            //             ),
+                            //             if (coin is! Epiccash)
+                            //               const SizedBox(
+                            //                 height: 8,
+                            //               ),
+                            //             if (coin is! Epiccash)
+                            //               CustomTextButton(
+                            //                 text: "Open in block explorer",
+                            //                 onTap: () async {
+                            //                   final uri =
+                            //                       getBlockExplorerTransactionUrlFor(
+                            //                     coin: coin,
+                            //                     txid: _transaction.txid,
+                            //                   );
+                            //
+                            //                   if (ref
+                            //                           .read(
+                            //                             prefsChangeNotifierProvider,
+                            //                           )
+                            //                           .hideBlockExplorerWarning ==
+                            //                       false) {
+                            //                     final shouldContinue =
+                            //                         await showExplorerWarning(
+                            //                       "${uri.scheme}://${uri.host}",
+                            //                     );
+                            //
+                            //                     if (!shouldContinue) {
+                            //                       return;
+                            //                     }
+                            //                   }
+                            //
+                            //                   // ref
+                            //                   //     .read(
+                            //                   //         shouldShowLockscreenOnResumeStateProvider
+                            //                   //             .state)
+                            //                   //     .state = false;
+                            //                   try {
+                            //                     await launchUrl(
+                            //                       uri,
+                            //                       mode: LaunchMode
+                            //                           .externalApplication,
+                            //                     );
+                            //                   } catch (_) {
+                            //                     if (mounted) {
+                            //                       unawaited(
+                            //                         showDialog<void>(
+                            //                           context: context,
+                            //                           builder: (_) =>
+                            //                               StackOkDialog(
+                            //                             title:
+                            //                                 "Could not open in block explorer",
+                            //                             message:
+                            //                                 "Failed to open \"${uri.toString()}\"",
+                            //                           ),
+                            //                         ),
+                            //                       );
+                            //                     }
+                            //                   } finally {
+                            //                     // Future<void>.delayed(
+                            //                     //   const Duration(seconds: 1),
+                            //                     //   () => ref
+                            //                     //       .read(
+                            //                     //           shouldShowLockscreenOnResumeStateProvider
+                            //                     //               .state)
+                            //                     //       .state = true,
+                            //                     // );
+                            //                   }
+                            //                 },
+                            //               ),
+                            //             //   ),
+                            //             // ),
+                            //           ],
+                            //         ),
+                            //       ),
+                            //       if (isDesktop)
+                            //         const SizedBox(
+                            //           width: 12,
+                            //         ),
+                            //       if (isDesktop)
+                            //         IconCopyButton(
+                            //           data: _transaction.txid,
+                            //         ),
+                            //     ],
+                            //   ),
+                            // ),
                             // if ((coin is FiroTestNet || coin is Firo) &&
                             //     _transaction.subType == "mint")
                             //   const SizedBox(
