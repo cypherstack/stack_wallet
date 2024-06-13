@@ -96,7 +96,8 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
 
       if (mounted) {
         ref.read(mnemonicWordCountStateProvider.state).state =
-            coin.possibleMnemonicLengths.last;
+            coin.defaultSeedPhraseLength;
+
         ref.read(pNewWalletOptions.notifier).state = null;
 
         switch (widget.addWalletType) {

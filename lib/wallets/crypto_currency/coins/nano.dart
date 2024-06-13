@@ -1,4 +1,5 @@
 import 'package:nanodart/nanodart.dart';
+
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -66,7 +67,8 @@ class Nano extends NanoCurrency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "https://rainstorm.city/api",
+          // host: "https://rainstorm.city/api",
+          host: "https://nodes.nanswap.com/XNO",
           port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),

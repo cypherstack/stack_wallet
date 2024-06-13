@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:nanodart/nanodart.dart';
+
 import '../networking/http.dart';
-import 'tor_service.dart';
 import '../utilities/prefs.dart';
+import 'tor_service.dart';
 
 class NanoAPI {
   static Future<
@@ -14,6 +15,7 @@ class NanoAPI {
     required Uri server,
     required bool representative,
     required String account,
+    required Map<String, String> headers,
   }) async {
     NAccountInfo? accountInfo;
     Exception? exception;
@@ -23,9 +25,7 @@ class NanoAPI {
     try {
       final response = await client.post(
         url: server,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: headers,
         body: jsonEncode({
           "action": "account_info",
           "representative": "true",
@@ -64,6 +64,7 @@ class NanoAPI {
     required String balance,
     required String privateKey,
     required String work,
+    required Map<String, String> headers,
   }) async {
     final Map<String, String> block = {
       "type": "state",
@@ -98,7 +99,11 @@ class NanoAPI {
 
     block["signature"] = signature;
 
-    final map = await postBlock(server: server, block: block);
+    final map = await postBlock(
+      server: server,
+      block: block,
+      headers: headers,
+    );
 
     if (map is Map && map["error"] != null) {
       throw Exception(map["error"].toString());
@@ -111,14 +116,13 @@ class NanoAPI {
   static Future<dynamic> postBlock({
     required Uri server,
     required Map<String, dynamic> block,
+    required Map<String, String> headers,
   }) async {
     final HTTP client = HTTP();
 
     final response = await client.post(
       url: server,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headers,
       body: jsonEncode({
         "action": "process",
         "json_block": "true",
