@@ -12,6 +12,7 @@ import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/exceptions/creation_transaction_exception.dart';
+import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:cw_wownero/wownero_wallet.dart';
 import 'package:decimal/decimal.dart';
@@ -20,6 +21,7 @@ import 'package:flutter_libmonero/view_model/send/output.dart'
     as wownero_output;
 import 'package:flutter_libmonero/wownero/wownero.dart' as wow_dart;
 import 'package:isar/isar.dart';
+import 'package:monero/wownero.dart' as wownerodart;
 import 'package:mutex/mutex.dart';
 import 'package:tuple/tuple.dart';
 
@@ -383,19 +385,11 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         _walletCreationService.type = WalletType.wownero;
         // To restore from a seed
         final wallet = await _walletCreationService.create(credentials);
-        //
-        // final bufferedCreateHeight = (seedWordsLength == 14)
-        //     ? getSeedHeightSync(wallet?.seed.trim() as String)
-        //     : wownero.getHeightByDate(
-        //     date: DateTime.now().subtract(const Duration(
-        //         days:
-        //         2))); // subtract a couple days to ensure we have a buffer for SWB
-        // TODO(mrcyjanek): implement
-        const bufferedCreateHeight =
-            1; //getSeedHeightSync(wallet!.seed.trim());
+
+        final height = wownerodart.Wallet_getRefreshFromBlockHeight(wptr!);
 
         await info.updateRestoreHeight(
-          newRestoreHeight: bufferedCreateHeight,
+          newRestoreHeight: height,
           isar: mainDB.isar,
         );
 
@@ -410,7 +404,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
           value: "",
         );
 
-        walletInfo.restoreHeight = bufferedCreateHeight;
+        walletInfo.restoreHeight = height;
 
         walletInfo.address = wallet.walletAddresses.address;
         await DB.instance
@@ -515,8 +509,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
         // extract seed height from 14 word seed
         if (seedLength == 14) {
-          // TODO(mrcyjanek): implement
-          height = 1; // getSeedHeightSync(mnemonic.trim());
+          height = 0;
         } else {
           height = max(height, 0);
         }
@@ -563,7 +556,13 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
           // To restore from a seed
           final wallet = await cwWalletCreationService
               .restoreFromSeed(credentials) as WowneroWalletBase;
+          height = wownerodart.Wallet_getRefreshFromBlockHeight(wptr!);
           walletInfo.address = wallet.walletAddresses.address;
+          walletInfo.restoreHeight = height;
+          await info.updateRestoreHeight(
+            newRestoreHeight: height,
+            isar: mainDB.isar,
+          );
           await DB.instance
               .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
           CwBasedInterface.cwWalletBase?.close();
