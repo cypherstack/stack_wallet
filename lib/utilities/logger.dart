@@ -14,6 +14,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
+
 import '../models/isar/models/log.dart';
 import 'constants.dart';
 import 'enums/log_level_enum.dart';
@@ -30,8 +31,10 @@ class Logging {
   static const core.int defaultPrintLength = 1020;
 
   late final Isar? isar;
+  late final _AsyncLogWriterQueue _queue;
 
   Future<void> init(Isar isar) async {
+    _queue = _AsyncLogWriterQueue();
     this.isar = isar;
   }
 
@@ -62,7 +65,11 @@ class Logging {
         printFullLength = true;
       }
 
-      isar!.writeTxnSync(() => log.id = isar!.logs.putSync(log));
+      _queue.add(
+        () async => isar!.writeTxn(
+          () async => await isar!.logs.put(log),
+        ),
+      );
 
       if (printToConsole) {
         final core.String logStr = "Log: ${log.toString()}";
@@ -126,6 +133,36 @@ abstract class Logger {
       if (tmpLogLength > 0) {
         debugPrint(utcTime + log.substring(start, logLength));
       }
+    }
+  }
+}
+
+/// basic async queue for writing logs in the [Logging] to isar
+class _AsyncLogWriterQueue {
+  final List<Future<void> Function()> _queue = [];
+  bool _runningLock = false;
+
+  void add(Future<void> Function() futureFunction) {
+    _queue.add(futureFunction);
+    _run();
+  }
+
+  void _run() async {
+    if (_runningLock) {
+      return;
+    }
+    _runningLock = true;
+    try {
+      while (_queue.isNotEmpty) {
+        final futureFunction = _queue.removeAt(0);
+        try {
+          await futureFunction.call();
+        } catch (e, s) {
+          debugPrint("$e\n$s");
+        }
+      }
+    } finally {
+      _runningLock = false;
     }
   }
 }
