@@ -147,16 +147,14 @@ class _ConfirmChangeNowSendViewState
           );
 
       // pop back to wallet
-      if (mounted) {
+      if (context.mounted) {
         if (Util.isDesktop) {
+          // pop sending dialog
           Navigator.of(context, rootNavigator: true).pop();
 
-          // stupid hack
+          // one day we'll do routing right
+          Navigator.of(context, rootNavigator: true).pop();
           if (widget.fromDesktopStep4) {
-            Navigator.of(context, rootNavigator: true).pop();
-            Navigator.of(context, rootNavigator: true).pop();
-            Navigator.of(context, rootNavigator: true).pop();
-            Navigator.of(context, rootNavigator: true).pop();
             Navigator.of(context, rootNavigator: true).pop();
           }
         }
