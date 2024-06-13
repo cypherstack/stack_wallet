@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tor/tor.dart';
+
+import '../utilities/logger.dart';
 import 'event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'event_bus/global_event_bus.dart';
-import '../utilities/logger.dart';
-import 'package:tor_ffi_plugin/tor_ffi_plugin.dart';
 
 final pTorService = Provider((_) => TorService.sharedInstance);
 

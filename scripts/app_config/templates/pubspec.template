@@ -70,10 +70,10 @@ dependencies:
       url: https://github.com/cypherstack/bip47.git
       ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
 
-  tor_ffi_plugin:
+  tor:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
+      ref: 9c87dee8c2ade4a41dea3916b9dfcf1f79dcd425 # foundation branch
 
   fusiondart:
     git:
