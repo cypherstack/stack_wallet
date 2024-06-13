@@ -30,7 +30,7 @@ void _debugLog(Object? object) {
 
 abstract class _FiroCache {
   static const int _setCacheVersion = 1;
-  static const int _tagsCacheVersion = 1;
+  static const int _tagsCacheVersion = 2;
   static const String sparkSetCacheFileName =
       "spark_set_v$_setCacheVersion.sqlite3";
   static const String sparkUsedTagsCacheFileName =
@@ -154,7 +154,8 @@ abstract class _FiroCache {
       """
         CREATE TABLE SparkUsedCoinTags (
           id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-          tag TEXT NOT NULL UNIQUE
+          tag TEXT NOT NULL UNIQUE,
+          txid TEXT NOT NULL
         );
       """,
     );

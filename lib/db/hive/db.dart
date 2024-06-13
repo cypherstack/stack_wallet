@@ -11,7 +11,8 @@
 import 'dart:isolate';
 
 import 'package:cw_core/wallet_info.dart' as xmr;
-import 'package:hive/hive.dart';
+import 'package:hive/hive.dart' show Box;
+import 'package:hive/src/hive_impl.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../app_config.dart';
@@ -24,6 +25,8 @@ import '../../utilities/logger.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class DB {
+  final hive = HiveImpl();
+
   // legacy (required for migrations)
   @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
@@ -104,52 +107,52 @@ class DB {
 
   // open hive boxes
   Future<void> init() async {
-    if (Hive.isBoxOpen(boxNameDBInfo)) {
-      _boxDBInfo = Hive.box<dynamic>(boxNameDBInfo);
+    if (hive.isBoxOpen(boxNameDBInfo)) {
+      _boxDBInfo = hive.box<dynamic>(boxNameDBInfo);
     } else {
-      _boxDBInfo = await Hive.openBox<dynamic>(boxNameDBInfo);
+      _boxDBInfo = await hive.openBox<dynamic>(boxNameDBInfo);
     }
-    await Hive.openBox<String>(boxNameWalletsToDeleteOnStart);
+    await hive.openBox<String>(boxNameWalletsToDeleteOnStart);
 
-    if (Hive.isBoxOpen(boxNamePrefs)) {
-      _boxPrefs = Hive.box<dynamic>(boxNamePrefs);
+    if (hive.isBoxOpen(boxNamePrefs)) {
+      _boxPrefs = hive.box<dynamic>(boxNamePrefs);
     } else {
-      _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
-    }
-
-    if (Hive.isBoxOpen(boxNameNodeModels)) {
-      _boxNodeModels = Hive.box<NodeModel>(boxNameNodeModels);
-    } else {
-      _boxNodeModels = await Hive.openBox<NodeModel>(boxNameNodeModels);
+      _boxPrefs = await hive.openBox<dynamic>(boxNamePrefs);
     }
 
-    if (Hive.isBoxOpen(boxNamePrimaryNodes)) {
-      _boxPrimaryNodes = Hive.box<NodeModel>(boxNamePrimaryNodes);
+    if (hive.isBoxOpen(boxNameNodeModels)) {
+      _boxNodeModels = hive.box<NodeModel>(boxNameNodeModels);
     } else {
-      _boxPrimaryNodes = await Hive.openBox<NodeModel>(boxNamePrimaryNodes);
+      _boxNodeModels = await hive.openBox<NodeModel>(boxNameNodeModels);
     }
 
-    if (Hive.isBoxOpen(boxNameAllWalletsData)) {
-      _boxAllWalletsData = Hive.box<dynamic>(boxNameAllWalletsData);
+    if (hive.isBoxOpen(boxNamePrimaryNodes)) {
+      _boxPrimaryNodes = hive.box<NodeModel>(boxNamePrimaryNodes);
     } else {
-      _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
+      _boxPrimaryNodes = await hive.openBox<NodeModel>(boxNamePrimaryNodes);
+    }
+
+    if (hive.isBoxOpen(boxNameAllWalletsData)) {
+      _boxAllWalletsData = hive.box<dynamic>(boxNameAllWalletsData);
+    } else {
+      _boxAllWalletsData = await hive.openBox<dynamic>(boxNameAllWalletsData);
     }
 
     _boxNotifications =
-        await Hive.openBox<NotificationModel>(boxNameNotifications);
+        await hive.openBox<NotificationModel>(boxNameNotifications);
     _boxWatchedTransactions =
-        await Hive.openBox<NotificationModel>(boxNameWatchedTransactions);
+        await hive.openBox<NotificationModel>(boxNameWatchedTransactions);
     _boxWatchedTrades =
-        await Hive.openBox<NotificationModel>(boxNameWatchedTrades);
-    _boxTradesV2 = await Hive.openBox<Trade>(boxNameTradesV2);
-    _boxTradeNotes = await Hive.openBox<String>(boxNameTradeNotes);
-    _boxTradeLookup = await Hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
+        await hive.openBox<NotificationModel>(boxNameWatchedTrades);
+    _boxTradesV2 = await hive.openBox<Trade>(boxNameTradesV2);
+    _boxTradeNotes = await hive.openBox<String>(boxNameTradeNotes);
+    _boxTradeLookup = await hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
     _walletInfoSource =
-        await Hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
-    _boxFavoriteWallets = await Hive.openBox<String>(boxNameFavoriteWallets);
+        await hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
+    _boxFavoriteWallets = await hive.openBox<String>(boxNameFavoriteWallets);
 
     await Future.wait([
-      Hive.openBox<dynamic>(boxNamePriceCache),
+      hive.openBox<dynamic>(boxNamePriceCache),
       _loadWalletBoxes(),
     ]);
   }
@@ -177,12 +180,12 @@ class DB {
     );
 
     for (final entry in mapped.entries) {
-      if (Hive.isBoxOpen(entry.value.walletId)) {
+      if (hive.isBoxOpen(entry.value.walletId)) {
         _walletBoxes[entry.value.walletId] =
-            Hive.box<dynamic>(entry.value.walletId);
+            hive.box<dynamic>(entry.value.walletId);
       } else {
         _walletBoxes[entry.value.walletId] =
-            await Hive.openBox<dynamic>(entry.value.walletId);
+            await hive.openBox<dynamic>(entry.value.walletId);
       }
     }
   }
@@ -192,7 +195,7 @@ class DB {
       _txCacheBoxes.remove(currency.identifier);
     }
     return _txCacheBoxes[currency.identifier] ??=
-        await Hive.openBox<dynamic>(_boxNameTxCache(currency: currency));
+        await hive.openBox<dynamic>(_boxNameTxCache(currency: currency));
   }
 
   Future<void> closeTxCacheBox({required CryptoCurrency currency}) async {
@@ -206,7 +209,7 @@ class DB {
       _setCacheBoxes.remove(currency.identifier);
     }
     return _setCacheBoxes[currency.identifier] ??=
-        await Hive.openBox<dynamic>(_boxNameSetCache(currency: currency));
+        await hive.openBox<dynamic>(_boxNameSetCache(currency: currency));
   }
 
   Future<void> closeAnonymitySetCacheBox({
@@ -222,7 +225,7 @@ class DB {
       _usedSerialsCacheBoxes.remove(currency.identifier);
     }
     return _usedSerialsCacheBoxes[currency.identifier] ??=
-        await Hive.openBox<dynamic>(
+        await hive.openBox<dynamic>(
       _boxNameUsedSerialsCache(currency: currency),
     );
   }
@@ -252,7 +255,7 @@ class DB {
     if (_walletBoxes[walletId] != null) {
       throw Exception("Attempted overwrite of existing wallet box!");
     }
-    _walletBoxes[walletId] = await Hive.openBox<dynamic>(walletId);
+    _walletBoxes[walletId] = await hive.openBox<dynamic>(walletId);
   }
 
   Future<void> removeWalletBox({required String walletId}) async {
@@ -264,19 +267,19 @@ class DB {
   // reads
 
   List<dynamic> keys<T>({required String boxName}) =>
-      Hive.box<T>(boxName).keys.toList(growable: false);
+      hive.box<T>(boxName).keys.toList(growable: false);
 
   List<T> values<T>({required String boxName}) =>
-      Hive.box<T>(boxName).values.toList(growable: false);
+      hive.box<T>(boxName).values.toList(growable: false);
 
   T? get<T>({
     required String boxName,
     required dynamic key,
   }) =>
-      Hive.box<T>(boxName).get(key);
+      hive.box<T>(boxName).get(key);
 
   bool containsKey<T>({required String boxName, required dynamic key}) =>
-      Hive.box<T>(boxName).containsKey(key);
+      hive.box<T>(boxName).containsKey(key);
 
   // writes
 
@@ -286,33 +289,33 @@ class DB {
     required T value,
   }) async =>
       await mutex
-          .protect(() async => await Hive.box<T>(boxName).put(key, value));
+          .protect(() async => await hive.box<T>(boxName).put(key, value));
 
   Future<void> add<T>({required String boxName, required T value}) async =>
-      await mutex.protect(() async => await Hive.box<T>(boxName).add(value));
+      await mutex.protect(() async => await hive.box<T>(boxName).add(value));
 
   Future<void> addAll<T>({
     required String boxName,
     required Iterable<T> values,
   }) async =>
       await mutex
-          .protect(() async => await Hive.box<T>(boxName).addAll(values));
+          .protect(() async => await hive.box<T>(boxName).addAll(values));
 
   Future<void> delete<T>({
     required dynamic key,
     required String boxName,
   }) async =>
-      await mutex.protect(() async => await Hive.box<T>(boxName).delete(key));
+      await mutex.protect(() async => await hive.box<T>(boxName).delete(key));
 
   Future<void> deleteAll<T>({required String boxName}) async {
     await mutex.protect(() async {
-      final box = await Hive.openBox<T>(boxName);
+      final box = await hive.openBox<T>(boxName);
       await box.clear();
     });
   }
 
   Future<void> deleteBoxFromDisk({required String boxName}) async =>
-      await mutex.protect(() async => await Hive.deleteBoxFromDisk(boxName));
+      await mutex.protect(() async => await hive.deleteBoxFromDisk(boxName));
 
   ///////////////////////////////////////////////////////////////////////////
   Future<bool> deleteEverything() async {

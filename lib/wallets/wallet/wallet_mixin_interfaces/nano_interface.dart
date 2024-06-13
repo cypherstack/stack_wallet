@@ -3,6 +3,9 @@ import 'dart:convert';
 
 import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../../external_api_keys.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -18,9 +21,20 @@ import '../../../utilities/logger.dart';
 import '../../crypto_currency/intermediate/nano_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
-import 'package:tuple/tuple.dart';
 
-const _kWorkServer = "https://rpc.nano.to";
+// const _kWorkServer = "https://rpc.nano.to";
+const _kWorkServer = "https://nodes.nanswap.com/XNO";
+
+Map<String, String> _buildHeaders(String url) {
+  final result = {
+    'Content-type': 'application/json',
+  };
+  if (url
+      case "https://nodes.nanswap.com/XNO" || "https://nodes.nanswap.com/BAN") {
+    result["nodes-api-key"] = kNanoSwapRpcApiKey;
+  }
+  return result;
+}
 
 mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   // since nano based coins only have a single address/account we can cache
@@ -36,7 +50,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     return _httpClient
         .post(
       url: Uri.parse(_kWorkServer), // this should be a
-      headers: {'Content-type': 'application/json'},
+      headers: _buildHeaders(_kWorkServer),
       body: json.encode(
         {
           "action": "work_generate",
@@ -93,10 +107,6 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     // TODO: the opening block of an account is a special case
     bool openBlock = false;
 
-    final headers = {
-      "Content-Type": "application/json",
-    };
-
     // first check if the account is open:
     // get the account info (we need the frontier and representative):
     final infoBody = jsonEncode({
@@ -104,9 +114,10 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       "representative": "true",
       "account": publicAddress,
     });
+    final node = getCurrentNode();
     final infoResponse = await _httpClient.post(
-      url: Uri.parse(getCurrentNode().host),
-      headers: headers,
+      url: Uri.parse(node.host),
+      headers: _buildHeaders(node.host),
       body: infoBody,
       proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
@@ -124,8 +135,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     });
 
     final balanceResponse = await _httpClient.post(
-      url: Uri.parse(getCurrentNode().host),
-      headers: headers,
+      url: Uri.parse(node.host),
+      headers: _buildHeaders(node.host),
       body: balanceBody,
       proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
@@ -198,8 +209,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       "block": receiveBlock,
     });
     final processResponse = await _httpClient.post(
-      url: Uri.parse(getCurrentNode().host),
-      headers: headers,
+      url: Uri.parse(node.host),
+      headers: _buildHeaders(node.host),
       body: processBody,
       proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
@@ -212,14 +223,14 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   }
 
   Future<void> _confirmAllReceivable(String accountAddress) async {
+    final node = getCurrentNode();
     final receivableResponse = await _httpClient.post(
-      url: Uri.parse(getCurrentNode().host),
-      headers: {"Content-Type": "application/json"},
+      url: Uri.parse(node.host),
+      headers: _buildHeaders(node.host),
       body: jsonEncode({
         "action": "receivable",
         "source": "true",
         "account": accountAddress,
-        "count": "-1",
       }),
       proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
@@ -247,10 +258,12 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     final address =
         (_cachedAddress ?? await getCurrentReceivingAddress())!.value;
 
+    final node = getCurrentNode();
     final response = await NanoAPI.getAccountInfo(
       server: serverURI,
       representative: true,
       account: address,
+      headers: _buildHeaders(node.host),
     );
 
     return response.accountInfo?.representative ??
@@ -259,7 +272,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   Future<bool> changeRepresentative(String newRepresentative) async {
     try {
-      final serverURI = Uri.parse(getCurrentNode().host);
+      final node = getCurrentNode();
+      final serverURI = Uri.parse(node.host);
       await updateBalance();
       final balance = info.cachedBalance.spendable.raw.toString();
       final String privateKey = await _getPrivateKeyFromMnemonic();
@@ -270,6 +284,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         server: serverURI,
         representative: true,
         account: address,
+        headers: _buildHeaders(node.host),
       );
 
       if (response.accountInfo == null) {
@@ -287,6 +302,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         balance: balance,
         privateKey: privateKey,
         work: work!,
+        headers: _buildHeaders(node.host),
       );
     } catch (_) {
       rethrow;
@@ -331,11 +347,11 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   @override
   Future<bool> pingCheck() async {
-    final uri = Uri.parse(getCurrentNode().host);
-
+    final node = getCurrentNode();
+    final uri = Uri.parse(node.host);
     final response = await _httpClient.post(
       url: uri,
-      headers: {"Content-Type": "application/json"},
+      headers: _buildHeaders(node.host),
       body: jsonEncode(
         {
           "action": "version",
@@ -384,13 +400,10 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         "account": publicAddress,
       });
 
-      final headers = {
-        "Content-Type": "application/json",
-      };
-
+      final node = getCurrentNode();
       final infoResponse = await _httpClient.post(
-        url: Uri.parse(getCurrentNode().host),
-        headers: headers,
+        url: Uri.parse(node.host),
+        headers: _buildHeaders(node.host),
         body: infoBody,
         proxyInfo:
             prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
@@ -443,8 +456,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         "block": sendBlock,
       });
       final processResponse = await _httpClient.post(
-        url: Uri.parse(getCurrentNode().host),
-        headers: headers,
+        url: Uri.parse(node.host),
+        headers: _buildHeaders(node.host),
         body: processBody,
         proxyInfo:
             prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
@@ -485,6 +498,49 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     }
   }
 
+  // recurse over api calls if required
+  // (if more than 200 history items)
+  Future<Map<String, dynamic>> _fetchAll(
+    String publicAddress,
+    String? previous,
+    Map<String, dynamic>? data,
+  ) async {
+    final node = getCurrentNode();
+    final body = {
+      "action": "account_history",
+      "account": publicAddress,
+      "count": "200",
+    };
+
+    if (previous is String) {
+      body["head"] = previous;
+    }
+
+    final response = await _httpClient.post(
+      url: Uri.parse(node.host),
+      headers: _buildHeaders(node.host),
+      body: jsonEncode(body),
+      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+    );
+
+    // this should really have proper type checking and error propagation but I'm out of time
+    final newData =
+        Map<String, dynamic>.from((await jsonDecode(response.body)) as Map);
+
+    if (newData["previous"] is String) {
+      if (data?["history"] is List) {
+        (newData["history"] as List).addAll(data!["history"] as List);
+      }
+      return await _fetchAll(
+        publicAddress,
+        newData["previous"] as String,
+        newData,
+      );
+    }
+
+    return newData;
+  }
+
   @override
   Future<void> updateTransactions() async {
     await updateChainHeight();
@@ -492,17 +548,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         (_cachedAddress ?? await getCurrentReceivingAddress())!;
     final String publicAddress = receivingAddress.value;
     await _confirmAllReceivable(publicAddress);
-    final response = await _httpClient.post(
-      url: Uri.parse(getCurrentNode().host),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "action": "account_history",
-        "account": publicAddress,
-        "count": "-1",
-      }),
-      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
-    );
-    final data = await jsonDecode(response.body);
+
+    final data = await _fetchAll(publicAddress, null, null);
+
     final transactions = data["history"] is List
         ? data["history"] as List<dynamic>
         : <dynamic>[];
@@ -571,13 +619,11 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         "action": "account_balance",
         "account": addressString,
       });
-      final headers = {
-        "Content-Type": "application/json",
-      };
 
+      final node = getCurrentNode();
       final response = await _httpClient.post(
-        url: Uri.parse(getCurrentNode().host),
-        headers: headers,
+        url: Uri.parse(node.host),
+        headers: _buildHeaders(node.host),
         body: body,
         proxyInfo:
             prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
@@ -622,12 +668,11 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         "action": "account_info",
         "account": publicAddress,
       });
-      final headers = {
-        "Content-Type": "application/json",
-      };
+
+      final node = getCurrentNode();
       final infoResponse = await _httpClient.post(
-        url: Uri.parse(getCurrentNode().host),
-        headers: headers,
+        url: Uri.parse(node.host),
+        headers: _buildHeaders(node.host),
         body: infoBody,
         proxyInfo:
             prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,

@@ -170,6 +170,11 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
     final lengths = coin.possibleMnemonicLengths;
 
+    final isMoneroAnd25 = coin is Monero &&
+        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
+    final isWowneroAnd25 = coin is Wownero &&
+        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
+
     return MasterScaffold(
       isDesktop: isDesktop,
       appBar: isDesktop
@@ -222,13 +227,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(
                 height: isDesktop ? 40 : 24,
               ),
-              if ((coin is Monero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25) ||
-                  coin is Epiccash ||
-                  (coin is Wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 Text(
                   "Choose start date",
                   style: isDesktop
@@ -240,58 +239,28 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-              if ((coin is Monero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25) ||
-                  coin is Epiccash ||
-                  (coin is Wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 SizedBox(
                   height: isDesktop ? 16 : 8,
                 ),
-              if ((coin is Monero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25) ||
-                  coin is Epiccash ||
-                  (coin is Wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 if (!isDesktop)
                   RestoreFromDatePicker(
                     onTap: chooseDate,
                     controller: _dateController,
                   ),
-              if ((coin is Monero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25) ||
-                  coin is Epiccash ||
-                  (coin is Wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 if (isDesktop)
                   // TODO desktop date picker
                   RestoreFromDatePicker(
                     onTap: chooseDesktopDate,
                     controller: _dateController,
                   ),
-              if ((coin is Monero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25) ||
-                  coin is Epiccash ||
-                  (coin is Wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 const SizedBox(
                   height: 8,
                 ),
-              if ((coin is Monero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25) ||
-                  coin is Epiccash ||
-                  (coin is Wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 RoundedWhiteContainer(
                   child: Center(
                     child: Text(
@@ -308,13 +277,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ),
                   ),
                 ),
-              if ((coin is Monero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25) ||
-                  coin is Epiccash ||
-                  (coin is Wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 SizedBox(
                   height: isDesktop ? 24 : 16,
                 ),

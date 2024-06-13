@@ -105,6 +105,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       }
     }
 
+    final missing = await getMissingSparkSpendTransactionIds();
+    for (final txid in missing.map((e) => e.txid).toSet()) {
+      allTxHashes.add({
+        "tx_hash": txid,
+      });
+    }
+
     final List<Map<String, dynamic>> allTransactions = [];
 
     // some lelantus transactions aren't fetched via wallet addresses so they
@@ -187,12 +194,30 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       final bool isMasterNodePayment = false;
       final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
       final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
+      final bool isMySpentSpark =
+          missing.where((e) => e.txid == txData["txid"]).isNotEmpty;
 
-      final sparkCoinsInvolved =
-          sparkCoins.where((e) => e.txHash == txData["txid"]);
-      if (isMySpark && sparkCoinsInvolved.isEmpty) {
+      final sparkCoinsInvolvedReceived = sparkCoins.where(
+        (e) =>
+            e.txHash == txData["txid"] ||
+            missing.where((f) => e.lTagHash == f.tag).isNotEmpty,
+      );
+
+      final sparkCoinsInvolvedSpent = sparkCoins.where(
+        (e) => missing.where((f) => e.lTagHash == f.tag).isNotEmpty,
+      );
+
+      if (isMySpark && sparkCoinsInvolvedReceived.isEmpty && !isMySpentSpark) {
         Logging.instance.log(
-          "sparkCoinsInvolved is empty and should not be! (ignoring tx parsing)",
+          "sparkCoinsInvolvedReceived is empty and should not be! (ignoring tx parsing)",
+          level: LogLevel.Error,
+        );
+        continue;
+      }
+
+      if (isMySpentSpark && sparkCoinsInvolvedSpent.isEmpty && !isMySpark) {
+        Logging.instance.log(
+          "sparkCoinsInvolvedSpent is empty and should not be! (ignoring tx parsing)",
           level: LogLevel.Error,
         );
         continue;
@@ -267,7 +292,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
                 final serCoin = base64Encode(
                   output.scriptPubKeyHex.substring(2, 488).toUint8ListFromHex,
                 );
-                final coin = sparkCoinsInvolved
+                final coin = sparkCoinsInvolvedReceived
                     .where((e) => e.serializedCoinB64!.startsWith(serCoin))
                     .firstOrNull;
 
@@ -343,7 +368,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           );
         }
 
-        if (isSparkSpend) {
+        void parseAnonFees() {
           // anon fees
           final nFee = Decimal.tryParse(map["nFees"].toString());
           if (nFee != null) {
@@ -354,6 +379,22 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
             anonFees = anonFees! + fees;
           }
+        }
+
+        List<SparkCoin>? spentSparkCoins;
+
+        if (isMySpentSpark) {
+          parseAnonFees();
+          final tags = await FiroCacheCoordinator.getUsedCoinTagsFor(
+            txid: txData["txid"] as String,
+          );
+          spentSparkCoins = sparkCoinsInvolvedSpent
+              .where(
+                (e) => tags.contains(e.lTagHash),
+              )
+              .toList();
+        } else if (isSparkSpend) {
+          parseAnonFees();
         } else if (isSparkMint) {
           final address = map["address"] as String?;
           final value = map["valueSat"] as int?;
@@ -444,6 +485,18 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
               wasSentFromThisWallet = true;
             }
           }
+        } else if (isMySpentSpark &&
+            spentSparkCoins != null &&
+            spentSparkCoins.isNotEmpty) {
+          input = input.copyWith(
+            addresses: spentSparkCoins.map((e) => e.address).toList(),
+            valueStringSats: spentSparkCoins
+                .map((e) => e.value)
+                .fold(BigInt.zero, (p, e) => p + e)
+                .toString(),
+            walletOwns: true,
+          );
+          wasSentFromThisWallet = true;
         }
 
         inputs.add(input);
@@ -514,7 +567,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       if (anonFees != null) {
         otherData = jsonEncode(
           {
-            "overrideFee": anonFees.toJsonString(),
+            "overrideFee": anonFees!.toJsonString(),
           },
         );
       }

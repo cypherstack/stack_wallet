@@ -25,7 +25,6 @@ import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
@@ -35,6 +34,7 @@ import 'app_config.dart';
 import 'db/db_version_migration.dart';
 import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
+import 'db/special_migrations.dart';
 import 'db/sqlite/firo_cache.dart';
 import 'models/exchange/change_now/exchange_transaction.dart';
 import 'models/exchange/change_now/exchange_transaction_status.dart';
@@ -44,6 +44,7 @@ import 'models/models.dart';
 import 'models/node_model.dart';
 import 'models/notification_model.dart';
 import 'models/trade_wallet_lookup.dart';
+import 'pages/campfire_migrate_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
 import 'pages/loading_view.dart';
@@ -142,51 +143,58 @@ void main(List<String> args) async {
   }
 
   // Registering Transaction Model Adapters
-  Hive.registerAdapter(TransactionDataAdapter());
-  Hive.registerAdapter(TransactionChunkAdapter());
-  Hive.registerAdapter(TransactionAdapter());
-  Hive.registerAdapter(InputAdapter());
-  Hive.registerAdapter(OutputAdapter());
+  DB.instance.hive.registerAdapter(TransactionDataAdapter());
+  DB.instance.hive.registerAdapter(TransactionChunkAdapter());
+  DB.instance.hive.registerAdapter(TransactionAdapter());
+  DB.instance.hive.registerAdapter(InputAdapter());
+  DB.instance.hive.registerAdapter(OutputAdapter());
 
   // Registering Utxo Model Adapters
-  Hive.registerAdapter(UtxoDataAdapter());
-  Hive.registerAdapter(UtxoObjectAdapter());
-  Hive.registerAdapter(StatusAdapter());
+  DB.instance.hive.registerAdapter(UtxoDataAdapter());
+  DB.instance.hive.registerAdapter(UtxoObjectAdapter());
+  DB.instance.hive.registerAdapter(StatusAdapter());
 
   // Registering Lelantus Model Adapters
-  Hive.registerAdapter(LelantusCoinAdapter());
+  DB.instance.hive.registerAdapter(LelantusCoinAdapter());
 
   // notification model adapter
-  Hive.registerAdapter(NotificationModelAdapter());
+  DB.instance.hive.registerAdapter(NotificationModelAdapter());
 
   // change now trade adapters
-  Hive.registerAdapter(ExchangeTransactionAdapter());
-  Hive.registerAdapter(ExchangeTransactionStatusAdapter());
+  DB.instance.hive.registerAdapter(ExchangeTransactionAdapter());
+  DB.instance.hive.registerAdapter(ExchangeTransactionStatusAdapter());
 
-  Hive.registerAdapter(TradeAdapter());
+  DB.instance.hive.registerAdapter(TradeAdapter());
 
   // reference lookup data adapter
-  Hive.registerAdapter(TradeWalletLookupAdapter());
+  DB.instance.hive.registerAdapter(TradeWalletLookupAdapter());
 
   // node model adapter
-  Hive.registerAdapter(NodeModelAdapter());
+  DB.instance.hive.registerAdapter(NodeModelAdapter());
 
-  Hive.registerAdapter(NodeAdapter());
+  DB.instance.hive.registerAdapter(NodeAdapter());
 
-  if (!Hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
-    Hive.registerAdapter(WalletInfoAdapter());
+  if (!DB.instance.hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
+    DB.instance.hive.registerAdapter(WalletInfoAdapter());
   }
 
-  Hive.registerAdapter(WalletTypeAdapter());
+  DB.instance.hive.registerAdapter(WalletTypeAdapter());
 
-  Hive.registerAdapter(UnspentCoinsInfoAdapter());
-  await Hive.initFlutter(
+  DB.instance.hive.registerAdapter(UnspentCoinsInfoAdapter());
+
+  DB.instance.hive.init(
     (await StackFileSystem.applicationHiveDirectory()).path,
   );
 
-  await Hive.openBox<dynamic>(DB.boxNameDBInfo);
-  await Hive.openBox<dynamic>(DB.boxNamePrefs);
+  await DB.instance.hive.openBox<dynamic>(DB.boxNameDBInfo);
+  await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
+
+  if (AppConfig.appName == "Campfire" &&
+      !Util.isDesktop &&
+      !CampfireMigration.didRun) {
+    await CampfireMigration.init();
+  }
 
   // TODO:
   // This should be moved to happen during the loading animation instead of
@@ -792,7 +800,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                         biometricsCancelButtonString: "Cancel",
                       );
                     } else {
-                      return const IntroView();
+                      if (AppConfig.appName == "Campfire" &&
+                          !CampfireMigration.didRun &&
+                          CampfireMigration.hasOldWallets) {
+                        return const CampfireMigrateView();
+                      } else {
+                        return const IntroView();
+                      }
                     }
                   } else {
                     // CURRENTLY DISABLED as cannot be animated

@@ -1,5 +1,7 @@
 part of 'firo_cache.dart';
 
+typedef LTagPair = ({String tag, String txid});
+
 /// Wrapper class for [_FiroCache] as [_FiroCache] should eventually be handled in a
 /// background isolate and [FiroCacheCoordinator] should manage that isolate
 abstract class FiroCacheCoordinator {
@@ -51,7 +53,7 @@ abstract class FiroCacheCoordinator {
     ElectrumXClient client,
   ) async {
     final count = await FiroCacheCoordinator.getUsedCoinTagsCount();
-    final unhashedTags = await client.getSparkUnhashedUsedCoinsTags(
+    final unhashedTags = await client.getSparkUnhashedUsedCoinsTagsWithTxHashes(
       startNumber: count,
     );
     if (unhashedTags.isNotEmpty) {
@@ -97,10 +99,6 @@ abstract class FiroCacheCoordinator {
     return result.map((e) => e["tag"] as String).toSet();
   }
 
-  /// This should be the equivalent of counting the number of tags in the db.
-  /// Assuming the integrity of the data. Faster than actually calling count on
-  /// a table where no records have been deleted. None should be deleted from
-  /// this table in practice.
   static Future<int> getUsedCoinTagsCount() async {
     final result = await _Reader._getUsedCoinTagsCount(
       db: _FiroCache.usedTagsCacheDB,
@@ -109,6 +107,40 @@ abstract class FiroCacheCoordinator {
       return 0;
     }
     return result.first["count"] as int? ?? 0;
+  }
+
+  static Future<List<LTagPair>> getUsedCoinTxidsFor({
+    required List<String> tags,
+  }) async {
+    if (tags.isEmpty) {
+      return [];
+    }
+    final result = await _Reader._getUsedCoinTxidsFor(
+      tags,
+      db: _FiroCache.usedTagsCacheDB,
+    );
+
+    if (result.isEmpty) {
+      return [];
+    }
+    return result.rows
+        .map(
+          (e) => (
+            tag: e[0] as String,
+            txid: e[1] as String,
+          ),
+        )
+        .toList();
+  }
+
+  static Future<Set<String>> getUsedCoinTagsFor({
+    required String txid,
+  }) async {
+    final result = await _Reader._getUsedCoinTagsFor(
+      txid,
+      db: _FiroCache.usedTagsCacheDB,
+    );
+    return result.map((e) => e["tag"] as String).toSet();
   }
 
   static Future<bool> checkTagIsUsed(

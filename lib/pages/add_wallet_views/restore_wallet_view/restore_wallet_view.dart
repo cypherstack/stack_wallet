@@ -179,8 +179,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
     if (widget.coin is Monero) {
-      final moneroWordList = libxmr.monero.getMoneroWordList("English");
-      return moneroWordList.contains(word);
+      switch (widget.seedWordsLength) {
+        case 25:
+          return libxmr.monero.getMoneroWordList("English").contains(word);
+        case 16:
+          return Monero.sixteenWordsWordList.contains(word);
+        default:
+          return false;
+      }
     }
     if (widget.coin is Wownero) {
       final wowneroWordList = libwow.wownero.getWowneroWordList(

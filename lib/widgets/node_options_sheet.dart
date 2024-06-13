@@ -117,9 +117,12 @@ class NodeOptionsSheet extends ConsumerWidget {
             final response = await testMoneroNodeConnection(
               Uri.parse(uriString),
               false,
+              proxyInfo: ref.read(prefsChangeNotifierProvider).useTor
+                  ? ref.read(pTorService).getProxyInfo()
+                  : null,
             );
 
-            if (response.cert != null) {
+            if (response.cert != null && context.mounted) {
               // if (mounted) {
               final shouldAllowBadCert = await showBadX509CertificateDialog(
                 response.cert!,
@@ -129,8 +132,13 @@ class NodeOptionsSheet extends ConsumerWidget {
               );
 
               if (shouldAllowBadCert) {
-                final response =
-                    await testMoneroNodeConnection(Uri.parse(uriString), true);
+                final response = await testMoneroNodeConnection(
+                  Uri.parse(uriString),
+                  true,
+                  proxyInfo: ref.read(prefsChangeNotifierProvider).useTor
+                      ? ref.read(pTorService).getProxyInfo()
+                      : null,
+                );
                 testPassed = response.success;
               }
               // }

@@ -428,22 +428,6 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
             _i7.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i7.Future<Map<String, dynamic>>);
   @override
-  _i7.Future<List<String>> getSparkUnhashedUsedCoinsTags({
-    String? requestID,
-    required int? startNumber,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getSparkUnhashedUsedCoinsTags,
-          [],
-          {
-            #requestID: requestID,
-            #startNumber: startNumber,
-          },
-        ),
-        returnValue: _i7.Future<List<String>>.value(<String>[]),
-      ) as _i7.Future<List<String>>);
-  @override
   _i7.Future<List<Map<String, dynamic>>> getSparkMintMetaData({
     String? requestID,
     required List<String>? sparkCoinHashes,
@@ -470,6 +454,49 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
         ),
         returnValue: _i7.Future<int>.value(0),
       ) as _i7.Future<int>);
+  @override
+  _i7.Future<Set<String>> getMempoolTxids({String? requestID}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getMempoolTxids,
+          [],
+          {#requestID: requestID},
+        ),
+        returnValue: _i7.Future<Set<String>>.value(<String>{}),
+      ) as _i7.Future<Set<String>>);
+  @override
+  _i7.Future<Map<String, dynamic>> getMempoolSparkData({
+    String? requestID,
+    required List<String>? txids,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getMempoolSparkData,
+          [],
+          {
+            #requestID: requestID,
+            #txids: txids,
+          },
+        ),
+        returnValue:
+            _i7.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i7.Future<Map<String, dynamic>>);
+  @override
+  _i7.Future<List<List<dynamic>>> getSparkUnhashedUsedCoinsTagsWithTxHashes({
+    String? requestID,
+    required int? startNumber,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSparkUnhashedUsedCoinsTagsWithTxHashes,
+          [],
+          {
+            #requestID: requestID,
+            #startNumber: startNumber,
+          },
+        ),
+        returnValue: _i7.Future<List<List<dynamic>>>.value(<List<dynamic>>[]),
+      ) as _i7.Future<List<List<dynamic>>>);
   @override
   _i7.Future<Map<String, dynamic>> getFeeRate({String? requestID}) =>
       (super.noSuchMethod(

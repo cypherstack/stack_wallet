@@ -696,6 +696,32 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  Future<Set<LTagPair>> getMissingSparkSpendTransactionIds() async {
+    final tags = await mainDB.isar.sparkCoins
+        .where()
+        .walletIdEqualToAnyLTagHash(walletId)
+        .filter()
+        .isUsedEqualTo(true)
+        .lTagHashProperty()
+        .findAll();
+
+    final usedCoinTxidsFoundLocally = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .subTypeEqualTo(TransactionSubType.sparkSpend)
+        .txidProperty()
+        .findAll();
+
+    final pairs = await FiroCacheCoordinator.getUsedCoinTxidsFor(
+      tags: tags,
+    );
+
+    pairs.removeWhere((e) => usedCoinTxidsFoundLocally.contains(e.txid));
+
+    return pairs.toSet();
+  }
+
   Future<void> refreshSparkBalance() async {
     final currentHeight = await chainHeight;
     final unusedCoins = await mainDB.isar.sparkCoins

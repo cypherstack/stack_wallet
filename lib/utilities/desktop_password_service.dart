@@ -8,9 +8,10 @@
  *
  */
 
-import 'package:hive/hive.dart';
+import 'package:hive/hive.dart' show Box;
 import 'package:stack_wallet_backup/secure_storage.dart';
 
+import '../db/hive/db.dart';
 import 'logger.dart';
 
 const String kBoxNameDesktopData = "desktopData";
@@ -185,7 +186,7 @@ class DPS {
   Future<void> _put({required String key, required String value}) async {
     Box<String>? box;
     try {
-      box = await Hive.openBox<String>(kBoxNameDesktopData);
+      box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
       await box.put(key, value);
     } catch (e, s) {
       Logging.instance.log(
@@ -201,7 +202,7 @@ class DPS {
     String? value;
     Box<String>? box;
     try {
-      box = await Hive.openBox<String>(kBoxNameDesktopData);
+      box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
       value = box.get(key);
     } catch (e, s) {
       Logging.instance.log(
@@ -217,6 +218,6 @@ class DPS {
   /// Dangerous. Used in one place and should not be called anywhere else.
   @Deprecated("Don't use this if at all possible")
   Future<void> deleteBox() async {
-    await Hive.deleteBoxFromDisk(kBoxNameDesktopData);
+    await DB.instance.hive.deleteBoxFromDisk(kBoxNameDesktopData);
   }
 }

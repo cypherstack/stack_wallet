@@ -1,4 +1,5 @@
 import 'package:cw_wownero/api/wallet.dart' as wownero_wallet;
+
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
@@ -41,6 +42,9 @@ class Wownero extends CryptonoteCurrency {
 
   @override
   int get minConfirms => 15;
+
+  @override
+  bool get torSupport => true;
 
   @override
   bool validateAddress(String address) {
