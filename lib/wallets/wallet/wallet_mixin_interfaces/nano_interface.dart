@@ -3,6 +3,9 @@ import 'dart:convert';
 
 import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../../external_api_keys.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -18,9 +21,9 @@ import '../../../utilities/logger.dart';
 import '../../crypto_currency/intermediate/nano_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
-import 'package:tuple/tuple.dart';
 
-const _kWorkServer = "https://rpc.nano.to";
+// const _kWorkServer = "https://rpc.nano.to";
+const _kWorkServer = "https://nodes.nanswap.com/XNO";
 
 mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   // since nano based coins only have a single address/account we can cache
@@ -36,7 +39,10 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     return _httpClient
         .post(
       url: Uri.parse(_kWorkServer), // this should be a
-      headers: {'Content-type': 'application/json'},
+      headers: {
+        'Content-type': 'application/json',
+        "nodes-api-key": kNanoSwapRpcApiKey,
+      },
       body: json.encode(
         {
           "action": "work_generate",
