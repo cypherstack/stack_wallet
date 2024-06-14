@@ -15,11 +15,9 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import '../../global_settings_view/tor_settings/tor_settings_view.dart';
-import '../../sub_widgets/nodes_list.dart';
-import 'sub_widgets/confirm_full_rescan.dart';
-import 'sub_widgets/rescanning_dialog.dart';
+import 'package:tuple/tuple.dart';
+import 'package:wakelock/wakelock.dart';
+
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../services/event_bus/events/global/blocks_remaining_event.dart';
@@ -53,8 +51,11 @@ import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/tor_subscription.dart';
-import 'package:tuple/tuple.dart';
-import 'package:wakelock/wakelock.dart';
+import '../../global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import '../../global_settings_view/tor_settings/tor_settings_view.dart';
+import '../../sub_widgets/nodes_list.dart';
+import 'sub_widgets/confirm_full_rescan.dart';
+import 'sub_widgets/rescanning_dialog.dart';
 
 /// [eventBus] should only be set during testing
 class WalletNetworkSettingsView extends ConsumerStatefulWidget {

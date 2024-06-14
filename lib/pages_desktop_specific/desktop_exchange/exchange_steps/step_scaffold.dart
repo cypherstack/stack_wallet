@@ -117,13 +117,23 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
       if (mounted) {
         Navigator.of(context).pop();
 
+        String? message;
+        if (response.exception != null) {
+          message = response.exception!.toString();
+          // TODO: better errors
+          if (message.startsWith("FormatException:") &&
+              message.contains("<html>")) {
+            message = "${ref.read(efExchangeProvider).name} server error";
+          }
+        }
+
         unawaited(
           showDialog<void>(
             context: context,
             barrierDismissible: true,
             builder: (_) => SimpleDesktopDialog(
               title: "Failed to create trade",
-              message: response.exception?.toString() ?? "",
+              message: message ?? "",
             ),
           ),
         );

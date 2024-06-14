@@ -669,21 +669,29 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "${trade.exchangeName} address",
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                        const SizedBox(
-                          height: 4,
-                        ),
-                        SelectableText(
-                          trade.payInAddress,
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "${trade.exchangeName} address",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: SelectableText(
+                                  trade.payInAddress,
+                                  style: STextStyles.itemSubtitle12(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     if (isDesktop)
                       IconCopyButton(
@@ -760,9 +768,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     const SizedBox(
                       height: 4,
                     ),
-                    SelectableText(
-                      trade.payInAddress,
-                      style: STextStyles.itemSubtitle12(context),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SelectableText(
+                            trade.payInAddress,
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(
                       height: 10,
