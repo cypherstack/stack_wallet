@@ -285,8 +285,22 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                             );
 
                                     if (response.value == null) {
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         Navigator.of(context).pop();
+
+                                        // TODO: better errors
+                                        String? message;
+                                        if (response.exception != null) {
+                                          message =
+                                              response.exception!.toString();
+                                          if (message.startsWith(
+                                                "FormatException:",
+                                              ) &&
+                                              message.contains("<html>")) {
+                                            message =
+                                                "${ref.read(efExchangeProvider).name} server error";
+                                          }
+                                        }
 
                                         unawaited(
                                           showDialog<void>(
@@ -294,8 +308,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                             barrierDismissible: true,
                                             builder: (_) => StackDialog(
                                               title: "Failed to create trade",
-                                              message: response.exception
-                                                  ?.toString(),
+                                              message: message ?? "",
                                             ),
                                           ),
                                         );
