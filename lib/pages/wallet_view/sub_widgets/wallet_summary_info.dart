@@ -12,11 +12,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'wallet_balance_toggle_sheet.dart';
-import 'wallet_refresh_button.dart';
+
 import '../../../providers/providers.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
@@ -27,12 +25,15 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/enums/wallet_balance_toggle_state.dart';
+import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/coins/banano.dart';
 import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
 import '../../../widgets/conditional_parent.dart';
+import 'wallet_balance_toggle_sheet.dart';
+import 'wallet_refresh_button.dart';
 
 class WalletSummaryInfo extends ConsumerWidget {
   const WalletSummaryInfo({
