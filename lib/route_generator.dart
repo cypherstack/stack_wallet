@@ -144,6 +144,7 @@ import 'pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'pages/wallet_view/transaction_views/transaction_details_view.dart';
 import 'pages/wallet_view/transaction_views/transaction_search_filter_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
+import 'pages/wallet_view/transaction_views/tx_v2/boost_transaction_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/fusion_group_details_view.dart';
 import 'pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import 'pages/wallet_view/wallet_view.dart';
@@ -2165,6 +2166,20 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DesktopCoinControlView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case BoostTransactionView.routeName:
+        if (args is TransactionV2) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => BoostTransactionView(
+              transaction: args,
             ),
             settings: RouteSettings(
               name: settings.name,
