@@ -34,6 +34,7 @@ import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
@@ -41,6 +42,7 @@ import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -92,6 +94,7 @@ class _TransactionV2DetailsViewState
   late final String unit;
   late final int minConfirms;
   late final EthContract? ethContract;
+  late final bool supportsRbf;
 
   bool get isTokenTx => ethContract != null;
 
@@ -103,44 +106,57 @@ class _TransactionV2DetailsViewState
 
   bool _boostButtonLock = false;
   Future<void> _boostPressed() async {
-    if (_boostButtonLock) {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (_boostButtonLock || wallet is! RbfInterface) {
       return;
     }
     _boostButtonLock = true;
     try {
       if (Util.isDesktop) {
-        await showDialog<void>(
+        // TODO fetch size from _transaction after its added to db schema, if not there,
+        // then fetch using the function below
+        final size = await showLoading(
+          whileFuture: wallet.getVSize(_transaction.txid),
           context: context,
-          builder: (context) => DesktopDialog(
-            maxHeight: null,
-            maxWidth: 580,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 32),
-                      child: Text(
-                        "Boost transaction",
-                        style: STextStyles.desktopH3(context),
+          message: "Fetching transaction vSize...",
+        );
+
+        // TODO pass the size in to the rbf screen
+
+        if (mounted) {
+          await showDialog<void>(
+            context: context,
+            builder: (context) => DesktopDialog(
+              maxHeight: null,
+              maxWidth: 580,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 32),
+                        child: Text(
+                          "Boost transaction",
+                          style: STextStyles.desktopH3(context),
+                        ),
+                      ),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: BoostTransactionView(
+                        transaction: _transaction,
                       ),
                     ),
-                    const DesktopDialogCloseButton(),
-                  ],
-                ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: BoostTransactionView(
-                      transaction: _transaction,
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
+          );
+        }
       } else {
         unawaited(
           Navigator.of(context).pushNamed(
@@ -159,6 +175,13 @@ class _TransactionV2DetailsViewState
     isDesktop = Util.isDesktop;
     _transaction = widget.transaction;
     walletId = widget.walletId;
+
+    if (_transaction.type
+        case TransactionType.sentToSelf || TransactionType.outgoing) {
+      supportsRbf = ref.read(pWallets).getWallet(walletId) is RbfInterface;
+    } else {
+      supportsRbf = false;
+    }
 
     coin = widget.coin;
 
@@ -537,14 +560,12 @@ class _TransactionV2DetailsViewState
       outputLabel = "Sent to";
     }
 
-    // TODO [prio=high]: set to true for ui testing
-    final showBoost = true;
-    // final showBoost = coin is! NanoCurrency &&
-    //     _transaction.type == TransactionType.outgoing &&
-    //     !_transaction.isConfirmed(
-    //       currentHeight,
-    //       coin.minConfirms,
-    //     );
+    // TODO: [prio=high]: revert the following when done testing
+    final confirmedTxn = false;
+    // final confirmedTxn = _transaction.isConfirmed(
+    //   currentHeight,
+    //   coin.minConfirms,
+    // );
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -1394,11 +1415,11 @@ class _TransactionV2DetailsViewState
                                                         context,
                                                       ),
                                               ),
-                                            if (showBoost)
+                                            if (supportsRbf && !confirmedTxn)
                                               const SizedBox(
                                                 height: 8,
                                               ),
-                                            if (showBoost)
+                                            if (supportsRbf && !confirmedTxn)
                                               CustomTextButton(
                                                 text: "Boost transaction",
                                                 onTap: _boostPressed,
