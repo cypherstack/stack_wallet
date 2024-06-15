@@ -101,6 +101,59 @@ class _TransactionV2DetailsViewState
 
   String? _sparkMemo;
 
+  bool _boostButtonLock = false;
+  Future<void> _boostPressed() async {
+    if (_boostButtonLock) {
+      return;
+    }
+    _boostButtonLock = true;
+    try {
+      if (Util.isDesktop) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => DesktopDialog(
+            maxHeight: null,
+            maxWidth: 580,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "Boost transaction",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ),
+                    const DesktopDialogCloseButton(),
+                  ],
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: BoostTransactionView(
+                      transaction: _transaction,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            BoostTransactionView.routeName,
+            arguments: (tx: _transaction,),
+          ),
+        );
+      }
+    } finally {
+      _boostButtonLock = false;
+    }
+  }
+
   @override
   void initState() {
     isDesktop = Util.isDesktop;
@@ -483,6 +536,15 @@ class _TransactionV2DetailsViewState
     } else {
       outputLabel = "Sent to";
     }
+
+    // TODO [prio=high]: set to true for ui testing
+    final showBoost = true;
+    // final showBoost = coin is! NanoCurrency &&
+    //     _transaction.type == TransactionType.outgoing &&
+    //     !_transaction.isConfirmed(
+    //       currentHeight,
+    //       coin.minConfirms,
+    //     );
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -1332,60 +1394,14 @@ class _TransactionV2DetailsViewState
                                                         context,
                                                       ),
                                               ),
-                                            if (whatIsIt(
-                                                      _transaction,
-                                                      currentHeight,
-                                                    ) ==
-                                                    "Sending" &&
-                                                coin is! NanoCurrency)
+                                            if (showBoost)
                                               const SizedBox(
                                                 height: 8,
                                               ),
-                                            if (whatIsIt(
-                                                      _transaction,
-                                                      currentHeight,
-                                                    ) ==
-                                                    "Sending" &&
-                                                coin is! NanoCurrency)
+                                            if (showBoost)
                                               CustomTextButton(
                                                 text: "Boost transaction",
-                                                onTap: () async {
-                                                  if (Util.isDesktop) {
-                                                    await showDialog<void>(
-                                                      context: context,
-                                                      builder: (context) =>
-                                                          DesktopDialog(
-                                                        maxHeight:
-                                                            MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .height -
-                                                                64,
-                                                        maxWidth: 580,
-                                                        child:
-                                                            BoostTransactionView(
-                                                          transaction:
-                                                              _transaction,
-                                                          coin: coin,
-                                                          walletId: walletId,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  } else {
-                                                    unawaited(
-                                                      Navigator.of(context)
-                                                          .pushNamed(
-                                                        BoostTransactionView
-                                                            .routeName,
-                                                        arguments: (
-                                                          tx: _transaction,
-                                                          coin: coin,
-                                                          walletId: walletId,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }
-                                                },
+                                                onTap: _boostPressed,
                                               ),
                                           ],
                                         ),
@@ -1836,16 +1852,16 @@ class _TransactionV2DetailsViewState
                               const SizedBox(
                                 height: 12,
                               ),
-                            if (whatIsIt(
-                                  _transaction,
-                                  currentHeight,
-                                ) !=
-                                "Sending")
-                              isDesktop
-                                  ? const _Divider()
-                                  : const SizedBox(
-                                      height: 12,
-                                    ),
+                            // if (whatIsIt(
+                            //       _transaction,
+                            //       currentHeight,
+                            //     ) !=
+                            //     "Sending")
+                            //   isDesktop
+                            //       ? const _Divider()
+                            //       : const SizedBox(
+                            //           height: 12,
+                            //         ),
                           ],
                         ),
                       ),

@@ -8,11 +8,11 @@ import '../wallets/crypto_currency/crypto_currency.dart'; // Update with your ac
 
 class BoostFeeSlider extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
-  final Function(BigInt) onFeeChanged;
+  final void Function(BigInt) onFeeChanged;
   final BigInt min;
   final BigInt max;
 
-  BoostFeeSlider({
+  const BoostFeeSlider({
     super.key,
     required this.coin,
     required this.onFeeChanged,
@@ -21,7 +21,7 @@ class BoostFeeSlider extends ConsumerStatefulWidget {
   });
 
   @override
-  _BoostFeeSliderState createState() => _BoostFeeSliderState();
+  ConsumerState<BoostFeeSlider> createState() => _BoostFeeSliderState();
 }
 
 class _BoostFeeSliderState extends ConsumerState<BoostFeeSlider> {
@@ -35,17 +35,20 @@ class _BoostFeeSliderState extends ConsumerState<BoostFeeSlider> {
     _textEditingController = TextEditingController(
       text: ref.read(pAmountFormatter(widget.coin)).format(
             Amount(
-                rawValue: BigInt.from(_currentSliderValue),
-                fractionDigits: widget.coin.fractionDigits),
+              rawValue: BigInt.from(_currentSliderValue),
+              fractionDigits: widget.coin.fractionDigits,
+            ),
             withUnitName: false,
           ),
     );
     _textEditingController.addListener(() {
+      // TODO: value.replaceAll(',', '') doesn't work for certain locales
       final double? value =
           double.tryParse(_textEditingController.text.replaceAll(',', ''));
       if (value != null) {
         final BigInt bigIntValue = BigInt.from(
-            value * BigInt.from(10).pow(widget.coin.fractionDigits).toInt());
+          value * BigInt.from(10).pow(widget.coin.fractionDigits).toInt(),
+        );
         if (bigIntValue >= widget.min && bigIntValue <= widget.max) {
           setState(() {
             _currentSliderValue = value;
@@ -76,17 +79,22 @@ class _BoostFeeSliderState extends ConsumerState<BoostFeeSlider> {
                   min: widget.min.toDouble(),
                   max: widget.max.toDouble(),
                   divisions: (widget.max - widget.min).toInt(),
-                  label: ref.read(pAmountFormatter(widget.coin)).format(Amount(
-                      rawValue: BigInt.from(_currentSliderValue),
-                      fractionDigits: widget.coin.fractionDigits)),
+                  label: ref.read(pAmountFormatter(widget.coin)).format(
+                        Amount(
+                          rawValue: BigInt.from(_currentSliderValue),
+                          fractionDigits: widget.coin.fractionDigits,
+                        ),
+                      ),
                   onChanged: (value) {
                     setState(() {
                       _currentSliderValue = value;
-                      _textEditingController.text = ref
-                          .read(pAmountFormatter(widget.coin))
-                          .format(Amount(
-                              rawValue: BigInt.from(_currentSliderValue),
-                              fractionDigits: widget.coin.fractionDigits));
+                      _textEditingController.text =
+                          ref.read(pAmountFormatter(widget.coin)).format(
+                                Amount(
+                                  rawValue: BigInt.from(_currentSliderValue),
+                                  fractionDigits: widget.coin.fractionDigits,
+                                ),
+                              );
                       widget.onFeeChanged(BigInt.from(_currentSliderValue));
                     });
                   },
@@ -98,7 +106,8 @@ class _BoostFeeSliderState extends ConsumerState<BoostFeeSlider> {
                     8 * widget.coin.ticker.length, // End padding for ticker.
                 child: TextField(
                   controller: _textEditingController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                   ],
@@ -106,13 +115,16 @@ class _BoostFeeSliderState extends ConsumerState<BoostFeeSlider> {
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (value) {
+                    // TODO: value.replaceAll(',', '') doesn't work for certain locales
                     final double? newValue =
                         double.tryParse(value.replaceAll(',', ''));
                     if (newValue != null) {
-                      final BigInt bigIntValue = BigInt.from(newValue *
-                          BigInt.from(10)
-                              .pow(widget.coin.fractionDigits)
-                              .toInt());
+                      final BigInt bigIntValue = BigInt.from(
+                        newValue *
+                            BigInt.from(10)
+                                .pow(widget.coin.fractionDigits)
+                                .toInt(),
+                      );
                       if (bigIntValue >= widget.min &&
                           bigIntValue <= widget.max) {
                         setState(() {
