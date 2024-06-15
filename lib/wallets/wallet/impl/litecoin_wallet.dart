@@ -14,10 +14,15 @@ import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/ordinals_interface.dart';
+import '../wallet_mixin_interfaces/rbf_interface.dart';
 
 class LitecoinWallet<T extends ElectrumXCurrencyInterface>
     extends Bip39HDWallet<T>
-    with ElectrumXInterface<T>, CoinControlInterface<T>, OrdinalsInterface<T> {
+    with
+        ElectrumXInterface<T>,
+        CoinControlInterface<T>,
+        RbfInterface<T>,
+        OrdinalsInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 
