@@ -1648,7 +1648,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       if (customSatsPerVByte != null) {
         // check for send all
         bool isSendAll = false;
-        if (txData.amount == info.cachedBalance.spendable) {
+        if (txData.ignoreCachedBalanceChecks ||
+            txData.amount == info.cachedBalance.spendable) {
           isSendAll = true;
         }
 

@@ -8,23 +8,33 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../../providers/providers.dart';
+import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../widgets/background.dart';
-import '../../../../widgets/boost_fee_slider.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
+import '../../../../widgets/fee_slider.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../send_view/confirm_transaction_view.dart';
 
 class BoostTransactionView extends ConsumerStatefulWidget {
   const BoostTransactionView({
@@ -47,8 +57,11 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
   late final TransactionV2 _transaction;
   late final Amount fee;
   late final Amount amount;
+  late final int rate;
 
   BigInt? customFee;
+
+  int _newRate = 0;
 
   bool _previewTxnLock = false;
   Future<void> _previewTxn() async {
@@ -57,12 +70,79 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
     }
     _previewTxnLock = true;
     try {
-      // TODO [prio=high]: define previewSend
-      // build new tx and show loading/tx generation
+      if (_newRate <= rate) {
+        await showDialog<void>(
+          context: context,
+          builder: (_) => const StackOkDialog(
+            title: "Error",
+            message: "New fee rate must be greater than the current rate.",
+          ),
+        );
+        return;
+      }
 
-      // on success show confirm tx screen
+      final wallet = (ref.read(pWallets).getWallet(walletId) as RbfInterface);
+
+      Exception? ex;
+      // build new tx and show loading/tx generation
+      final txData = await showLoading(
+        whileFuture: wallet.prepareRbfSend(
+          oldTransaction: _transaction,
+          newRate: _newRate,
+        ),
+        context: context,
+        message: "Preparing RBF Transaction...",
+        onException: (e) => ex = e,
+      );
 
       // on failure show error message
+      if (txData == null && mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: "RBF send error",
+            message: ex?.toString() ?? "Unknown error found",
+          ),
+        );
+        return;
+      } else {
+        // on success show confirm tx screen
+        if (isDesktop && mounted) {
+          unawaited(
+            showDialog(
+              context: context,
+              builder: (context) => DesktopDialog(
+                maxHeight: MediaQuery.of(context).size.height - 64,
+                maxWidth: 580,
+                child: ConfirmTransactionView(
+                  txData: txData!,
+                  walletId: walletId,
+                  onSuccess: () {},
+                  // isPaynymTransaction: isPaynymSend, TODO ?
+                  routeOnSuccessName: DesktopHomeView.routeName,
+                ),
+              ),
+            ),
+          );
+        } else if (mounted) {
+          unawaited(
+            Navigator.of(context).push(
+              RouteGenerator.getRoute(
+                shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+                builder: (_) => ConfirmTransactionView(
+                  txData: txData!,
+                  walletId: walletId,
+                  // isPaynymTransaction: isPaynymSend, TODO ?
+                  onSuccess: () {},
+                ),
+                settings: const RouteSettings(
+                  name: ConfirmTransactionView.routeName,
+                ),
+              ),
+            ),
+          );
+        }
+      }
     } finally {
       _previewTxnLock = false;
     }
@@ -79,6 +159,8 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
     amount = _transaction.getAmountSentFromThisWallet(
       fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
     );
+    rate = (fee.raw ~/ BigInt.from(_transaction.vSize!)).toInt();
+    _newRate = rate + 1;
 
     super.initState();
   }
@@ -92,9 +174,7 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
     final String amountString = ref.watch(pAmountFormatter(coin)).format(
           amount,
         );
-    final String feeRateString =
-        "${(fee.raw / BigInt.from(_transaction.vSize!)).toStringAsFixed(1)}"
-        " sats/vByte";
+    final String feeRateString = "$rate sats/vByte";
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -155,10 +235,12 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              RoundedWhiteContainer(
-                padding: isDesktop
-                    ? const EdgeInsets.all(0)
-                    : const EdgeInsets.all(12),
+              ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => RoundedWhiteContainer(
+                  padding: EdgeInsets.zero,
+                  child: child,
+                ),
                 child: Column(
                   children: [
                     DetailItem(
@@ -174,38 +256,32 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                     ),
                     const _Divider(),
                     DetailItem(
-                      title: "Current fee rate",
+                      title: "Current rate",
                       detail: feeRateString,
                       horizontal: true,
                     ),
                     const _Divider(),
                     Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: BoostFeeSlider(
+                      padding: const EdgeInsets.all(16),
+                      child: FeeSlider(
+                        overrideLabel: "Select a higher rate",
+                        onSatVByteChanged: (value) => _newRate = value,
                         coin: coin,
-                        onFeeChanged: (fee) {
-                          customFee = fee;
-                        },
-                        min: _transaction
-                            .getFee(fractionDigits: coin.fractionDigits)
-                            .raw,
-                        max: _transaction
-                                .getFee(fractionDigits: coin.fractionDigits)
-                                .raw *
-                            BigInt.from(4),
-                        // TODO [prio=med]: The max fee should be set to an absurd fee.
+                        min: rate.toDouble() + 1,
+                        max: rate * 5.0,
+                        pow: 1,
                       ),
                     ),
                   ],
                 ),
               ),
+              if (!isDesktop) const Spacer(),
               if (!isDesktop)
                 const SizedBox(
-                  height: 20,
+                  height: 16,
                 ),
               if (!isDesktop)
                 PrimaryButton(
-                  buttonHeight: ButtonHeight.l,
                   label: "Preview send",
                   onPressed: _previewTxn,
                 ),

@@ -164,7 +164,7 @@ class _TransactionV2DetailsViewState
         unawaited(
           Navigator.of(context).pushNamed(
             BoostTransactionView.routeName,
-            arguments: (tx: _transaction,),
+            arguments: _transaction,
           ),
         );
       }
@@ -181,7 +181,8 @@ class _TransactionV2DetailsViewState
 
     if (_transaction.type
         case TransactionType.sentToSelf || TransactionType.outgoing) {
-      supportsRbf = ref.read(pWallets).getWallet(walletId) is RbfInterface;
+      supportsRbf = _transaction.subType == TransactionSubType.none &&
+          ref.read(pWallets).getWallet(walletId) is RbfInterface;
     } else {
       supportsRbf = false;
     }
@@ -563,12 +564,10 @@ class _TransactionV2DetailsViewState
       outputLabel = "Sent to";
     }
 
-    // TODO: [prio=high]: revert the following when done testing
-    final confirmedTxn = false;
-    // final confirmedTxn = _transaction.isConfirmed(
-    //   currentHeight,
-    //   coin.minConfirms,
-    // );
+    final confirmedTxn = _transaction.isConfirmed(
+      currentHeight,
+      coin.minConfirms,
+    );
 
     return ConditionalParent(
       condition: !isDesktop,
