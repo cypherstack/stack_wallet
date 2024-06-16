@@ -23,6 +23,7 @@ import '../../../../widgets/boost_fee_slider.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class BoostTransactionView extends ConsumerStatefulWidget {
@@ -45,6 +46,7 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
   late final String walletId;
   late final TransactionV2 _transaction;
   late final Amount fee;
+  late final Amount amount;
 
   BigInt? customFee;
 
@@ -74,6 +76,9 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
     fee = _transaction.getFee(
       fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
     );
+    amount = _transaction.getAmountSentFromThisWallet(
+      fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
+    );
 
     super.initState();
   }
@@ -84,6 +89,12 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
     final String feeString = ref.watch(pAmountFormatter(coin)).format(
           fee,
         );
+    final String amountString = ref.watch(pAmountFormatter(coin)).format(
+          amount,
+        );
+    final String feeRateString =
+        "${(fee.raw / BigInt.from(_transaction.vSize!)).toStringAsFixed(1)}"
+        " sats/vByte";
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -118,68 +129,58 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
         child: ConditionalParent(
           condition: isDesktop,
           builder: (child) {
-            return RoundedWhiteContainer(
-              borderColor: isDesktop
-                  ? Theme.of(context).extension<StackColors>()!.backgroundAppBar
-                  : null,
-              padding: const EdgeInsets.all(0),
-              child: child,
+            return Column(
+              children: [
+                RoundedWhiteContainer(
+                  borderColor: isDesktop
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .backgroundAppBar
+                      : null,
+                  padding: const EdgeInsets.all(0),
+                  child: child,
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
+                PrimaryButton(
+                  buttonHeight: ButtonHeight.l,
+                  label: "Preview send",
+                  onPressed: _previewTxn,
+                ),
+              ],
             );
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // const _Divider(),
               RoundedWhiteContainer(
                 padding: isDesktop
-                    ? const EdgeInsets.all(16)
+                    ? const EdgeInsets.all(0)
                     : const EdgeInsets.all(12),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Boost fee",
-                              style: isDesktop
-                                  ? STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    )
-                                  : STextStyles.itemSubtitle(
-                                      context,
-                                    ),
-                            ),
-                          ],
-                        ),
-                        if (!isDesktop)
-                          SelectableText(
-                            feeString,
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                  )
-                                : STextStyles.itemSubtitle12(
-                                    context,
-                                  ),
-                          ),
-                        // if (isDesktop)
-                        //   IconCopyButton(data: feeString),
-                      ],
+                    DetailItem(
+                      title: "Send amount",
+                      detail: amountString,
+                      horizontal: true,
                     ),
+                    const _Divider(),
+                    DetailItem(
+                      title: "Current fee",
+                      detail: feeString,
+                      horizontal: true,
+                    ),
+                    const _Divider(),
+                    DetailItem(
+                      title: "Current fee rate",
+                      detail: feeRateString,
+                      horizontal: true,
+                    ),
+                    const _Divider(),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 12,
-                        top: 16,
-                      ),
+                      padding: const EdgeInsets.all(10),
                       child: BoostFeeSlider(
                         coin: coin,
                         onFeeChanged: (fee) {
@@ -195,15 +196,19 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                         // TODO [prio=med]: The max fee should be set to an absurd fee.
                       ),
                     ),
-                    const _Divider(),
-                    PrimaryButton(
-                      buttonHeight: ButtonHeight.l,
-                      label: "Preview send",
-                      onPressed: _previewTxn,
-                    ),
                   ],
                 ),
               ),
+              if (!isDesktop)
+                const SizedBox(
+                  height: 20,
+                ),
+              if (!isDesktop)
+                PrimaryButton(
+                  buttonHeight: ButtonHeight.l,
+                  label: "Preview send",
+                  onPressed: _previewTxn,
+                ),
             ],
           ),
         ),
