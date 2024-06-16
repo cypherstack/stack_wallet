@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -105,14 +104,6 @@ class _TransactionV2DetailsViewState
 
   String? _sparkMemo;
 
-  Future<TransactionV2> _updateVSize(RbfInterface rbfWallet) async {
-    final size = await rbfWallet.getVSize(_transaction.txid);
-    final otherData = jsonDecode(_transaction.otherData ?? "{}");
-    otherData[TxV2OdKeys.vSize] = size!.virtual;
-    otherData[TxV2OdKeys.size] = size.real;
-    return _transaction.copyWith(otherData: jsonEncode(otherData));
-  }
-
   bool _boostButtonLock = false;
   Future<void> _boostPressed() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
@@ -124,7 +115,7 @@ class _TransactionV2DetailsViewState
       if (Util.isDesktop) {
         if (_transaction.vSize == null) {
           final updatedTx = await showLoading(
-            whileFuture: _updateVSize(wallet),
+            whileFuture: wallet.updateVSize(_transaction),
             context: context,
             message: "Fetching transaction vSize...",
           );
