@@ -1794,6 +1794,14 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         continue;
       }
 
+      String? otherData;
+      if (txData["size"] is int || txData["vsize"] is int) {
+        otherData = jsonEncode({
+          TxV2OdKeys.size: txData["size"] as int?,
+          TxV2OdKeys.vSize: txData["vsize"] as int?,
+        });
+      }
+
       final tx = TransactionV2(
         walletId: walletId,
         blockHash: txData["blockhash"] as String?,
@@ -1807,7 +1815,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
-        otherData: null,
+        otherData: otherData,
       );
 
       txns.add(tx);
