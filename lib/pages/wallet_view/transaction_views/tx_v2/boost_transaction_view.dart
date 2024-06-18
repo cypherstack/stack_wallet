@@ -102,6 +102,7 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
           builder: (_) => StackOkDialog(
             title: "RBF send error",
             message: ex?.toString() ?? "Unknown error found",
+            maxWidth: 600,
           ),
         );
         return;

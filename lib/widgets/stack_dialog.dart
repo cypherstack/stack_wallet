@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -148,6 +149,7 @@ class StackOkDialog extends StatelessWidget {
     required this.title,
     this.message,
     this.desktopPopRootNavigator = false,
+    this.maxWidth,
   });
 
   final bool desktopPopRootNavigator;
@@ -158,6 +160,7 @@ class StackOkDialog extends StatelessWidget {
 
   final String title;
   final String? message;
+  final double? maxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -165,17 +168,20 @@ class StackOkDialog extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  title,
-                  style: STextStyles.pageTitleH2(context),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    title,
+                    style: STextStyles.pageTitleH2(context),
+                  ),
                 ),
-              ),
-              icon != null ? icon! : Container(),
-            ],
+                icon != null ? icon! : Container(),
+              ],
+            ),
           ),
           if (message != null)
             const SizedBox(
@@ -194,40 +200,44 @@ class StackOkDialog extends StatelessWidget {
           const SizedBox(
             height: 20,
           ),
-          Row(
-            children: [
-              leftButton == null
-                  ? const Spacer()
-                  : Expanded(child: leftButton!),
-              const SizedBox(
-                width: 8,
-              ),
-              Expanded(
-                child: TextButton(
-                  onPressed: !Util.isDesktop
-                      ? () {
-                          Navigator.of(context).pop();
-                          onOkPressed?.call("OK");
-                        }
-                      : () {
-                          if (desktopPopRootNavigator) {
-                            Navigator.of(context, rootNavigator: true).pop();
-                          } else {
-                            int count = 0;
-                            Navigator.of(context).popUntil((_) => count++ >= 2);
-                            // onOkPressed?.call("OK");
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+            child: Row(
+              children: [
+                leftButton == null
+                    ? const Spacer()
+                    : Expanded(child: leftButton!),
+                const SizedBox(
+                  width: 8,
+                ),
+                Expanded(
+                  child: TextButton(
+                    onPressed: !Util.isDesktop
+                        ? () {
+                            Navigator.of(context).pop();
+                            onOkPressed?.call("OK");
                           }
-                        },
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context),
-                  child: Text(
-                    "Ok",
-                    style: STextStyles.button(context),
+                        : () {
+                            if (desktopPopRootNavigator) {
+                              Navigator.of(context, rootNavigator: true).pop();
+                            } else {
+                              int count = 0;
+                              Navigator.of(context)
+                                  .popUntil((_) => count++ >= 2);
+                              // onOkPressed?.call("OK");
+                            }
+                          },
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonStyle(context),
+                    child: Text(
+                      "Ok",
+                      style: STextStyles.button(context),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
