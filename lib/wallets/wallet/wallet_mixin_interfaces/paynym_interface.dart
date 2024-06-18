@@ -1617,6 +1617,24 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final List<Map<String, dynamic>> allTxHashes =
         await fetchHistory(allAddressesSet);
 
+    final unconfirmedTxs = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightIsNull()
+        .or()
+        .heightEqualTo(0)
+        .txidProperty()
+        .findAll();
+
+    allTxHashes.addAll(
+      unconfirmedTxs.map(
+        (e) => {
+          "tx_hash": e,
+        },
+      ),
+    );
+
     // Only parse new txs (not in db yet).
     final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
@@ -1630,16 +1648,36 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       //     storedTx.height == null ||
       //     (storedTx.height != null && storedTx.height! <= 0)) {
       // Tx not in db yet.
-      final tx = await electrumXCachedClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        cryptoCurrency: cryptoCurrency,
-      );
+      final txid = txHash["tx_hash"] as String;
+      final Map<String, dynamic> tx;
+      try {
+        tx = await electrumXCachedClient.getTransaction(
+          txHash: txid,
+          verbose: true,
+          cryptoCurrency: cryptoCurrency,
+        );
+      } catch (e) {
+        // tx no longer exists then delete from local db
+        if (e.toString().contains(
+              "JSON-RPC error 2: daemon error: DaemonError({'code': -5, "
+              "'message': 'No such mempool or blockchain transaction",
+            )) {
+          await mainDB.isar.writeTxn(
+            () async => await mainDB.isar.transactionV2s
+                .where()
+                .walletIdEqualTo(walletId)
+                .filter()
+                .txidEqualTo(txid)
+                .deleteFirst(),
+          );
+          continue;
+        } else {
+          rethrow;
+        }
+      }
 
       // Only tx to list once.
-      if (allTransactions
-              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
-          -1) {
+      if (allTransactions.indexWhere((e) => e["txid"] == txid) == -1) {
         tx["height"] = txHash["height"];
         allTransactions.add(tx);
       }
