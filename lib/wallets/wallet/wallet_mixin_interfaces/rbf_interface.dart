@@ -6,6 +6,7 @@ import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/logger.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../models/tx_data.dart';
 import 'electrumx_interface.dart';
@@ -41,6 +42,13 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
     required TransactionV2 oldTransaction,
     required int newRate,
   }) async {
+    final note = await mainDB.isar.transactionNotes
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .txidEqualTo(oldTransaction.txid)
+        .findFirst();
+
     final Set<UTXO> utxos = {};
     for (final input in oldTransaction.inputs) {
       final utxo = UTXO(
@@ -62,51 +70,56 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
       utxos.add(utxo);
     }
 
-    Amount sendAmount = oldTransaction.getAmountSentFromThisWallet(
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
+    final List<TxRecipient> recipients = [];
+    for (final output in oldTransaction.outputs) {
+      if (output.addresses.length != 1) {
+        throw UnsupportedError(
+          "Unexpected output.addresses.length: ${output.addresses.length}",
+        );
+      }
+      final address = output.addresses.first;
+      final addressModel = await mainDB.getAddress(walletId, address);
+      final isChange = addressModel?.subType == AddressSubType.change;
 
-    // TODO: fix fragile firstWhere (or at least add some error checking)
-    final address = oldTransaction.outputs
-        .firstWhere(
-          (e) => e.value == sendAmount.raw,
-        )
-        .addresses
-        .first;
+      recipients.add(
+        (
+          address: address,
+          amount: Amount(
+              rawValue: output.value,
+              fractionDigits: cryptoCurrency.fractionDigits),
+          isChange: isChange,
+        ),
+      );
+    }
 
+    final oldFee = oldTransaction
+        .getFee(fractionDigits: cryptoCurrency.fractionDigits)
+        .raw;
     final inSum = utxos
         .map((e) => BigInt.from(e.value))
         .fold(BigInt.zero, (p, e) => p + e);
 
-    if (oldTransaction
-                .getFee(fractionDigits: cryptoCurrency.fractionDigits)
-                .raw +
-            sendAmount.raw ==
-        inSum) {
-      sendAmount = Amount(
-        rawValue: oldTransaction
-                .getFee(fractionDigits: cryptoCurrency.fractionDigits)
-                .raw +
-            sendAmount.raw,
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-    }
-
-    final note = await mainDB.isar.transactionNotes
-        .where()
-        .walletIdEqualTo(walletId)
+    final noChange =
+        recipients.map((e) => e.isChange).fold(false, (p, e) => p || e) ==
+            false;
+    final otherAvailableUtxos = await mainDB
+        .getUTXOs(walletId)
         .filter()
-        .txidEqualTo(oldTransaction.txid)
-        .findFirst();
+        .usedIsNull()
+        .or()
+        .usedEqualTo(false)
+        .findAll();
 
-    final txData = TxData(
-      recipients: [
-        (
-          address: address,
-          amount: sendAmount,
-          isChange: false,
-        ),
-      ],
+    final height = await chainHeight;
+    otherAvailableUtxos.removeWhere(
+      (e) => !e.isConfirmed(
+        height,
+        cryptoCurrency.minConfirms,
+      ),
+    );
+
+    TxData txData = TxData(
+      recipients: recipients,
       feeRateType: FeeRateType.custom,
       satsPerVByte: newRate,
       utxos: utxos,
@@ -114,6 +127,151 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
       note: note?.value ?? "",
     );
 
-    return await prepareSend(txData: txData);
+    if (otherAvailableUtxos.isEmpty && noChange && recipients.length == 1) {
+      // safe to assume send all?
+      txData = txData.copyWith(
+        recipients: [
+          (
+            address: recipients.first.address,
+            amount: Amount(
+              rawValue: inSum,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            isChange: false,
+          ),
+        ],
+      );
+      Logging.instance.log(
+        "RBF on assumed send all",
+        level: LogLevel.Debug,
+      );
+      return await prepareSend(txData: txData);
+    } else if (txData.recipients!.where((e) => e.isChange).length == 1) {
+      final newFee = BigInt.from(oldTransaction.vSize! * newRate);
+      final feeDifferenceRequired = newFee - oldFee;
+      if (feeDifferenceRequired < BigInt.zero) {
+        throw Exception("Negative new fee in RBF found");
+      } else if (feeDifferenceRequired == BigInt.zero) {
+        throw Exception("New fee in RBF has not changed at all");
+      }
+
+      final indexOfChangeOutput =
+          txData.recipients!.indexWhere((e) => e.isChange);
+
+      final removed = txData.recipients!.removeAt(indexOfChangeOutput);
+
+      BigInt newChangeAmount = removed.amount.raw - feeDifferenceRequired;
+
+      if (newChangeAmount >= BigInt.zero) {
+        if (newChangeAmount >= cryptoCurrency.dustLimit.raw) {
+          // yay we have enough
+          // update recipients
+          txData.recipients!.insert(
+            indexOfChangeOutput,
+            (
+              address: removed.address,
+              amount: Amount(
+                rawValue: newChangeAmount,
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ),
+              isChange: removed.isChange,
+            ),
+          );
+          Logging.instance.log(
+            "RBF with same utxo set with increased fee and reduced change",
+            level: LogLevel.Debug,
+          );
+        } else {
+          // new change amount is less than dust limit.
+          // TODO: check if worth adding another utxo?
+          // depending on several factors, it may be cheaper to just add]
+          // the dust to the fee...
+          // we'll do that for now... aka remove the change output entirely
+          // which now that I think about it, will reduce the size of the tx...
+          // oh well...
+
+          // do nothing here as we already removed the change output above
+          Logging.instance.log(
+            "RBF with same utxo set with increased fee and no change",
+            level: LogLevel.Debug,
+          );
+        }
+        return await buildTransaction(
+          txData: txData.copyWith(
+            usedUTXOs: txData.utxos!.toList(),
+            fee: Amount(
+              rawValue: newFee,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+          ),
+          utxoSigningData: await fetchBuildTxData(txData.utxos!.toList()),
+        );
+
+        // if change amount is negative
+      } else {
+        // we need more utxos
+        if (otherAvailableUtxos.isEmpty) {
+          throw Exception("Insufficient funds to pay for increased fee");
+        }
+
+        final List<UTXO> extraUtxos = [];
+        for (int i = 0; i < otherAvailableUtxos.length; i++) {
+          final utxoToAdd = otherAvailableUtxos[i];
+          newChangeAmount += BigInt.from(utxoToAdd.value);
+          extraUtxos.add(utxoToAdd);
+
+          if (newChangeAmount >= cryptoCurrency.dustLimit.raw) {
+            break;
+          }
+        }
+
+        if (newChangeAmount < cryptoCurrency.dustLimit.raw) {
+          throw Exception("Insufficient funds to pay for increased fee");
+        }
+        txData.recipients!.insert(
+          indexOfChangeOutput,
+          (
+            address: removed.address,
+            amount: Amount(
+              rawValue: newChangeAmount,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            isChange: removed.isChange,
+          ),
+        );
+
+        final newUtxoSet = {
+          ...txData.utxos!,
+          ...extraUtxos,
+        };
+
+        // TODO: remove assert
+        assert(newUtxoSet.length == txData.utxos!.length + extraUtxos.length);
+
+        Logging.instance.log(
+          "RBF with ${extraUtxos.length} extra utxo(s)"
+          " added to pay for the new fee",
+          level: LogLevel.Debug,
+        );
+
+        return await buildTransaction(
+          txData: txData.copyWith(
+            utxos: newUtxoSet,
+            usedUTXOs: newUtxoSet.toList(),
+            fee: Amount(
+              rawValue: newFee,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+          ),
+          utxoSigningData: await fetchBuildTxData(newUtxoSet.toList()),
+        );
+      }
+    } else {
+      // TODO handle building a tx here in this case
+      throw Exception(
+        "Unexpected number of change outputs found:"
+        " ${txData.recipients!.where((e) => e.isChange).length}",
+      );
+    }
   }
 }
