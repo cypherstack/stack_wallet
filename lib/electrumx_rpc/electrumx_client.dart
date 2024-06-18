@@ -26,11 +26,19 @@ import '../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
 import '../services/tor_service.dart';
 import '../utilities/amount/amount.dart';
+import '../utilities/extensions/impl/string.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'client_manager.dart';
+
+typedef SparkMempoolData = ({
+  String txid,
+  List<String> serialContext,
+  List<String> lTags,
+  List<String> coins,
+});
 
 class WifiOnlyException implements Exception {}
 
@@ -1038,10 +1046,9 @@ class ElectrumXClient {
         command: "spark.getmempooltxids",
       );
 
-      // TODO verify once server is live
-      final txids = List<String>.from(response as List).toSet();
-      // final map = Map<String, dynamic>.from(response as Map);
-      // final txids = List<String>.from(map["tags"] as List).toSet();
+      final txids = List<String>.from(response as List)
+          .map((e) => e.toHexReversedFromBase64)
+          .toSet();
 
       Logging.instance.log(
         "Finished ElectrumXClient.getMempoolTxids(). "
@@ -1057,7 +1064,7 @@ class ElectrumXClient {
   }
 
   /// Returns the txids of the current transactions found in the mempool
-  Future<Map<String, dynamic>> getMempoolSparkData({
+  Future<List<SparkMempoolData>> getMempoolSparkData({
     String? requestID,
     required List<String> txids,
   }) async {
@@ -1066,11 +1073,27 @@ class ElectrumXClient {
       final response = await request(
         requestID: requestID,
         command: "spark.getmempooltxs",
-        args: txids,
+        args: [
+          {
+            "txids": txids,
+          },
+        ],
       );
 
-      // TODO verify once server is live
       final map = Map<String, dynamic>.from(response as Map);
+      final List<SparkMempoolData> result = [];
+      for (final entry in map.entries) {
+        result.add(
+          (
+            txid: entry.key,
+            serialContext:
+                List<String>.from(entry.value["Serial_context"] as List),
+            // the space after lTags is required lol
+            lTags: List<String>.from(entry.value["lTags "] as List),
+            coins: List<String>.from(entry.value["Coins"] as List),
+          ),
+        );
+      }
 
       Logging.instance.log(
         "Finished ElectrumXClient.getMempoolSparkData(txids: $txids). "
@@ -1078,9 +1101,9 @@ class ElectrumXClient {
         level: LogLevel.Info,
       );
 
-      return map;
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+      return result;
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
       rethrow;
     }
   }
