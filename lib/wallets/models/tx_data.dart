@@ -10,6 +10,8 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../isar/models/spark_coin.dart';
 
+typedef TxRecipient = ({String address, Amount amount, bool isChange});
+
 class TxData {
   final FeeRateType? feeRateType;
   final int? feeRateAmount;
@@ -28,7 +30,7 @@ class TxData {
 
   final String? memo;
 
-  final List<({String address, Amount amount, bool isChange})>? recipients;
+  final List<TxRecipient>? recipients;
   final Set<UTXO>? utxos;
   final List<UTXO>? usedUTXOs;
 
@@ -165,13 +167,7 @@ class TxData {
     String? memo,
     Set<UTXO>? utxos,
     List<UTXO>? usedUTXOs,
-    List<
-            ({
-              String address,
-              Amount amount,
-              bool isChange,
-            })>?
-        recipients,
+    List<TxRecipient>? recipients,
     String? frostMSConfig,
     List<String>? frostSigners,
     String? changeAddress,
