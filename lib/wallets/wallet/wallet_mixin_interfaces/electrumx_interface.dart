@@ -26,6 +26,7 @@ import '../../models/tx_data.dart';
 import '../impl/bitcoin_wallet.dart';
 import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import 'cpfp_interface.dart';
 import 'paynym_interface.dart';
 
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
@@ -122,12 +123,16 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         utxos ?? await mainDB.getUTXOs(walletId).findAll();
     final currentChainHeight = await chainHeight;
 
+    final canCPFP = this is CpfpInterface && coinControl;
+
     final spendableOutputs = availableOutputs
         .where(
           (e) =>
               !e.isBlocked &&
               (e.used != true) &&
-              e.isConfirmed(currentChainHeight, cryptoCurrency.minConfirms),
+              (canCPFP ||
+                  e.isConfirmed(
+                      currentChainHeight, cryptoCurrency.minConfirms)),
         )
         .toList();
     final spendableSatoshiValue =
@@ -1654,6 +1659,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
 
         final bool coinControl = utxos != null;
+
+        if (coinControl &&
+            this is CpfpInterface &&
+            txData.amount ==
+                (info.cachedBalance.spendable +
+                    info.cachedBalance.pendingSpendable)) {
+          isSendAll = true;
+        }
 
         final result = await coinSelection(
           txData: txData.copyWith(feeRateAmount: -1),
