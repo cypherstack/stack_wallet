@@ -694,7 +694,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                               selectedSumInt.toAmountAsRaw(
                                             fractionDigits: coin.fractionDigits,
                                           );
-                                          return Text(
+                                          return SelectableText(
                                             ref
                                                 .watch(pAmountFormatter(coin))
                                                 .format(selectedSum),
@@ -739,7 +739,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           "Amount to send",
                                           style: STextStyles.w600_14(context),
                                         ),
-                                        Text(
+                                        SelectableText(
                                           ref
                                               .watch(pAmountFormatter(coin))
                                               .format(widget.requestedTotal!),
