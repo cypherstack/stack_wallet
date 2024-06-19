@@ -11,11 +11,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -183,73 +186,79 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 8,
-                ),
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(0),
-                  child: RawMaterialButton(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
+                if (ref.watch(pWallets).getWallet(walletId)
+                    is LelantusInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId)
+                    is LelantusInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
                       ),
-                    ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        LelantusSettingsView.routeName,
-                        arguments: walletId,
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 20,
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Lelantus settings",
-                            style: STextStyles.titleBold12(context),
-                          ),
-                        ],
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          LelantusSettingsView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Lelantus settings",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(0),
-                  child: RawMaterialButton(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
+                if (ref.watch(pWallets).getWallet(walletId) is SparkInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId) is SparkInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
                       ),
-                    ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        SparkInfoView.routeName,
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 20,
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            "Spark info",
-                            style: STextStyles.titleBold12(context),
-                          ),
-                        ],
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          SparkInfoView.routeName,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Spark info",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
