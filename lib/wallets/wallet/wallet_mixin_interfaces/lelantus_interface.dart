@@ -6,6 +6,8 @@ import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
 import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
 import 'package:lelantus/lelantus.dart' as lelantus;
+import 'package:tuple/tuple.dart';
+
 import '../../../models/balance.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/lelantus_fee_data.dart';
@@ -15,12 +17,10 @@ import '../../../utilities/extensions/impl/uint8_list.dart';
 import '../../../utilities/format.dart';
 import '../../../utilities/logger.dart';
 import '../../api/lelantus_ffi_wrapper.dart';
-import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'electrumx_interface.dart';
-import 'package:tuple/tuple.dart';
 
 mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
@@ -38,7 +38,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       spendAmount: amount,
       subtractFeeFromAmount: true,
       lelantusEntries: lelantusEntries,
-      isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+      isTestNet: cryptoCurrency.network.isTestNet,
     );
 
     return Amount(
@@ -526,7 +526,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
         int.parse(coin.value),
         mintKeyPair.privateKey.data.toHex,
         coin.mintIndex,
-        isTestnet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+        isTestnet: cryptoCurrency.network.isTestNet,
       );
       final bool isUsed = usedSerialNumbersSet.contains(serialNumber);
 
@@ -1033,7 +1033,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
         await mainDB.getHighestUsedMintIndex(walletId: walletId);
     final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
 
-    final isTestnet = cryptoCurrency.network == CryptoCurrencyNetwork.test;
+    final isTestnet = cryptoCurrency.network.isTestNet;
 
     final root = await getRootHDNode();
 

@@ -18,7 +18,6 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
@@ -86,7 +85,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       if (_sparkChangeAddressCached == null) {
         final root = await getRootHDNode();
         final String derivationPath;
-        if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
+        if (cryptoCurrency.network.isTestNet) {
           derivationPath =
               "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
         } else {
@@ -98,7 +97,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           privateKey: keys.privateKey.data,
           index: kDefaultSparkIndex,
           diversifier: kSparkChange,
-          isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+          isTestNet: cryptoCurrency.network.isTestNet,
         );
       }
     } catch (e, s) {
@@ -158,7 +157,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
     final root = await getRootHDNode();
     final String derivationPath;
-    if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
+    if (cryptoCurrency.network.isTestNet) {
       derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
     } else {
       derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
@@ -169,7 +168,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       privateKey: keys.privateKey.data,
       index: kDefaultSparkIndex,
       diversifier: diversifier,
-      isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+      isTestNet: cryptoCurrency.network.isTestNet,
     );
 
     return Address(
@@ -335,7 +334,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
     final root = await getRootHDNode();
     final String derivationPath;
-    if (cryptoCurrency.network == CryptoCurrencyNetwork.test) {
+    if (cryptoCurrency.network.isTestNet) {
       derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
     } else {
       derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
@@ -704,7 +703,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             groupId: groupId,
             privateKeyHexSet: privateKeyHexSet,
             walletId: walletId,
-            isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+            isTestNet: cryptoCurrency.network.isTestNet,
           ),
         );
 
@@ -836,7 +835,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             groupId: groupId,
             privateKeyHexSet: privateKeyHexSet,
             walletId: walletId,
-            isTestNet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+            isTestNet: cryptoCurrency.network.isTestNet,
           ),
         );
         newlyIdCoins.addAll(myCoins);

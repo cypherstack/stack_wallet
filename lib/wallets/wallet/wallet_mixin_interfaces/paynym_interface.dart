@@ -68,7 +68,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final root = await _getRootNode();
     final node = root.derivePath(
       _basePaynymDerivePath(
-        testnet: info.coin.network == CryptoCurrencyNetwork.test,
+        testnet: info.coin.network.isTestNet,
       ),
     );
     return node;
@@ -159,7 +159,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final root = await _getRootNode();
     final node = root.derivePath(
       _basePaynymDerivePath(
-        testnet: info.coin.network == CryptoCurrencyNetwork.test,
+        testnet: info.coin.network.isTestNet,
       ),
     );
 
@@ -182,7 +182,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       derivationPath: DerivationPath()
         ..value = _receivingPaynymAddressDerivationPath(
           index,
-          testnet: info.coin.network == CryptoCurrencyNetwork.test,
+          testnet: info.coin.network.isTestNet,
         ),
       type: generateSegwitAddress ? AddressType.p2wpkh : AddressType.p2pkh,
       subType: AddressSubType.paynymReceive,
@@ -219,7 +219,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       derivationPath: DerivationPath()
         ..value = _sendPaynymAddressDerivationPath(
           index,
-          testnet: info.coin.network == CryptoCurrencyNetwork.test,
+          testnet: info.coin.network.isTestNet,
         ),
       type: AddressType.nonWallet,
       subType: AddressSubType.paynymSend,
@@ -314,7 +314,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final node = root
         .derivePath(
           _basePaynymDerivePath(
-            testnet: info.coin.network == CryptoCurrencyNetwork.test,
+            testnet: info.coin.network.isTestNet,
           ),
         )
         .derive(0);
@@ -330,7 +330,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final paymentCode = PaymentCode.fromBip32Node(
       node.derivePath(
         _basePaynymDerivePath(
-          testnet: info.coin.network == CryptoCurrencyNetwork.test,
+          testnet: info.coin.network.isTestNet,
         ),
       ),
       networkType: networkType,
@@ -1469,7 +1469,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final root = await _getRootNode();
       final node = root.derivePath(
         _basePaynymDerivePath(
-          testnet: info.coin.network == CryptoCurrencyNetwork.test,
+          testnet: info.coin.network.isTestNet,
         ),
       );
       final paymentCode = PaymentCode.fromBip32Node(
@@ -1497,7 +1497,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         derivationIndex: 0,
         derivationPath: DerivationPath()
           ..value = _notificationDerivationPath(
-            testnet: info.coin.network == CryptoCurrencyNetwork.test,
+            testnet: info.coin.network.isTestNet,
           ),
         type: AddressType.p2pkh,
         subType: AddressSubType.paynymNotification,

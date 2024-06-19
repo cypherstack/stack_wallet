@@ -43,7 +43,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
   void initState() {
     final coins = [...AppConfig.coins];
     coins.removeWhere(
-      (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+      (e) => e is Firo && e.network.isTestNet,
     );
 
     final showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;

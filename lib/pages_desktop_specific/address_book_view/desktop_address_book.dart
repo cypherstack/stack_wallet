@@ -11,13 +11,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../app_config.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import '../../pages/address_book_views/subviews/address_book_filter_view.dart';
-import 'subwidgets/desktop_address_book_scaffold.dart';
-import 'subwidgets/desktop_contact_details.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/global/address_book_service_provider.dart';
 import '../../providers/providers.dart';
@@ -40,6 +39,8 @@ import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import 'subwidgets/desktop_address_book_scaffold.dart';
+import 'subwidgets/desktop_contact_details.dart';
 
 class DesktopAddressBook extends ConsumerStatefulWidget {
   const DesktopAddressBook({super.key});
@@ -99,7 +100,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     // if (widget.coin == null) {
     final coins = AppConfig.coins.toList();
     coins.removeWhere(
-      (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+      (e) => e is Firo && e.network.isTestNet,
     );
 
     final bool showTestNet =

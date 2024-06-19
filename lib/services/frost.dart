@@ -6,6 +6,7 @@ import 'package:frostdart/frostdart.dart';
 import 'package:frostdart/frostdart_bindings_generated.dart';
 import 'package:frostdart/output.dart';
 import 'package:frostdart/util.dart';
+
 import '../models/isar/models/blockchain_data/utxo.dart';
 import '../utilities/amount/amount.dart';
 import '../utilities/extensions/extensions.dart';
@@ -83,9 +84,8 @@ abstract class Frost {
     required CryptoCurrency coin,
   }) {
     try {
-      final network = coin.network == CryptoCurrencyNetwork.test
-          ? Network.Testnet
-          : Network.Mainnet;
+      final network =
+          coin.network.isTestNet ? Network.Testnet : Network.Mainnet;
       final signConfigPointer = decodedSignConfig(
         encodedConfig: signConfig,
         network: network,

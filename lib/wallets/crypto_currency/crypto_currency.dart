@@ -25,7 +25,11 @@ export 'coins/wownero.dart';
 enum CryptoCurrencyNetwork {
   main,
   test,
-  stage;
+  stage,
+  test4;
+
+  bool get isTestNet =>
+      this == CryptoCurrencyNetwork.test || this == CryptoCurrencyNetwork.test4;
 }
 
 abstract class CryptoCurrency {
