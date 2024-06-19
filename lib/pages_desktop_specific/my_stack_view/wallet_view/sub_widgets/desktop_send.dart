@@ -882,7 +882,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     _cryptoFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
         if (ref.read(pSendAmount) == null) {
-          ref.refresh(sendAmountProvider);
+          if (ref.read(sendAmountProvider) != Amount.zero && mounted) {
+            ref.read(sendAmountProvider.state).state = Amount.zero;
+          }
         } else {
           ref.read(sendAmountProvider.state).state = ref.read(pSendAmount)!;
         }
