@@ -69,13 +69,15 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Tezos(CryptoCurrencyNetwork.main),
   Wownero(CryptoCurrencyNetwork.main),
   Bitcoin(CryptoCurrencyNetwork.test),
-  BitcoinFrost(CryptoCurrencyNetwork.test),
-  Litecoin(CryptoCurrencyNetwork.test),
+  Bitcoin(CryptoCurrencyNetwork.test4),
   Bitcoincash(CryptoCurrencyNetwork.test),
-  Firo(CryptoCurrencyNetwork.test),
+  BitcoinFrost(CryptoCurrencyNetwork.test),
+  BitcoinFrost(CryptoCurrencyNetwork.test4),
   Dogecoin(CryptoCurrencyNetwork.test),
-  Stellar(CryptoCurrencyNetwork.test),
+  Firo(CryptoCurrencyNetwork.test),
+  Litecoin(CryptoCurrencyNetwork.test),
   Peercoin(CryptoCurrencyNetwork.test),
+  Stellar(CryptoCurrencyNetwork.test),
 ]);
 
 EOF

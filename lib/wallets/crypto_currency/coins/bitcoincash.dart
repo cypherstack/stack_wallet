@@ -211,7 +211,7 @@ class Bitcoincash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
       // 0 for bitcoincash: address scheme, 1 for legacy address
       final format = bitbox.Address.detectFormat(address);
 
-      if (network == CryptoCurrencyNetwork.test) {
+      if (network.isTestNet) {
         return true;
       }
 

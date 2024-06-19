@@ -24,6 +24,10 @@ class Bitcoin extends Bip39HDCurrency
         _id = "bitcoinTestNet";
         _name = "tBitcoin";
         _ticker = "tBTC";
+      case CryptoCurrencyNetwork.test4:
+        _id = "bitcoinTestNet4";
+        _name = "t4Bitcoin";
+        _ticker = "t4BTC";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -71,6 +75,8 @@ class Bitcoin extends Bip39HDCurrency
         return "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
       case CryptoCurrencyNetwork.test:
         return "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
+      case CryptoCurrencyNetwork.test4:
+        return "00000000da84f2bafbbc53dee25a72ae507ff4914b867c565be350b0da8bf043";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -99,6 +105,7 @@ class Bitcoin extends Bip39HDCurrency
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       case CryptoCurrencyNetwork.test:
+      case CryptoCurrencyNetwork.test4:
         return coinlib.Network(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
@@ -247,6 +254,19 @@ class Bitcoin extends Bip39HDCurrency
           isDown: false,
         );
 
+      case CryptoCurrencyNetwork.test4:
+        return NodeModel(
+          host: "bitcoin-testnet4.stackwallet.com",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
+
       default:
         throw UnimplementedError();
     }
@@ -286,6 +306,8 @@ class Bitcoin extends Bip39HDCurrency
         return Uri.parse("https://mempool.space/tx/$txid");
       case CryptoCurrencyNetwork.test:
         return Uri.parse("https://mempool.space/testnet/tx/$txid");
+      case CryptoCurrencyNetwork.test4:
+        return Uri.parse("https://mempool.space/testnet4/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",

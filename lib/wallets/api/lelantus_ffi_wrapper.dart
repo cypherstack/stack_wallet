@@ -11,7 +11,6 @@ import '../../utilities/extensions/impl/string.dart';
 import '../../utilities/extensions/impl/uint8_list.dart';
 import '../../utilities/format.dart';
 import '../../utilities/logger.dart';
-import '../crypto_currency/crypto_currency.dart';
 import '../crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../models/tx_data.dart';
 
@@ -92,7 +91,7 @@ abstract final class LelantusFfiWrapper {
         mintKeyPair.privateKey!.toHex,
         currentIndex,
         mintKeyPair.identifier.toHex,
-        isTestnet: args.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+        isTestnet: args.cryptoCurrency.network.isTestNet,
       );
 
       for (int setId = 1; setId <= args.latestSetId; setId++) {
@@ -117,8 +116,7 @@ abstract final class LelantusFfiWrapper {
               amount,
               mintKeyPair.privateKey!.toHex,
               currentIndex,
-              isTestnet:
-                  args.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+              isTestnet: args.cryptoCurrency.network.isTestNet,
             );
             final bool isUsed = args.usedSerialNumbers.contains(serialNumber);
 
@@ -162,8 +160,7 @@ abstract final class LelantusFfiWrapper {
                 amount,
                 aesPrivateKey,
                 currentIndex,
-                isTestnet:
-                    args.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+                isTestnet: args.cryptoCurrency.network.isTestNet,
               );
               final bool isUsed = args.usedSerialNumbers.contains(serialNumber);
 
@@ -314,7 +311,7 @@ abstract final class LelantusFfiWrapper {
         spendAmount: spendAmount,
         subtractFeeFromAmount: arg.subtractFeeFromAmount,
         lelantusEntries: arg.lelantusEntries,
-        isTestNet: arg.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+        isTestNet: arg.cryptoCurrency.network.isTestNet,
       ),
     );
     final changeToMint = estimateJoinSplitFee.changeToMint;
@@ -364,7 +361,7 @@ abstract final class LelantusFfiWrapper {
       changeToMint,
       jmintprivatekey,
       arg.index,
-      isTestnet: arg.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+      isTestnet: arg.cryptoCurrency.network.isTestNet,
     );
 
     final _derivePath = "${arg.partialDerivationPath}$JMINT_INDEX/$keyPath";
@@ -378,7 +375,7 @@ abstract final class LelantusFfiWrapper {
       arg.index,
       Format.uint8listToString(jmintKeyPair.identifier),
       aesPrivateKey,
-      isTestnet: arg.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+      isTestnet: arg.cryptoCurrency.network.isTestNet,
     );
 
     tx.addOutput(
@@ -434,7 +431,7 @@ abstract final class LelantusFfiWrapper {
       anonymitySets,
       anonymitySetHashes,
       groupBlockHashes,
-      isTestnet: arg.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+      isTestnet: arg.cryptoCurrency.network.isTestNet,
     );
 
     final finalTx = bitcoindart.TransactionBuilder(network: _network);

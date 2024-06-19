@@ -56,7 +56,9 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Monero(CryptoCurrencyNetwork.main),
   BitcoinFrost(CryptoCurrencyNetwork.main),
   Bitcoin(CryptoCurrencyNetwork.test),
+  Bitcoin(CryptoCurrencyNetwork.test4),
   BitcoinFrost(CryptoCurrencyNetwork.test),
+  BitcoinFrost(CryptoCurrencyNetwork.test4),
 ]);
 
 EOF
