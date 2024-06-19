@@ -8,6 +8,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import 'electrumx_interface.dart';
 
@@ -15,6 +16,9 @@ typedef TxSize = ({int real, int virtual});
 
 mixin RbfInterface<T extends ElectrumXCurrencyInterface>
     on ElectrumXInterface<T> {
+  bool get flagOptInRBF =>
+      info.otherData[WalletInfoKeys.enableOptInRbf] as bool? ?? false;
+
   Future<TxSize?> getVSize(String txid) async {
     final tx = await electrumXCachedClient.getTransaction(
       txHash: txid,

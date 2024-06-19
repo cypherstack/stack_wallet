@@ -28,6 +28,7 @@ import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_inter
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
@@ -78,6 +79,27 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     } finally {
       // ensure _isUpdatingLelantusScanning is set to false no matter what
       _isUpdatingLelantusScanning = false;
+    }
+  }
+
+  bool _switchRbfToggledLock = false; // Mutex.
+  Future<void> _switchRbfToggled(bool newValue) async {
+    if (_switchRbfToggledLock) {
+      return;
+    }
+    _switchRbfToggledLock = true; // Lock mutex.
+
+    try {
+      // Toggle enableOptInRbf in wallet info.
+      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+        newEntries: {
+          WalletInfoKeys.enableOptInRbf: newValue,
+        },
+        isar: ref.read(mainDBProvider).isar,
+      );
+    } finally {
+      // ensure _switchRbfToggledLock is set to false no matter what
+      _switchRbfToggledLock = false;
     }
   }
 
@@ -191,6 +213,38 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                     children: [
                       Text(
                         "Scan for Lelantus transactions",
+                        style: STextStyles.w600_20(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          if (wallet is RbfInterface)
+            _MoreFeaturesItemBase(
+              child: Row(
+                children: [
+                  const SizedBox(width: 3),
+                  SizedBox(
+                    height: 20,
+                    width: 40,
+                    child: DraggableSwitchButton(
+                      isOn: ref.watch(
+                            pWalletInfo(widget.walletId)
+                                .select((value) => value.otherData),
+                          )[WalletInfoKeys.enableOptInRbf] as bool? ??
+                          false,
+                      onValueChanged: _switchRbfToggled,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Flag outgoing transactions with opt-in RBF",
                         style: STextStyles.w600_20(context),
                       ),
                     ],

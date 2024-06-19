@@ -510,4 +510,5 @@ abstract class WalletInfoKeys {
   static const String enableLelantusScanning = "enableLelantusScanningKey";
   static const String firoSparkCacheSetTimestampCache =
       "firoSparkCacheSetTimestampCacheKey";
+  static const String enableOptInRbf = "enableOptInRbfKey";
 }

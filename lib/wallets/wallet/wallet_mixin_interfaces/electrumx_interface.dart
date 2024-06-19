@@ -28,6 +28,7 @@ import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
 import 'paynym_interface.dart';
+import 'rbf_interface.dart';
 
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T> {
@@ -633,6 +634,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       outputs: [],
     );
 
+    // TODO: [prio=high]: check this opt in rbf
+    final sequence = this is RbfInterface && (this as RbfInterface).flagOptInRBF
+        ? 0xffffffff - 10
+        : 0xffffffff - 1;
+
     // Add transaction inputs
     for (var i = 0; i < utxoSigningData.length; i++) {
       final txid = utxoSigningData[i].utxo.txid;
@@ -664,7 +670,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           input = coinlib.P2PKHInput(
             prevOut: prevOutpoint,
             publicKey: utxoSigningData[i].keyPair!.publicKey,
-            sequence: 0xffffffff - 1,
+            sequence: sequence,
           );
 
         // TODO: fix this as it is (probably) wrong!
@@ -675,14 +681,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         //   program: coinlib.MultisigProgram.decompile(
         //     utxoSigningData[i].redeemScript!,
         //   ),
-        //   sequence: 0xffffffff - 1,
+        //   sequence: sequence,
         // );
 
         case DerivePathType.bip84:
           input = coinlib.P2WPKHInput(
             prevOut: prevOutpoint,
             publicKey: utxoSigningData[i].keyPair!.publicKey,
-            sequence: 0xffffffff - 1,
+            sequence: sequence,
           );
 
         case DerivePathType.bip86:
@@ -700,7 +706,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: input.scriptSig.toHex,
           scriptSigAsm: null,
-          sequence: 0xffffffff - 1,
+          sequence: sequence,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
             txid: utxoSigningData[i].utxo.txid,
             vout: utxoSigningData[i].utxo.vout,
