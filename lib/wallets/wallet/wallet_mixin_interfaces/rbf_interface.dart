@@ -105,9 +105,11 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
     final otherAvailableUtxos = await mainDB
         .getUTXOs(walletId)
         .filter()
-        .usedIsNull()
-        .or()
-        .usedEqualTo(false)
+        .isBlockedEqualTo(false)
+        .and()
+        .group(
+          (q) => q.usedIsNull().or().usedEqualTo(false),
+        )
         .findAll();
 
     final height = await chainHeight;
