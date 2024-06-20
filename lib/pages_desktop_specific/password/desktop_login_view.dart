@@ -208,7 +208,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                 SizedBox(
                   width: 350,
                   child: Text(
-                    "Open source multicoin wallet for everyone",
+                    AppConfig.shortDescriptionText,
                     textAlign: TextAlign.center,
                     style: STextStyles.desktopSubtitleH1(context),
                   ),

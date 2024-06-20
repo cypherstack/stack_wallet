@@ -213,7 +213,7 @@ class IntroAboutText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      "An open-source, multicoin wallet for everyone",
+      AppConfig.shortDescriptionText,
       textAlign: TextAlign.center,
       style: !isDesktop
           ? STextStyles.subtitle(context)

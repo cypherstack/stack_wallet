@@ -256,7 +256,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
-  AddressType get primaryAddressType => AddressType.p2wpkh;
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
   BigInt get satsPerCoin => BigInt.from(100000000);
@@ -265,7 +265,7 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get targetBlockTimeSeconds => 150;
 
   @override
-  DerivePathType get primaryDerivePathType => DerivePathType.bip84;
+  DerivePathType get defaultDerivePathType => DerivePathType.bip84;
 
   @override
   Uri defaultBlockExplorer(String txid) {

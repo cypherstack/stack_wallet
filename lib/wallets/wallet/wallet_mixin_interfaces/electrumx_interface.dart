@@ -26,7 +26,9 @@ import '../../models/tx_data.dart';
 import '../impl/bitcoin_wallet.dart';
 import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import 'cpfp_interface.dart';
 import 'paynym_interface.dart';
+import 'rbf_interface.dart';
 
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T> {
@@ -122,12 +124,16 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         utxos ?? await mainDB.getUTXOs(walletId).findAll();
     final currentChainHeight = await chainHeight;
 
+    final canCPFP = this is CpfpInterface && coinControl;
+
     final spendableOutputs = availableOutputs
         .where(
           (e) =>
               !e.isBlocked &&
               (e.used != true) &&
-              e.isConfirmed(currentChainHeight, cryptoCurrency.minConfirms),
+              (canCPFP ||
+                  e.isConfirmed(
+                      currentChainHeight, cryptoCurrency.minConfirms)),
         )
         .toList();
     final spendableSatoshiValue =
@@ -628,6 +634,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       outputs: [],
     );
 
+    // TODO: [prio=high]: check this opt in rbf
+    final sequence = this is RbfInterface && (this as RbfInterface).flagOptInRBF
+        ? 0xffffffff - 10
+        : 0xffffffff - 1;
+
     // Add transaction inputs
     for (var i = 0; i < utxoSigningData.length; i++) {
       final txid = utxoSigningData[i].utxo.txid;
@@ -659,7 +670,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           input = coinlib.P2PKHInput(
             prevOut: prevOutpoint,
             publicKey: utxoSigningData[i].keyPair!.publicKey,
-            sequence: 0xffffffff - 1,
+            sequence: sequence,
           );
 
         // TODO: fix this as it is (probably) wrong!
@@ -670,14 +681,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         //   program: coinlib.MultisigProgram.decompile(
         //     utxoSigningData[i].redeemScript!,
         //   ),
-        //   sequence: 0xffffffff - 1,
+        //   sequence: sequence,
         // );
 
         case DerivePathType.bip84:
           input = coinlib.P2WPKHInput(
             prevOut: prevOutpoint,
             publicKey: utxoSigningData[i].keyPair!.publicKey,
-            sequence: 0xffffffff - 1,
+            sequence: sequence,
           );
 
         case DerivePathType.bip86:
@@ -695,7 +706,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: input.scriptSig.toHex,
           scriptSigAsm: null,
-          sequence: 0xffffffff - 1,
+          sequence: sequence,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
             txid: utxoSigningData[i].utxo.txid,
             vout: utxoSigningData[i].utxo.vout,
@@ -1648,11 +1659,20 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       if (customSatsPerVByte != null) {
         // check for send all
         bool isSendAll = false;
-        if (txData.amount == info.cachedBalance.spendable) {
+        if (txData.ignoreCachedBalanceChecks ||
+            txData.amount == info.cachedBalance.spendable) {
           isSendAll = true;
         }
 
         final bool coinControl = utxos != null;
+
+        if (coinControl &&
+            this is CpfpInterface &&
+            txData.amount ==
+                (info.cachedBalance.spendable +
+                    info.cachedBalance.pendingSpendable)) {
+          isSendAll = true;
+        }
 
         final result = await coinSelection(
           txData: txData.copyWith(feeRateAmount: -1),

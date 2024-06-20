@@ -377,7 +377,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   Future<void> _onExchangePressed(BuildContext context) async {
     final CryptoCurrency coin = ref.read(pWalletCoin(walletId));
 
-    if (coin.network == CryptoCurrencyNetwork.test) {
+    if (coin.network.isTestNet) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
@@ -423,7 +423,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   Future<void> _onBuyPressed(BuildContext context) async {
     final CryptoCurrency coin = ref.read(pWalletCoin(walletId));
 
-    if (coin.network == CryptoCurrencyNetwork.test) {
+    if (coin.network.isTestNet) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(

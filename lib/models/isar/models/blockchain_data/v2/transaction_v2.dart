@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
-import '../transaction.dart';
-import 'input_v2.dart';
-import 'output_v2.dart';
+
 import '../../../../../utilities/amount/amount.dart';
 import '../../../../../utilities/extensions/extensions.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../transaction.dart';
+import 'input_v2.dart';
+import 'output_v2.dart';
 
 part 'transaction_v2.g.dart';
 
@@ -56,17 +57,52 @@ class TransactionV2 {
     required this.otherData,
   });
 
+  TransactionV2 copyWith({
+    String? walletId,
+    String? txid,
+    String? hash,
+    int? timestamp,
+    int? height,
+    String? blockHash,
+    int? version,
+    List<InputV2>? inputs,
+    List<OutputV2>? outputs,
+    TransactionType? type,
+    TransactionSubType? subType,
+    String? otherData,
+  }) {
+    return TransactionV2(
+      walletId: walletId ?? this.walletId,
+      txid: txid ?? this.txid,
+      hash: hash ?? this.hash,
+      timestamp: timestamp ?? this.timestamp,
+      height: height ?? this.height,
+      blockHash: blockHash ?? this.blockHash,
+      version: version ?? this.version,
+      inputs: inputs ?? this.inputs,
+      outputs: outputs ?? this.outputs,
+      type: type ?? this.type,
+      subType: subType ?? this.subType,
+      otherData: otherData ?? this.otherData,
+    );
+  }
+
+  int? get size => _getFromOtherData(key: TxV2OdKeys.size) as int?;
+  int? get vSize => _getFromOtherData(key: TxV2OdKeys.vSize) as int?;
+
   bool get isEpiccashTransaction =>
-      _getFromOtherData(key: "isEpiccashTransaction") == true;
+      _getFromOtherData(key: TxV2OdKeys.isEpiccashTransaction) == true;
   int? get numberOfMessages =>
-      _getFromOtherData(key: "numberOfMessages") as int?;
-  String? get slateId => _getFromOtherData(key: "slateId") as String?;
-  String? get onChainNote => _getFromOtherData(key: "onChainNote") as String?;
-  bool get isCancelled => _getFromOtherData(key: "isCancelled") == true;
+      _getFromOtherData(key: TxV2OdKeys.numberOfMessages) as int?;
+  String? get slateId => _getFromOtherData(key: TxV2OdKeys.slateId) as String?;
+  String? get onChainNote =>
+      _getFromOtherData(key: TxV2OdKeys.onChainNote) as String?;
+  bool get isCancelled =>
+      _getFromOtherData(key: TxV2OdKeys.isCancelled) == true;
 
   String? get contractAddress =>
-      _getFromOtherData(key: "contractAddress") as String?;
-  int? get nonce => _getFromOtherData(key: "nonce") as int?;
+      _getFromOtherData(key: TxV2OdKeys.contractAddress) as String?;
+  int? get nonce => _getFromOtherData(key: TxV2OdKeys.nonce) as int?;
 
   int getConfirmations(int currentChainHeight) {
     if (height == null || height! <= 0) return 0;
@@ -145,7 +181,7 @@ class TransactionV2 {
   Amount? _getOverrideFee() {
     try {
       return Amount.fromSerializedJsonString(
-        _getFromOtherData(key: "overrideFee") as String,
+        _getFromOtherData(key: TxV2OdKeys.overrideFee) as String,
       );
     } catch (_) {
       return null;
@@ -248,4 +284,17 @@ class TransactionV2 {
         '  otherData: $otherData,\n'
         ')';
   }
+}
+
+abstract final class TxV2OdKeys {
+  static const size = "size";
+  static const vSize = "vSize";
+  static const isEpiccashTransaction = "isEpiccashTransaction";
+  static const numberOfMessages = "numberOfMessages";
+  static const slateId = "slateId";
+  static const onChainNote = "onChainNote";
+  static const isCancelled = "isCancelled";
+  static const contractAddress = "contractAddress";
+  static const nonce = "nonce";
+  static const overrideFee = "overrideFee";
 }

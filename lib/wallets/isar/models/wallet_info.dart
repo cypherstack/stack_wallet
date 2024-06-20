@@ -458,7 +458,7 @@ class WalletInfo implements IsarId {
       coinName: coin.identifier,
       walletId: walletIdOverride ?? const Uuid().v1(),
       name: name,
-      mainAddressType: coin.primaryAddressType,
+      mainAddressType: coin.defaultAddressType,
       restoreHeight: restoreHeight,
       otherDataJsonString: otherDataJsonString,
     );
@@ -510,4 +510,5 @@ abstract class WalletInfoKeys {
   static const String enableLelantusScanning = "enableLelantusScanningKey";
   static const String firoSparkCacheSetTimestampCache =
       "firoSparkCacheSetTimestampCacheKey";
+  static const String enableOptInRbf = "enableOptInRbfKey";
 }

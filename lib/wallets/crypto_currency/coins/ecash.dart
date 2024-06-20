@@ -314,7 +314,7 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
-  AddressType get primaryAddressType => AddressType.p2pkh;
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
   BigInt get satsPerCoin => BigInt.from(100);
@@ -323,7 +323,7 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get targetBlockTimeSeconds => 600;
 
   @override
-  DerivePathType get primaryDerivePathType => DerivePathType.eCash44;
+  DerivePathType get defaultDerivePathType => DerivePathType.eCash44;
 
   @override
   Uri defaultBlockExplorer(String txid) {

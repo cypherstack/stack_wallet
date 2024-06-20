@@ -63,7 +63,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   String _searchTerm = "";
 
   final _coinsTestnet = [
-    ...AppConfig.coins.where((e) => e.network == CryptoCurrencyNetwork.test),
+    ...AppConfig.coins.where((e) => e.network.isTestNet),
   ];
   final _coins = [
     ...AppConfig.coins.where((e) => e.network == CryptoCurrencyNetwork.main),

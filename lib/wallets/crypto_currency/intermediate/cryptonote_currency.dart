@@ -10,5 +10,5 @@ abstract class CryptonoteCurrency extends CryptoCurrency {
   }
 
   @override
-  AddressType get primaryAddressType => AddressType.cryptonote;
+  AddressType get defaultAddressType => AddressType.cryptonote;
 }

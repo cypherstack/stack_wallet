@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:isar/isar.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -14,10 +16,15 @@ import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/ordinals_interface.dart';
+import '../wallet_mixin_interfaces/rbf_interface.dart';
 
 class LitecoinWallet<T extends ElectrumXCurrencyInterface>
     extends Bip39HDWallet<T>
-    with ElectrumXInterface<T>, CoinControlInterface<T>, OrdinalsInterface<T> {
+    with
+        ElectrumXInterface<T>,
+        CoinControlInterface<T>,
+        RbfInterface<T>,
+        OrdinalsInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 
@@ -285,6 +292,14 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         continue;
       }
 
+      String? otherData;
+      if (txData["size"] is int || txData["vsize"] is int) {
+        otherData = jsonEncode({
+          TxV2OdKeys.size: txData["size"] as int?,
+          TxV2OdKeys.vSize: txData["vsize"] as int?,
+        });
+      }
+
       final tx = TransactionV2(
         walletId: walletId,
         blockHash: txData["blockhash"] as String?,
@@ -298,7 +313,7 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
-        otherData: null,
+        otherData: otherData,
       );
 
       txns.add(tx);

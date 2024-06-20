@@ -8,7 +8,6 @@ import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/signing_data.dart';
 import '../../../utilities/logger.dart';
-import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
@@ -27,7 +26,7 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
     // TODO: use coinlib
 
     final builder = bitbox.Bitbox.transactionBuilder(
-      testnet: cryptoCurrency.network == CryptoCurrencyNetwork.test,
+      testnet: cryptoCurrency.network.isTestNet,
     );
 
     builder.setVersion(cryptoCurrency.transactionVersion);
@@ -100,7 +99,7 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
           network: bitbox_utils.Network(
             cryptoCurrency.networkParams.privHDPrefix,
             cryptoCurrency.networkParams.pubHDPrefix,
-            cryptoCurrency.network == CryptoCurrencyNetwork.test,
+            cryptoCurrency.network.isTestNet,
             cryptoCurrency.networkParams.p2pkhPrefix,
             cryptoCurrency.networkParams.wifPrefix,
             cryptoCurrency.networkParams.p2pkhPrefix,

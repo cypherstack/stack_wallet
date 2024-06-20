@@ -69,7 +69,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   void initState() {
     _coins = _coins.toList();
     _coins.removeWhere(
-      (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+      (e) => e is Firo && e.network.isTestNet,
     );
 
     searchNodeController = TextEditingController();

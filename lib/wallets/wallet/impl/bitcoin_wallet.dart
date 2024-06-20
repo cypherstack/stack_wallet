@@ -6,11 +6,18 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/paynym_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
+import '../wallet_mixin_interfaces/cpfp_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/paynym_interface.dart';
+import '../wallet_mixin_interfaces/rbf_interface.dart';
 
 class BitcoinWallet<T extends PaynymCurrencyInterface> extends Bip39HDWallet<T>
-    with ElectrumXInterface<T>, CoinControlInterface, PaynymInterface<T> {
+    with
+        ElectrumXInterface<T>,
+        CoinControlInterface,
+        PaynymInterface<T>,
+        RbfInterface<T>,
+        CpfpInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 

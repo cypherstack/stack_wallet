@@ -1,13 +1,14 @@
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
+
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../crypto_currency/intermediate/bip39_hd_currency.dart';
-import 'bip39_wallet.dart';
 import '../wallet_mixin_interfaces/multi_address_interface.dart';
+import 'bip39_wallet.dart';
 
 abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     with MultiAddressInterface<T> {
@@ -66,7 +67,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: info.coin.primaryDerivePathType,
+      derivePathType: _fromAddressType(info.mainAddressType),
     );
 
     await mainDB.updateOrPutAddresses([address]);
@@ -88,7 +89,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: info.coin.primaryDerivePathType,
+      derivePathType: _fromAddressType(info.mainAddressType),
     );
 
     await mainDB.updateOrPutAddresses([address]);
@@ -101,7 +102,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       final address = await _generateAddress(
         chain: 0, // receiving
         index: 0, // initial index
-        derivePathType: info.coin.primaryDerivePathType,
+        derivePathType: _fromAddressType(info.mainAddressType),
       );
 
       await mainDB.updateOrPutAddresses([address]);
@@ -117,6 +118,37 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
   }
 
   // ========== Private ========================================================
+
+  DerivePathType _fromAddressType(AddressType addressType) {
+    switch (addressType) {
+      case AddressType.p2pkh:
+        // DerivePathType.bip44:
+        // DerivePathType.bch44:
+        // DerivePathType.eCash44:
+        // Should be one of the above due to silly case due to bch and ecash
+        return info.coin.defaultDerivePathType;
+
+      case AddressType.p2sh:
+        return DerivePathType.bip49;
+
+      case AddressType.p2wpkh:
+        return DerivePathType.bip84;
+
+      case AddressType.p2tr:
+        return DerivePathType.bip86;
+
+      case AddressType.solana:
+        return DerivePathType.solana;
+
+      case AddressType.ethereum:
+        return DerivePathType.eth;
+
+      default:
+        throw ArgumentError(
+          "Incompatible AddressType \"$addressType\" passed to DerivePathType.fromAddressType()",
+        );
+    }
+  }
 
   Future<Address> _generateAddress({
     required int chain,

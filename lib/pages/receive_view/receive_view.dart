@@ -188,7 +188,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             wallet is Bip39HDWallet &&
             wallet.supportedAddressTypes.length > 1);
 
-    _walletAddressTypes.add(coin.primaryAddressType);
+    _walletAddressTypes.add(wallet.info.mainAddressType);
 
     if (_showMultiType) {
       if (_supportsSpark) {
@@ -197,7 +197,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         _walletAddressTypes.addAll(
           (wallet as Bip39HDWallet)
               .supportedAddressTypes
-              .where((e) => e != coin.primaryAddressType),
+              .where((e) => e != wallet.info.mainAddressType),
         );
       }
     }

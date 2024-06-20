@@ -53,7 +53,7 @@ class Banano extends NanoCurrency {
   int get minConfirms => 1;
 
   @override
-  AddressType get primaryAddressType => AddressType.banano;
+  AddressType get defaultAddressType => AddressType.banano;
 
   @override
   String get defaultRepresentative =>
@@ -97,7 +97,7 @@ class Banano extends NanoCurrency {
   }
 
   @override
-  DerivePathType get primaryDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 }

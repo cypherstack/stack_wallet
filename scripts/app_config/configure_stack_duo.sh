@@ -38,6 +38,7 @@ const _prefix = "Stack";
 const _separator = " ";
 const _suffix = "Duo";
 const _appDataDirName = "stackduo";
+const _shortDescriptionText = "An open-source, multicoin wallet for everyone";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
 const Set<AppFeature> _features = {
@@ -56,7 +57,9 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Monero(CryptoCurrencyNetwork.main),
   BitcoinFrost(CryptoCurrencyNetwork.main),
   Bitcoin(CryptoCurrencyNetwork.test),
+  Bitcoin(CryptoCurrencyNetwork.test4),
   BitcoinFrost(CryptoCurrencyNetwork.test),
+  BitcoinFrost(CryptoCurrencyNetwork.test4),
 ]);
 
 EOF

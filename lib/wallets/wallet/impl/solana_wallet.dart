@@ -46,7 +46,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       publicKey: List<int>.empty(),
       derivationIndex: 0,
       derivationPath: DerivationPath()..value = _addressDerivationPath,
-      type: cryptoCurrency.primaryAddressType,
+      type: info.mainAddressType,
       subType: AddressSubType.receiving,
     );
     return addressStruct;

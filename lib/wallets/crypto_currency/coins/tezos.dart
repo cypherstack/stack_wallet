@@ -195,7 +195,7 @@ class Tezos extends Bip39Currency {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 12];
 
   @override
-  AddressType get primaryAddressType => AddressType.tezos;
+  AddressType get defaultAddressType => AddressType.tezos;
 
   @override
   BigInt get satsPerCoin => BigInt.from(1000000);
@@ -204,7 +204,7 @@ class Tezos extends Bip39Currency {
   int get targetBlockTimeSeconds => 60;
 
   @override
-  DerivePathType get primaryDerivePathType =>
+  DerivePathType get defaultDerivePathType =>
       throw UnsupportedError("Is this even used?");
 
   @override

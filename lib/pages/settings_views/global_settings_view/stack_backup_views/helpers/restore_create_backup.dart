@@ -814,7 +814,7 @@ abstract class SWB {
         coinName: coin.identifier,
         walletId: walletId,
         name: walletName,
-        mainAddressType: coin.primaryAddressType,
+        mainAddressType: coin.defaultAddressType,
         restoreHeight: walletbackup['restoreHeight'] as int? ?? 0,
         otherDataJsonString: otherData == null ? null : jsonEncode(otherData),
         cachedChainHeight: walletbackup['storedChainHeight'] as int? ?? 0,

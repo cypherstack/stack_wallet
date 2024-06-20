@@ -16,14 +16,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../../notifications/show_flush_bar.dart';
-import '../../sub_widgets/tx_icon.dart';
-import '../dialogs/cancelling_transaction_progress_dialog.dart';
-import '../edit_note_view.dart';
-import '../../wallet_view.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
@@ -35,6 +34,7 @@ import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
@@ -42,6 +42,7 @@ import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -55,8 +56,11 @@ import '../../../../widgets/icon_widgets/copy_icon.dart';
 import '../../../../widgets/icon_widgets/pencil_icon.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../sub_widgets/tx_icon.dart';
+import '../../wallet_view.dart';
+import '../dialogs/cancelling_transaction_progress_dialog.dart';
+import '../edit_note_view.dart';
+import 'boost_transaction_view.dart';
 
 class TransactionV2DetailsView extends ConsumerStatefulWidget {
   const TransactionV2DetailsView({
@@ -90,6 +94,7 @@ class _TransactionV2DetailsViewState
   late final String unit;
   late final int minConfirms;
   late final EthContract? ethContract;
+  late final bool supportsRbf;
 
   bool get isTokenTx => ethContract != null;
 
@@ -99,11 +104,88 @@ class _TransactionV2DetailsViewState
 
   String? _sparkMemo;
 
+  bool _boostButtonLock = false;
+  Future<void> _boostPressed() async {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (_boostButtonLock || wallet is! RbfInterface) {
+      return;
+    }
+    _boostButtonLock = true;
+    try {
+      if (Util.isDesktop) {
+        if (_transaction.vSize == null) {
+          final updatedTx = await showLoading(
+            whileFuture: wallet.updateVSize(_transaction),
+            context: context,
+            message: "Fetching transaction vSize...",
+          );
+
+          // TODO handle errors if null
+          _transaction = updatedTx!;
+        }
+
+        // TODO pass the size in to the rbf screen
+
+        if (mounted) {
+          await showDialog<void>(
+            context: context,
+            builder: (context) => DesktopDialog(
+              maxHeight: null,
+              maxWidth: 580,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 32),
+                        child: Text(
+                          "Boost transaction",
+                          style: STextStyles.desktopH3(context),
+                        ),
+                      ),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: BoostTransactionView(
+                        transaction: _transaction,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      } else {
+        unawaited(
+          Navigator.of(context).pushNamed(
+            BoostTransactionView.routeName,
+            arguments: _transaction,
+          ),
+        );
+      }
+    } finally {
+      _boostButtonLock = false;
+    }
+  }
+
   @override
   void initState() {
     isDesktop = Util.isDesktop;
     _transaction = widget.transaction;
     walletId = widget.walletId;
+
+    if (_transaction.type
+        case TransactionType.sentToSelf || TransactionType.outgoing) {
+      supportsRbf = _transaction.subType == TransactionSubType.none &&
+          ref.read(pWallets).getWallet(walletId) is RbfInterface;
+    } else {
+      supportsRbf = false;
+    }
 
     coin = widget.coin;
 
@@ -481,6 +563,11 @@ class _TransactionV2DetailsViewState
     } else {
       outputLabel = "Sent to";
     }
+
+    final confirmedTxn = _transaction.isConfirmed(
+      currentHeight,
+      coin.minConfirms,
+    );
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -1330,6 +1417,15 @@ class _TransactionV2DetailsViewState
                                                         context,
                                                       ),
                                               ),
+                                            if (supportsRbf && !confirmedTxn)
+                                              const SizedBox(
+                                                height: 8,
+                                              ),
+                                            if (supportsRbf && !confirmedTxn)
+                                              CustomTextButton(
+                                                text: "Boost transaction",
+                                                onTap: _boostPressed,
+                                              ),
                                           ],
                                         ),
                                         if (!isDesktop)
@@ -1779,6 +1875,16 @@ class _TransactionV2DetailsViewState
                               const SizedBox(
                                 height: 12,
                               ),
+                            // if (whatIsIt(
+                            //       _transaction,
+                            //       currentHeight,
+                            //     ) !=
+                            //     "Sending")
+                            //   isDesktop
+                            //       ? const _Divider()
+                            //       : const SizedBox(
+                            //           height: 12,
+                            //         ),
                           ],
                         ),
                       ),
