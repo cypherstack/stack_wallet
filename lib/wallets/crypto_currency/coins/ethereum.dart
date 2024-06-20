@@ -1,4 +1,5 @@
 import 'package:ethereum_addresses/ethereum_addresses.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -86,7 +87,7 @@ class Ethereum extends Bip39Currency {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
-  AddressType get primaryAddressType => AddressType.ethereum;
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
   BigInt get satsPerCoin => BigInt.from(1000000000000000000);
@@ -95,7 +96,7 @@ class Ethereum extends Bip39Currency {
   int get targetBlockTimeSeconds => 15;
 
   @override
-  DerivePathType get primaryDerivePathType => DerivePathType.eth;
+  DerivePathType get defaultDerivePathType => DerivePathType.eth;
 
   @override
   Uri defaultBlockExplorer(String txid) {

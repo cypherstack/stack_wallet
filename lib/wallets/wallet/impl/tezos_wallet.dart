@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:isar/isar.dart';
+import 'package:tezart/tezart.dart' as tezart;
+import 'package:tuple/tuple.dart';
+
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -18,8 +21,6 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
-import 'package:tezart/tezart.dart' as tezart;
-import 'package:tuple/tuple.dart';
 
 // const kDefaultTransactionStorageLimit = 496;
 // const kDefaultTransactionGasLimit = 10600;
@@ -83,7 +84,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       publicKey: keyStore.publicKey.toUint8ListFromBase58CheckEncoded,
       derivationIndex: 0,
       derivationPath: DerivationPath()..value = derivationPath,
-      type: info.coin.primaryAddressType,
+      type: info.mainAddressType,
       subType: AddressSubType.receiving,
     );
   }

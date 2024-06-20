@@ -195,7 +195,7 @@ class BitcoinFrost extends FrostCurrency {
   List<int> get possibleMnemonicLengths => [];
 
   @override
-  AddressType get primaryAddressType => AddressType.frostMS;
+  AddressType get defaultAddressType => AddressType.frostMS;
 
   @override
   BigInt get satsPerCoin => BigInt.from(100000000);
@@ -204,7 +204,7 @@ class BitcoinFrost extends FrostCurrency {
   int get targetBlockTimeSeconds => 600;
 
   @override
-  DerivePathType get primaryDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 

@@ -71,10 +71,10 @@ abstract class CryptoCurrency {
   bool get hasBuySupport;
   bool get hasMnemonicPassphraseSupport;
   List<int> get possibleMnemonicLengths;
-  AddressType get primaryAddressType;
+  AddressType get defaultAddressType;
   BigInt get satsPerCoin;
   int get targetBlockTimeSeconds;
-  DerivePathType get primaryDerivePathType;
+  DerivePathType get defaultDerivePathType;
 
   Uri defaultBlockExplorer(String txid);
 

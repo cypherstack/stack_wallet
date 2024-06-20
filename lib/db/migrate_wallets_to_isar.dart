@@ -171,7 +171,7 @@ Future<void> migrateWalletsToIsar({
       walletId: old.walletId,
       name: old.name,
       mainAddressType: AppConfig.getCryptoCurrencyFor(old.coinIdentifier)!
-          .primaryAddressType,
+          .defaultAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
       cachedChainHeight: walletBox.get(
             DBKeys.storedChainHeight,

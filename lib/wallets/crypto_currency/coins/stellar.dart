@@ -108,7 +108,7 @@ class Stellar extends Bip39Currency {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 12];
 
   @override
-  AddressType get primaryAddressType => AddressType.stellar;
+  AddressType get defaultAddressType => AddressType.stellar;
 
   @override
   BigInt get satsPerCoin => BigInt.from(
@@ -119,7 +119,7 @@ class Stellar extends Bip39Currency {
   int get targetBlockTimeSeconds => 5;
 
   @override
-  DerivePathType get primaryDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 

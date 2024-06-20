@@ -288,7 +288,7 @@ class Bitcoin extends Bip39HDCurrency
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
-  AddressType get primaryAddressType => AddressType.p2tr;
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
   BigInt get satsPerCoin => BigInt.from(100000000);
@@ -297,7 +297,7 @@ class Bitcoin extends Bip39HDCurrency
   int get targetBlockTimeSeconds => 600;
 
   @override
-  DerivePathType get primaryDerivePathType => DerivePathType.bip86;
+  DerivePathType get defaultDerivePathType => DerivePathType.bip86;
 
   @override
   Uri defaultBlockExplorer(String txid) {

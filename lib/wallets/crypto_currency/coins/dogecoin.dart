@@ -225,7 +225,7 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
-  AddressType get primaryAddressType => AddressType.p2pkh;
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
   BigInt get satsPerCoin => BigInt.from(100000000);
@@ -234,7 +234,7 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get targetBlockTimeSeconds => 60;
 
   @override
-  DerivePathType get primaryDerivePathType => DerivePathType.bip44;
+  DerivePathType get defaultDerivePathType => DerivePathType.bip44;
 
   @override
   Uri defaultBlockExplorer(String txid) {
