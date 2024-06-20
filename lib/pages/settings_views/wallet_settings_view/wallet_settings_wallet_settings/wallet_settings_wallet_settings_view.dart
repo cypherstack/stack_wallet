@@ -18,6 +18,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -26,6 +27,7 @@ import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
 import 'delete_wallet_warning_view.dart';
 import 'lelantus_settings_view.dart';
+import 'rbf_settings_view.dart';
 import 'rename_wallet_view.dart';
 import 'spark_info.dart';
 
@@ -252,6 +254,42 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                           children: [
                             Text(
                               "Spark info",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId) is RbfInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId) is RbfInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          RbfSettingsView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "RBF settings",
                               style: STextStyles.titleBold12(context),
                             ),
                           ],

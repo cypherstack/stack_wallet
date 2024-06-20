@@ -130,6 +130,7 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/lelantus_settings_view.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rbf_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_info.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
@@ -1961,6 +1962,18 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => LelantusSettingsView(walletId: args),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case RbfSettingsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => RbfSettingsView(walletId: args),
             settings: RouteSettings(
               name: settings.name,
             ),
