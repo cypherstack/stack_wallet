@@ -38,6 +38,7 @@ const _prefix = "Stack";
 const _separator = " ";
 const _suffix = "Wallet";
 const _appDataDirName = "stackwallet";
+const _shortDescriptionText = "An open-source, multicoin wallet for everyone";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
 const Set<AppFeature> _features = {
