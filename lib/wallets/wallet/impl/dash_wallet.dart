@@ -7,6 +7,7 @@ import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/util.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
@@ -243,7 +244,7 @@ class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       final tx = TransactionV2(
         walletId: walletId,
         blockHash: txData["blockhash"] as String?,
-        hash: txData["hash"] as String,
+        hash: txData["txid"] as String,
         txid: txData["txid"] as String,
         height: txData["height"] as int?,
         version: txData["version"] as int,

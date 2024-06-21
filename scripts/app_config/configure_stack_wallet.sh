@@ -75,7 +75,6 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoincash(CryptoCurrencyNetwork.test),
   BitcoinFrost(CryptoCurrencyNetwork.test),
   BitcoinFrost(CryptoCurrencyNetwork.test4),
-  Dash(CryptoCurrencyNetwork.test),
   Dogecoin(CryptoCurrencyNetwork.test),
   Firo(CryptoCurrencyNetwork.test),
   Litecoin(CryptoCurrencyNetwork.test),

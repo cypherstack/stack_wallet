@@ -3,6 +3,7 @@ import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../crypto_currency.dart';
 import '../interfaces/electrumx_currency_interface.dart';
@@ -17,10 +18,10 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         _id = _idMain;
         _name = "Dash";
         _ticker = "DASH";
-      case CryptoCurrencyNetwork.test:
-        _id = "dashTestNet";
-        _name = "tDash";
-        _ticker = "tDASH";
+      // case CryptoCurrencyNetwork.test:
+      //   _id = "dashTestNet";
+      //   _name = "tDash";
+      //   _ticker = "tDASH";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -67,9 +68,9 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
       case 204: // dash mainnet wif
         coinType = "5"; // dash mainnet
         break;
-      case 239: // dash testnet wif
-        coinType = "1"; // dash testnet
-        break;
+      // case 239: // dash testnet wif
+      //   coinType = "1"; // dash testnet
+      //   break;
       default:
         throw Exception("Invalid Dash network wif used!");
     }
@@ -96,11 +97,10 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   String get genesisHash {
     switch (network) {
-      // TODO
-      // case CryptoCurrencyNetwork.main:
-      //   return " ";
+      case CryptoCurrencyNetwork.main:
+        return "00000ffd590b1485b3caadc19b22e6379c733355108f107a430458cdf3407ab6";
       // case CryptoCurrencyNetwork.test:
-      //   return " ";
+      //   return "00000bafbc94add76cb75e2ec92894837288a481e5c005f6563d91623bf8bc2c";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -129,7 +129,7 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  int get minConfirms => 1;
+  int get minConfirms => 6;
 
   @override
   coinlib.Network get networkParams {
@@ -147,19 +147,19 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
-      case CryptoCurrencyNetwork.test:
-        return coinlib.Network(
-          p2pkhPrefix: 140,
-          p2shPrefix: 19,
-          wifPrefix: 239,
-          pubHDPrefix: 0x043587CF,
-          privHDPrefix: 0x04358394,
-          bech32Hrp: "tdash", // TODO ?????
-          messagePrefix: '\x18Dash Signed Message:\n', // TODO ?????
-          minFee: BigInt.from(1), // Not used in stack wallet currently
-          minOutput: dustLimit.raw, // Not used in stack wallet currently
-          feePerKb: BigInt.from(1), // Not used in stack wallet currently
-        );
+      // case CryptoCurrencyNetwork.test:
+      //   return coinlib.Network(
+      //     p2pkhPrefix: 140,
+      //     p2shPrefix: 19,
+      //     wifPrefix: 239,
+      //     pubHDPrefix: 0x043587CF,
+      //     privHDPrefix: 0x04358394,
+      //     bech32Hrp: "tdash", // TODO ?????
+      //     messagePrefix: '\x18Dash Signed Message:\n', // TODO ?????
+      //     minFee: BigInt.from(1), // Not used in stack wallet currently
+      //     minOutput: dustLimit.raw, // Not used in stack wallet currently
+      //     feePerKb: BigInt.from(1), // Not used in stack wallet currently
+      //   );
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -178,31 +178,18 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   NodeModel get defaultNode {
     switch (network) {
-      // case CryptoCurrencyNetwork.main:
-      //   return NodeModel(
-      //     host: "dash.stackwallet.com",
-      //     port: 50022,
-      //     name: DefaultNodes.defaultName,
-      //     id: DefaultNodes.buildId(this),
-      //     useSSL: true,
-      //     enabled: true,
-      //     coinName: identifier,
-      //     isFailover: true,
-      //     isDown: false,
-      //   );
-      //
-      // case CryptoCurrencyNetwork.test:
-      //   return NodeModel(
-      //     host: "dash-testnet.stackwallet.com",
-      //     port: 50022,
-      //     name: DefaultNodes.defaultName,
-      //     id: DefaultNodes.buildId(this),
-      //     useSSL: true,
-      //     enabled: true,
-      //     coinName: identifier,
-      //     isFailover: true,
-      //     isDown: false,
-      //   );
+      case CryptoCurrencyNetwork.main:
+        return NodeModel(
+          host: "dash.stackwallet.com",
+          port: 60002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
 
       default:
         throw UnimplementedError();
@@ -231,7 +218,7 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   BigInt get satsPerCoin => BigInt.from(100000000);
 
   @override
-  int get targetBlockTimeSeconds => 60;
+  int get targetBlockTimeSeconds => 150;
 
   @override
   DerivePathType get defaultDerivePathType => DerivePathType.bip44;
@@ -239,9 +226,12 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
-      // TODO
-      // case CryptoCurrencyNetwork.main:
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://insight.dash.org/insight/tx/$txid");
       // case CryptoCurrencyNetwork.test:
+      //   return Uri.parse(
+      //     "https://insight.testnet.networks.dash.org:3002/insight/tx/$txid",
+      //   );
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
@@ -250,7 +240,7 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  int get transactionVersion => 1;
+  int get transactionVersion => 2;
 
   @override
   BigInt get defaultFeeRate => BigInt.from(1000); // TODO check for dash?
