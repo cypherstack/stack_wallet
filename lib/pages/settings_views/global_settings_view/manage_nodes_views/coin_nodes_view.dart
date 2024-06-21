@@ -13,8 +13,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'add_edit_node_view.dart';
-import '../../sub_widgets/nodes_list.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -26,7 +26,8 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:tuple/tuple.dart';
+import '../../sub_widgets/nodes_list.dart';
+import 'add_edit_node_view.dart';
 
 class CoinNodesView extends ConsumerStatefulWidget {
   const CoinNodesView({
@@ -59,7 +60,10 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
   Widget build(BuildContext context) {
     if (Util.isDesktop) {
       return DesktopDialog(
+        maxHeight: null,
+        maxWidth: 580,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -129,11 +133,15 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
             const SizedBox(
               width: 12,
             ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: NodesList(
-                coin: widget.coin,
-                popBackToRoute: CoinNodesView.routeName,
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: SingleChildScrollView(
+                  child: NodesList(
+                    coin: widget.coin,
+                    popBackToRoute: CoinNodesView.routeName,
+                  ),
+                ),
               ),
             ),
           ],
