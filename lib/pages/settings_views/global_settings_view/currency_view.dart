@@ -48,18 +48,17 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
   final _searchFocusNode = FocusNode();
 
   void onTap(int index) {
+    if (currenciesWithoutSelected[index] == current || current.isEmpty) {
+      // ignore if already selected currency
+      return;
+    }
+    current = currenciesWithoutSelected[index];
+    currenciesWithoutSelected.remove(current);
+    currenciesWithoutSelected.insert(0, current);
+
     if (Util.isDesktop) {
-      setState(() {
-        current = currenciesWithoutSelected[index];
-      });
+      setState(() {});
     } else {
-      if (currenciesWithoutSelected[index] == current || current.isEmpty) {
-        // ignore if already selected currency
-        return;
-      }
-      current = currenciesWithoutSelected[index];
-      currenciesWithoutSelected.remove(current);
-      currenciesWithoutSelected.insert(0, current);
       ref.read(prefsChangeNotifierProvider).currency = current;
 
       if (ref.read(prefsChangeNotifierProvider).externalCalls) {
@@ -104,13 +103,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
   void initState() {
     _searchController = TextEditingController();
     if (Util.isDesktop) {
-      currenciesWithoutSelected =
-          ref.read(baseCurrenciesProvider).map.keys.toList();
       current = ref.read(prefsChangeNotifierProvider).currency;
-      if (current.isNotEmpty) {
-        currenciesWithoutSelected.remove(current);
-        currenciesWithoutSelected.insert(0, current);
-      }
     }
     super.initState();
   }
@@ -129,16 +122,16 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
     if (!isDesktop) {
       current = ref
           .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+    }
 
-      currenciesWithoutSelected = ref
-          .watch(baseCurrenciesProvider.select((value) => value.map))
-          .keys
-          .toList();
+    currenciesWithoutSelected = ref
+        .watch(baseCurrenciesProvider.select((value) => value.map))
+        .keys
+        .toList();
 
-      if (current.isNotEmpty) {
-        currenciesWithoutSelected.remove(current);
-        currenciesWithoutSelected.insert(0, current);
-      }
+    if (current.isNotEmpty) {
+      currenciesWithoutSelected.remove(current);
+      currenciesWithoutSelected.insert(0, current);
     }
 
     currenciesWithoutSelected = _filtered();
