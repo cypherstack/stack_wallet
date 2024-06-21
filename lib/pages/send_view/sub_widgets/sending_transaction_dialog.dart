@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
+
 import '../../../themes/coin_image_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -64,6 +65,7 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
 
     if (Util.isDesktop) {
       return DesktopDialog(
+        maxHeight: assetPath.endsWith(".gif") ? double.infinity : null,
         child: Padding(
           padding: const EdgeInsets.all(40),
           child: Column(
@@ -77,8 +79,10 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
                 height: 40,
               ),
               assetPath.endsWith(".gif")
-                  ? Image.file(
-                      File(assetPath),
+                  ? Flexible(
+                      child: Image.file(
+                        File(assetPath),
+                      ),
                     )
                   : ProgressAndSuccess(
                       controller: _progressAndSuccessController!,
