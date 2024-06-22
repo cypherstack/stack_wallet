@@ -175,7 +175,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: dbcd460494d075920271eeba11cb691fc9e4b0bd
+      ref: 1e0acd16159fe6920f73d86d2318204df4f90a47
   stream_channel: ^2.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
