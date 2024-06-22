@@ -73,7 +73,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
+      ref: 1bdf3ae7b625312832d09cd6e8f8b1e89213bb31
 
   fusiondart:
     git:
