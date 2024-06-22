@@ -47,16 +47,18 @@ Future<bool> checkElectrumServer({
     final client = await ElectrumClient.connect(
       host: host,
       port: port,
-      useSSL: useSSL,
+      useSSL: useSSL && !host.endsWith('.onion'),
       proxyInfo: proxyInfo,
     ).timeout(
-      const Duration(seconds: 5),
+      Duration(seconds: (proxyInfo == null ? 5 : 30)),
       onTimeout: () => throw Exception(
         "The checkElectrumServer connect() call timed out.",
       ),
     );
 
-    await client.ping().timeout(const Duration(seconds: 5));
+    await client
+        .ping()
+        .timeout(Duration(seconds: (proxyInfo == null ? 5 : 30)));
 
     return true;
   } catch (_) {
