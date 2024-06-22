@@ -1,4 +1,5 @@
 import 'package:flutter_libepiccash/lib.dart' as epic;
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -102,7 +103,7 @@ class Epiccash extends Bip39Currency {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 12];
 
   @override
-  AddressType get primaryAddressType => AddressType.mimbleWimble;
+  AddressType get defaultAddressType => AddressType.mimbleWimble;
 
   @override
   BigInt get satsPerCoin => BigInt.from(100000000);
@@ -111,7 +112,7 @@ class Epiccash extends Bip39Currency {
   int get targetBlockTimeSeconds => 60;
 
   @override
-  DerivePathType get primaryDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 

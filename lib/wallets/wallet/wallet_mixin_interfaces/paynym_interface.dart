@@ -68,7 +68,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final root = await _getRootNode();
     final node = root.derivePath(
       _basePaynymDerivePath(
-        testnet: info.coin.network == CryptoCurrencyNetwork.test,
+        testnet: info.coin.network.isTestNet,
       ),
     );
     return node;
@@ -159,7 +159,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final root = await _getRootNode();
     final node = root.derivePath(
       _basePaynymDerivePath(
-        testnet: info.coin.network == CryptoCurrencyNetwork.test,
+        testnet: info.coin.network.isTestNet,
       ),
     );
 
@@ -182,7 +182,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       derivationPath: DerivationPath()
         ..value = _receivingPaynymAddressDerivationPath(
           index,
-          testnet: info.coin.network == CryptoCurrencyNetwork.test,
+          testnet: info.coin.network.isTestNet,
         ),
       type: generateSegwitAddress ? AddressType.p2wpkh : AddressType.p2pkh,
       subType: AddressSubType.paynymReceive,
@@ -219,7 +219,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       derivationPath: DerivationPath()
         ..value = _sendPaynymAddressDerivationPath(
           index,
-          testnet: info.coin.network == CryptoCurrencyNetwork.test,
+          testnet: info.coin.network.isTestNet,
         ),
       type: AddressType.nonWallet,
       subType: AddressSubType.paynymSend,
@@ -314,7 +314,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final node = root
         .derivePath(
           _basePaynymDerivePath(
-            testnet: info.coin.network == CryptoCurrencyNetwork.test,
+            testnet: info.coin.network.isTestNet,
           ),
         )
         .derive(0);
@@ -330,7 +330,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final paymentCode = PaymentCode.fromBip32Node(
       node.derivePath(
         _basePaynymDerivePath(
-          testnet: info.coin.network == CryptoCurrencyNetwork.test,
+          testnet: info.coin.network.isTestNet,
         ),
       ),
       networkType: networkType,
@@ -1469,7 +1469,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final root = await _getRootNode();
       final node = root.derivePath(
         _basePaynymDerivePath(
-          testnet: info.coin.network == CryptoCurrencyNetwork.test,
+          testnet: info.coin.network.isTestNet,
         ),
       );
       final paymentCode = PaymentCode.fromBip32Node(
@@ -1497,7 +1497,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         derivationIndex: 0,
         derivationPath: DerivationPath()
           ..value = _notificationDerivationPath(
-            testnet: info.coin.network == CryptoCurrencyNetwork.test,
+            testnet: info.coin.network.isTestNet,
           ),
         type: AddressType.p2pkh,
         subType: AddressSubType.paynymNotification,
@@ -1617,6 +1617,24 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final List<Map<String, dynamic>> allTxHashes =
         await fetchHistory(allAddressesSet);
 
+    final unconfirmedTxs = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightIsNull()
+        .or()
+        .heightEqualTo(0)
+        .txidProperty()
+        .findAll();
+
+    allTxHashes.addAll(
+      unconfirmedTxs.map(
+        (e) => {
+          "tx_hash": e,
+        },
+      ),
+    );
+
     // Only parse new txs (not in db yet).
     final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
@@ -1630,16 +1648,36 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       //     storedTx.height == null ||
       //     (storedTx.height != null && storedTx.height! <= 0)) {
       // Tx not in db yet.
-      final tx = await electrumXCachedClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        cryptoCurrency: cryptoCurrency,
-      );
+      final txid = txHash["tx_hash"] as String;
+      final Map<String, dynamic> tx;
+      try {
+        tx = await electrumXCachedClient.getTransaction(
+          txHash: txid,
+          verbose: true,
+          cryptoCurrency: cryptoCurrency,
+        );
+      } catch (e) {
+        // tx no longer exists then delete from local db
+        if (e.toString().contains(
+              "JSON-RPC error 2: daemon error: DaemonError({'code': -5, "
+              "'message': 'No such mempool or blockchain transaction",
+            )) {
+          await mainDB.isar.writeTxn(
+            () async => await mainDB.isar.transactionV2s
+                .where()
+                .walletIdEqualTo(walletId)
+                .filter()
+                .txidEqualTo(txid)
+                .deleteFirst(),
+          );
+          continue;
+        } else {
+          rethrow;
+        }
+      }
 
       // Only tx to list once.
-      if (allTransactions
-              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
-          -1) {
+      if (allTransactions.indexWhere((e) => e["txid"] == txid) == -1) {
         tx["height"] = txHash["height"];
         allTransactions.add(tx);
       }
@@ -1794,6 +1832,14 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         continue;
       }
 
+      String? otherData;
+      if (txData["size"] is int || txData["vsize"] is int) {
+        otherData = jsonEncode({
+          TxV2OdKeys.size: txData["size"] as int?,
+          TxV2OdKeys.vSize: txData["vsize"] as int?,
+        });
+      }
+
       final tx = TransactionV2(
         walletId: walletId,
         blockHash: txData["blockhash"] as String?,
@@ -1807,7 +1853,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
-        otherData: null,
+        otherData: otherData,
       );
 
       txns.add(tx);

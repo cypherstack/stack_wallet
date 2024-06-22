@@ -228,7 +228,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
-  AddressType get primaryAddressType => AddressType.p2wpkh;
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
   BigInt get satsPerCoin => BigInt.from(1000000); // 1*10^6.
@@ -237,7 +237,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get targetBlockTimeSeconds => 600;
 
   @override
-  DerivePathType get primaryDerivePathType => DerivePathType.bip84;
+  DerivePathType get defaultDerivePathType => DerivePathType.bip84;
 
   @override
   Uri defaultBlockExplorer(String txid) {

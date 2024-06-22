@@ -100,7 +100,7 @@ class Monero extends CryptonoteCurrency {
   int get targetBlockTimeSeconds => 120;
 
   @override
-  DerivePathType get primaryDerivePathType => throw UnsupportedError(
+  DerivePathType get defaultDerivePathType => throw UnsupportedError(
         "$runtimeType does not use bitcoin style derivation paths",
       );
 

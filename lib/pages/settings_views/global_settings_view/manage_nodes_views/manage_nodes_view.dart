@@ -44,7 +44,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
   void initState() {
     _coins = _coins.toList();
     _coins.removeWhere(
-      (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+      (e) => e is Firo && e.network.isTestNet,
     );
     super.initState();
   }

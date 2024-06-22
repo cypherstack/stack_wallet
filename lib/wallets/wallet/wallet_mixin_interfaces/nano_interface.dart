@@ -93,7 +93,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       publicKey: publicKey.toUint8ListFromHex,
       derivationIndex: 0,
       derivationPath: null,
-      type: cryptoCurrency.primaryAddressType,
+      type: info.mainAddressType,
       subType: AddressSubType.receiving,
     );
   }
@@ -599,7 +599,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
                 value: tx["account"].toString(),
                 derivationIndex: 0,
                 derivationPath: null,
-                type: info.coin.primaryAddressType,
+                type: info.mainAddressType,
                 subType: AddressSubType.nonWallet,
               );
         final Tuple2<Transaction, Address> tuple = Tuple2(transaction, address);

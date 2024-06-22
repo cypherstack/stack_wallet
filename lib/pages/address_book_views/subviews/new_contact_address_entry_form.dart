@@ -15,11 +15,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'coin_select_sheet.dart';
+
+import '../../../app_config.dart';
 import '../../../providers/providers.dart';
 // import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
-import '../../../app_config.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
@@ -36,6 +36,7 @@ import '../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import 'coin_select_sheet.dart';
 
 class NewContactAddressEntryForm extends ConsumerStatefulWidget {
   const NewContactAddressEntryForm({
@@ -92,7 +93,7 @@ class _NewContactAddressEntryFormState
     if (isDesktop) {
       coins = [...AppConfig.coins];
       coins.removeWhere(
-        (e) => e is Firo && e.network == CryptoCurrencyNetwork.test,
+        (e) => e is Firo && e.network.isTestNet,
       );
 
       final showTestNet =

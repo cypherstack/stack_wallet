@@ -704,8 +704,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.read(pValidSparkSendToAddress.notifier).state =
             SparkInterface.validateSparkAddress(
           address: address ?? "",
-          isTestNet:
-              wallet.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+          isTestNet: wallet.cryptoCurrency.network.isTestNet,
         );
       }
 
@@ -883,7 +882,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     _cryptoFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
         if (ref.read(pSendAmount) == null) {
-          ref.refresh(sendAmountProvider);
+          if (ref.read(sendAmountProvider) != Amount.zero && mounted) {
+            ref.read(sendAmountProvider.state).state = Amount.zero;
+          }
         } else {
           ref.read(sendAmountProvider.state).state = ref.read(pSendAmount)!;
         }
@@ -1468,7 +1469,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   if (_data != null && _data!.contactLabel == _address) {
                     error = SparkInterface.validateSparkAddress(
                       address: _data!.address,
-                      isTestNet: coin.network == CryptoCurrencyNetwork.test,
+                      isTestNet: coin.network.isTestNet,
                     )
                         ? "Lelantus to Spark not supported"
                         : null;

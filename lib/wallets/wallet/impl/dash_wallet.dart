@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:isar/isar.dart';
 
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -7,7 +5,6 @@ import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import '../../../models/isar/ordinal.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -15,20 +12,16 @@ import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
-import '../wallet_mixin_interfaces/ordinals_interface.dart';
-import '../wallet_mixin_interfaces/rbf_interface.dart';
 
-class LitecoinWallet<T extends ElectrumXCurrencyInterface>
-    extends Bip39HDWallet<T>
-    with
-        ElectrumXInterface<T>,
-        CoinControlInterface<T>,
-        RbfInterface<T>,
-        OrdinalsInterface<T> {
+class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
+    with ElectrumXInterface<T>, CoinControlInterface {
+  DashWallet(CryptoCurrencyNetwork network) : super(Dash(network) as T);
+
+  @override
+  int get maximumFeerate => 2500;
+
   @override
   int get isarTransactionVersion => 2;
-
-  LitecoinWallet(CryptoCurrencyNetwork network) : super(Litecoin(network) as T);
 
   @override
   FilterOperation? get changeAddressFilterOperation =>
@@ -77,10 +70,6 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
-    final updateInscriptionsFuture = refreshInscriptions(
-      overrideAddressesToCheck: allAddressesSet.toList(),
-    );
-
     // Fetch history from ElectrumX.
     final List<Map<String, dynamic>> allTxHashes =
         await fetchHistory(allAddressesSet);
@@ -113,8 +102,6 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         }
       }
     }
-
-    await updateInscriptionsFuture;
 
     // Parse all new txs.
     final List<TransactionV2> txns = [];
@@ -224,7 +211,7 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
           .fold(BigInt.zero, (value, element) => value + element);
 
       TransactionType type;
-      TransactionSubType subType = TransactionSubType.none;
+      final TransactionSubType subType = TransactionSubType.none;
 
       // At least one input was owned by this wallet.
       if (wasSentFromThisWallet) {
@@ -238,52 +225,13 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
           } else if (amountReceivedInThisWallet == BigInt.zero) {
             // Most likely just a typical send, do nothing here yet.
           }
+
+          // This is where we would check for them.
+          // TODO: [prio=high] Check for special Dash outputs.
         }
       } else if (wasReceivedInThisWallet) {
         // Only found outputs owned by this wallet.
         type = TransactionType.incoming;
-
-        // Check for special Litecoin outputs like ordinals.
-        if (outputs.isNotEmpty) {
-          // may not catch every case but it is much quicker
-          final hasOrdinal = await mainDB.isar.ordinals
-              .where()
-              .filter()
-              .walletIdEqualTo(walletId)
-              .utxoTXIDEqualTo(txData["txid"] as String)
-              .isNotEmpty();
-          if (hasOrdinal) {
-            subType = TransactionSubType.ordinal;
-          }
-
-          // making API calls for every output in every transaction is too expensive
-          // and if not checked can cause refresh to fail if errors aren't handled properly
-
-          // // Iterate through outputs to check for ordinals.
-          // for (final output in outputs) {
-          //   for (final String address in output.addresses) {
-          //     final inscriptionData = await litescribeAPI
-          //         .getInscriptionsByAddress(address)
-          //         .catchError((e) {
-          //       Logging.instance.log(
-          //         "Failed to get inscription data for address $address",
-          //         level: LogLevel.Error,
-          //       );
-          //     });
-          //
-          //     // Check if any inscription data matches this output.
-          //     for (final inscription in inscriptionData) {
-          //       final txid = inscription.location.split(":").first;
-          //       if (inscription.address == address &&
-          //           txid == txData["txid"] as String) {
-          //         // Found an ordinal.
-          //         subType = TransactionSubType.ordinal;
-          //         break;
-          //       }
-          //     }
-          //   }
-          // }
-        }
       } else {
         Logging.instance.log(
           "Unexpected tx found (ignoring it): $txData",
@@ -292,18 +240,10 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         continue;
       }
 
-      String? otherData;
-      if (txData["size"] is int || txData["vsize"] is int) {
-        otherData = jsonEncode({
-          TxV2OdKeys.size: txData["size"] as int?,
-          TxV2OdKeys.vSize: txData["vsize"] as int?,
-        });
-      }
-
       final tx = TransactionV2(
         walletId: walletId,
         blockHash: txData["blockhash"] as String?,
-        hash: txData["hash"] as String,
+        hash: txData["txid"] as String,
         txid: txData["txid"] as String,
         height: txData["height"] as int?,
         version: txData["version"] as int,
@@ -313,7 +253,7 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
-        otherData: otherData,
+        otherData: null,
       );
 
       txns.add(tx);
@@ -323,10 +263,44 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
   }
 
   @override
+  Future<({String? blockedReason, bool blocked, String? utxoLabel})>
+      checkBlockUTXO(
+    Map<String, dynamic> jsonUTXO,
+    String? scriptPubKeyHex,
+    Map<String, dynamic> jsonTX,
+    String? utxoOwnerAddress,
+  ) async {
+    bool blocked = false;
+    String? blockedReason;
+
+    // // check for bip47 notification
+    // final outputs = jsonTX["vout"] as List;
+    // for (final output in outputs) {
+    //   final List<String>? scriptChunks =
+    //   (output['scriptPubKey']?['asm'] as String?)?.split(" ");
+    //   if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
+    //     final blindedPaymentCode = scriptChunks![1];
+    //     final bytes = blindedPaymentCode.toUint8ListFromHex;
+    //
+    //     // https://en.bitcoin.it/wiki/BIP_0047#Sending
+    //     if (bytes.length == 80 && bytes.first == 1) {
+    //       blocked = true;
+    //       blockedReason = "Paynym notification output. Incautious "
+    //           "handling of outputs from notification transactions "
+    //           "may cause unintended loss of privacy.";
+    //       break;
+    //     }
+    //   }
+    // }
+
+    return (blockedReason: blockedReason, blocked: blocked, utxoLabel: null);
+  }
+
+  @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(
-        ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+        ((181 * inputCount) + (34 * outputCount) + 10) *
             (feeRatePerKB / 1000).ceil(),
       ),
       fractionDigits: cryptoCurrency.fractionDigits,
@@ -337,65 +311,4 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
   int estimateTxFee({required int vSize, required int feeRatePerKB}) {
     return vSize * (feeRatePerKB / 1000).ceil();
   }
-//
-// @override
-// Future<TxData> coinSelection({required TxData txData}) async {
-//   final isCoinControl = txData.utxos != null;
-//   final isSendAll = txData.amount == info.cachedBalance.spendable;
-//
-//   final utxos =
-//       txData.utxos?.toList() ?? await mainDB.getUTXOs(walletId).findAll();
-//
-//   final currentChainHeight = await chainHeight;
-//   final List<UTXO> spendableOutputs = [];
-//   int spendableSatoshiValue = 0;
-//
-//   // Build list of spendable outputs and totaling their satoshi amount
-//   for (final utxo in utxos) {
-//     if (utxo.isBlocked == false &&
-//         utxo.isConfirmed(currentChainHeight, cryptoCurrency.minConfirms) &&
-//         utxo.used != true) {
-//       spendableOutputs.add(utxo);
-//       spendableSatoshiValue += utxo.value;
-//     }
-//   }
-//
-//   if (isCoinControl && spendableOutputs.length < utxos.length) {
-//     throw ArgumentError("Attempted to use an unavailable utxo");
-//   }
-//
-//   if (spendableSatoshiValue < txData.amount!.raw.toInt()) {
-//     throw Exception("Insufficient balance");
-//   } else if (spendableSatoshiValue == txData.amount!.raw.toInt() &&
-//       !isSendAll) {
-//     throw Exception("Insufficient balance to pay transaction fee");
-//   }
-//
-//   if (isCoinControl) {
-//   } else {
-//     final selection = cs.coinSelection(
-//       spendableOutputs
-//           .map((e) => cs.InputModel(
-//                 i: e.vout,
-//                 txid: e.txid,
-//                 value: e.value,
-//                 address: e.address,
-//               ))
-//           .toList(),
-//       txData.recipients!
-//           .map((e) => cs.OutputModel(
-//                 address: e.address,
-//                 value: e.amount.raw.toInt(),
-//               ))
-//           .toList(),
-//       txData.feeRateAmount!,
-//       10, // TODO: ???????????????????????????????
-//     );
-//
-//     // .inputs and .outputs will be null if no solution was found
-//     if (selection.inputs!.isEmpty || selection.outputs!.isEmpty) {
-//       throw Exception("coin selection failed");
-//     }
-//   }
-// }
 }

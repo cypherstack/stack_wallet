@@ -488,7 +488,7 @@ class _DesktopCoinControlUseDialogState
                                           .textDark,
                                     ),
                                   ),
-                                  Text(
+                                  SelectableText(
                                     "${widget.amountToSend!.decimal.toStringAsFixed(
                                       coin.fractionDigits,
                                     )}"
@@ -523,7 +523,7 @@ class _DesktopCoinControlUseDialogState
                                     .textDark,
                               ),
                             ),
-                            Text(
+                            SelectableText(
                               "${selectedSum.decimal.toStringAsFixed(
                                 coin.fractionDigits,
                               )} ${coin.ticker}",

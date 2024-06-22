@@ -16,6 +16,7 @@ abstract class AppConfig {
   static const suffix = _suffix;
 
   static String get appDefaultDataDirName => _appDataDirName;
+  static String get shortDescriptionText => _shortDescriptionText;
   static String get commitHash => _commitHash;
 
   static bool hasFeature(AppFeature feature) => _features.contains(feature);

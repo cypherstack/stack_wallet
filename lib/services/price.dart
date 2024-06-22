@@ -30,6 +30,7 @@ class PriceAPI {
     BitcoinFrost: "bitcoin",
     Litecoin: "litecoin",
     Bitcoincash: "bitcoin-cash",
+    Dash: "dash",
     Dogecoin: "dogecoin",
     Epiccash: "epic-cash",
     Ecash: "ecash",

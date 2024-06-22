@@ -94,7 +94,7 @@ class Solana extends Bip39Currency {
   List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
-  AddressType get primaryAddressType => AddressType.solana;
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
   BigInt get satsPerCoin => BigInt.from(1000000000);
@@ -103,7 +103,7 @@ class Solana extends Bip39Currency {
   int get targetBlockTimeSeconds => 1;
 
   @override
-  DerivePathType get primaryDerivePathType => DerivePathType.solana;
+  DerivePathType get defaultDerivePathType => DerivePathType.solana;
 
   @override
   Uri defaultBlockExplorer(String txid) {

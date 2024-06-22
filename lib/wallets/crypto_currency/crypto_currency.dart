@@ -6,6 +6,7 @@ export 'coins/banano.dart';
 export 'coins/bitcoin.dart';
 export 'coins/bitcoin_frost.dart';
 export 'coins/bitcoincash.dart';
+export 'coins/dash.dart';
 export 'coins/dogecoin.dart';
 export 'coins/ecash.dart';
 export 'coins/epiccash.dart';
@@ -25,7 +26,11 @@ export 'coins/wownero.dart';
 enum CryptoCurrencyNetwork {
   main,
   test,
-  stage;
+  stage,
+  test4;
+
+  bool get isTestNet =>
+      this == CryptoCurrencyNetwork.test || this == CryptoCurrencyNetwork.test4;
 }
 
 abstract class CryptoCurrency {
@@ -67,10 +72,10 @@ abstract class CryptoCurrency {
   bool get hasBuySupport;
   bool get hasMnemonicPassphraseSupport;
   List<int> get possibleMnemonicLengths;
-  AddressType get primaryAddressType;
+  AddressType get defaultAddressType;
   BigInt get satsPerCoin;
   int get targetBlockTimeSeconds;
-  DerivePathType get primaryDerivePathType;
+  DerivePathType get defaultDerivePathType;
 
   Uri defaultBlockExplorer(String txid);
 

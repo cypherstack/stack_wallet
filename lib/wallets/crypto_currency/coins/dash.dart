@@ -9,19 +9,19 @@ import '../crypto_currency.dart';
 import '../interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_currency.dart';
 
-class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
-  Dogecoin(super.network) {
-    _idMain = "dogecoin";
-    _uriScheme = "dogecoin";
+class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
+  Dash(super.network) {
+    _idMain = "dash";
+    _uriScheme = "dash";
     switch (network) {
       case CryptoCurrencyNetwork.main:
         _id = _idMain;
-        _name = "Dogecoin";
-        _ticker = "DOGE";
-      case CryptoCurrencyNetwork.test:
-        _id = "dogecoinTestNet";
-        _name = "tDogecoin";
-        _ticker = "tDOGE";
+        _name = "Dash";
+        _ticker = "DASH";
+      // case CryptoCurrencyNetwork.test:
+      //   _id = "dashTestNet";
+      //   _name = "tDash";
+      //   _ticker = "tDASH";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -65,14 +65,14 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
     String coinType;
 
     switch (networkParams.wifPrefix) {
-      case 0x9e: // doge mainnet wif
-        coinType = "3"; // doge mainnet
+      case 204: // dash mainnet wif
+        coinType = "5"; // dash mainnet
         break;
-      case 0xf1: // doge testnet wif
-        coinType = "1"; // doge testnet
-        break;
+      // case 239: // dash testnet wif
+      //   coinType = "1"; // dash testnet
+      //   break;
       default:
-        throw Exception("Invalid Dogecoin network wif used!");
+        throw Exception("Invalid Dash network wif used!");
     }
 
     int purpose;
@@ -98,9 +98,9 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   String get genesisHash {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return "1a91e3dace36e2be3bf030a65679fe821aa1d6ef92e7c9902eb318182c355691";
-      case CryptoCurrencyNetwork.test:
-        return "bb0a78264637406b6360aad926284d544d7049f45189db5664f3c4d07350559e";
+        return "00000ffd590b1485b3caadc19b22e6379c733355108f107a430458cdf3407ab6";
+      // case CryptoCurrencyNetwork.test:
+      //   return "00000bafbc94add76cb75e2ec92894837288a481e5c005f6563d91623bf8bc2c";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -129,37 +129,37 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  int get minConfirms => 1;
+  int get minConfirms => 6;
 
   @override
   coinlib.Network get networkParams {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return coinlib.Network(
-          wifPrefix: 0x9e,
-          p2pkhPrefix: 0x1e,
-          p2shPrefix: 0x16,
-          privHDPrefix: 0x02fac398,
-          pubHDPrefix: 0x02facafd,
-          bech32Hrp: "doge",
-          messagePrefix: '\x18Dogecoin Signed Message:\n',
+          p2pkhPrefix: 76,
+          p2shPrefix: 16,
+          wifPrefix: 204,
+          pubHDPrefix: 0x0488B21E,
+          privHDPrefix: 0x0488ADE4,
+          bech32Hrp: "dash", // TODO ?????
+          messagePrefix: '\x18Dash Signed Message:\n', // TODO ?????
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
-      case CryptoCurrencyNetwork.test:
-        return coinlib.Network(
-          wifPrefix: 0xf1,
-          p2pkhPrefix: 0x71,
-          p2shPrefix: 0xc4,
-          privHDPrefix: 0x04358394,
-          pubHDPrefix: 0x043587cf,
-          bech32Hrp: "tdge",
-          messagePrefix: "\x18Dogecoin Signed Message:\n",
-          minFee: BigInt.from(1), // Not used in stack wallet currently
-          minOutput: dustLimit.raw, // Not used in stack wallet currently
-          feePerKb: BigInt.from(1), // Not used in stack wallet currently
-        );
+      // case CryptoCurrencyNetwork.test:
+      //   return coinlib.Network(
+      //     p2pkhPrefix: 140,
+      //     p2shPrefix: 19,
+      //     wifPrefix: 239,
+      //     pubHDPrefix: 0x043587CF,
+      //     privHDPrefix: 0x04358394,
+      //     bech32Hrp: "tdash", // TODO ?????
+      //     messagePrefix: '\x18Dash Signed Message:\n', // TODO ?????
+      //     minFee: BigInt.from(1), // Not used in stack wallet currently
+      //     minOutput: dustLimit.raw, // Not used in stack wallet currently
+      //     feePerKb: BigInt.from(1), // Not used in stack wallet currently
+      //   );
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -180,21 +180,8 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "dogecoin.stackwallet.com",
-          port: 50022,
-          name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(this),
-          useSSL: true,
-          enabled: true,
-          coinName: identifier,
-          isFailover: true,
-          isDown: false,
-        );
-
-      case CryptoCurrencyNetwork.test:
-        return NodeModel(
-          host: "dogecoin-testnet.stackwallet.com",
-          port: 50022,
+          host: "dash.stackwallet.com",
+          port: 60002,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
           useSSL: true,
@@ -231,7 +218,7 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   BigInt get satsPerCoin => BigInt.from(100000000);
 
   @override
-  int get targetBlockTimeSeconds => 60;
+  int get targetBlockTimeSeconds => 150;
 
   @override
   DerivePathType get defaultDerivePathType => DerivePathType.bip44;
@@ -240,9 +227,11 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://chain.so/tx/DOGE/$txid");
-      case CryptoCurrencyNetwork.test:
-        return Uri.parse("https://chain.so/tx/DOGETEST/$txid");
+        return Uri.parse("https://insight.dash.org/insight/tx/$txid");
+      // case CryptoCurrencyNetwork.test:
+      //   return Uri.parse(
+      //     "https://insight.testnet.networks.dash.org:3002/insight/tx/$txid",
+      //   );
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
@@ -251,9 +240,8 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  int get transactionVersion => 1;
+  int get transactionVersion => 2;
 
   @override
-  BigInt get defaultFeeRate => BigInt.from(1000000);
-  // https://github.com/dogecoin/dogecoin/blob/master/doc/fee-recommendation.md
+  BigInt get defaultFeeRate => BigInt.from(1000); // TODO check for dash?
 }

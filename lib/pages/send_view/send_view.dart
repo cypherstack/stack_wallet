@@ -392,8 +392,7 @@ class _SendViewState extends ConsumerState<SendView> {
         ref.read(pValidSparkSendToAddress.notifier).state =
             SparkInterface.validateSparkAddress(
           address: address ?? "",
-          isTestNet:
-              wallet.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+          isTestNet: wallet.cryptoCurrency.network.isTestNet,
         );
       }
 
