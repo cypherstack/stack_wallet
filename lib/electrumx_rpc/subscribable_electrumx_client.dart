@@ -22,7 +22,7 @@
 // import 'package:stackwallet/services/tor_service.dart';
 // import 'package:stackwallet/utilities/logger.dart';
 // import 'package:stackwallet/utilities/prefs.dart';
-// import 'package:tor/socks_socket.dart';
+// import 'package:tor_ffi_plugin/socks_socket.dart';
 //
 // class ElectrumXSubscription {
 //   final StreamController<dynamic> _controller =

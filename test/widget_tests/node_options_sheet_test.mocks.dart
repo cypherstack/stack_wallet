@@ -28,7 +28,7 @@ import 'package:stackwallet/wallets/isar/models/wallet_info.dart' as _i11;
 import 'package:stackwallet/wallets/wallet/wallet.dart' as _i5;
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart'
     as _i6;
-import 'package:tor/tor.dart' as _i21;
+import 'package:tor_ffi_plugin/tor_ffi_plugin.dart' as _i21;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values

@@ -19,7 +19,6 @@ list(APPEND FLUTTER_FFI_PLUGIN_LIST
   coinlib_flutter
   flutter_libsparkmobile
   frostdart
-  tor
   tor_ffi_plugin
 )
 

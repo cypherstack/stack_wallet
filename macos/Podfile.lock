@@ -51,7 +51,7 @@ PODS:
     - sqlite3/rtree
   - stack_wallet_backup (0.0.1):
     - FlutterMacOS
-  - tor (0.0.1)
+  - tor_ffi_plugin (0.0.1)
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
   - wakelock_macos (0.0.1):
@@ -78,7 +78,7 @@ DEPENDENCIES:
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/macos`)
   - stack_wallet_backup (from `Flutter/ephemeral/.symlinks/plugins/stack_wallet_backup/macos`)
-  - tor (from `Flutter/ephemeral/.symlinks/plugins/tor/macos`)
+  - tor_ffi_plugin (from `Flutter/ephemeral/.symlinks/plugins/tor_ffi_plugin/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - wakelock_macos (from `Flutter/ephemeral/.symlinks/plugins/wakelock_macos/macos`)
   - window_size (from `Flutter/ephemeral/.symlinks/plugins/window_size/macos`)
@@ -125,8 +125,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/macos
   stack_wallet_backup:
     :path: Flutter/ephemeral/.symlinks/plugins/stack_wallet_backup/macos
-  tor:
-    :path: Flutter/ephemeral/.symlinks/plugins/tor/macos
+  tor_ffi_plugin:
+    :path: Flutter/ephemeral/.symlinks/plugins/tor_ffi_plugin/macos
   url_launcher_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
   wakelock_macos:
@@ -155,7 +155,7 @@ SPEC CHECKSUMS:
   sqlite3: 154b084339ede06960a5b3c8160066adc9176b7d
   sqlite3_flutter_libs: 1be4459672f8168ded2d8667599b8e3ca5e72b83
   stack_wallet_backup: 6ebc60b1bdcf11cf1f1cbad9aa78332e1e15778c
-  tor: 2566c1ed174688cca560fa0c64b7a799c66f07cb
+  tor_ffi_plugin: 2566c1ed174688cca560fa0c64b7a799c66f07cb
   url_launcher_macos: d2691c7dd33ed713bf3544850a623080ec693d95
   wakelock_macos: bc3f2a9bd8d2e6c89fee1e1822e7ddac3bd004a9
   window_size: 339dafa0b27a95a62a843042038fa6c3c48de195
