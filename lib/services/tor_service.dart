@@ -111,6 +111,7 @@ class TorService {
       return;
     }
 
+    _tor!.disable();
     await _tor?.stop();
 
     _updateStatusAndFireEvent(
