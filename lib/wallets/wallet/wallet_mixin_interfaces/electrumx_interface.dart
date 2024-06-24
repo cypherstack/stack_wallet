@@ -810,12 +810,17 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
-  Future<int> fetchChainHeight() async {
+  Future<int> fetchChainHeight({int retries = 1}) async {
     try {
       return await ClientManager.sharedInstance.getChainHeightFor(
         cryptoCurrency,
       );
     } catch (e, s) {
+      if (retries > 0) {
+        retries--;
+        await electrumXClient.checkElectrumAdapter();
+        return await fetchChainHeight(retries: retries);
+      }
       Logging.instance.log(
         "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
         level: LogLevel.Error,

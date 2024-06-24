@@ -208,7 +208,7 @@ class ElectrumXClient {
     await getElectrumAdapter()?.close();
   }
 
-  Future<void> _checkElectrumAdapter() async {
+  Future<void> checkElectrumAdapter() async {
     ({InternetAddress host, int port})? proxyInfo;
 
     // If we're supposed to use Tor...
@@ -311,9 +311,9 @@ class ElectrumXClient {
 
     if (_requireMutex) {
       await _torConnectingLock
-          .protect(() async => await _checkElectrumAdapter());
+          .protect(() async => await checkElectrumAdapter());
     } else {
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
     }
 
     try {
@@ -397,9 +397,9 @@ class ElectrumXClient {
 
     if (_requireMutex) {
       await _torConnectingLock
-          .protect(() async => await _checkElectrumAdapter());
+          .protect(() async => await checkElectrumAdapter());
     } else {
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
     }
 
     try {
@@ -780,7 +780,7 @@ class ElectrumXClient {
       "attempting to fetch blockchain.transaction.get...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     final dynamic response = await getElectrumAdapter()!.getTransaction(txHash);
     Logging.instance.log(
       "Fetching blockchain.transaction.get finished",
@@ -817,7 +817,7 @@ class ElectrumXClient {
       "attempting to fetch lelantus.getanonymityset...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     final Map<String, dynamic> response =
         await (getElectrumAdapter() as FiroElectrumClient)
             .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
@@ -840,7 +840,7 @@ class ElectrumXClient {
       "attempting to fetch lelantus.getmintmetadata...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     final dynamic response = await (getElectrumAdapter() as FiroElectrumClient)
         .getLelantusMintData(mints: mints);
     Logging.instance.log(
@@ -860,7 +860,7 @@ class ElectrumXClient {
       "attempting to fetch lelantus.getusedcoinserials...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
 
     int retryCount = 3;
     dynamic response;
@@ -888,7 +888,7 @@ class ElectrumXClient {
       "attempting to fetch lelantus.getlatestcoinid...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     final int response =
         await (getElectrumAdapter() as FiroElectrumClient).getLatestCoinId();
     Logging.instance.log(
@@ -920,7 +920,7 @@ class ElectrumXClient {
   }) async {
     try {
       final start = DateTime.now();
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
       final Map<String, dynamic> response =
           await (getElectrumAdapter() as FiroElectrumClient)
               .getSparkAnonymitySet(
@@ -995,7 +995,7 @@ class ElectrumXClient {
         "attempting to fetch spark.getsparkmintmetadata...",
         level: LogLevel.Info,
       );
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
       final List<dynamic> response =
           await (getElectrumAdapter() as FiroElectrumClient)
               .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
@@ -1021,7 +1021,7 @@ class ElectrumXClient {
         "attempting to fetch spark.getsparklatestcoinid...",
         level: LogLevel.Info,
       );
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
       final int response = await (getElectrumAdapter() as FiroElectrumClient)
           .getSparkLatestCoinId();
       Logging.instance.log(
@@ -1150,7 +1150,7 @@ class ElectrumXClient {
   ///   "rate": 1000,
   /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     return await getElectrumAdapter()!.getFeeRate();
   }
 
