@@ -73,7 +73,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: f1d02f7ad489df3119a540a7f31485db6d837843
+      ref: 647cadc3c82c276dc07915b02d24538fd610f220
 
   fusiondart:
     git:
@@ -210,6 +210,11 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+  # adding here due to pure laziness
+  tor_ffi_plugin:
+    git:
+      url: https://github.com/cypherstack/tor.git
+      ref: 647cadc3c82c276dc07915b02d24538fd610f220
 
   monero:
     git:
