@@ -100,16 +100,18 @@ class TorService {
     }
   }
 
-  /// disable tor
+  /// Disable Tor.
   Future<void> disable() async {
     if (_tor == null) {
       throw Exception("TorService.init has not been called!");
     }
 
-    // no need to update status and fire event if status won't change
+    // No need to update status and fire event if status won't change.
     if (_status == TorConnectionStatus.disconnected) {
       return;
     }
+
+    await _tor?.stop();
 
     _updateStatusAndFireEvent(
       status: TorConnectionStatus.disconnected,
