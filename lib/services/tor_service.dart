@@ -50,7 +50,6 @@ class TorService {
   }) {
     _tor ??= mockableOverride ?? Tor.instance;
     _torDataDirPath ??= torDataDirPath;
-    _tor?.start(torDataDirPath: torDataDirPath);
   }
 
   /// Start the Tor service.
