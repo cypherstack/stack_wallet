@@ -1165,7 +1165,7 @@ class ElectrumXClient {
         level: LogLevel.Info,
       );
 
-      return response as bool? ?? false;
+      return response as bool;
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
