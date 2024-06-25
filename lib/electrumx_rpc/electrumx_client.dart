@@ -1043,7 +1043,7 @@ class ElectrumXClient {
       final start = DateTime.now();
       final response = await request(
         requestID: requestID,
-        command: "spark.getmempooltxids",
+        command: "spark.getmempoolsparktxids",
       );
 
       final txids = List<String>.from(response as List)
@@ -1072,7 +1072,7 @@ class ElectrumXClient {
       final start = DateTime.now();
       final response = await request(
         requestID: requestID,
-        command: "spark.getmempooltxs",
+        command: "spark.getmempoolsparktxs",
         args: [
           {
             "txids": txids,
