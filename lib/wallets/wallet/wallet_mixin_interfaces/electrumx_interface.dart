@@ -8,6 +8,7 @@ import 'package:isar/isar.dart';
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
 import '../../../electrumx_rpc/client_manager.dart';
 import '../../../electrumx_rpc/electrumx_client.dart';
+import '../../../models/coinlib/exp2pkh_address.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -24,6 +25,7 @@ import '../../crypto_currency/coins/firo.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../models/tx_data.dart';
 import '../impl/bitcoin_wallet.dart';
+import '../impl/firo_wallet.dart';
 import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
@@ -725,11 +727,23 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     // Add transaction output
     for (var i = 0; i < txData.recipients!.length; i++) {
-      final address = coinlib.Address.fromString(
-        normalizeAddress(txData.recipients![i].address),
-        cryptoCurrency.networkParams,
-      );
+      late final coinlib.Address address;
 
+      try {
+        address = coinlib.Address.fromString(
+          normalizeAddress(txData.recipients![i].address),
+          cryptoCurrency.networkParams,
+        );
+      } catch (_) {
+        if (this is FiroWallet) {
+          address = EXP2PKHAddress.fromString(
+            normalizeAddress(txData.recipients![i].address),
+            (cryptoCurrency as Firo).exAddressVersion,
+          );
+        } else {
+          rethrow;
+        }
+      }
       final output = coinlib.Output.fromAddress(
         txData.recipients![i].amount.raw,
         address,

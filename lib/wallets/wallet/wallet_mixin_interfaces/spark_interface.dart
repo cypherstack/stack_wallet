@@ -716,13 +716,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       return result;
     } catch (e) {
       Logging.instance.log(
-        "refreshSparkMempoolData() failed: $e",
+        "_refreshSparkCoinsMempoolCheck() failed: $e",
         level: LogLevel.Error,
       );
       return [];
     } finally {
       Logging.instance.log(
-        "$walletId ${info.name} refreshSparkCoinsMempoolCheck() run "
+        "$walletId ${info.name} _refreshSparkCoinsMempoolCheck() run "
         "duration: ${DateTime.now().difference(start)}",
         level: LogLevel.Debug,
       );

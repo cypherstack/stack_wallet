@@ -60,6 +60,7 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/desktop_fee_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../../../widgets/fee_slider.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
@@ -706,6 +707,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           address: address ?? "",
           isTestNet: wallet.cryptoCurrency.network.isTestNet,
         );
+
+        ref.read(pIsExchangeAddress.state).state =
+            (coin as Firo).isExchangeAddress(_address ?? "");
       }
 
       ref.read(pValidSendToAddress.notifier).state =
@@ -842,6 +846,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(feeSheetSessionCacheProvider);
+      ref.refresh(pIsExchangeAddress);
       ref.read(pValidSendToAddress.state).state = false;
       ref.read(pValidSparkSendToAddress.state).state = false;
     });
@@ -944,15 +949,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       });
     }
 
+    final firoType = ref.watch(publicPrivateBalanceStateProvider);
+    if (coin is Firo && firoType == FiroType.spark) {
+      if (ref.watch(pIsExchangeAddress)) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => showFiroExchangeAddressWarning(context),
+        );
+      }
+    }
+
     final showCoinControl = ref.watch(
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
-        (coin is Firo
-            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
-            : true);
+        (coin is Firo ? firoType == FiroType.public : true);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -978,7 +990,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           DropdownButtonHideUnderline(
             child: DropdownButton2(
               isExpanded: true,
-              value: ref.watch(publicPrivateBalanceStateProvider.state).state,
+              value: firoType,
               items: [
                 DropdownMenuItem(
                   value: FiroType.spark,
@@ -1464,8 +1476,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               if (_address == null || _address!.isEmpty) {
                 error = null;
               } else if (coin is Firo) {
-                if (ref.watch(publicPrivateBalanceStateProvider) ==
-                    FiroType.lelantus) {
+                if (firoType == FiroType.lelantus) {
                   if (_data != null && _data!.contactLabel == _address) {
                     error = SparkInterface.validateSparkAddress(
                       address: _data!.address,
@@ -1526,15 +1537,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         if (isStellar ||
             (ref.watch(pValidSparkSendToAddress) &&
-                ref.watch(publicPrivateBalanceStateProvider) !=
-                    FiroType.lelantus))
+                firoType != FiroType.lelantus))
           const SizedBox(
             height: 10,
           ),
         if (isStellar ||
             (ref.watch(pValidSparkSendToAddress) &&
-                ref.watch(publicPrivateBalanceStateProvider) !=
-                    FiroType.lelantus))
+                firoType != FiroType.lelantus))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
