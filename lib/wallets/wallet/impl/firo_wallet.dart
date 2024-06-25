@@ -631,9 +631,16 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           BigInt.from(jsonUTXO["value"] as int);
 
       if (blocked) {
-        blockedReason = "Possible masternode output. "
+        blocked = await electrumXClient.isMasterNodeCollateral(
+          txid: jsonTX!["txid"] as String,
+          index: jsonUTXO["tx_pos"] as int,
+        );
+      }
+
+      if (blocked) {
+        blockedReason = "Masternode collateral. "
             "Unlock and spend at your own risk.";
-        label = "Possible masternode";
+        label = "Masternode collateral";
       }
     }
 

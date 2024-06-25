@@ -1142,6 +1142,38 @@ class ElectrumXClient {
   }
   // ===========================================================================
 
+  Future<bool> isMasterNodeCollateral({
+    String? requestID,
+    required String txid,
+    required int index,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "blockchain.checkifmncollateral",
+        args: [
+          txid,
+          index.toString(),
+        ],
+      );
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.isMasterNodeCollateral, "
+        "response: $response, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return response as bool? ?? false;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  // ===========================================================================
+
   /// Get the current fee rate.
   ///
   /// Returns a map with the kay "rate" that corresponds to the free rate in satoshis
