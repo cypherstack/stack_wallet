@@ -543,8 +543,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9e9441fc1e9ace8907256fff05fe2c607b0933b6"
-      resolved-ref: "9e9441fc1e9ace8907256fff05fe2c607b0933b6"
+      ref: "6bf385b2e1e18c8aa23783cb8afeabace299cf68"
+      resolved-ref: "6bf385b2e1e18c8aa23783cb8afeabace299cf68"
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
     version: "3.0.0"
@@ -1197,9 +1197,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6a17a405a1a260fa228b2f4fc94044088a4335ac"
-      resolved-ref: "6a17a405a1a260fa228b2f4fc94044088a4335ac"
-      url: "https://www.github.com/mrcyjanek/monero.dart"
+      ref: d46753eca865e9e56c2f0ef6fe485c42e11982c5
+      resolved-ref: d46753eca865e9e56c2f0ef6fe485c42e11982c5
+      url: "https://github.com/mrcyjanek/monero.dart"
     source: git
     version: "0.0.0"
   mutex:
@@ -1807,8 +1807,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
-      resolved-ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
+      ref: f1d02f7ad489df3119a540a7f31485db6d837843
+      resolved-ref: f1d02f7ad489df3119a540a7f31485db6d837843
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"

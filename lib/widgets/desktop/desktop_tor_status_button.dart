@@ -2,15 +2,16 @@ import 'dart:async';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../pages_desktop_specific/desktop_menu_item.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
 import '../../services/tor_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/extensions/extensions.dart';
 import '../../utilities/text_styles.dart';
 
 class DesktopTorStatusButton extends ConsumerStatefulWidget {

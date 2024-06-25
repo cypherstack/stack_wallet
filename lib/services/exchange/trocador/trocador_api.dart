@@ -11,17 +11,18 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
+
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../networking/http.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
+import '../../tor_service.dart';
 import '../exchange_response.dart';
 import 'response_objects/trocador_coin.dart';
 import 'response_objects/trocador_rate.dart';
 import 'response_objects/trocador_trade.dart';
 import 'response_objects/trocador_trade_new.dart';
-import '../../tor_service.dart';
-import '../../../utilities/logger.dart';
-import '../../../utilities/prefs.dart';
 
 const kTrocadorApiKey = "8rFqf7QLxX1mUBiNPEMaLUpV2biz6n";
 const kTrocadorRefCode = "9eHm9BkQfS";

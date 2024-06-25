@@ -9,7 +9,6 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
@@ -21,6 +20,7 @@ import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/ordinal.dart';
 import '../../models/isar/stack_theme.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/extensions/extensions.dart';
 import '../../utilities/stack_file_system.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/models/frost_wallet_info.dart';

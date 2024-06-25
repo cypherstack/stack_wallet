@@ -9,6 +9,7 @@
  */
 
 import 'dart:convert';
+import 'dart:core';
 import 'dart:typed_data';
 
 import 'package:dart_bs58/dart_bs58.dart';
@@ -38,4 +39,9 @@ extension StringExtensions on String {
           .reversed
           .map((e) => e.toRadixString(16).padLeft(2, '0'))
           .join();
+
+  /// Capitalize the first letter of a string.
+  String capitalize() {
+    return isEmpty ? this : "${this[0].toUpperCase()}${substring(1)}";
+  }
 }

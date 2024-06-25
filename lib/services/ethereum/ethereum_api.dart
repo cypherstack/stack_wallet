@@ -10,7 +10,6 @@
 
 import 'dart:convert';
 
-import 'package:http/http.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../dto/ethereum/eth_token_tx_dto.dart';
@@ -120,8 +119,8 @@ abstract class EthereumAPI {
     String txid,
   ) async {
     try {
-      final response = await post(
-        Uri.parse(
+      final response = await client.post(
+        url: Uri.parse(
           "$stackBaseServer/v1/mainnet",
         ),
         headers: {'Content-Type': 'application/json'},
@@ -133,9 +132,12 @@ abstract class EthereumAPI {
           ],
           "id": DateTime.now().millisecondsSinceEpoch,
         }),
+        proxyInfo: Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
       );
 
-      if (response.statusCode == 200) {
+      if (response.code == 200) {
         if (response.body.isNotEmpty) {
           try {
             final json = jsonDecode(response.body) as Map;
@@ -153,13 +155,13 @@ abstract class EthereumAPI {
         } else {
           throw EthApiException(
             "getEthTransactionByHash($txid) response is empty but status code is "
-            "${response.statusCode}",
+            "${response.code}",
           );
         }
       } else {
         throw EthApiException(
           "getEthTransactionByHash($txid) failed with status code: "
-          "${response.statusCode}",
+          "${response.code}",
         );
       }
     } on EthApiException catch (e) {
