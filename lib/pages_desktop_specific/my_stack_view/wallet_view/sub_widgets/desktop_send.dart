@@ -122,6 +122,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool _addressToggleFlag = false;
 
+  bool _isFiroExWarningDisplayed = false;
+
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
 
@@ -951,9 +953,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final firoType = ref.watch(publicPrivateBalanceStateProvider);
     if (coin is Firo && firoType == FiroType.spark) {
-      if (ref.watch(pIsExchangeAddress)) {
+      if (ref.watch(pIsExchangeAddress) && !_isFiroExWarningDisplayed) {
+        _isFiroExWarningDisplayed = true;
         WidgetsBinding.instance.addPostFrameCallback(
-          (_) => showFiroExchangeAddressWarning(context),
+          (_) => showFiroExchangeAddressWarning(
+            context,
+            () => _isFiroExWarningDisplayed = false,
+          ),
         );
       }
     }

@@ -18,9 +18,13 @@ class FiroExchangeAddressDialog extends StatelessWidget {
   }
 }
 
-Future<void> showFiroExchangeAddressWarning(BuildContext context) async {
-  return await showDialog<void>(
+Future<void> showFiroExchangeAddressWarning(
+  BuildContext context,
+  VoidCallback onClosed,
+) async {
+  await showDialog<void>(
     context: context,
     builder: (_) => const FiroExchangeAddressDialog(),
   );
+  onClosed();
 }

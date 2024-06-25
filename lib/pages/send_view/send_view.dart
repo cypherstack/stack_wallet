@@ -128,6 +128,8 @@ class _SendViewState extends ConsumerState<SendView> {
 
   bool _addressToggleFlag = false;
 
+  bool _isFiroExWarningDisplayed = false;
+
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
 
@@ -400,8 +402,13 @@ class _SendViewState extends ConsumerState<SendView> {
             (coin as Firo).isExchangeAddress(_address ?? "");
 
         if (ref.read(publicPrivateBalanceStateProvider) == FiroType.spark &&
-            ref.read(pIsExchangeAddress)) {
-          showFiroExchangeAddressWarning(context);
+            ref.read(pIsExchangeAddress) &&
+            !_isFiroExWarningDisplayed) {
+          _isFiroExWarningDisplayed = true;
+          showFiroExchangeAddressWarning(
+            context,
+            () => _isFiroExWarningDisplayed = false,
+          );
         }
       }
 
@@ -1034,9 +1041,16 @@ class _SendViewState extends ConsumerState<SendView> {
           });
         }
 
-        if (previous != next && next == FiroType.spark && isExchangeAddress) {
+        if (previous != next &&
+            next == FiroType.spark &&
+            isExchangeAddress &&
+            !_isFiroExWarningDisplayed) {
+          _isFiroExWarningDisplayed = true;
           WidgetsBinding.instance.addPostFrameCallback(
-            (_) => showFiroExchangeAddressWarning(context),
+            (_) => showFiroExchangeAddressWarning(
+              context,
+              () => _isFiroExWarningDisplayed = false,
+            ),
           );
         }
       });
