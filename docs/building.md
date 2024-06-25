@@ -116,6 +116,22 @@ cd ..
 or manually by creating the files referenced in that script with the specified content.
 
 ### Build plugins
+#### Build script: `build_app.sh`
+The `build_app.sh` script is use to build applications Stack Wallet.  View the script's help message with `./build_app.sh -h` for more information on its usage.
+
+Options:
+
+ - `a <app>`: Specify the application ID (required).  Valid options are `stack_wallet` or `stack_duo`.
+ - `b <build_number>`: Specify the build number in 123 (required).
+ - `p <platform>`: Specify the platform to build for (required).  Valid options are `android`, `ios`, `macos`, `linux`, or `windows`.
+ - `v <version>`: Specify the version of the application in 1.2.3 format (required).
+ - `i`: Optional flag to skip building crypto plugins.  Useful for updating `pubspec.yaml` and white-labelling different apps with the same plugins.
+
+For example,
+```
+./build_app.sh -a stack_wallet -p linux -v 2.1.0 -b 210
+```
+
 #### Building plugins for Android 
 > Warning: This will take a long time, please be patient
 ```
