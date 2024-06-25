@@ -1087,10 +1087,10 @@ class ElectrumXClient {
           (
             txid: entry.key,
             serialContext:
-                List<String>.from(entry.value["Serial_context"] as List),
+                List<String>.from(entry.value["serial_context"] as List),
             // the space after lTags is required lol
             lTags: List<String>.from(entry.value["lTags "] as List),
-            coins: List<String>.from(entry.value["Coins"] as List),
+            coins: List<String>.from(entry.value["coins"] as List),
           ),
         );
       }
