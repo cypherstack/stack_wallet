@@ -399,7 +399,7 @@ class _SendViewState extends ConsumerState<SendView> {
         );
 
         ref.read(pIsExchangeAddress.state).state =
-            (coin as Firo).isExchangeAddress(_address ?? "");
+            (coin as Firo).isExchangeAddress(address ?? "");
 
         if (ref.read(publicPrivateBalanceStateProvider) == FiroType.spark &&
             ref.read(pIsExchangeAddress) &&

@@ -711,7 +711,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
 
         ref.read(pIsExchangeAddress.state).state =
-            (coin as Firo).isExchangeAddress(_address ?? "");
+            (coin as Firo).isExchangeAddress(address ?? "");
+
+        if (ref.read(publicPrivateBalanceStateProvider) == FiroType.spark &&
+            ref.read(pIsExchangeAddress) &&
+            !_isFiroExWarningDisplayed) {
+          _isFiroExWarningDisplayed = true;
+          showFiroExchangeAddressWarning(
+            context,
+            () => _isFiroExWarningDisplayed = false,
+          );
+        }
       }
 
       ref.read(pValidSendToAddress.notifier).state =
@@ -952,8 +962,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
 
     final firoType = ref.watch(publicPrivateBalanceStateProvider);
-    if (coin is Firo && firoType == FiroType.spark) {
-      if (ref.watch(pIsExchangeAddress) && !_isFiroExWarningDisplayed) {
+
+    final isExchangeAddress = ref.watch(pIsExchangeAddress);
+    ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
+      if (previous != next &&
+          next == FiroType.spark &&
+          isExchangeAddress &&
+          !_isFiroExWarningDisplayed) {
         _isFiroExWarningDisplayed = true;
         WidgetsBinding.instance.addPostFrameCallback(
           (_) => showFiroExchangeAddressWarning(
@@ -962,7 +977,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         );
       }
-    }
+    });
 
     final showCoinControl = ref.watch(
           prefsChangeNotifierProvider.select(
