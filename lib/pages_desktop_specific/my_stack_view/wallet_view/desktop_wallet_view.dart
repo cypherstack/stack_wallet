@@ -294,7 +294,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                             width: 2,
                           ),
                           FutureBuilder(
-                            future: FiroCacheCoordinator.getSparkCacheSize(),
+                            future: FiroCacheCoordinator.getSparkCacheSize(
+                              wallet.cryptoCurrency.network,
+                            ),
                             builder: (_, snapshot) => Text(
                               snapshot.data ?? "",
                             ),

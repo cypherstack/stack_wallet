@@ -12,6 +12,7 @@ import '../../electrumx_rpc/electrumx_client.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/stack_file_system.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
 part 'firo_cache_coordinator.dart';
 part 'firo_cache_reader.dart';
@@ -31,29 +32,39 @@ void _debugLog(Object? object) {
 abstract class _FiroCache {
   static const int _setCacheVersion = 1;
   static const int _tagsCacheVersion = 2;
-  static const String sparkSetCacheFileName =
-      "spark_set_v$_setCacheVersion.sqlite3";
-  static const String sparkUsedTagsCacheFileName =
-      "spark_tags_v$_tagsCacheVersion.sqlite3";
 
-  static Database? _setCacheDB;
-  static Database? _usedTagsCacheDB;
-  static Database get setCacheDB {
-    if (_setCacheDB == null) {
+  static final networks = [
+    CryptoCurrencyNetwork.main,
+    CryptoCurrencyNetwork.test,
+  ];
+
+  static String sparkSetCacheFileName(CryptoCurrencyNetwork network) =>
+      network == CryptoCurrencyNetwork.main
+          ? "spark_set_v$_setCacheVersion.sqlite3"
+          : "spark_set_v${_setCacheVersion}_${network.name}.sqlite3";
+  static String sparkUsedTagsCacheFileName(CryptoCurrencyNetwork network) =>
+      network == CryptoCurrencyNetwork.main
+          ? "spark_tags_v$_tagsCacheVersion.sqlite3"
+          : "spark_tags_v${_tagsCacheVersion}_${network.name}.sqlite3";
+
+  static final Map<CryptoCurrencyNetwork, Database> _setCacheDB = {};
+  static final Map<CryptoCurrencyNetwork, Database> _usedTagsCacheDB = {};
+  static Database setCacheDB(CryptoCurrencyNetwork network) {
+    if (_setCacheDB[network] == null) {
       throw Exception(
         "FiroCache.init() must be called before accessing FiroCache.db!",
       );
     }
-    return _setCacheDB!;
+    return _setCacheDB[network]!;
   }
 
-  static Database get usedTagsCacheDB {
-    if (_usedTagsCacheDB == null) {
+  static Database usedTagsCacheDB(CryptoCurrencyNetwork network) {
+    if (_usedTagsCacheDB[network] == null) {
       throw Exception(
         "FiroCache.init() must be called before accessing FiroCache.db!",
       );
     }
-    return _usedTagsCacheDB!;
+    return _usedTagsCacheDB[network]!;
   }
 
   static Future<void>? _initFuture;
@@ -63,30 +74,34 @@ abstract class _FiroCache {
     final sqliteDir =
         await StackFileSystem.applicationFiroCacheSQLiteDirectory();
 
-    final sparkSetCacheFile = File("${sqliteDir.path}/$sparkSetCacheFileName");
-    final sparkUsedTagsCacheFile =
-        File("${sqliteDir.path}/$sparkUsedTagsCacheFileName");
+    for (final network in networks) {
+      final sparkSetCacheFile =
+          File("${sqliteDir.path}/${sparkSetCacheFileName(network)}");
 
-    if (!(await sparkSetCacheFile.exists())) {
-      await _createSparkSetCacheDb(sparkSetCacheFile.path);
-    }
-    if (!(await sparkUsedTagsCacheFile.exists())) {
-      await _createSparkUsedTagsCacheDb(sparkUsedTagsCacheFile.path);
-    }
+      final sparkUsedTagsCacheFile =
+          File("${sqliteDir.path}/${sparkUsedTagsCacheFileName(network)}");
 
-    _setCacheDB = sqlite3.open(
-      sparkSetCacheFile.path,
-      mode: OpenMode.readWrite,
-    );
-    _usedTagsCacheDB = sqlite3.open(
-      sparkUsedTagsCacheFile.path,
-      mode: OpenMode.readWrite,
-    );
+      if (!(await sparkSetCacheFile.exists())) {
+        await _createSparkSetCacheDb(sparkSetCacheFile.path);
+      }
+      if (!(await sparkUsedTagsCacheFile.exists())) {
+        await _createSparkUsedTagsCacheDb(sparkUsedTagsCacheFile.path);
+      }
+
+      _setCacheDB[network] = sqlite3.open(
+        sparkSetCacheFile.path,
+        mode: OpenMode.readWrite,
+      );
+      _usedTagsCacheDB[network] = sqlite3.open(
+        sparkUsedTagsCacheFile.path,
+        mode: OpenMode.readWrite,
+      );
+    }
   }
 
-  static Future<void> _deleteAllCache() async {
+  static Future<void> _deleteAllCache(CryptoCurrencyNetwork network) async {
     final start = DateTime.now();
-    setCacheDB.execute(
+    setCacheDB(network).execute(
       """
         DELETE FROM SparkSet;
         DELETE FROM SparkCoin;
@@ -94,7 +109,7 @@ abstract class _FiroCache {
         VACUUM;
       """,
     );
-    usedTagsCacheDB.execute(
+    usedTagsCacheDB(network).execute(
       """
         DELETE FROM SparkUsedCoinTags;
         VACUUM;

@@ -387,6 +387,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           parseAnonFees();
           final tags = await FiroCacheCoordinator.getUsedCoinTagsFor(
             txid: txData["txid"] as String,
+            network: cryptoCurrency.network,
           );
           spentSparkCoins = sparkCoinsInvolvedSpent
               .where(
@@ -712,12 +713,14 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
               i,
               electrumXClient,
+              cryptoCurrency.network,
             ),
           );
         }
         final sparkUsedCoinTagsFuture =
             FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
           electrumXClient,
+          cryptoCurrency.network,
         );
 
         // receiving addresses
