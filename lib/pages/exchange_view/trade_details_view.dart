@@ -16,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -50,6 +49,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/qr.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
@@ -808,15 +808,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       child: SizedBox(
                                         width: width + 20,
                                         height: width + 20,
-                                        child: QrImageView(
+                                        child: QR(
                                           data: trade.payInAddress,
                                           size: width,
-                                          backgroundColor: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .popupBG,
-                                          foregroundColor: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
                                         ),
                                       ),
                                     ),

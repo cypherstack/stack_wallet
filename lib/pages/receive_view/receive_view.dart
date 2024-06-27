@@ -16,7 +16,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../models/isar/models/isar_models.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -44,6 +43,7 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'addresses/wallet_addresses_view.dart';
 import 'generate_receiving_uri_qr_code_view.dart';
@@ -575,16 +575,13 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       child: Center(
                         child: Column(
                           children: [
-                            QrImageView(
+                            QR(
                               data: AddressUtils.buildUriString(
                                 coin,
                                 address,
                                 {},
                               ),
                               size: MediaQuery.of(context).size.width / 2,
-                              foregroundColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark,
                             ),
                             const SizedBox(
                               height: 20,

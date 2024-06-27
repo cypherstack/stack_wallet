@@ -20,7 +20,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../notifications/show_flush_bar.dart';
@@ -39,6 +38,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
@@ -215,14 +215,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                   child: SizedBox(
                     width: width + 20,
                     height: width + 20,
-                    child: QrImageView(
+                    child: QR(
                       data: uriString,
                       size: width,
-                      backgroundColor:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      foregroundColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -556,15 +551,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                 child: SizedBox(
                                   width: 234,
                                   height: 234,
-                                  child: QrImageView(
+                                  child: QR(
                                     data: _uriString,
                                     size: 220,
-                                    backgroundColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .popupBG,
-                                    foregroundColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
                                   ),
                                 ),
                               ),

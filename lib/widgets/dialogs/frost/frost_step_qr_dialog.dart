@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+
 import 'package:share_plus/share_plus.dart';
 
 import '../../../notifications/show_flush_bar.dart';
@@ -17,6 +17,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../conditional_parent.dart';
 import '../../desktop/secondary_button.dart';
+import '../../qr.dart';
 import '../../rounded_container.dart';
 import '../../rounded_white_container.dart';
 import '../simple_mobile_dialog.dart';
@@ -154,18 +155,9 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
                             padding: const EdgeInsets.all(16),
                             child: AspectRatio(
                               aspectRatio: 1,
-                              child: QrImageView(
+                              child: QR(
                                 data: widget.data,
                                 padding: EdgeInsets.zero,
-                                foregroundColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark,
-                                // dataModuleStyle: QrDataModuleStyle(
-                                //   dataModuleShape: QrDataModuleShape.square,
-                                //   color: Theme.of(context)
-                                //       .extension<StackColors>()!
-                                //       .accentColorDark,
-                                // ),
                               ),
                             ),
                           ),
