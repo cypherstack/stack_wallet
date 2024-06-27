@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../pages/wallets_view/wallets_overview.dart';
 import '../../providers/providers.dart';
 import '../../themes/coin_icon_provider.dart';
@@ -21,6 +22,7 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
+import '../../widgets/breathing.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -146,71 +148,56 @@ class _DesktopWalletSummaryRowState
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(
-        () => _hovering = true,
-      ),
-      onExit: (_) => setState(
-        () => _hovering = false,
-      ),
-      child: AnimatedScale(
-        scale: _hovering ? 1.00 : 0.98,
-        duration: const Duration(
-          milliseconds: 200,
-        ),
-        child: RoundedWhiteContainer(
-          padding: const EdgeInsets.all(20),
-          hoverColor: Colors.transparent,
-          onPressed: _onPressed,
-          child: Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Row(
-                  children: [
-                    SvgPicture.file(
-                      File(
-                        ref.watch(coinIconProvider(widget.coin)),
-                      ),
-                      width: 28,
-                      height: 28,
+    return Breathing(
+      child: RoundedWhiteContainer(
+        padding: const EdgeInsets.all(20),
+        hoverColor: Colors.transparent,
+        onPressed: _onPressed,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 4,
+              child: Row(
+                children: [
+                  SvgPicture.file(
+                    File(
+                      ref.watch(coinIconProvider(widget.coin)),
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Text(
-                      widget.coin.prettyName,
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 4,
-                child: Text(
-                  widget.walletCount == 1
-                      ? "${widget.walletCount} wallet"
-                      : "${widget.walletCount} wallets",
-                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
+                    width: 28,
+                    height: 28,
                   ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    widget.coin.prettyName,
+                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Text(
+                widget.walletCount == 1
+                    ? "${widget.walletCount} wallet"
+                    : "${widget.walletCount} wallets",
+                style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle1,
                 ),
               ),
-              Expanded(
-                flex: 6,
-                child: TablePriceInfo(
-                  coin: widget.coin,
-                ),
+            ),
+            Expanded(
+              flex: 6,
+              child: TablePriceInfo(
+                coin: widget.coin,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
