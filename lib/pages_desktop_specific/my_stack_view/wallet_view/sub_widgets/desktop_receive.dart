@@ -16,7 +16,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../../models/isar/models/isar_models.dart';
@@ -42,6 +41,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class DesktopReceive extends ConsumerStatefulWidget {
@@ -476,15 +476,13 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           height: 32,
         ),
         Center(
-          child: QrImageView(
+          child: QR(
             data: AddressUtils.buildUriString(
               coin,
               _qrcodeContent ?? "",
               {},
             ),
             size: 200,
-            foregroundColor:
-                Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
         ),
         const SizedBox(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../frost_route_generator.dart';
 import '../../../../providers/db/main_db_provider.dart';
@@ -23,6 +22,7 @@ import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../widgets/dialogs/simple_mobile_dialog.dart';
 import '../../../../widgets/frost_step_user_steps.dart';
+import '../../../../widgets/qr.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostReshareStep1a extends ConsumerStatefulWidget {
@@ -239,14 +239,9 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                QrImageView(
+                QR(
                   data: ref.watch(pFrostResharingData).resharerRConfig!,
                   size: 220,
-                  backgroundColor:
-                      Theme.of(context).extension<StackColors>()!.background,
-                  foregroundColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
                 ),
               ],
             ),

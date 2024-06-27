@@ -20,7 +20,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../db/isar/main_db.dart';
@@ -39,6 +38,7 @@ import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/custom_buttons/simple_edit_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 
@@ -302,19 +302,13 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                   Center(
                                     child: RepaintBoundary(
                                       key: _qrKey,
-                                      child: QrImageView(
+                                      child: QR(
                                         data: AddressUtils.buildUriString(
                                           widget.coin,
                                           address.value,
                                           {},
                                         ),
                                         size: 220,
-                                        backgroundColor: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .popupBG,
-                                        foregroundColor: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark,
                                       ),
                                     ),
                                   ),

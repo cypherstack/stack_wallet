@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -31,6 +30,7 @@ import '../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../widgets/custom_buttons/simple_edit_button.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/transaction_card.dart';
 import '../../wallet_view/sub_widgets/no_transactions_found.dart';
@@ -92,18 +92,13 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   Center(
                     child: RepaintBoundary(
                       key: _qrKey,
-                      child: QrImageView(
+                      child: QR(
                         data: AddressUtils.buildUriString(
                           ref.watch(pWalletCoin(widget.walletId)),
                           address.value,
                           {},
                         ),
                         size: 220,
-                        backgroundColor:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        foregroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
                       ),
                     ),
                   ),
@@ -289,19 +284,13 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   Center(
                     child: RepaintBoundary(
                       key: _qrKey,
-                      child: QrImageView(
+                      child: QR(
                         data: AddressUtils.buildUriString(
                           coin,
                           address.value,
                           {},
                         ),
                         size: 220,
-                        backgroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                        foregroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
                       ),
                     ),
                   ),

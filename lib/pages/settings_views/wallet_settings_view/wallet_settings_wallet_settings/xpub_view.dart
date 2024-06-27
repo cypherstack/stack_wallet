@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -32,6 +31,7 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class XPubView extends ConsumerStatefulWidget {
@@ -256,11 +256,9 @@ class _XPub extends StatelessWidget {
             builder: (child) => RoundedWhiteContainer(
               child: child,
             ),
-            child: QrImageView(
+            child: QR(
               data: xpub,
               size: isDesktop ? 280 : MediaQuery.of(context).size.width / 1.5,
-              foregroundColor:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
             ),
           ),
           const SizedBox(height: 25),

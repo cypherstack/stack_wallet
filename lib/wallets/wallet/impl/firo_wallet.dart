@@ -387,6 +387,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           parseAnonFees();
           final tags = await FiroCacheCoordinator.getUsedCoinTagsFor(
             txid: txData["txid"] as String,
+            network: cryptoCurrency.network,
           );
           spentSparkCoins = sparkCoinsInvolvedSpent
               .where(
@@ -631,9 +632,23 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           BigInt.from(jsonUTXO["value"] as int);
 
       if (blocked) {
-        blockedReason = "Possible masternode output. "
+        try {
+          blocked = await electrumXClient.isMasterNodeCollateral(
+            txid: jsonTX!["txid"] as String,
+            index: jsonUTXO["tx_pos"] as int,
+          );
+        } catch (_) {
+          // call failed, lock utxo just in case
+          // it should logically already be blocked
+          // but just in case
+          blocked = true;
+        }
+      }
+
+      if (blocked) {
+        blockedReason = "Possible masternode collateral. "
             "Unlock and spend at your own risk.";
-        label = "Possible masternode";
+        label = "Possible masternode collateral";
       }
     }
 
@@ -698,12 +713,14 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
               i,
               electrumXClient,
+              cryptoCurrency.network,
             ),
           );
         }
         final sparkUsedCoinTagsFuture =
             FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
           electrumXClient,
+          cryptoCurrency.network,
         );
 
         // receiving addresses

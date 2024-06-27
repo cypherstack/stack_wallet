@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 
+import '../../../models/coinlib/exp2pkh_address.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/amount/amount.dart';
@@ -76,6 +79,21 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         rawValue: BigInt.from(1000),
         fractionDigits: fractionDigits,
       );
+
+  Uint8List get exAddressVersion {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        // https://github.com/firoorg/firo/blob/master/src/chainparams.cpp#L357
+        return Uint8List.fromList([0x01, 0xb9, 0xbb]);
+
+      case CryptoCurrencyNetwork.test:
+        // https://github.com/firoorg/firo/blob/master/src/chainparams.cpp#L669
+        return Uint8List.fromList([0x01, 0xb9, 0xb1]);
+
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
 
   @override
   coinlib.Network get networkParams {
@@ -169,7 +187,11 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
       coinlib.Address.fromString(address, networkParams);
       return true;
     } catch (_) {
-      return validateSparkAddress(address);
+      if (validateSparkAddress(address)) {
+        return true;
+      } else {
+        return isExchangeAddress(address);
+      }
     }
   }
 
@@ -178,6 +200,18 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
       address: address,
       isTestNet: network.isTestNet,
     );
+  }
+
+  bool isExchangeAddress(String address) {
+    try {
+      EXP2PKHAddress.fromString(
+        address,
+        exAddressVersion,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   @override

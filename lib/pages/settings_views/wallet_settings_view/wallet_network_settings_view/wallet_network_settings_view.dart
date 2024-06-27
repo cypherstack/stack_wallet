@@ -760,6 +760,32 @@ class _WalletNetworkSettingsViewState
               ),
             ),
           SizedBox(
+            height: isDesktop ? 12 : 9,
+          ),
+          RoundedWhiteContainer(
+            borderColor: isDesktop
+                ? Theme.of(context).extension<StackColors>()!.background
+                : null,
+            padding:
+                isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Current height",
+                  textAlign: TextAlign.left,
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.smallMed12(context),
+                ),
+                Text(
+                  ref.watch(pWalletChainHeight(widget.walletId)).toString(),
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
             height: isDesktop ? 32 : 20,
           ),
           Row(
