@@ -1588,8 +1588,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/solana"
-      ref: a83e375678eb22fe544dc125d29bbec0fb833882
-      resolved-ref: a83e375678eb22fe544dc125d29bbec0fb833882
+      ref: "706be5f166d31736c443cca4cd311b7fcfc2a9bf"
+      resolved-ref: "706be5f166d31736c443cca4cd311b7fcfc2a9bf"
       url: "https://github.com/cypherstack/espresso-cash-public.git"
     source: git
     version: "0.30.4"
@@ -1807,8 +1807,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f1d02f7ad489df3119a540a7f31485db6d837843
-      resolved-ref: f1d02f7ad489df3119a540a7f31485db6d837843
+      ref: "647cadc3c82c276dc07915b02d24538fd610f220"
+      resolved-ref: "647cadc3c82c276dc07915b02d24538fd610f220"
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"
