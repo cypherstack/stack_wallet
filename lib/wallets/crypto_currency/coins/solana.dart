@@ -46,8 +46,7 @@ class Solana extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host:
-              "https://api.mainnet-beta.solana.com/", // TODO: Change this to stack wallet one
+          host: "https://solana.stackwallet.com",
           port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
