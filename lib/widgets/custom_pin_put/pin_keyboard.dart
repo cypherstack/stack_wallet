@@ -12,16 +12,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/text_styles.dart';
 
 class NumberKey extends StatefulWidget {
   const NumberKey({
-    Key? key,
+    super.key,
     required this.number,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   final String number;
   final ValueSetter<String> onPressed;
@@ -94,9 +95,9 @@ class _NumberKeyState extends State<NumberKey> {
 
 class BackspaceKey extends StatefulWidget {
   const BackspaceKey({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
 
@@ -129,51 +130,51 @@ class _BackspaceKeyState extends State<BackspaceKey> {
         shadows: const [],
       ),
       child: MaterialButton(
-          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: const StadiumBorder(),
-          onPressed: () {
-            onPressed.call();
-            setState(() {
-              _color = Theme.of(context)
-                  .extension<StackColors>()!
-                  .numpadBackDefault
-                  .withOpacity(0.8);
-            });
+        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: const StadiumBorder(),
+        onPressed: () {
+          onPressed.call();
+          setState(() {
+            _color = Theme.of(context)
+                .extension<StackColors>()!
+                .numpadBackDefault
+                .withOpacity(0.8);
+          });
 
-            Future<void>.delayed(const Duration(milliseconds: 200), () {
-              if (mounted) {
-                setState(() {
-                  _color = Theme.of(context)
-                      .extension<StackColors>()!
-                      .numpadBackDefault;
-                });
-              }
-            });
-          },
-          child: Semantics(
-            label: "Backspace Button. Deletes The Last Digit.",
-            excludeSemantics: true,
-            child: Center(
-              child: SvgPicture.asset(
-                Assets.svg.delete,
-                width: 20,
-                height: 20,
-                color: Theme.of(context)
+          Future<void>.delayed(const Duration(milliseconds: 200), () {
+            if (mounted) {
+              setState(() {
+                _color = Theme.of(context)
                     .extension<StackColors>()!
-                    .numpadTextDefault,
-              ),
+                    .numpadBackDefault;
+              });
+            }
+          });
+        },
+        child: Semantics(
+          label: "Backspace Button. Deletes The Last Digit.",
+          excludeSemantics: true,
+          child: Center(
+            child: SvgPicture.asset(
+              Assets.svg.delete,
+              width: 20,
+              height: 20,
+              color:
+                  Theme.of(context).extension<StackColors>()!.numpadTextDefault,
             ),
-          )),
+          ),
+        ),
+      ),
     );
   }
 }
 
 class SubmitKey extends StatelessWidget {
   const SubmitKey({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
 
@@ -210,11 +211,11 @@ class SubmitKey extends StatelessWidget {
 
 class CustomKey extends StatelessWidget {
   const CustomKey({
-    Key? key,
+    super.key,
     required this.onPressed,
     this.iconAssetName,
     this.semanticsLabel = "Button",
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
   final String? iconAssetName;
@@ -223,43 +224,44 @@ class CustomKey extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: 72,
-        width: 72,
-        decoration: ShapeDecoration(
+      height: 72,
+      width: 72,
+      decoration: ShapeDecoration(
+        shape: const StadiumBorder(),
+        color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
+        shadows: const [],
+      ),
+      child: Semantics(
+        label: semanticsLabel,
+        excludeSemantics: true,
+        child: MaterialButton(
+          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           shape: const StadiumBorder(),
-          color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
-          shadows: const [],
-        ),
-        child: Semantics(
-          label: semanticsLabel,
-          excludeSemantics: true,
-          child: MaterialButton(
-            // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: const StadiumBorder(),
-            onPressed: () {
-              onPressed.call();
-            },
-            child: Center(
-              child: iconAssetName == null
-                  ? null
-                  : SvgPicture.asset(
-                      iconAssetName!,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .numpadTextDefault,
-                    ),
-            ),
+          onPressed: () {
+            onPressed.call();
+          },
+          child: Center(
+            child: iconAssetName == null
+                ? null
+                : SvgPicture.asset(
+                    iconAssetName!,
+                    width: 20,
+                    height: 20,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .numpadTextDefault,
+                  ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
 
 class PinKeyboard extends ConsumerWidget {
   const PinKeyboard({
-    Key? key,
+    super.key,
     required this.onNumberKeyPressed,
     required this.onBackPressed,
     required this.onSubmitPressed,
@@ -268,7 +270,7 @@ class PinKeyboard extends ConsumerWidget {
     this.width = 264,
     this.height = 360,
     this.customKey,
-  }) : super(key: key);
+  });
 
   final ValueSetter<String> onNumberKeyPressed;
   final VoidCallback onBackPressed;
@@ -411,7 +413,7 @@ class PinKeyboard extends ConsumerWidget {
                 onPressed: _submitHandler,
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -420,7 +422,7 @@ class PinKeyboard extends ConsumerWidget {
 
 class RandomKeyboard extends StatelessWidget {
   const RandomKeyboard({
-    Key? key,
+    super.key,
     required this.onNumberKeyPressed,
     required this.onBackPressed,
     required this.onSubmitPressed,
@@ -428,7 +430,7 @@ class RandomKeyboard extends StatelessWidget {
     this.width = 264,
     this.height = 360,
     this.customKey,
-  }) : super(key: key);
+  });
 
   final ValueSetter<String> onNumberKeyPressed;
   final VoidCallback onBackPressed;
@@ -567,7 +569,7 @@ class RandomKeyboard extends StatelessWidget {
                 onPressed: _submitHandler,
               ),
             ],
-          )
+          ),
         ],
       ),
     );

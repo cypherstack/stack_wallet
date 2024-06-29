@@ -10,7 +10,7 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/models/contact_address_entry.dart';
+import 'contact_address_entry.dart';
 import 'package:uuid/uuid.dart';
 
 @Deprecated("Use lib/models/isar/models/contact_entry.dart instead")
@@ -44,13 +44,13 @@ class Contact {
     List<ContactAddressEntry>? addresses,
     bool? isFavorite,
   }) {
-    List<ContactAddressEntry> _addresses = [];
+    final List<ContactAddressEntry> _addresses = [];
     if (addresses == null) {
-      for (var e in this.addresses) {
+      for (final e in this.addresses) {
         _addresses.add(e.copyWith());
       }
     } else {
-      for (var e in addresses) {
+      for (final e in addresses) {
         _addresses.add(e.copyWith());
       }
     }

@@ -12,26 +12,27 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../route_generator.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/stack_text_field.dart';
+import '../../../home_view/home_view.dart';
+import 'helpers/restore_create_backup.dart';
+import 'sub_views/stack_restore_progress_view.dart';
 
 class RestoreFromEncryptedStringView extends ConsumerStatefulWidget {
   const RestoreFromEncryptedStringView({
-    Key? key,
+    super.key,
     required this.encrypted,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/restoreFromEncryptedString";
 
@@ -131,7 +132,8 @@ class _RestoreFromEncryptedStringViewState
                                       ),
                                       GestureDetector(
                                         key: const Key(
-                                            "restoreFromFilePasswordFieldShowPasswordButtonKey"),
+                                          "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                        ),
                                         onTap: () async {
                                           setState(() {
                                             hidePassword = !hidePassword;
@@ -181,7 +183,8 @@ class _RestoreFromEncryptedStringViewState
                                     if (FocusScope.of(context).hasFocus) {
                                       FocusScope.of(context).unfocus();
                                       await Future<void>.delayed(
-                                          const Duration(milliseconds: 75));
+                                        const Duration(milliseconds: 75),
+                                      );
                                     }
 
                                     bool shouldPop = false;
@@ -205,8 +208,8 @@ class _RestoreFromEncryptedStringViewState
                                                   "Decrypting Stack backup file",
                                                   style:
                                                       STextStyles.pageTitleH2(
-                                                              context)
-                                                          .copyWith(
+                                                    context,
+                                                  ).copyWith(
                                                     color: Theme.of(context)
                                                         .extension<
                                                             StackColors>()!

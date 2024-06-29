@@ -12,19 +12,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../app_config.dart';
+import '../../../../providers/providers.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/rounded_container.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import '../step_scaffold.dart';
+import 'desktop_step_item.dart';
 
 class DesktopStep4 extends ConsumerStatefulWidget {
   const DesktopStep4({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<DesktopStep4> createState() => _DesktopStep4State();
@@ -37,7 +38,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
 
   bool _isWalletCoinAndHasWallet(String ticker) {
     try {
-      final coin = coinFromTickerCaseInsensitive(ticker);
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
       return ref
           .read(pWallets)
           .wallets
@@ -147,26 +148,34 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                 vertical: true,
                 label:
                     "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to this address",
-                value: ref.watch(desktopExchangeModelProvider
-                        .select((value) => value!.trade?.payInAddress)) ??
+                value: ref.watch(
+                      desktopExchangeModelProvider
+                          .select((value) => value!.trade?.payInAddress),
+                    ) ??
                     "Error",
               ),
               Container(
                 height: 1,
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
-              if (ref.watch(desktopExchangeModelProvider
-                      .select((value) => value!.trade?.payInExtraId)) !=
+              if (ref.watch(
+                    desktopExchangeModelProvider
+                        .select((value) => value!.trade?.payInExtraId),
+                  ) !=
                   null)
                 DesktopStepItem(
                   vertical: true,
                   label: "Memo",
-                  value: ref.watch(desktopExchangeModelProvider
-                          .select((value) => value!.trade?.payInExtraId)) ??
+                  value: ref.watch(
+                        desktopExchangeModelProvider
+                            .select((value) => value!.trade?.payInExtraId),
+                      ) ??
                       "Error",
                 ),
-              if (ref.watch(desktopExchangeModelProvider
-                      .select((value) => value!.trade?.payInExtraId)) !=
+              if (ref.watch(
+                    desktopExchangeModelProvider
+                        .select((value) => value!.trade?.payInExtraId),
+                  ) !=
                   null)
                 Container(
                   height: 1,
@@ -183,8 +192,10 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               ),
               DesktopStepItem(
                 label: "Trade ID",
-                value: ref.watch(desktopExchangeModelProvider
-                        .select((value) => value!.trade?.tradeId)) ??
+                value: ref.watch(
+                      desktopExchangeModelProvider
+                          .select((value) => value!.trade?.tradeId),
+                    ) ??
                     "Error",
               ),
               Container(

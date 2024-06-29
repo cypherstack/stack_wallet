@@ -10,25 +10,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
-import 'package:stackwallet/pages/stack_privacy_calls.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/choose_coin_view.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/choose_coin_view.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import '../../../stack_privacy_calls.dart';
+import 'debug_view.dart';
+import 'manage_coin_units/manage_coin_units_view.dart';
+import 'manage_explorer_view.dart';
 
 class AdvancedSettingsView extends StatelessWidget {
   const AdvancedSettingsView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/advancedSettings";
 
@@ -116,7 +117,8 @@ class AdvancedSettingsView extends StatelessWidget {
                               child: DraggableSwitchButton(
                                 isOn: ref.watch(
                                   prefsChangeNotifierProvider.select(
-                                      (value) => value.showTestNetCoins),
+                                    (value) => value.showTestNetCoins,
+                                  ),
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
@@ -163,7 +165,8 @@ class AdvancedSettingsView extends StatelessWidget {
                               child: DraggableSwitchButton(
                                 isOn: ref.watch(
                                   prefsChangeNotifierProvider.select(
-                                      (value) => value.enableCoinControl),
+                                    (value) => value.enableCoinControl,
+                                  ),
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
@@ -224,7 +227,7 @@ class AdvancedSettingsView extends StatelessWidget {
                                         : "\nIncognito",
                                     style: STextStyles.label(context)
                                         .copyWith(fontSize: 15.0),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -249,11 +252,14 @@ class AdvancedSettingsView extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pushNamed(ChooseCoinView.routeName,
-                        arguments: const Tuple3<String, String, String>(
-                            "Manage block explorers",
-                            "block explorer",
-                            ManageExplorerView.routeName));
+                    Navigator.of(context).pushNamed(
+                      ChooseCoinView.routeName,
+                      arguments: const Tuple3<String, String, String>(
+                        "Manage block explorers",
+                        "block explorer",
+                        ManageExplorerView.routeName,
+                      ),
+                    );
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

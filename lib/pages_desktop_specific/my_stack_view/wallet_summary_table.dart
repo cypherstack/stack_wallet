@@ -13,20 +13,21 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/supported_coins.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/dialogs/tor_warning_dialog.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../pages/wallets_view/wallets_overview.dart';
+import '../../providers/providers.dart';
+import '../../themes/coin_icon_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/all_wallets_info_provider.dart';
+import '../../widgets/breathing.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/dialogs/tor_warning_dialog.dart';
+import '../../widgets/rounded_white_container.dart';
 
 class WalletSummaryTable extends ConsumerStatefulWidget {
   const WalletSummaryTable({super.key});
@@ -54,7 +55,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
             child: child,
           ),
           child: DesktopWalletSummaryRow(
-            key: Key("DesktopWalletSummaryRow_key_${coin.name}"),
+            key: Key("DesktopWalletSummaryRow_key_${coin.identifier}"),
             coin: coin,
             walletCount: walletsByCoin[index].wallets.length,
           ),
@@ -75,7 +76,7 @@ class DesktopWalletSummaryRow extends ConsumerStatefulWidget {
     required this.walletCount,
   });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final int walletCount;
 
   @override
@@ -91,8 +92,7 @@ class _DesktopWalletSummaryRowState
     // Check if Tor is enabled...
     if (ref.read(prefsChangeNotifierProvider).useTor) {
       // ... and if the coin supports Tor.
-      final cryptocurrency = SupportedCoins.getCryptoCurrencyFor(widget.coin);
-      if (!cryptocurrency.torSupport) {
+      if (!widget.coin.torSupport) {
         // If not, show a Tor warning dialog.
         final shouldContinue = await showDialog<bool>(
               context: context,
@@ -148,71 +148,56 @@ class _DesktopWalletSummaryRowState
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(
-        () => _hovering = true,
-      ),
-      onExit: (_) => setState(
-        () => _hovering = false,
-      ),
-      child: AnimatedScale(
-        scale: _hovering ? 1.00 : 0.98,
-        duration: const Duration(
-          milliseconds: 200,
-        ),
-        child: RoundedWhiteContainer(
-          padding: const EdgeInsets.all(20),
-          hoverColor: Colors.transparent,
-          onPressed: _onPressed,
-          child: Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Row(
-                  children: [
-                    SvgPicture.file(
-                      File(
-                        ref.watch(coinIconProvider(widget.coin)),
-                      ),
-                      width: 28,
-                      height: 28,
+    return Breathing(
+      child: RoundedWhiteContainer(
+        padding: const EdgeInsets.all(20),
+        hoverColor: Colors.transparent,
+        onPressed: _onPressed,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 4,
+              child: Row(
+                children: [
+                  SvgPicture.file(
+                    File(
+                      ref.watch(coinIconProvider(widget.coin)),
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Text(
-                      widget.coin.prettyName,
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 4,
-                child: Text(
-                  widget.walletCount == 1
-                      ? "${widget.walletCount} wallet"
-                      : "${widget.walletCount} wallets",
-                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
+                    width: 28,
+                    height: 28,
                   ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    widget.coin.prettyName,
+                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Text(
+                widget.walletCount == 1
+                    ? "${widget.walletCount} wallet"
+                    : "${widget.walletCount} wallets",
+                style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color:
+                      Theme.of(context).extension<StackColors>()!.textSubtitle1,
                 ),
               ),
-              Expanded(
-                flex: 6,
-                child: TablePriceInfo(
-                  coin: widget.coin,
-                ),
+            ),
+            Expanded(
+              flex: 6,
+              child: TablePriceInfo(
+                coin: widget.coin,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -220,9 +205,9 @@ class _DesktopWalletSummaryRowState
 }
 
 class TablePriceInfo extends ConsumerWidget {
-  const TablePriceInfo({Key? key, required this.coin}) : super(key: key);
+  const TablePriceInfo({super.key, required this.coin});
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

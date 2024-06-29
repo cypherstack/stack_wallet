@@ -9,18 +9,18 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/paynym/subwidgets/paynym_card.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/featured_paynyms.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import 'paynym_card.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/featured_paynyms.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class FeaturedPaynymsWidget extends StatelessWidget {
   const FeaturedPaynymsWidget({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 

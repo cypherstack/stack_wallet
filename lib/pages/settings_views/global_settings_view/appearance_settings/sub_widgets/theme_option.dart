@@ -9,19 +9,19 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/constants.dart';
+import '../../../../../utilities/text_styles.dart';
 
 class ThemeOption<T> extends StatelessWidget {
   const ThemeOption({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.onChanged,
     required this.label,
     required this.value,
     required this.groupValue,
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
   final void Function(Object?) onChanged;

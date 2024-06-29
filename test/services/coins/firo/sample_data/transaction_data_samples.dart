@@ -2506,7 +2506,7 @@ final jsonTransactions = [
 ];
 
 Map<String, Transaction> get transactionDataMap {
-  Map<String, Transaction> result = {};
+  final Map<String, Transaction> result = {};
   for (final tx in jsonTransactions) {
     result[tx["txid"] as String] = Transaction.fromJson(tx);
   }

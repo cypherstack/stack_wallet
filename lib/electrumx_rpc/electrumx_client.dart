@@ -17,21 +17,28 @@ import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:electrum_adapter/methods/specific/firo.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
-import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/dogecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stream_channel/stream_channel.dart';
+
+import '../exceptions/electrumx/no_such_transaction.dart';
+import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../services/event_bus/events/global/tor_status_changed_event.dart';
+import '../services/event_bus/global_event_bus.dart';
+import '../services/tor_service.dart';
+import '../utilities/amount/amount.dart';
+import '../utilities/extensions/impl/string.dart';
+import '../utilities/logger.dart';
+import '../utilities/prefs.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
+import 'client_manager.dart';
+
+typedef SparkMempoolData = ({
+  String txid,
+  List<String> serialContext,
+  List<String> lTags,
+  List<String> coins,
+});
 
 class WifiOnlyException implements Exception {}
 
@@ -201,7 +208,7 @@ class ElectrumXClient {
     await getElectrumAdapter()?.close();
   }
 
-  Future<void> _checkElectrumAdapter() async {
+  Future<void> checkElectrumAdapter() async {
     ({InternetAddress host, int port})? proxyInfo;
 
     // If we're supposed to use Tor...
@@ -304,9 +311,9 @@ class ElectrumXClient {
 
     if (_requireMutex) {
       await _torConnectingLock
-          .protect(() async => await _checkElectrumAdapter());
+          .protect(() async => await checkElectrumAdapter());
     } else {
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
     }
 
     try {
@@ -390,9 +397,9 @@ class ElectrumXClient {
 
     if (_requireMutex) {
       await _torConnectingLock
-          .protect(() async => await _checkElectrumAdapter());
+          .protect(() async => await checkElectrumAdapter());
     } else {
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
     }
 
     try {
@@ -773,7 +780,7 @@ class ElectrumXClient {
       "attempting to fetch blockchain.transaction.get...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     final dynamic response = await getElectrumAdapter()!.getTransaction(txHash);
     Logging.instance.log(
       "Fetching blockchain.transaction.get finished",
@@ -810,7 +817,7 @@ class ElectrumXClient {
       "attempting to fetch lelantus.getanonymityset...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     final Map<String, dynamic> response =
         await (getElectrumAdapter() as FiroElectrumClient)
             .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
@@ -833,7 +840,7 @@ class ElectrumXClient {
       "attempting to fetch lelantus.getmintmetadata...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     final dynamic response = await (getElectrumAdapter() as FiroElectrumClient)
         .getLelantusMintData(mints: mints);
     Logging.instance.log(
@@ -853,7 +860,7 @@ class ElectrumXClient {
       "attempting to fetch lelantus.getusedcoinserials...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
 
     int retryCount = 3;
     dynamic response;
@@ -881,7 +888,7 @@ class ElectrumXClient {
       "attempting to fetch lelantus.getlatestcoinid...",
       level: LogLevel.Info,
     );
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     final int response =
         await (getElectrumAdapter() as FiroElectrumClient).getLatestCoinId();
     Logging.instance.log(
@@ -912,11 +919,8 @@ class ElectrumXClient {
     String? requestID,
   }) async {
     try {
-      Logging.instance.log(
-        "attempting to fetch spark.getsparkanonymityset...",
-        level: LogLevel.Info,
-      );
-      await _checkElectrumAdapter();
+      final start = DateTime.now();
+      await checkElectrumAdapter();
       final Map<String, dynamic> response =
           await (getElectrumAdapter() as FiroElectrumClient)
               .getSparkAnonymitySet(
@@ -924,7 +928,10 @@ class ElectrumXClient {
         startBlockHash: startBlockHash,
       );
       Logging.instance.log(
-        "Fetching spark.getsparkanonymityset finished",
+        "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
+        "=$coinGroupId, startBlockHash=$startBlockHash). "
+        "coins.length: ${(response["coins"] as List?)?.length}"
+        "Duration=${DateTime.now().difference(start)}",
         level: LogLevel.Info,
       );
       return response;
@@ -933,36 +940,41 @@ class ElectrumXClient {
     }
   }
 
+  /// NOT USED. See [getSparkUnhashedUsedCoinsTagsWithTxHashes]
   /// Takes [startNumber], if it is 0, we get the full set,
   /// otherwise the used tags after that number
-  Future<Set<String>> getSparkUsedCoinsTags({
-    String? requestID,
-    required int startNumber,
-  }) async {
-    try {
-      // Use electrum_adapter package's getSparkUsedCoinsTags method.
-      Logging.instance.log(
-        "attempting to fetch spark.getusedcoinstags...",
-        level: LogLevel.Info,
-      );
-      await _checkElectrumAdapter();
-      final Map<String, dynamic> response =
-          await (getElectrumAdapter() as FiroElectrumClient)
-              .getUsedCoinsTags(startNumber: startNumber);
-      // TODO: Add 2 minute timeout.
-      // Why 2 minutes?
-      Logging.instance.log(
-        "Fetching spark.getusedcoinstags finished",
-        level: LogLevel.Info,
-      );
-      final map = Map<String, dynamic>.from(response);
-      final set = Set<String>.from(map["tags"] as List);
-      return await compute(_ffiHashTagsComputeWrapper, set);
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
-      rethrow;
-    }
-  }
+  // Future<List<String>> getSparkUnhashedUsedCoinsTags({
+  //   String? requestID,
+  //   required int startNumber,
+  // }) async {
+  //   try {
+  //     final start = DateTime.now();
+  //     await _checkElectrumAdapter();
+  //     final Map<String, dynamic> response =
+  //         await (getElectrumAdapter() as FiroElectrumClient)
+  //             .getUsedCoinsTags(startNumber: startNumber);
+  //     // TODO: Add 2 minute timeout.
+  //     // Why 2 minutes?
+  //     Logging.instance.log(
+  //       "Fetching spark.getusedcoinstags finished",
+  //       level: LogLevel.Info,
+  //     );
+  //     final map = Map<String, dynamic>.from(response);
+  //     final tags = List<String>.from(map["tags"] as List);
+  //
+  //     Logging.instance.log(
+  //       "Finished ElectrumXClient.getSparkUnhashedUsedCoinsTags(startNumber"
+  //       "=$startNumber). # of tags fetched=${tags.length}, "
+  //       "Duration=${DateTime.now().difference(start)}",
+  //       level: LogLevel.Info,
+  //     );
+  //
+  //     return tags;
+  //   } catch (e) {
+  //     Logging.instance.log(e, level: LogLevel.Error);
+  //     rethrow;
+  //   }
+  // }
 
   /// Takes a list of [sparkCoinHashes] and returns the set id and block height
   /// for each coin
@@ -983,7 +995,7 @@ class ElectrumXClient {
         "attempting to fetch spark.getsparkmintmetadata...",
         level: LogLevel.Info,
       );
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
       final List<dynamic> response =
           await (getElectrumAdapter() as FiroElectrumClient)
               .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
@@ -1009,7 +1021,7 @@ class ElectrumXClient {
         "attempting to fetch spark.getsparklatestcoinid...",
         level: LogLevel.Info,
       );
-      await _checkElectrumAdapter();
+      await checkElectrumAdapter();
       final int response = await (getElectrumAdapter() as FiroElectrumClient)
           .getSparkLatestCoinId();
       Logging.instance.log(
@@ -1017,6 +1029,143 @@ class ElectrumXClient {
         level: LogLevel.Info,
       );
       return response;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Returns the txids of the current transactions found in the mempool
+  Future<Set<String>> getMempoolTxids({
+    String? requestID,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "spark.getmempoolsparktxids",
+      );
+
+      final txids = List<String>.from(response as List)
+          .map((e) => e.toHexReversedFromBase64)
+          .toSet();
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getMempoolTxids(). "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return txids;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Returns the txids of the current transactions found in the mempool
+  Future<List<SparkMempoolData>> getMempoolSparkData({
+    String? requestID,
+    required List<String> txids,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "spark.getmempoolsparktxs",
+        args: [
+          {
+            "txids": txids,
+          },
+        ],
+      );
+
+      final map = Map<String, dynamic>.from(response as Map);
+      final List<SparkMempoolData> result = [];
+      for (final entry in map.entries) {
+        result.add(
+          (
+            txid: entry.key,
+            serialContext:
+                List<String>.from(entry.value["serial_context"] as List),
+            // the space after lTags is required lol
+            lTags: List<String>.from(entry.value["lTags "] as List),
+            coins: List<String>.from(entry.value["coins"] as List),
+          ),
+        );
+      }
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getMempoolSparkData(txids: $txids). "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return result;
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  /// Takes [startNumber], if it is 0, we get the full set,
+  /// otherwise the used tags and txids after that number
+  Future<List<List<dynamic>>> getSparkUnhashedUsedCoinsTagsWithTxHashes({
+    String? requestID,
+    required int startNumber,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "spark.getusedcoinstagstxhashes",
+        args: [
+          "$startNumber",
+        ],
+      );
+
+      final map = Map<String, dynamic>.from(response as Map);
+      final tags = List<List<dynamic>>.from(map["tagsandtxids"] as List);
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getSparkUnhashedUsedCoinsTagsWithTxHashes("
+        "startNumber=$startNumber). # of tags fetched=${tags.length}, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return tags;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+  // ===========================================================================
+
+  Future<bool> isMasterNodeCollateral({
+    String? requestID,
+    required String txid,
+    required int index,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "blockchain.checkifmncollateral",
+        args: [
+          txid,
+          index.toString(),
+        ],
+      );
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.isMasterNodeCollateral, "
+        "response: $response, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return response as bool;
     } catch (e) {
       Logging.instance.log(e, level: LogLevel.Error);
       rethrow;
@@ -1033,7 +1182,7 @@ class ElectrumXClient {
   ///   "rate": 1000,
   /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
-    await _checkElectrumAdapter();
+    await checkElectrumAdapter();
     return await getElectrumAdapter()!.getFeeRate();
   }
 
@@ -1053,17 +1202,25 @@ class ElectrumXClient {
         ],
       );
       try {
-        // If the response is -1 or null, return a temporary hardcoded value for
-        // Dogecoin.  This is a temporary fix until the fee estimation is fixed.
-        if (cryptoCurrency is Dogecoin &&
-            (response == null ||
-                response == -1 ||
-                Decimal.parse(response.toString()) == Decimal.parse("-1"))) {
-          // Return 0.05 for slow, 0.2 for average, and 1 for fast txs.
-          // These numbers produce tx fees in line with txs in the wild on
-          // https://dogechain.info/
-          return Decimal.parse((1 / blocks).toString());
-          // TODO [prio=med]: Fix fee estimation.
+        if (response == null ||
+            response == -1 ||
+            Decimal.parse(response.toString()) == Decimal.parse("-1")) {
+          if (cryptoCurrency is BitcoinFrost) {
+            final rate = Amount(
+              rawValue: (cryptoCurrency as BitcoinFrost).defaultFeeRate,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            );
+            return rate.decimal;
+          } else if (cryptoCurrency is ElectrumXCurrencyInterface) {
+            final rate = Amount(
+              rawValue:
+                  (cryptoCurrency as ElectrumXCurrencyInterface).defaultFeeRate,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            );
+            return rate.decimal;
+          } else {
+            throw Exception("Unexpected cryptoCurrency found!");
+          }
         }
         return Decimal.parse(response.toString());
       } catch (e, s) {
@@ -1093,8 +1250,4 @@ class ElectrumXClient {
       rethrow;
     }
   }
-}
-
-Set<String> _ffiHashTagsComputeWrapper(Set<String> base64Tags) {
-  return LibSpark.hashTags(base64Tags: base64Tags);
 }

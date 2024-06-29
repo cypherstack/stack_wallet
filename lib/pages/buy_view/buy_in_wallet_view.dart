@@ -9,24 +9,24 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/pages/buy_view/buy_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import 'buy_view.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 
 class BuyInWalletView extends StatefulWidget {
   const BuyInWalletView({
-    Key? key,
+    super.key,
     required this.coin,
     this.contract,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/stackBuyInWalletView";
 
-  final Coin? coin;
+  final CryptoCurrency? coin;
   final EthContract? contract;
 
   @override
@@ -34,7 +34,7 @@ class BuyInWalletView extends StatefulWidget {
 }
 
 class _BuyInWalletViewState extends State<BuyInWalletView> {
-  late final Coin? coin;
+  late final CryptoCurrency? coin;
 
   @override
   Widget build(BuildContext context) {

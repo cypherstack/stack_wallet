@@ -10,22 +10,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/custom_text_button.dart';
+
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import 'custom_text_button.dart';
 
 class DeleteButton extends StatelessWidget {
   const DeleteButton({
-    Key? key,
+    super.key,
     this.width,
     this.height,
     this.label,
     this.onPressed,
     this.enabled = true,
     this.desktopMed = false,
-  }) : super(key: key);
+  });
 
   final double? width;
   final double? height;
@@ -48,7 +49,8 @@ class DeleteButton extends StatelessWidget {
         return enabled
             ? STextStyles.desktopButtonSecondaryEnabled(context).copyWith(
                 color:
-                    Theme.of(context).extension<StackColors>()!.accentColorRed)
+                    Theme.of(context).extension<StackColors>()!.accentColorRed,
+              )
             : STextStyles.desktopButtonSecondaryDisabled(context);
       }
     } else {

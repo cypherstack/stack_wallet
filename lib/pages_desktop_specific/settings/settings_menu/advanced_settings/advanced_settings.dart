@@ -11,20 +11,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/debug_info_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/desktop_manage_block_explorers_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/advanced_settings/stack_privacy_dialog.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import 'debug_info_dialog.dart';
+import 'desktop_manage_block_explorers_dialog.dart';
+import 'stack_privacy_dialog.dart';
 
 class AdvancedSettings extends ConsumerStatefulWidget {
-  const AdvancedSettings({Key? key}) : super(key: key);
+  const AdvancedSettings({super.key});
 
   static const String routeName = "/settingsMenuAdvanced";
 
@@ -73,7 +74,8 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                 text:
                                     "\n\nConfigure these settings only if you know what you are doing!",
                                 style: STextStyles.desktopTextExtraExtraSmall(
-                                    context),
+                                  context,
+                                ),
                               ),
                             ],
                           ),
@@ -94,9 +96,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               "Toggle testnet coins",
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
                               textAlign: TextAlign.left,
                             ),
                             SizedBox(
@@ -105,7 +108,8 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               child: DraggableSwitchButton(
                                 isOn: ref.watch(
                                   prefsChangeNotifierProvider.select(
-                                      (value) => value.showTestNetCoins),
+                                    (value) => value.showTestNetCoins,
+                                  ),
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
@@ -132,9 +136,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               "Enable coin control",
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
                               textAlign: TextAlign.left,
                             ),
                             SizedBox(
@@ -143,7 +148,8 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               child: DraggableSwitchButton(
                                 isOn: ref.watch(
                                   prefsChangeNotifierProvider.select(
-                                      (value) => value.enableCoinControl),
+                                    (value) => value.enableCoinControl,
+                                  ),
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
@@ -163,56 +169,62 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       ),
 
                       /// TODO: Make a dialog popup
-                      Consumer(builder: (_, ref, __) {
-                        final externalCalls = ref.watch(
-                          prefsChangeNotifierProvider
-                              .select((value) => value.externalCalls),
-                        );
-                        return Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Stack Experience",
-                                    style: STextStyles.desktopTextExtraSmall(
-                                            context)
-                                        .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark),
-                                    textAlign: TextAlign.left,
-                                  ),
-                                  Text(
-                                    externalCalls ? "Easy crypto" : "Incognito",
-                                    style:
-                                        STextStyles.desktopTextExtraExtraSmall(
-                                            context),
-                                  ),
-                                ],
-                              ),
-                              PrimaryButton(
-                                label: "Change",
-                                buttonHeight: ButtonHeight.xs,
-                                width: 101,
-                                onPressed: () async {
-                                  await showDialog<dynamic>(
-                                    context: context,
-                                    useSafeArea: false,
-                                    barrierDismissible: true,
-                                    builder: (context) {
-                                      return const StackPrivacyDialog();
-                                    },
-                                  );
-                                },
-                              )
-                            ],
-                          ),
-                        );
-                      }),
+                      Consumer(
+                        builder: (_, ref, __) {
+                          final externalCalls = ref.watch(
+                            prefsChangeNotifierProvider
+                                .select((value) => value.externalCalls),
+                          );
+                          return Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Stack Experience",
+                                      style: STextStyles.desktopTextExtraSmall(
+                                        context,
+                                      ).copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                    Text(
+                                      externalCalls
+                                          ? "Easy crypto"
+                                          : "Incognito",
+                                      style: STextStyles
+                                          .desktopTextExtraExtraSmall(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                PrimaryButton(
+                                  label: "Change",
+                                  buttonHeight: ButtonHeight.xs,
+                                  width: 101,
+                                  onPressed: () async {
+                                    await showDialog<dynamic>(
+                                      context: context,
+                                      useSafeArea: false,
+                                      barrierDismissible: true,
+                                      builder: (context) {
+                                        return const StackPrivacyDialog();
+                                      },
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                   const Padding(
@@ -230,9 +242,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           "Block explorers",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           textAlign: TextAlign.left,
                         ),
                         PrimaryButton(
@@ -268,9 +281,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           "Units",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           textAlign: TextAlign.left,
                         ),
                         PrimaryButton(
@@ -306,9 +320,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           "Debug info",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
                           textAlign: TextAlign.left,
                         ),
                         PrimaryButton(

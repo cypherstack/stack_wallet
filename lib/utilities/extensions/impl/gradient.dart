@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/extensions/impl/string.dart';
+import 'string.dart';
 
 extension GradientExt on Gradient {
   static Gradient fromJson(Map<String, dynamic> json) {

@@ -10,22 +10,22 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../conditional_parent.dart';
+import '../rounded_container.dart';
 
 class _CustomTextButton extends StatefulWidget {
   const _CustomTextButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.enabledColor,
     required this.disabledColor,
     this.onTap,
     this.enabled = true,
     this.textSize,
-  }) : super(key: key);
+  });
 
   final String text;
   final VoidCallback? onTap;
@@ -128,12 +128,12 @@ class _CustomTextButtonState extends State<_CustomTextButton>
 
 class CustomTextButton extends StatelessWidget {
   const CustomTextButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onTap,
     this.enabled = true,
     this.textSize,
-  }) : super(key: key);
+  });
 
   final String text;
   final VoidCallback? onTap;

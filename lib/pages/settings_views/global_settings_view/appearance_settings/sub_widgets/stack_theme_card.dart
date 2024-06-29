@@ -15,28 +15,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../../../models/isar/stack_theme.dart';
+import '../../../../../notifications/show_flush_bar.dart';
+import '../../../../../providers/db/main_db_provider.dart';
+import '../../../../../providers/global/prefs_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../themes/theme_service.dart';
+import '../../../../../utilities/logger.dart';
+import '../../../../../utilities/show_loading.dart';
+import '../../../../../utilities/stack_file_system.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../widgets/animated_text.dart';
+import '../../../../../widgets/desktop/primary_button.dart';
+import '../../../../../widgets/desktop/secondary_button.dart';
+import '../../../../../widgets/rounded_white_container.dart';
+import '../../../../../widgets/stack_dialog.dart';
 
 class StackThemeCard extends ConsumerStatefulWidget {
   const StackThemeCard({
-    Key? key,
+    super.key,
     required this.data,
-  }) : super(key: key);
+  });
 
   final StackThemeMetaData data;
 
@@ -130,7 +131,8 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
     final themeDir = Directory("${themesDir.path}/${widget.data.id}");
     int bytes = 0;
     if (await themeDir.exists()) {
-      await for (FileSystemEntity entity in themeDir.list(recursive: true)) {
+      await for (final FileSystemEntity entity
+          in themeDir.list(recursive: true)) {
         if (entity is File) {
           bytes += await entity.length();
         }
@@ -142,13 +144,13 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
     if (bytes < 1024) {
       return '$bytes B';
     } else if (bytes < 1048576) {
-      double kbSize = bytes / 1024;
+      final double kbSize = bytes / 1024;
       return '${kbSize.toStringAsFixed(2)} KB';
     } else if (bytes < 1073741824) {
-      double mbSize = bytes / 1048576;
+      final double mbSize = bytes / 1048576;
       return '${mbSize.toStringAsFixed(2)} MB';
     } else {
-      double gbSize = bytes / 1073741824;
+      final double gbSize = bytes / 1073741824;
       return '${gbSize.toStringAsFixed(2)} GB';
     }
   }

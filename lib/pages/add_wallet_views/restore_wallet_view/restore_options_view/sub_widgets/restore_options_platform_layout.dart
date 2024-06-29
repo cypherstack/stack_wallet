@@ -9,14 +9,14 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
+import '../../../../../themes/stack_colors.dart';
 
 class RestoreOptionsPlatformLayout extends StatelessWidget {
   const RestoreOptionsPlatformLayout({
-    Key? key,
+    super.key,
     required this.isDesktop,
     required this.child,
-  }) : super(key: key);
+  });
 
   final bool isDesktop;
   final Widget child;

@@ -14,24 +14,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../../app_config.dart';
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/address_utils.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/clipboard_interface.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../widgets/detail_item.dart';
+import '../../../../widgets/qr.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class WalletBackupView extends ConsumerWidget {
   const WalletBackupView({
@@ -93,12 +95,14 @@ class WalletBackupView extends ConsumerWidget {
                   onPressed: () async {
                     await clipboardInterface
                         .setData(ClipboardData(text: mnemonic.join(" ")));
-                    unawaited(showFloatingFlushBar(
-                      type: FlushBarType.info,
-                      message: "Copied to clipboard",
-                      iconAsset: Assets.svg.copy,
-                      context: context,
-                    ));
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.info,
+                        message: "Copied to clipboard",
+                        iconAsset: Assets.svg.copy,
+                        context: context,
+                      ),
+                    );
                   },
                 ),
               ),
@@ -126,7 +130,7 @@ class WalletBackupView extends ConsumerWidget {
                                   "Your backup data is the only way you can access your "
                                   "funds if you forget your PIN, lose your phone, etc."
                                   "\n\n"
-                                  "Stack Wallet does not keep nor is able to restore "
+                                  "${AppConfig.appName} does not keep nor is able to restore "
                                   "your backup data. "
                                   "Only you have access to your wallet.",
                                   style: STextStyles.label(context),
@@ -255,7 +259,8 @@ class WalletBackupView extends ConsumerWidget {
                         color:
                             Theme.of(context).extension<StackColors>()!.popupBG,
                         borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius),
+                          Constants.size.circularBorderRadius,
+                        ),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
@@ -284,7 +289,8 @@ class WalletBackupView extends ConsumerWidget {
                           .extension<StackColors>()!
                           .getPrimaryEnabledButtonStyle(context),
                       onPressed: () {
-                        String data = AddressUtils.encodeQRSeedData(mnemonic);
+                        final String data =
+                            AddressUtils.encodeQRSeedData(mnemonic);
 
                         showDialog<dynamic>(
                           context: context,
@@ -311,15 +317,10 @@ class WalletBackupView extends ConsumerWidget {
                                       child: SizedBox(
                                         width: width + 20,
                                         height: width + 20,
-                                        child: QrImageView(
-                                            data: data,
-                                            size: width,
-                                            backgroundColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .popupBG,
-                                            foregroundColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark),
+                                        child: QR(
+                                          data: data,
+                                          size: width,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -337,14 +338,16 @@ class WalletBackupView extends ConsumerWidget {
                                         style: Theme.of(context)
                                             .extension<StackColors>()!
                                             .getSecondaryEnabledButtonStyle(
-                                                context),
+                                              context,
+                                            ),
                                         child: Text(
                                           "Cancel",
                                           style: STextStyles.button(context)
                                               .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark,
+                                          ),
                                         ),
                                       ),
                                     ),

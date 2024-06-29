@@ -9,14 +9,16 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../utilities/text_styles.dart';
+import '../../desktop/secondary_button.dart';
+import '../../stack_dialog.dart';
 
 class FrostStepExplanationDialog extends StatelessWidget {
   final String title;
   final String body;
-  const FrostStepExplanationDialog({super.key, required this.title, required this.body});
+  const FrostStepExplanationDialog(
+      {super.key, required this.title, required this.body});
 
   @override
   Widget build(BuildContext context) {

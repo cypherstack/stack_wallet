@@ -3,34 +3,40 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:decimal/decimal.dart';
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/isar/models/spark_coin.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+
+import '../../../db/sqlite/firo_cache.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/util.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../isar/models/spark_coin.dart';
+import '../../isar/models/wallet_info.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_hd_wallet.dart';
+import '../wallet_mixin_interfaces/coin_control_interface.dart';
+import '../wallet_mixin_interfaces/electrumx_interface.dart';
+import '../wallet_mixin_interfaces/lelantus_interface.dart';
+import '../wallet_mixin_interfaces/spark_interface.dart';
 
 const sparkStartBlock = 819300; // (approx 18 Jan 2024)
 
-class FiroWallet extends Bip39HDWallet
-    with ElectrumXInterface, LelantusInterface, SparkInterface {
+class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
+    with
+        ElectrumXInterface<T>,
+        LelantusInterface<T>,
+        SparkInterface<T>,
+        CoinControlInterface<T> {
   // IMPORTANT: The order of the above mixins matters.
   // SparkInterface MUST come after LelantusInterface.
 
-  FiroWallet(CryptoCurrencyNetwork network) : super(Firo(network));
+  FiroWallet(CryptoCurrencyNetwork network) : super(Firo(network) as T);
 
   @override
   int get isarTransactionVersion => 2;
@@ -99,6 +105,13 @@ class FiroWallet extends Bip39HDWallet
       }
     }
 
+    final missing = await getMissingSparkSpendTransactionIds();
+    for (final txid in missing.map((e) => e.txid).toSet()) {
+      allTxHashes.add({
+        "tx_hash": txid,
+      });
+    }
+
     final List<Map<String, dynamic>> allTransactions = [];
 
     // some lelantus transactions aren't fetched via wallet addresses so they
@@ -112,7 +125,7 @@ class FiroWallet extends Bip39HDWallet
       final txn = await electrumXCachedClient.getTransaction(
         txHash: tx.txid,
         verbose: true,
-        coin: info.coin,
+        cryptoCurrency: info.coin,
       );
       final height = txn["height"] as int?;
 
@@ -146,7 +159,7 @@ class FiroWallet extends Bip39HDWallet
         tx = await electrumXCachedClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
-          coin: info.coin,
+          cryptoCurrency: info.coin,
         );
       } catch (_) {
         continue;
@@ -181,12 +194,30 @@ class FiroWallet extends Bip39HDWallet
       final bool isMasterNodePayment = false;
       final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
       final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
+      final bool isMySpentSpark =
+          missing.where((e) => e.txid == txData["txid"]).isNotEmpty;
 
-      final sparkCoinsInvolved =
-          sparkCoins.where((e) => e.txHash == txData["txid"]);
-      if (isMySpark && sparkCoinsInvolved.isEmpty) {
+      final sparkCoinsInvolvedReceived = sparkCoins.where(
+        (e) =>
+            e.txHash == txData["txid"] ||
+            missing.where((f) => e.lTagHash == f.tag).isNotEmpty,
+      );
+
+      final sparkCoinsInvolvedSpent = sparkCoins.where(
+        (e) => missing.where((f) => e.lTagHash == f.tag).isNotEmpty,
+      );
+
+      if (isMySpark && sparkCoinsInvolvedReceived.isEmpty && !isMySpentSpark) {
         Logging.instance.log(
-          "sparkCoinsInvolved is empty and should not be! (ignoring tx parsing)",
+          "sparkCoinsInvolvedReceived is empty and should not be! (ignoring tx parsing)",
+          level: LogLevel.Error,
+        );
+        continue;
+      }
+
+      if (isMySpentSpark && sparkCoinsInvolvedSpent.isEmpty && !isMySpark) {
+        Logging.instance.log(
+          "sparkCoinsInvolvedSpent is empty and should not be! (ignoring tx parsing)",
           level: LogLevel.Error,
         );
         continue;
@@ -258,10 +289,10 @@ class FiroWallet extends Bip39HDWallet
                   .toUint8ListFromHex
                   .first;
               if (opByte == OP_SPARKMINT || opByte == OP_SPARKSMINT) {
-                final serCoin = base64Encode(output.scriptPubKeyHex
-                    .substring(2, 488)
-                    .toUint8ListFromHex);
-                final coin = sparkCoinsInvolved
+                final serCoin = base64Encode(
+                  output.scriptPubKeyHex.substring(2, 488).toUint8ListFromHex,
+                );
+                final coin = sparkCoinsInvolvedReceived
                     .where((e) => e.serializedCoinB64!.startsWith(serCoin))
                     .firstOrNull;
 
@@ -337,7 +368,7 @@ class FiroWallet extends Bip39HDWallet
           );
         }
 
-        if (isSparkSpend) {
+        void parseAnonFees() {
           // anon fees
           final nFee = Decimal.tryParse(map["nFees"].toString());
           if (nFee != null) {
@@ -348,6 +379,23 @@ class FiroWallet extends Bip39HDWallet
 
             anonFees = anonFees! + fees;
           }
+        }
+
+        List<SparkCoin>? spentSparkCoins;
+
+        if (isMySpentSpark) {
+          parseAnonFees();
+          final tags = await FiroCacheCoordinator.getUsedCoinTagsFor(
+            txid: txData["txid"] as String,
+            network: cryptoCurrency.network,
+          );
+          spentSparkCoins = sparkCoinsInvolvedSpent
+              .where(
+                (e) => tags.contains(e.lTagHash),
+              )
+              .toList();
+        } else if (isSparkSpend) {
+          parseAnonFees();
         } else if (isSparkMint) {
           final address = map["address"] as String?;
           final value = map["valueSat"] as int?;
@@ -379,12 +427,12 @@ class FiroWallet extends Bip39HDWallet
         } else if (coinbase == null && txid != null && vout != null) {
           final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
-            coin: cryptoCurrency.coin,
+            cryptoCurrency: cryptoCurrency,
           );
 
           final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map,
+          );
 
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
@@ -422,11 +470,7 @@ class FiroWallet extends Bip39HDWallet
           if (lTags?.isNotEmpty == true) {
             final List<SparkCoin> usedCoins = [];
             for (final tag in lTags!) {
-              final components = (tag as String).split(",");
-              final x = components[0].substring(1);
-              final y = components[1].substring(0, components[1].length - 1);
-
-              final hash = LibSpark.hashTag(x, y);
+              final hash = await hashTag(tag as String);
               usedCoins.addAll(sparkCoins.where((e) => e.lTagHash == hash));
             }
 
@@ -442,6 +486,18 @@ class FiroWallet extends Bip39HDWallet
               wasSentFromThisWallet = true;
             }
           }
+        } else if (isMySpentSpark &&
+            spentSparkCoins != null &&
+            spentSparkCoins.isNotEmpty) {
+          input = input.copyWith(
+            addresses: spentSparkCoins.map((e) => e.address).toList(),
+            valueStringSats: spentSparkCoins
+                .map((e) => e.value)
+                .fold(BigInt.zero, (p, e) => p + e)
+                .toString(),
+            walletOwns: true,
+          );
+          wasSentFromThisWallet = true;
         }
 
         inputs.add(input);
@@ -512,7 +568,7 @@ class FiroWallet extends Bip39HDWallet
       if (anonFees != null) {
         otherData = jsonEncode(
           {
-            "overrideFee": anonFees.toJsonString(),
+            "overrideFee": anonFees!.toJsonString(),
           },
         );
       }
@@ -565,7 +621,8 @@ class FiroWallet extends Bip39HDWallet
     String? label;
 
     if (jsonUTXO["value"] is int) {
-      // TODO: [prio=med] use special electrumx call to verify the 1000 Firo output is masternode
+      // TODO: [prio=high] use special electrumx call to verify the 1000 Firo output is masternode
+      // electrumx call should exist now. Unsure if it works though
       blocked = Amount.fromDecimal(
             Decimal.fromInt(
               1000, // 1000 firo output is a possible master node
@@ -575,9 +632,23 @@ class FiroWallet extends Bip39HDWallet
           BigInt.from(jsonUTXO["value"] as int);
 
       if (blocked) {
-        blockedReason = "Possible masternode output. "
+        try {
+          blocked = await electrumXClient.isMasterNodeCollateral(
+            txid: jsonTX!["txid"] as String,
+            index: jsonUTXO["tx_pos"] as int,
+          );
+        } catch (_) {
+          // call failed, lock utxo just in case
+          // it should logically already be blocked
+          // but just in case
+          blocked = true;
+        }
+      }
+
+      if (blocked) {
+        blockedReason = "Possible masternode collateral. "
             "Unlock and spend at your own risk.";
-        label = "Possible masternode";
+        label = "Possible masternode collateral";
       }
     }
 
@@ -586,6 +657,15 @@ class FiroWallet extends Bip39HDWallet
 
   @override
   Future<void> recover({required bool isRescan}) async {
+    // reset last checked values
+    await info.updateOtherData(
+      newEntries: {
+        WalletInfoKeys.firoSparkCacheSetTimestampCache: <String, int>{},
+      },
+      isar: mainDB.isar,
+    );
+
+    final start = DateTime.now();
     final root = await getRootHDNode();
 
     final List<Future<({int index, List<Address> addresses})>> receiveFutures =
@@ -603,29 +683,44 @@ class FiroWallet extends Bip39HDWallet
         if (isRescan) {
           // clear cache
           await electrumXCachedClient.clearSharedTransactionCache(
-              coin: info.coin);
+            cryptoCurrency: info.coin,
+          );
           // clear blockchain info
           await mainDB.deleteWalletBlockchainData(walletId);
         }
 
         // lelantus
-        final latestSetId = await electrumXClient.getLelantusLatestCoinId();
-        final setDataMapFuture = getSetDataMap(latestSetId);
-        final usedSerialNumbersFuture =
+        int? latestSetId;
+        final List<Future<dynamic>> lelantusFutures = [];
+        final enableLelantusScanning =
+            info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                false;
+        if (enableLelantusScanning) {
+          latestSetId = await electrumXClient.getLelantusLatestCoinId();
+          lelantusFutures.add(
             electrumXCachedClient.getUsedCoinSerials(
-          coin: info.coin,
-        );
+              cryptoCurrency: info.coin,
+            ),
+          );
+          lelantusFutures.add(getSetDataMap(latestSetId));
+        }
 
         // spark
         final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
-        final sparkAnonSetFuture = electrumXCachedClient.getSparkAnonymitySet(
-          groupId: latestSparkCoinId.toString(),
-          coin: info.coin,
-          useOnlyCacheIfNotEmpty: false,
-        );
+        final List<Future<void>> sparkAnonSetFutures = [];
+        for (int i = 1; i <= latestSparkCoinId; i++) {
+          sparkAnonSetFutures.add(
+            FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
+              i,
+              electrumXClient,
+              cryptoCurrency.network,
+            ),
+          );
+        }
         final sparkUsedCoinTagsFuture =
-            electrumXCachedClient.getSparkUsedCoinsTags(
-          coin: info.coin,
+            FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
+          electrumXClient,
+          cryptoCurrency.network,
         );
 
         // receiving addresses
@@ -716,12 +811,16 @@ class FiroWallet extends Bip39HDWallet
         }
 
         // remove extra addresses to help minimize risk of creating a large gap
-        addressesToStore.removeWhere((e) =>
-            e.subType == AddressSubType.change &&
-            e.derivationIndex > highestChangeIndexWithHistory);
-        addressesToStore.removeWhere((e) =>
-            e.subType == AddressSubType.receiving &&
-            e.derivationIndex > highestReceivingIndexWithHistory);
+        addressesToStore.removeWhere(
+          (e) =>
+              e.subType == AddressSubType.change &&
+              e.derivationIndex > highestChangeIndexWithHistory,
+        );
+        addressesToStore.removeWhere(
+          (e) =>
+              e.subType == AddressSubType.receiving &&
+              e.derivationIndex > highestReceivingIndexWithHistory,
+        );
 
         await mainDB.updateOrPutAddresses(addressesToStore);
 
@@ -730,51 +829,61 @@ class FiroWallet extends Bip39HDWallet
           updateUTXOs(),
         ]);
 
-        final futureResults = await Future.wait([
-          usedSerialNumbersFuture,
-          setDataMapFuture,
-          sparkAnonSetFuture,
-          sparkUsedCoinTagsFuture,
-        ]);
+        final List<Future<dynamic>> futures = [];
+        if (enableLelantusScanning) {
+          futures.add(lelantusFutures[0]);
+          futures.add(lelantusFutures[1]);
+        }
+        futures.add(sparkUsedCoinTagsFuture);
+        futures.addAll(sparkAnonSetFutures);
+
+        final futureResults = await Future.wait(futures);
 
         // lelantus
-        final usedSerialsSet = (futureResults[0] as List<String>).toSet();
-        final setDataMap = futureResults[1] as Map<dynamic, dynamic>;
-
-        // spark
-        final sparkAnonymitySet = futureResults[2] as Map<String, dynamic>;
-        final sparkSpentCoinTags = futureResults[3] as Set<String>;
+        Set<String>? usedSerialsSet;
+        Map<dynamic, dynamic>? setDataMap;
+        if (enableLelantusScanning) {
+          usedSerialsSet = (futureResults[0] as List<String>).toSet();
+          setDataMap = futureResults[1] as Map<dynamic, dynamic>;
+        }
 
         if (Util.isDesktop) {
           await Future.wait([
-            recoverLelantusWallet(
-              latestSetId: latestSetId,
-              usedSerialNumbers: usedSerialsSet,
-              setDataMap: setDataMap,
-            ),
+            if (enableLelantusScanning)
+              recoverLelantusWallet(
+                latestSetId: latestSetId!,
+                usedSerialNumbers: usedSerialsSet!,
+                setDataMap: setDataMap!,
+              ),
             recoverSparkWallet(
-              anonymitySet: sparkAnonymitySet,
-              spentCoinTags: sparkSpentCoinTags,
+              latestSparkCoinId: latestSparkCoinId,
             ),
           ]);
         } else {
-          await recoverLelantusWallet(
-            latestSetId: latestSetId,
-            usedSerialNumbers: usedSerialsSet,
-            setDataMap: setDataMap,
-          );
+          if (enableLelantusScanning) {
+            await recoverLelantusWallet(
+              latestSetId: latestSetId!,
+              usedSerialNumbers: usedSerialsSet!,
+              setDataMap: setDataMap!,
+            );
+          }
           await recoverSparkWallet(
-            anonymitySet: sparkAnonymitySet,
-            spentCoinTags: sparkSpentCoinTags,
+            latestSparkCoinId: latestSparkCoinId,
           );
         }
       });
 
       unawaited(refresh());
+      Logging.instance.log(
+        "Firo recover for "
+        "${info.name}: ${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from electrumx_mixin recover(): $e\n$s",
-          level: LogLevel.Info);
+        "Exception rethrown from electrumx_mixin recover(): $e\n$s",
+        level: LogLevel.Info,
+      );
 
       rethrow;
     }
@@ -783,8 +892,10 @@ class FiroWallet extends Bip39HDWallet
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
-      rawValue: BigInt.from(((181 * inputCount) + (34 * outputCount) + 10) *
-          (feeRatePerKB / 1000).ceil()),
+      rawValue: BigInt.from(
+        ((181 * inputCount) + (34 * outputCount) + 10) *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }

@@ -13,40 +13,42 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/dialogs/cancel_stack_restore_dialog.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/stack_backup_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_item_card.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_widgets/restoring_wallet_card.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/stack_restore/stack_restoring_ui_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/stack_restoring_status.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+
+import '../../../../../app_config.dart';
+import '../../../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../../../pages_desktop_specific/desktop_menu.dart';
+import '../../../../../providers/desktop/current_desktop_menu_item.dart';
+import '../../../../../providers/global/secure_store_provider.dart';
+import '../../../../../providers/providers.dart';
+import '../../../../../providers/stack_restore/stack_restoring_ui_state_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/enums/stack_restoring_status.dart';
+import '../../../../../utilities/logger.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../widgets/conditional_parent.dart';
+import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../../widgets/desktop/primary_button.dart';
+import '../../../../../widgets/desktop/secondary_button.dart';
+import '../../../../../widgets/icon_widgets/addressbook_icon.dart';
+import '../../../../../widgets/loading_indicator.dart';
+import '../../../../../widgets/rounded_container.dart';
+import '../../../../home_view/home_view.dart';
+import '../dialogs/cancel_stack_restore_dialog.dart';
+import '../helpers/restore_create_backup.dart';
+import '../restore_from_encrypted_string_view.dart';
+import '../stack_backup_view.dart';
+import '../sub_widgets/restoring_item_card.dart';
+import '../sub_widgets/restoring_wallet_card.dart';
 
 class StackRestoreProgressView extends ConsumerStatefulWidget {
   const StackRestoreProgressView({
-    Key? key,
+    super.key,
     required this.jsonString,
     this.fromFile = false,
     this.shouldPushToHome = false,
-  }) : super(key: key);
+  });
 
   final String jsonString;
   final bool fromFile;
@@ -63,41 +65,43 @@ class _StackRestoreProgressViewState
 
   Future<void> _cancel() async {
     bool shouldPop = false;
-    unawaited(showDialog<void>(
-      barrierDismissible: false,
-      context: context,
-      builder: (_) => WillPopScope(
-        onWillPop: () async {
-          return shouldPop;
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Material(
-              color: Colors.transparent,
-              child: Center(
-                child: Text(
-                  "Cancelling restore. Please wait.",
-                  style: STextStyles.pageTitleH2(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textWhite,
+    unawaited(
+      showDialog<void>(
+        barrierDismissible: false,
+        context: context,
+        builder: (_) => WillPopScope(
+          onWillPop: () async {
+            return shouldPop;
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Material(
+                color: Colors.transparent,
+                child: Center(
+                  child: Text(
+                    "Cancelling restore. Please wait.",
+                    style: STextStyles.pageTitleH2(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textWhite,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 64,
-            ),
-            const Center(
-              child: LoadingIndicator(
-                width: 100,
+              const SizedBox(
+                height: 64,
               ),
-            ),
-          ],
+              const Center(
+                child: LoadingIndicator(
+                  width: 100,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
 
     await SWB.cancelRestore();
     shouldPop = true;
@@ -106,9 +110,13 @@ class _StackRestoreProgressViewState
 
     if (mounted) {
       !isDesktop
-          ? Navigator.of(context).popUntil(ModalRoute.withName(widget.fromFile
-              ? RestoreFromEncryptedStringView.routeName
-              : StackBackupView.routeName))
+          ? Navigator.of(context).popUntil(
+              ModalRoute.withName(
+                widget.fromFile
+                    ? RestoreFromEncryptedStringView.routeName
+                    : StackBackupView.routeName,
+              ),
+            )
           : Navigator.of(context).popUntil((_) => count++ >= 2);
     }
   }
@@ -217,9 +225,10 @@ class _StackRestoreProgressViewState
 
   void _addWalletsToHomeView() {
     ref.read(pWallets).loadAfterStackRestore(
-        ref.read(prefsChangeNotifierProvider),
-        ref.read(stackRestoringUIStateProvider).wallets,
-        Util.isDesktop);
+          ref.read(prefsChangeNotifierProvider),
+          ref.read(stackRestoringUIStateProvider).wallets,
+          Util.isDesktop,
+        );
   }
 
   @override
@@ -232,7 +241,7 @@ class _StackRestoreProgressViewState
 
   @override
   Widget build(BuildContext context) {
-    bool isDesktop = Util.isDesktop;
+    final bool isDesktop = Util.isDesktop;
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -248,7 +257,8 @@ class _StackRestoreProgressViewState
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 75));
+                      const Duration(milliseconds: 75),
+                    );
                   }
                   if (_success) {
                     _addWalletsToHomeView();
@@ -263,7 +273,7 @@ class _StackRestoreProgressViewState
                 },
               ),
               title: Text(
-                "Restoring Stack wallet",
+                "Restoring ${AppConfig.appName}",
                 style: STextStyles.navBarTitle(context),
               ),
             ),
@@ -298,8 +308,10 @@ class _StackRestoreProgressViewState
               ),
               Consumer(
                 builder: (_, ref, __) {
-                  final state = ref.watch(stackRestoringUIStateProvider
-                      .select((value) => value.preferences));
+                  final state = ref.watch(
+                    stackRestoringUIStateProvider
+                        .select((value) => value.preferences),
+                  );
                   return !isDesktop
                       ? RestoringItemCard(
                           left: SizedBox(
@@ -385,8 +397,10 @@ class _StackRestoreProgressViewState
               ),
               Consumer(
                 builder: (_, ref, __) {
-                  final state = ref.watch(stackRestoringUIStateProvider
-                      .select((value) => value.addressBook));
+                  final state = ref.watch(
+                    stackRestoringUIStateProvider
+                        .select((value) => value.addressBook),
+                  );
                   return !isDesktop
                       ? RestoringItemCard(
                           left: SizedBox(
@@ -470,8 +484,10 @@ class _StackRestoreProgressViewState
               ),
               Consumer(
                 builder: (_, ref, __) {
-                  final state = ref.watch(stackRestoringUIStateProvider
-                      .select((value) => value.nodes));
+                  final state = ref.watch(
+                    stackRestoringUIStateProvider
+                        .select((value) => value.nodes),
+                  );
                   return !isDesktop
                       ? RestoringItemCard(
                           left: SizedBox(
@@ -548,7 +564,8 @@ class _StackRestoreProgressViewState
                                     style: STextStyles.errorSmall(context),
                                   )
                                 : null,
-                          ));
+                          ),
+                        );
                 },
               ),
               const SizedBox(
@@ -556,8 +573,10 @@ class _StackRestoreProgressViewState
               ),
               Consumer(
                 builder: (_, ref, __) {
-                  final state = ref.watch(stackRestoringUIStateProvider
-                      .select((value) => value.trades));
+                  final state = ref.watch(
+                    stackRestoringUIStateProvider
+                        .select((value) => value.trades),
+                  );
                   return !isDesktop
                       ? RestoringItemCard(
                           left: SizedBox(
@@ -649,8 +668,10 @@ class _StackRestoreProgressViewState
                 height: 8,
               ),
               ...ref
-                  .watch(stackRestoringUIStateProvider
-                      .select((value) => value.walletStateProviders))
+                  .watch(
+                    stackRestoringUIStateProvider
+                        .select((value) => value.walletStateProviders),
+                  )
                   .values
                   .map(
                     (provider) => Padding(
@@ -706,12 +727,13 @@ class _StackRestoreProgressViewState
                                   enabled: true,
                                   label: "Done",
                                   onPressed: () async {
-                                    DesktopMenuItemId keyID =
+                                    final DesktopMenuItemId keyID =
                                         DesktopMenuItemId.myStack;
 
                                     ref
-                                        .read(currentDesktopMenuItemProvider
-                                            .state)
+                                        .read(
+                                          currentDesktopMenuItemProvider.state,
+                                        )
                                         .state = keyID;
 
                                     if (widget.shouldPushToHome) {
@@ -726,7 +748,8 @@ class _StackRestoreProgressViewState
                                       Navigator.of(context, rootNavigator: true)
                                           .popUntil(
                                         ModalRoute.withName(
-                                            DesktopHomeView.routeName),
+                                          DesktopHomeView.routeName,
+                                        ),
                                       );
                                     }
                                   },

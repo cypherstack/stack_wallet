@@ -12,11 +12,11 @@ import 'package:flutter/material.dart';
 
 class TableView extends StatelessWidget {
   const TableView({
-    Key? key,
+    super.key,
     required this.rows,
     this.rowSpacing = 10.0,
     this.shrinkWrap = false,
-  }) : super(key: key);
+  });
 
   final List<Widget> rows;
   final double rowSpacing;
@@ -42,7 +42,7 @@ class TableView extends StatelessWidget {
                 ),
               rows[i],
             ],
-          )
+          ),
       ],
     );
   }

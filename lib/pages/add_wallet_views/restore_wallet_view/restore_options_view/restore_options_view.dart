@@ -12,31 +12,33 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/sub_widgets/coin_image.dart';
-import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/mobile_mnemonic_length_selector.dart';
-import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
-import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_next_button.dart';
-import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_platform_layout.dart';
-import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/date_picker/date_picker.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import '../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/format.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../widgets/conditional_parent.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
+import '../../../../widgets/date_picker/date_picker.dart';
+import '../../../../widgets/desktop/desktop_app_bar.dart';
+import '../../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../../widgets/expandable.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/stack_text_field.dart';
+import '../../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
+import '../restore_wallet_view.dart';
+import '../sub_widgets/mnemonic_word_count_select_sheet.dart';
+import 'sub_widgets/mobile_mnemonic_length_selector.dart';
+import 'sub_widgets/restore_from_date_picker.dart';
+import 'sub_widgets/restore_options_next_button.dart';
+import 'sub_widgets/restore_options_platform_layout.dart';
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
   const RestoreOptionsView({
@@ -48,7 +50,7 @@ class RestoreOptionsView extends ConsumerStatefulWidget {
   static const routeName = "/restoreOptions";
 
   final String walletName;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<RestoreOptionsView> createState() => _RestoreOptionsViewState();
@@ -56,7 +58,7 @@ class RestoreOptionsView extends ConsumerStatefulWidget {
 
 class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   late final String walletName;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final bool isDesktop;
 
   late TextEditingController _dateController;
@@ -69,8 +71,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   bool hidePassword = true;
   bool _expandedAdavnced = false;
 
-  bool get supportsMnemonicPassphrase =>
-      !(coin == Coin.monero || coin == Coin.wownero || coin == Coin.epicCash);
+  bool get supportsMnemonicPassphrase => coin.hasMnemonicPassphraseSupport;
+
+  bool enableLelantusScanning = false;
+  bool get supportsLelantus => coin is Firo;
 
   @override
   void initState() {
@@ -107,12 +111,13 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     if (mounted) {
       await Navigator.of(context).pushNamed(
         RestoreWalletView.routeName,
-        arguments: Tuple5(
+        arguments: Tuple6(
           walletName,
           coin,
           ref.read(mnemonicWordCountStateProvider.state).state,
           _restoreFromDate,
           passwordController.text,
+          enableLelantusScanning,
         ),
       );
     }
@@ -153,7 +158,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       ),
       builder: (_) {
         return MnemonicWordCountSelectSheet(
-          lengthOptions: Constants.possibleLengthsForCoin(coin),
+          lengthOptions: coin.possibleMnemonicLengths,
         );
       },
     );
@@ -161,9 +166,14 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType with ${coin.name} $walletName");
+    debugPrint("BUILD: $runtimeType with ${coin.identifier} $walletName");
 
-    final lengths = Constants.possibleLengthsForCoin(coin).toList();
+    final lengths = coin.possibleMnemonicLengths;
+
+    final isMoneroAnd25 = coin is Monero &&
+        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
+    final isWowneroAnd25 = coin is Wownero &&
+        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
 
     return MasterScaffold(
       isDesktop: isDesktop,
@@ -217,11 +227,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(
                 height: isDesktop ? 40 : 24,
               ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 Text(
                   "Choose start date",
                   style: isDesktop
@@ -233,48 +239,28 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       : STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 SizedBox(
                   height: isDesktop ? 16 : 8,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 if (!isDesktop)
                   RestoreFromDatePicker(
                     onTap: chooseDate,
                     controller: _dateController,
                   ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 if (isDesktop)
                   // TODO desktop date picker
                   RestoreFromDatePicker(
                     onTap: chooseDesktopDate,
                     controller: _dateController,
                   ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 const SizedBox(
                   height: 8,
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 RoundedWhiteContainer(
                   child: Center(
                     child: Text(
@@ -291,11 +277,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     ),
                   ),
                 ),
-              if (coin == Coin.monero ||
-                  coin == Coin.epicCash ||
-                  (coin == Coin.wownero &&
-                      ref.watch(mnemonicWordCountStateProvider.state).state ==
-                          25))
+              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
                 SizedBox(
                   height: isDesktop ? 24 : 16,
                 ),
@@ -396,8 +378,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                             "Advanced",
                             style: isDesktop
                                 ? STextStyles.desktopTextExtraExtraSmall(
-                                        context)
-                                    .copyWith(
+                                    context,
+                                  ).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .textDark3,
@@ -423,6 +405,17 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     color: Colors.transparent,
                     child: Column(
                       children: [
+                        CheckboxTextButton(
+                          label: "Scan for Lelantus transactions",
+                          onChanged: (newValue) {
+                            setState(() {
+                              enableLelantusScanning = newValue ?? true;
+                            });
+                          },
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
@@ -459,7 +452,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                                       ),
                                       GestureDetector(
                                         key: const Key(
-                                            "mnemonicPassphraseFieldShowPasswordButtonKey"),
+                                          "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                        ),
                                         onTap: () async {
                                           setState(() {
                                             hidePassword = !hidePassword;

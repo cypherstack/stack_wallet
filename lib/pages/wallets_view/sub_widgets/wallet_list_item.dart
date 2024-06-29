@@ -14,30 +14,30 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages/wallets_view/wallets_overview.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/supported_coins.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
-import 'package:stackwallet/widgets/dialogs/tor_warning_dialog.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../providers/providers.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/show_loading.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../widgets/dialogs/tor_warning_dialog.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../wallet_view/wallet_view.dart';
+import '../wallets_overview.dart';
 
 class WalletListItem extends ConsumerWidget {
   const WalletListItem({
-    Key? key,
+    super.key,
     required this.coin,
     required this.walletCount,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final int walletCount;
 
   @override
@@ -52,7 +52,7 @@ class WalletListItem extends ConsumerWidget {
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
         // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        key: Key("walletListItemButtonKey_${coin.name}"),
+        key: Key("walletListItemButtonKey_${coin.identifier}"),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -63,8 +63,7 @@ class WalletListItem extends ConsumerWidget {
           // Check if Tor is enabled...
           if (ref.read(prefsChangeNotifierProvider).useTor) {
             // ... and if the coin supports Tor.
-            final cryptocurrency = SupportedCoins.getCryptoCurrencyFor(coin);
-            if (!cryptocurrency.torSupport) {
+            if (!coin.torSupport) {
               // If not, show a Tor warning dialog.
               final shouldContinue = await showDialog<bool>(
                     context: context,
@@ -79,7 +78,7 @@ class WalletListItem extends ConsumerWidget {
             }
           }
 
-          if (walletCount == 1 && coin != Coin.ethereum) {
+          if (walletCount == 1 && coin is! Ethereum) {
             final wallet = ref
                 .read(pWallets)
                 .wallets
@@ -129,16 +128,19 @@ class WalletListItem extends ConsumerWidget {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final tuple = ref.watch(priceAnd24hChangeNotifierProvider
-                      .select((value) => value.getPrice(coin)));
+                  final tuple = ref.watch(
+                    priceAnd24hChangeNotifierProvider
+                        .select((value) => value.getPrice(coin)),
+                  );
                   final calls =
                       ref.watch(prefsChangeNotifierProvider).externalCalls;
 
                   final priceString =
                       tuple.item1.toAmount(fractionDigits: 2).fiatString(
                             locale: ref.watch(
-                                localeServiceChangeNotifierProvider
-                                    .select((value) => value.locale)),
+                              localeServiceChangeNotifierProvider
+                                  .select((value) => value.locale),
+                            ),
                           );
 
                   final double percentChange = tuple.item2;

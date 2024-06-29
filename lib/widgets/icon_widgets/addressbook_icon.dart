@@ -10,16 +10,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 
 class AddressBookIcon extends StatelessWidget {
   const AddressBookIcon({
-    Key? key,
+    super.key,
     this.width = 16,
     this.height = 16,
     this.color,
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;

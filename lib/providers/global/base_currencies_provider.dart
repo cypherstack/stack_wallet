@@ -10,7 +10,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/services/price.dart';
+import '../../services/price.dart';
 
 final baseCurrenciesProvider =
     ChangeNotifierProvider<_BaseCurrencies>((_) => _BaseCurrencies());
@@ -31,7 +31,7 @@ class _BaseCurrencies extends ChangeNotifier {
       return;
     }
 
-    Map<String, String> newMap = {};
+    final Map<String, String> newMap = {};
 
     for (final entry in _kCurrencyMap.entries) {
       if (list.contains(entry.key.toLowerCase())) {

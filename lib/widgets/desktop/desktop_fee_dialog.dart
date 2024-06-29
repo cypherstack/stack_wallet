@@ -1,31 +1,30 @@
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+import '../../models/models.dart';
+import '../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../animated_text.dart';
+import '../conditional_parent.dart';
+import 'desktop_dialog.dart';
+import 'desktop_dialog_close_button.dart';
 
 class DesktopFeeDialog extends ConsumerStatefulWidget {
   const DesktopFeeDialog({
-    Key? key,
+    super.key,
     required this.walletId,
     this.isToken = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final bool isToken;
@@ -44,24 +43,28 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
     required Amount amount,
     required FeeRateType feeRateType,
     required int feeRate,
-    required Coin coin,
+    required CryptoCurrency coin,
   }) async {
     switch (feeRateType) {
       case FeeRateType.fast:
         if (ref
-                .read(widget.isToken
-                    ? tokenFeeSessionCacheProvider
-                    : feeSheetSessionCacheProvider)
+                .read(
+                  widget.isToken
+                      ? tokenFeeSessionCacheProvider
+                      : feeSheetSessionCacheProvider,
+                )
                 .fast[amount] ==
             null) {
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
 
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.fast.raw!);
+                amount,
+                MoneroTransactionPriority.fast.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -86,26 +89,32 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
           }
         }
         return ref
-            .read(widget.isToken
-                ? tokenFeeSessionCacheProvider
-                : feeSheetSessionCacheProvider)
+            .read(
+              widget.isToken
+                  ? tokenFeeSessionCacheProvider
+                  : feeSheetSessionCacheProvider,
+            )
             .fast[amount]!;
 
       case FeeRateType.average:
         if (ref
-                .read(widget.isToken
-                    ? tokenFeeSessionCacheProvider
-                    : feeSheetSessionCacheProvider)
+                .read(
+                  widget.isToken
+                      ? tokenFeeSessionCacheProvider
+                      : feeSheetSessionCacheProvider,
+                )
                 .average[amount] ==
             null) {
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
 
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.regular.raw!);
+                amount,
+                MoneroTransactionPriority.regular.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -130,26 +139,32 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
           }
         }
         return ref
-            .read(widget.isToken
-                ? tokenFeeSessionCacheProvider
-                : feeSheetSessionCacheProvider)
+            .read(
+              widget.isToken
+                  ? tokenFeeSessionCacheProvider
+                  : feeSheetSessionCacheProvider,
+            )
             .average[amount]!;
 
       case FeeRateType.slow:
         if (ref
-                .read(widget.isToken
-                    ? tokenFeeSessionCacheProvider
-                    : feeSheetSessionCacheProvider)
+                .read(
+                  widget.isToken
+                      ? tokenFeeSessionCacheProvider
+                      : feeSheetSessionCacheProvider,
+                )
                 .slow[amount] ==
             null) {
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
 
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.slow.raw!);
+                amount,
+                MoneroTransactionPriority.slow.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -174,9 +189,11 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
           }
         }
         return ref
-            .read(widget.isToken
-                ? tokenFeeSessionCacheProvider
-                : feeSheetSessionCacheProvider)
+            .read(
+              widget.isToken
+                  ? tokenFeeSessionCacheProvider
+                  : feeSheetSessionCacheProvider,
+            )
             .slow[amount]!;
       default:
         return Amount.zero;
@@ -250,14 +267,14 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
 
 class DesktopFeeItem extends ConsumerStatefulWidget {
   const DesktopFeeItem({
-    Key? key,
+    super.key,
     required this.feeObject,
     required this.feeRateType,
     required this.walletId,
     required this.feeFor,
     required this.isSelected,
     this.isButton = true,
-  }) : super(key: key);
+  });
 
   final FeeObject? feeObject;
   final FeeRateType feeRateType;
@@ -266,7 +283,7 @@ class DesktopFeeItem extends ConsumerStatefulWidget {
     required Amount amount,
     required FeeRateType feeRateType,
     required int feeRate,
-    required Coin coin,
+    required CryptoCurrency coin,
   }) feeFor;
   final bool isSelected;
   final bool isButton;
@@ -287,10 +304,12 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
   ];
 
   String estimatedTimeToBeIncludedInNextBlock(
-      int targetBlockTime, int estimatedNumberOfBlocks) {
-    int time = targetBlockTime * estimatedNumberOfBlocks;
+    int targetBlockTime,
+    int estimatedNumberOfBlocks,
+  ) {
+    final int time = targetBlockTime * estimatedNumberOfBlocks;
 
-    int hours = (time / 3600).floor();
+    final int hours = (time / 3600).floor();
     if (hours > 1) {
       return "~$hours hours";
     } else if (hours == 1) {
@@ -338,14 +357,14 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
                 (value) => value.getWallet(widget.walletId).info.coin,
               ),
             );
-            if ((coin == Coin.firo || coin == Coin.firoTestNet) &&
+            if ((coin is Firo) &&
                 ref.watch(publicPrivateBalanceStateProvider.state).state ==
                     "Private") {
               return Text(
                 "~${ref.watch(pAmountFormatter(coin)).format(
                       Amount(
                         rawValue: BigInt.parse("3794"),
-                        fractionDigits: coin.decimals,
+                        fractionDigits: coin.fractionDigits,
                       ),
                       indicatePrecisionLoss: false,
                     )}",
@@ -378,7 +397,8 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
           }
 
           final wallet = ref.watch(
-              pWallets.select((value) => value.getWallet(widget.walletId)));
+            pWallets.select((value) => value.getWallet(widget.walletId)),
+          );
 
           if (widget.feeObject == null) {
             return AnimatedText(
@@ -410,10 +430,10 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
                             indicatePrecisionLoss: false,
                           )})";
 
-                  timeString = wallet.info.coin == Coin.ethereum
+                  timeString = wallet.info.coin is Ethereum
                       ? ""
                       : estimatedTimeToBeIncludedInNextBlock(
-                          Constants.targetBlockTimeInSeconds(wallet.info.coin),
+                          wallet.info.coin.targetBlockTimeSeconds,
                           widget.feeRateType == FeeRateType.fast
                               ? widget.feeObject!.numberOfBlocksFast
                               : widget.feeRateType == FeeRateType.slow

@@ -6,33 +6,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/monkey_service.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../services/monkey_service.dart';
+import '../../themes/coin_icon_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/show_loading.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/impl/banano_wallet.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/stack_dialog.dart';
 
 class MonkeyView extends ConsumerStatefulWidget {
   const MonkeyView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/monkey";
   static const double navBarHeight = 65.0;
@@ -89,7 +90,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
 
     filePath += isPNG ? ".png" : ".svg";
 
-    File imgFile = File(filePath);
+    final File imgFile = File(filePath);
 
     if (imgFile.existsSync() && !overwrite) {
       throw Exception("File already exists");
@@ -249,7 +250,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                             .extension<StackColors>()!
                             .customTextButtonEnabledText,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -341,8 +342,9 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                               whileFuture: Future.wait([
                                 _saveMonKeyToFile(
                                   bytes: Uint8List.fromList(
-                                      (wallet as BananoWallet)
-                                          .getMonkeyImageBytes()!),
+                                    (wallet as BananoWallet)
+                                        .getMonkeyImageBytes()!,
+                                  ),
                                 ),
                                 Future<void>.delayed(
                                   const Duration(seconds: 2),
@@ -399,7 +401,8 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                                           ),
                                     ),
                                 Future<void>.delayed(
-                                    const Duration(seconds: 2)),
+                                  const Duration(seconds: 2),
+                                ),
                               ]),
                               context: context,
                               rootNavigator: Util.isDesktop,

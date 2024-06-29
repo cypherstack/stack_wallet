@@ -10,25 +10,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/address_book_card.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
+
+import '../../../../../../providers/global/address_book_service_provider.dart';
+import '../../../../../../themes/stack_colors.dart';
+import '../../../../../../utilities/text_styles.dart';
+import '../../../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../../../widgets/address_book_card.dart';
+import '../../../../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../../../../widgets/expandable.dart';
+import '../../../../../../widgets/rounded_white_container.dart';
+import '../../../../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
 
 class ContactListItem extends ConsumerStatefulWidget {
   const ContactListItem({
-    Key? key,
+    super.key,
     required this.contactId,
     this.filterByCoin,
-  }) : super(key: key);
+  });
 
   final String contactId;
-  final Coin? filterByCoin;
+  final CryptoCurrency? filterByCoin;
 
   @override
   ConsumerState<ContactListItem> createState() => _ContactListItemState();
@@ -36,7 +37,7 @@ class ContactListItem extends ConsumerStatefulWidget {
 
 class _ContactListItemState extends ConsumerState<ContactListItem> {
   late final String contactId;
-  late final Coin? filterByCoin;
+  late final CryptoCurrency? filterByCoin;
 
   ExpandableState _state = ExpandableState.collapsed;
 
@@ -49,8 +50,10 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
 
   @override
   Widget build(BuildContext context) {
-    final contact = ref.watch(addressBookServiceProvider
-        .select((value) => value.getContactById(contactId)));
+    final contact = ref.watch(
+      addressBookServiceProvider
+          .select((value) => value.getContactById(contactId)),
+    );
 
     // hack fix until we use a proper database (not Hive)
     int i = 0;
@@ -79,12 +82,14 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
           children: [
             // filter addresses by coin is provided before building address list
             ...contact.addressesSorted
-                .where((e) =>
-                    filterByCoin != null ? e.coin == filterByCoin! : true)
+                .where(
+                  (e) => filterByCoin != null ? e.coin == filterByCoin! : true,
+                )
                 .map(
                   (e) => Column(
                     key: Key(
-                        "contactAddress_${e.address}_${e.label}_${++i}_key"),
+                      "contactAddress_${e.address}_${e.label}_${++i}_key",
+                    ),
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
@@ -117,9 +122,9 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                                         Text(
                                           "${contactId == "default" ? e.other! : e.label} (${e.coin.ticker})",
                                           style: STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                      context)
-                                              .copyWith(
+                                              .desktopTextExtraExtraSmall(
+                                            context,
+                                          ).copyWith(
                                             color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .textDark,
@@ -132,7 +137,8 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                                                 e.address,
                                                 style: STextStyles
                                                     .desktopTextExtraExtraSmall(
-                                                        context),
+                                                  context,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -151,7 +157,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                             ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),

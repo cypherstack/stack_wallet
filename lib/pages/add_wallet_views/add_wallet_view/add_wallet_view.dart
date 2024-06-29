@@ -9,42 +9,43 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/add_wallet_list_entity/add_wallet_list_entity.dart';
-import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
-import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_custom_token_selector.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/add_wallet_text.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/expanding_sub_list_item.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/sub_widgets/next_button.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_eth_tokens.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../app_config.dart';
+import '../../../db/isar/main_db.dart';
+import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
+import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
+import '../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/default_eth_tokens.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/desktop_app_bar.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../widgets/expandable.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
+import '../add_token_view/add_custom_token_view.dart';
+import '../add_token_view/sub_widgets/add_custom_token_selector.dart';
+import 'sub_widgets/add_wallet_text.dart';
+import 'sub_widgets/expanding_sub_list_item.dart';
+import 'sub_widgets/next_button.dart';
 
 class AddWalletView extends ConsumerStatefulWidget {
   const AddWalletView({super.key});
@@ -61,10 +62,12 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
   String _searchTerm = "";
 
-  final List<Coin> _coinsTestnet = [
-    ...Coin.values.where((e) => e.isTestNet),
+  final _coinsTestnet = [
+    ...AppConfig.coins.where((e) => e.network.isTestNet),
   ];
-  final List<Coin> _coins = [...Coin.values.where((e) => !e.isTestNet)];
+  final _coins = [
+    ...AppConfig.coins.where((e) => e.network == CryptoCurrencyNetwork.main),
+  ];
   final List<AddWalletListEntity> coinEntities = [];
   final List<EthTokenEntity> tokenEntities = [];
 
@@ -81,7 +84,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         (e) =>
             e.ticker.toLowerCase().contains(lowercaseTerm) ||
             e.name.toLowerCase().contains(lowercaseTerm) ||
-            e.coin.name.toLowerCase().contains(lowercaseTerm) ||
+            e.cryptoCurrency.identifier.toLowerCase().contains(lowercaseTerm) ||
             (e is EthTokenEntity &&
                 e.token.address.toLowerCase().contains(lowercaseTerm)),
       );
@@ -128,16 +131,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
     // _coinsTestnet.remove(Coin.firoTestNet);
-    if (Platform.isWindows) {
-      _coins.remove(Coin.monero);
-      _coins.remove(Coin.wownero);
-    } else if (Platform.isLinux) {
-      _coins.remove(Coin.wownero);
-    }
 
     if (Util.isDesktop && !kDebugMode) {
-      _coins.remove(Coin.bitcoinFrost);
-      _coins.remove(Coin.bitcoinFrostTestNet);
+      _coins.removeWhere((e) => e is BitcoinFrost);
     }
 
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));
@@ -146,16 +142,20 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       coinEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
     }
 
-    final contracts =
-        MainDB.instance.getEthContracts().sortByName().findAllSync();
+    if (AppConfig.coins.whereType<Ethereum>().isNotEmpty) {
+      final contracts =
+          MainDB.instance.getEthContracts().sortByName().findAllSync();
 
-    if (contracts.isEmpty) {
-      contracts.addAll(DefaultTokens.list);
-      MainDB.instance.putEthContracts(contracts).then(
-          (value) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
+      if (contracts.isEmpty) {
+        contracts.addAll(DefaultTokens.list);
+        MainDB.instance.putEthContracts(contracts).then(
+              (value) =>
+                  ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
+            );
+      }
+
+      tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
     }
-
-    tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(addWalletSelectedEntityStateProvider);
@@ -286,15 +286,16 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 initialState: ExpandableState.expanded,
                                 animationDurationMultiplier: 0.5,
                               ),
-                              ExpandingSubListItem(
-                                title: "Tokens",
-                                entities: filter(_searchTerm, tokenEntities),
-                                initialState: ExpandableState.expanded,
-                                animationDurationMultiplier: 0.5,
-                                trailing: AddCustomTokenSelector(
-                                  addFunction: _addToken,
+                              if (tokenEntities.isNotEmpty)
+                                ExpandingSubListItem(
+                                  title: "Tokens",
+                                  entities: filter(_searchTerm, tokenEntities),
+                                  initialState: ExpandableState.expanded,
+                                  animationDurationMultiplier: 0.5,
+                                  trailing: AddCustomTokenSelector(
+                                    addFunction: _addToken,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -349,63 +350,63 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                     height: 16,
                   ),
                   ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: Semantics(
-                        label:
-                            "Search Text Field. Inputs Text To Search In Wallets.",
-                        excludeSemantics: true,
-                        child: TextField(
-                          autofocus: isDesktop,
-                          autocorrect: !isDesktop,
-                          enableSuggestions: !isDesktop,
-                          controller: _searchFieldController,
-                          focusNode: _searchFocusNode,
-                          onChanged: (value) =>
-                              setState(() => _searchTerm = value),
-                          style: STextStyles.field(context),
-                          decoration: standardInputDecoration(
-                            "Search",
-                            _searchFocusNode,
-                            context,
-                            desktopMed: isDesktop,
-                          ).copyWith(
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 16,
-                              ),
-                              child: SvgPicture.asset(
-                                Assets.svg.search,
-                                width: 16,
-                                height: 16,
-                              ),
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: Semantics(
+                      label:
+                          "Search Text Field. Inputs Text To Search In Wallets.",
+                      excludeSemantics: true,
+                      child: TextField(
+                        autofocus: isDesktop,
+                        autocorrect: !isDesktop,
+                        enableSuggestions: !isDesktop,
+                        controller: _searchFieldController,
+                        focusNode: _searchFocusNode,
+                        onChanged: (value) =>
+                            setState(() => _searchTerm = value),
+                        style: STextStyles.field(context),
+                        decoration: standardInputDecoration(
+                          "Search",
+                          _searchFocusNode,
+                          context,
+                          desktopMed: isDesktop,
+                        ).copyWith(
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 16,
                             ),
-                            suffixIcon: _searchFieldController.text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _searchFieldController.text =
-                                                    "";
-                                                _searchTerm = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : null,
+                            child: SvgPicture.asset(
+                              Assets.svg.search,
+                              width: 16,
+                              height: 16,
+                            ),
                           ),
+                          suffixIcon: _searchFieldController.text.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              _searchFieldController.text = "";
+                                              _searchTerm = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : null,
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
                   const SizedBox(
                     height: 10,
                   ),
@@ -418,11 +419,12 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                             entities: filter(_searchTerm, coinEntities),
                             initialState: ExpandableState.expanded,
                           ),
-                          ExpandingSubListItem(
-                            title: "Tokens",
-                            entities: filter(_searchTerm, tokenEntities),
-                            initialState: ExpandableState.expanded,
-                          ),
+                          if (tokenEntities.isNotEmpty)
+                            ExpandingSubListItem(
+                              title: "Tokens",
+                              entities: filter(_searchTerm, tokenEntities),
+                              initialState: ExpandableState.expanded,
+                            ),
                         ],
                       ),
                     ),

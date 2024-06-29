@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/models/isar/ordinal.dart';
-import 'package:stackwallet/pages/ordinals/ordinal_details_view.dart';
-import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinal_details_view.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../models/isar/ordinal.dart';
+import '../ordinal_details_view.dart';
+import '../../../pages_desktop_specific/ordinals/desktop_ordinal_details_view.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class OrdinalCard extends StatelessWidget {
   const OrdinalCard({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.ordinal,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Ordinal ordinal;

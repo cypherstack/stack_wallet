@@ -10,10 +10,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/text_styles.dart';
+import '../../rounded_container.dart';
+import '../wallet_navigation_bar.dart';
 
 class WalletNavigationBarItemData {
   WalletNavigationBarItemData({
@@ -33,10 +33,10 @@ class WalletNavigationBarItemData {
 
 class WalletNavigationBarItem extends ConsumerWidget {
   const WalletNavigationBarItem({
-    Key? key,
+    super.key,
     required this.data,
     required this.disableDuration,
-  }) : super(key: key);
+  });
 
   final WalletNavigationBarItemData data;
   final Duration disableDuration;
@@ -95,9 +95,9 @@ class WalletNavigationBarItem extends ConsumerWidget {
 
 class WalletNavigationBarMoreItem extends ConsumerWidget {
   const WalletNavigationBarMoreItem({
-    Key? key,
+    super.key,
     required this.data,
-  }) : super(key: key);
+  });
 
   final WalletNavigationBarItemData data;
 

@@ -14,34 +14,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/pages_desktop_specific/coin_control/freeze_button.dart';
-import 'package:stackwallet/pages_desktop_specific/coin_control/utxo_row.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/expandable2.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/blockchain_data/utxo.dart';
+import '../../themes/coin_icon_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../widgets/animated_widgets/rotate_icon.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/dropdown_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/expandable2.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfield_icon_button.dart';
+import 'freeze_button.dart';
+import 'utxo_row.dart';
 
 class DesktopCoinControlView extends ConsumerStatefulWidget {
   const DesktopCoinControlView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/desktopCoinControl";
 
@@ -55,7 +56,7 @@ class DesktopCoinControlView extends ConsumerStatefulWidget {
 class _DesktopCoinControlViewState
     extends ConsumerState<DesktopCoinControlView> {
   late final TextEditingController _searchController;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   final searchFieldFocusNode = FocusNode();
 
   final Set<UtxoRowData> _selectedUTXOs = {};
@@ -93,7 +94,7 @@ class _DesktopCoinControlViewState
         filter: _filter,
         sort: _sort,
         searchTerm: _searchString,
-        coin: coin,
+        cryptoCurrency: coin,
       );
     } else {
       _map = null;
@@ -102,7 +103,7 @@ class _DesktopCoinControlViewState
         filter: _filter,
         sort: _sort,
         searchTerm: _searchString,
-        coin: coin,
+        cryptoCurrency: coin,
       );
     }
 
@@ -308,7 +309,8 @@ class _DesktopCoinControlViewState
 
                         return UtxoRow(
                           key: Key(
-                              "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
+                            "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                          ),
                           data: data,
                           walletId: widget.walletId,
                           onSelectionChanged: (value) {
@@ -374,7 +376,8 @@ class _DesktopCoinControlViewState
                                     "output${entry.value.length > 1 ? "s" : ""}",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
-                                            context),
+                                      context,
+                                    ),
                                   ),
                                 ),
                                 RotateIcon(
@@ -404,7 +407,8 @@ class _DesktopCoinControlViewState
 
                               return UtxoRow(
                                 key: Key(
-                                    "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}"),
+                                  "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                                ),
                                 data: data,
                                 walletId: widget.walletId,
                                 raiseOnSelected: false,

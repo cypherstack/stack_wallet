@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../app_config.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../models/wallet_info.dart';
 
 final pAllWalletsInfo = Provider((ref) {
   return ref.watch(_pAllWalletsInfo.select((value) => value.value));
@@ -14,7 +15,8 @@ final pAllWalletsInfo = Provider((ref) {
 final pAllWalletsInfoByCoin = Provider((ref) {
   final infos = ref.watch(pAllWalletsInfo);
 
-  final Map<Coin, ({Coin coin, List<WalletInfo> wallets})> map = {};
+  final Map<CryptoCurrency, ({CryptoCurrency coin, List<WalletInfo> wallets})>
+      map = {};
 
   for (final info in infos) {
     if (map[info.coin] == null) {
@@ -24,8 +26,8 @@ final pAllWalletsInfoByCoin = Provider((ref) {
     map[info.coin]!.wallets.add(info);
   }
 
-  final List<({Coin coin, List<WalletInfo> wallets})> results = [];
-  for (final coin in Coin.values) {
+  final List<({CryptoCurrency coin, List<WalletInfo> wallets})> results = [];
+  for (final coin in AppConfig.coins) {
     if (map[coin] != null) {
       results.add(map[coin]!);
     }
@@ -40,7 +42,14 @@ final _pAllWalletsInfo = ChangeNotifierProvider((ref) {
   if (_globalInstance == null) {
     final isar = ref.watch(mainDBProvider).isar;
     _globalInstance = _WalletInfoWatcher(
-      isar.walletInfo.where().findAllSync(),
+      isar.walletInfo
+          .where()
+          .filter()
+          .anyOf<String, CryptoCurrency>(
+            AppConfig.coins.map((e) => e.identifier),
+            (q, element) => q.coinNameMatches(element),
+          )
+          .findAllSync(),
       isar,
     );
   }
@@ -58,7 +67,15 @@ class _WalletInfoWatcher extends ChangeNotifier {
   _WalletInfoWatcher(this._value, Isar isar) {
     _streamSubscription =
         isar.walletInfo.watchLazy(fireImmediately: true).listen((event) {
-      isar.walletInfo.where().findAll().then((value) {
+      isar.walletInfo
+          .where()
+          .filter()
+          .anyOf<String, CryptoCurrency>(
+            AppConfig.coins.map((e) => e.identifier),
+            (q, element) => q.coinNameMatches(element),
+          )
+          .findAll()
+          .then((value) {
         _value = value;
         notifyListeners();
       });

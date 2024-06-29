@@ -14,40 +14,40 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/select_wallet_for_token_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/sub_widgets/word_table.dart';
-import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_mnemonic_passphrase_dialog.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../add_token_view/edit_wallet_tokens_view.dart';
+import '../new_wallet_options/new_wallet_options_view.dart';
+import '../new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
+import '../select_wallet_for_token_view.dart';
+import 'sub_widgets/word_table.dart';
+import 'verify_mnemonic_passphrase_dialog.dart';
+import '../../home_view/home_view.dart';
+import '../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/secure_store_provider.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/wallet.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/desktop_app_bar.dart';
+import '../../../widgets/desktop/desktop_scaffold.dart';
 import 'package:tuple/tuple.dart';
 
 final createSpecialEthWalletRoutingFlag = StateProvider((ref) => false);
 
 class VerifyRecoveryPhraseView extends ConsumerStatefulWidget {
   const VerifyRecoveryPhraseView({
-    Key? key,
+    super.key,
     required this.wallet,
     required this.mnemonic,
-  }) : super(key: key);
+  });
 
   static const routeName = "/verifyRecoveryPhrase";
 
@@ -154,7 +154,7 @@ class _VerifyRecoveryPhraseViewState
                 DesktopHomeView.routeName,
               ),
             );
-            if (widget.wallet.info.coin == Coin.ethereum) {
+            if (widget.wallet.info.coin is Ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
@@ -177,7 +177,7 @@ class _VerifyRecoveryPhraseViewState
                 (route) => false,
               ),
             );
-            if (widget.wallet.info.coin == Coin.ethereum) {
+            if (widget.wallet.info.coin is Ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
@@ -198,12 +198,14 @@ class _VerifyRecoveryPhraseViewState
         );
       }
     } else {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Incorrect. Please try again.",
-        iconAsset: Assets.svg.circleX,
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Incorrect. Please try again.",
+          iconAsset: Assets.svg.circleX,
+          context: context,
+        ),
+      );
 
       final int next = Random().nextInt(_mnemonic.length);
       ref
@@ -221,7 +223,10 @@ class _VerifyRecoveryPhraseViewState
   }
 
   Tuple2<List<String>, String> randomize(
-      List<String> mnemonic, int chosenIndex, int wordsToShow) {
+    List<String> mnemonic,
+    int chosenIndex,
+    int wordsToShow,
+  ) {
     final List<String> remaining = [];
     final String chosenWord = mnemonic[chosenIndex];
 
@@ -354,7 +359,8 @@ class _VerifyRecoveryPhraseViewState
                         .extension<StackColors>()!
                         .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius),
+                      Constants.size.circularBorderRadius,
+                    ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -391,11 +397,13 @@ class _VerifyRecoveryPhraseViewState
                         builder: (_, ref, __) {
                           final selectedWord = ref
                               .watch(
-                                  verifyMnemonicSelectedWordStateProvider.state)
+                                verifyMnemonicSelectedWordStateProvider.state,
+                              )
                               .state;
                           final correctWord = ref
                               .watch(
-                                  verifyMnemonicCorrectWordStateProvider.state)
+                                verifyMnemonicCorrectWordStateProvider.state,
+                              )
                               .state;
 
                           return ConstrainedBox(
@@ -406,7 +414,8 @@ class _VerifyRecoveryPhraseViewState
                               onPressed: selectedWord.isNotEmpty
                                   ? () async {
                                       await _continue(
-                                          correctWord == selectedWord);
+                                        correctWord == selectedWord,
+                                      );
                                     }
                                   : null,
                               style: selectedWord.isNotEmpty
@@ -421,9 +430,11 @@ class _VerifyRecoveryPhraseViewState
                                       "Verify",
                                       style: selectedWord.isNotEmpty
                                           ? STextStyles.desktopButtonEnabled(
-                                              context)
+                                              context,
+                                            )
                                           : STextStyles.desktopButtonDisabled(
-                                              context),
+                                              context,
+                                            ),
                                     )
                                   : Text(
                                       "Continue",

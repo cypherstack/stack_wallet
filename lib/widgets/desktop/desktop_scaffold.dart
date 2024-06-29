@@ -9,16 +9,16 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/widgets/background.dart';
+import '../../themes/stack_colors.dart';
+import '../background.dart';
 
 class DesktopScaffold extends StatelessWidget {
   const DesktopScaffold({
-    Key? key,
+    super.key,
     this.background,
     this.appBar,
     this.body,
-  }) : super(key: key);
+  });
 
   final Color? background;
   final Widget? appBar;
@@ -47,12 +47,12 @@ class DesktopScaffold extends StatelessWidget {
 
 class MasterScaffold extends StatelessWidget {
   const MasterScaffold({
-    Key? key,
+    super.key,
     required this.isDesktop,
     required this.appBar,
     required this.body,
     this.background,
-  }) : super(key: key);
+  });
 
   final bool isDesktop;
   final Widget appBar;

@@ -13,23 +13,24 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
-import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
-import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/trade_card.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/blockchain_data/transaction.dart';
+import '../../providers/global/trades_service_provider.dart';
+import '../../providers/providers.dart';
+import '../../services/exchange/exchange_data_loading_service.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_loading_overlay.dart';
+import '../../widgets/trade_card.dart';
+import 'exchange_form.dart';
+import 'trade_details_view.dart';
+
 class ExchangeView extends ConsumerStatefulWidget {
-  const ExchangeView({Key? key}) : super(key: key);
+  const ExchangeView({super.key});
 
   @override
   ConsumerState<ExchangeView> createState() => _ExchangeViewState();
@@ -102,7 +103,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                 subMessage: "This could take a few minutes",
                 eventBus: null,
               ),
-            )
+            ),
           ],
         );
       },
@@ -124,7 +125,7 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                     child: ExchangeForm(),
                   ),
                 ),
-              )
+              ),
             ];
           },
           body: Builder(
@@ -169,63 +170,78 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                     ),
                     if (hasHistory)
                       SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: TradeCard(
-                              key: Key("tradeCard_${trades[index].uuid}"),
-                              trade: trades[index],
-                              onTap: () async {
-                                final String tradeId = trades[index].tradeId;
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: TradeCard(
+                                key: Key("tradeCard_${trades[index].uuid}"),
+                                trade: trades[index],
+                                onTap: () async {
+                                  final String tradeId = trades[index].tradeId;
 
-                                final lookup = ref
-                                    .read(tradeSentFromStackLookupProvider)
-                                    .all;
-
-                                //todo: check if print needed
-                                // debugPrint("ALL: $lookup");
-
-                                final String? txid = ref
-                                    .read(tradeSentFromStackLookupProvider)
-                                    .getTxidForTradeId(tradeId);
-                                final List<String>? walletIds = ref
-                                    .read(tradeSentFromStackLookupProvider)
-                                    .getWalletIdsForTradeId(tradeId);
-
-                                if (txid != null &&
-                                    walletIds != null &&
-                                    walletIds.isNotEmpty) {
-                                  final wallet = ref
-                                      .read(pWallets)
-                                      .getWallet(walletIds.first);
+                                  final lookup = ref
+                                      .read(tradeSentFromStackLookupProvider)
+                                      .all;
 
                                   //todo: check if print needed
-                                  // debugPrint("name: ${manager.walletName}");
+                                  // debugPrint("ALL: $lookup");
 
-                                  final tx = await MainDB.instance
-                                      .getTransactions(walletIds.first)
-                                      .filter()
-                                      .txidEqualTo(txid)
-                                      .findFirst();
+                                  final String? txid = ref
+                                      .read(tradeSentFromStackLookupProvider)
+                                      .getTxidForTradeId(tradeId);
+                                  final List<String>? walletIds = ref
+                                      .read(tradeSentFromStackLookupProvider)
+                                      .getWalletIdsForTradeId(tradeId);
 
-                                  if (mounted) {
-                                    unawaited(Navigator.of(context).pushNamed(
-                                      TradeDetailsView.routeName,
-                                      arguments: Tuple4(tradeId, tx,
-                                          walletIds.first, wallet.info.name),
-                                    ));
+                                  if (txid != null &&
+                                      walletIds != null &&
+                                      walletIds.isNotEmpty) {
+                                    final wallet = ref
+                                        .read(pWallets)
+                                        .getWallet(walletIds.first);
+
+                                    //todo: check if print needed
+                                    // debugPrint("name: ${manager.walletName}");
+
+                                    final tx = await MainDB.instance
+                                        .getTransactions(walletIds.first)
+                                        .filter()
+                                        .txidEqualTo(txid)
+                                        .findFirst();
+
+                                    if (mounted) {
+                                      unawaited(
+                                        Navigator.of(context).pushNamed(
+                                          TradeDetailsView.routeName,
+                                          arguments: Tuple4(
+                                            tradeId,
+                                            tx,
+                                            walletIds.first,
+                                            wallet.info.name,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  } else {
+                                    unawaited(
+                                      Navigator.of(context).pushNamed(
+                                        TradeDetailsView.routeName,
+                                        arguments: Tuple4(
+                                          tradeId,
+                                          null,
+                                          walletIds?.first,
+                                          null,
+                                        ),
+                                      ),
+                                    );
                                   }
-                                } else {
-                                  unawaited(Navigator.of(context).pushNamed(
-                                    TradeDetailsView.routeName,
-                                    arguments: Tuple4(
-                                        tradeId, null, walletIds?.first, null),
-                                  ));
-                                }
-                              },
-                            ),
-                          );
-                        }, childCount: tradeCount),
+                                },
+                              ),
+                            );
+                          },
+                          childCount: tradeCount,
+                        ),
                       ),
                     if (!hasHistory)
                       SliverToBoxAdapter(

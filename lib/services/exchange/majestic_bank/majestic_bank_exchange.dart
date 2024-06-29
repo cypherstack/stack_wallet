@@ -9,18 +9,20 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
-import 'package:stackwallet/exceptions/exchange/majestic_bank/mb_exception.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_api.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../../app_config.dart';
+import '../../../exceptions/exchange/exchange_exception.dart';
+import '../../../exceptions/exchange/majestic_bank/mb_exception.dart';
+import '../../../models/exchange/majestic_bank/mb_order.dart';
+import '../../../models/exchange/response_objects/estimate.dart';
+import '../../../models/exchange/response_objects/range.dart';
+import '../../../models/exchange/response_objects/trade.dart';
+import '../../../models/isar/exchange_cache/currency.dart';
+import '../../../models/isar/exchange_cache/pair.dart';
+import '../exchange.dart';
+import '../exchange_response.dart';
+import 'majestic_bank_api.dart';
 
 class MajesticBankExchange extends Exchange {
   MajesticBankExchange._();
@@ -140,7 +142,7 @@ class MajesticBankExchange extends Exchange {
         isFiat: false,
         rateType: SupportedRateType.both,
         isAvailable: true,
-        isStackCoin: Currency.checkIsStackCoin(limit.currency),
+        isStackCoin: AppConfig.isStackCoin(limit.currency),
         tokenContract: null,
       );
       currencies.add(currency);
@@ -151,7 +153,9 @@ class MajesticBankExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-      String forCurrency, bool fixedRate) {
+    String forCurrency,
+    bool fixedRate,
+  ) {
     // TODO: change this if the api changes to allow getting by paired currency
     return getAllCurrencies(fixedRate);
   }

@@ -11,26 +11,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:stackwallet/models/buy/response_objects/fiat.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/fiat_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../models/buy/response_objects/fiat.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/enums/fiat_enum.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 class FiatSelectionView extends StatefulWidget {
   const FiatSelectionView({
-    Key? key,
+    super.key,
     required this.fiats,
-  }) : super(key: key);
+  });
 
   final List<Fiat> fiats;
 
@@ -48,9 +49,11 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
   void filter(String text) {
     setState(() {
       _fiats = [
-        ...fiats.where((e) =>
-            e.name.toLowerCase().contains(text.toLowerCase()) ||
-            e.ticker.toLowerCase().contains(text.toLowerCase()))
+        ...fiats.where(
+          (e) =>
+              e.name.toLowerCase().contains(text.toLowerCase()) ||
+              e.ticker.toLowerCase().contains(text.toLowerCase()),
+        ),
       ];
     });
   }
@@ -61,10 +64,12 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
 
     fiats = [...widget.fiats];
     fiats.sort(
-        (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()));
-    for (Fiats fiat in Fiats.values.reversed) {
-      int index = fiats.indexWhere((element) =>
-          element.ticker.toLowerCase() == fiat.ticker.toLowerCase());
+      (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()),
+    );
+    for (final Fiats fiat in Fiats.values.reversed) {
+      final int index = fiats.indexWhere(
+        (element) => element.ticker.toLowerCase() == fiat.ticker.toLowerCase(),
+      );
       if (index > 0) {
         final currency = fiats.removeAt(index);
         fiats.insert(0, currency);
@@ -85,7 +90,7 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
 
   @override
   Widget build(BuildContext context) {
-    Locale locale = Localizations.localeOf(context);
+    final Locale locale = Localizations.localeOf(context);
     final format = NumberFormat.simpleCurrency(locale: locale.toString());
     // See https://stackoverflow.com/a/67055685
 
@@ -104,7 +109,8 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 50));
+                      const Duration(milliseconds: 50),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -235,17 +241,20 @@ class _FiatSelectionViewState extends State<FiatSelectionView> {
                                         ),
                                         child: Text(
                                           format.simpleCurrencySymbol(
-                                              e.ticker.toUpperCase()),
+                                            e.ticker.toUpperCase(),
+                                          ),
                                           style: STextStyles.subtitle(context)
                                               .apply(
                                             fontSizeFactor: (1 /
                                                 format
                                                     .simpleCurrencySymbol(
-                                                        e.ticker.toUpperCase())
+                                                      e.ticker.toUpperCase(),
+                                                    )
                                                     .length * // Couldn't get pow() working here
                                                 format
                                                     .simpleCurrencySymbol(
-                                                        e.ticker.toUpperCase())
+                                                      e.ticker.toUpperCase(),
+                                                    )
                                                     .length),
                                           ),
                                           textAlign: TextAlign.center,

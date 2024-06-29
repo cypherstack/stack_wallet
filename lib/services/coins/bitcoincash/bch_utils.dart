@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
-import 'package:stackwallet/utilities/extensions/impl/string.dart';
+import '../../../utilities/extensions/impl/string.dart';
 
 abstract final class BchUtils {
   static const FUSE_ID = 'FUZ\x00';

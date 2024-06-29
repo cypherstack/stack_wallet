@@ -13,20 +13,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
+import '../../../app_config.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../../../providers/desktop/storage_crypto_handler_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/show_loading.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/progress_bar.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+
 class SecuritySettings extends ConsumerStatefulWidget {
-  const SecuritySettings({Key? key}) : super(key: key);
+  const SecuritySettings({super.key});
 
   static const String routeName = "/settingsMenuSecurity";
 
@@ -60,7 +63,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
   String passwordFeedback =
       "Add another word or two. Uncommon words are better. Use a few words, avoid common phrases. No need for symbols, digits, or uppercase letters.";
 
-  Future<bool> attemptChangePW() async {
+  bool _changePWLock = false;
+  Future<(bool, FlushBarType, String)> _attemptChangePW() async {
     final String pw = passwordCurrentController.text;
     final String pwNew = passwordController.text;
     final String pwNewRepeat = passwordRepeatController.text;
@@ -72,14 +76,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
       if (pwNew != pwNewRepeat) {
         await Future<void>.delayed(const Duration(seconds: 1));
 
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: "New passphrase does not match!",
-            context: context,
-          ),
-        );
-        return false;
+        return (false, FlushBarType.warning, "New passphrase does not match!");
       } else {
         final success =
             await ref.read(storageCryptoHandlerProvider).changePassphrase(
@@ -90,38 +87,21 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         if (success) {
           await Future<void>.delayed(const Duration(seconds: 1));
 
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.success,
-              message: "Passphrase successfully changed",
-              context: context,
-            ),
+          return (
+            true,
+            FlushBarType.success,
+            "Passphrase successfully changed"
           );
-          return true;
         } else {
           await Future<void>.delayed(const Duration(seconds: 1));
 
-          unawaited(
-            showFloatingFlushBar(
-              type: FlushBarType.warning,
-              message: "Passphrase change failed",
-              context: context,
-            ),
-          );
-          return false;
+          return (false, FlushBarType.warning, "Passphrase change failed");
         }
       }
     } else {
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Current passphrase is not valid!",
-          context: context,
-        ),
-      );
-      return false;
+      return (false, FlushBarType.warning, "Current passphrase is not valid!");
     }
   }
 
@@ -186,7 +166,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                         height: 16,
                       ),
                       Text(
-                        "Protect your Stack Wallet with a strong password. Stack Wallet does not store "
+                        "Protect your ${AppConfig.appName} with a strong password. ${AppConfig.appName} does not store "
                         "your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),
@@ -203,11 +183,12 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     "Current password",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
-                                                context)
-                                            .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark3),
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
+                                    ),
                                     textAlign: TextAlign.left,
                                   ),
                                   const SizedBox(height: 10),
@@ -217,7 +198,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     ),
                                     child: TextField(
                                       key: const Key(
-                                          "desktopSecurityRestoreFromFilePasswordFieldKey"),
+                                        "desktopSecurityRestoreFromFilePasswordFieldKey",
+                                      ),
                                       focusNode: passwordCurrentFocusNode,
                                       controller: passwordCurrentController,
                                       style: STextStyles.field(context),
@@ -239,7 +221,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                               ),
                                               GestureDetector(
                                                 key: const Key(
-                                                    "desktopSecurityRestoreFromFilePasswordFieldShowPasswordButtonKey"),
+                                                  "desktopSecurityRestoreFromFilePasswordFieldShowPasswordButtonKey",
+                                                ),
                                                 onTap: () async {
                                                   setState(() {
                                                     hidePassword =
@@ -274,11 +257,12 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     "New password",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
-                                                context)
-                                            .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark3),
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
+                                    ),
                                     textAlign: TextAlign.left,
                                   ),
                                   const SizedBox(height: 10),
@@ -288,7 +272,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     ),
                                     child: TextField(
                                       key: const Key(
-                                          "desktopSecurityCreateNewPasswordFieldKey1"),
+                                        "desktopSecurityCreateNewPasswordFieldKey1",
+                                      ),
                                       focusNode: passwordFocusNode,
                                       controller: passwordController,
                                       style: STextStyles.field(context),
@@ -310,7 +295,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                               ),
                                               GestureDetector(
                                                 key: const Key(
-                                                    "desktopSecurityCreateNewPasswordButtonKey1"),
+                                                  "desktopSecurityCreateNewPasswordButtonKey1",
+                                                ),
                                                 onTap: () async {
                                                   setState(() {
                                                     hidePassword =
@@ -345,7 +331,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                         final result =
                                             zxcvbn.evaluate(newValue);
                                         String suggestionsAndTips = "";
-                                        for (var sug in result
+                                        for (final sug in result
                                             .feedback.suggestions!
                                             .toSet()) {
                                           suggestionsAndTips += "$sug\n";
@@ -362,13 +348,16 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                         if (feedback
                                             .contains("phrasesNo need")) {
                                           feedback = feedback.replaceFirst(
-                                              "phrasesNo need",
-                                              "phrases\nNo need");
+                                            "phrasesNo need",
+                                            "phrases\nNo need",
+                                          );
                                         }
 
                                         if (feedback.endsWith("\n")) {
                                           feedback = feedback.substring(
-                                              0, feedback.length - 2);
+                                            0,
+                                            feedback.length - 2,
+                                          );
                                         }
 
                                         setState(() {
@@ -391,7 +380,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                           ? Text(
                                               passwordFeedback,
                                               style: STextStyles.infoSmall(
-                                                  context),
+                                                context,
+                                              ),
                                             )
                                           : null,
                                     ),
@@ -406,7 +396,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                       ),
                                       child: ProgressBar(
                                         key: const Key(
-                                            "desktopSecurityCreateStackBackUpProgressBar"),
+                                          "desktopSecurityCreateStackBackUpProgressBar",
+                                        ),
                                         width: 450,
                                         height: 5,
                                         fillColor: passwordStrength < 0.51
@@ -433,11 +424,12 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     "Confirm new password",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
-                                                context)
-                                            .copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark3),
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
+                                    ),
                                     textAlign: TextAlign.left,
                                   ),
                                   const SizedBox(height: 10),
@@ -447,7 +439,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     ),
                                     child: TextField(
                                       key: const Key(
-                                          "desktopSecurityCreateNewPasswordFieldKey2"),
+                                        "desktopSecurityCreateNewPasswordFieldKey2",
+                                      ),
                                       focusNode: passwordRepeatFocusNode,
                                       controller: passwordRepeatController,
                                       style: STextStyles.field(context),
@@ -469,7 +462,8 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                               ),
                                               GestureDetector(
                                                 key: const Key(
-                                                    "desktopSecurityCreateNewPasswordButtonKey2"),
+                                                  "desktopSecurityCreateNewPasswordButtonKey2",
+                                                ),
                                                 onTap: () async {
                                                   setState(() {
                                                     hidePassword =
@@ -506,15 +500,40 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     enabled: shouldEnableSave,
                                     label: "Save changes",
                                     onPressed: () async {
-                                      final didChangePW =
-                                          await attemptChangePW();
-                                      if (didChangePW) {
-                                        setState(() {
-                                          changePassword = false;
-                                        });
+                                      if (_changePWLock) {
+                                        return;
+                                      }
+                                      _changePWLock = true;
+
+                                      try {
+                                        final (didChangePW, type, message) =
+                                            (await showLoading(
+                                          whileFuture: _attemptChangePW(),
+                                          context: context,
+                                          message: "Updating...",
+                                          rootNavigator: true,
+                                        ))!;
+
+                                        if (mounted) {
+                                          unawaited(
+                                            showFloatingFlushBar(
+                                              type: type,
+                                              message: message,
+                                              context: context,
+                                            ),
+                                          );
+                                        }
+
+                                        if (didChangePW == true) {
+                                          setState(() {
+                                            changePassword = false;
+                                          });
+                                        }
+                                      } finally {
+                                        _changePWLock = false;
                                       }
                                     },
-                                  )
+                                  ),
                                 ],
                               ),
                             )

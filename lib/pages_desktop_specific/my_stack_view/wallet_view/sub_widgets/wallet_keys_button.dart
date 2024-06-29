@@ -10,17 +10,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import 'unlock_wallet_keys_desktop.dart';
+import '../../../../route_generator.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/text_styles.dart';
 
 class WalletKeysButton extends StatelessWidget {
   const WalletKeysButton({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -44,7 +44,7 @@ class WalletKeysButton extends StatelessWidget {
                     name: UnlockWalletKeysDesktop.routeName,
                     arguments: walletId,
                   ),
-                )
+                ),
               ];
             },
           ),
@@ -71,7 +71,7 @@ class WalletKeysButton extends StatelessWidget {
             Text(
               "Wallet keys",
               style: STextStyles.desktopMenuItemSelected(context),
-            )
+            ),
           ],
         ),
       ),

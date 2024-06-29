@@ -11,19 +11,19 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
-import 'package:stackwallet/exceptions/exchange/majestic_bank/mb_exception.dart';
-import 'package:stackwallet/exceptions/exchange/pair_unavailable_exception.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_limit.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_order.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_order_calculation.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_order_status.dart';
-import 'package:stackwallet/models/exchange/majestic_bank/mb_rate.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../../exceptions/exchange/exchange_exception.dart';
+import '../../../exceptions/exchange/majestic_bank/mb_exception.dart';
+import '../../../exceptions/exchange/pair_unavailable_exception.dart';
+import '../../../models/exchange/majestic_bank/mb_limit.dart';
+import '../../../models/exchange/majestic_bank/mb_order.dart';
+import '../../../models/exchange/majestic_bank/mb_order_calculation.dart';
+import '../../../models/exchange/majestic_bank/mb_order_status.dart';
+import '../../../models/exchange/majestic_bank/mb_rate.dart';
+import '../../../networking/http.dart';
+import '../exchange_response.dart';
+import '../../tor_service.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 
 class MajesticBankAPI {
   static const String scheme = "https";
@@ -227,8 +227,9 @@ class MajesticBankAPI {
       return ExchangeResponse(value: result);
     } catch (e, s) {
       Logging.instance.log(
-          "calculateOrder $fromCurrency-$receiveCurrency exception: $e\n$s",
-          level: LogLevel.Error);
+        "calculateOrder $fromCurrency-$receiveCurrency exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -342,9 +343,12 @@ class MajesticBankAPI {
   Future<ExchangeResponse<MBOrderStatus>> trackOrder({
     required String orderId,
   }) async {
-    final uri = _buildUri(endpoint: "track", params: {
-      "trx": orderId,
-    });
+    final uri = _buildUri(
+      endpoint: "track",
+      params: {
+        "trx": orderId,
+      },
+    );
 
     try {
       final jsonObject = await _makeGetRequest(uri);

@@ -9,16 +9,17 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/custom_text_button.dart';
 
-export 'package:stackwallet/widgets/desktop/custom_text_button.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import 'custom_text_button.dart';
+
+export 'custom_text_button.dart';
 
 class SecondaryButton extends StatelessWidget {
   const SecondaryButton({
-    Key? key,
+    super.key,
     this.width,
     this.height,
     this.label,
@@ -29,7 +30,7 @@ class SecondaryButton extends StatelessWidget {
     this.buttonHeight,
     this.iconSpacing = 10,
     this.padding = EdgeInsets.zero,
-  }) : super(key: key);
+  });
 
   final double? width;
   final double? height;

@@ -15,44 +15,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/monkey/monkey_view.dart';
-import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
-import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/cashfusion/desktop_cashfusion_view.dart';
-import 'package:stackwallet/pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/more_features/more_features_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/ordinals/desktop_ordinals_view.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/providers/global/paynym_api_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+
+import '../../../../app_config.dart';
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../pages/monkey/monkey_view.dart';
+import '../../../../pages/paynym/paynym_claim_view.dart';
+import '../../../../pages/paynym/paynym_home_view.dart';
+import '../../../../providers/desktop/current_desktop_menu_item.dart';
+import '../../../../providers/global/paynym_api_provider.dart';
+import '../../../../providers/providers.dart';
+import '../../../../providers/wallet/my_paynym_account_state_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../themes/theme_providers.dart';
+import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/coins/banano.dart';
+import '../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../widgets/custom_loading_overlay.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/loading_indicator.dart';
+import '../../../cashfusion/desktop_cashfusion_view.dart';
+import '../../../coin_control/desktop_coin_control_view.dart';
+import '../../../desktop_menu.dart';
+import '../../../ordinals/desktop_ordinals_view.dart';
+import '../desktop_wallet_view.dart';
+import 'more_features/more_features_dialog.dart';
 
 class DesktopWalletFeatures extends ConsumerStatefulWidget {
   const DesktopWalletFeatures({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -151,7 +154,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                         _attemptAnonymize(),
                       );
                     },
-                  )
+                  ),
                 ],
               ),
             ],
@@ -260,7 +263,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -357,16 +360,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                 (value) => value.enableCoinControl,
               ),
             )) ||
-        coin == Coin.firo ||
-        coin == Coin.firoTestNet ||
+        coin is Firo ||
         // manager.hasWhirlpoolSupport ||
-        coin == Coin.banano ||
+        coin is Banano ||
         wallet is OrdinalsInterface ||
         wallet is CashFusionInterface;
 
     return Row(
       children: [
-        if (Constants.enableExchange)
+        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.swap))
           SecondaryButton(
             label: "Swap",
             width: buttonWidth,
@@ -381,11 +383,11 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             ),
             onPressed: () => _onSwapPressed(),
           ),
-        if (Constants.enableExchange)
+        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
           const SizedBox(
             width: 16,
           ),
-        if (Constants.enableExchange)
+        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
           SecondaryButton(
             label: "Buy",
             width: buttonWidth,

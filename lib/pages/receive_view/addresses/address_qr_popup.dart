@@ -18,30 +18,31 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../notifications/show_flush_bar.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/qr.dart';
+import '../../../widgets/stack_dialog.dart';
 
 class AddressQrPopup extends StatefulWidget {
   const AddressQrPopup({
-    Key? key,
+    super.key,
     required this.addressString,
     required this.coin,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String addressString;
-  final Coin coin;
+  final CryptoCurrency coin;
   final ClipboardInterface clipboard;
 
   @override
@@ -54,19 +55,20 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
 
   Future<void> _capturePng(bool shouldSaveInsteadOfShare) async {
     try {
-      RenderRepaintBoundary boundary =
+      final RenderRepaintBoundary boundary =
           _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage();
-      ByteData? byteData =
+      final ui.Image image = await boundary.toImage();
+      final ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
-      Uint8List pngBytes = byteData!.buffer.asUint8List();
+      final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       if (shouldSaveInsteadOfShare) {
         if (isDesktop) {
           final dir = Directory("${Platform.environment['HOME']}");
           if (!dir.existsSync()) {
             throw Exception(
-                "Home dir not found while trying to open filepicker on QR image save");
+              "Home dir not found while trying to open filepicker on QR image save",
+            );
           }
           final path = await FilePicker.platform.saveFile(
             fileName: "qrcode.png",
@@ -105,8 +107,10 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
-            text: "Receive URI QR Code");
+        await Share.shareFiles(
+          ["${tempDir.path}/qrcode.png"],
+          text: "Receive URI QR Code",
+        );
       }
     } catch (e) {
       //todo: comeback to this
@@ -136,17 +140,13 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
           Center(
             child: RepaintBoundary(
               key: _qrKey,
-              child: QrImageView(
+              child: QR(
                 data: AddressUtils.buildUriString(
                   widget.coin,
                   widget.addressString,
                   {},
                 ),
                 size: 220,
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.popupBG,
-                foregroundColor:
-                    Theme.of(context).extension<StackColors>()!.accentColorDark,
               ),
             ),
           ),
@@ -194,7 +194,7 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

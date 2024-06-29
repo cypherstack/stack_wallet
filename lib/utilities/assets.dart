@@ -9,10 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
+import '../services/exchange/change_now/change_now_exchange.dart';
+import '../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../services/exchange/simpleswap/simpleswap_exchange.dart';
+import '../services/exchange/trocador/trocador_exchange.dart';
 
 abstract class Assets {
   static const svg = _SVG();
@@ -254,8 +254,6 @@ class _SVG {
 class _PNG {
   const _PNG();
 
-  String get splash => "assets/images/splash.png";
-
   String get glasses => "assets/images/glasses.png";
   String get glassesHidden => "assets/images/glasses-hidden.png";
   String get mascot => "assets/images/mascot.png";
@@ -264,7 +262,7 @@ class _PNG {
 class _ANIMATIONS {
   const _ANIMATIONS();
 
-  String get test2 => "assets/lottie/test2.json";
+  String get test2 => "assets/lottie/loader.json";
   String get iconSend => "assets/lottie/icon_send.json";
   String get loaderAndCheckmark => "assets/lottie/loader_and_checkmark.json";
   String get arrowRotate => "assets/lottie/arrow_rotate.json";

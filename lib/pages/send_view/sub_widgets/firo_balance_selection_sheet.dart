@@ -10,19 +10,20 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
+
+import '../../../providers/providers.dart';
+import '../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/wallet/impl/firo_wallet.dart';
 
 class FiroBalanceSelectionSheet extends ConsumerStatefulWidget {
   const FiroBalanceSelectionSheet({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -125,12 +126,14 @@ class _FiroBalanceSelectionSheetState
                                 value: FiroType.spark,
                                 groupValue: ref
                                     .watch(
-                                        publicPrivateBalanceStateProvider.state)
+                                      publicPrivateBalanceStateProvider.state,
+                                    )
                                     .state,
                                 onChanged: (x) {
                                   ref
-                                      .read(publicPrivateBalanceStateProvider
-                                          .state)
+                                      .read(
+                                        publicPrivateBalanceStateProvider.state,
+                                      )
                                       .state = FiroType.spark;
 
                                   Navigator.of(context).pop();
@@ -168,7 +171,7 @@ class _FiroBalanceSelectionSheetState
                           ),
                           //   ],
                           // ),
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -209,13 +212,16 @@ class _FiroBalanceSelectionSheetState
                                       .radioButtonIconEnabled,
                                   value: FiroType.lelantus,
                                   groupValue: ref
-                                      .watch(publicPrivateBalanceStateProvider
-                                          .state)
+                                      .watch(
+                                        publicPrivateBalanceStateProvider.state,
+                                      )
                                       .state,
                                   onChanged: (x) {
                                     ref
-                                        .read(publicPrivateBalanceStateProvider
-                                            .state)
+                                        .read(
+                                          publicPrivateBalanceStateProvider
+                                              .state,
+                                        )
                                         .state = FiroType.lelantus;
 
                                     Navigator.of(context).pop();
@@ -253,7 +259,7 @@ class _FiroBalanceSelectionSheetState
                             ),
                             //   ],
                             // ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -288,12 +294,14 @@ class _FiroBalanceSelectionSheetState
                                 value: FiroType.public,
                                 groupValue: ref
                                     .watch(
-                                        publicPrivateBalanceStateProvider.state)
+                                      publicPrivateBalanceStateProvider.state,
+                                    )
                                     .state,
                                 onChanged: (x) {
                                   ref
-                                      .read(publicPrivateBalanceStateProvider
-                                          .state)
+                                      .read(
+                                        publicPrivateBalanceStateProvider.state,
+                                      )
                                       .state = FiroType.public;
                                   Navigator.of(context).pop();
                                 },

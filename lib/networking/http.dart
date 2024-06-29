@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:socks5_proxy/socks_client.dart';
-import 'package:stackwallet/utilities/logger.dart';
+import '../utilities/logger.dart';
 
 // WIP wrapper layer
 

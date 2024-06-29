@@ -12,32 +12,34 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/exchange/trocador/trocador_kyc_info_button.dart';
-import 'package:stackwallet/widgets/exchange/trocador/trocador_rating_type_enum.dart';
+
+import '../../../app_config.dart';
+import '../../../models/exchange/response_objects/estimate.dart';
+import '../../../providers/exchange/exchange_form_state_provider.dart';
+import '../../../providers/global/locale_provider.dart';
+import '../../../services/exchange/exchange.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/amount/amount_unit.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/animated_text.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/exchange/trocador/trocador_kyc_info_button.dart';
+import '../../../widgets/exchange/trocador/trocador_rating_type_enum.dart';
 
 class ExchangeOption extends ConsumerStatefulWidget {
   const ExchangeOption({
-    Key? key,
+    super.key,
     required this.exchange,
     required this.fixedRate,
     required this.reversed,
-  }) : super(key: key);
+  });
 
   final Exchange exchange;
   final bool fixedRate;
@@ -92,9 +94,10 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         int decimals;
                         try {
-                          decimals = coinFromTickerCaseInsensitive(
-                                  receivingCurrency.ticker)
-                              .decimals;
+                          decimals = AppConfig.getCryptoCurrencyForTicker(
+                            receivingCurrency.ticker,
+                          )!
+                              .fractionDigits;
                         } catch (_) {
                           decimals = 8; // some reasonable alternative
                         }
@@ -109,10 +112,11 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                               .toAmount(fractionDigits: decimals);
                         }
 
-                        Coin? coin;
+                        CryptoCurrency? coin;
                         try {
-                          coin = coinFromTickerCaseInsensitive(
-                              receivingCurrency.ticker);
+                          coin = AppConfig.getCryptoCurrencyForTicker(
+                            receivingCurrency.ticker,
+                          );
                         } catch (_) {
                           coin = null;
                         }
@@ -128,7 +132,9 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                               localeServiceChangeNotifierProvider
                                   .select((value) => value.locale),
                             ),
-                            coin: Coin.bitcoin, // some sane default
+                            coin: Bitcoin(
+                              CryptoCurrencyNetwork.main,
+                            ), // some sane default
                             maxDecimals: 8, // some sane default
                           );
                           rateString = "1 ${sendCurrency.ticker.toUpperCase()} "
@@ -217,14 +223,14 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
 class _ProviderOption extends ConsumerStatefulWidget {
   const _ProviderOption({
-    Key? key,
+    super.key,
     required this.exchange,
     required this.estimate,
     required this.rateString,
     this.kycRating,
     this.loadingString = false,
     this.rateColor,
-  }) : super(key: key);
+  });
 
   final Exchange exchange;
   final Estimate? estimate;

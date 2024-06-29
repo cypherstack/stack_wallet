@@ -10,25 +10,25 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import 'package:stackwallet/providers/global/active_wallet_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
+import 'wallet_view/desktop_wallet_view.dart';
+import '../../providers/global/active_wallet_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/show_loading.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/wallet_info_row/wallet_info_row.dart';
 
 class CoinWalletsTable extends ConsumerWidget {
   const CoinWalletsTable({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,7 +57,7 @@ class CoinWalletsTable extends ConsumerWidget {
           children: [
             for (int i = 0; i < walletIds.length; i++)
               Column(
-                key: Key("${coin.name}_$runtimeType${walletIds[i]}_key"),
+                key: Key("${coin.identifier}_$runtimeType${walletIds[i]}_key"),
                 children: [
                   if (i != 0)
                     const SizedBox(
@@ -117,9 +117,9 @@ class CoinWalletsTable extends ConsumerWidget {
 
 class WalletRowHoverOverlay extends StatefulWidget {
   const WalletRowHoverOverlay({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
 

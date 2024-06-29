@@ -13,32 +13,33 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/trade_card.dart';
-import 'package:stackwallet/widgets/transaction_card.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../models/isar/models/isar_models.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/trades_service_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../route_generator.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/loading_indicator.dart';
+import '../../../widgets/trade_card.dart';
+import '../../../widgets/transaction_card.dart';
+import '../../exchange_view/trade_details_view.dart';
+import '../wallet_view.dart';
+import 'no_transactions_found.dart';
 
 class TransactionsList extends ConsumerStatefulWidget {
   const TransactionsList({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -80,7 +81,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
     BuildContext context,
     Transaction tx,
     BorderRadius? radius,
-    Coin coin,
+    CryptoCurrency coin,
     int chainHeight,
   ) {
     final matchingTrades = ref
@@ -106,10 +107,12 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
             ),
             TradeCard(
               // this may mess with combined firo transactions
-              key: Key(tx.txid +
-                  tx.type.name +
-                  tx.address.value.toString() +
-                  trade.uuid), //
+              key: Key(
+                tx.txid +
+                    tx.type.name +
+                    tx.address.value.toString() +
+                    trade.uuid,
+              ), //
               trade: trade,
               onTap: () async {
                 final walletName = ref.read(pWalletName(widget.walletId));
@@ -184,7 +187,7 @@ class _TransactionsListState extends ConsumerState<TransactionsList> {
                   );
                 }
               },
-            )
+            ),
           ],
         ),
       );

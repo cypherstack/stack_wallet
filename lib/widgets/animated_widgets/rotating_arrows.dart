@@ -10,8 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 
 class RotatingArrowsController {
   VoidCallback? forward;
@@ -23,13 +23,13 @@ class RotatingArrowsController {
 
 class RotatingArrows extends StatefulWidget {
   const RotatingArrows({
-    Key? key,
+    super.key,
     required this.height,
     required this.width,
     this.controller,
     this.color,
     this.spinByDefault = true,
-  }) : super(key: key);
+  });
 
   final double height;
   final double width;

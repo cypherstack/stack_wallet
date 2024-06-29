@@ -9,7 +9,9 @@
  */
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+
+import '../../../app_config.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 part 'contact_entry.g.dart';
 
@@ -36,7 +38,7 @@ class ContactEntry {
   @ignore
   List<ContactAddressEntry> get addressesSorted {
     final List<ContactAddressEntry> sorted = [];
-    for (final coin in Coin.values) {
+    for (final coin in AppConfig.coins) {
       final slice = addresses.where((e) => e.coin == coin).toList();
       if (slice.isNotEmpty) {
         slice.sort(
@@ -56,13 +58,13 @@ class ContactEntry {
     List<ContactAddressEntry>? addresses,
     bool? isFavorite,
   }) {
-    List<ContactAddressEntry> _addresses = [];
+    final List<ContactAddressEntry> _addresses = [];
     if (addresses == null) {
-      for (var e in this.addresses) {
+      for (final e in this.addresses) {
         _addresses.add(e.copyWith());
       }
     } else {
-      for (var e in addresses) {
+      for (final e in addresses) {
         _addresses.add(e.copyWith());
       }
     }
@@ -101,18 +103,18 @@ class ContactAddressEntry {
   late final String? other;
 
   @ignore
-  Coin get coin => Coin.values.byName(coinName);
+  CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName)!;
 
   ContactAddressEntry();
 
   ContactAddressEntry copyWith({
-    Coin? coin,
+    CryptoCurrency? coin,
     String? address,
     String? label,
     String? other,
   }) {
     return ContactAddressEntry()
-      ..coinName = coin?.name ?? coinName
+      ..coinName = coin?.identifier ?? coinName
       ..address = address ?? this.address
       ..label = label ?? this.label
       ..other = other ?? this.other;
@@ -122,7 +124,7 @@ class ContactAddressEntry {
     return {
       "label": label,
       "address": address,
-      "coin": coin.name,
+      "coin": coin.identifier,
       "other": other ?? "",
     };
   }

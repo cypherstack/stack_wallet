@@ -14,40 +14,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
-import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/paynym/dialogs/confirm_paynym_connect_dialog.dart';
-import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
-import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
-import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
-import 'package:stackwallet/pages/send_view/send_view.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../exceptions/wallet/insufficient_balance_exception.dart';
+import '../../../models/paynym/paynym_account_lite.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../../../providers/global/locale_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../route_generator.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/models/tx_data.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../widgets/custom_buttons/paynym_follow_toggle_button.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/loading_indicator.dart';
+import '../../../widgets/qr.dart';
+import '../../../widgets/rounded_container.dart';
+import '../../../widgets/stack_dialog.dart';
+import '../../send_view/confirm_transaction_view.dart';
+import '../../send_view/send_view.dart';
+import '../paynym_home_view.dart';
+import '../subwidgets/paynym_bot.dart';
+import 'confirm_paynym_connect_dialog.dart';
 
 class PaynymDetailsPopup extends ConsumerStatefulWidget {
   const PaynymDetailsPopup({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.accountLite,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final PaynymAccountLite accountLite;
@@ -228,7 +228,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                               .extension<StackColors>()!
                                               .accentColorGreen,
                                         ),
-                                      )
+                                      ),
                                     ],
                                   );
                                 } else {
@@ -366,12 +366,10 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                 const SizedBox(
                   width: 20,
                 ),
-                QrImageView(
+                QR(
                   padding: const EdgeInsets.all(0),
                   size: 100,
                   data: widget.accountLite.code,
-                  foregroundColor:
-                      Theme.of(context).extension<StackColors>()!.textDark,
                 ),
               ],
             ),

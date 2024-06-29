@@ -10,25 +10,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/pages/token_view/sub_widgets/token_summary.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_balance.dart';
-import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
+
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../pages/token_view/sub_widgets/token_summary.dart';
+import '../../providers/db/main_db_provider.dart';
+import '../../providers/providers.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../custom_buttons/blue_text_button.dart';
+import 'sub_widgets/wallet_info_row_balance.dart';
+import 'sub_widgets/wallet_info_row_coin_icon.dart';
 
 class WalletInfoRow extends ConsumerWidget {
   const WalletInfoRow({
-    Key? key,
+    super.key,
     required this.walletId,
     this.onPressedDesktop,
     this.contractAddress,
     this.padding = const EdgeInsets.all(0),
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String? contractAddress;
@@ -41,8 +42,10 @@ class WalletInfoRow extends ConsumerWidget {
 
     EthContract? contract;
     if (contractAddress != null) {
-      contract = ref.watch(mainDBProvider
-          .select((value) => value.getEthContractSync(contractAddress!)));
+      contract = ref.watch(
+        mainDBProvider
+            .select((value) => value.getEthContractSync(contractAddress!)),
+      );
     }
 
     if (Util.isDesktop) {
@@ -114,7 +117,7 @@ class WalletInfoRow extends ConsumerWidget {
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),

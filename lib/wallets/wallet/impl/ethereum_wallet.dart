@@ -5,27 +5,26 @@ import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/ethereum/ethereum_api.dart';
-import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/ethereum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import 'package:web3dart/web3dart.dart' as web3;
+
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/ethereum/ethereum_api.dart';
+import '../../../services/event_bus/events/global/updated_in_background_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/eth_commons.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_wallet.dart';
+import '../wallet_mixin_interfaces/private_key_interface.dart';
 
 // Eth can not use tor with web3dart
 
@@ -143,7 +142,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   @override
   Future<bool> pingCheck() async {
-    web3.Web3Client client = getEthClient();
+    final web3.Web3Client client = getEthClient();
     try {
       await client.getBlockNumber();
       return true;
@@ -159,7 +158,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
       final addressHex = (await getCurrentReceivingAddress())!.value;
       final address = web3.EthereumAddress.fromHex(addressHex);
-      web3.EtherAmount ethBalance = await client.getBalance(address);
+      final web3.EtherAmount ethBalance = await client.getBalance(address);
       final balance = Balance(
         total: Amount(
           rawValue: ethBalance.getInWei,
@@ -239,7 +238,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     if (response.value == null) {
       Logging.instance.log(
-        "Failed to refresh transactions for ${cryptoCurrency.coin.prettyName} ${info.name} "
+        "Failed to refresh transactions for ${cryptoCurrency.prettyName} ${info.name} "
         "$walletId: ${response.exception}",
         level: LogLevel.Warning,
       );
@@ -288,7 +287,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         final List<OutputV2> outputs = [];
         final List<InputV2> inputs = [];
 
-        OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+        final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "00",
           valueStringSats: transactionAmount.raw.toString(),
           addresses: [
@@ -296,7 +295,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
           ],
           walletOwns: addressTo == thisAddress,
         );
-        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+        final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
           scriptSigHex: null,
           scriptSigAsm: null,
           sequence: null,
@@ -349,7 +348,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       await mainDB.updateOrPutTransactionV2s(txns);
     } else {
       Logging.instance.log(
-        "Failed to refresh transactions with nonces for ${cryptoCurrency.coin.prettyName} "
+        "Failed to refresh transactions with nonces for ${cryptoCurrency.prettyName} "
         "${info.name} $walletId: ${txsResponse.exception}",
         level: LogLevel.Warning,
       );
@@ -414,8 +413,10 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     // );
 
     final nonce = txData.nonce ??
-        await client.getTransactionCount(myWeb3Address,
-            atBlock: const web3.BlockNum.pending());
+        await client.getTransactionCount(
+          myWeb3Address,
+          atBlock: const web3.BlockNum.pending(),
+        );
 
     // final nResponse = await EthereumAPI.getAddressNonce(address: myAddress);
     // print("==============================================================");

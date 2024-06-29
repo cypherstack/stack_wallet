@@ -14,34 +14,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/nano_interface.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/clipboard_interface.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/show_loading.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/nano_interface.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/conditional_parent.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/stack_text_field.dart';
+import '../../../../widgets/textfield_icon_button.dart';
 
 class ChangeRepresentativeView extends ConsumerStatefulWidget {
   const ChangeRepresentativeView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String walletId;
   final ClipboardInterface clipboardInterface;
@@ -80,21 +81,22 @@ class _ChangeRepresentativeViewState
     final changeFuture = wallet.changeRepresentative;
 
     final result = await showLoading(
-        whileFuture: changeFuture(_textController.text),
-        context: context,
-        message: "Updating representative...",
-        rootNavigator: Util.isDesktop,
-        onException: (ex) {
-          String msg = ex.toString();
-          while (msg.isNotEmpty && msg.startsWith("Exception:")) {
-            msg = msg.substring(10).trim();
-          }
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: msg,
-            context: context,
-          );
-        });
+      whileFuture: changeFuture(_textController.text),
+      context: context,
+      message: "Updating representative...",
+      rootNavigator: Util.isDesktop,
+      onException: (ex) {
+        String msg = ex.toString();
+        while (msg.isNotEmpty && msg.startsWith("Exception:")) {
+          msg = msg.substring(10).trim();
+        }
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: msg,
+          context: context,
+        );
+      },
+    );
 
     if (mounted) {
       if (result != null && result) {
@@ -129,12 +131,14 @@ class _ChangeRepresentativeViewState
     await _clipboardInterface
         .setData(ClipboardData(text: representative ?? ""));
     if (mounted) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.info,
-        message: "Copied to clipboard",
-        iconAsset: Assets.svg.copy,
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.info,
+          message: "Copied to clipboard",
+          iconAsset: Assets.svg.copy,
+          context: context,
+        ),
+      );
     }
   }
 
@@ -284,7 +288,8 @@ class _ChangeRepresentativeViewState
                                 Text(
                                   "Current representative",
                                   style: STextStyles.desktopTextExtraExtraSmall(
-                                      context),
+                                    context,
+                                  ),
                                 ),
                                 const SizedBox(
                                   height: 4,
@@ -300,8 +305,8 @@ class _ChangeRepresentativeViewState
                               representative!,
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall(
-                                          context)
-                                      .copyWith(
+                                      context,
+                                    ).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
                                           .textDark,

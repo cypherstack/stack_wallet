@@ -9,18 +9,19 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
+
+import '../../themes/stack_colors.dart';
 
 class DraggableSwitchButton extends StatefulWidget {
   const DraggableSwitchButton({
-    Key? key,
+    super.key,
     this.onItem,
     this.offItem,
     this.onValueChanged,
     required this.isOn,
     this.enabled = true,
     this.controller,
-  }) : super(key: key);
+  });
 
   final Widget? onItem;
   final Widget? offItem;
@@ -131,7 +132,7 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
                           .clamp(0.0, 1.0);
                     },
                     onHorizontalDragEnd: (details) {
-                      bool oldValue = _isOn;
+                      final bool oldValue = _isOn;
                       if (valueListener.value > 0.5) {
                         valueListener.value = 1.0;
                         _isOn = true;
@@ -158,7 +159,10 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
                                 constraint.maxHeight / 2,
                               ),
                               color: _colorFG(
-                                  _isOn, _enabled, valueListener.value),
+                                _isOn,
+                                _enabled,
+                                valueListener.value,
+                              ),
                             ),
                           );
                         },

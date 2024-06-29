@@ -13,21 +13,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../app_config.dart';
+import '../../../../providers/providers.dart';
+import '../../../../themes/coin_icon_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import 'coin_nodes_view.dart';
 
 class ManageNodesView extends ConsumerStatefulWidget {
   const ManageNodesView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/manageNodes";
 
@@ -36,12 +38,14 @@ class ManageNodesView extends ConsumerStatefulWidget {
 }
 
 class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
-  List<Coin> _coins = [...Coin.values];
+  List<CryptoCurrency> _coins = [...AppConfig.coins];
 
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.remove(Coin.firoTestNet);
+    _coins.removeWhere(
+      (e) => e is Firo && e.network.isTestNet,
+    );
     super.initState();
   }
 
@@ -52,12 +56,13 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
 
   @override
   Widget build(BuildContext context) {
-    bool showTestNet = ref.watch(
+    final showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    List<Coin> coins =
-        showTestNet ? _coins : _coins.where((e) => !e.isTestNet).toList();
+    final coins = showTestNet
+        ? _coins
+        : _coins.where((e) => e.network != CryptoCurrencyNetwork.test).toList();
 
     return Background(
       child: Scaffold(
@@ -86,8 +91,10 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                 ...coins.map(
                   (coin) {
                     final count = ref
-                        .watch(nodeServiceChangeNotifierProvider
-                            .select((value) => value.getNodesFor(coin)))
+                        .watch(
+                          nodeServiceChangeNotifierProvider
+                              .select((value) => value.getNodesFor(coin)),
+                        )
                         .length;
 
                     return Padding(
@@ -137,7 +144,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                                       style: STextStyles.label(context),
                                     ),
                                   ],
-                                )
+                                ),
                               ],
                             ),
                           ),

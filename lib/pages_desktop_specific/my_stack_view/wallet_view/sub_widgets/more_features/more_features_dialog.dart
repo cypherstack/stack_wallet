@@ -11,23 +11,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+
+import '../../../../../db/sqlite/firo_cache.dart';
+import '../../../../../providers/db/main_db_provider.dart';
+import '../../../../../providers/global/prefs_provider.dart';
+import '../../../../../providers/global/wallets_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../../wallets/isar/models/wallet_info.dart';
+import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../../widgets/rounded_container.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.onPaynymPressed,
     required this.onCoinControlPressed,
@@ -36,7 +45,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onOrdinalsPressed,
     required this.onMonkeyPressed,
     required this.onFusionPressed,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final VoidCallback? onPaynymPressed;
@@ -52,6 +61,47 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
 }
 
 class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
+  bool _isUpdatingLelantusScanning = false; // Mutex.
+
+  Future<void> _switchToggled(bool newValue) async {
+    if (_isUpdatingLelantusScanning) return;
+    _isUpdatingLelantusScanning = true; // Lock mutex.
+
+    try {
+      // Toggle enableLelantusScanning in wallet info.
+      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+        newEntries: {
+          WalletInfoKeys.enableLelantusScanning: newValue,
+        },
+        isar: ref.read(mainDBProvider).isar,
+      );
+    } finally {
+      // ensure _isUpdatingLelantusScanning is set to false no matter what
+      _isUpdatingLelantusScanning = false;
+    }
+  }
+
+  bool _switchRbfToggledLock = false; // Mutex.
+  Future<void> _switchRbfToggled(bool newValue) async {
+    if (_switchRbfToggledLock) {
+      return;
+    }
+    _switchRbfToggledLock = true; // Lock mutex.
+
+    try {
+      // Toggle enableOptInRbf in wallet info.
+      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+        newEntries: {
+          WalletInfoKeys.enableOptInRbf: newValue,
+        },
+        isar: ref.read(mainDBProvider).isar,
+      );
+    } finally {
+      // ensure _switchRbfToggledLock is set to false no matter what
+      _switchRbfToggledLock = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final wallet = ref.watch(
@@ -85,13 +135,12 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (wallet.info.coin == Coin.firo ||
-              wallet.info.coin == Coin.firoTestNet)
+          if (wallet.info.coin is Firo)
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
               iconAsset: Assets.svg.recycle,
-              onPressed: () => widget.onAnonymizeAllPressed?.call(),
+              onPressed: () async => widget.onAnonymizeAllPressed?.call(),
             ),
           // TODO: [prio=med]
           // if (manager.hasWhirlpoolSupport)
@@ -106,35 +155,103 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               label: "Coin control",
               detail: "Control, freeze, and utilize outputs at your discretion",
               iconAsset: Assets.svg.coinControl.gamePad,
-              onPressed: () => widget.onCoinControlPressed?.call(),
+              onPressed: () async => widget.onCoinControlPressed?.call(),
             ),
           if (wallet is PaynymInterface)
             _MoreFeaturesItem(
               label: "PayNym",
               detail: "Increased address privacy using BIP47",
               iconAsset: Assets.svg.robotHead,
-              onPressed: () => widget.onPaynymPressed?.call(),
+              onPressed: () async => widget.onPaynymPressed?.call(),
             ),
           if (wallet is OrdinalsInterface)
             _MoreFeaturesItem(
               label: "Ordinals",
               detail: "View and control your ordinals in Stack",
               iconAsset: Assets.svg.ordinal,
-              onPressed: () => widget.onOrdinalsPressed?.call(),
+              onPressed: () async => widget.onOrdinalsPressed?.call(),
             ),
-          if (wallet.info.coin == Coin.banano)
+          if (wallet.info.coin is Banano)
             _MoreFeaturesItem(
               label: "MonKey",
               detail: "Generate Banano MonKey",
               iconAsset: Assets.svg.monkey,
-              onPressed: () => widget.onMonkeyPressed?.call(),
+              onPressed: () async => widget.onMonkeyPressed?.call(),
             ),
           if (wallet is CashFusionInterface)
             _MoreFeaturesItem(
               label: "Fusion",
               detail: "Decentralized mixing protocol",
               iconAsset: Assets.svg.cashFusion,
-              onPressed: () => widget.onFusionPressed?.call(),
+              onPressed: () async => widget.onFusionPressed?.call(),
+            ),
+          if (wallet is SparkInterface)
+            _MoreFeaturesClearSparkCacheItem(
+              cryptoCurrency: wallet.cryptoCurrency,
+            ),
+          if (wallet is LelantusInterface)
+            _MoreFeaturesItemBase(
+              child: Row(
+                children: [
+                  const SizedBox(width: 3),
+                  SizedBox(
+                    height: 20,
+                    width: 40,
+                    child: DraggableSwitchButton(
+                      isOn: ref.watch(
+                            pWalletInfo(widget.walletId)
+                                .select((value) => value.otherData),
+                          )[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                          false,
+                      onValueChanged: _switchToggled,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Scan for Lelantus transactions",
+                        style: STextStyles.w600_20(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          if (wallet is RbfInterface)
+            _MoreFeaturesItemBase(
+              child: Row(
+                children: [
+                  const SizedBox(width: 3),
+                  SizedBox(
+                    height: 20,
+                    width: 40,
+                    child: DraggableSwitchButton(
+                      isOn: ref.watch(
+                            pWalletInfo(widget.walletId)
+                                .select((value) => value.otherData),
+                          )[WalletInfoKeys.enableOptInRbf] as bool? ??
+                          false,
+                      onValueChanged: _switchRbfToggled,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Flag outgoing transactions with opt-in RBF",
+                        style: STextStyles.w600_20(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           const SizedBox(
             height: 28,
@@ -145,14 +262,14 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
   }
 }
 
-class _MoreFeaturesItem extends StatelessWidget {
+class _MoreFeaturesItem extends StatefulWidget {
   const _MoreFeaturesItem({
-    Key? key,
+    super.key,
     required this.label,
     required this.detail,
     required this.iconAsset,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   static const double iconSizeBG = 46;
   static const double iconSize = 24;
@@ -160,6 +277,78 @@ class _MoreFeaturesItem extends StatelessWidget {
   final String label;
   final String detail;
   final String iconAsset;
+  final Future<void> Function()? onPressed;
+
+  @override
+  State<_MoreFeaturesItem> createState() => _MoreFeaturesItemState();
+}
+
+class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
+  bool _onPressedLock = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return _MoreFeaturesItemBase(
+      onPressed: () async {
+        if (_onPressedLock) {
+          return;
+        }
+        _onPressedLock = true;
+        try {
+          await widget.onPressed?.call();
+        } finally {
+          _onPressedLock = false;
+        }
+      },
+      child: Row(
+        children: [
+          RoundedContainer(
+            padding: const EdgeInsets.all(0),
+            color: Theme.of(context).extension<StackColors>()!.settingsIconBack,
+            width: _MoreFeaturesItem.iconSizeBG,
+            height: _MoreFeaturesItem.iconSizeBG,
+            radiusMultiplier: _MoreFeaturesItem.iconSizeBG,
+            child: Center(
+              child: SvgPicture.asset(
+                widget.iconAsset,
+                width: _MoreFeaturesItem.iconSize,
+                height: _MoreFeaturesItem.iconSize,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .settingsIconIcon,
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 16,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.label,
+                style: STextStyles.w600_20(context),
+              ),
+              Text(
+                widget.detail,
+                style: STextStyles.desktopTextExtraExtraSmall(context),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MoreFeaturesItemBase extends StatelessWidget {
+  const _MoreFeaturesItemBase({
+    super.key,
+    required this.child,
+    this.onPressed,
+  });
+
+  final Widget child;
   final VoidCallback? onPressed;
 
   @override
@@ -174,44 +363,93 @@ class _MoreFeaturesItem extends StatelessWidget {
         borderColor:
             Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
         onPressed: onPressed,
-        child: Row(
-          children: [
-            RoundedContainer(
-              padding: const EdgeInsets.all(0),
-              color:
-                  Theme.of(context).extension<StackColors>()!.settingsIconBack,
-              width: iconSizeBG,
-              height: iconSizeBG,
-              radiusMultiplier: iconSizeBG,
-              child: Center(
-                child: SvgPicture.asset(
-                  iconAsset,
-                  width: iconSize,
-                  height: iconSize,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .settingsIconIcon,
-                ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _MoreFeaturesClearSparkCacheItem extends StatefulWidget {
+  const _MoreFeaturesClearSparkCacheItem({
+    super.key,
+    required this.cryptoCurrency,
+  });
+
+  final CryptoCurrency cryptoCurrency;
+
+  @override
+  State<_MoreFeaturesClearSparkCacheItem> createState() =>
+      _MoreFeaturesClearSparkCacheItemState();
+}
+
+class _MoreFeaturesClearSparkCacheItemState
+    extends State<_MoreFeaturesClearSparkCacheItem> {
+  bool _onPressedLock = false;
+
+  static const label = "Reset Spark electrumx cache";
+
+  @override
+  Widget build(BuildContext context) {
+    return _MoreFeaturesItemBase(
+      onPressed: () async {
+        if (_onPressedLock) {
+          return;
+        }
+        _onPressedLock = true;
+        try {
+          await FiroCacheCoordinator.clearSharedCache(
+            widget.cryptoCurrency.network,
+          );
+          setState(() {
+            // trigger rebuild for cache size display
+          });
+        } finally {
+          _onPressedLock = false;
+        }
+      },
+      child: Row(
+        children: [
+          RoundedContainer(
+            padding: const EdgeInsets.all(0),
+            color: Theme.of(context).extension<StackColors>()!.settingsIconBack,
+            width: _MoreFeaturesItem.iconSizeBG,
+            height: _MoreFeaturesItem.iconSizeBG,
+            radiusMultiplier: _MoreFeaturesItem.iconSizeBG,
+            child: Center(
+              child: SvgPicture.asset(
+                Assets.svg.x,
+                width: _MoreFeaturesItem.iconSize,
+                height: _MoreFeaturesItem.iconSize,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .settingsIconIcon,
               ),
             ),
-            const SizedBox(
-              width: 16,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: STextStyles.w600_20(context),
+          ),
+          const SizedBox(
+            width: 16,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: STextStyles.w600_20(context),
+              ),
+              FutureBuilder(
+                future: FiroCacheCoordinator.getSparkCacheSize(
+                  widget.cryptoCurrency.network,
                 ),
-                Text(
-                  detail,
-                  style: STextStyles.desktopTextExtraExtraSmall(context),
-                ),
-              ],
-            )
-          ],
-        ),
+                builder: (_, snapshot) {
+                  return Text(
+                    snapshot.data ?? "",
+                    style: STextStyles.desktopTextExtraExtraSmall(context),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

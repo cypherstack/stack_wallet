@@ -9,15 +9,15 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../desktop/desktop_dialog.dart';
+import '../desktop/desktop_dialog_close_button.dart';
+import '../stack_dialog.dart';
 
 class BasicDialog extends StatelessWidget {
   const BasicDialog({
-    Key? key,
+    super.key,
     this.leftButton,
     this.rightButton,
     this.icon,
@@ -27,7 +27,7 @@ class BasicDialog extends StatelessWidget {
     this.desktopWidth = 641,
     this.canPopWithBackButton = false,
     this.flex = false,
-  }) : super(key: key);
+  });
 
   final Widget? leftButton;
   final Widget? rightButton;
@@ -103,7 +103,7 @@ class BasicDialog extends StatelessWidget {
                         : const Spacer(),
                   ],
                 ),
-              )
+              ),
           ],
         ),
       );

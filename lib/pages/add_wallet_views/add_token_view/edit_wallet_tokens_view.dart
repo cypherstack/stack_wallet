@@ -14,46 +14,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_list_element.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/sub_widgets/add_token_text.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_eth_tokens.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../db/isar/main_db.dart';
+import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../providers/global/price_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/default_eth_tokens.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/impl/ethereum_wallet.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/desktop_app_bar.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
+import '../../home_view/home_view.dart';
+import 'add_custom_token_view.dart';
+import 'sub_widgets/add_token_list.dart';
+import 'sub_widgets/add_token_list_element.dart';
+import 'sub_widgets/add_token_text.dart';
 
 class EditWalletTokensView extends ConsumerStatefulWidget {
   const EditWalletTokensView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.contractsToMarkSelected,
     this.isDesktopPopup = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final List<String>? contractsToMarkSelected;
@@ -178,7 +179,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     if (contracts.isEmpty) {
       contracts.addAll(DefaultTokens.list);
       MainDB.instance.putEthContracts(contracts).then(
-          (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
+            (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
+          );
     }
 
     tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
@@ -241,7 +243,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                             "Add custom token",
                             style:
                                 STextStyles.desktopButtonSmallSecondaryEnabled(
-                                    context),
+                              context,
+                            ),
                           ),
                         ),
                       ),

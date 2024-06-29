@@ -346,10 +346,10 @@ packages:
     dependency: transitive
     description:
       name: cross_file
-      sha256: fd832b5384d0d6da4f6df60b854d33accaaeb63aa9e10e736a87381f08dee2cb
+      sha256: "55d7b444feb71301ef6b8838dbc1ae02e63dd48c8773f3810ff53bb1e2945b32"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.3+5"
+    version: "0.3.4+1"
   crypto:
     dependency: "direct main"
     description:
@@ -385,13 +385,6 @@ packages:
     dependency: "direct main"
     description:
       path: "crypto_plugins/flutter_libmonero/cw_monero"
-      relative: true
-    source: path
-    version: "0.0.1"
-  cw_shared_external:
-    dependency: transitive
-    description:
-      path: "crypto_plugins/flutter_libmonero/cw_shared_external"
       relative: true
     source: path
     version: "0.0.1"
@@ -550,8 +543,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9e9441fc1e9ace8907256fff05fe2c607b0933b6"
-      resolved-ref: "9e9441fc1e9ace8907256fff05fe2c607b0933b6"
+      ref: "6bf385b2e1e18c8aa23783cb8afeabace299cf68"
+      resolved-ref: "6bf385b2e1e18c8aa23783cb8afeabace299cf68"
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
     version: "3.0.0"
@@ -623,11 +616,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f0930d9fa79d347b2a0e25a7de4f5a4a88a9a907
-      resolved-ref: f0930d9fa79d347b2a0e25a7de4f5a4a88a9a907
-      url: "https://github.com/muttsu-623/flutter_file_picker.git"
+      ref: "9abc0930081c9859884e073bd25ab88b2114d9e7"
+      resolved-ref: "9abc0930081c9859884e073bd25ab88b2114d9e7"
+      url: "https://github.com/cypherstack/flutter_file_picker.git"
     source: git
-    version: "5.3.3"
+    version: "8.0.3"
   fixnum:
     dependency: transitive
     description:
@@ -696,8 +689,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "439727b278250c61a291f5335c298c0f2d952517"
-      resolved-ref: "439727b278250c61a291f5335c298c0f2d952517"
+      ref: "7a11d0cadf8c7a6a5d5144dab18cef9536aa5943"
+      resolved-ref: "7a11d0cadf8c7a6a5d5144dab18cef9536aa5943"
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.0.1"
@@ -753,10 +746,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_plugin_android_lifecycle
-      sha256: f185ac890306b5779ecbd611f52502d8d4d63d27703ef73161ca0407e815f02c
+      sha256: "8cf40eebf5dec866a6d1956ad7b4f7016e6c0cc69847ab946833b7d43743809f"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.16"
+    version: "2.0.19"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -1188,10 +1181,10 @@ packages:
     dependency: "direct dev"
     description:
       name: mockito
-      sha256: "7d5b53bcd556c1bc7ffbe4e4d5a19c3e112b7e925e9e172dd7c6ad0630812616"
+      sha256: "6841eed20a7befac0ce07df8116c8b8233ed1f4486a7647c7fc5a02ae6163917"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.2"
+    version: "5.4.4"
   mocktail:
     dependency: transitive
     description:
@@ -1200,6 +1193,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  monero:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: d46753eca865e9e56c2f0ef6fe485c42e11982c5
+      resolved-ref: d46753eca865e9e56c2f0ef6fe485c42e11982c5
+      url: "https://github.com/mrcyjanek/monero.dart"
+    source: git
+    version: "0.0.0"
   mutex:
     dependency: "direct main"
     description:
@@ -1388,10 +1390,10 @@ packages:
     dependency: transitive
     description:
       name: plugin_platform_interface
-      sha256: da3fdfeccc4d4ff2da8f8c556704c08f912542c5fb3cf2233ed75372384a034d
+      sha256: "4820fbfdb9478b1ebae27888254d445073732dae3d6ea81f0b7e06d5dedc3f02"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.6"
+    version: "2.1.8"
   pointycastle:
     dependency: "direct main"
     description:
@@ -1631,6 +1633,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
+  sqlite3:
+    dependency: "direct main"
+    description:
+      name: sqlite3
+      sha256: b384f598b813b347c5a7e5ffad82cbaff1bec3d1561af267041e66f6f0899295
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.3"
+  sqlite3_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: sqlite3_flutter_libs
+      sha256: "1e62698dc1ab396152ccaf3b3990d826244e9f3c8c39b51805f209adcd6dbea3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.22"
   stack_trace:
     dependency: transitive
     description:
@@ -1789,8 +1807,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
-      resolved-ref: e37dc4e22f7acb2746b70bdc935f0eb3c50b8b71
+      ref: "647cadc3c82c276dc07915b02d24538fd610f220"
+      resolved-ref: "647cadc3c82c276dc07915b02d24538fd610f220"
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"
@@ -2047,10 +2065,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: c97defd418eef4ec88c0d1652cdce84b9f7b63dd7198e266d06ac1710d527067
+      sha256: "464f5674532865248444b4c3daca12bd9bf2d7c47f759ce2617986e7229494a8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.8"
+    version: "5.2.0"
   win32_registry:
     dependency: transitive
     description:

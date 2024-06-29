@@ -14,14 +14,17 @@ Amount _a(int i) => Amount.fromDecimal(
       fractionDigits: 8,
     );
 
-@GenerateMocks([
-  Wallets,
-  ThemeService,
-  Prefs,
-  LocaleService
-], customMocks: [
-  MockSpec<NodeService>(returnNullOnMissingStub: true),
-])
+@GenerateMocks(
+  [
+    Wallets,
+    ThemeService,
+    Prefs,
+    LocaleService,
+  ],
+  customMocks: [
+    MockSpec<NodeService>(),
+  ],
+)
 void main() {
   // testWidgets("Test wallet info row displays correctly", (widgetTester) async {
   //   final wallets = MockWallets();

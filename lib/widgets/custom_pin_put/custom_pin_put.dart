@@ -10,12 +10,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put_state.dart';
-import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
+import 'custom_pin_put_state.dart';
+import 'pin_keyboard.dart';
 
 class CustomPinPut extends StatefulWidget {
   const CustomPinPut({
-    Key? key,
+    super.key,
     required this.fieldsCount,
     required this.isRandom,
     this.height,
@@ -64,7 +64,7 @@ class CustomPinPut extends StatefulWidget {
     this.autofillHints,
     this.customKey,
     this.onPinLengthChanged,
-  }) : super(key: key);
+  });
 
   final void Function(int)? onPinLengthChanged;
 

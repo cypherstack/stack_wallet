@@ -13,29 +13,31 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
+
+import '../../notifications/show_flush_bar.dart';
+import '../../providers/desktop/storage_crypto_handler_provider.dart';
+import '../../providers/global/secure_store_provider.dart';
+import '../../providers/providers.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/flutter_secure_storage_interface.dart';
+import '../../utilities/show_loading.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/progress_bar.dart';
+import '../../widgets/stack_text_field.dart';
+import '../desktop_home_view.dart';
+import 'forgotten_passphrase_restore_from_swb.dart';
 
 class CreatePasswordView extends ConsumerStatefulWidget {
   const CreatePasswordView({
-    Key? key,
+    super.key,
     this.restoreFromSWB = false,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/createPasswordDesktop";
   final bool restoreFromSWB;
@@ -67,42 +69,53 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
 
   bool _nextLock = false;
 
-  void onNextPressed() async {
-    if (_nextLock) {
-      return;
-    }
-    _nextLock = true;
-
+  Future<void> _onNextPressed() async {
     final String passphrase = passwordController.text;
     final String repeatPassphrase = passwordRepeatController.text;
 
     if (passphrase.isEmpty) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "A password is required",
-        context: context,
-      ));
-      _nextLock = false;
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "A password is required",
+          context: context,
+        ),
+      );
       return;
     }
     if (passphrase != repeatPassphrase) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Password does not match",
-        context: context,
-      ));
-      _nextLock = false;
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Password does not match",
+          context: context,
+        ),
+      );
       return;
     }
 
     try {
-      if (await ref.read(storageCryptoHandlerProvider).hasPassword()) {
-        throw Exception(
-            "Tried creating a new password and attempted to overwrite an existing entry!");
+      whileFuture() async {
+        if (await ref.read(storageCryptoHandlerProvider).hasPassword()) {
+          throw Exception(
+            "Tried creating a new password and attempted to overwrite an existing entry!",
+          );
+        }
+
+        await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
+        await (ref.read(secureStoreProvider).store as DesktopSecureStore)
+            .init();
       }
 
-      await ref.read(storageCryptoHandlerProvider).initFromNew(passphrase);
-      await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
+      await showLoading(
+        whileFuture: whileFuture(),
+        context: context,
+        message: "Initializing...",
+        rootNavigator: true,
+        onException: (e) {
+          throw e;
+        },
+      );
 
       // load default nodes now as node service requires storage handler to exist
 
@@ -110,12 +123,15 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         await ref.read(nodeServiceChangeNotifierProvider).updateDefaults();
       }
     } catch (e) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "Error: $e",
-        context: context,
-      ));
-      _nextLock = false;
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Error: $e",
+            context: context,
+          ),
+        );
+      }
       return;
     }
 
@@ -136,13 +152,27 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     }
 
     if (!widget.restoreFromSWB && mounted) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.success,
-        message: "Your password is set up",
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.success,
+          message: "Your password is set up",
+          context: context,
+        ),
+      );
     }
-    _nextLock = false;
+  }
+
+  void _onNextPressedWrapper() async {
+    if (_nextLock) {
+      return;
+    }
+    _nextLock = true;
+
+    try {
+      await _onNextPressed();
+    } finally {
+      _nextLock = false;
+    }
   }
 
   @override
@@ -231,7 +261,8 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                                 children: [
                                   GestureDetector(
                                     key: const Key(
-                                        "createDesktopPasswordFieldShowPasswordButtonKey"),
+                                      "createDesktopPasswordFieldShowPasswordButtonKey",
+                                    ),
                                     onTap: () async {
                                       setState(() {
                                         hidePassword = !hidePassword;
@@ -279,7 +310,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                           }
                           final result = zxcvbn.evaluate(newValue);
                           String suggestionsAndTips = "";
-                          for (var sug
+                          for (final sug
                               in result.feedback.suggestions!.toSet()) {
                             suggestionsAndTips += "$sug\n";
                           }
@@ -293,7 +324,9 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                           // hack fix to format back string returned from zxcvbn
                           if (feedback.contains("phrasesNo need")) {
                             feedback = feedback.replaceFirst(
-                                "phrasesNo need", "phrases\nNo need");
+                              "phrasesNo need",
+                              "phrases\nNo need",
+                            );
                           }
 
                           if (feedback.endsWith("\n")) {
@@ -385,7 +418,8 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                                 children: [
                                   GestureDetector(
                                     key: const Key(
-                                        "createDesktopPasswordFieldShowPasswordButtonKey2"),
+                                      "createDesktopPasswordFieldShowPasswordButtonKey2",
+                                    ),
                                     onTap: () async {
                                       setState(() {
                                         hidePassword = !hidePassword;
@@ -450,7 +484,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                             : Theme.of(context)
                                 .extension<StackColors>()!
                                 .getPrimaryDisabledButtonStyle(context),
-                        onPressed: nextEnabled ? onNextPressed : null,
+                        onPressed: nextEnabled ? _onNextPressedWrapper : null,
                         child: Text(
                           "Next",
                           style: nextEnabled

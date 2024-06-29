@@ -2,27 +2,28 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
-import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../providers/global/locale_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/amount/amount_input_formatter.dart';
+import '../../../utilities/amount/amount_unit.dart';
+import '../../../utilities/barcode_scanner_interface.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 //TODO: move the following two providers elsewhere
 final pClipboard =
@@ -39,7 +40,8 @@ final pBarcodeScanner =
 
 final pRecipient =
     StateProvider.family<({String address, Amount? amount})?, int>(
-        (ref, index) => null);
+  (ref, index) => null,
+);
 
 class Recipient extends ConsumerStatefulWidget {
   const Recipient({
@@ -55,7 +57,7 @@ class Recipient extends ConsumerStatefulWidget {
 
   final int index;
   final int displayNumber;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   final VoidCallback? remove;
   final VoidCallback? onChanged;
@@ -233,7 +235,8 @@ class _RecipientState extends ConsumerState<Recipient> {
                                 semanticsLabel:
                                     "Clear Button. Clears The Address Field Input.",
                                 key: const Key(
-                                    "sendViewClearAddressFieldButtonKey"),
+                                  "sendViewClearAddressFieldButtonKey",
+                                ),
                                 onTap: () {
                                   addressController.text = "";
 
@@ -249,7 +252,8 @@ class _RecipientState extends ConsumerState<Recipient> {
                                 semanticsLabel:
                                     "Paste Button. Pastes From Clipboard To Address Field Input.",
                                 key: const Key(
-                                    "sendViewPasteAddressFieldButtonKey"),
+                                  "sendViewPasteAddressFieldButtonKey",
+                                ),
                                 onTap: () async {
                                   final ClipboardData? data = await ref
                                       .read(pClipboard)
@@ -259,7 +263,9 @@ class _RecipientState extends ConsumerState<Recipient> {
                                     String content = data.text!.trim();
                                     if (content.contains("\n")) {
                                       content = content.substring(
-                                          0, content.indexOf("\n"));
+                                        0,
+                                        content.indexOf("\n"),
+                                      );
                                     }
 
                                     addressController.text = content.trim();
@@ -324,7 +330,8 @@ class _RecipientState extends ConsumerState<Recipient> {
                                     final Amount amount =
                                         Decimal.parse(results["amount"]!)
                                             .toAmount(
-                                      fractionDigits: widget.coin.decimals,
+                                      fractionDigits:
+                                          widget.coin.fractionDigits,
                                     );
                                     amountController.text = ref
                                         .read(pAmountFormatter(widget.coin))
@@ -409,7 +416,7 @@ class _RecipientState extends ConsumerState<Recipient> {
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
-                decimals: widget.coin.decimals,
+                decimals: widget.coin.fractionDigits,
                 unit: ref.watch(pAmountUnit(widget.coin)),
                 locale: locale,
               ),
@@ -432,9 +439,10 @@ class _RecipientState extends ConsumerState<Recipient> {
                         .watch(pAmountUnit(widget.coin))
                         .unitForCoin(widget.coin),
                     style: STextStyles.smallMed14(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                 ),
               ),

@@ -3,32 +3,33 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/providers/global/node_service_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+
+import '../../../../../frost_route_generator.dart';
+import '../../../../../notifications/show_flush_bar.dart';
+import '../../../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../../../providers/db/main_db_provider.dart';
+import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../../../providers/global/node_service_provider.dart';
+import '../../../../../providers/global/prefs_provider.dart';
+import '../../../../../providers/global/secure_store_provider.dart';
+import '../../../../../providers/global/wallets_provider.dart';
+import '../../../../../services/frost.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/logger.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../wallets/isar/models/wallet_info.dart';
+import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../../wallets/wallet/wallet.dart';
+import '../../../../../widgets/custom_buttons/checkbox_text_button.dart';
+import '../../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../../widgets/desktop/primary_button.dart';
+import '../../../../../widgets/detail_item.dart';
+import '../../../../../widgets/loading_indicator.dart';
+import '../../../../../widgets/rounded_container.dart';
+import '../../../../home_view/home_view.dart';
+import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 
 class FrostCreateStep5 extends ConsumerStatefulWidget {
   const FrostCreateStep5({super.key});
@@ -143,7 +144,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                 final data = ref.read(pFrostScaffoldArgs)!;
 
                 final info = WalletInfo.createNew(
-                  coin: data.info.frostCurrency.coin,
+                  coin: data.info.frostCurrency,
                   name: data.info.walletName,
                 );
 

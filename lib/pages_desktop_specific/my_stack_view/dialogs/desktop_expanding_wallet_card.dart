@@ -11,26 +11,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/wallet_card.dart';
-import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_balance.dart';
-import 'package:stackwallet/widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
+import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/wallet/wallet.dart';
+import '../../../widgets/animated_widgets/rotate_icon.dart';
+import '../../../widgets/expandable.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/wallet_card.dart';
+import '../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_balance.dart';
+import '../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
 import 'package:tuple/tuple.dart';
 
 class DesktopExpandingWalletCard extends StatefulWidget {
   const DesktopExpandingWalletCard({
-    Key? key,
+    super.key,
     required this.data,
     required this.navigatorState,
-  }) : super(key: key);
+  });
 
   final Tuple2<Wallet, List<EthContract>> data;
   final NavigatorState navigatorState;

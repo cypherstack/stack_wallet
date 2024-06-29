@@ -12,7 +12,7 @@ import 'package:flutter/widgets.dart';
 
 class DesktopAddressBookScaffold extends StatelessWidget {
   const DesktopAddressBookScaffold({
-    Key? key,
+    super.key,
     required this.controlsLeft,
     required this.controlsRight,
     required this.filterItems,
@@ -21,7 +21,7 @@ class DesktopAddressBookScaffold extends StatelessWidget {
     required this.favorites,
     required this.all,
     required this.details,
-  }) : super(key: key);
+  });
 
   final Widget? controlsLeft;
   final Widget? controlsRight;
@@ -115,7 +115,7 @@ class DesktopAddressBookScaffold extends StatelessWidget {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

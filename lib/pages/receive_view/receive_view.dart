@@ -16,36 +16,37 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/receive_view/addresses/wallet_addresses_view.dart';
-import 'package:stackwallet/pages/receive_view/generate_receiving_uri_qr_code_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../models/isar/models/isar_models.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../providers/db/main_db_provider.dart';
+import '../../providers/providers.dart';
+import '../../route_generator.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/address_utils.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/clipboard_interface.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/enums/derive_path_type_enum.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/impl/bitcoin_wallet.dart';
+import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/custom_loading_overlay.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/qr.dart';
+import '../../widgets/rounded_white_container.dart';
+import 'addresses/wallet_addresses_view.dart';
+import 'generate_receiving_uri_qr_code_view.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
@@ -66,7 +67,7 @@ class ReceiveView extends ConsumerStatefulWidget {
 }
 
 class _ReceiveViewState extends ConsumerState<ReceiveView> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final String walletId;
   late final ClipboardInterface clipboard;
   late final bool _supportsSpark;
@@ -187,15 +188,17 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             wallet is Bip39HDWallet &&
             wallet.supportedAddressTypes.length > 1);
 
-    _walletAddressTypes.add(coin.primaryAddressType);
+    _walletAddressTypes.add(wallet.info.mainAddressType);
 
     if (_showMultiType) {
       if (_supportsSpark) {
         _walletAddressTypes.insert(0, AddressType.spark);
       } else {
-        _walletAddressTypes.addAll((wallet as Bip39HDWallet)
-            .supportedAddressTypes
-            .where((e) => e != coin.primaryAddressType));
+        _walletAddressTypes.addAll(
+          (wallet as Bip39HDWallet)
+              .supportedAddressTypes
+              .where((e) => e != wallet.info.mainAddressType),
+        );
       }
     }
 
@@ -544,16 +547,16 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       );
                     },
                   ),
-                  if (ref.watch(pWallets
-                              .select((value) => value.getWallet(walletId)))
-                          is MultiAddressInterface ||
+                  if (ref.watch(
+                        pWallets.select((value) => value.getWallet(walletId)),
+                      ) is MultiAddressInterface ||
                       _supportsSpark)
                     const SizedBox(
                       height: 12,
                     ),
-                  if (ref.watch(pWallets
-                              .select((value) => value.getWallet(walletId)))
-                          is MultiAddressInterface ||
+                  if (ref.watch(
+                        pWallets.select((value) => value.getWallet(walletId)),
+                      ) is MultiAddressInterface ||
                       _supportsSpark)
                     SecondaryButton(
                       label: "Generate new address",
@@ -572,35 +575,35 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       child: Center(
                         child: Column(
                           children: [
-                            QrImageView(
-                                data: AddressUtils.buildUriString(
-                                  coin,
-                                  address,
-                                  {},
-                                ),
-                                size: MediaQuery.of(context).size.width / 2,
-                                foregroundColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark),
+                            QR(
+                              data: AddressUtils.buildUriString(
+                                coin,
+                                address,
+                                {},
+                              ),
+                              size: MediaQuery.of(context).size.width / 2,
+                            ),
                             const SizedBox(
                               height: 20,
                             ),
                             CustomTextButton(
                               text: "Advanced options",
                               onTap: () async {
-                                unawaited(Navigator.of(context).push(
-                                  RouteGenerator.getRoute(
-                                    shouldUseMaterialRoute:
-                                        RouteGenerator.useMaterialPageRoute,
-                                    builder: (_) => GenerateUriQrCodeView(
-                                      coin: coin,
-                                      receivingAddress: address,
-                                    ),
-                                    settings: const RouteSettings(
-                                      name: GenerateUriQrCodeView.routeName,
+                                unawaited(
+                                  Navigator.of(context).push(
+                                    RouteGenerator.getRoute(
+                                      shouldUseMaterialRoute:
+                                          RouteGenerator.useMaterialPageRoute,
+                                      builder: (_) => GenerateUriQrCodeView(
+                                        coin: coin,
+                                        receivingAddress: address,
+                                      ),
+                                      settings: const RouteSettings(
+                                        name: GenerateUriQrCodeView.routeName,
+                                      ),
                                     ),
                                   ),
-                                ));
+                                );
                               },
                             ),
                           ],

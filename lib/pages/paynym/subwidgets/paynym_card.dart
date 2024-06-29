@@ -9,20 +9,20 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/paynym/subwidgets/paynym_bot.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/paynym_follow_toggle_button.dart';
+import 'paynym_bot.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/format.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/custom_buttons/paynym_follow_toggle_button.dart';
 
 class PaynymCard extends StatefulWidget {
   const PaynymCard({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.label,
     required this.paymentCodeString,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String label;

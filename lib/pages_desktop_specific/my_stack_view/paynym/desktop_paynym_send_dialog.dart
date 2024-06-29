@@ -13,34 +13,34 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
-import 'package:stackwallet/models/send_view_auto_fill_data.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../models/paynym/paynym_account_lite.dart';
+import '../../../models/send_view_auto_fill_data.dart';
+import '../../../providers/global/locale_provider.dart';
+import '../../../providers/global/prefs_provider.dart';
+import '../../../providers/global/price_provider.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/barcode_scanner_interface.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../wallet_view/sub_widgets/desktop_send.dart';
 
 class DesktopPaynymSendDialog extends ConsumerStatefulWidget {
   const DesktopPaynymSendDialog({
-    Key? key,
+    super.key,
     required this.walletId,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.accountLite,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
@@ -58,7 +58,8 @@ class _DesktopPaynymSendDialogState
   @override
   Widget build(BuildContext context) {
     final String locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
@@ -127,9 +128,11 @@ class _DesktopPaynymSendDialogState
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          ref.watch(pAmountFormatter(coin)).format(ref
-                              .watch(pWalletBalance(widget.walletId))
-                              .spendable),
+                          ref.watch(pAmountFormatter(coin)).format(
+                                ref
+                                    .watch(pWalletBalance(widget.walletId))
+                                    .spendable,
+                              ),
                           style: STextStyles.titleBold12(context),
                           textAlign: TextAlign.right,
                         ),
@@ -143,16 +146,18 @@ class _DesktopPaynymSendDialogState
                                     ),
                                   )).toAmount(fractionDigits: 2).fiatString(
                                 locale: locale,
-                              )} ${ref.watch(prefsChangeNotifierProvider.select(
-                            (value) => value.currency,
-                          ))}",
+                              )} ${ref.watch(
+                            prefsChangeNotifierProvider.select(
+                              (value) => value.currency,
+                            ),
+                          )}",
                           style: STextStyles.baseXS(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textSubtitle1,
                           ),
                           textAlign: TextAlign.right,
-                        )
+                        ),
                       ],
                     ),
                   ),

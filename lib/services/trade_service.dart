@@ -9,15 +9,18 @@
  */
 
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+
+import '../db/hive/db.dart';
+import '../models/exchange/response_objects/trade.dart';
 
 class TradesService extends ChangeNotifier {
   List<Trade> get trades {
     final list = DB.instance.values<Trade>(boxName: DB.boxNameTradesV2);
-    list.sort((a, b) =>
-        b.timestamp.millisecondsSinceEpoch -
-        a.timestamp.millisecondsSinceEpoch);
+    list.sort(
+      (a, b) =>
+          b.timestamp.millisecondsSinceEpoch -
+          a.timestamp.millisecondsSinceEpoch,
+    );
     return list;
   }
 
@@ -61,7 +64,9 @@ class TradesService extends ChangeNotifier {
     required bool shouldNotifyListeners,
   }) async {
     await deleteByUuid(
-        uuid: trade.uuid, shouldNotifyListeners: shouldNotifyListeners);
+      uuid: trade.uuid,
+      shouldNotifyListeners: shouldNotifyListeners,
+    );
   }
 
   Future<void> deleteByUuid({

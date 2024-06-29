@@ -14,26 +14,27 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../../pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
+import '../../../../providers/providers.dart';
+import '../../../../route_generator.dart';
+import '../../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
+import '../../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../../services/event_bus/global_event_bus.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 
 class NetworkInfoButton extends ConsumerStatefulWidget {
   const NetworkInfoButton({
-    Key? key,
+    super.key,
     required this.walletId,
     this.eventBus,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final EventBus? eventBus;
@@ -226,7 +227,7 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
                 return [
                   FadePageRoute(
                     DesktopDialog(
-                      maxHeight: MediaQuery.of(context).size.height - 64,
+                      maxHeight: null,
                       maxWidth: 580,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -251,17 +252,21 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
                               ],
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 16,
-                              left: 32,
-                              right: 32,
-                              bottom: 32,
-                            ),
-                            child: WalletNetworkSettingsView(
-                              walletId: walletId,
-                              initialSyncStatus: _currentSyncStatus,
-                              initialNodeStatus: _currentNodeStatus,
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 16,
+                                left: 32,
+                                right: 32,
+                                bottom: 32,
+                              ),
+                              child: SingleChildScrollView(
+                                child: WalletNetworkSettingsView(
+                                  walletId: walletId,
+                                  initialSyncStatus: _currentSyncStatus,
+                                  initialNodeStatus: _currentNodeStatus,
+                                ),
+                              ),
                             ),
                           ),
                         ],

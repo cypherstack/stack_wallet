@@ -14,31 +14,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/clipboard_interface.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/wallet/wallet.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/conditional_parent.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/qr.dart';
+import '../../../../widgets/rounded_white_container.dart';
 
 class XPubView extends ConsumerStatefulWidget {
   const XPubView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String walletId;
   final ClipboardInterface clipboardInterface;
@@ -73,12 +74,14 @@ class _XPubViewState extends ConsumerState<XPubView> {
   Future<void> _copy() async {
     await _clipboardInterface.setData(ClipboardData(text: xpub!));
     if (mounted) {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.info,
-        message: "Copied to clipboard",
-        iconAsset: Assets.svg.copy,
-        context: context,
-      ));
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.info,
+          message: "Copied to clipboard",
+          iconAsset: Assets.svg.copy,
+          context: context,
+        ),
+      );
     }
   }
 
@@ -230,11 +233,11 @@ class _XPubViewState extends ConsumerState<XPubView> {
 
 class _XPub extends StatelessWidget {
   const _XPub({
-    Key? key,
+    super.key,
     required this.xpub,
     required this.height,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   final String xpub;
   final double height;
@@ -253,11 +256,9 @@ class _XPub extends StatelessWidget {
             builder: (child) => RoundedWhiteContainer(
               child: child,
             ),
-            child: QrImageView(
+            child: QR(
               data: xpub,
               size: isDesktop ? 280 : MediaQuery.of(context).size.width / 1.5,
-              foregroundColor:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
             ),
           ),
           const SizedBox(height: 25),

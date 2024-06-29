@@ -1,17 +1,18 @@
 import 'dart:convert';
 
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info_meta.dart';
-import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
+
+import '../app_config.dart';
+import '../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../models/isar/models/isar_models.dart';
+import '../utilities/flutter_secure_storage_interface.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/isar/models/token_wallet_info.dart';
+import '../wallets/isar/models/wallet_info.dart';
+import '../wallets/isar/models/wallet_info_meta.dart';
+import '../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
+import 'hive/db.dart';
+import 'isar/main_db.dart';
 
 Future<void> migrateWalletsToIsar({
   required SecureStorageInterface secureStore,
@@ -22,7 +23,8 @@ Future<void> migrateWalletsToIsar({
   await MainDB.instance.isar
       .writeTxn(() async => await MainDB.instance.isar.transactionV2s.clear());
 
-  final allWalletsBox = await Hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+  final allWalletsBox =
+      await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
 
   final names = DB.instance
       .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
@@ -37,13 +39,13 @@ Future<void> migrateWalletsToIsar({
   //
   final List<
       ({
-        Coin coin,
+        String coinIdentifier,
         String name,
         String walletId,
       })> oldInfo = Map<String, dynamic>.from(names).values.map((e) {
     final map = e as Map;
     return (
-      coin: Coin.values.byName(map["coin"] as String),
+      coinIdentifier: map["coin"] as String,
       walletId: map["id"] as String,
       name: map["name"] as String,
     );
@@ -53,7 +55,9 @@ Future<void> migrateWalletsToIsar({
   // Get current ordered list of favourite wallet Ids
   //
   final List<String> favourites =
-      (await Hive.openBox<String>(DB.boxNameFavoriteWallets)).values.toList();
+      (await DB.instance.hive.openBox<String>(DB.boxNameFavoriteWallets))
+          .values
+          .toList();
 
   final List<(WalletInfo, WalletInfoMeta)> newInfo = [];
   final List<TokenWalletInfo> tokenInfo = [];
@@ -63,7 +67,7 @@ Future<void> migrateWalletsToIsar({
   // Convert each old info into the new Isar WalletInfo
   //
   for (final old in oldInfo) {
-    final walletBox = await Hive.openBox<dynamic>(old.walletId);
+    final walletBox = await DB.instance.hive.openBox<dynamic>(old.walletId);
 
     //
     // First handle transaction notes
@@ -93,16 +97,16 @@ Future<void> migrateWalletsToIsar({
     }
 
     // reset stellar + tezos address type
-    if (old.coin == Coin.stellar ||
-        old.coin == Coin.stellarTestnet ||
-        old.coin == Coin.tezos) {
+    if (old.coinIdentifier == Stellar(CryptoCurrencyNetwork.main).identifier ||
+        old.coinIdentifier == Stellar(CryptoCurrencyNetwork.test).identifier ||
+        old.coinIdentifier == Tezos(CryptoCurrencyNetwork.main).identifier) {
       await MainDB.instance.deleteWalletBlockchainData(old.walletId);
     }
 
     //
     // Set other data values
     //
-    Map<String, dynamic> otherData = {};
+    final Map<String, dynamic> otherData = {};
 
     final List<String>? tokenContractAddresses = walletBox.get(
       "ethTokenContracts",
@@ -129,7 +133,7 @@ Future<void> migrateWalletsToIsar({
     }
 
     // epiccash specifics
-    if (old.coin == Coin.epicCash) {
+    if (old.coinIdentifier == Epiccash(CryptoCurrencyNetwork.main)) {
       final epicWalletInfo = ExtraEpiccashWalletInfo.fromMap({
         "receivingIndex": walletBox.get("receivingIndex") as int? ?? 0,
         "changeIndex": walletBox.get("changeIndex") as int? ?? 0,
@@ -142,7 +146,9 @@ Future<void> migrateWalletsToIsar({
       otherData[WalletInfoKeys.epiccashData] = jsonEncode(
         epicWalletInfo.toMap(),
       );
-    } else if (old.coin == Coin.firo || old.coin == Coin.firoTestNet) {
+    } else if (old.coinIdentifier ==
+            Firo(CryptoCurrencyNetwork.main).identifier ||
+        old.coinIdentifier == Firo(CryptoCurrencyNetwork.test).identifier) {
       otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] = walletBox
               .get(WalletInfoKeys.lelantusCoinIsarRescanRequired) as bool? ??
           true;
@@ -161,10 +167,11 @@ Future<void> migrateWalletsToIsar({
     );
 
     final info = WalletInfo(
-      coinName: old.coin.name,
+      coinName: old.coinIdentifier,
       walletId: old.walletId,
       name: old.name,
-      mainAddressType: old.coin.primaryAddressType,
+      mainAddressType: AppConfig.getCryptoCurrencyFor(old.coinIdentifier)!
+          .defaultAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
       cachedChainHeight: walletBox.get(
             DBKeys.storedChainHeight,
@@ -202,13 +209,14 @@ Future<void> migrateWalletsToIsar({
   }
 
   await _cleanupOnSuccess(
-      walletIds: newInfo.map((e) => e.$1.walletId).toList());
+    walletIds: newInfo.map((e) => e.$1.walletId).toList(),
+  );
 }
 
 Future<void> _cleanupOnSuccess({required List<String> walletIds}) async {
-  await Hive.deleteBoxFromDisk(DB.boxNameFavoriteWallets);
-  await Hive.deleteBoxFromDisk(DB.boxNameAllWalletsData);
+  await DB.instance.hive.deleteBoxFromDisk(DB.boxNameFavoriteWallets);
+  await DB.instance.hive.deleteBoxFromDisk(DB.boxNameAllWalletsData);
   for (final walletId in walletIds) {
-    await Hive.deleteBoxFromDisk(walletId);
+    await DB.instance.hive.deleteBoxFromDisk(walletId);
   }
 }

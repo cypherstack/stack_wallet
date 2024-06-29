@@ -10,16 +10,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/desktop_favorite_wallets.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_summary_table.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
+
+import '../../app_config.dart';
+import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
+import '../../pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
+import '../../pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
+import '../../pages/wallets_view/wallets_overview.dart';
+import '../../providers/providers.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import 'desktop_favorite_wallets.dart';
+import 'wallet_summary_table.dart';
 
 class MyWallets extends ConsumerStatefulWidget {
-  const MyWallets({Key? key}) : super(key: key);
+  const MyWallets({super.key});
 
   @override
   ConsumerState<MyWallets> createState() => _MyWalletsState();
@@ -28,8 +33,9 @@ class MyWallets extends ConsumerStatefulWidget {
 class _MyWalletsState extends ConsumerState<MyWallets> {
   @override
   Widget build(BuildContext context) {
-    final showFavorites = ref.watch(prefsChangeNotifierProvider
-        .select((value) => value.showFavoriteWallets));
+    final showFavorites = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.showFavoriteWallets),
+    );
 
     return Padding(
       padding: const EdgeInsets.only(
@@ -66,10 +72,23 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
                 CustomTextButton(
                   text: "Add new wallet",
                   onTap: () {
+                    final String route;
+                    final Object? args;
+                    if (AppConfig.isSingleCoinApp) {
+                      route = CreateOrRestoreWalletView.routeName;
+                      args = CoinEntity(AppConfig.coins.first);
+                    } else {
+                      route = AddWalletView.routeName;
+                      args = null;
+                    }
+
                     Navigator.of(
                       context,
                       rootNavigator: true,
-                    ).pushNamed(AddWalletView.routeName);
+                    ).pushNamed(
+                      route,
+                      arguments: args,
+                    );
                   },
                 ),
               ],
@@ -78,8 +97,14 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
           const SizedBox(
             height: 20,
           ),
-          const Expanded(
-            child: WalletSummaryTable(),
+          Expanded(
+            child: AppConfig.isSingleCoinApp
+                ? WalletsOverview(
+                    coin: AppConfig.coins.first,
+                    navigatorState: Navigator.of(context),
+                    overrideSimpleWalletCardPopPreviousValueWith: false,
+                  )
+                : const WalletSummaryTable(),
           ),
         ],
       ),

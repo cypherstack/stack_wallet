@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:stackwallet/utilities/logger.dart';
+import '../utilities/logger.dart';
 import 'package:tor_ffi_plugin/tor_ffi_plugin.dart';
 
 class FusionTorService {

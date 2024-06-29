@@ -10,14 +10,14 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../networking/http.dart';
+import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import '../services/tor_service.dart';
+import 'logger.dart';
+import 'prefs.dart';
 
 Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
-  HTTP client = HTTP();
+  final HTTP client = HTTP();
   try {
     final response = await client
         .get(
@@ -27,8 +27,10 @@ Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
               ? TorService.sharedInstance.getProxyInfo()
               : null,
         )
-        .timeout(const Duration(milliseconds: 2000),
-            onTimeout: () async => Response(utf8.encode('Error'), 408));
+        .timeout(
+          const Duration(milliseconds: 2000),
+          onTimeout: () async => Response(utf8.encode('Error'), 408),
+        );
 
     final json = jsonDecode(response.body);
 

@@ -46,6 +46,13 @@ test/services/coins/particl/particl_wallet_test_parameters.dart
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
+# asset symlinks
+/assets/default_themes
+/assets/icon
+/assets/lottie
+/assets/in_app_logo_icons
+/assets/svg
+
 # other
 coverage
 scripts/**/build
@@ -59,3 +66,56 @@ libtor_ffi.dll
 flutter_libsparkmobile.dll
 secp256k1.dll
 /libisar.so
+/lib/app_config.g.dart
+/android/app/src/main/app_icon-playstore.png
+
+## other generated project files
+
+pubspec.yaml
+
+/android/app/build.gradle
+/android/app/src/debug/AndroidManifest.xml
+/android/app/src/profile/AndroidManifest.xml
+/android/app/src/main/AndroidManifest.xml
+/android/app/src/main/profile/AndroidManifest.xml
+/android/app/src/main/kotlin/com/cypherstack/stackwallet/MainActivity.kt
+/android/app/src/main/res/**/ic_launcher.png
+
+/ios/Runner/Info.plist
+/ios/Runner.xcodeproj/project.pbxproj
+/ios/Runner/Assets.xcassets/AppIcon.appiconset/*.png
+
+/linux/CMakeLists.txt
+/linux/my_application.cc
+
+/macos/Runner/Configs/AppInfo.xcconfig
+/macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme
+/macos/Runner.xcodeproj/project.pbxproj
+/macos/Runner/Assets.xcassets/AppIcon.appiconset/*.png
+
+/windows/runner/Runner.rc
+/windows/runner/main.cpp
+/windows/CMakeLists.txt
+/windows/runner/resources/app_icon.ico
+
+# FVM Version Cache
+.fvm/
+
+android/app/src/main/jniLibs/arm64-v8a/libwownero_wallet2_api_c.so
+android/app/src/main/jniLibs/arm64-v8a/libmonero_wallet2_api_c.so
+android/app/src/main/jniLibs/armeabi-v7a/libmonero_wallet2_api_c.so
+android/app/src/main/jniLibs/armeabi-v7a/libwownero_wallet2_api_c.so
+android/app/src/main/jniLibs/x86_64/libmonero_wallet2_api_c.so
+android/app/src/main/jniLibs/x86_64/libwownero_wallet2_api_c.so
+macos/monero_wallet2_api_c.dylib
+macos/wownero_wallet2_api_c.dylib
+/macos/monero_libwallet2_api_c.dylib
+/macos/wownero_libwallet2_api_c.dylib
+/ios/monero_libwallet2_api_c.dylib
+/ios/wownero_libwallet2_api_c.dylib
+/android/app/src/main/jniLibs/arm64-v8a/libmonero_libwallet2_api_c.so
+/android/app/src/main/jniLibs/armeabi-v7a/libmonero_libwallet2_api_c.so
+/android/app/src/main/jniLibs/x86_64/libmonero_libwallet2_api_c.so
+/android/app/src/main/jniLibs/arm64-v8a/libwownero_libwallet2_api_c.so
+/android/app/src/main/jniLibs/armeabi-v7a/libwownero_libwallet2_api_c.so
+/android/app/src/main/jniLibs/x86_64/libwownero_libwallet2_api_c.so

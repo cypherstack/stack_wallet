@@ -10,23 +10,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/subwidgets/desktop_trade_history.dart';
-import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../pages/exchange_view/exchange_form.dart';
+import 'desktop_all_trades_view.dart';
+import 'subwidgets/desktop_trade_history.dart';
+import '../../providers/exchange/exchange_form_state_provider.dart';
+import '../../providers/global/prefs_provider.dart';
+import '../../services/exchange/exchange_data_loading_service.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/custom_loading_overlay.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/rounded_white_container.dart';
 
 class DesktopExchangeView extends ConsumerStatefulWidget {
-  const DesktopExchangeView({Key? key}) : super(key: key);
+  const DesktopExchangeView({super.key});
 
   static const String routeName = "/desktopExchange";
 
@@ -95,7 +95,7 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                 subMessage: "This could take a few minutes",
                 eventBus: null,
               ),
-            )
+            ),
           ],
         );
       },
@@ -173,9 +173,9 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                     const SizedBox(
                       width: 16,
                     ),
-                    Expanded(
+                    const Expanded(
                       child: Row(
-                        children: const [
+                        children: [
                           Expanded(
                             child: DesktopTradeHistory(),
                           ),

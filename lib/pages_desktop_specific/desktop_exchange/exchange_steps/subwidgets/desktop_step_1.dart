@@ -10,18 +10,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/subwidgets/desktop_step_item.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../providers/providers.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import '../step_scaffold.dart';
+import 'desktop_step_item.dart';
 
 class DesktopStep1 extends ConsumerWidget {
   const DesktopStep1({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,13 +74,17 @@ class DesktopStep1 extends ConsumerWidget {
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
               DesktopStepItem(
-                label: ref.watch(desktopExchangeModelProvider
-                            .select((value) => value!.rateType)) ==
+                label: ref.watch(
+                          desktopExchangeModelProvider
+                              .select((value) => value!.rateType),
+                        ) ==
                         ExchangeRateType.estimated
                     ? "Estimated rate"
                     : "Fixed rate",
-                value: ref.watch(desktopExchangeModelProvider
-                    .select((value) => value!.rateInfo)),
+                value: ref.watch(
+                  desktopExchangeModelProvider
+                      .select((value) => value!.rateInfo),
+                ),
               ),
             ],
           ),

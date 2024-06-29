@@ -13,29 +13,30 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/buy/response_objects/order.dart';
-import 'package:stackwallet/models/buy/response_objects/quote.dart';
-import 'package:stackwallet/pages/buy_view/buy_order_details.dart';
-import 'package:stackwallet/services/buy/buy_response.dart';
-import 'package:stackwallet/services/buy/simplex/simplex_api.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../models/buy/response_objects/order.dart';
+import '../../../models/buy/response_objects/quote.dart';
+import '../../../services/buy/buy_response.dart';
+import '../../../services/buy/simplex/simplex_api.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../themes/theme_providers.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_dialog.dart';
+import '../buy_order_details.dart';
 
 class BuyWarningPopup extends ConsumerStatefulWidget {
   const BuyWarningPopup({
-    Key? key,
+    super.key,
     required this.quote,
     this.order,
-  }) : super(key: key);
+  });
   final SimplexQuote quote;
   final SimplexOrder? order;
   @override
@@ -123,7 +124,8 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
   }
 
   Future<void> onContinue() async {
-    BuyResponse<SimplexOrder> orderResponse = await newOrder(widget.quote);
+    final BuyResponse<SimplexOrder> orderResponse =
+        await newOrder(widget.quote);
     if (orderResponse.exception == null) {
       await redirect(orderResponse.value as SimplexOrder)
           .then((_response) async {
@@ -175,7 +177,7 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -192,9 +194,10 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                  ),
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -274,7 +277,7 @@ class _BuyWarningPopupState extends ConsumerState<BuyWarningPopup> {
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),

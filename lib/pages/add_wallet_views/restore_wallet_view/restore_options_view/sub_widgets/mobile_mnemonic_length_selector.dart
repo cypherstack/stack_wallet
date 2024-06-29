@@ -11,18 +11,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
+import '../../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/constants.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
 
 class MobileMnemonicLengthSelector extends ConsumerWidget {
   const MobileMnemonicLengthSelector({
-    Key? key,
+    super.key,
     required this.chooseMnemonicLength,
-  }) : super(key: key);
+  });
 
   final VoidCallback chooseMnemonicLength;
 
@@ -66,7 +66,7 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }

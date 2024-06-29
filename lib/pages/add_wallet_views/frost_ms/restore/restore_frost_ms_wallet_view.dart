@@ -5,40 +5,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frostdart/frostdart.dart' as frost;
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/node_service_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
-import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/frost_mascot.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../../providers/db/main_db_provider.dart';
+import '../../../../providers/global/node_service_provider.dart';
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../providers/global/secure_store_provider.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../services/frost.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
+import '../../../../wallets/isar/models/frost_wallet_info.dart';
+import '../../../../wallets/isar/models/wallet_info.dart';
+import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../wallets/wallet/wallet.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/conditional_parent.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/desktop/desktop_app_bar.dart';
+import '../../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/frost_mascot.dart';
+import '../../../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/stack_text_field.dart';
+import '../../../../widgets/textfield_icon_button.dart';
+import '../../../home_view/home_view.dart';
 
 class RestoreFrostMsWalletView extends ConsumerStatefulWidget {
   const RestoreFrostMsWalletView({
@@ -75,7 +76,7 @@ class _RestoreFrostMsWalletViewState
     final myName = participants[myNameIndex];
 
     final info = WalletInfo.createNew(
-      coin: widget.frostCurrency.coin,
+      coin: widget.frostCurrency,
       name: widget.walletName,
     );
 
@@ -276,89 +277,6 @@ class _RestoreFrostMsWalletViewState
                 Constants.size.circularBorderRadius,
               ),
               child: TextField(
-                key: const Key("frMyNameTextFieldKey"),
-                controller: keysFieldController,
-                onChanged: (_) {
-                  setState(() {
-                    _keysEmpty = keysFieldController.text.isEmpty;
-                  });
-                },
-                focusNode: keysFocusNode,
-                readOnly: false,
-                autocorrect: false,
-                enableSuggestions: false,
-                style: STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Keys",
-                  keysFocusNode,
-                  context,
-                ).copyWith(
-                  contentPadding: const EdgeInsets.only(
-                    left: 16,
-                    top: 6,
-                    bottom: 8,
-                    right: 5,
-                  ),
-                  suffixIcon: Padding(
-                    padding: _keysEmpty
-                        ? const EdgeInsets.only(right: 8)
-                        : const EdgeInsets.only(right: 0),
-                    child: UnconstrainedBox(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          !_keysEmpty
-                              ? TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Clear Button. Clears The Keys Field.",
-                                  key: const Key("frMyNameClearButtonKey"),
-                                  onTap: () {
-                                    keysFieldController.text = "";
-
-                                    setState(() {
-                                      _keysEmpty = true;
-                                    });
-                                  },
-                                  child: const XIcon(),
-                                )
-                              : TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Paste Button. Pastes From Clipboard To Keys Field.",
-                                  key: const Key("frKeysPasteButtonKey"),
-                                  onTap: () async {
-                                    final ClipboardData? data =
-                                        await Clipboard.getData(
-                                            Clipboard.kTextPlain);
-                                    if (data?.text != null &&
-                                        data!.text!.isNotEmpty) {
-                                      keysFieldController.text =
-                                          data.text!.trim();
-                                    }
-
-                                    setState(() {
-                                      _keysEmpty =
-                                          keysFieldController.text.isEmpty;
-                                    });
-                                  },
-                                  child: _keysEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                                ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-              child: TextField(
                 key: const Key("frConfigTextFieldKey"),
                 controller: configFieldController,
                 onChanged: (_) {
@@ -411,7 +329,8 @@ class _RestoreFrostMsWalletViewState
                                   onTap: () async {
                                     final ClipboardData? data =
                                         await Clipboard.getData(
-                                            Clipboard.kTextPlain);
+                                      Clipboard.kTextPlain,
+                                    );
                                     if (data?.text != null &&
                                         data!.text!.isNotEmpty) {
                                       configFieldController.text =
@@ -437,7 +356,8 @@ class _RestoreFrostMsWalletViewState
                                   if (FocusScope.of(context).hasFocus) {
                                     FocusScope.of(context).unfocus();
                                     await Future<void>.delayed(
-                                        const Duration(milliseconds: 75));
+                                      const Duration(milliseconds: 75),
+                                    );
                                   }
 
                                   final qrResult = await BarcodeScanner.scan();
@@ -457,7 +377,91 @@ class _RestoreFrostMsWalletViewState
                                 }
                               },
                               child: const QrCodeIcon(),
-                            )
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+              child: TextField(
+                key: const Key("frMyNameTextFieldKey"),
+                controller: keysFieldController,
+                onChanged: (_) {
+                  setState(() {
+                    _keysEmpty = keysFieldController.text.isEmpty;
+                  });
+                },
+                focusNode: keysFocusNode,
+                readOnly: false,
+                autocorrect: false,
+                enableSuggestions: false,
+                style: STextStyles.field(context),
+                decoration: standardInputDecoration(
+                  "Keys",
+                  keysFocusNode,
+                  context,
+                ).copyWith(
+                  contentPadding: const EdgeInsets.only(
+                    left: 16,
+                    top: 6,
+                    bottom: 8,
+                    right: 5,
+                  ),
+                  suffixIcon: Padding(
+                    padding: _keysEmpty
+                        ? const EdgeInsets.only(right: 8)
+                        : const EdgeInsets.only(right: 0),
+                    child: UnconstrainedBox(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          !_keysEmpty
+                              ? TextFieldIconButton(
+                                  semanticsLabel:
+                                      "Clear Button. Clears The Keys Field.",
+                                  key: const Key("frMyNameClearButtonKey"),
+                                  onTap: () {
+                                    keysFieldController.text = "";
+
+                                    setState(() {
+                                      _keysEmpty = true;
+                                    });
+                                  },
+                                  child: const XIcon(),
+                                )
+                              : TextFieldIconButton(
+                                  semanticsLabel:
+                                      "Paste Button. Pastes From Clipboard To Keys Field.",
+                                  key: const Key("frKeysPasteButtonKey"),
+                                  onTap: () async {
+                                    final ClipboardData? data =
+                                        await Clipboard.getData(
+                                      Clipboard.kTextPlain,
+                                    );
+                                    if (data?.text != null &&
+                                        data!.text!.isNotEmpty) {
+                                      keysFieldController.text =
+                                          data.text!.trim();
+                                    }
+
+                                    setState(() {
+                                      _keysEmpty =
+                                          keysFieldController.text.isEmpty;
+                                    });
+                                  },
+                                  child: _keysEmpty
+                                      ? const ClipboardIcon()
+                                      : const XIcon(),
+                                ),
                         ],
                       ),
                     ),

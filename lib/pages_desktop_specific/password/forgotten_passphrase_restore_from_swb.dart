@@ -15,32 +15,34 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
-import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../app_config.dart';
+import '../../db/hive/db.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
+import '../../pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
+import '../../pages/settings_views/global_settings_view/stack_backup_views/sub_views/stack_restore_progress_view.dart';
+import '../../providers/desktop/storage_crypto_handler_provider.dart';
+import '../../providers/global/secure_store_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/flutter_secure_storage_interface.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/loading_indicator.dart';
+import '../../widgets/stack_text_field.dart';
+import 'create_password_view.dart';
+
 class ForgottenPassphraseRestoreFromSWB extends ConsumerStatefulWidget {
-  const ForgottenPassphraseRestoreFromSWB({Key? key}) : super(key: key);
+  const ForgottenPassphraseRestoreFromSWB({super.key});
 
   static const String routeName = "/forgottenPassphraseRestoreFromSWB";
 
@@ -117,7 +119,7 @@ class _ForgottenPassphraseRestoreFromSWBState
     final String? jsonString = await compute(
       SWB.decryptStackWalletWithPassphrase,
       Tuple2(fileToRestore, passphrase),
-      debugLabel: "stack wallet decryption compute",
+      debugLabel: "${AppConfig.appName} decryption compute",
     );
 
     if (mounted) {
@@ -154,7 +156,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Restoring Stack wallet",
+                        "Restoring ${AppConfig.appName}",
                         style: STextStyles.desktopH3(context),
                       ),
                     ],
@@ -358,7 +360,8 @@ class _ForgottenPassphraseRestoreFromSWBState
                               ),
                               GestureDetector(
                                 key: const Key(
-                                    "restoreFromFilePasswordFieldShowPasswordButtonKey"),
+                                  "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                ),
                                 onTap: () async {
                                   setState(() {
                                     hidePassword = !hidePassword;

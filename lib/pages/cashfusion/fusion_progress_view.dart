@@ -12,23 +12,24 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_progress.dart';
-import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../pages_desktop_specific/cashfusion/sub_widgets/fusion_progress.dart';
+import '../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
+import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/show_loading.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/stack_dialog.dart';
 
 class FusionProgressView extends ConsumerStatefulWidget {
   const FusionProgressView({
@@ -44,7 +45,7 @@ class FusionProgressView extends ConsumerStatefulWidget {
 }
 
 class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   Future<bool> _requestAndProcessCancel() async {
     final shouldCancel = await showDialog<bool?>(
@@ -244,7 +245,8 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-          "FusionProgressUIState was already set for ${widget.walletId}")) {
+            "FusionProgressUIState was already set for ${widget.walletId}",
+          )) {
         rethrow;
       }
     }

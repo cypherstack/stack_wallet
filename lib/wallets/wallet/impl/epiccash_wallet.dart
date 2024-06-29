@@ -9,34 +9,33 @@ import 'package:flutter_libepiccash/models/transaction.dart' as epic_models;
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/epicbox_config_model.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_epicboxes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/test_epic_box_connection.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/epiccash.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_wallet.dart';
-import 'package:stackwallet/wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../../../models/balance.dart';
+import '../../../models/epicbox_config_model.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/node_model.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
+import '../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
+import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
+import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_epicboxes.dart';
+import '../../../utilities/flutter_secure_storage_interface.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/stack_file_system.dart';
+import '../../../utilities/test_epic_box_connection.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_wallet.dart';
+import '../supporting/epiccash_wallet_info_extension.dart';
 
 //
 // refactor of https://github.com/cypherstack/stack_wallet/blob/1d9fb4cd069f22492ece690ac788e05b8f8b1209/lib/services/coins/epiccash/epiccash_wallet.dart
@@ -494,11 +493,17 @@ class EpiccashWallet extends Bip39Wallet {
         final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
         await secureStorageInterface.write(
-            key: '${walletId}_config', value: stringConfig);
+          key: '${walletId}_config',
+          value: stringConfig,
+        );
         await secureStorageInterface.write(
-            key: '${walletId}_password', value: password);
+          key: '${walletId}_password',
+          value: password,
+        );
         await secureStorageInterface.write(
-            key: '${walletId}_epicboxConfig', value: epicboxConfig.toString());
+          key: '${walletId}_epicboxConfig',
+          value: epicboxConfig.toString(),
+        );
 
         final String name = walletId;
 
@@ -524,7 +529,8 @@ class EpiccashWallet extends Bip39Wallet {
 
         // subtract a couple days to ensure we have a buffer for SWB
         final bufferedCreateHeight = _calculateRestoreHeightFrom(
-            date: DateTime.now().subtract(const Duration(days: 2)));
+          date: DateTime.now().subtract(const Duration(days: 2)),
+        );
 
         final epicData = ExtraEpiccashWalletInfo(
           receivingIndex: 0,
@@ -543,8 +549,9 @@ class EpiccashWallet extends Bip39Wallet {
       } else {
         try {
           Logging.instance.log(
-              "initializeExisting() ${cryptoCurrency.coin.prettyName} wallet",
-              level: LogLevel.Info);
+            "initializeExisting() ${cryptoCurrency.prettyName} wallet",
+            level: LogLevel.Info,
+          );
 
           final config = await _getRealConfig();
           final password =
@@ -555,7 +562,9 @@ class EpiccashWallet extends Bip39Wallet {
             password: password!,
           );
           await secureStorageInterface.write(
-              key: '${walletId}_wallet', value: walletOpen);
+            key: '${walletId}_wallet',
+            value: walletOpen,
+          );
 
           await updateNode();
         } catch (e, s) {
@@ -651,7 +660,8 @@ class EpiccashWallet extends Bip39Wallet {
 
       if (feeAmount > info.cachedBalance.spendable) {
         throw Exception(
-            "Epic cash prepare send fee is greater than available balance!");
+          "Epic cash prepare send fee is greater than available balance!",
+        );
       }
 
       if (info.cachedBalance.spendable == recipient.amount) {
@@ -743,15 +753,17 @@ class EpiccashWallet extends Bip39Wallet {
           );
 
           await _generateAndStoreReceivingAddressForIndex(
-              epicData.receivingIndex);
+            epicData.receivingIndex,
+          );
         }
       });
 
       unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from electrumx_mixin recover(): $e\n$s",
-          level: LogLevel.Info);
+        "Exception rethrown from electrumx_mixin recover(): $e\n$s",
+        level: LogLevel.Info,
+      );
 
       rethrow;
     }
@@ -774,7 +786,7 @@ class EpiccashWallet extends Bip39Wallet {
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.syncing,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
 
@@ -831,7 +843,7 @@ class EpiccashWallet extends Bip39Wallet {
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.synced,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
 
@@ -853,14 +865,14 @@ class EpiccashWallet extends Bip39Wallet {
         NodeConnectionStatusChangedEvent(
           NodeConnectionStatus.disconnected,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.unableToSync,
           walletId,
-          cryptoCurrency.coin,
+          cryptoCurrency,
         ),
       );
       Logging.instance.log(
@@ -1072,7 +1084,7 @@ class EpiccashWallet extends Bip39Wallet {
   @override
   Future<bool> pingCheck() async {
     try {
-      final node = nodeService.getPrimaryNodeFor(coin: cryptoCurrency.coin);
+      final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency);
 
       // force unwrap optional as we want connection test to fail if wallet
       // wasn't initialized or epicbox node was set to null
@@ -1118,12 +1130,13 @@ class EpiccashWallet extends Bip39Wallet {
     // this wasn't done before the refactor either so...
     // TODO: implement _getFees
     return FeeObject(
-        numberOfBlocksFast: 10,
-        numberOfBlocksAverage: 10,
-        numberOfBlocksSlow: 10,
-        fast: 1,
-        medium: 1,
-        slow: 1);
+      numberOfBlocksFast: 10,
+      numberOfBlocksAverage: 10,
+      numberOfBlocksSlow: 10,
+      fast: 1,
+      medium: 1,
+      slow: 1,
+    );
   }
 
   @override

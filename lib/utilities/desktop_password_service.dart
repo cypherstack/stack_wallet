@@ -8,9 +8,11 @@
  *
  */
 
-import 'package:hive/hive.dart';
+import 'package:hive/hive.dart' show Box;
 import 'package:stack_wallet_backup/secure_storage.dart';
-import 'package:stackwallet/utilities/logger.dart';
+
+import '../db/hive/db.dart';
+import 'logger.dart';
 
 const String kBoxNameDesktopData = "desktopData";
 const String _kKeyBlobKey = "swbKeyBlobKeyStringID";
@@ -44,7 +46,8 @@ class DPS {
   StorageCryptoHandler get handler {
     if (_handler == null) {
       throw Exception(
-          "DPS: attempted to access handler without proper authentication");
+        "DPS: attempted to access handler without proper authentication",
+      );
     }
     return _handler!;
   }
@@ -76,7 +79,8 @@ class DPS {
   Future<void> initFromExisting(String passphrase) async {
     if (_handler != null) {
       throw Exception(
-          "DPS: attempted to re initialize with existing passphrase");
+        "DPS: attempted to re initialize with existing passphrase",
+      );
     }
 
     try {
@@ -84,7 +88,8 @@ class DPS {
 
       if (keyBlob == null) {
         throw Exception(
-            "DPS: failed to find keyBlob while attempting to initialize with existing passphrase");
+          "DPS: failed to find keyBlob while attempting to initialize with existing passphrase",
+        );
       }
       final blobVersion = await _getStoredKeyBlobVersion();
       _handler = await StorageCryptoHandler.fromExisting(
@@ -181,7 +186,7 @@ class DPS {
   Future<void> _put({required String key, required String value}) async {
     Box<String>? box;
     try {
-      box = await Hive.openBox<String>(kBoxNameDesktopData);
+      box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
       await box.put(key, value);
     } catch (e, s) {
       Logging.instance.log(
@@ -197,7 +202,7 @@ class DPS {
     String? value;
     Box<String>? box;
     try {
-      box = await Hive.openBox<String>(kBoxNameDesktopData);
+      box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
       value = box.get(key);
     } catch (e, s) {
       Logging.instance.log(
@@ -213,6 +218,6 @@ class DPS {
   /// Dangerous. Used in one place and should not be called anywhere else.
   @Deprecated("Don't use this if at all possible")
   Future<void> deleteBox() async {
-    await Hive.deleteBoxFromDisk(kBoxNameDesktopData);
+    await DB.instance.hive.deleteBoxFromDisk(kBoxNameDesktopData);
   }
 }

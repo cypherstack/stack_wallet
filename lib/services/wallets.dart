@@ -10,23 +10,24 @@
 
 import 'dart:async';
 
-import 'package:flutter_libmonero/monero/monero.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
+import 'package:flutter_libmonero/monero/monero.dart' as monero;
+import 'package:flutter_libmonero/wownero/wownero.dart' as wownero;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_service.dart';
-import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../db/hive/db.dart';
+import '../db/isar/main_db.dart';
+import 'node_service.dart';
+import 'notifications_service.dart';
+import 'trade_sent_from_stack_service.dart';
+import '../app_config.dart';
+import '../utilities/enums/sync_type_enum.dart';
+import '../utilities/flutter_secure_storage_interface.dart';
+import '../utilities/logger.dart';
+import '../utilities/prefs.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/isar/models/wallet_info.dart';
+import '../wallets/wallet/impl/epiccash_wallet.dart';
+import '../wallets/wallet/wallet.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 
 class Wallets {
   Wallets._private();
@@ -76,27 +77,31 @@ class Wallets {
 
     await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
     await secureStorage.delete(
-        key: Wallet.mnemonicPassphraseKey(walletId: walletId));
+      key: Wallet.mnemonicPassphraseKey(walletId: walletId),
+    );
     await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
 
-    if (info.coin == Coin.wownero) {
-      final wowService =
-          wownero.createWowneroWalletService(DB.instance.moneroWalletInfoBox);
+    if (info.coin is Wownero) {
+      final wowService = wownero.wownero
+          .createWowneroWalletService(DB.instance.moneroWalletInfoBox);
       await wowService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (info.coin == Coin.monero) {
-      final xmrService =
-          monero.createMoneroWalletService(DB.instance.moneroWalletInfoBox);
+    } else if (info.coin is Monero) {
+      final xmrService = monero.monero
+          .createMoneroWalletService(DB.instance.moneroWalletInfoBox);
       await xmrService.remove(walletId);
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
-    } else if (info.coin == Coin.epicCash) {
+    } else if (info.coin is Epiccash) {
       final deleteResult = await deleteEpicWallet(
-          walletId: walletId, secureStore: secureStorage);
+        walletId: walletId,
+        secureStore: secureStorage,
+      );
       Logging.instance.log(
-          "epic wallet: $walletId deleted with result: $deleteResult",
-          level: LogLevel.Info);
+        "epic wallet: $walletId deleted with result: $deleteResult",
+        level: LogLevel.Info,
+      );
     }
 
     // delete wallet data in main db
@@ -108,7 +113,9 @@ class Wallets {
     // when delete was requested so instead of deleting now we mark the wallet
     // as needs delete by adding it's id to a list which gets checked on app start
     await DB.instance.add<String>(
-        boxName: DB.boxNameWalletsToDeleteOnStart, value: walletId);
+      boxName: DB.boxNameWalletsToDeleteOnStart,
+      value: walletId,
+    );
 
     final lookupService = TradeSentFromStackService();
     for (final lookup in lookupService.all) {
@@ -149,10 +156,12 @@ class Wallets {
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
     for (final walletId in DB.instance
         .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)) {
-      await mainDB.isar.writeTxn(() async => await mainDB.isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .deleteAll());
+      await mainDB.isar.writeTxn(
+        () async => await mainDB.isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletId)
+            .deleteAll(),
+      );
     }
     // clear list
     await DB.instance
@@ -210,11 +219,13 @@ class Wallets {
           if (wallet is CwBasedInterface) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
-            walletInitFutures.add(wallet.init().then((_) {
-              if (shouldSetAutoSync) {
-                wallet.shouldAutoSync = true;
-              }
-            }));
+            walletInitFutures.add(
+              wallet.init().then((_) {
+                if (shouldSetAutoSync) {
+                  wallet.shouldAutoSync = true;
+                }
+              }),
+            );
           }
 
           _wallets[wallet.walletId] = wallet;
@@ -251,10 +262,12 @@ class Wallets {
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
     for (final walletId in DB.instance
         .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)) {
-      await mainDB.isar.writeTxn(() async => await mainDB.isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .deleteAll());
+      await mainDB.isar.writeTxn(
+        () async => await mainDB.isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletId)
+            .deleteAll(),
+      );
     }
     // clear list
     await DB.instance
@@ -346,10 +359,12 @@ class Wallets {
         .toList();
 
     if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
-      unawaited(Future.wait([
-        _initLinearly(walletsToInitLinearly),
-        ...walletInitFutures,
-      ]));
+      unawaited(
+        Future.wait([
+          _initLinearly(walletsToInitLinearly),
+          ...walletInitFutures,
+        ]),
+      );
     } else if (walletInitFutures.isNotEmpty) {
       unawaited(Future.wait(walletInitFutures));
     } else if (walletsToInitLinearly.isNotEmpty) {
@@ -370,16 +385,25 @@ class Wallets {
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
     for (final walletId in DB.instance
         .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)) {
-      await mainDB.isar.writeTxn(() async => await mainDB.isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .deleteAll());
+      await mainDB.isar.writeTxn(
+        () async => await mainDB.isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletId)
+            .deleteAll(),
+      );
     }
     // clear list
     await DB.instance
         .deleteAll<String>(boxName: DB.boxNameWalletsToDeleteOnStart);
 
-    final walletInfoList = await mainDB.isar.walletInfo.where().findAll();
+    final walletInfoList = await mainDB.isar.walletInfo
+        .where()
+        .filter()
+        .anyOf<String, CryptoCurrency>(
+          AppConfig.coins.map((e) => e.identifier),
+          (q, element) => q.coinNameMatches(element),
+        )
+        .findAll();
     if (walletInfoList.isEmpty) {
       return;
     }
@@ -552,11 +576,13 @@ class Wallets {
           if (wallet is CwBasedInterface) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
-            walletInitFutures.add(wallet.init().then((_) {
-              // if (shouldSetAutoSync) {
-              //   wallet.shouldAutoSync = true;
-              // }
-            }));
+            walletInitFutures.add(
+              wallet.init().then((_) {
+                // if (shouldSetAutoSync) {
+                //   wallet.shouldAutoSync = true;
+                // }
+              }),
+            );
           }
         }
 
@@ -596,6 +622,7 @@ class Wallets {
   Future<void> _deleteWallet(String walletId) async {
     // TODO proper clean up of other wallet data in addition to the following
     await mainDB.isar.writeTxn(
-        () async => await mainDB.isar.walletInfo.deleteByWalletId(walletId));
+      () async => await mainDB.isar.walletInfo.deleteByWalletId(walletId),
+    );
   }
 }

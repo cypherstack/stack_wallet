@@ -16,94 +16,96 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
-import 'package:stackwallet/pages/cashfusion/cashfusion_view.dart';
-import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
-import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/monkey/monkey_view.dart';
-import 'package:stackwallet/pages/notification_views/notifications_view.dart';
-import 'package:stackwallet/pages/ordinals/ordinals_view.dart';
-import 'package:stackwallet/pages/paynym/paynym_claim_view.dart';
-import 'package:stackwallet/pages/paynym/paynym_home_view.dart';
-import 'package:stackwallet/pages/receive_view/receive_view.dart';
-import 'package:stackwallet/pages/send_view/frost_ms/frost_send_view.dart';
-import 'package:stackwallet/pages/send_view/send_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
-import 'package:stackwallet/pages/special/firo_rescan_recovery_error_dialog.dart';
-import 'package:stackwallet/pages/token_view/my_tokens_view.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/transactions_list.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/all_transactions_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
-import 'package:stackwallet/providers/global/active_wallet_provider.dart';
-import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
-import 'package:stackwallet/providers/global/paynym_api_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/transaction_filter_provider.dart';
-import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
-import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/services/event_bus/events/global/node_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/frost_scaffold.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/small_tor_icon.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/frost_sign_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
-import 'package:stackwallet/widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../app_config.dart';
+import '../../frost_route_generator.dart';
+import '../../models/isar/exchange_cache/currency.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/active_wallet_provider.dart';
+import '../../providers/global/auto_swb_service_provider.dart';
+import '../../providers/global/paynym_api_provider.dart';
+import '../../providers/providers.dart';
+import '../../providers/ui/transaction_filter_provider.dart';
+import '../../providers/ui/unread_notifications_provider.dart';
+import '../../providers/wallet/my_paynym_account_state_provider.dart';
+import '../../services/event_bus/events/global/node_connection_status_changed_event.dart';
+import '../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../services/event_bus/global_event_bus.dart';
+import '../../services/exchange/exchange_data_loading_service.dart';
+import '../../themes/coin_icon_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../themes/theme_providers.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/clipboard_interface.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/enums/backup_frequency_type.dart';
+import '../../utilities/enums/sync_type_enum.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/show_loading.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/custom_loading_overlay.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/frost_scaffold.dart';
+import '../../widgets/loading_indicator.dart';
+import '../../widgets/small_tor_icon.dart';
+import '../../widgets/stack_dialog.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/frost_sign_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
+import '../../widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
+import '../buy_view/buy_in_wallet_view.dart';
+import '../cashfusion/cashfusion_view.dart';
+import '../coin_control/coin_control_view.dart';
+import '../exchange_view/wallet_initiated_exchange_view.dart';
+import '../monkey/monkey_view.dart';
+import '../notification_views/notifications_view.dart';
+import '../ordinals/ordinals_view.dart';
+import '../paynym/paynym_claim_view.dart';
+import '../paynym/paynym_home_view.dart';
+import '../receive_view/receive_view.dart';
+import '../send_view/frost_ms/frost_send_view.dart';
+import '../send_view/send_view.dart';
+import '../settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
+import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
+import '../special/firo_rescan_recovery_error_dialog.dart';
+import '../token_view/my_tokens_view.dart';
+import 'sub_widgets/transactions_list.dart';
+import 'sub_widgets/wallet_summary.dart';
+import 'transaction_views/all_transactions_view.dart';
+import 'transaction_views/tx_v2/all_transactions_v2_view.dart';
+import 'transaction_views/tx_v2/transaction_v2_list.dart';
 
 /// [eventBus] should only be set during testing
 class WalletView extends ConsumerStatefulWidget {
   const WalletView({
-    Key? key,
+    super.key,
     required this.walletId,
     this.eventBus,
     this.clipboardInterface = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/wallet";
   static const double navBarHeight = 65.0;
@@ -120,7 +122,7 @@ class WalletView extends ConsumerStatefulWidget {
 class _WalletViewState extends ConsumerState<WalletView> {
   late final EventBus eventBus;
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   late final bool isSparkWallet;
 
@@ -184,22 +186,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
     isSparkWallet = wallet is SparkInterface;
 
-    if (coin == Coin.firo &&
-        (wallet as FiroWallet).lelantusCoinIsarRescanRequired) {
+    if (coin is Firo && (wallet as FiroWallet).lelantusCoinIsarRescanRequired) {
       _rescanningOnOpen = true;
       _lelantusRescanRecovery = true;
       _firoRescanRecovery();
-      // } else if (ref.read(managerProvider).rescanOnOpenVersion ==
-      // TODO: [prio=med]
-      //     Constants.rescanV1) {
-      //   _rescanningOnOpen = true;
-      //   ref.read(managerProvider).fullRescan(20, 1000).then(
-      //         (_) => ref.read(managerProvider).resetRescanOnOpen().then(
-      //               (_) => WidgetsBinding.instance.addPostFrameCallback(
-      //                 (_) => setState(() => _rescanningOnOpen = false),
-      //               ),
-      //             ),
-      //       );
     } else {
       wallet.refresh();
     }
@@ -266,40 +256,43 @@ class _WalletViewState extends ConsumerState<WalletView> {
     super.dispose();
   }
 
-  DateTime? _cachedTime;
+  // DateTime? _cachedTime;
 
   Future<bool> _onWillPop() async {
     if (_rescanningOnOpen || _lelantusRescanRecovery) {
       return false;
     }
 
-    final now = DateTime.now();
-    const timeout = Duration(milliseconds: 1500);
-    if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
-      _cachedTime = now;
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => WillPopScope(
-            onWillPop: () async {
-              Navigator.of(context).popUntil(
-                ModalRoute.withName(HomeView.routeName),
-              );
-              _logout();
-              return false;
-            },
-            child: const StackDialog(title: "Tap back again to exit wallet"),
-          ),
-        ).timeout(
-          timeout,
-          onTimeout: () => Navigator.of(context).popUntil(
-            ModalRoute.withName(WalletView.routeName),
-          ),
-        ),
-      );
-    }
-    return false;
+    _logout();
+
+    return true;
+    // final now = DateTime.now();
+    // const timeout = Duration(milliseconds: 1500);
+    // if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
+    //   _cachedTime = now;
+    //   unawaited(
+    //     showDialog<dynamic>(
+    //       context: context,
+    //       barrierDismissible: false,
+    //       builder: (_) => WillPopScope(
+    //         onWillPop: () async {
+    //           Navigator.of(context).popUntil(
+    //             ModalRoute.withName(HomeView.routeName),
+    //           );
+    //           _logout();
+    //           return false;
+    //         },
+    //         child: const StackDialog(title: "Tap back again to exit wallet"),
+    //       ),
+    //     ).timeout(
+    //       timeout,
+    //       onTimeout: () => Navigator.of(context).popUntil(
+    //         ModalRoute.withName(WalletView.routeName),
+    //       ),
+    //     ),
+    //   );
+    // }
+    // return false;
   }
 
   void _logout() async {
@@ -384,9 +377,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   Future<void> _onExchangePressed(BuildContext context) async {
-    final Coin coin = ref.read(pWalletCoin(walletId));
+    final CryptoCurrency coin = ref.read(pWalletCoin(walletId));
 
-    if (coin.isTestNet) {
+    if (coin.network.isTestNet) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
@@ -421,7 +414,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
             WalletInitiatedExchangeView.routeName,
             arguments: Tuple2(
               walletId,
-              currency == null ? Coin.bitcoin : coin,
+              currency == null ? Bitcoin(CryptoCurrencyNetwork.main) : coin,
             ),
           ),
         );
@@ -430,9 +423,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
   }
 
   Future<void> _onBuyPressed(BuildContext context) async {
-    final Coin coin = ref.read(pWalletCoin(walletId));
+    final CryptoCurrency coin = ref.read(pWalletCoin(walletId));
 
-    if (coin.isTestNet) {
+    if (coin.network.isTestNet) {
       await showDialog<void>(
         context: context,
         builder: (_) => const StackOkDialog(
@@ -444,7 +437,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           Navigator.of(context).pushNamed(
             BuyInWalletView.routeName,
-            arguments: coin.hasBuySupport ? coin : Coin.bitcoin,
+            arguments:
+                coin.hasBuySupport ? coin : Bitcoin(CryptoCurrencyNetwork.main),
           ),
         );
       }
@@ -1020,7 +1014,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       }
                     },
                   ),
-                  if (ref.watch(pWalletCoin(walletId)).isFrost)
+                  if (ref.watch(pWalletCoin(walletId)) is FrostCurrency)
                     WalletNavigationBarItemData(
                       label: "Sign",
                       icon: const FrostSignNavIcon(),
@@ -1058,14 +1052,16 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     },
                   ),
                   if (Constants.enableExchange &&
-                      !ref.watch(pWalletCoin(walletId)).isFrost)
+                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
+                      AppConfig.hasFeature(AppFeature.swap))
                     WalletNavigationBarItemData(
                       label: "Swap",
                       icon: const ExchangeNavIcon(),
                       onTap: () => _onExchangePressed(context),
                     ),
                   if (Constants.enableExchange &&
-                      !ref.watch(pWalletCoin(walletId)).isFrost)
+                      ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
+                      AppConfig.hasFeature(AppFeature.buy))
                     WalletNavigationBarItemData(
                       label: "Buy",
                       icon: const BuyNavIcon(),
@@ -1091,7 +1087,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (coin == Coin.banano)
+                  if (coin is Banano)
                     WalletNavigationBarItemData(
                       icon: SvgPicture.asset(
                         Assets.svg.monkey,

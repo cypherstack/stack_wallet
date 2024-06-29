@@ -9,9 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
+
+import '../themes/stack_colors.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
 
 InputDecoration standardInputDecoration(
   String? labelText,
@@ -31,7 +32,8 @@ InputDecoration standardInputDecoration(
             ? STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context)
                     .extension<StackColors>()!
-                    .textFieldDefaultText)
+                    .textFieldDefaultText,
+              )
             : STextStyles.desktopTextFieldLabel(context)
         : STextStyles.fieldLabel(context),
     hintStyle: isDesktop
@@ -39,7 +41,8 @@ InputDecoration standardInputDecoration(
             ? STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context)
                     .extension<StackColors>()!
-                    .textFieldDefaultText)
+                    .textFieldDefaultText,
+              )
             : STextStyles.desktopTextFieldLabel(context)
         : STextStyles.fieldLabel(context),
     enabledBorder: InputBorder.none,

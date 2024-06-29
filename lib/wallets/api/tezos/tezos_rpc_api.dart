@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../../networking/http.dart';
+import '../../../services/tor_service.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 
 abstract final class TezosRpcAPI {
   static final HTTP _client = HTTP();
@@ -13,7 +13,7 @@ abstract final class TezosRpcAPI {
     required String address,
   }) async {
     try {
-      String balanceCall =
+      final String balanceCall =
           "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/context/contracts/$address/balance";
 
       final response = await _client.get(

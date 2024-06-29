@@ -7,33 +7,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/models/isar/ordinal.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../models/isar/models/blockchain_data/utxo.dart';
+import '../../models/isar/ordinal.dart';
+import '../../networking/http.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../providers/db/main_db_provider.dart';
+import '../../providers/global/prefs_provider.dart';
+import '../../services/tor_service.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/show_loading.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/rounded_white_container.dart';
 
 class OrdinalDetailsView extends ConsumerStatefulWidget {
   const OrdinalDetailsView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.ordinal,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Ordinal ordinal;
@@ -113,7 +113,7 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
                         : ref.watch(pAmountFormatter(coin)).format(
                               Amount(
                                 rawValue: BigInt.from(utxo!.value),
-                                fractionDigits: coin.decimals,
+                                fractionDigits: coin.fractionDigits,
                               ),
                             ),
                   ),
@@ -146,10 +146,10 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
 
 class _DetailsItemWCopy extends StatelessWidget {
   const _DetailsItemWCopy({
-    Key? key,
+    super.key,
     required this.title,
     required this.data,
-  }) : super(key: key);
+  });
 
   final String title;
   final String data;
@@ -220,10 +220,10 @@ class _DetailsItemWCopy extends StatelessWidget {
 
 class _OrdinalImageGroup extends ConsumerWidget {
   const _OrdinalImageGroup({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.ordinal,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Ordinal ordinal;
@@ -231,7 +231,7 @@ class _OrdinalImageGroup extends ConsumerWidget {
   static const _spacing = 12.0;
 
   Future<String> _savePngToFile(WidgetRef ref) async {
-    HTTP client = HTTP();
+    final HTTP client = HTTP();
 
     final response = await client.get(
       url: Uri.parse(ordinal.content),
@@ -242,7 +242,8 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
     if (response.code != 200) {
       throw Exception(
-          "OrdinalDetailsView _savePngToFile statusCode=${response.code} body=${response.bodyBytes}");
+        "OrdinalDetailsView _savePngToFile statusCode=${response.code} body=${response.bodyBytes}",
+      );
     }
 
     final bytes = response.bodyBytes;
@@ -258,7 +259,7 @@ class _OrdinalImageGroup extends ConsumerWidget {
     final docPath = dir.path;
     final filePath = "$docPath/ordinal_${ordinal.inscriptionNumber}.png";
 
-    File imgFile = File(filePath);
+    final File imgFile = File(filePath);
 
     if (imgFile.existsSync()) {
       throw Exception("File already exists");

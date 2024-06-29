@@ -54,7 +54,7 @@ class OutputV2 {
     bool isFullAmountNotSats = false,
   }) {
     try {
-      List<String> addresses = [];
+      final List<String> addresses = [];
 
       if (json["scriptPubKey"]?["addresses"] is List) {
         for (final e in json["scriptPubKey"]["addresses"] as List) {
@@ -68,7 +68,7 @@ class OutputV2 {
         scriptPubKeyHex: json["scriptPubKey"]["hex"] as String,
         scriptPubKeyAsm: json["scriptPubKey"]["asm"] as String?,
         valueStringSats: parseOutputAmountString(
-          json["value"] != null ? json["value"].toString(): "0",
+          json["value"] != null ? json["value"].toString() : "0",
           decimalPlaces: decimalPlaces,
           isFullAmountNotSats: isFullAmountNotSats,
         ),

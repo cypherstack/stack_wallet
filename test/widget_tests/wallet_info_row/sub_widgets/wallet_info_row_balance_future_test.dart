@@ -2,12 +2,15 @@ import 'package:mockito/annotations.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 
-@GenerateMocks([
-  Wallets,
-], customMocks: [
-  MockSpec<NodeService>(returnNullOnMissingStub: true),
-  // MockSpec<WalletsService>(returnNullOnMissingStub: true),
-])
+@GenerateMocks(
+  [
+    Wallets,
+  ],
+  customMocks: [
+    MockSpec<NodeService>(),
+    // MockSpec<WalletsService>(),
+  ],
+)
 void main() {
   // testWidgets("Test wallet info row balance loads correctly",
   //     (widgetTester) async {

@@ -12,12 +12,12 @@ import 'package:flutter/cupertino.dart';
 
 class Shake extends StatefulWidget {
   const Shake({
-    Key? key,
+    super.key,
     required this.child,
     required this.animationRange,
     required this.controller,
     required this.animationDuration,
-  }) : super(key: key);
+  });
 
   final Widget child;
   final double animationRange;

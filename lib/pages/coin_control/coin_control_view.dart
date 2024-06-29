@@ -14,33 +14,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/coin_control/utxo_card.dart';
-import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
-import 'package:stackwallet/widgets/app_bar_field.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/dropdown_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/expandable2.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/toggle.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/isar_models.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../widgets/animated_widgets/rotate_icon.dart';
+import '../../widgets/app_bar_field.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/dropdown_button.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/expandable2.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/toggle.dart';
+import 'utxo_card.dart';
+import 'utxo_details_view.dart';
 
 enum CoinControlViewType {
   manage,
@@ -49,12 +49,12 @@ enum CoinControlViewType {
 
 class CoinControlView extends ConsumerStatefulWidget {
   const CoinControlView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.type,
     this.requestedTotal,
     this.selectedUTXOs,
-  }) : super(key: key);
+  });
 
   static const routeName = "/coinControl";
 
@@ -128,7 +128,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         filter: CCFilter.all,
         sort: _sort,
         searchTerm: "",
-        coin: coin,
+        cryptoCurrency: coin,
       );
     } else {
       _map = null;
@@ -141,7 +141,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                 : CCFilter.available,
         sort: _sort,
         searchTerm: _isSearching ? searchController.text : "",
-        coin: coin,
+        cryptoCurrency: coin,
       );
     }
 
@@ -149,7 +149,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       onWillPop: () async {
         unawaited(_refreshBalance());
         Navigator.of(context).pop(
-            widget.type == CoinControlViewType.use ? _selectedAvailable : null);
+          widget.type == CoinControlViewType.use ? _selectedAvailable : null,
+        );
         return false;
       },
       child: Background(
@@ -180,9 +181,10 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                         onPressed: () {
                           unawaited(_refreshBalance());
                           Navigator.of(context).pop(
-                              widget.type == CoinControlViewType.use
-                                  ? _selectedAvailable
-                                  : null);
+                            widget.type == CoinControlViewType.use
+                                ? _selectedAvailable
+                                : null,
+                          );
                         },
                       ),
             title: _isSearching
@@ -337,7 +339,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
                                 return UtxoCard(
                                   key: Key(
-                                      "${utxo.walletId}_${utxo.id}_$isSelected"),
+                                    "${utxo.walletId}_${utxo.id}_$isSelected",
+                                  ),
                                   walletId: widget.walletId,
                                   utxo: utxo,
                                   canSelect: widget.type ==
@@ -399,7 +402,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
                                       return UtxoCard(
                                         key: Key(
-                                            "${utxo.walletId}_${utxo.id}_$isSelected"),
+                                          "${utxo.walletId}_${utxo.id}_$isSelected",
+                                        ),
                                         walletId: widget.walletId,
                                         utxo: utxo,
                                         canSelect: widget.type ==
@@ -487,7 +491,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       entry.key,
                                                       style:
                                                           STextStyles.w600_14(
-                                                              context),
+                                                        context,
+                                                      ),
                                                     ),
                                                     const SizedBox(
                                                       height: 2,
@@ -497,8 +502,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       "output${entry.value.length > 1 ? "s" : ""}",
                                                       style:
                                                           STextStyles.w500_12(
-                                                                  context)
-                                                              .copyWith(
+                                                        context,
+                                                      ).copyWith(
                                                         color: Theme.of(context)
                                                             .extension<
                                                                 StackColors>()!
@@ -539,7 +544,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
                                             return UtxoCard(
                                               key: Key(
-                                                  "${utxo.walletId}_${utxo.id}_$isSelected"),
+                                                "${utxo.walletId}_${utxo.id}_$isSelected",
+                                              ),
                                               walletId: widget.walletId,
                                               utxo: utxo,
                                               canSelect: widget.type ==
@@ -616,22 +622,26 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                         label: _showBlocked ? "Unfreeze" : "Freeze",
                         onPressed: () async {
                           if (_showBlocked) {
-                            await MainDB.instance.putUTXOs(_selectedBlocked
-                                .map(
-                                  (e) => e.copyWith(
-                                    isBlocked: false,
-                                  ),
-                                )
-                                .toList());
+                            await MainDB.instance.putUTXOs(
+                              _selectedBlocked
+                                  .map(
+                                    (e) => e.copyWith(
+                                      isBlocked: false,
+                                    ),
+                                  )
+                                  .toList(),
+                            );
                             _selectedBlocked.clear();
                           } else {
-                            await MainDB.instance.putUTXOs(_selectedAvailable
-                                .map(
-                                  (e) => e.copyWith(
-                                    isBlocked: true,
-                                  ),
-                                )
-                                .toList());
+                            await MainDB.instance.putUTXOs(
+                              _selectedAvailable
+                                  .map(
+                                    (e) => e.copyWith(
+                                      isBlocked: true,
+                                    ),
+                                  )
+                                  .toList(),
+                            );
                             _selectedAvailable.clear();
                           }
                           setState(() {});
@@ -682,15 +692,16 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       );
                                           final selectedSum =
                                               selectedSumInt.toAmountAsRaw(
-                                            fractionDigits: coin.decimals,
+                                            fractionDigits: coin.fractionDigits,
                                           );
-                                          return Text(
+                                          return SelectableText(
                                             ref
                                                 .watch(pAmountFormatter(coin))
                                                 .format(selectedSum),
                                             style: widget.requestedTotal == null
                                                 ? STextStyles.w600_14(context)
-                                                : STextStyles.w600_14(context).copyWith(
+                                                : STextStyles.w600_14(context)
+                                                    .copyWith(
                                                     color: selectedSum >=
                                                             widget
                                                                 .requestedTotal!
@@ -701,7 +712,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                         : Theme.of(context)
                                                             .extension<
                                                                 StackColors>()!
-                                                            .accentColorRed),
+                                                            .accentColorRed,
+                                                  ),
                                           );
                                         },
                                       ),
@@ -727,7 +739,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           "Amount to send",
                                           style: STextStyles.w600_14(context),
                                         ),
-                                        Text(
+                                        SelectableText(
                                           ref
                                               .watch(pAmountFormatter(coin))
                                               .format(widget.requestedTotal!),

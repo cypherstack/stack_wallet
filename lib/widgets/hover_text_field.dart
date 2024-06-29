@@ -12,19 +12,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
+import '../notifications/show_flush_bar.dart';
+import '../providers/db/main_db_provider.dart';
+import '../providers/global/wallets_provider.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/constants.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
 
 class DesktopWalletNameField extends ConsumerStatefulWidget {
   const DesktopWalletNameField({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 

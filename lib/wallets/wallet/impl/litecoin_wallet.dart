@@ -1,25 +1,34 @@
-import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/ordinal.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/litecoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
+import 'dart:convert';
 
-class LitecoinWallet extends Bip39HDWallet
-    with ElectrumXInterface, CoinControlInterface, OrdinalsInterface {
+import 'package:isar/isar.dart';
+
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/ordinal.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../intermediate/bip39_hd_wallet.dart';
+import '../wallet_mixin_interfaces/coin_control_interface.dart';
+import '../wallet_mixin_interfaces/electrumx_interface.dart';
+import '../wallet_mixin_interfaces/ordinals_interface.dart';
+import '../wallet_mixin_interfaces/rbf_interface.dart';
+
+class LitecoinWallet<T extends ElectrumXCurrencyInterface>
+    extends Bip39HDWallet<T>
+    with
+        ElectrumXInterface<T>,
+        CoinControlInterface<T>,
+        RbfInterface<T>,
+        OrdinalsInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 
-  LitecoinWallet(CryptoCurrencyNetwork network) : super(Litecoin(network));
+  LitecoinWallet(CryptoCurrencyNetwork network) : super(Litecoin(network) as T);
 
   @override
   FilterOperation? get changeAddressFilterOperation =>
@@ -52,14 +61,15 @@ class LitecoinWallet extends Bip39HDWallet
   @override
   Future<void> updateTransactions() async {
     // Get all addresses.
-    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
+    final List<Address> allAddressesOld =
+        await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    Set<String> receivingAddresses = allAddressesOld
+    final Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => e.value)
         .toSet();
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => e.value)
         .toSet();
@@ -76,7 +86,7 @@ class LitecoinWallet extends Bip39HDWallet
         await fetchHistory(allAddressesSet);
 
     // Only parse new txs (not in db yet).
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
       final storedTx = await mainDB.isar.transactionV2s
@@ -91,7 +101,7 @@ class LitecoinWallet extends Bip39HDWallet
         final tx = await electrumXCachedClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
-          coin: cryptoCurrency.coin,
+          cryptoCurrency: cryptoCurrency,
         );
 
         // Only tx to list once.
@@ -135,12 +145,12 @@ class LitecoinWallet extends Bip39HDWallet
 
           final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
-            coin: cryptoCurrency.coin,
+            cryptoCurrency: cryptoCurrency,
           );
 
           final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map,
+          );
 
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
@@ -282,6 +292,14 @@ class LitecoinWallet extends Bip39HDWallet
         continue;
       }
 
+      String? otherData;
+      if (txData["size"] is int || txData["vsize"] is int) {
+        otherData = jsonEncode({
+          TxV2OdKeys.size: txData["size"] as int?,
+          TxV2OdKeys.vSize: txData["vsize"] as int?,
+        });
+      }
+
       final tx = TransactionV2(
         walletId: walletId,
         blockHash: txData["blockhash"] as String?,
@@ -295,7 +313,7 @@ class LitecoinWallet extends Bip39HDWallet
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
-        otherData: null,
+        otherData: otherData,
       );
 
       txns.add(tx);
@@ -308,8 +326,9 @@ class LitecoinWallet extends Bip39HDWallet
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(
-          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-              (feeRatePerKB / 1000).ceil()),
+        ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }

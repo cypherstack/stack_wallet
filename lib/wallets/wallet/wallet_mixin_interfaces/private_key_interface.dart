@@ -1,6 +1,6 @@
-import 'package:stackwallet/exceptions/sw_exception.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
+import '../../../exceptions/sw_exception.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../wallet.dart';
 
 mixin PrivateKeyInterface<T extends CryptoCurrency> on Wallet<T> {
   Future<String> getPrivateKey() async {

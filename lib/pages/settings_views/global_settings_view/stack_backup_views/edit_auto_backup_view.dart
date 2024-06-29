@@ -18,36 +18,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/auto_backup_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/sub_views/backup_frequency_type_select_sheet.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/secure_store_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/progress_bar.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:zxcvbn/zxcvbn.dart';
+
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../providers/global/secure_store_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/backup_frequency_type.dart';
+import '../../../../utilities/flutter_secure_storage_interface.dart';
+import '../../../../utilities/format.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/conditional_parent.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/progress_bar.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/stack_text_field.dart';
+import 'auto_backup_view.dart';
+import 'helpers/restore_create_backup.dart';
+import 'helpers/swb_file_system.dart';
+import 'sub_views/backup_frequency_type_select_sheet.dart';
 
 class EditAutoBackupView extends ConsumerStatefulWidget {
   const EditAutoBackupView({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const String routeName = "/editAutoBackup";
 
@@ -156,7 +157,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
       adkString = Format.uint8listToString(adk.item2);
       adkVersion = adk.item1;
     } on Exception catch (e, s) {
-      String err = getErrorMessageFromSWBException(e);
+      final String err = getErrorMessageFromSWBException(e);
       Logging.instance.log("$err\n$s", level: LogLevel.Error);
       // pop encryption progress dialog
       Navigator.of(context).pop();
@@ -184,7 +185,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
 
     await secureStore.write(key: "auto_adk_string", value: adkString);
     await secureStore.write(
-        key: "auto_adk_version_string", value: adkVersion.toString());
+      key: "auto_adk_version_string",
+      value: adkVersion.toString(),
+    );
 
     final DateTime now = DateTime.now();
     final String fileToSave = createAutoBackupFilename(pathToSave, now);
@@ -193,7 +196,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
       secureStorage: ref.read(secureStoreProvider),
     );
 
-    bool result = await SWB.encryptStackWalletWithADK(
+    final bool result = await SWB.encryptStackWalletWithADK(
       fileToSave,
       adkString,
       jsonEncode(backup),
@@ -311,18 +314,20 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
           ),
           body: Padding(
             padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: child,
+                    ),
                   ),
-                  child: IntrinsicHeight(
-                    child: child,
-                  ),
-                ),
-              );
-            }),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -448,7 +453,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                       ),
                       GestureDetector(
                         key: const Key(
-                            "createBackupPasswordFieldShowPasswordButtonKey"),
+                          "createBackupPasswordFieldShowPasswordButtonKey",
+                        ),
                         onTap: () async {
                           setState(() {
                             hidePassword = !hidePassword;
@@ -479,7 +485,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 }
                 final result = zxcvbn.evaluate(newValue);
                 String suggestionsAndTips = "";
-                for (var sug in result.feedback.suggestions!.toSet()) {
+                for (final sug in result.feedback.suggestions!.toSet()) {
                   suggestionsAndTips += "$sug\n";
                 }
                 suggestionsAndTips += result.feedback.warning!;
@@ -492,7 +498,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 // hack fix to format back string returned from zxcvbn
                 if (feedback.contains("phrasesNo need")) {
                   feedback = feedback.replaceFirst(
-                      "phrasesNo need", "phrases\nNo need");
+                    "phrasesNo need",
+                    "phrases\nNo need",
+                  );
                 }
 
                 if (feedback.endsWith("\n")) {
@@ -580,7 +588,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                       ),
                       GestureDetector(
                         key: const Key(
-                            "createBackupPasswordFieldShowPasswordButtonKey"),
+                          "createBackupPasswordFieldShowPasswordButtonKey",
+                        ),
                         onTap: () async {
                           setState(() {
                             hidePassword = !hidePassword;
@@ -735,9 +744,13 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            Format.prettyFrequencyType(ref.watch(
+                            Format.prettyFrequencyType(
+                              ref.watch(
                                 prefsChangeNotifierProvider.select(
-                                    (value) => value.backupFrequencyType))),
+                                  (value) => value.backupFrequencyType,
+                                ),
+                              ),
+                            ),
                             style: STextStyles.itemSubtitle12(context),
                           ),
                           Padding(
@@ -755,7 +768,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                       ),
                     ),
                   ),
-                )
+                ),
               ],
             ),
           if (!isDesktop) const Spacer(),
@@ -799,7 +812,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 "Save",
                 style: STextStyles.button(context),
               ),
-            )
+            ),
         ],
       ),
     );

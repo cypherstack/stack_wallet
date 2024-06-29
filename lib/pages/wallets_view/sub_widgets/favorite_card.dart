@@ -13,30 +13,30 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
-import 'package:stackwallet/widgets/coin_card.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+import '../../wallet_view/wallet_view.dart';
+import '../../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/show_loading.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../widgets/coin_card.dart';
+import '../../../widgets/conditional_parent.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
   const FavoriteCard({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.width,
     required this.height,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final double width;
@@ -192,7 +192,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                       );
 
                       Amount total = balance.total;
-                      if (coin == Coin.firo || coin == Coin.firoTestNet) {
+                      if (coin is Firo) {
                         total += ref
                             .watch(
                               pWalletBalanceSecondary(walletId),
@@ -274,9 +274,11 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
 }
 
 class CardOverlayStack extends StatelessWidget {
-  const CardOverlayStack(
-      {Key? key, required this.background, required this.child})
-      : super(key: key);
+  const CardOverlayStack({
+    super.key,
+    required this.background,
+    required this.child,
+  });
 
   final Widget background;
   final Widget child;

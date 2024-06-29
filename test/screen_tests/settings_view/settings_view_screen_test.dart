@@ -16,7 +16,7 @@ import 'package:stackwallet/services/wallets_service.dart';
 // import 'settings_view_screen_test.mocks.dart';
 
 @GenerateMocks([], customMocks: [
-  MockSpec<WalletsService>(returnNullOnMissingStub: true),
+  MockSpec<WalletsService>(),
 ])
 void main() {
 //   testWidgets("SettingsView builds correctly", (tester) async {

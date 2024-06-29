@@ -14,30 +14,31 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
-import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../db/hive/db.dart';
+import '../pages_desktop_specific/password/create_password_view.dart';
+import '../providers/global/prefs_provider.dart';
+import '../providers/global/price_provider.dart';
+import '../services/exchange/exchange_data_loading_service.dart';
+import '../themes/stack_colors.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/assets.dart';
+import '../utilities/constants.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import '../widgets/conditional_parent.dart';
+import '../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../widgets/desktop/desktop_app_bar.dart';
+import '../widgets/desktop/desktop_scaffold.dart';
+import '../widgets/desktop/primary_button.dart';
+import '../widgets/rounded_white_container.dart';
+import 'pinpad_views/create_pin_view.dart';
 
 class StackPrivacyCalls extends ConsumerStatefulWidget {
   const StackPrivacyCalls({
-    Key? key,
+    super.key,
     required this.isSettings,
-  }) : super(key: key);
+  });
 
   final bool isSettings;
 
@@ -154,7 +155,8 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                           text: TextSpan(
                             style: isDesktop
                                 ? STextStyles.desktopTextExtraExtraSmall(
-                                    context)
+                                    context,
+                                  )
                                 : STextStyles.label(context).copyWith(
                                     fontSize: 12.0,
                                   ),
@@ -162,18 +164,21 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                 ? [
                                     if (Constants.enableExchange)
                                       const TextSpan(
-                                          text:
-                                              "Exchange data preloaded for a seamless experience.\n\n"),
-                                    const TextSpan(
                                         text:
-                                            "CoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).\n\n"),
+                                            "Exchange data preloaded for a seamless experience.\n\n",
+                                      ),
+                                    const TextSpan(
+                                      text:
+                                          "CoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).\n\n",
+                                    ),
                                     TextSpan(
                                       text:
                                           "Recommended for most crypto users.",
                                       style: isDesktop
                                           ? STextStyles
                                               .desktopTextExtraExtraSmall600(
-                                                  context)
+                                              context,
+                                            )
                                           : TextStyle(
                                               color: Theme.of(context)
                                                   .extension<StackColors>()!
@@ -185,18 +190,21 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                 : [
                                     if (Constants.enableExchange)
                                       const TextSpan(
-                                          text:
-                                              "Exchange data not preloaded (slower experience).\n\n"),
-                                    const TextSpan(
                                         text:
-                                            "CoinGecko disabled (price changes not shown, no wallet value shown in other currencies).\n\n"),
+                                            "Exchange data not preloaded (slower experience).\n\n",
+                                      ),
+                                    const TextSpan(
+                                      text:
+                                          "CoinGecko disabled (price changes not shown, no wallet value shown in other currencies).\n\n",
+                                    ),
                                     TextSpan(
                                       text:
                                           "Recommended for the privacy conscious.",
                                       style: isDesktop
                                           ? STextStyles
                                               .desktopTextExtraExtraSmall600(
-                                                  context)
+                                              context,
+                                            )
                                           : TextStyle(
                                               color: Theme.of(context)
                                                   .extension<StackColors>()!
@@ -239,9 +247,10 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
 
                               DB.instance
                                   .put<dynamic>(
-                                      boxName: DB.boxNamePrefs,
-                                      key: "externalCalls",
-                                      value: isEasy)
+                                boxName: DB.boxNamePrefs,
+                                key: "externalCalls",
+                                value: isEasy,
+                              )
                                   .then((_) {
                                 if (isEasy) {
                                   unawaited(
@@ -290,10 +299,10 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
 
 class PrivacyToggle extends ConsumerStatefulWidget {
   const PrivacyToggle({
-    Key? key,
+    super.key,
     required this.externalCallsEnabled,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   final bool externalCallsEnabled;
   final void Function(bool)? onChanged;

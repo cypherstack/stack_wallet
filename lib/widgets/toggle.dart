@@ -10,13 +10,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
+
+import '../themes/stack_colors.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
 
 class Toggle extends StatefulWidget {
   const Toggle({
-    Key? key,
+    super.key,
     this.onIcon,
     this.onText,
     this.offIcon,
@@ -28,7 +29,7 @@ class Toggle extends StatefulWidget {
     required this.onColor,
     required this.offColor,
     this.decoration,
-  }) : super(key: key);
+  });
 
   final String? onIcon;
   final String? onText;
@@ -142,7 +143,7 @@ class ToggleState extends State<Toggle> {
                           .clamp(0.0, 1.0);
                     },
                     onHorizontalDragEnd: (details) {
-                      bool oldValue = _isOn;
+                      final bool oldValue = _isOn;
                       if (valueListener.value > 0.5) {
                         valueListener.value = 1.0;
                         _isOn = true;
@@ -225,8 +226,8 @@ class ToggleState extends State<Toggle> {
                               widget.onText ?? "",
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall(
-                                          context)
-                                      .copyWith(
+                                      context,
+                                    ).copyWith(
                                       color: !_isOn
                                           ? Theme.of(context)
                                               .extension<StackColors>()!
@@ -284,8 +285,8 @@ class ToggleState extends State<Toggle> {
                               widget.offText ?? "",
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall(
-                                          context)
-                                      .copyWith(
+                                      context,
+                                    ).copyWith(
                                       color: _isOn
                                           ? Theme.of(context)
                                               .extension<StackColors>()!

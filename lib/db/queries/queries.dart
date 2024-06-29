@@ -8,7 +8,7 @@
  *
  */
 
-part of 'package:stackwallet/db/isar/main_db.dart';
+part of '../isar/main_db.dart';
 
 enum CCFilter {
   all,
@@ -42,7 +42,7 @@ extension MainDBQueries on MainDB {
     required CCFilter filter,
     required CCSortDescriptor sort,
     required String searchTerm,
-    required Coin coin,
+    required CryptoCurrency cryptoCurrency,
   }) {
     var preSort = getUTXOs(walletId).filter().group((q) {
       final qq = q.group(
@@ -79,7 +79,7 @@ extension MainDBQueries on MainDB {
             qq = qq.or().valueEqualTo(
                   Amount.fromDecimal(
                     maybeDecimal,
-                    fractionDigits: coin.decimals,
+                    fractionDigits: cryptoCurrency.fractionDigits,
                   ).raw.toInt(),
                 );
           }
@@ -114,7 +114,7 @@ extension MainDBQueries on MainDB {
     required CCFilter filter,
     required CCSortDescriptor sort,
     required String searchTerm,
-    required Coin coin,
+    required CryptoCurrency cryptoCurrency,
   }) {
     var preSort = getUTXOs(walletId).filter().group((q) {
       final qq = q.group(
@@ -151,7 +151,7 @@ extension MainDBQueries on MainDB {
             qq = qq.or().valueEqualTo(
                   Amount.fromDecimal(
                     maybeDecimal,
-                    fractionDigits: coin.decimals,
+                    fractionDigits: cryptoCurrency.fractionDigits,
                   ).raw.toInt(),
                 );
           }

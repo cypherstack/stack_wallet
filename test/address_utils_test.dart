@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
   const String firoAddress = "a6ESWKz7szru5syLtYAPRhHLdKvMq3Yt1j";
@@ -39,7 +39,7 @@ void main() {
       "scheme": "bitcoin",
       "address": firoAddress,
       "amount": "50.1",
-      "message": "eggs are good!"
+      "message": "eggs are good!",
     });
   });
 
@@ -67,11 +67,13 @@ void main() {
       "something",
       "who",
       "green",
-      "seven"
+      "seven",
     ];
     final result = AddressUtils.encodeQRSeedData(list);
-    expect(result,
-        '{"mnemonic":["hello","word","something","who","green","seven"]}');
+    expect(
+      result,
+      '{"mnemonic":["hello","word","something","who","green","seven"]}',
+    );
   });
 
   test("decode a valid json string to Map<String, dynamic>", () {
@@ -79,7 +81,7 @@ void main() {
         '{"mnemonic":["hello","word","something","who","green","seven"]}';
     final result = AddressUtils.decodeQRSeedData(jsonString);
     expect(result, {
-      "mnemonic": ["hello", "word", "something", "who", "green", "seven"]
+      "mnemonic": ["hello", "word", "something", "who", "green", "seven"],
     });
   });
 
@@ -91,21 +93,32 @@ void main() {
   });
 
   test("build a uri string with empty params", () {
-    expect(AddressUtils.buildUriString(Coin.firo, firoAddress, {}),
-        "firo:$firoAddress");
+    expect(
+      AddressUtils.buildUriString(
+          Firo(CryptoCurrencyNetwork.main), firoAddress, {}),
+      "firo:$firoAddress",
+    );
   });
 
   test("build a uri string with one param", () {
     expect(
-        AddressUtils.buildUriString(
-            Coin.firo, firoAddress, {"amount": "10.0123"}),
-        "firo:$firoAddress?amount=10.0123");
+      AddressUtils.buildUriString(
+        Firo(CryptoCurrencyNetwork.main),
+        firoAddress,
+        {"amount": "10.0123"},
+      ),
+      "firo:$firoAddress?amount=10.0123",
+    );
   });
 
   test("build a uri string with some params", () {
     expect(
-        AddressUtils.buildUriString(Coin.firo, firoAddress,
-            {"amount": "10.0123", "message": "Some kind of message!"}),
-        "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21");
+      AddressUtils.buildUriString(
+        Firo(CryptoCurrencyNetwork.main),
+        firoAddress,
+        {"amount": "10.0123", "message": "Some kind of message!"},
+      ),
+      "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
+    );
   });
 }

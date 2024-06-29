@@ -11,7 +11,8 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/utilities/util.dart';
+
+import '../util.dart';
 
 class Amount {
   Amount({
@@ -168,7 +169,8 @@ class Amount {
   Amount operator +(Amount other) {
     if (fractionDigits != other.fractionDigits) {
       throw ArgumentError(
-          "fractionDigits do not match: this=$this, other=$other");
+        "fractionDigits do not match: this=$this, other=$other",
+      );
     }
     return Amount(
       rawValue: raw + other.raw,
@@ -179,7 +181,8 @@ class Amount {
   Amount operator -(Amount other) {
     if (fractionDigits != other.fractionDigits) {
       throw ArgumentError(
-          "fractionDigits do not match: this=$this, other=$other");
+        "fractionDigits do not match: this=$this, other=$other",
+      );
     }
     return Amount(
       rawValue: raw - other.raw,
@@ -190,7 +193,8 @@ class Amount {
   Amount operator *(Amount other) {
     if (fractionDigits != other.fractionDigits) {
       throw ArgumentError(
-          "fractionDigits do not match: this=$this, other=$other");
+        "fractionDigits do not match: this=$this, other=$other",
+      );
     }
     return Amount(
       rawValue: raw * other.raw,

@@ -9,13 +9,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_summary_info.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/widgets/coin_card.dart';
+import 'wallet_summary_info.dart';
+import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../widgets/coin_card.dart';
 
 class WalletSummary extends StatelessWidget {
   const WalletSummary({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.initialSyncStatus,
     this.aspectRatio = 2.0,
@@ -23,7 +23,7 @@ class WalletSummary extends StatelessWidget {
     this.minWidth = 200.0,
     this.maxHeight = 250.0,
     this.maxWidth = 400.0,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;

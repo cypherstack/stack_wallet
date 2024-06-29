@@ -13,23 +13,25 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../app_config.dart';
+import '../../../pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
+import '../../../providers/providers.dart';
+import '../../../route_generator.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 class NodesSettings extends ConsumerStatefulWidget {
-  const NodesSettings({Key? key}) : super(key: key);
+  const NodesSettings({super.key});
 
   static const String routeName = "/settingsMenuNodes";
 
@@ -38,7 +40,7 @@ class NodesSettings extends ConsumerStatefulWidget {
 }
 
 class _NodesSettings extends ConsumerState<NodesSettings> {
-  List<Coin> _coins = [...Coin.values];
+  List<CryptoCurrency> _coins = [...AppConfig.coins];
 
   late final TextEditingController searchNodeController;
   late final FocusNode searchNodeFocusNode;
@@ -47,15 +49,17 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
 
   String filter = "";
 
-  List<Coin> _search(String filter, List<Coin> coins) {
+  List<CryptoCurrency> _search(String filter, List<CryptoCurrency> coins) {
     if (filter.isEmpty) {
       return coins;
     }
     return coins
-        .where((coin) =>
-            coin.prettyName.contains(filter) ||
-            coin.name.contains(filter) ||
-            coin.ticker.toLowerCase().contains(filter.toLowerCase()))
+        .where(
+          (coin) =>
+              coin.prettyName.contains(filter) ||
+              coin.identifier.contains(filter) ||
+              coin.ticker.toLowerCase().contains(filter.toLowerCase()),
+        )
         .toList();
   }
 
@@ -64,13 +68,9 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.remove(Coin.firoTestNet);
-    if (Platform.isWindows) {
-      _coins.remove(Coin.monero);
-      _coins.remove(Coin.wownero);
-    } else if (Platform.isLinux) {
-      _coins.remove(Coin.wownero);
-    }
+    _coins.removeWhere(
+      (e) => e is Firo && e.network.isTestNet,
+    );
 
     searchNodeController = TextEditingController();
     searchNodeFocusNode = FocusNode();
@@ -93,12 +93,17 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    bool showTestNet = ref.watch(
+    final bool showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    List<Coin> coins =
-        showTestNet ? _coins : _coins.where((e) => !e.isTestNet).toList();
+    List<CryptoCurrency> coins = showTestNet
+        ? _coins
+        : _coins
+            .where(
+              (e) => e.network == CryptoCurrencyNetwork.main,
+            )
+            .toList();
 
     coins = _search(filter, coins);
 
@@ -215,8 +220,10 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                         itemBuilder: (context, index) {
                           final coin = coins[index];
                           final count = ref
-                              .watch(nodeServiceChangeNotifierProvider
-                                  .select((value) => value.getNodesFor(coin)))
+                              .watch(
+                                nodeServiceChangeNotifierProvider
+                                    .select((value) => value.getNodesFor(coin)),
+                              )
                               .length;
 
                           return Padding(
@@ -278,7 +285,8 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                             Text(
                                               "${coin.prettyName} nodes",
                                               style: STextStyles.titleBold12(
-                                                  context),
+                                                context,
+                                              ),
                                             ),
                                             Text(
                                               count > 1

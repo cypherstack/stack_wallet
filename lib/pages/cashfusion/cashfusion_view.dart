@@ -12,28 +12,29 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/cashfusion/fusion_progress_view.dart';
-import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart';
-import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+
+import '../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
+import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/extensions/extensions.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_text_field.dart';
+import 'fusion_progress_view.dart';
+import 'fusion_rounds_selection_sheet.dart';
 
 class CashFusionView extends ConsumerStatefulWidget {
   const CashFusionView({
@@ -56,7 +57,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
   late final FocusNode portFocusNode;
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   bool _enableSSLCheckbox = false;
   bool _enableStartButton = false;
@@ -73,7 +74,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-          "FusionProgressUIState was already set for ${widget.walletId}")) {
+            "FusionProgressUIState was already set for ${widget.walletId}",
+          )) {
         rethrow;
       }
     }
@@ -273,7 +275,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               controller: portController,
                               focusNode: portFocusNode,
                               inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
+                                FilteringTextInputFormatter.digitsOnly,
                               ],
                               keyboardType: TextInputType.number,
                               onChanged: (value) {
@@ -408,7 +410,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                 controller: fusionRoundController,
                                 focusNode: fusionRoundFocusNode,
                                 inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly
+                                  FilteringTextInputFormatter.digitsOnly,
                                 ],
                                 keyboardType: TextInputType.number,
                                 onChanged: (value) {
@@ -424,7 +426,8 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                                   fusionRoundFocusNode,
                                   context,
                                 ).copyWith(
-                                    labelText: "Enter number of fusions.."),
+                                  labelText: "Enter number of fusions..",
+                                ),
                               ),
                             ),
                           const SizedBox(

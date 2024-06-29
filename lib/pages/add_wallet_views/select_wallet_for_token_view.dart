@@ -10,26 +10,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/coin_entity.dart';
-import 'package:stackwallet/models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
-import 'package:stackwallet/pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/eth_wallet_radio.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/wallet_info_row/wallet_info_row.dart';
+import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
+import '../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import 'add_token_view/edit_wallet_tokens_view.dart';
+import 'create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
+import 'verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/isar/providers/all_wallets_info_provider.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/eth_wallet_radio.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/wallet_info_row/wallet_info_row.dart';
 import 'package:tuple/tuple.dart';
 
 final newEthWalletTriggerTempUntilHiveCompletelyDeleted =
@@ -37,9 +37,9 @@ final newEthWalletTriggerTempUntilHiveCompletelyDeleted =
 
 class SelectWalletForTokenView extends ConsumerStatefulWidget {
   const SelectWalletForTokenView({
-    Key? key,
+    super.key,
     required this.entity,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/selectWalletForTokenView";
 
@@ -70,7 +70,7 @@ class _SelectWalletForTokenViewState
     ref.read(createSpecialEthWalletRoutingFlag.notifier).state = true;
     Navigator.of(context).pushNamed(
       CreateOrRestoreWalletView.routeName,
-      arguments: CoinEntity(widget.entity.coin),
+      arguments: CoinEntity(widget.entity.cryptoCurrency),
     );
   }
 
@@ -78,7 +78,7 @@ class _SelectWalletForTokenViewState
   Widget build(BuildContext context) {
     final ethWalletInfos = ref
         .watch(pAllWalletsInfo)
-        .where((e) => e.coin == widget.entity.coin)
+        .where((e) => e.coin == widget.entity.cryptoCurrency)
         .toList();
 
     final _hasEthWallets = ethWalletInfos.isNotEmpty;

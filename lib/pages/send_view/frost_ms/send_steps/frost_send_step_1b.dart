@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/frost_step_user_steps.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
+
+import '../../../../frost_route_generator.dart';
+import '../../../../models/isar/models/isar_models.dart';
+import '../../../../providers/db/main_db_provider.dart';
+import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../services/frost.dart';
+import '../../../../utilities/format.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/models/tx_data.dart';
+import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/frost_step_user_steps.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/textfields/frost_step_field.dart';
 
 class FrostSendStep1b extends ConsumerStatefulWidget {
   const FrostSendStep1b({super.key});
@@ -73,13 +74,14 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
           .getUTXOs(wallet.walletId)
           .filter()
           .anyOf(
-              data.inputs,
-              (q, e) => q
-                  .txidEqualTo(Format.uint8listToString(e.hash))
-                  .and()
-                  .valueEqualTo(e.value)
-                  .and()
-                  .voutEqualTo(e.vout))
+            data.inputs,
+            (q, e) => q
+                .txidEqualTo(Format.uint8listToString(e.hash))
+                .and()
+                .valueEqualTo(e.value)
+                .and()
+                .voutEqualTo(e.vout),
+          )
           .findAll();
 
       // TODO add more data from 'data' and display to user ?

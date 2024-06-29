@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:nanodart/nanodart.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+
+import '../networking/http.dart';
+import '../utilities/prefs.dart';
+import 'tor_service.dart';
 
 class NanoAPI {
   static Future<
@@ -14,18 +15,17 @@ class NanoAPI {
     required Uri server,
     required bool representative,
     required String account,
+    required Map<String, String> headers,
   }) async {
     NAccountInfo? accountInfo;
     Exception? exception;
 
-    HTTP client = HTTP();
+    final HTTP client = HTTP();
 
     try {
       final response = await client.post(
         url: server,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: headers,
         body: jsonEncode({
           "action": "account_info",
           "representative": "true",
@@ -64,8 +64,9 @@ class NanoAPI {
     required String balance,
     required String privateKey,
     required String work,
+    required Map<String, String> headers,
   }) async {
-    Map<String, String> block = {
+    final Map<String, String> block = {
       "type": "state",
       "account": account,
       "previous": previousBlock,
@@ -98,7 +99,11 @@ class NanoAPI {
 
     block["signature"] = signature;
 
-    final map = await postBlock(server: server, block: block);
+    final map = await postBlock(
+      server: server,
+      block: block,
+      headers: headers,
+    );
 
     if (map is Map && map["error"] != null) {
       throw Exception(map["error"].toString());
@@ -111,14 +116,13 @@ class NanoAPI {
   static Future<dynamic> postBlock({
     required Uri server,
     required Map<String, dynamic> block,
+    required Map<String, String> headers,
   }) async {
-    HTTP client = HTTP();
+    final HTTP client = HTTP();
 
     final response = await client.post(
       url: server,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headers,
       body: jsonEncode({
         "action": "process",
         "json_block": "true",

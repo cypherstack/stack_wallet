@@ -13,28 +13,29 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/buy/response_objects/crypto.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../app_config.dart';
+import '../../../models/buy/response_objects/crypto.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 class CryptoSelectionView extends ConsumerStatefulWidget {
   const CryptoSelectionView({
-    Key? key,
+    super.key,
     required this.coins,
-  }) : super(key: key);
+  });
 
   final List<Crypto> coins;
 
@@ -53,9 +54,11 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
   void filter(String text) {
     setState(() {
       _coins = [
-        ...coins.where((e) =>
-            e.name.toLowerCase().contains(text.toLowerCase()) ||
-            e.ticker.toLowerCase().contains(text.toLowerCase()))
+        ...coins.where(
+          (e) =>
+              e.name.toLowerCase().contains(text.toLowerCase()) ||
+              e.ticker.toLowerCase().contains(text.toLowerCase()),
+        ),
       ];
     });
   }
@@ -66,10 +69,12 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
 
     coins = [...widget.coins];
     coins.sort(
-        (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()));
-    for (Coin coin in Coin.values.reversed) {
-      int index = coins.indexWhere((element) =>
-          element.ticker.toLowerCase() == coin.ticker.toLowerCase());
+      (a, b) => a.ticker.toLowerCase().compareTo(b.ticker.toLowerCase()),
+    );
+    for (final coin in AppConfig.coins.reversed) {
+      final index = coins.indexWhere(
+        (element) => element.ticker.toLowerCase() == coin.ticker.toLowerCase(),
+      );
       if (index > 0) {
         final currency = coins.removeAt(index);
         coins.insert(0, currency);
@@ -104,7 +109,8 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 50));
+                      const Duration(milliseconds: 50),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -261,17 +267,6 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
   }
 }
 
-bool isStackCoin(String? ticker) {
-  if (ticker == null) return false;
-
-  try {
-    coinFromTickerCaseInsensitive(ticker);
-    return true;
-  } on ArgumentError catch (_) {
-    return false;
-  }
-}
-
 // make a stateless widget that takes in string and double (won't ever be null)
 // class getIconForTicker extends ConsumerWidget{
 //   const getIconForTicker({
@@ -289,10 +284,10 @@ bool isStackCoin(String? ticker) {
 /// caller must ensure [Coin] for ticker exists
 class CoinIconForTicker extends ConsumerWidget {
   const CoinIconForTicker({
-    Key? key,
+    super.key,
     required this.ticker,
     required this.size,
-  }) : super(key: key);
+  });
 
   final String ticker;
   final double size;
@@ -300,7 +295,7 @@ class CoinIconForTicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     try {
-      final coin = coinFromTickerCaseInsensitive(ticker);
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker)!;
       return SvgPicture.file(
         File(
           ref.watch(coinIconProvider(coin)),
@@ -321,7 +316,7 @@ class CoinIconForTicker extends ConsumerWidget {
 // }) {
 //   String? iconAsset = /*isStackCoin(ticker)
 //       ?*/
-//       Assets.svg.iconFor(coin: coinFromTickerCaseInsensitive(ticker));
+//       Assets.svg.iconFor(coin: SupportedAppConfig.getCryptoCurrencyForTicker(ticker));
 //   // : Assets.svg.buyIconFor(ticker);
 //   return (iconAsset != null)
 //       ? SvgPicture.asset(iconAsset, height: size, width: size)

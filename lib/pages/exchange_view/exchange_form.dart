@@ -16,57 +16,58 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/exchange/aggregate_currency.dart';
-import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_coin_selection/exchange_currency_selection_view.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_1_view.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_step_views/step_2_view.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/exchange_provider_options.dart';
-import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/textfields/exchange_textfield.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../models/exchange/aggregate_currency.dart';
+import '../../models/exchange/incomplete_exchange.dart';
+import '../../models/exchange/response_objects/estimate.dart';
+import '../../models/exchange/response_objects/range.dart';
+import '../../models/isar/exchange_cache/currency.dart';
+import '../../models/isar/exchange_cache/pair.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
+import '../../providers/providers.dart';
+import '../../services/exchange/change_now/change_now_exchange.dart';
+import '../../services/exchange/exchange.dart';
+import '../../services/exchange/exchange_data_loading_service.dart';
+import '../../services/exchange/exchange_response.dart';
+import '../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../../services/exchange/trocador/trocador_exchange.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount_unit.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_loading_overlay.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
+import '../../widgets/textfields/exchange_textfield.dart';
+import 'exchange_coin_selection/exchange_currency_selection_view.dart';
+import 'exchange_step_views/step_1_view.dart';
+import 'exchange_step_views/step_2_view.dart';
+import 'sub_widgets/exchange_provider_options.dart';
+import 'sub_widgets/rate_type_toggle.dart';
+
 class ExchangeForm extends ConsumerStatefulWidget {
   const ExchangeForm({
-    Key? key,
+    super.key,
     this.walletId,
     this.coin,
     this.contract,
-  }) : super(key: key);
+  });
 
   final String? walletId;
-  final Coin? coin;
+  final CryptoCurrency? coin;
   final EthContract? contract;
 
   @override
@@ -75,7 +76,7 @@ class ExchangeForm extends ConsumerStatefulWidget {
 
 class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   late final String? walletId;
-  late final Coin? coin;
+  late final CryptoCurrency? coin;
   late final bool walletInitiated;
 
   List<Exchange> get usableExchanges {
@@ -172,7 +173,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         .tryParse(
           value,
           locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          coin: Coin.bitcoin, // dummy value (not used due to override)
+          coin: Bitcoin(
+            CryptoCurrencyNetwork.main,
+          ), // dummy value (not used due to override)
           overrideWithDecimalPlacesFromString: true,
         )
         ?.decimal;
@@ -182,15 +185,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final rateType = ref.read(efRateTypeProvider);
     final currencies = await ExchangeDataLoadingService.instance.isar.currencies
         .filter()
-        .group((q) => rateType == ExchangeRateType.fixed
-            ? q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.fixed)
-            : q
-                .rateTypeEqualTo(SupportedRateType.both)
-                .or()
-                .rateTypeEqualTo(SupportedRateType.estimated))
+        .group(
+          (q) => rateType == ExchangeRateType.fixed
+              ? q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.fixed)
+              : q
+                  .rateTypeEqualTo(SupportedRateType.both)
+                  .or()
+                  .rateTypeEqualTo(SupportedRateType.estimated),
+        )
         .and()
         .tickerEqualTo(
           currency.ticker,
@@ -362,7 +367,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   ],
                 ),
               );
-            })
+            },
+          )
         : await Navigator.of(context).push(
             MaterialPageRoute<dynamic>(
               builder: (_) => ExchangeCurrencySelectionView(
@@ -487,7 +493,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                             ),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 );
@@ -607,12 +613,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
   }
 
-  bool isWalletCoin(Coin? coin, bool isSend) {
+  bool isWalletCoin(CryptoCurrency? coin, bool isSend) {
     if (coin == null) {
       return false;
     }
 
-    String? ticker = isSend
+    final String? ticker = isSend
         ? ref.read(efCurrencyPairProvider).send?.ticker
         : ref.read(efCurrencyPairProvider).receive?.ticker;
 
@@ -947,7 +953,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ),
         ExchangeTextField(
           key: Key(
-              "exchangeTextFieldKeyFor1_${Theme.of(context).extension<StackColors>()!.themeId}"),
+            "exchangeTextFieldKeyFor1_${Theme.of(context).extension<StackColors>()!.themeId}",
+          ),
           focusNode: _receiveFocusNode,
           controller: _receiveController,
           textStyle: STextStyles.smallMed14(context).copyWith(
@@ -1009,7 +1016,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           enabled: ref.watch(efCanExchangeProvider),
           onPressed: onExchangePressed,
           label: "Swap",
-        )
+        ),
       ],
     );
   }

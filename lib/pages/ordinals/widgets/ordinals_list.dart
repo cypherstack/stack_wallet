@@ -3,19 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/ordinal.dart';
-import 'package:stackwallet/pages/ordinals/widgets/ordinal_card.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../models/isar/ordinal.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/rounded_white_container.dart';
+import 'ordinal_card.dart';
 
 class OrdinalsList extends ConsumerStatefulWidget {
   const OrdinalsList({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -74,7 +75,8 @@ class _OrdinalsListState extends ConsumerState<OrdinalsList> {
                         ? STextStyles.w500_14(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .textSubtitle1)
+                                .textSubtitle1,
+                          )
                         : STextStyles.label(context),
                   ),
                 ),
@@ -88,13 +90,16 @@ class _OrdinalsListState extends ConsumerState<OrdinalsList> {
             spacing: _spacing,
             runSpacing: _spacing,
             children: _data
-                .map((e) => SizedBox(
+                .map(
+                  (e) => SizedBox(
                     width: 220,
                     height: 270,
                     child: OrdinalCard(
                       walletId: widget.walletId,
                       ordinal: e,
-                    )))
+                    ),
+                  ),
+                )
                 .toList(),
           );
         } else {

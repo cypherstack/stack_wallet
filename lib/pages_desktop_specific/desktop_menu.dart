@@ -14,14 +14,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu_item.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_tor_status_button.dart';
-import 'package:stackwallet/widgets/desktop/living_stack_icon.dart';
+
+import '../app_config.dart';
+import '../providers/desktop/current_desktop_menu_item.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/assets.dart';
+import '../utilities/text_styles.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../widgets/desktop/desktop_tor_status_button.dart';
+import '../widgets/desktop/living_stack_icon.dart';
+import 'desktop_menu_item.dart';
+import 'settings/settings_menu.dart';
 
 enum DesktopMenuItemId {
   myStack,
@@ -36,10 +39,10 @@ enum DesktopMenuItemId {
 
 class DesktopMenu extends ConsumerStatefulWidget {
   const DesktopMenu({
-    Key? key,
+    super.key,
     this.onSelectionChanged,
     this.onSelectionWillChange,
-  }) : super(key: key);
+  });
 
   final void Function(DesktopMenuItemId)? onSelectionChanged;
   final void Function(DesktopMenuItemId)? onSelectionWillChange;
@@ -69,7 +72,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   void toggleMinimize() {
     final expanded = _width == expandedWidth;
 
-    for (var e in controllers) {
+    for (final e in controllers) {
       e.toggle?.call();
     }
 
@@ -101,7 +104,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   @override
   void dispose() {
-    for (var e in controllers) {
+    for (final e in controllers) {
       e.dispose();
     }
     torButtonController.dispose();
@@ -138,7 +141,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
               child: SizedBox(
                 height: 28,
                 child: Text(
-                  "Stack Wallet",
+                  AppConfig.appName,
                   style: STextStyles.desktopH2(context).copyWith(
                     fontSize: 18,
                     height: 23.4 / 18,
@@ -180,33 +183,37 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     DesktopMenuItem(
                       duration: duration,
                       icon: const DesktopMyStackIcon(),
-                      label: "My Stack",
+                      label: "My ${AppConfig.prefix}",
                       value: DesktopMenuItemId.myStack,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],
                     ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    DesktopMenuItem(
-                      duration: duration,
-                      icon: const DesktopExchangeIcon(),
-                      label: "Swap",
-                      value: DesktopMenuItemId.exchange,
-                      onChanged: updateSelectedMenuItem,
-                      controller: controllers[1],
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    DesktopMenuItem(
-                      duration: duration,
-                      icon: const DesktopBuyIcon(),
-                      label: "Buy crypto",
-                      value: DesktopMenuItemId.buy,
-                      onChanged: updateSelectedMenuItem,
-                      controller: controllers[2],
-                    ),
+                    if (AppConfig.hasFeature(AppFeature.swap))
+                      const SizedBox(
+                        height: 2,
+                      ),
+                    if (AppConfig.hasFeature(AppFeature.swap))
+                      DesktopMenuItem(
+                        duration: duration,
+                        icon: const DesktopExchangeIcon(),
+                        label: "Swap",
+                        value: DesktopMenuItemId.exchange,
+                        onChanged: updateSelectedMenuItem,
+                        controller: controllers[1],
+                      ),
+                    if (AppConfig.hasFeature(AppFeature.buy))
+                      const SizedBox(
+                        height: 2,
+                      ),
+                    if (AppConfig.hasFeature(AppFeature.buy))
+                      DesktopMenuItem(
+                        duration: duration,
+                        icon: const DesktopBuyIcon(),
+                        label: "Buy crypto",
+                        value: DesktopMenuItemId.buy,
+                        onChanged: updateSelectedMenuItem,
+                        controller: controllers[2],
+                      ),
                     const SizedBox(
                       height: 2,
                     ),
@@ -272,8 +279,14 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         value: 7,
                         onChanged: (_) {
                           // todo: save stuff/ notify before exit?
-                          // exit(0);
-                          SystemNavigator.pop();
+                          if (AppConfig.coins
+                              .where((e) => e is Monero || e is Wownero)
+                              .isNotEmpty) {
+                            // hack to insta kill because xmr/wow native lib code sucks
+                            exit(0);
+                          } else {
+                            SystemNavigator.pop();
+                          }
                         },
                         controller: controllers[8],
                       ),

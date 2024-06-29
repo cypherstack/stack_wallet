@@ -15,24 +15,25 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../../../services/event_bus/global_event_bus.dart';
+import '../../../../services/tor_service.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/stack_file_system.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
 
 class TorSettings extends ConsumerStatefulWidget {
-  const TorSettings({Key? key}) : super(key: key);
+  const TorSettings({super.key});
 
   static const String routeName = "/torDesktopSettings";
 
@@ -198,7 +199,8 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                               text:
                                   "\nConnect to the Tor Network with one click.",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
+                                context,
+                              ),
                             ),
                             TextSpan(
                               text: "\tWhat is Tor?",
@@ -233,7 +235,8 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                     "What is Tor?",
                                                     style:
                                                         STextStyles.desktopH2(
-                                                            context),
+                                                      context,
+                                                    ),
                                                   ),
                                                   DesktopDialogCloseButton(
                                                     onPressedOverride: () =>
@@ -250,9 +253,9 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                 " to remain anonymous by routing internet traffic through a series of layered nodes,"
                                                 " to obscure the origin and destination of data.",
                                                 style: STextStyles
-                                                        .desktopTextMedium(
-                                                            context)
-                                                    .copyWith(
+                                                    .desktopTextMedium(
+                                                  context,
+                                                ).copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .textDark3,
@@ -295,9 +298,10 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context)
                                     .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark),
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
+                            ),
                           ),
                           const SizedBox(
                             height: 8,
@@ -337,7 +341,8 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                     "What is Tor killswitch?",
                                                     style:
                                                         STextStyles.desktopH2(
-                                                            context),
+                                                      context,
+                                                    ),
                                                   ),
                                                   DesktopDialogCloseButton(
                                                     onPressedOverride: () =>
@@ -354,9 +359,9 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                 " disconnecting your device from the Tor network if the"
                                                 " connection is disrupted or compromised.",
                                                 style: STextStyles
-                                                        .desktopTextMedium(
-                                                            context)
-                                                    .copyWith(
+                                                    .desktopTextMedium(
+                                                  context,
+                                                ).copyWith(
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .textDark3,

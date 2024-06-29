@@ -99,7 +99,7 @@ class TokenOutputData {
       return false;
     }
 
-    int s = bitfield![0] & 0xf0;
+    final int s = bitfield![0] & 0xf0;
     if (s >= 0x80 || s == 0x00) {
       return false;
     }
@@ -122,43 +122,43 @@ class TokenOutputData {
   // and pack outputs.  These are called by the wrap and unwrap functions.
   int deserialize(Uint8List buffer, {int cursor = 0, bool strict = false}) {
     try {
-      this.id = buffer.sublist(cursor, cursor + 32);
+      id = buffer.sublist(cursor, cursor + 32);
       cursor += 32;
 
-      this.bitfield = Uint8List.fromList([buffer[cursor]]);
+      bitfield = Uint8List.fromList([buffer[cursor]]);
       cursor += 1;
 
-      if (this.hasCommitmentLength()) {
+      if (hasCommitmentLength()) {
         // Read the first byte to determine the length of the commitment data
-        int commitmentLength = buffer[cursor];
+        final int commitmentLength = buffer[cursor];
 
         // Move cursor to the next byte
         cursor += 1;
 
         // Read 'commitmentLength' bytes for the commitment data
-        this.commitment = buffer.sublist(cursor, cursor + commitmentLength);
+        commitment = buffer.sublist(cursor, cursor + commitmentLength);
 
         // Adjust the cursor by the length of the commitment data
         cursor += commitmentLength;
       } else {
-        this.commitment = null;
+        commitment = null;
       }
 
-      if (this.hasAmount()) {
+      if (hasAmount()) {
         // Use readCompactSize that returns CompactSizeResult
-        CompactSizeResult result =
+        final CompactSizeResult result =
             readCompactSize(buffer, cursor, strict: strict);
-        this.amount = result.amount;
+        amount = result.amount;
         cursor += result.bytesRead;
       } else {
-        this.amount = 0;
+        amount = 0;
       }
 
-      if (!this.isValidBitfield() ||
-          (this.hasAmount() && this.amount == 0) ||
-          (this.amount! < 0 || this.amount! > (1 << 63) - 1) ||
-          (this.hasCommitmentLength() && this.commitment!.isEmpty) ||
-          (this.amount! == 0 && !this.hasNFT())) {
+      if (!isValidBitfield() ||
+          (hasAmount() && amount == 0) ||
+          (amount! < 0 || amount! > (1 << 63) - 1) ||
+          (hasCommitmentLength() && commitment!.isEmpty) ||
+          (amount! == 0 && !hasNFT())) {
         throw Exception('Unable to parse token data or token data is invalid');
       }
 
@@ -170,19 +170,19 @@ class TokenOutputData {
 
   // Serialize method
   Uint8List serialize() {
-    var buffer = BytesBuilder();
+    final buffer = BytesBuilder();
 
     // write ID and bitfield
-    buffer.add(this.id!);
-    buffer.addByte(this.bitfield![0]);
+    buffer.add(id!);
+    buffer.addByte(bitfield![0]);
 
     // Write optional fields
-    if (this.hasCommitmentLength()) {
-      buffer.add(this.commitment!);
+    if (hasCommitmentLength()) {
+      buffer.add(commitment!);
     }
 
-    if (this.hasAmount()) {
-      List<int> compactSizeBytes = writeCompactSize(this.amount!);
+    if (hasAmount()) {
+      final List<int> compactSizeBytes = writeCompactSize(amount!);
       buffer.add(compactSizeBytes);
     }
 
@@ -195,7 +195,7 @@ final List<int> PREFIX_BYTE = [0xef];
 
 // This function wraps a "normal" output together with token data.
 ParsedOutput wrap_spk(TokenOutputData? token_data, Uint8List script_pub_key) {
-  ParsedOutput parsedOutput = ParsedOutput();
+  final ParsedOutput parsedOutput = ParsedOutput();
 
   if (token_data == null) {
     parsedOutput.script_pub_key = script_pub_key;
@@ -220,7 +220,7 @@ ParsedOutput wrap_spk(TokenOutputData? token_data, Uint8List script_pub_key) {
 // Note that the data returend in both cases in of ParsedOutput type, which
 // holds both the script pub key and token data.
 ParsedOutput unwrap_spk(Uint8List wrapped_spk) {
-  ParsedOutput parsedOutput = ParsedOutput();
+  final ParsedOutput parsedOutput = ParsedOutput();
 
   if (wrapped_spk.isEmpty || wrapped_spk[0] != PREFIX_BYTE[0]) {
     parsedOutput.script_pub_key = wrapped_spk;
@@ -228,14 +228,15 @@ ParsedOutput unwrap_spk(Uint8List wrapped_spk) {
   }
 
   int read_cursor = 1; // Start after the PREFIX_BYTE
-  TokenOutputData token_data = TokenOutputData();
+  final TokenOutputData token_data = TokenOutputData();
 
   Uint8List wrapped_spk_without_prefix_byte;
   try {
     // Deserialize updates read_cursor by the number of bytes read
 
     wrapped_spk_without_prefix_byte = wrapped_spk.sublist(read_cursor);
-    int bytesRead = token_data.deserialize(wrapped_spk_without_prefix_byte);
+    final int bytesRead =
+        token_data.deserialize(wrapped_spk_without_prefix_byte);
 
     read_cursor += bytesRead;
     parsedOutput.token_data = token_data;
@@ -294,7 +295,7 @@ CompactSizeResult readCompactSize(
 }
 
 Uint8List writeCompactSize(int size) {
-  var buffer = ByteData(9); // Maximum needed size for compact size is 9 bytes
+  final buffer = ByteData(9); // Maximum needed size for compact size is 9 bytes
   if (size < 0) {
     throw Exception("attempt to write size < 0");
   } else if (size < 253) {

@@ -9,13 +9,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../../../utilities/text_styles.dart';
 
 class CreateRestoreWalletSubTitle extends StatelessWidget {
   const CreateRestoreWalletSubTitle({
-    Key? key,
+    super.key,
     required this.isDesktop,
-  }) : super(key: key);
+  });
 
   final bool isDesktop;
 

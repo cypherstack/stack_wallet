@@ -14,37 +14,39 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/pages/buy_view/buy_in_wallet_view.dart';
-import 'package:stackwallet/pages/exchange_view/wallet_initiated_exchange_view.dart';
-import 'package:stackwallet/pages/receive_view/receive_view.dart';
-import 'package:stackwallet/pages/send_view/token_send_view.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
-import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../app_config.dart';
+import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../providers/global/locale_provider.dart';
+import '../../../providers/global/prefs_provider.dart';
+import '../../../providers/global/price_provider.dart';
+import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../themes/theme_providers.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/rounded_container.dart';
+import '../../buy_view/buy_in_wallet_view.dart';
+import '../../exchange_view/wallet_initiated_exchange_view.dart';
+import '../../receive_view/receive_view.dart';
+import '../../send_view/token_send_view.dart';
+import '../../wallet_view/sub_widgets/wallet_refresh_button.dart';
 
 class TokenSummary extends ConsumerWidget {
   const TokenSummary({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.initialSyncStatus,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
@@ -54,7 +56,8 @@ class TokenSummary extends ConsumerWidget {
     final token =
         ref.watch(pCurrentTokenWallet.select((value) => value!.tokenContract));
     final balance = ref.watch(
-        pTokenBalance((walletId: walletId, contractAddress: token.address)));
+      pTokenBalance((walletId: walletId, contractAddress: token.address)),
+    );
 
     return Stack(
       children: [
@@ -96,7 +99,13 @@ class TokenSummary extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    ref.watch(pAmountFormatter(Coin.ethereum)).format(
+                    ref
+                        .watch(
+                          pAmountFormatter(
+                            Ethereum(CryptoCurrencyNetwork.main),
+                          ),
+                        )
+                        .format(
                           balance.total,
                           ethContract: token,
                         ),
@@ -173,13 +182,14 @@ class TokenSummary extends ConsumerWidget {
 
 class TokenWalletOptions extends ConsumerWidget {
   const TokenWalletOptions({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.tokenContract,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final EthContract tokenContract;
+  CryptoCurrency get ethereum => Ethereum(CryptoCurrencyNetwork.main);
 
   void _onExchangePressed(BuildContext context) async {
     unawaited(
@@ -187,7 +197,7 @@ class TokenWalletOptions extends ConsumerWidget {
         WalletInitiatedExchangeView.routeName,
         arguments: Tuple3(
           walletId,
-          Coin.ethereum,
+          ethereum,
           tokenContract,
         ),
       ),
@@ -199,7 +209,7 @@ class TokenWalletOptions extends ConsumerWidget {
       Navigator.of(context).pushNamed(
         BuyInWalletView.routeName,
         arguments: Tuple2(
-          Coin.ethereum,
+          ethereum,
           tokenContract,
         ),
       ),
@@ -233,7 +243,7 @@ class TokenWalletOptions extends ConsumerWidget {
               TokenSendView.routeName,
               arguments: Tuple3(
                 walletId,
-                Coin.ethereum,
+                ethereum,
                 tokenContract,
               ),
             );
@@ -241,26 +251,30 @@ class TokenWalletOptions extends ConsumerWidget {
           subLabel: "Send",
           iconAssetPathSVG: Assets.svg.arrowUpRight,
         ),
-        const SizedBox(
-          width: 16,
-        ),
-        TokenOptionsButton(
-          onPressed: () => _onExchangePressed(context),
-          subLabel: "Swap",
-          iconAssetPathSVG: ref.watch(
-            themeProvider.select(
-              (value) => value.assets.exchange,
+        if (AppConfig.hasFeature(AppFeature.swap))
+          const SizedBox(
+            width: 16,
+          ),
+        if (AppConfig.hasFeature(AppFeature.swap))
+          TokenOptionsButton(
+            onPressed: () => _onExchangePressed(context),
+            subLabel: "Swap",
+            iconAssetPathSVG: ref.watch(
+              themeProvider.select(
+                (value) => value.assets.exchange,
+              ),
             ),
           ),
-        ),
-        const SizedBox(
-          width: 16,
-        ),
-        TokenOptionsButton(
-          onPressed: () => _onBuyPressed(context),
-          subLabel: "Buy",
-          iconAssetPathSVG: Assets.svg.creditCard,
-        ),
+        if (AppConfig.hasFeature(AppFeature.buy))
+          const SizedBox(
+            width: 16,
+          ),
+        if (AppConfig.hasFeature(AppFeature.buy))
+          TokenOptionsButton(
+            onPressed: () => _onBuyPressed(context),
+            subLabel: "Buy",
+            iconAssetPathSVG: Assets.svg.creditCard,
+          ),
       ],
     );
   }
@@ -268,11 +282,11 @@ class TokenWalletOptions extends ConsumerWidget {
 
 class TokenOptionsButton extends StatelessWidget {
   const TokenOptionsButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.subLabel,
     required this.iconAssetPathSVG,
-  }) : super(key: key);
+  });
 
   final VoidCallback onPressed;
   final String subLabel;
@@ -344,7 +358,7 @@ class TokenOptionsButton extends StatelessWidget {
                 .extension<StackColors>()!
                 .tokenSummaryTextPrimary,
           ),
-        )
+        ),
       ],
     );
   }
@@ -352,9 +366,9 @@ class TokenOptionsButton extends StatelessWidget {
 
 class CoinTickerTag extends ConsumerWidget {
   const CoinTickerTag({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 

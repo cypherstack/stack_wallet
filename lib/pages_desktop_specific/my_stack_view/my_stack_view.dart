@@ -8,23 +8,22 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
-import 'package:stackwallet/pages/wallets_view/sub_widgets/empty_wallets.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_wallets.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
+
+import '../../app_config.dart';
+import '../../pages/settings_views/global_settings_view/hidden_settings.dart';
+import '../../pages/wallets_view/sub_widgets/empty_wallets.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/isar/providers/all_wallets_info_provider.dart';
+import '../../widgets/animated_widgets/rotate_icon.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/background.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import 'my_wallets.dart';
 
 class MyStackView extends ConsumerStatefulWidget {
-  const MyStackView({Key? key}) : super(key: key);
+  const MyStackView({super.key});
 
   static const String routeName = "/myStackDesktop";
 
@@ -109,18 +108,10 @@ class _DesktopMyStackTitleState extends ConsumerState<DesktopMyStackTitle> {
         GestureDetector(
           onTap: _hiddenOptions,
           child: RotateIcon(
-            icon: SizedBox(
+            icon: const SizedBox(
               width: 32,
               height: 32,
-              child: SvgPicture.file(
-                File(
-                  ref.watch(
-                    themeProvider.select(
-                      (value) => value.assets.stackIcon,
-                    ),
-                  ),
-                ),
-              ),
+              child: AppIcon(),
             ),
             curve: Curves.easeInOutCubic,
             rotationPercent: 1.0,
@@ -131,9 +122,9 @@ class _DesktopMyStackTitleState extends ConsumerState<DesktopMyStackTitle> {
           width: 12,
         ),
         Text(
-          "My Stack",
+          "My ${AppConfig.prefix}",
           style: STextStyles.desktopH3(context),
-        )
+        ),
       ],
     );
   }

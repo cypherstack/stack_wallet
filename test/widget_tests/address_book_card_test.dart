@@ -11,8 +11,8 @@ import 'package:stackwallet/pages/address_book_views/subviews/contact_popup.dart
 import 'package:stackwallet/providers/global/address_book_service_provider.dart';
 import 'package:stackwallet/services/address_book_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/address_book_card.dart';
 
 import '../sample_data/theme_json.dart';
@@ -33,10 +33,10 @@ void main() {
         name: "John Doe",
         addresses: [
           ContactAddressEntry()
-            ..coinName = Coin.bitcoincash.name
+            ..coinName = Bitcoincash(CryptoCurrencyNetwork.main).identifier
             ..address = "some bch address"
             ..label = "Bills"
-            ..other = null
+            ..other = null,
         ],
         isFavorite: true,
         customId: '',
@@ -69,7 +69,10 @@ void main() {
 
     expect(find.text("John Doe"), findsOneWidget);
     expect(find.text("BCH"), findsOneWidget);
-    expect(find.text(Coin.bitcoincash.ticker), findsOneWidget);
+    expect(
+      find.text(Bitcoincash(CryptoCurrencyNetwork.main).ticker),
+      findsOneWidget,
+    );
 
     if (Platform.isIOS || Platform.isAndroid) {
       await widgetTester.tap(find.byType(RawMaterialButton));

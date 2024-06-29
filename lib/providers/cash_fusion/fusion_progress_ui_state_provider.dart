@@ -9,7 +9,7 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/fusion_progress_ui_state.dart';
+import '../../models/fusion_progress_ui_state.dart';
 
 final fusionProgressUIStateProvider =
     ChangeNotifierProvider.family<FusionProgressUIState, String>(

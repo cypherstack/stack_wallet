@@ -10,16 +10,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 
 class PencilIcon extends StatelessWidget {
   const PencilIcon({
-    Key? key,
+    super.key,
     this.width = 18,
     this.height = 18,
     this.color,
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;

@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
+import '../pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
 
 class FusionProgressUIState extends ChangeNotifier {
   /// Whether we are able to connect to the server.

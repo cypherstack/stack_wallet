@@ -12,21 +12,22 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
-import 'package:stackwallet/external_api_keys.dart';
-import 'package:stackwallet/models/exchange/response_objects/fixed_rate_market.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/exchange/simpleswap/sp_currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_exchange.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../../exceptions/exchange/exchange_exception.dart';
+import '../../../external_api_keys.dart';
+import '../../../models/exchange/response_objects/fixed_rate_market.dart';
+import '../../../models/exchange/response_objects/range.dart';
+import '../../../models/exchange/response_objects/trade.dart';
+import '../../../models/exchange/simpleswap/sp_currency.dart';
+import '../../../models/isar/exchange_cache/pair.dart';
+import '../../../networking/http.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
+import '../../tor_service.dart';
+import '../exchange_response.dart';
+import 'simpleswap_exchange.dart';
 
 class SimpleSwapAPI {
   static const String scheme = "https";
@@ -104,7 +105,7 @@ class SimpleSwapAPI {
     String? extraIdTo,
     String? apiKey,
   }) async {
-    Map<String, dynamic> body = {
+    final Map<String, dynamic> body = {
       "fixed": isFixedRate,
       "currency_from": currencyFrom,
       "currency_to": currencyTo,
@@ -148,8 +149,10 @@ class SimpleSwapAPI {
       );
       return ExchangeResponse(value: trade, exception: null);
     } catch (e, s) {
-      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "getAvailableCurrencies exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -165,15 +168,19 @@ class SimpleSwapAPI {
     required bool fixedRate,
   }) async {
     final uri = _buildUri(
-        "/get_all_currencies", {"api_key": apiKey ?? kSimpleSwapApiKey});
+      "/get_all_currencies",
+      {"api_key": apiKey ?? kSimpleSwapApiKey},
+    );
 
     try {
       final jsonArray = await _makeGetRequest(uri);
 
       return await compute(_parseAvailableCurrenciesJson, jsonArray as List);
     } catch (e, s) {
-      Logging.instance.log("getAvailableCurrencies exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "getAvailableCurrencies exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -184,9 +191,10 @@ class SimpleSwapAPI {
   }
 
   ExchangeResponse<List<SPCurrency>> _parseAvailableCurrenciesJson(
-      List<dynamic> jsonArray) {
+    List<dynamic> jsonArray,
+  ) {
     try {
-      List<SPCurrency> currencies = [];
+      final List<SPCurrency> currencies = [];
 
       for (final json in jsonArray) {
         try {
@@ -194,15 +202,20 @@ class SimpleSwapAPI {
               .add(SPCurrency.fromJson(Map<String, dynamic>.from(json as Map)));
         } catch (_) {
           return ExchangeResponse(
-              exception: ExchangeException("Failed to serialize $json",
-                  ExchangeExceptionType.serializeResponseError));
+            exception: ExchangeException(
+              "Failed to serialize $json",
+              ExchangeExceptionType.serializeResponseError,
+            ),
+          );
         }
       }
 
       return ExchangeResponse(value: currencies);
     } catch (e, s) {
-      Logging.instance.log("_parseAvailableCurrenciesJson exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "_parseAvailableCurrenciesJson exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -228,8 +241,10 @@ class SimpleSwapAPI {
       final jsonObject = await _makeGetRequest(uri);
 
       return ExchangeResponse(
-          value: SPCurrency.fromJson(
-              Map<String, dynamic>.from(jsonObject as Map)));
+        value: SPCurrency.fromJson(
+          Map<String, dynamic>.from(jsonObject as Map),
+        ),
+      );
     } catch (e, s) {
       Logging.instance
           .log("getCurrency exception: $e\n$s", level: LogLevel.Error);
@@ -279,7 +294,7 @@ class SimpleSwapAPI {
     Tuple2<Map<dynamic, dynamic>, bool> args,
   ) {
     try {
-      List<Pair> pairs = [];
+      final List<Pair> pairs = [];
 
       for (final entry in args.item1.entries) {
         try {
@@ -296,15 +311,20 @@ class SimpleSwapAPI {
           }
         } catch (_) {
           return ExchangeResponse(
-              exception: ExchangeException("Failed to serialize $json",
-                  ExchangeExceptionType.serializeResponseError));
+            exception: ExchangeException(
+              "Failed to serialize $json",
+              ExchangeExceptionType.serializeResponseError,
+            ),
+          );
         }
       }
 
       return ExchangeResponse(value: pairs);
     } catch (e, s) {
-      Logging.instance.log("_parseAvailableCurrenciesJson exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "_parseAvailableCurrenciesJson exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -468,8 +488,10 @@ class SimpleSwapAPI {
         );
         return result;
       } catch (e, s) {
-        Logging.instance.log("getAvailableFixedRateMarkets exception: $e\n$s",
-            level: LogLevel.Error);
+        Logging.instance.log(
+          "getAvailableFixedRateMarkets exception: $e\n$s",
+          level: LogLevel.Error,
+        );
         return ExchangeResponse(
           exception: ExchangeException(
             "Error: $jsonArray",
@@ -478,8 +500,10 @@ class SimpleSwapAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log("getAvailableFixedRateMarkets exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "getAvailableFixedRateMarkets exception: $e\n$s",
+        level: LogLevel.Error,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -490,24 +514,30 @@ class SimpleSwapAPI {
   }
 
   ExchangeResponse<List<FixedRateMarket>> _parseFixedRateMarketsJson(
-      List<dynamic> jsonArray) {
+    List<dynamic> jsonArray,
+  ) {
     try {
       final List<FixedRateMarket> markets = [];
       for (final json in jsonArray) {
         try {
           final map = Map<String, dynamic>.from(json as Map);
-          markets.add(FixedRateMarket(
-            from: map["currency_from"] as String,
-            to: map["currency_to"] as String,
-            min: Decimal.parse(map["min"] as String),
-            max: Decimal.parse(map["max"] as String),
-            rate: Decimal.parse(map["rate"] as String),
-            minerFee: null,
-          ));
+          markets.add(
+            FixedRateMarket(
+              from: map["currency_from"] as String,
+              to: map["currency_to"] as String,
+              min: Decimal.parse(map["min"] as String),
+              max: Decimal.parse(map["max"] as String),
+              rate: Decimal.parse(map["rate"] as String),
+              minerFee: null,
+            ),
+          );
         } catch (_) {
           return ExchangeResponse(
-              exception: ExchangeException("Failed to serialize $json",
-                  ExchangeExceptionType.serializeResponseError));
+            exception: ExchangeException(
+              "Failed to serialize $json",
+              ExchangeExceptionType.serializeResponseError,
+            ),
+          );
         }
       }
       return ExchangeResponse(value: markets);

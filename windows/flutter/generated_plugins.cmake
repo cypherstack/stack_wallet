@@ -10,6 +10,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   isar_flutter_libs
   permission_handler_windows
   share_plus
+  sqlite3_flutter_libs
   stack_wallet_backup
   url_launcher_windows
   window_size

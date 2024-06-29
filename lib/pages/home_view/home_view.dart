@@ -14,30 +14,33 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/buy_view/buy_view.dart';
-import 'package:stackwallet/pages/exchange_view/exchange_view.dart';
-import 'package:stackwallet/pages/home_view/sub_widgets/home_view_button_bar.dart';
-import 'package:stackwallet/pages/notification_views/notifications_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/global_settings_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/hidden_settings.dart';
-import 'package:stackwallet/pages/wallets_view/wallets_view.dart';
-import 'package:stackwallet/providers/global/notifications_provider.dart';
-import 'package:stackwallet/providers/ui/home_view_index_provider.dart';
-import 'package:stackwallet/providers/ui/unread_notifications_provider.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotate_icon.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/small_tor_icon.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../app_config.dart';
+import '../../providers/global/notifications_provider.dart';
+import '../../providers/ui/home_view_index_provider.dart';
+import '../../providers/ui/unread_notifications_provider.dart';
+import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../themes/stack_colors.dart';
+import '../../themes/theme_providers.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/animated_widgets/rotate_icon.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/small_tor_icon.dart';
+import '../../widgets/stack_dialog.dart';
+import '../buy_view/buy_view.dart';
+import '../exchange_view/exchange_view.dart';
+import '../notification_views/notifications_view.dart';
+import '../settings_views/global_settings_view/global_settings_view.dart';
+import '../settings_views/global_settings_view/hidden_settings.dart';
+import '../wallets_view/wallets_view.dart';
+import 'sub_widgets/home_view_button_bar.dart';
 
 class HomeView extends ConsumerStatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+  const HomeView({super.key});
 
   static const routeName = "/home";
 
@@ -123,8 +126,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
     _rotateIconController = RotateIconController();
     _children = [
       const WalletsView(),
-      if (Constants.enableExchange) const ExchangeView(),
-      if (Constants.enableExchange) const BuyView(),
+      if (AppConfig.hasFeature(AppFeature.swap) && Constants.enableExchange)
+        const ExchangeView(),
+      if (AppConfig.hasFeature(AppFeature.buy) && Constants.enableExchange)
+        const BuyView(),
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
@@ -182,14 +187,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 GestureDetector(
                   onTap: _hiddenOptions,
                   child: RotateIcon(
-                    icon: SvgPicture.file(
-                      File(
-                        ref.watch(
-                          themeProvider.select(
-                            (value) => value.assets.stackIcon,
-                          ),
-                        ),
-                      ),
+                    icon: const AppIcon(
                       width: 24,
                       height: 24,
                     ),
@@ -202,9 +200,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   width: 16,
                 ),
                 Text(
-                  "My Stack",
+                  "My ${AppConfig.prefix}",
                   style: STextStyles.navBarTitle(context),
-                )
+                ),
               ],
             ),
             actions: [
@@ -236,8 +234,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     color: Theme.of(context)
                         .extension<StackColors>()!
                         .backgroundAppBar,
-                    icon: ref.watch(notificationsProvider
-                            .select((value) => value.hasUnreadNotifications))
+                    icon: ref.watch(
+                      notificationsProvider
+                          .select((value) => value.hasUnreadNotifications),
+                    )
                         ? SvgPicture.file(
                             File(
                               ref.watch(
@@ -248,8 +248,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             ),
                             width: 20,
                             height: 20,
-                            color: ref.watch(notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications))
+                            color: ref.watch(
+                              notificationsProvider.select(
+                                (value) => value.hasUnreadNotifications,
+                              ),
+                            )
                                 ? null
                                 : Theme.of(context)
                                     .extension<StackColors>()!
@@ -259,8 +262,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             Assets.svg.bell,
                             width: 20,
                             height: 20,
-                            color: ref.watch(notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications))
+                            color: ref.watch(
+                              notificationsProvider.select(
+                                (value) => value.hasUnreadNotifications,
+                              ),
+                            )
                                 ? null
                                 : Theme.of(context)
                                     .extension<StackColors>()!
@@ -278,14 +284,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             .state;
                         if (unreadNotificationIds.isEmpty) return;
 
-                        List<Future<void>> futures = [];
+                        final List<Future<void>> futures = [];
                         for (int i = 0;
                             i < unreadNotificationIds.length - 1;
                             i++) {
-                          futures.add(ref
-                              .read(notificationsProvider)
-                              .markAsRead(
-                                  unreadNotificationIds.elementAt(i), false));
+                          futures.add(
+                            ref.read(notificationsProvider).markAsRead(
+                                  unreadNotificationIds.elementAt(i),
+                                  false,
+                                ),
+                          );
                         }
 
                         // wait for multiple to update if any
@@ -337,7 +345,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ),
           body: Column(
             children: [
-              if (Constants.enableExchange)
+              if (_children.length > 1)
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context)

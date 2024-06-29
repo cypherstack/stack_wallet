@@ -10,26 +10,27 @@ import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
 import 'package:pointycastle/digests/sha256.dart';
-import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
-import 'package:stackwallet/exceptions/wallet/paynym_send_exception.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/signing_data.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/bip32_utils.dart';
-import 'package:stackwallet/utilities/bip47_utils.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/interfaces/paynym_currency_interface.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../exceptions/wallet/insufficient_balance_exception.dart';
+import '../../../exceptions/wallet/paynym_send_exception.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../models/signing_data.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/bip32_utils.dart';
+import '../../../utilities/bip47_utils.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/format.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/interfaces/paynym_currency_interface.dart';
+import '../../models/tx_data.dart';
+import '../intermediate/bip39_hd_wallet.dart';
+import 'electrumx_interface.dart';
 
 const String kPCodeKeyPrefix = "pCode_key_";
 
@@ -67,7 +68,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final root = await _getRootNode();
     final node = root.derivePath(
       _basePaynymDerivePath(
-        testnet: info.coin.isTestNet,
+        testnet: info.coin.network.isTestNet,
       ),
     );
     return node;
@@ -158,7 +159,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final root = await _getRootNode();
     final node = root.derivePath(
       _basePaynymDerivePath(
-        testnet: info.coin.isTestNet,
+        testnet: info.coin.network.isTestNet,
       ),
     );
 
@@ -181,7 +182,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       derivationPath: DerivationPath()
         ..value = _receivingPaynymAddressDerivationPath(
           index,
-          testnet: info.coin.isTestNet,
+          testnet: info.coin.network.isTestNet,
         ),
       type: generateSegwitAddress ? AddressType.p2wpkh : AddressType.p2pkh,
       subType: AddressSubType.paynymReceive,
@@ -218,7 +219,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       derivationPath: DerivationPath()
         ..value = _sendPaynymAddressDerivationPath(
           index,
-          testnet: info.coin.isTestNet,
+          testnet: info.coin.network.isTestNet,
         ),
       type: AddressType.nonWallet,
       subType: AddressSubType.paynymSend,
@@ -275,14 +276,18 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final codes = await getAllPaymentCodesFromNotificationTransactions();
     final List<Future<void>> futures = [];
     for (final code in codes) {
-      futures.add(checkCurrentPaynymReceivingAddressForTransactions(
-        sender: code,
-        isSegwit: true,
-      ));
-      futures.add(checkCurrentPaynymReceivingAddressForTransactions(
-        sender: code,
-        isSegwit: false,
-      ));
+      futures.add(
+        checkCurrentPaynymReceivingAddressForTransactions(
+          sender: code,
+          isSegwit: true,
+        ),
+      );
+      futures.add(
+        checkCurrentPaynymReceivingAddressForTransactions(
+          sender: code,
+          isSegwit: false,
+        ),
+      );
     }
     await Future.wait(futures);
   }
@@ -309,7 +314,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final node = root
         .derivePath(
           _basePaynymDerivePath(
-            testnet: info.coin.isTestNet,
+            testnet: info.coin.network.isTestNet,
           ),
         )
         .derive(0);
@@ -323,7 +328,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final node = await _getRootNode();
 
     final paymentCode = PaymentCode.fromBip32Node(
-      node.derivePath(_basePaynymDerivePath(testnet: info.coin.isTestNet)),
+      node.derivePath(
+        _basePaynymDerivePath(
+          testnet: info.coin.network.isTestNet,
+        ),
+      ),
       networkType: networkType,
       shouldSetSegwitBit: isSegwit,
     );
@@ -333,8 +342,10 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
   Future<Uint8List> signWithNotificationKey(Uint8List data) async {
     final myPrivateKeyNode = await deriveNotificationBip32Node();
-    final pair = btc_dart.ECPair.fromPrivateKey(myPrivateKeyNode.privateKey!,
-        network: networkType);
+    final pair = btc_dart.ECPair.fromPrivateKey(
+      myPrivateKeyNode.privateKey!,
+      network: networkType,
+    );
     final signed = pair.sign(SHA256Digest().process(data));
     return signed;
   }
@@ -363,7 +374,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
     if (!(await hasConnected(txData.paynymAccountLite!.code.toString()))) {
       throw PaynymSendException(
-          "No notification transaction sent to $paymentCode,");
+        "No notification transaction sent to $paymentCode,",
+      );
     } else {
       final myPrivateKeyNode = await deriveNotificationBip32Node();
       final sendToAddress = await nextUnusedSendAddressFrom(
@@ -465,7 +477,9 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       for (var i = 0; i < availableOutputs.length; i++) {
         if (availableOutputs[i].isBlocked == false &&
             availableOutputs[i].isConfirmed(
-                    await fetchChainHeight(), cryptoCurrency.minConfirms) ==
+                  await fetchChainHeight(),
+                  cryptoCurrency.minConfirms,
+                ) ==
                 true) {
           spendableOutputs.add(availableOutputs[i]);
           spendableSatoshiValue += BigInt.from(availableOutputs[i].value);
@@ -475,11 +489,13 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       if (spendableSatoshiValue < amountToSend.raw) {
         // insufficient balance
         throw InsufficientBalanceException(
-            "Spendable balance is less than the minimum required for a notification transaction.");
+          "Spendable balance is less than the minimum required for a notification transaction.",
+        );
       } else if (spendableSatoshiValue == amountToSend.raw) {
         // insufficient balance due to missing amount to cover fee
         throw InsufficientBalanceException(
-            "Remaining balance does not cover the network fee.");
+          "Remaining balance does not cover the network fee.",
+        );
       }
 
       // sort spendable by age (oldest first)
@@ -487,7 +503,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
       BigInt satoshisBeingUsed = BigInt.zero;
       int outputsBeingUsed = 0;
-      List<UTXO> utxoObjectsToUse = [];
+      final List<UTXO> utxoObjectsToUse = [];
 
       for (int i = 0;
           satoshisBeingUsed < amountToSend.raw && i < spendableOutputs.length;
@@ -546,7 +562,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         ),
       );
 
-      if (info.coin == Coin.dogecoin || info.coin == Coin.dogecoinTestNet) {
+      if (info.coin is Dogecoin) {
         if (feeForNoChange < vSizeForNoChange * BigInt.from(1000)) {
           feeForNoChange = vSizeForNoChange * BigInt.from(1000);
         }
@@ -587,21 +603,22 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           }
 
           final txData = TxData(
-              raw: txn.item1,
-              recipients: [
-                (
-                  address: targetPaymentCodeString,
-                  amount: amountToSend,
-                  isChange: false,
-                ),
-              ],
-              fee: Amount(
-                rawValue: feeBeingPaid,
-                fractionDigits: cryptoCurrency.fractionDigits,
+            raw: txn.item1,
+            recipients: [
+              (
+                address: targetPaymentCodeString,
+                amount: amountToSend,
+                isChange: false,
               ),
-              vSize: txn.item2,
-              utxos: utxoSigningData.map((e) => e.utxo).toSet(),
-              note: "PayNym connect");
+            ],
+            fee: Amount(
+              rawValue: feeBeingPaid,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            vSize: txn.item2,
+            utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+            note: "PayNym connect",
+          );
 
           return txData;
         } else {
@@ -613,24 +630,25 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
             change: BigInt.zero,
           );
 
-          BigInt feeBeingPaid = satoshisBeingUsed - amountToSend.raw;
+          final BigInt feeBeingPaid = satoshisBeingUsed - amountToSend.raw;
 
           final txData = TxData(
-              raw: txn.item1,
-              recipients: [
-                (
-                  address: targetPaymentCodeString,
-                  amount: amountToSend,
-                  isChange: false,
-                )
-              ],
-              fee: Amount(
-                rawValue: feeBeingPaid,
-                fractionDigits: cryptoCurrency.fractionDigits,
+            raw: txn.item1,
+            recipients: [
+              (
+                address: targetPaymentCodeString,
+                amount: amountToSend,
+                isChange: false,
               ),
-              vSize: txn.item2,
-              utxos: utxoSigningData.map((e) => e.utxo).toSet(),
-              note: "PayNym connect");
+            ],
+            fee: Amount(
+              rawValue: feeBeingPaid,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            vSize: txn.item2,
+            utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+            note: "PayNym connect",
+          );
 
           return txData;
         }
@@ -643,24 +661,25 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           change: BigInt.zero,
         );
 
-        BigInt feeBeingPaid = satoshisBeingUsed - amountToSend.raw;
+        final BigInt feeBeingPaid = satoshisBeingUsed - amountToSend.raw;
 
         final txData = TxData(
-            raw: txn.item1,
-            recipients: [
-              (
-                address: targetPaymentCodeString,
-                amount: amountToSend,
-                isChange: false,
-              )
-            ],
-            fee: Amount(
-              rawValue: feeBeingPaid,
-              fractionDigits: cryptoCurrency.fractionDigits,
+          raw: txn.item1,
+          recipients: [
+            (
+              address: targetPaymentCodeString,
+              amount: amountToSend,
+              isChange: false,
             ),
-            vSize: txn.item2,
-            utxos: utxoSigningData.map((e) => e.utxo).toSet(),
-            note: "PayNym connect");
+          ],
+          fee: Amount(
+            rawValue: feeBeingPaid,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
+          vSize: txn.item2,
+          utxos: utxoSigningData.map((e) => e.utxo).toSet(),
+          note: "PayNym connect",
+        );
 
         return txData;
       } else {
@@ -674,7 +693,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           );
         } else {
           throw InsufficientBalanceException(
-              "Remaining balance does not cover the network fee.");
+            "Remaining balance does not cover the network fee.",
+          );
         }
       }
     } catch (e) {
@@ -731,7 +751,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final List<coinlib.Output> prevOuts = [];
 
       coinlib.Transaction clTx = coinlib.Transaction(
-        version: 1,
+        version: cryptoCurrency.transactionVersion,
         inputs: [],
         outputs: [],
       );
@@ -900,8 +920,10 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         txHash: txHash,
       );
     } catch (e, s) {
-      Logging.instance.log("Exception rethrown from confirmSend(): $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Exception rethrown from confirmSend(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }
@@ -1143,7 +1165,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         .subTypeEqualTo(TransactionSubType.bip47Notification)
         .findAll();
 
-    List<PaymentCode> codes = [];
+    final List<PaymentCode> codes = [];
 
     for (final tx in txns) {
       // tx is sent so we can check the address's otherData for the code String
@@ -1201,7 +1223,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   }
 
   Future<void> checkForNotificationTransactionsTo(
-      Set<String> otherCodeStrings) async {
+    Set<String> otherCodeStrings,
+  ) async {
     final sentNotificationTransactions = await mainDB.isar.transactionV2s
         .where()
         .walletIdEqualTo(walletId)
@@ -1214,7 +1237,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final List<PaymentCode> codes = [];
     for (final codeString in otherCodeStrings) {
       codes.add(
-          PaymentCode.fromPaymentCode(codeString, networkType: networkType));
+        PaymentCode.fromPaymentCode(codeString, networkType: networkType),
+      );
     }
 
     for (final tx in sentNotificationTransactions) {
@@ -1303,7 +1327,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
     final mySendBip32Node = await deriveNotificationBip32Node();
 
-    List<Address> addresses = [];
+    final List<Address> addresses = [];
     int receivingGapCounter = 0;
     int outgoingGapCounter = 0;
 
@@ -1445,7 +1469,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final root = await _getRootNode();
       final node = root.derivePath(
         _basePaynymDerivePath(
-          testnet: info.coin.isTestNet,
+          testnet: info.coin.network.isTestNet,
         ),
       );
       final paymentCode = PaymentCode.fromBip32Node(
@@ -1473,7 +1497,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         derivationIndex: 0,
         derivationPath: DerivationPath()
           ..value = _notificationDerivationPath(
-            testnet: info.coin.isTestNet,
+            testnet: info.coin.network.isTestNet,
           ),
         type: AddressType.p2pkh,
         subType: AddressSubType.paynymNotification,
@@ -1559,7 +1583,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   Uint8List _randomBytes(int n) {
     final Random rng = Random.secure();
     return Uint8List.fromList(
-        List<int>.generate(n, (_) => rng.nextInt(0xFF + 1)));
+      List<int>.generate(n, (_) => rng.nextInt(0xFF + 1)),
+    );
   }
 
   // ================== Overrides ==============================================
@@ -1567,18 +1592,20 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   @override
   Future<void> updateTransactions({List<Address>? overrideAddresses}) async {
     // Get all addresses.
-    List<Address> allAddressesOld =
+    final List<Address> allAddressesOld =
         overrideAddresses ?? await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    Set<String> receivingAddresses = allAddressesOld
-        .where((e) =>
-            e.subType == AddressSubType.receiving ||
-            e.subType == AddressSubType.paynymNotification ||
-            e.subType == AddressSubType.paynymReceive)
+    final Set<String> receivingAddresses = allAddressesOld
+        .where(
+          (e) =>
+              e.subType == AddressSubType.receiving ||
+              e.subType == AddressSubType.paynymNotification ||
+              e.subType == AddressSubType.paynymReceive,
+        )
         .map((e) => e.value)
         .toSet();
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => e.value)
         .toSet();
@@ -1590,8 +1617,26 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     final List<Map<String, dynamic>> allTxHashes =
         await fetchHistory(allAddressesSet);
 
+    final unconfirmedTxs = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightIsNull()
+        .or()
+        .heightEqualTo(0)
+        .txidProperty()
+        .findAll();
+
+    allTxHashes.addAll(
+      unconfirmedTxs.map(
+        (e) => {
+          "tx_hash": e,
+        },
+      ),
+    );
+
     // Only parse new txs (not in db yet).
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
       // final storedTx = await mainDB.isar.transactionV2s
@@ -1603,16 +1648,36 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       //     storedTx.height == null ||
       //     (storedTx.height != null && storedTx.height! <= 0)) {
       // Tx not in db yet.
-      final tx = await electrumXCachedClient.getTransaction(
-        txHash: txHash["tx_hash"] as String,
-        verbose: true,
-        coin: cryptoCurrency.coin,
-      );
+      final txid = txHash["tx_hash"] as String;
+      final Map<String, dynamic> tx;
+      try {
+        tx = await electrumXCachedClient.getTransaction(
+          txHash: txid,
+          verbose: true,
+          cryptoCurrency: cryptoCurrency,
+        );
+      } catch (e) {
+        // tx no longer exists then delete from local db
+        if (e.toString().contains(
+              "JSON-RPC error 2: daemon error: DaemonError({'code': -5, "
+              "'message': 'No such mempool or blockchain transaction",
+            )) {
+          await mainDB.isar.writeTxn(
+            () async => await mainDB.isar.transactionV2s
+                .where()
+                .walletIdEqualTo(walletId)
+                .filter()
+                .txidEqualTo(txid)
+                .deleteFirst(),
+          );
+          continue;
+        } else {
+          rethrow;
+        }
+      }
 
       // Only tx to list once.
-      if (allTransactions
-              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
-          -1) {
+      if (allTransactions.indexWhere((e) => e["txid"] == txid) == -1) {
         tx["height"] = txHash["height"];
         allTransactions.add(tx);
       }
@@ -1648,12 +1713,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
           final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
-            coin: cryptoCurrency.coin,
+            cryptoCurrency: cryptoCurrency,
           );
 
           final prevOutJson = Map<String, dynamic>.from(
-              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                  as Map);
+            (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout) as Map,
+          );
 
           final prevOut = OutputV2.fromElectrumXJson(
             prevOutJson,
@@ -1726,7 +1791,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       TransactionSubType subType = TransactionSubType.none;
       if (outputs.length > 1 && inputs.isNotEmpty) {
         for (int i = 0; i < outputs.length; i++) {
-          List<String>? scriptChunks = outputs[i].scriptPubKeyAsm?.split(" ");
+          final List<String>? scriptChunks =
+              outputs[i].scriptPubKeyAsm?.split(" ");
           if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
             final blindedPaymentCode = scriptChunks![1];
             final bytes = blindedPaymentCode.toUint8ListFromHex;
@@ -1766,6 +1832,14 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         continue;
       }
 
+      String? otherData;
+      if (txData["size"] is int || txData["vsize"] is int) {
+        otherData = jsonEncode({
+          TxV2OdKeys.size: txData["size"] as int?,
+          TxV2OdKeys.vSize: txData["vsize"] as int?,
+        });
+      }
+
       final tx = TransactionV2(
         walletId: walletId,
         blockHash: txData["blockhash"] as String?,
@@ -1779,7 +1853,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         outputs: List.unmodifiable(outputs),
         type: type,
         subType: subType,
-        otherData: null,
+        otherData: otherData,
       );
 
       txns.add(tx);
@@ -1809,7 +1883,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final outputs = jsonTX["vout"] as List;
       for (int i = 0; i < outputs.length; i++) {
         final output = outputs[i];
-        List<String>? scriptChunks =
+        final List<String>? scriptChunks =
             (output['scriptPubKey']?['asm'] as String?)?.split(" ");
         if (scriptChunks?.length == 2 && scriptChunks?[0] == "OP_RETURN") {
           final blindedPaymentCode = scriptChunks![1];

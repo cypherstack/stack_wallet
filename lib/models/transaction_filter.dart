@@ -8,7 +8,7 @@
  *
  */
 
-import 'package:stackwallet/utilities/amount/amount.dart';
+import '../utilities/amount/amount.dart';
 
 class TransactionFilter {
   final bool sent;

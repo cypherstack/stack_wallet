@@ -9,20 +9,21 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/pages/intro_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../db/hive/db.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/desktop_app_bar.dart';
+import '../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_dialog.dart';
+import '../../intro_view.dart';
 
 class DeleteAccountView extends StatefulWidget {
-  const DeleteAccountView({Key? key}) : super(key: key);
+  const DeleteAccountView({super.key});
 
   static const String routeName = "/deleteAccountView";
 
@@ -51,9 +52,9 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
           child: Text(
             "Cancel",
             style: STextStyles.button(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .accentColorDark),
+              color:
+                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+            ),
           ),
         ),
         rightButton: TextButton(
@@ -91,7 +92,8 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 75));
+                      const Duration(milliseconds: 75),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -117,7 +119,7 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
             PrimaryButton(
               label: "Confirm",
               onPressed: onConfirmDeleteAccount,
-            )
+            ),
           ],
         ),
       ),

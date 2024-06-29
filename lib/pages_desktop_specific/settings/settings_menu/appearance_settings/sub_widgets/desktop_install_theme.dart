@@ -14,18 +14,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/outline_blue_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../themes/theme_service.dart';
+import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/logger.dart';
+import '../../../../../utilities/show_loading.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../widgets/desktop/outline_blue_button.dart';
+import '../../../../../widgets/desktop/primary_button.dart';
+import '../../../../../widgets/rounded_container.dart';
 
 class DesktopInstallTheme extends ConsumerStatefulWidget {
-  const DesktopInstallTheme({Key? key}) : super(key: key);
+  const DesktopInstallTheme({super.key});
 
   @override
   ConsumerState<DesktopInstallTheme> createState() =>
@@ -228,7 +228,7 @@ class _DesktopInstallThemeState extends ConsumerState<DesktopInstallTheme> {
                             ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
           ),

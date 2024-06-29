@@ -10,11 +10,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
 
 class PaynymNavIcon extends StatelessWidget {
-  const PaynymNavIcon({Key? key}) : super(key: key);
+  const PaynymNavIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

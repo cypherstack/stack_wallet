@@ -1,7 +1,8 @@
-import 'package:stackwallet/dto/ordinals/litescribe_response.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
+import 'inscription_data.dart';
+import 'litescribe_response.dart';
 
-class AddressInscriptionResponse extends LitescribeResponse<AddressInscriptionResponse> {
+class AddressInscriptionResponse
+    extends LitescribeResponse<AddressInscriptionResponse> {
   final int status;
   final String message;
   final AddressInscriptionResult result;
@@ -16,7 +17,8 @@ class AddressInscriptionResponse extends LitescribeResponse<AddressInscriptionRe
     return AddressInscriptionResponse(
       status: json['status'] as int,
       message: json['message'] as String,
-      result: AddressInscriptionResult.fromJson(json['result'] as Map<String, dynamic>),
+      result: AddressInscriptionResult.fromJson(
+          json['result'] as Map<String, dynamic>),
     );
   }
 }
@@ -32,7 +34,9 @@ class AddressInscriptionResult {
 
   factory AddressInscriptionResult.fromJson(Map<String, dynamic> json) {
     return AddressInscriptionResult(
-      list: (json['list'] as List).map((item) => InscriptionData.fromJson(item as Map<String, dynamic>)).toList(),
+      list: (json['list'] as List)
+          .map((item) => InscriptionData.fromJson(item as Map<String, dynamic>))
+          .toList(),
       total: json['total'] as int,
     );
   }

@@ -2,27 +2,27 @@ import 'dart:convert';
 
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/dto/ethereum/eth_token_tx_dto.dart';
-import 'package:stackwallet/dto/ethereum/eth_token_tx_extra_dto.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/ethereum/ethereum_api.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/eth_commons.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/extensions/impl/contract_abi.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
+
+import '../../../../dto/ethereum/eth_token_tx_dto.dart';
+import '../../../../dto/ethereum/eth_token_tx_extra_dto.dart';
+import '../../../../models/balance.dart';
+import '../../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../../models/paymint/fee_object_model.dart';
+import '../../../../services/ethereum/ethereum_api.dart';
+import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/eth_commons.dart';
+import '../../../../utilities/extensions/extensions.dart';
+import '../../../../utilities/logger.dart';
+import '../../../isar/models/token_wallet_info.dart';
+import '../../../models/tx_data.dart';
+import '../../wallet.dart';
+import '../ethereum_wallet.dart';
 
 class EthTokenWallet extends Wallet {
   @override
@@ -85,10 +85,16 @@ class EthTokenWallet extends Wallet {
       final contractAddress =
           web3dart.EthereumAddress.fromHex(tokenContract.address);
 
-      if (tokenContract.abi == null) {
+      // first try to update the abi regardless just in case something has changed
+      try {
         _tokenContract = await _updateTokenABI(
           forContract: tokenContract,
           usingContractAddress: contractAddress.hex,
+        );
+      } catch (e, s) {
+        Logging.instance.log(
+          "$runtimeType _updateTokenABI(): $e\n$s",
+          level: LogLevel.Warning,
         );
       }
 
@@ -102,50 +108,36 @@ class EthTokenWallet extends Wallet {
           contractAddress,
         );
         _sendFunction = _deployedContract.function('transfer');
+        // success
+        return;
       } catch (_) {
-        // some failure so first try to make sure we have the latest abi
+        // continue
+      }
+
+      // Some failure, try for proxy contract
+      final contractAddressResponse =
+          await EthereumAPI.getProxyTokenImplementationAddress(
+        contractAddress.hex,
+      );
+
+      if (contractAddressResponse.value != null) {
         _tokenContract = await _updateTokenABI(
           forContract: tokenContract,
-          usingContractAddress: contractAddress.hex,
+          usingContractAddress: contractAddressResponse.value!,
         );
-
-        try {
-          // try again to parse abi and extract transfer function
-          _deployedContract = web3dart.DeployedContract(
-            ContractAbiExtensions.fromJsonList(
-              jsonList: tokenContract.abi!,
-              name: tokenContract.name,
-            ),
-            contractAddress,
-          );
-          _sendFunction = _deployedContract.function('transfer');
-        } catch (_) {
-          // if it fails again we check if there is a proxy token impl and
-          // then try one last time to update and parse the abi
-          final contractAddressResponse =
-              await EthereumAPI.getProxyTokenImplementationAddress(
-                  contractAddress.hex);
-
-          if (contractAddressResponse.value != null) {
-            _tokenContract = await _updateTokenABI(
-              forContract: tokenContract,
-              usingContractAddress: contractAddressResponse.value!,
-            );
-          } else {
-            throw contractAddressResponse.exception!;
-          }
-
-          _deployedContract = web3dart.DeployedContract(
-            ContractAbiExtensions.fromJsonList(
-              jsonList: tokenContract.abi!,
-              name: tokenContract.name,
-            ),
-            contractAddress,
-          );
-
-          _sendFunction = _deployedContract.function('transfer');
-        }
+      } else {
+        throw contractAddressResponse.exception!;
       }
+
+      _deployedContract = web3dart.DeployedContract(
+        ContractAbiExtensions.fromJsonList(
+          jsonList: tokenContract.abi!,
+          name: tokenContract.name,
+        ),
+        contractAddress,
+      );
+
+      _sendFunction = _deployedContract.function('transfer');
     } catch (e, s) {
       Logging.instance.log(
         "$runtimeType wallet failed init(): $e\n$s",
@@ -181,8 +173,10 @@ class EthTokenWallet extends Wallet {
     final myWeb3Address = web3dart.EthereumAddress.fromHex(myAddress);
 
     final nonce = txData.nonce ??
-        await client.getTransactionCount(myWeb3Address,
-            atBlock: const web3dart.BlockNum.pending());
+        await client.getTransactionCount(
+          myWeb3Address,
+          atBlock: const web3dart.BlockNum.pending(),
+        );
 
     final amount = txData.recipients!.first.amount;
     final address = txData.recipients!.first.address;
@@ -408,7 +402,7 @@ class EthTokenWallet extends Wallet {
           final List<OutputV2> outputs = [];
           final List<InputV2> inputs = [];
 
-          OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+          final output = OutputV2.isarCantDoRequiredInDefaultConstructor(
             scriptPubKeyHex: "00",
             valueStringSats: amount.raw.toString(),
             addresses: [
@@ -416,7 +410,7 @@ class EthTokenWallet extends Wallet {
             ],
             walletOwns: addressTo == addressString,
           );
-          InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+          final input = InputV2.isarCantDoRequiredInDefaultConstructor(
             scriptSigHex: null,
             scriptSigAsm: null,
             sequence: null,

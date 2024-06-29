@@ -1,24 +1,51 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
-class Litecoin extends Bip39HDCurrency {
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../interfaces/electrumx_currency_interface.dart';
+import '../intermediate/bip39_hd_currency.dart';
+
+class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Litecoin(super.network) {
+    _idMain = "litecoin";
+    _uriScheme = "litecoin";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.litecoin;
+        _id = _idMain;
+        _name = "Litecoin";
+        _ticker = "LTC";
       case CryptoCurrencyNetwork.test:
-        coin = Coin.litecoinTestNet;
+        _id = "litecoinTestNet";
+        _name = "tLitecoin";
+        _ticker = "tLTC";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   @override
   // change this to change the number of confirms a tx needs in order to show as confirmed
@@ -69,9 +96,9 @@ class Litecoin extends Bip39HDCurrency {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "ltc",
           messagePrefix: '\x19Litecoin Signed Message:\n',
-          minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: dustLimit.raw, // TODO.
-          feePerKb: BigInt.from(1), // TODO.
+          minFee: BigInt.from(1), // Not used in stack wallet currently
+          minOutput: dustLimit.raw, // Not used in stack wallet currently
+          feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       case CryptoCurrencyNetwork.test:
         return coinlib.Network(
@@ -82,9 +109,9 @@ class Litecoin extends Bip39HDCurrency {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tltc",
           messagePrefix: "\x19Litecoin Signed Message:\n",
-          minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: dustLimit.raw, // TODO.
-          feePerKb: BigInt.from(1), // TODO.
+          minFee: BigInt.from(1), // Not used in stack wallet currently
+          minOutput: dustLimit.raw, // Not used in stack wallet currently
+          feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       default:
         throw Exception("Unsupported network: $network");
@@ -187,10 +214,10 @@ class Litecoin extends Bip39HDCurrency {
           host: "litecoin.stackwallet.com",
           port: 20063,
           name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.litecoin),
+          id: DefaultNodes.buildId(this),
           useSSL: true,
           enabled: true,
-          coinName: Coin.litecoin.name,
+          coinName: identifier,
           isFailover: true,
           isDown: false,
         );
@@ -200,10 +227,10 @@ class Litecoin extends Bip39HDCurrency {
           host: "litecoin.stackwallet.com",
           port: 51002,
           name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(Coin.litecoinTestNet),
+          id: DefaultNodes.buildId(this),
           useSSL: true,
           enabled: true,
-          coinName: Coin.litecoinTestNet.name,
+          coinName: identifier,
           isFailover: true,
           isDown: false,
         );
@@ -214,10 +241,49 @@ class Litecoin extends Bip39HDCurrency {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Litecoin && other.network == network;
+  int get defaultSeedPhraseLength => 12;
+
+  @override
+  int get fractionDigits => 8;
+
+  @override
+  bool get hasBuySupport => true;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => true;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+
+  @override
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(100000000);
+
+  @override
+  int get targetBlockTimeSeconds => 150;
+
+  @override
+  DerivePathType get defaultDerivePathType => DerivePathType.bip84;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://chain.so/tx/LTC/$txid");
+      case CryptoCurrencyNetwork.test:
+        return Uri.parse("https://chain.so/tx/LTCTEST/$txid");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
   }
 
   @override
-  int get hashCode => Object.hash(Litecoin, network);
+  int get transactionVersion => 1;
+
+  @override
+  BigInt get defaultFeeRate => BigInt.from(1000);
 }

@@ -10,22 +10,24 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/address_book_filter_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../app_config.dart';
+import '../../../providers/global/prefs_provider.dart';
+import '../../../providers/ui/address_book_providers/address_book_filter_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class AddressBookFilterView extends ConsumerStatefulWidget {
-  const AddressBookFilterView({Key? key}) : super(key: key);
+  const AddressBookFilterView({super.key});
 
   static const String routeName = "/addressBookFilter";
 
@@ -35,19 +37,23 @@ class AddressBookFilterView extends ConsumerStatefulWidget {
 }
 
 class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
-  late final List<Coin> _coins;
+  late final List<CryptoCurrency> _coins;
 
   @override
   void initState() {
-    List<Coin> coins = [...Coin.values];
-    coins.remove(Coin.firoTestNet);
+    final coins = [...AppConfig.coins];
+    coins.removeWhere(
+      (e) => e is Firo && e.network.isTestNet,
+    );
 
-    bool showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
+    final showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 
     if (showTestNet) {
       _coins = coins.toList(growable: false);
     } else {
-      _coins = coins.where((e) => !e.isTestNet).toList(growable: false);
+      _coins = coins
+          .where((e) => e.network != CryptoCurrencyNetwork.test)
+          .toList(growable: false);
     }
     super.initState();
   }
@@ -77,42 +83,44 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
             ),
             body: Padding(
               padding: const EdgeInsets.all(12),
-              child: LayoutBuilder(builder: (builderContext, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            RoundedWhiteContainer(
-                              child: Text(
-                                "Only selected cryptocurrency addresses will be displayed.",
-                                style: STextStyles.itemSubtitle(context),
+              child: LayoutBuilder(
+                builder: (builderContext, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              RoundedWhiteContainer(
+                                child: Text(
+                                  "Only selected cryptocurrency addresses will be displayed.",
+                                  style: STextStyles.itemSubtitle(context),
+                                ),
                               ),
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            Text(
-                              "Select cryptocurrency",
-                              style: STextStyles.smallMed12(context),
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            child,
-                          ],
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              Text(
+                                "Select cryptocurrency",
+                                style: STextStyles.smallMed12(context),
+                              ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              child,
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -225,8 +233,10 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                 width: 20,
                                 child: Checkbox(
                                   value: ref
-                                      .watch(addressBookFilterProvider
-                                          .select((value) => value.coins))
+                                      .watch(
+                                        addressBookFilterProvider
+                                            .select((value) => value.coins),
+                                      )
                                       .contains(coin),
                                   onChanged: (value) {
                                     if (value is bool) {
@@ -262,7 +272,7 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
                                     style: STextStyles.itemSubtitle(context),
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),

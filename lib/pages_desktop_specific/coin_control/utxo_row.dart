@@ -11,21 +11,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/coin_control/utxo_details_view.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/isar_models.dart';
+import '../../pages/coin_control/utxo_details_view.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/icon_widgets/utxo_status_icon.dart';
+import '../../widgets/rounded_container.dart';
 
 class UtxoRowData {
   UtxoRowData(this.utxoId, this.selected);
@@ -49,14 +48,14 @@ class UtxoRowData {
 
 class UtxoRow extends ConsumerStatefulWidget {
   const UtxoRow({
-    Key? key,
+    super.key,
     required this.data,
     required this.walletId,
     this.onSelectionChanged,
     this.compact = false,
     this.compactWithBorder = true,
     this.raiseOnSelected = true,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final UtxoRowData data;
@@ -158,7 +157,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                   ref.watch(pAmountFormatter(coin)).format(
                         Amount(
                           rawValue: BigInt.from(utxo.value),
-                          fractionDigits: coin.decimals,
+                          fractionDigits: coin.fractionDigits,
                         ),
                       ),
                   textAlign: TextAlign.right,
@@ -180,7 +179,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                           ref.watch(pAmountFormatter(coin)).format(
                                 Amount(
                                   rawValue: BigInt.from(utxo.value),
-                                  fractionDigits: coin.decimals,
+                                  fractionDigits: coin.fractionDigits,
                                 ),
                               ),
                           textAlign: TextAlign.right,

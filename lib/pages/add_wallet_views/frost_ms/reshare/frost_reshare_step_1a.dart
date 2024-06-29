@@ -1,28 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/models/frost_wallet_info.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/dialogs/frost/frost_error_dialog.dart';
-import 'package:stackwallet/widgets/dialogs/simple_mobile_dialog.dart';
-import 'package:stackwallet/widgets/frost_step_user_steps.dart';
+
+import '../../../../frost_route_generator.dart';
+import '../../../../providers/db/main_db_provider.dart';
+import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../services/frost.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/isar/models/frost_wallet_info.dart';
+import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
+import '../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/detail_item.dart';
+import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
+import '../../../../widgets/dialogs/simple_mobile_dialog.dart';
+import '../../../../widgets/frost_step_user_steps.dart';
+import '../../../../widgets/qr.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostReshareStep1a extends ConsumerStatefulWidget {
   const FrostReshareStep1a({super.key});
@@ -238,14 +239,9 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                QrImageView(
+                QR(
                   data: ref.watch(pFrostResharingData).resharerRConfig!,
                   size: 220,
-                  backgroundColor:
-                      Theme.of(context).extension<StackColors>()!.background,
-                  foregroundColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
                 ),
               ],
             ),

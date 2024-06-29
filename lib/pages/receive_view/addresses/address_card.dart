@@ -20,26 +20,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../db/isar/main_db.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/custom_buttons/simple_edit_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/qr.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_dialog.dart';
 
 class AddressCard extends ConsumerStatefulWidget {
   const AddressCard({
@@ -53,7 +54,7 @@ class AddressCard extends ConsumerStatefulWidget {
 
   final int addressId;
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final ClipboardInterface clipboard;
   final VoidCallback? onPressed;
 
@@ -84,7 +85,8 @@ class _AddressCardState extends ConsumerState<AddressCard> {
           final dir = Directory("${Platform.environment['HOME']}");
           if (!dir.existsSync()) {
             throw Exception(
-                "Home dir not found while trying to open filepicker on QR image save");
+              "Home dir not found while trying to open filepicker on QR image save",
+            );
           }
           final path = await FilePicker.platform.saveFile(
             fileName: "qrcode.png",
@@ -127,8 +129,10 @@ class _AddressCardState extends ConsumerState<AddressCard> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
-            text: "Receive URI QR Code");
+        await Share.shareFiles(
+          ["${tempDir.path}/qrcode.png"],
+          text: "Receive URI QR Code",
+        );
       }
     } catch (e) {
       //todo: comeback to this
@@ -298,19 +302,13 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                   Center(
                                     child: RepaintBoundary(
                                       key: _qrKey,
-                                      child: QrImageView(
+                                      child: QR(
                                         data: AddressUtils.buildUriString(
                                           widget.coin,
                                           address.value,
                                           {},
                                         ),
                                         size: 220,
-                                        backgroundColor: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .popupBG,
-                                        foregroundColor: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark,
                                       ),
                                     ),
                                   ),
@@ -362,7 +360,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                           ),
                                         ),
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             );

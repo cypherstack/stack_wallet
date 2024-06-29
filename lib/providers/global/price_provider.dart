@@ -10,8 +10,8 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/services/price_service.dart';
+import 'prefs_provider.dart';
+import '../../services/price_service.dart';
 
 int _count = 0;
 

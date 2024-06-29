@@ -13,13 +13,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_menu.dart';
-import 'package:stackwallet/providers/desktop/current_desktop_menu_item.dart';
-import 'package:stackwallet/providers/global/notifications_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+
+import '../providers/desktop/current_desktop_menu_item.dart';
+import '../providers/global/notifications_provider.dart';
+import '../themes/stack_colors.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/assets.dart';
+import '../utilities/text_styles.dart';
+import 'desktop_menu.dart';
 
 class DMIController {
   VoidCallback? toggle;
@@ -29,7 +30,7 @@ class DMIController {
 }
 
 class DesktopMyStackIcon extends ConsumerWidget {
-  const DesktopMyStackIcon({Key? key}) : super(key: key);
+  const DesktopMyStackIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,7 +50,7 @@ class DesktopMyStackIcon extends ConsumerWidget {
 }
 
 class DesktopExchangeIcon extends ConsumerWidget {
-  const DesktopExchangeIcon({Key? key}) : super(key: key);
+  const DesktopExchangeIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,7 +70,7 @@ class DesktopExchangeIcon extends ConsumerWidget {
 }
 
 class DesktopBuyIcon extends ConsumerWidget {
-  const DesktopBuyIcon({Key? key}) : super(key: key);
+  const DesktopBuyIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,12 +90,13 @@ class DesktopBuyIcon extends ConsumerWidget {
 }
 
 class DesktopNotificationsIcon extends ConsumerWidget {
-  const DesktopNotificationsIcon({Key? key}) : super(key: key);
+  const DesktopNotificationsIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(notificationsProvider
-            .select((value) => value.hasUnreadNotifications))
+    return ref.watch(
+      notificationsProvider.select((value) => value.hasUnreadNotifications),
+    )
         ? SvgPicture.file(
             File(
               ref.watch(
@@ -110,8 +112,10 @@ class DesktopNotificationsIcon extends ConsumerWidget {
             Assets.svg.bell,
             width: 20,
             height: 20,
-            color: ref.watch(notificationsProvider
-                    .select((value) => value.hasUnreadNotifications))
+            color: ref.watch(
+              notificationsProvider
+                  .select((value) => value.hasUnreadNotifications),
+            )
                 ? null
                 : DesktopMenuItemId.notifications ==
                         ref.watch(currentDesktopMenuItemProvider.state).state
@@ -127,7 +131,7 @@ class DesktopNotificationsIcon extends ConsumerWidget {
 }
 
 class DesktopAddressBookIcon extends ConsumerWidget {
-  const DesktopAddressBookIcon({Key? key}) : super(key: key);
+  const DesktopAddressBookIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -147,7 +151,7 @@ class DesktopAddressBookIcon extends ConsumerWidget {
 }
 
 class DesktopSettingsIcon extends ConsumerWidget {
-  const DesktopSettingsIcon({Key? key}) : super(key: key);
+  const DesktopSettingsIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -167,7 +171,7 @@ class DesktopSettingsIcon extends ConsumerWidget {
 }
 
 class DesktopSupportIcon extends ConsumerWidget {
-  const DesktopSupportIcon({Key? key}) : super(key: key);
+  const DesktopSupportIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -187,7 +191,7 @@ class DesktopSupportIcon extends ConsumerWidget {
 }
 
 class DesktopAboutIcon extends ConsumerWidget {
-  const DesktopAboutIcon({Key? key}) : super(key: key);
+  const DesktopAboutIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -207,7 +211,7 @@ class DesktopAboutIcon extends ConsumerWidget {
 }
 
 class DesktopExitIcon extends ConsumerWidget {
-  const DesktopExitIcon({Key? key}) : super(key: key);
+  const DesktopExitIcon({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -225,7 +229,7 @@ class DesktopExitIcon extends ConsumerWidget {
 
 class DesktopMenuItem<T> extends ConsumerStatefulWidget {
   const DesktopMenuItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
@@ -233,7 +237,7 @@ class DesktopMenuItem<T> extends ConsumerStatefulWidget {
     required this.duration,
     this.labelLength = 125,
     this.controller,
-  }) : super(key: key);
+  });
 
   final Widget icon;
   final String label;
@@ -350,7 +354,7 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

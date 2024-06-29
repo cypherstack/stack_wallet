@@ -9,13 +9,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../../widgets/rounded_white_container.dart';
 
 class RestoringItemCard extends StatelessWidget {
   const RestoringItemCard({
-    Key? key,
+    super.key,
     required this.left,
     required this.right,
     required this.title,
@@ -23,7 +23,7 @@ class RestoringItemCard extends StatelessWidget {
     this.leftSize = 32.0,
     this.button,
     this.onRightTapped,
-  }) : super(key: key);
+  });
 
   final Widget left;
   final Widget right;

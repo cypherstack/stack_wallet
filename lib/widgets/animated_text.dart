@@ -14,11 +14,11 @@ import 'package:flutter/cupertino.dart';
 
 class AnimatedText extends StatefulWidget {
   const AnimatedText({
-    Key? key,
+    super.key,
     required this.stringsToLoopThrough,
     required this.style,
     this.duration = const Duration(milliseconds: 700),
-  }) : super(key: key);
+  });
 
   final List<String> stringsToLoopThrough;
   final TextStyle style;

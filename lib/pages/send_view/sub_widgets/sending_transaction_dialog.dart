@@ -13,23 +13,24 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/coin_image_provider.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../themes/coin_image_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/stack_dialog.dart';
 
 class SendingTransactionDialog extends ConsumerStatefulWidget {
   const SendingTransactionDialog({
-    Key? key,
+    super.key,
     required this.coin,
     required this.controller,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final ProgressAndSuccessController controller;
 
   @override
@@ -64,6 +65,7 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
 
     if (Util.isDesktop) {
       return DesktopDialog(
+        maxHeight: assetPath.endsWith(".gif") ? double.infinity : null,
         child: Padding(
           padding: const EdgeInsets.all(40),
           child: Column(
@@ -77,8 +79,10 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
                 height: 40,
               ),
               assetPath.endsWith(".gif")
-                  ? Image.file(
-                      File(assetPath),
+                  ? Flexible(
+                      child: Image.file(
+                        File(assetPath),
+                      ),
                     )
                   : ProgressAndSuccess(
                       controller: _progressAndSuccessController!,
@@ -129,11 +133,11 @@ class ProgressAndSuccessController {
 
 class ProgressAndSuccess extends StatefulWidget {
   const ProgressAndSuccess({
-    Key? key,
+    super.key,
     this.height = 24,
     this.width = 24,
     required this.controller,
-  }) : super(key: key);
+  });
 
   final double height;
   final double width;

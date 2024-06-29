@@ -9,14 +9,14 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+import '../conditional_parent.dart';
 
 const double kDesktopAppBarHeight = 96.0;
 const double kDesktopAppBarHeightCompact = 82.0;
 
 class DesktopAppBar extends StatelessWidget {
   const DesktopAppBar({
-    Key? key,
+    super.key,
     this.leading,
     this.center,
     this.overlayCenter,
@@ -24,7 +24,7 @@ class DesktopAppBar extends StatelessWidget {
     this.background = Colors.transparent,
     required this.isCompactHeight,
     this.useSpacers = true,
-  }) : super(key: key);
+  });
 
   final Widget? leading;
   final Widget? center;

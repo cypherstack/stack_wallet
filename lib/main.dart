@@ -14,6 +14,7 @@ import 'dart:math';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:cw_core/node.dart';
+import 'package:cw_core/pathForWallet.dart';
 import 'package:cw_core/unspent_coins_info.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
@@ -24,57 +25,61 @@ import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:stackwallet/db/db_version_migration.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/models.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/intro_view.dart';
-import 'package:stackwallet/pages/loading_view.dart';
-import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
-import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
-import 'package:stackwallet/pages_desktop_specific/password/desktop_login_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
-import 'package:stackwallet/providers/global/base_currencies_provider.dart';
-// import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
-import 'package:stackwallet/providers/global/trades_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-// import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
-import 'package:stackwallet/services/debug_service.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/services/notifications_service.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/services/trade_service.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/all_wallets_info_provider.dart';
-import 'package:stackwallet/widgets/crypto_notifications.dart';
 import 'package:window_size/window_size.dart';
+
+import 'app_config.dart';
+import 'db/db_version_migration.dart';
+import 'db/hive/db.dart';
+import 'db/isar/main_db.dart';
+import 'db/special_migrations.dart';
+import 'db/sqlite/firo_cache.dart';
+import 'models/exchange/change_now/exchange_transaction.dart';
+import 'models/exchange/change_now/exchange_transaction_status.dart';
+import 'models/exchange/response_objects/trade.dart';
+import 'models/isar/models/isar_models.dart';
+import 'models/models.dart';
+import 'models/node_model.dart';
+import 'models/notification_model.dart';
+import 'models/trade_wallet_lookup.dart';
+import 'pages/campfire_migrate_view.dart';
+import 'pages/home_view/home_view.dart';
+import 'pages/intro_view.dart';
+import 'pages/loading_view.dart';
+import 'pages/pinpad_views/create_pin_view.dart';
+import 'pages/pinpad_views/lock_screen_view.dart';
+import 'pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
+import 'pages_desktop_specific/password/desktop_login_view.dart';
+import 'providers/db/main_db_provider.dart';
+import 'providers/desktop/storage_crypto_handler_provider.dart';
+import 'providers/global/auto_swb_service_provider.dart';
+import 'providers/global/base_currencies_provider.dart';
+// import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
+import 'providers/global/trades_service_provider.dart';
+import 'providers/providers.dart';
+import 'route_generator.dart';
+// import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
+import 'services/debug_service.dart';
+import 'services/exchange/exchange_data_loading_service.dart';
+import 'services/locale_service.dart';
+import 'services/node_service.dart';
+import 'services/notifications_api.dart';
+import 'services/notifications_service.dart';
+import 'services/tor_service.dart';
+import 'services/trade_service.dart';
+import 'themes/theme_providers.dart';
+import 'themes/theme_service.dart';
+import 'utilities/constants.dart';
+import 'utilities/enums/backup_frequency_type.dart';
+import 'utilities/flutter_secure_storage_interface.dart';
+import 'utilities/logger.dart';
+import 'utilities/prefs.dart';
+import 'utilities/stack_file_system.dart';
+import 'utilities/util.dart';
+import 'wallets/isar/providers/all_wallets_info_provider.dart';
+import 'widgets/crypto_notifications.dart';
 
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
@@ -86,8 +91,14 @@ void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
-    StackFileSystem.overrideDir = args.last;
+    StackFileSystem.setDesktopOverrideDir(args.last);
   }
+
+  // Tell flutter_libmonero how to get access to the application dir
+  FS.setApplicationRootDirectoryFunction(
+    StackFileSystem.applicationRootDirectory,
+  );
+  // TODO set any other external libs file paths (bad external lib design workaround)
 
   final loadCoinlibFuture = loadCoinlib();
 
@@ -102,7 +113,7 @@ void main(List<String> args) async {
   }
 
   if (Util.isDesktop && !Platform.isIOS) {
-    setWindowTitle('Stack Wallet');
+    setWindowTitle(AppConfig.appName);
     setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
 
@@ -132,50 +143,58 @@ void main(List<String> args) async {
   }
 
   // Registering Transaction Model Adapters
-  Hive.registerAdapter(TransactionDataAdapter());
-  Hive.registerAdapter(TransactionChunkAdapter());
-  Hive.registerAdapter(TransactionAdapter());
-  Hive.registerAdapter(InputAdapter());
-  Hive.registerAdapter(OutputAdapter());
+  DB.instance.hive.registerAdapter(TransactionDataAdapter());
+  DB.instance.hive.registerAdapter(TransactionChunkAdapter());
+  DB.instance.hive.registerAdapter(TransactionAdapter());
+  DB.instance.hive.registerAdapter(InputAdapter());
+  DB.instance.hive.registerAdapter(OutputAdapter());
 
   // Registering Utxo Model Adapters
-  Hive.registerAdapter(UtxoDataAdapter());
-  Hive.registerAdapter(UtxoObjectAdapter());
-  Hive.registerAdapter(StatusAdapter());
+  DB.instance.hive.registerAdapter(UtxoDataAdapter());
+  DB.instance.hive.registerAdapter(UtxoObjectAdapter());
+  DB.instance.hive.registerAdapter(StatusAdapter());
 
   // Registering Lelantus Model Adapters
-  Hive.registerAdapter(LelantusCoinAdapter());
+  DB.instance.hive.registerAdapter(LelantusCoinAdapter());
 
   // notification model adapter
-  Hive.registerAdapter(NotificationModelAdapter());
+  DB.instance.hive.registerAdapter(NotificationModelAdapter());
 
   // change now trade adapters
-  Hive.registerAdapter(ExchangeTransactionAdapter());
-  Hive.registerAdapter(ExchangeTransactionStatusAdapter());
+  DB.instance.hive.registerAdapter(ExchangeTransactionAdapter());
+  DB.instance.hive.registerAdapter(ExchangeTransactionStatusAdapter());
 
-  Hive.registerAdapter(TradeAdapter());
+  DB.instance.hive.registerAdapter(TradeAdapter());
 
   // reference lookup data adapter
-  Hive.registerAdapter(TradeWalletLookupAdapter());
+  DB.instance.hive.registerAdapter(TradeWalletLookupAdapter());
 
   // node model adapter
-  Hive.registerAdapter(NodeModelAdapter());
+  DB.instance.hive.registerAdapter(NodeModelAdapter());
 
-  Hive.registerAdapter(NodeAdapter());
+  DB.instance.hive.registerAdapter(NodeAdapter());
 
-  if (!Hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
-    Hive.registerAdapter(WalletInfoAdapter());
+  if (!DB.instance.hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
+    DB.instance.hive.registerAdapter(WalletInfoAdapter());
   }
 
-  Hive.registerAdapter(WalletTypeAdapter());
+  DB.instance.hive.registerAdapter(WalletTypeAdapter());
 
-  Hive.registerAdapter(UnspentCoinsInfoAdapter());
-  await Hive.initFlutter(
-      (await StackFileSystem.applicationHiveDirectory()).path);
+  DB.instance.hive.registerAdapter(UnspentCoinsInfoAdapter());
 
-  await Hive.openBox<dynamic>(DB.boxNameDBInfo);
-  await Hive.openBox<dynamic>(DB.boxNamePrefs);
+  DB.instance.hive.init(
+    (await StackFileSystem.applicationHiveDirectory()).path,
+  );
+
+  await DB.instance.hive.openBox<dynamic>(DB.boxNameDBInfo);
+  await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
+
+  if (AppConfig.appName == "Campfire" &&
+      !Util.isDesktop &&
+      !CampfireMigration.didRun) {
+    await CampfireMigration.init();
+  }
 
   // TODO:
   // This should be moved to happen during the loading animation instead of
@@ -190,11 +209,14 @@ void main(List<String> args) async {
   }
 
   await StackFileSystem.initThemesDir();
+  await FiroCacheCoordinator.init();
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
-    int dbVersion = DB.instance.get<dynamic>(
-            boxName: DB.boxNameDBInfo, key: "hive_data_version") as int? ??
+    final int dbVersion = DB.instance.get<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+        ) as int? ??
         0;
     if (dbVersion < Constants.currentDataVersion) {
       try {
@@ -206,18 +228,17 @@ void main(List<String> args) async {
           ),
         );
       } catch (e, s) {
-        Logging.instance.log("Cannot migrate mobile database\n$e $s",
-            level: LogLevel.Error, printFullLength: true);
+        Logging.instance.log(
+          "Cannot migrate mobile database\n$e $s",
+          level: LogLevel.Error,
+          printFullLength: true,
+        );
       }
     }
   }
 
-  if (!Platform.isWindows) {
-    monero.onStartup();
-  }
-  if (!Platform.isLinux && !Platform.isWindows) {
-    wownero.onStartup();
-  }
+  monero.onStartup();
+  wownero.onStartup();
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
@@ -257,7 +278,7 @@ void main(List<String> args) async {
 
 /// MyApp initialises relevant services with a MultiProvider
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -274,8 +295,8 @@ class MyApp extends StatelessWidget {
 
 class MaterialAppWithTheme extends ConsumerStatefulWidget {
   const MaterialAppWithTheme({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   ConsumerState<MaterialAppWithTheme> createState() =>
@@ -357,27 +378,30 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
-      await ExchangeDataLoadingService.instance.initDB();
-      // run without awaiting
-      if (ref.read(prefsChangeNotifierProvider).externalCalls &&
-          await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
-        if (Constants.enableExchange) {
-          await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-            ref.read(efCurrencyPairProvider),
-            ref.read(efRateTypeProvider),
-          );
-          unawaited(ExchangeDataLoadingService.instance.loadAll());
+      if (AppConfig.hasFeature(AppFeature.swap)) {
+        await ExchangeDataLoadingService.instance.initDB();
+        // run without awaiting
+        if (ref.read(prefsChangeNotifierProvider).externalCalls &&
+            await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
+          if (Constants.enableExchange) {
+            await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
+              ref.read(efCurrencyPairProvider),
+              ref.read(efRateTypeProvider),
+            );
+            unawaited(ExchangeDataLoadingService.instance.loadAll());
+          }
+          // if (Constants.enableBuy) {
+          //   unawaited(BuyDataLoadingService().loadAll(ref));
+          // }
         }
-        // if (Constants.enableBuy) {
-        //   unawaited(BuyDataLoadingService().loadAll(ref));
-        // }
       }
 
       if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
         switch (ref.read(prefsChangeNotifierProvider).backupFrequencyType) {
           case BackupFrequencyType.everyTenMinutes:
             ref.read(autoSWBServiceProvider).startPeriodicBackupTimer(
-                duration: const Duration(minutes: 10));
+                  duration: const Duration(minutes: 10),
+                );
             break;
           case BackupFrequencyType.everyAppStart:
             unawaited(ref.read(autoSWBServiceProvider).doBackup());
@@ -443,7 +467,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           await loadingCompleter.future;
 
           await goToRestoreSWB(
-              ref.read(openedFromSWBFileStringStateProvider.state).state!);
+            ref.read(openedFromSWBFileStringStateProvider.state).state!,
+          );
           ref.read(openedFromSWBFileStringStateProvider.state).state = null;
         }
         // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
@@ -506,7 +531,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
               null) {
             await goToRestoreSWB(
-                ref.read(openedFromSWBFileStringStateProvider.state).state!);
+              ref.read(openedFromSWBFileStringStateProvider.state).state!,
+            );
             ref.read(openedFromSWBFileStringStateProvider.state).state = null;
           }
         }
@@ -554,8 +580,9 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     await resetOpenPath();
 
     Logging.instance.log(
-        "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
-        level: LogLevel.Info);
+      "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
+      level: LogLevel.Info,
+    );
   }
 
   /// should only be called on android currently
@@ -570,27 +597,31 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           .then((value) {
         if (value is! bool || value == false) {
           Navigator.of(navigatorKey.currentContext!).pushNamed(
-              RestoreFromEncryptedStringView.routeName,
-              arguments: encrypted);
+            RestoreFromEncryptedStringView.routeName,
+            arguments: encrypted,
+          );
         }
       });
     } else {
-      unawaited(Navigator.push(
-        navigatorKey.currentContext!,
-        RouteGenerator.getRoute(
-          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => LockscreenView(
-            showBackButton: true,
-            routeOnSuccess: RestoreFromEncryptedStringView.routeName,
-            routeOnSuccessArguments: encrypted,
-            biometricsCancelButtonString: "CANCEL",
-            biometricsLocalizedReason:
-                "Authenticate to restore Stack Wallet backup",
-            biometricsAuthenticationTitle: "Restore Stack backup",
+      unawaited(
+        Navigator.push(
+          navigatorKey.currentContext!,
+          RouteGenerator.getRoute(
+            shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+            builder: (_) => LockscreenView(
+              showBackButton: true,
+              routeOnSuccess: RestoreFromEncryptedStringView.routeName,
+              routeOnSuccessArguments: encrypted,
+              biometricsCancelButtonString: "CANCEL",
+              biometricsLocalizedReason:
+                  "Authenticate to restore ${AppConfig.appName} backup",
+              biometricsAuthenticationTitle:
+                  "Restore ${AppConfig.prefix} backup",
+            ),
+            settings: const RouteSettings(name: "/swbrestorelockscreen"),
           ),
-          settings: const RouteSettings(name: "/swbrestorelockscreen"),
         ),
-      ));
+      );
     }
   }
 
@@ -617,7 +648,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     return MaterialApp(
       key: GlobalKey(),
       navigatorKey: navigatorKey,
-      title: 'Stack Wallet',
+      title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
         extensions: [colorScheme],
@@ -650,7 +681,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             foregroundColor:
                 MaterialStateProperty.all(colorScheme.buttonTextSecondary),
             backgroundColor: MaterialStateProperty.all<Color>(
-                colorScheme.buttonBackSecondary),
+              colorScheme.buttonBackSecondary,
+            ),
             shape: MaterialStateProperty.all<OutlinedBorder>(
               RoundedRectangleBorder(
                 // 1000 to be relatively sure it keeps its pill shape
@@ -761,13 +793,20 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                         isInitialAppLogin: true,
                         routeOnSuccess: HomeView.routeName,
                         routeOnSuccessArguments: startupWalletId,
-                        biometricsAuthenticationTitle: "Unlock Stack",
+                        biometricsAuthenticationTitle:
+                            "Unlock ${AppConfig.prefix}",
                         biometricsLocalizedReason:
-                            "Unlock your stack wallet using biometrics",
+                            "Unlock your ${AppConfig.appName} using biometrics",
                         biometricsCancelButtonString: "Cancel",
                       );
                     } else {
-                      return const IntroView();
+                      if (AppConfig.appName == "Campfire" &&
+                          !CampfireMigration.didRun &&
+                          CampfireMigration.hasOldWallets) {
+                        return const CampfireMigrateView();
+                      } else {
+                        return const IntroView();
+                      }
                     }
                   } else {
                     // CURRENTLY DISABLED as cannot be animated

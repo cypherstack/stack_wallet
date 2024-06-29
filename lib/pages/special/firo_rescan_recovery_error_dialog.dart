@@ -1,28 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../route_generator.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/stack_dialog.dart';
+import '../pinpad_views/lock_screen_view.dart';
+import '../settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
+import '../settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 
 enum FiroRescanRecoveryErrorViewOption {
   retry,
@@ -149,9 +150,10 @@ class _FiroRescanRecoveryErrorViewState
                                   child: Text(
                                     "Cancel",
                                     style: STextStyles.button(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark),
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorDark,
+                                    ),
                                   ),
                                 ),
                                 rightButton: TextButton(
@@ -179,7 +181,8 @@ class _FiroRescanRecoveryErrorViewState
                                               "Delete wallet",
                                         ),
                                         settings: const RouteSettings(
-                                            name: "/deleteWalletLockscreen"),
+                                          name: "/deleteWalletLockscreen",
+                                        ),
                                       ),
                                     );
                                   },
@@ -249,7 +252,7 @@ class _FiroRescanRecoveryErrorViewState
                                     name: UnlockWalletKeysDesktop.routeName,
                                     arguments: widget.walletId,
                                   ),
-                                )
+                                ),
                               ];
                             },
                           ),
@@ -281,7 +284,8 @@ class _FiroRescanRecoveryErrorViewState
                                       "View recovery phrase",
                                 ),
                                 settings: const RouteSettings(
-                                    name: "/viewRecoverPhraseLockscreen"),
+                                  name: "/viewRecoverPhraseLockscreen",
+                                ),
                               ),
                             );
                           }

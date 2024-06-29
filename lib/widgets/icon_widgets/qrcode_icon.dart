@@ -10,16 +10,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
 
 class QrCodeIcon extends StatelessWidget {
   const QrCodeIcon({
-    Key? key,
+    super.key,
     this.width = 17,
     this.height = 17,
     this.color,
-  }) : super(key: key);
+  });
 
   final double width;
   final double height;

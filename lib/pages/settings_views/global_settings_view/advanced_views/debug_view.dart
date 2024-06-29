@@ -23,30 +23,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:stackwallet/models/isar/models/log.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
-import 'package:stackwallet/providers/global/debug_service_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../../models/isar/models/log.dart';
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../providers/global/debug_service_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/clipboard_interface.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/stack_file_system.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../../widgets/custom_loading_overlay.dart';
+import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/rounded_container.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/stack_text_field.dart';
+import '../../../../widgets/textfield_icon_button.dart';
+import '../stack_backup_views/helpers/swb_file_system.dart';
 
 class DebugView extends ConsumerStatefulWidget {
-  const DebugView({Key? key}) : super(key: key);
+  const DebugView({super.key});
 
   static const String routeName = "/debug";
 
@@ -68,7 +69,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
     }
     return unfiltered
         .where(
-            (e) => (e.toString().toLowerCase().contains(filter.toLowerCase())))
+          (e) => (e.toString().toLowerCase().contains(filter.toLowerCase())),
+        )
         .toList();
   }
 
@@ -174,19 +176,21 @@ class _DebugViewState extends ConsumerState<DebugView> {
                             Navigator.of(context).pop();
 
                             bool shouldPop = false;
-                            unawaited(showDialog<dynamic>(
-                              barrierDismissible: false,
-                              context: context,
-                              builder: (_) => WillPopScope(
-                                onWillPop: () async {
-                                  return shouldPop;
-                                },
-                                child: const CustomLoadingOverlay(
-                                  message: "Deleting logs...",
-                                  eventBus: null,
+                            unawaited(
+                              showDialog<dynamic>(
+                                barrierDismissible: false,
+                                context: context,
+                                builder: (_) => WillPopScope(
+                                  onWillPop: () async {
+                                    return shouldPop;
+                                  },
+                                  child: const CustomLoadingOverlay(
+                                    message: "Deleting logs...",
+                                    eventBus: null,
+                                  ),
                                 ),
                               ),
-                            ));
+                            );
 
                             await ref
                                 .read(debugServiceProvider)
@@ -196,10 +200,13 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                             if (mounted) {
                               Navigator.pop(context);
-                              unawaited(showFloatingFlushBar(
+                              unawaited(
+                                showFloatingFlushBar(
                                   type: FlushBarType.info,
                                   context: context,
-                                  message: 'Logs cleared!'));
+                                  message: 'Logs cleared!',
+                                ),
+                              );
 
                               setState(() {});
                             }
@@ -301,32 +308,34 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                     final signature =
                                         packageInfo.buildSignature;
                                     final appName = packageInfo.appName;
-                                    String firoCommit =
+                                    final String firoCommit =
                                         FIRO_VERSIONS.getPluginVersion();
-                                    String epicCashCommit =
+                                    final String epicCashCommit =
                                         EPIC_VERSIONS.getPluginVersion();
-                                    String moneroCommit =
+                                    final String moneroCommit =
                                         MONERO_VERSIONS.getPluginVersion();
-                                    DeviceInfoPlugin deviceInfoPlugin =
+                                    final DeviceInfoPlugin deviceInfoPlugin =
                                         DeviceInfoPlugin();
                                     final deviceInfo =
                                         await deviceInfoPlugin.deviceInfo;
-                                    var deviceInfoMap = deviceInfo.toMap();
+                                    final deviceInfoMap = deviceInfo.toMap();
                                     deviceInfoMap.remove("systemFeatures");
 
                                     final logs = filtered(
-                                            ref.watch(debugServiceProvider
-                                                .select((value) =>
-                                                    value.recentLogs)),
-                                            _searchTerm)
-                                        .reversed
-                                        .toList(growable: false);
-                                    List<String> errorLogs = [];
-                                    for (var log in logs) {
+                                      ref.watch(
+                                        debugServiceProvider.select(
+                                          (value) => value.recentLogs,
+                                        ),
+                                      ),
+                                      _searchTerm,
+                                    ).reversed.toList(growable: false);
+                                    final List<String> errorLogs = [];
+                                    for (final log in logs) {
                                       if (log.logLevel == LogLevel.Error ||
                                           log.logLevel == LogLevel.Fatal) {
                                         errorLogs.add(
-                                            "${log.logLevel}: ${log.message}");
+                                          "${log.logLevel}: ${log.message}",
+                                        );
                                       }
                                     }
 
@@ -342,14 +351,16 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                       "errorLogs": errorLogs,
                                     };
                                     Logging.instance.log(
-                                        json.encode(finalDebugMap),
-                                        level: LogLevel.Info,
-                                        printFullLength: true);
+                                      json.encode(finalDebugMap),
+                                      level: LogLevel.Info,
+                                      printFullLength: true,
+                                    );
                                     const ClipboardInterface clipboard =
                                         ClipboardWrapper();
                                     await clipboard.setData(
                                       ClipboardData(
-                                          text: json.encode(finalDebugMap)),
+                                        text: json.encode(finalDebugMap),
+                                      ),
                                     );
                                   } catch (e, s) {
                                     Logging.instance
@@ -400,19 +411,22 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                   if (path != null) {
                                     final eventBus = EventBus();
                                     bool shouldPop = false;
-                                    unawaited(showDialog<dynamic>(
-                                      barrierDismissible: false,
-                                      context: context,
-                                      builder: (_) => WillPopScope(
-                                        onWillPop: () async {
-                                          return shouldPop;
-                                        },
-                                        child: CustomLoadingOverlay(
-                                          message: "Generating Stack logs file",
-                                          eventBus: eventBus,
+                                    unawaited(
+                                      showDialog<dynamic>(
+                                        barrierDismissible: false,
+                                        context: context,
+                                        builder: (_) => WillPopScope(
+                                          onWillPop: () async {
+                                            return shouldPop;
+                                          },
+                                          child: CustomLoadingOverlay(
+                                            message:
+                                                "Generating Stack logs file",
+                                            eventBus: eventBus,
+                                          ),
                                         ),
                                       ),
-                                    ));
+                                    );
 
                                     bool logsSaved = true;
                                     String? filename;
@@ -459,7 +473,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                 },
                               ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -470,11 +484,11 @@ class _DebugViewState extends ConsumerState<DebugView> {
             body: Builder(
               builder: (context) {
                 final logs = filtered(
-                        ref.watch(debugServiceProvider
-                            .select((value) => value.recentLogs)),
-                        _searchTerm)
-                    .reversed
-                    .toList(growable: false);
+                  ref.watch(
+                    debugServiceProvider.select((value) => value.recentLogs),
+                  ),
+                  _searchTerm,
+                ).reversed.toList(growable: false);
 
                 return CustomScrollView(
                   reverse: true,
@@ -493,7 +507,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
 
                           return Container(
                             key: Key(
-                                "log_${log.id}_${log.timestampInMillisUTC}"),
+                              "log_${log.id}_${log.timestampInMillisUTC}",
+                            ),
                             decoration: BoxDecoration(
                               color: Theme.of(context)
                                   .extension<StackColors>()!

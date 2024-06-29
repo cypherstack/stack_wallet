@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/frost_currency.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/dialogs/simple_mobile_dialog.dart';
-import 'package:stackwallet/widgets/frost_scaffold.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../../frost_route_generator.dart';
+import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/conditional_parent.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/desktop/desktop_app_bar.dart';
+import '../../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/dialogs/simple_mobile_dialog.dart';
+import '../../../../widgets/frost_scaffold.dart';
+import '../../../../widgets/rounded_white_container.dart';
 
 class SelectNewFrostImportTypeView extends ConsumerStatefulWidget {
   const SelectNewFrostImportTypeView({
@@ -167,7 +167,7 @@ class _SelectNewFrostImportTypeViewState
                   FrostStepScaffold.routeName,
                 );
               },
-            )
+            ),
           ],
         ),
       ),

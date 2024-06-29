@@ -9,10 +9,10 @@
  */
 
 import 'package:equatable/equatable.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
 abstract class AddWalletListEntity extends Equatable {
-  Coin get coin;
+  CryptoCurrency get cryptoCurrency;
   String get name;
   String get ticker;
 }

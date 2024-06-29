@@ -10,8 +10,8 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../../utilities/amount/amount.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class EthTokenTxExtraDTO {
   EthTokenTxExtraDTO({
@@ -42,7 +42,7 @@ class EthTokenTxExtraDTO {
         to: map['to'] as String,
         value: Amount(
           rawValue: BigInt.parse(map['value'] as String),
-          fractionDigits: Coin.ethereum.decimals,
+          fractionDigits: Ethereum(CryptoCurrencyNetwork.main).fractionDigits,
         ),
         gas: _amountFromJsonNum(map['gas']),
         gasPrice: _amountFromJsonNum(map['gasPrice']),
@@ -70,7 +70,7 @@ class EthTokenTxExtraDTO {
   static Amount _amountFromJsonNum(dynamic json) {
     return Amount(
       rawValue: BigInt.from(json as num),
-      fractionDigits: Coin.ethereum.decimals,
+      fractionDigits: Ethereum(CryptoCurrencyNetwork.main).fractionDigits,
     );
   }
 

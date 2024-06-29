@@ -9,19 +9,20 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../../widgets/desktop/primary_button.dart';
+import '../../../../../widgets/desktop/secondary_button.dart';
+import '../../../../../widgets/rounded_container.dart';
+import '../../../../../widgets/stack_dialog.dart';
 
 class CancelStackRestoreDialog extends StatelessWidget {
   const CancelStackRestoreDialog({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +69,11 @@ class CancelStackRestoreDialog extends StatelessWidget {
               maxWidth: 600,
               child: Padding(
                 padding: const EdgeInsets.only(
-                    top: 20, left: 32, right: 32, bottom: 20),
+                  top: 20,
+                  left: 32,
+                  right: 32,
+                  bottom: 20,
+                ),
                 child: Column(
                   children: [
                     Text(
@@ -111,7 +116,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                           onPressed: () {
                             Navigator.of(context).pop(true);
                           },
-                        )
+                        ),
                       ],
                     ),
                   ],

@@ -14,30 +14,31 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/cashfusion/fusion_rounds_selection_sheet.dart';
-import 'package:stackwallet/pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
-import 'package:stackwallet/providers/cash_fusion/fusion_progress_ui_state_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_app_bar.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_scaffold.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+
+import '../../pages/cashfusion/fusion_rounds_selection_sheet.dart';
+import '../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
+import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/extensions/extensions.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_text_field.dart';
+import 'sub_widgets/fusion_dialog.dart';
 
 class DesktopCashFusionView extends ConsumerStatefulWidget {
   const DesktopCashFusionView({
@@ -60,7 +61,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
   late final FocusNode portFocusNode;
   late final TextEditingController fusionRoundController;
   late final FocusNode fusionRoundFocusNode;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   bool _enableStartButton = false;
   bool _enableSSLCheckbox = false;
@@ -77,7 +78,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-          "FusionProgressUIState was already set for ${widget.walletId}")) {
+            "FusionProgressUIState was already set for ${widget.walletId}",
+          )) {
         rethrow;
       }
     }
@@ -256,7 +258,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                                 Text(
                                                   "What is Fusion?",
                                                   style: STextStyles.desktopH2(
-                                                      context),
+                                                    context,
+                                                  ),
                                                 ),
                                                 DesktopDialogCloseButton(
                                                   onPressedOverride: () =>
@@ -276,8 +279,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                               "companies to track your coins.",
                                               style:
                                                   STextStyles.desktopTextMedium(
-                                                          context)
-                                                      .copyWith(
+                                                context,
+                                              ).copyWith(
                                                 color: Theme.of(context)
                                                     .extension<StackColors>()!
                                                     .textDark3,
@@ -337,7 +340,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             Text(
                               "Server settings",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                  context),
+                                context,
+                              ),
                             ),
                             CustomTextButton(
                               text: "Default",
@@ -396,7 +400,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                             controller: portController,
                             focusNode: portFocusNode,
                             inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
+                              FilteringTextInputFormatter.digitsOnly,
                             ],
                             onChanged: (value) {
                               setState(() {
@@ -544,7 +548,7 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                       controller: fusionRoundController,
                                       focusNode: fusionRoundFocusNode,
                                       inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly
+                                        FilteringTextInputFormatter.digitsOnly,
                                       ],
                                       onChanged: (value) {
                                         setState(() {
@@ -562,8 +566,8 @@ class _DesktopCashFusion extends ConsumerState<DesktopCashFusionView> {
                                         context,
                                         desktopMed: true,
                                       ).copyWith(
-                                          labelText:
-                                              "Enter number of fusions.."),
+                                        labelText: "Enter number of fusions..",
+                                      ),
                                     ),
                                   ),
                                 ],

@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/logger.dart';
 import 'package:tor_ffi_plugin/tor_ffi_plugin.dart';
+
+import '../utilities/logger.dart';
+import 'event_bus/events/global/tor_connection_status_changed_event.dart';
+import 'event_bus/global_event_bus.dart';
 
 final pTorService = Provider((_) => TorService.sharedInstance);
 
@@ -99,16 +100,19 @@ class TorService {
     }
   }
 
-  /// disable tor
+  /// Disable Tor.
   Future<void> disable() async {
     if (_tor == null) {
       throw Exception("TorService.init has not been called!");
     }
 
-    // no need to update status and fire event if status won't change
+    // No need to update status and fire event if status won't change.
     if (_status == TorConnectionStatus.disconnected) {
       return;
     }
+
+    _tor!.disable();
+    await _tor?.stop();
 
     _updateStatusAndFireEvent(
       status: TorConnectionStatus.disconnected,

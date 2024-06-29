@@ -11,40 +11,57 @@
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/util.dart';
+
+import '../app_config.dart';
+import 'logger.dart';
+import 'util.dart';
 
 abstract class StackFileSystem {
-  static String? overrideDir;
+  static String? _overrideDesktopDirPath;
+  static bool _overrideDirSet = false;
+  static void setDesktopOverrideDir(String dirPath) {
+    if (_overrideDirSet) {
+      throw Exception(
+        "Attempted to change StackFileSystem._overrideDir unexpectedly",
+      );
+    }
+    _overrideDesktopDirPath = dirPath;
+    _overrideDirSet = true;
+  }
+
+  static bool get _createSubDirs =>
+      Util.isDesktop || AppConfig.appName == "Campfire";
 
   static Future<Directory> applicationRootDirectory() async {
     Directory appDirectory;
 
-    // if this is changed, the directories in libmonero must also be changed!!!!!
-    const dirName = "stackwallet";
-
     // todo: can merge and do same as regular linux home dir?
     if (Logging.isArmLinux) {
       appDirectory = await getApplicationDocumentsDirectory();
-      appDirectory = Directory("${appDirectory.path}/.$dirName");
+      appDirectory =
+          Directory("${appDirectory.path}/.${AppConfig.appDefaultDataDirName}");
     } else if (Platform.isLinux) {
-      if (overrideDir != null) {
-        appDirectory = Directory(overrideDir!);
+      if (_overrideDesktopDirPath != null) {
+        appDirectory = Directory(_overrideDesktopDirPath!);
       } else {
-        appDirectory = Directory("${Platform.environment['HOME']}/.$dirName");
+        appDirectory = Directory(
+          "${Platform.environment['HOME']}/.${AppConfig.appDefaultDataDirName}",
+        );
       }
     } else if (Platform.isWindows) {
-      if (overrideDir != null) {
-        appDirectory = Directory(overrideDir!);
+      if (_overrideDesktopDirPath != null) {
+        appDirectory = Directory(_overrideDesktopDirPath!);
       } else {
         appDirectory = await getApplicationSupportDirectory();
       }
     } else if (Platform.isMacOS) {
-      if (overrideDir != null) {
-        appDirectory = Directory(overrideDir!);
+      if (_overrideDesktopDirPath != null) {
+        appDirectory = Directory(_overrideDesktopDirPath!);
       } else {
         appDirectory = await getLibraryDirectory();
-        appDirectory = Directory("${appDirectory.path}/$dirName");
+        appDirectory = Directory(
+          "${appDirectory.path}/${AppConfig.appDefaultDataDirName}",
+        );
       }
     } else if (Platform.isIOS) {
       // todo: check if we need different behaviour here
@@ -66,7 +83,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationIsarDirectory() async {
     final root = await applicationRootDirectory();
-    if (Util.isDesktop) {
+    if (_createSubDirs) {
       final dir = Directory("${root.path}/isar");
       if (!dir.existsSync()) {
         await dir.create();
@@ -77,9 +94,23 @@ abstract class StackFileSystem {
     }
   }
 
+  // Not used in general now. See applicationFiroCacheSQLiteDirectory()
+  // static Future<Directory> applicationSQLiteDirectory() async {
+  //   final root = await applicationRootDirectory();
+  //   if (_createSubDirs) {
+  //     final dir = Directory("${root.path}/sqlite");
+  //     if (!dir.existsSync()) {
+  //       await dir.create();
+  //     }
+  //     return dir;
+  //   } else {
+  //     return root;
+  //   }
+  // }
+
   static Future<Directory> applicationTorDirectory() async {
     final root = await applicationRootDirectory();
-    if (Util.isDesktop) {
+    if (_createSubDirs) {
       final dir = Directory("${root.path}/tor");
       if (!dir.existsSync()) {
         await dir.create();
@@ -90,9 +121,22 @@ abstract class StackFileSystem {
     }
   }
 
+  static Future<Directory> applicationFiroCacheSQLiteDirectory() async {
+    final root = await applicationRootDirectory();
+    if (_createSubDirs) {
+      final dir = Directory("${root.path}/sqlite/firo_cache");
+      if (!dir.existsSync()) {
+        await dir.create(recursive: true);
+      }
+      return dir;
+    } else {
+      return root;
+    }
+  }
+
   static Future<Directory> applicationHiveDirectory() async {
     final root = await applicationRootDirectory();
-    if (Util.isDesktop) {
+    if (_createSubDirs) {
       final dir = Directory("${root.path}/hive");
       if (!dir.existsSync()) {
         await dir.create();

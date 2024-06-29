@@ -12,27 +12,28 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/create_auto_backup_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/stack_backup_views/edit_auto_backup_view.dart';
-import 'package:stackwallet/providers/global/auto_swb_service_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/backup_frequency_type.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../providers/global/auto_swb_service_provider.dart';
+import '../../../../providers/providers.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/backup_frequency_type.dart';
+import '../../../../utilities/format.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/stack_text_field.dart';
+import 'create_auto_backup_view.dart';
+import 'edit_auto_backup_view.dart';
+
 class AutoBackupView extends ConsumerStatefulWidget {
-  const AutoBackupView({Key? key}) : super(key: key);
+  const AutoBackupView({super.key});
 
   static const String routeName = "/stackAutoBackup";
 
@@ -72,8 +73,8 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
     } else {
       // if greater than a week return the actual date
       return DateFormat.yMMMMd(
-              ref.read(localeServiceChangeNotifierProvider).locale)
-          .format(time);
+        ref.read(localeServiceChangeNotifierProvider).locale,
+      ).format(time);
     }
 
     if (value == 1) {
@@ -200,7 +201,8 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
     fileLocationController.text =
         ref.read(prefsChangeNotifierProvider).autoBackupLocation ?? " ";
     frequencyController.text = Format.prettyFrequencyType(
-        ref.read(prefsChangeNotifierProvider).backupFrequencyType);
+      ref.read(prefsChangeNotifierProvider).backupFrequencyType,
+    );
 
     fileLocationFocusNode = FocusNode();
     passwordFocusNode = FocusNode();
@@ -225,8 +227,9 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    bool isEnabledAutoBackup = ref.watch(prefsChangeNotifierProvider
-        .select((value) => value.isAutoBackupEnabled));
+    final bool isEnabledAutoBackup = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.isAutoBackupEnabled),
+    );
 
     ref.listen(
         prefsChangeNotifierProvider
@@ -312,8 +315,9 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       style: STextStyles.label(context),
                       children: [
                         const TextSpan(
-                            text:
-                                "Auto Backup is a custom Stack Wallet feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.\n\nFor more information, please see our website "),
+                          text:
+                              "Auto Backup is a custom Stack Wallet feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.\n\nFor more information, please see our website ",
+                        ),
                         TextSpan(
                           text: "stackwallet.com.",
                           style: STextStyles.richLink(context),
@@ -346,7 +350,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                           Text(
                             "Backed up ${prettySinceLastBackupString(ref.watch(prefsChangeNotifierProvider.select((value) => value.lastAutoBackup)))}",
                             style: STextStyles.itemSubtitle(context),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -465,7 +469,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                               .pushNamed(EditAutoBackupView.routeName);
                         },
                       ),
-                    )
+                    ),
                   ],
                 ),
             ],

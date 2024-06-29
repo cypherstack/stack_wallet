@@ -10,8 +10,8 @@
 
 import 'dart:convert';
 
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../utilities/amount/amount.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 class Balance {
   final Amount total;
@@ -26,10 +26,10 @@ class Balance {
     required this.pendingSpendable,
   });
 
-  factory Balance.zeroForCoin({required Coin coin}) {
+  factory Balance.zeroFor({required CryptoCurrency currency}) {
     final amount = Amount(
       rawValue: BigInt.zero,
-      fractionDigits: coin.decimals,
+      fractionDigits: currency.fractionDigits,
     );
 
     return Balance(
@@ -72,7 +72,8 @@ class Balance {
             ),
       pendingSpendable: decoded["pendingSpendable"] is String
           ? Amount.fromSerializedJsonString(
-              decoded["pendingSpendable"] as String)
+              decoded["pendingSpendable"] as String,
+            )
           : Amount(
               rawValue: BigInt.from(decoded["pendingSpendable"] as int),
               fractionDigits: deprecatedValue,

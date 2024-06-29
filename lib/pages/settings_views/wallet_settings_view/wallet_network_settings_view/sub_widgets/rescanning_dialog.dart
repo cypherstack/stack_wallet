@@ -9,17 +9,17 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/animated_widgets/rotating_arrows.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../../../../../utilities/util.dart';
+import '../../../../../widgets/animated_widgets/rotating_arrows.dart';
+import '../../../../../widgets/conditional_parent.dart';
+import '../../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../../widgets/stack_dialog.dart';
 
 class RescanningDialog extends StatefulWidget {
   const RescanningDialog({
-    Key? key,
+    super.key,
     // required this.onCancel,
-  }) : super(key: key);
+  });
 
   // final VoidCallback onCancel;
 

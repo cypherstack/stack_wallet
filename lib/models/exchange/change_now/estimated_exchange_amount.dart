@@ -9,7 +9,8 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/utilities/logger.dart';
+
+import '../../../utilities/logger.dart';
 
 class EstimatedExchangeAmount {
   /// Estimated exchange amount
@@ -45,8 +46,10 @@ class EstimatedExchangeAmount {
   factory EstimatedExchangeAmount.fromJson(Map<String, dynamic> json) {
     try {
       return EstimatedExchangeAmount(
-        estimatedAmount: Decimal.parse(json["estimatedAmount"]?.toString() ??
-            json["estimatedDeposit"].toString()),
+        estimatedAmount: Decimal.parse(
+          json["estimatedAmount"]?.toString() ??
+              json["estimatedDeposit"].toString(),
+        ),
         transactionSpeedForecast:
             json["transactionSpeedForecast"] as String? ?? "",
         warningMessage: json["warningMessage"] as String?,

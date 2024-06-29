@@ -2,32 +2,33 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/tx_icon.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/locale_provider.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/providers/global/price_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/format.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
+
+import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../../models/isar/models/isar_models.dart';
+import '../../../../providers/db/main_db_provider.dart';
+import '../../../../providers/global/locale_provider.dart';
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../providers/global/price_provider.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/format.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../sub_widgets/tx_icon.dart';
+import 'transaction_v2_details_view.dart';
 
 class TransactionCardV2 extends ConsumerStatefulWidget {
   const TransactionCardV2({
-    Key? key,
+    super.key,
     required this.transaction,
-  }) : super(key: key);
+  });
 
   final TransactionV2 transaction;
 
@@ -40,17 +41,17 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   late final String walletId;
   late final String prefix;
   late final String unit;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final TransactionType txType;
   late final EthContract? tokenContract;
 
   bool get isTokenTx => tokenContract != null;
 
   String whatIsIt(
-    Coin coin,
+    CryptoCurrency coin,
     int currentHeight,
   ) =>
-      _transaction.isCancelled && coin == Coin.ethereum
+      _transaction.isCancelled && coin is Ethereum
           ? "Failed"
           : _transaction.statusLabel(
               currentChainHeight: currentHeight,
@@ -97,58 +98,69 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
     final price = ref
-        .watch(priceAnd24hChangeNotifierProvider.select((value) => isTokenTx
-            ? value.getTokenPrice(tokenContract!.address)
-            : value.getPrice(coin)))
+        .watch(
+          priceAnd24hChangeNotifierProvider.select(
+            (value) => isTokenTx
+                ? value.getTokenPrice(tokenContract!.address)
+                : value.getPrice(coin),
+          ),
+        )
         .item1;
 
     final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final Amount amount;
 
-    final fractionDigits = tokenContract?.decimals ?? coin.decimals;
+    final fractionDigits = tokenContract?.decimals ?? coin.fractionDigits;
 
     if (_transaction.subType == TransactionSubType.cashFusion) {
       amount = _transaction.getAmountReceivedInThisWallet(
-          fractionDigits: fractionDigits);
+        fractionDigits: fractionDigits,
+      );
     } else {
       switch (_transaction.type) {
         case TransactionType.outgoing:
           amount = _transaction.getAmountSentFromThisWallet(
-              fractionDigits: fractionDigits);
+            fractionDigits: fractionDigits,
+          );
           break;
 
         case TransactionType.incoming:
         case TransactionType.sentToSelf:
           if (_transaction.subType == TransactionSubType.sparkMint) {
             amount = _transaction.getAmountSparkSelfMinted(
-                fractionDigits: fractionDigits);
+              fractionDigits: fractionDigits,
+            );
           } else if (_transaction.subType == TransactionSubType.sparkSpend) {
             final changeAddress =
                 (ref.watch(pWallets).getWallet(walletId) as SparkInterface)
                     .sparkChangeAddress;
             amount = Amount(
               rawValue: _transaction.outputs
-                  .where((e) =>
-                      e.walletOwns && !e.addresses.contains(changeAddress))
+                  .where(
+                    (e) => e.walletOwns && !e.addresses.contains(changeAddress),
+                  )
                   .fold(BigInt.zero, (p, e) => p + e.value),
-              fractionDigits: coin.decimals,
+              fractionDigits: coin.fractionDigits,
             );
           } else {
             amount = _transaction.getAmountReceivedInThisWallet(
-                fractionDigits: fractionDigits);
+              fractionDigits: fractionDigits,
+            );
           }
           break;
 
         case TransactionType.unknown:
           amount = _transaction.getAmountSentFromThisWallet(
-              fractionDigits: fractionDigits);
+            fractionDigits: fractionDigits,
+          );
           break;
       }
     }
@@ -261,13 +273,17 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                               ),
                             ),
                           ),
-                          if (ref.watch(prefsChangeNotifierProvider
-                              .select((value) => value.externalCalls)))
+                          if (ref.watch(
+                            prefsChangeNotifierProvider
+                                .select((value) => value.externalCalls),
+                          ))
                             const SizedBox(
                               width: 10,
                             ),
-                          if (ref.watch(prefsChangeNotifierProvider
-                              .select((value) => value.externalCalls)))
+                          if (ref.watch(
+                            prefsChangeNotifierProvider
+                                .select((value) => value.externalCalls),
+                          ))
                             Flexible(
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,

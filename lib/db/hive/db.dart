@@ -11,17 +11,22 @@
 import 'dart:isolate';
 
 import 'package:cw_core/wallet_info.dart' as xmr;
-import 'package:hive/hive.dart';
+import 'package:hive/hive.dart' show Box;
+import 'package:hive/src/hive_impl.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
+
+import '../../app_config.dart';
+import '../../models/exchange/response_objects/trade.dart';
+import '../../models/node_model.dart';
+import '../../models/notification_model.dart';
+import '../../models/trade_wallet_lookup.dart';
+import '../../services/wallets_service.dart';
+import '../../utilities/logger.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class DB {
+  final hive = HiveImpl();
+
   // legacy (required for migrations)
   @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
@@ -48,17 +53,14 @@ class DB {
   static const String boxNamePrefs = "prefs";
   static const String boxNameOneTimeDialogsShown = "oneTimeDialogsShown";
 
-  String _boxNameTxCache({required Coin coin}) => "${coin.name}_txCache";
+  String _boxNameTxCache({required CryptoCurrency currency}) =>
+      "${currency.identifier}_txCache";
 
   // firo only
-  String _boxNameSetCache({required Coin coin}) =>
-      "${coin.name}_anonymitySetCache";
-  String _boxNameSetSparkCache({required Coin coin}) =>
-      "${coin.name}_anonymitySetSparkCache";
-  String _boxNameUsedSerialsCache({required Coin coin}) =>
-      "${coin.name}_usedSerialsCache";
-  String _boxNameSparkUsedCoinsTagsCache({required Coin coin}) =>
-      "${coin.name}_sparkUsedCoinsTagsCache";
+  String _boxNameSetCache({required CryptoCurrency currency}) =>
+      "${currency.identifier}_anonymitySetCache";
+  String _boxNameUsedSerialsCache({required CryptoCurrency currency}) =>
+      "${currency.identifier}_usedSerialsCache";
 
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
@@ -77,11 +79,10 @@ class DB {
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
 
-  final Map<Coin, Box<dynamic>> _txCacheBoxes = {};
-  final Map<Coin, Box<dynamic>> _setCacheBoxes = {};
-  final Map<Coin, Box<dynamic>> _setSparkCacheBoxes = {};
-  final Map<Coin, Box<dynamic>> _usedSerialsCacheBoxes = {};
-  final Map<Coin, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
+  final Map<String, Box<dynamic>> _txCacheBoxes = {};
+  final Map<String, Box<dynamic>> _setCacheBoxes = {};
+  final Map<String, Box<dynamic>> _usedSerialsCacheBoxes = {};
+  final Map<String, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
 
   // exposed for monero
   Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource!;
@@ -97,7 +98,8 @@ class DB {
     // TODO: make sure this works properly
     if (Isolate.current.debugName != "main") {
       throw Exception(
-          "DB.instance should not be accessed outside the main isolate!");
+        "DB.instance should not be accessed outside the main isolate!",
+      );
     }
 
     return _instance;
@@ -105,52 +107,52 @@ class DB {
 
   // open hive boxes
   Future<void> init() async {
-    if (Hive.isBoxOpen(boxNameDBInfo)) {
-      _boxDBInfo = Hive.box<dynamic>(boxNameDBInfo);
+    if (hive.isBoxOpen(boxNameDBInfo)) {
+      _boxDBInfo = hive.box<dynamic>(boxNameDBInfo);
     } else {
-      _boxDBInfo = await Hive.openBox<dynamic>(boxNameDBInfo);
+      _boxDBInfo = await hive.openBox<dynamic>(boxNameDBInfo);
     }
-    await Hive.openBox<String>(boxNameWalletsToDeleteOnStart);
+    await hive.openBox<String>(boxNameWalletsToDeleteOnStart);
 
-    if (Hive.isBoxOpen(boxNamePrefs)) {
-      _boxPrefs = Hive.box<dynamic>(boxNamePrefs);
+    if (hive.isBoxOpen(boxNamePrefs)) {
+      _boxPrefs = hive.box<dynamic>(boxNamePrefs);
     } else {
-      _boxPrefs = await Hive.openBox<dynamic>(boxNamePrefs);
-    }
-
-    if (Hive.isBoxOpen(boxNameNodeModels)) {
-      _boxNodeModels = Hive.box<NodeModel>(boxNameNodeModels);
-    } else {
-      _boxNodeModels = await Hive.openBox<NodeModel>(boxNameNodeModels);
+      _boxPrefs = await hive.openBox<dynamic>(boxNamePrefs);
     }
 
-    if (Hive.isBoxOpen(boxNamePrimaryNodes)) {
-      _boxPrimaryNodes = Hive.box<NodeModel>(boxNamePrimaryNodes);
+    if (hive.isBoxOpen(boxNameNodeModels)) {
+      _boxNodeModels = hive.box<NodeModel>(boxNameNodeModels);
     } else {
-      _boxPrimaryNodes = await Hive.openBox<NodeModel>(boxNamePrimaryNodes);
+      _boxNodeModels = await hive.openBox<NodeModel>(boxNameNodeModels);
     }
 
-    if (Hive.isBoxOpen(boxNameAllWalletsData)) {
-      _boxAllWalletsData = Hive.box<dynamic>(boxNameAllWalletsData);
+    if (hive.isBoxOpen(boxNamePrimaryNodes)) {
+      _boxPrimaryNodes = hive.box<NodeModel>(boxNamePrimaryNodes);
     } else {
-      _boxAllWalletsData = await Hive.openBox<dynamic>(boxNameAllWalletsData);
+      _boxPrimaryNodes = await hive.openBox<NodeModel>(boxNamePrimaryNodes);
+    }
+
+    if (hive.isBoxOpen(boxNameAllWalletsData)) {
+      _boxAllWalletsData = hive.box<dynamic>(boxNameAllWalletsData);
+    } else {
+      _boxAllWalletsData = await hive.openBox<dynamic>(boxNameAllWalletsData);
     }
 
     _boxNotifications =
-        await Hive.openBox<NotificationModel>(boxNameNotifications);
+        await hive.openBox<NotificationModel>(boxNameNotifications);
     _boxWatchedTransactions =
-        await Hive.openBox<NotificationModel>(boxNameWatchedTransactions);
+        await hive.openBox<NotificationModel>(boxNameWatchedTransactions);
     _boxWatchedTrades =
-        await Hive.openBox<NotificationModel>(boxNameWatchedTrades);
-    _boxTradesV2 = await Hive.openBox<Trade>(boxNameTradesV2);
-    _boxTradeNotes = await Hive.openBox<String>(boxNameTradeNotes);
-    _boxTradeLookup = await Hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
+        await hive.openBox<NotificationModel>(boxNameWatchedTrades);
+    _boxTradesV2 = await hive.openBox<Trade>(boxNameTradesV2);
+    _boxTradeNotes = await hive.openBox<String>(boxNameTradeNotes);
+    _boxTradeLookup = await hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
     _walletInfoSource =
-        await Hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
-    _boxFavoriteWallets = await Hive.openBox<String>(boxNameFavoriteWallets);
+        await hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
+    _boxFavoriteWallets = await hive.openBox<String>(boxNameFavoriteWallets);
 
     await Future.wait([
-      Hive.openBox<dynamic>(boxNamePriceCache),
+      hive.openBox<dynamic>(boxNamePriceCache),
       _loadWalletBoxes(),
     ]);
   }
@@ -160,93 +162,90 @@ class DB {
     names.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
       try {
-        Coin.values.byName(jsonObject["coin"] as String);
+        AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
         Logging.instance.log(
-            "Error, ${jsonObject["coin"]} does not exist, $name wallet cannot be loaded",
-            level: LogLevel.Error);
+          "Error, ${jsonObject["coin"]} does not exist, $name wallet cannot be loaded",
+          level: LogLevel.Error,
+        );
         return true;
       }
     });
-    final mapped = Map<String, dynamic>.from(names).map((name, dyn) => MapEntry(
-        name, WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map))));
+    final mapped = Map<String, dynamic>.from(names).map(
+      (name, dyn) => MapEntry(
+        name,
+        WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map)),
+      ),
+    );
 
     for (final entry in mapped.entries) {
-      if (Hive.isBoxOpen(entry.value.walletId)) {
+      if (hive.isBoxOpen(entry.value.walletId)) {
         _walletBoxes[entry.value.walletId] =
-            Hive.box<dynamic>(entry.value.walletId);
+            hive.box<dynamic>(entry.value.walletId);
       } else {
         _walletBoxes[entry.value.walletId] =
-            await Hive.openBox<dynamic>(entry.value.walletId);
+            await hive.openBox<dynamic>(entry.value.walletId);
       }
     }
   }
 
-  Future<Box<dynamic>> getTxCacheBox({required Coin coin}) async {
-    if (_txCacheBoxes[coin]?.isOpen != true) {
-      _txCacheBoxes.remove(coin);
+  Future<Box<dynamic>> getTxCacheBox({required CryptoCurrency currency}) async {
+    if (_txCacheBoxes[currency.identifier]?.isOpen != true) {
+      _txCacheBoxes.remove(currency.identifier);
     }
-    return _txCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(_boxNameTxCache(coin: coin));
+    return _txCacheBoxes[currency.identifier] ??=
+        await hive.openBox<dynamic>(_boxNameTxCache(currency: currency));
   }
 
-  Future<void> closeTxCacheBox({required Coin coin}) async {
-    await _txCacheBoxes[coin]?.close();
+  Future<void> closeTxCacheBox({required CryptoCurrency currency}) async {
+    await _txCacheBoxes[currency.identifier]?.close();
   }
 
-  Future<Box<dynamic>> getAnonymitySetCacheBox({required Coin coin}) async {
-    if (_setCacheBoxes[coin]?.isOpen != true) {
-      _setCacheBoxes.remove(coin);
+  Future<Box<dynamic>> getAnonymitySetCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    if (_setCacheBoxes[currency.identifier]?.isOpen != true) {
+      _setCacheBoxes.remove(currency.identifier);
     }
-    return _setCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(_boxNameSetCache(coin: coin));
+    return _setCacheBoxes[currency.identifier] ??=
+        await hive.openBox<dynamic>(_boxNameSetCache(currency: currency));
   }
 
-  Future<Box<dynamic>> getSparkAnonymitySetCacheBox(
-      {required Coin coin}) async {
-    if (_setSparkCacheBoxes[coin]?.isOpen != true) {
-      _setSparkCacheBoxes.remove(coin);
+  Future<void> closeAnonymitySetCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    await _setCacheBoxes[currency.identifier]?.close();
+  }
+
+  Future<Box<dynamic>> getUsedSerialsCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    if (_usedSerialsCacheBoxes[currency.identifier]?.isOpen != true) {
+      _usedSerialsCacheBoxes.remove(currency.identifier);
     }
-    return _setSparkCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(_boxNameSetSparkCache(coin: coin));
+    return _usedSerialsCacheBoxes[currency.identifier] ??=
+        await hive.openBox<dynamic>(
+      _boxNameUsedSerialsCache(currency: currency),
+    );
   }
 
-  Future<void> closeAnonymitySetCacheBox({required Coin coin}) async {
-    await _setCacheBoxes[coin]?.close();
-  }
-
-  Future<Box<dynamic>> getUsedSerialsCacheBox({required Coin coin}) async {
-    if (_usedSerialsCacheBoxes[coin]?.isOpen != true) {
-      _usedSerialsCacheBoxes.remove(coin);
-    }
-    return _usedSerialsCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(_boxNameUsedSerialsCache(coin: coin));
-  }
-
-  Future<Box<dynamic>> getSparkUsedCoinsTagsCacheBox(
-      {required Coin coin}) async {
-    if (_getSparkUsedCoinsTagsCacheBoxes[coin]?.isOpen != true) {
-      _getSparkUsedCoinsTagsCacheBoxes.remove(coin);
-    }
-    return _getSparkUsedCoinsTagsCacheBoxes[coin] ??=
-        await Hive.openBox<dynamic>(
-            _boxNameSparkUsedCoinsTagsCache(coin: coin));
-  }
-
-  Future<void> closeUsedSerialsCacheBox({required Coin coin}) async {
-    await _usedSerialsCacheBoxes[coin]?.close();
+  Future<void> closeUsedSerialsCacheBox({
+    required CryptoCurrency currency,
+  }) async {
+    await _usedSerialsCacheBoxes[currency.identifier]?.close();
   }
 
   /// Clear all cached transactions for the specified coin
-  Future<void> clearSharedTransactionCache({required Coin coin}) async {
-    await deleteAll<dynamic>(boxName: _boxNameTxCache(coin: coin));
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
-      await deleteAll<dynamic>(boxName: _boxNameSetCache(coin: coin));
-      await deleteAll<dynamic>(boxName: _boxNameSetSparkCache(coin: coin));
-      await deleteAll<dynamic>(boxName: _boxNameUsedSerialsCache(coin: coin));
+  Future<void> clearSharedTransactionCache({
+    required CryptoCurrency currency,
+  }) async {
+    await deleteAll<dynamic>(boxName: _boxNameTxCache(currency: currency));
+    if (currency is Firo) {
+      await deleteAll<dynamic>(boxName: _boxNameSetCache(currency: currency));
       await deleteAll<dynamic>(
-          boxName: _boxNameSparkUsedCoinsTagsCache(coin: coin));
+        boxName: _boxNameUsedSerialsCache(currency: currency),
+      );
     }
   }
 
@@ -256,7 +255,7 @@ class DB {
     if (_walletBoxes[walletId] != null) {
       throw Exception("Attempted overwrite of existing wallet box!");
     }
-    _walletBoxes[walletId] = await Hive.openBox<dynamic>(walletId);
+    _walletBoxes[walletId] = await hive.openBox<dynamic>(walletId);
   }
 
   Future<void> removeWalletBox({required String walletId}) async {
@@ -268,50 +267,55 @@ class DB {
   // reads
 
   List<dynamic> keys<T>({required String boxName}) =>
-      Hive.box<T>(boxName).keys.toList(growable: false);
+      hive.box<T>(boxName).keys.toList(growable: false);
 
   List<T> values<T>({required String boxName}) =>
-      Hive.box<T>(boxName).values.toList(growable: false);
+      hive.box<T>(boxName).values.toList(growable: false);
 
   T? get<T>({
     required String boxName,
     required dynamic key,
   }) =>
-      Hive.box<T>(boxName).get(key);
+      hive.box<T>(boxName).get(key);
 
   bool containsKey<T>({required String boxName, required dynamic key}) =>
-      Hive.box<T>(boxName).containsKey(key);
+      hive.box<T>(boxName).containsKey(key);
 
   // writes
 
-  Future<void> put<T>(
-          {required String boxName,
-          required dynamic key,
-          required T value}) async =>
+  Future<void> put<T>({
+    required String boxName,
+    required dynamic key,
+    required T value,
+  }) async =>
       await mutex
-          .protect(() async => await Hive.box<T>(boxName).put(key, value));
+          .protect(() async => await hive.box<T>(boxName).put(key, value));
 
   Future<void> add<T>({required String boxName, required T value}) async =>
-      await mutex.protect(() async => await Hive.box<T>(boxName).add(value));
+      await mutex.protect(() async => await hive.box<T>(boxName).add(value));
 
-  Future<void> addAll<T>(
-          {required String boxName, required Iterable<T> values}) async =>
+  Future<void> addAll<T>({
+    required String boxName,
+    required Iterable<T> values,
+  }) async =>
       await mutex
-          .protect(() async => await Hive.box<T>(boxName).addAll(values));
+          .protect(() async => await hive.box<T>(boxName).addAll(values));
 
-  Future<void> delete<T>(
-          {required dynamic key, required String boxName}) async =>
-      await mutex.protect(() async => await Hive.box<T>(boxName).delete(key));
+  Future<void> delete<T>({
+    required dynamic key,
+    required String boxName,
+  }) async =>
+      await mutex.protect(() async => await hive.box<T>(boxName).delete(key));
 
   Future<void> deleteAll<T>({required String boxName}) async {
     await mutex.protect(() async {
-      final box = await Hive.openBox<T>(boxName);
+      final box = await hive.openBox<T>(boxName);
       await box.clear();
     });
   }
 
   Future<void> deleteBoxFromDisk({required String boxName}) async =>
-      await mutex.protect(() async => await Hive.deleteBoxFromDisk(boxName));
+      await mutex.protect(() async => await hive.deleteBoxFromDisk(boxName));
 
   ///////////////////////////////////////////////////////////////////////////
   Future<bool> deleteEverything() async {

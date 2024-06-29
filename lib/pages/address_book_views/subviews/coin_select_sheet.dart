@@ -13,21 +13,25 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/coin_image_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+
+import '../../../app_config.dart';
+import '../../../providers/global/prefs_provider.dart';
+import '../../../themes/coin_image_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 class CoinSelectSheet extends StatelessWidget {
-  const CoinSelectSheet({Key? key}) : super(key: key);
+  const CoinSelectSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
-    var coins_ = [...Coin.values];
-    coins_.remove(Coin.firoTestNet);
+    final coins_ = [...AppConfig.coins];
+    coins_.removeWhere(
+      (e) => e is Firo && e.network.isTestNet,
+    );
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -76,7 +80,7 @@ class CoinSelectSheet extends StatelessWidget {
               Flexible(
                 child: Consumer(
                   builder: (_, ref, __) {
-                    bool showTestNet = ref.watch(
+                    final bool showTestNet = ref.watch(
                       prefsChangeNotifierProvider
                           .select((value) => value.showTestNetCoins),
                     );
@@ -85,7 +89,11 @@ class CoinSelectSheet extends StatelessWidget {
                       shrinkWrap: true,
                       itemCount: showTestNet
                           ? coins_.length
-                          : coins_.where((e) => !e.isTestNet).length,
+                          : coins_
+                              .where(
+                                (e) => e.network != CryptoCurrencyNetwork.test,
+                              )
+                              .length,
                       itemBuilder: (builderContext, index) {
                         final coin = coins_[index];
                         return Padding(

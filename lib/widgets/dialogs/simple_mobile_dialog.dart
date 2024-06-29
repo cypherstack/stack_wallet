@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import '../../themes/stack_colors.dart';
+import '../desktop/secondary_button.dart';
 
 class SimpleMobileDialog extends StatelessWidget {
   const SimpleMobileDialog({

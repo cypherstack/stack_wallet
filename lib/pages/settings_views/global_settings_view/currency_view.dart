@@ -11,26 +11,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/global/base_currencies_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../providers/global/base_currencies_provider.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_container.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 class BaseCurrencySettingsView extends ConsumerStatefulWidget {
-  const BaseCurrencySettingsView({Key? key}) : super(key: key);
+  const BaseCurrencySettingsView({super.key});
 
   static const String routeName = "/baseCurrencySettings";
 
@@ -47,18 +48,17 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
   final _searchFocusNode = FocusNode();
 
   void onTap(int index) {
+    if (currenciesWithoutSelected[index] == current || current.isEmpty) {
+      // ignore if already selected currency
+      return;
+    }
+    current = currenciesWithoutSelected[index];
+    currenciesWithoutSelected.remove(current);
+    currenciesWithoutSelected.insert(0, current);
+
     if (Util.isDesktop) {
-      setState(() {
-        current = currenciesWithoutSelected[index];
-      });
+      setState(() {});
     } else {
-      if (currenciesWithoutSelected[index] == current || current.isEmpty) {
-        // ignore if already selected currency
-        return;
-      }
-      current = currenciesWithoutSelected[index];
-      currenciesWithoutSelected.remove(current);
-      currenciesWithoutSelected.insert(0, current);
       ref.read(prefsChangeNotifierProvider).currency = current;
 
       if (ref.read(prefsChangeNotifierProvider).externalCalls) {
@@ -103,13 +103,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
   void initState() {
     _searchController = TextEditingController();
     if (Util.isDesktop) {
-      currenciesWithoutSelected =
-          ref.read(baseCurrenciesProvider).map.keys.toList();
       current = ref.read(prefsChangeNotifierProvider).currency;
-      if (current.isNotEmpty) {
-        currenciesWithoutSelected.remove(current);
-        currenciesWithoutSelected.insert(0, current);
-      }
     }
     super.initState();
   }
@@ -128,16 +122,16 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
     if (!isDesktop) {
       current = ref
           .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+    }
 
-      currenciesWithoutSelected = ref
-          .watch(baseCurrenciesProvider.select((value) => value.map))
-          .keys
-          .toList();
+    currenciesWithoutSelected = ref
+        .watch(baseCurrenciesProvider.select((value) => value.map))
+        .keys
+        .toList();
 
-      if (current.isNotEmpty) {
-        currenciesWithoutSelected.remove(current);
-        currenciesWithoutSelected.insert(0, current);
-      }
+    if (current.isNotEmpty) {
+      currenciesWithoutSelected.remove(current);
+      currenciesWithoutSelected.insert(0, current);
     }
 
     currenciesWithoutSelected = _filtered();
@@ -155,7 +149,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                   if (FocusScope.of(context).hasFocus) {
                     FocusScope.of(context).unfocus();
                     await Future<void>.delayed(
-                        const Duration(milliseconds: 75));
+                      const Duration(milliseconds: 75),
+                    );
                   }
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -329,7 +324,8 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                           child: Padding(
                             padding: const EdgeInsets.all(4),
                             key: Key(
-                                "currencySelect_${currenciesWithoutSelected[index]}"),
+                              "currencySelect_${currenciesWithoutSelected[index]}",
+                            ),
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
                               color: currenciesWithoutSelected[index] == current
@@ -385,29 +381,34 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                                         index] ==
                                                     current)
                                                 ? const Key(
-                                                    "selectedCurrencySettingsCurrencyText")
+                                                    "selectedCurrencySettingsCurrencyText",
+                                                  )
                                                 : null,
                                             style: STextStyles.largeMedium14(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                           const SizedBox(
                                             height: 2,
                                           ),
                                           Text(
-                                            ref.watch(baseCurrenciesProvider
-                                                        .select((value) =>
-                                                            value.map))[
-                                                    currenciesWithoutSelected[
-                                                        index]] ??
+                                            ref.watch(
+                                                  baseCurrenciesProvider.select(
+                                                    (value) => value.map,
+                                                  ),
+                                                )[currenciesWithoutSelected[
+                                                    index]] ??
                                                 "",
                                             key: (currenciesWithoutSelected[
                                                         index] ==
                                                     current)
                                                 ? const Key(
-                                                    "selectedCurrencySettingsCurrencyTextDescription")
+                                                    "selectedCurrencySettingsCurrencyTextDescription",
+                                                  )
                                                 : null,
                                             style: STextStyles.itemSubtitle(
-                                                context),
+                                              context,
+                                            ),
                                           ),
                                         ],
                                       ),

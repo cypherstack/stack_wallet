@@ -11,39 +11,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/receive_view/addresses/address_tag.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/transaction_card.dart';
+
+import '../../../db/isar/main_db.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../widgets/custom_buttons/simple_edit_button.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/qr.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/transaction_card.dart';
+import '../../wallet_view/sub_widgets/no_transactions_found.dart';
+import '../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
+import 'address_tag.dart';
 
 class AddressDetailsView extends ConsumerStatefulWidget {
   const AddressDetailsView({
-    Key? key,
+    super.key,
     required this.addressId,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/addressDetailsView";
 
@@ -92,18 +92,13 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   Center(
                     child: RepaintBoundary(
                       key: _qrKey,
-                      child: QrImageView(
+                      child: QR(
                         data: AddressUtils.buildUriString(
                           ref.watch(pWalletCoin(widget.walletId)),
                           address.value,
                           {},
                         ),
                         size: 220,
-                        backgroundColor:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        foregroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
                       ),
                     ),
                   ),
@@ -213,8 +208,8 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                             Text(
                               "Address details",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textSubtitle1,
@@ -245,8 +240,8 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                             Text(
                               "Transaction history",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
-                                  .copyWith(
+                                context,
+                              ).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
                                     .textSubtitle1,
@@ -289,19 +284,13 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   Center(
                     child: RepaintBoundary(
                       key: _qrKey,
-                      child: QrImageView(
+                      child: QR(
                         data: AddressUtils.buildUriString(
                           coin,
                           address.value,
                           {},
                         ),
                         size: 220,
-                        backgroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
-                        foregroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
                       ),
                     ),
                   ),
@@ -398,7 +387,11 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     height: 12,
                   ),
                 if (!isDesktop)
-                  coin == Coin.bitcoincash || coin == Coin.bitcoincashTestnet
+                  ref
+                              .watch(pWallets)
+                              .getWallet(widget.walletId)
+                              .isarTransactionVersion ==
+                          2
                       ? _AddressDetailsTxV2List(
                           walletId: widget.walletId,
                           address: address,
@@ -418,10 +411,10 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
 class _AddressDetailsTxList extends StatelessWidget {
   const _AddressDetailsTxList({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.address,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Address address;
@@ -473,10 +466,10 @@ class _AddressDetailsTxList extends StatelessWidget {
 
 class _AddressDetailsTxV2List extends ConsumerWidget {
   const _AddressDetailsTxV2List({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.address,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Address address;
@@ -488,37 +481,38 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
 
     final query =
         ref.watch(mainDBProvider).isar.transactionV2s.buildQuery<TransactionV2>(
-            whereClauses: [
-              IndexWhereClause.equalTo(
-                indexName: 'walletId',
-                value: [walletId],
-              )
-            ],
-            filter: FilterGroup.and([
-              if (walletTxFilter != null) walletTxFilter,
-              FilterGroup.or([
-                ObjectFilter(
-                  property: 'inputs',
-                  filter: FilterCondition.contains(
-                    property: "addresses",
-                    value: address.value,
-                  ),
+              whereClauses: [
+                IndexWhereClause.equalTo(
+                  indexName: 'walletId',
+                  value: [walletId],
                 ),
-                ObjectFilter(
-                  property: 'outputs',
-                  filter: FilterCondition.contains(
-                    property: "addresses",
-                    value: address.value,
+              ],
+              filter: FilterGroup.and([
+                if (walletTxFilter != null) walletTxFilter,
+                FilterGroup.or([
+                  ObjectFilter(
+                    property: 'inputs',
+                    filter: FilterCondition.contains(
+                      property: "addresses",
+                      value: address.value,
+                    ),
                   ),
-                )
+                  ObjectFilter(
+                    property: 'outputs',
+                    filter: FilterCondition.contains(
+                      property: "addresses",
+                      value: address.value,
+                    ),
+                  ),
+                ]),
               ]),
-            ]),
-            sortBy: [
-              const SortProperty(
-                property: "timestamp",
-                sort: Sort.desc,
-              ),
-            ]);
+              sortBy: [
+                const SortProperty(
+                  property: "timestamp",
+                  sort: Sort.desc,
+                ),
+              ],
+            );
 
     final count = query.countSync();
 
@@ -558,9 +552,9 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
 
 class _Div extends StatelessWidget {
   const _Div({
-    Key? key,
+    super.key,
     required this.height,
-  }) : super(key: key);
+  });
 
   final double height;
 
@@ -582,9 +576,9 @@ class _Div extends StatelessWidget {
 
 class _Tags extends StatelessWidget {
   const _Tags({
-    Key? key,
+    super.key,
     required this.tags,
-  }) : super(key: key);
+  });
 
   final List<String>? tags;
 
@@ -640,11 +634,11 @@ class _Tags extends StatelessWidget {
 
 class _Item extends StatelessWidget {
   const _Item({
-    Key? key,
+    super.key,
     required this.title,
     required this.data,
     required this.button,
-  }) : super(key: key);
+  });
 
   final String title;
   final String data;

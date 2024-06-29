@@ -2526,9 +2526,9 @@ final jsonTransactions = [
 ];
 
 Map<String?, dynamic> get transactionDataMap {
-  Map<String?, dynamic> result = {};
+  final Map<String?, dynamic> result = {};
   for (final tx in jsonTransactions) {
-    String? bob = tx["txid"] as String?;
+    final String? bob = tx["txid"] as String?;
     result[bob] = tx;
   }
   return result;

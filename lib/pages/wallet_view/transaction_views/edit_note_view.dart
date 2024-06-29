@@ -10,28 +10,29 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/isar/models/transaction_note.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../models/isar/models/transaction_note.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 class EditNoteView extends ConsumerStatefulWidget {
   const EditNoteView({
-    Key? key,
+    super.key,
     required this.txid,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/editNote";
 
@@ -92,7 +93,8 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                     if (FocusScope.of(context).hasFocus) {
                       FocusScope.of(context).unfocus();
                       await Future<void>.delayed(
-                          const Duration(milliseconds: 75));
+                        const Duration(milliseconds: 75),
+                      );
                     }
                     if (mounted) {
                       Navigator.of(context).pop();
@@ -230,7 +232,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                     "Save",
                     style: STextStyles.button(context),
                   ),
-                )
+                ),
             ],
           ),
         ),
@@ -241,9 +243,9 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
 
 class MobileEditNoteScaffold extends StatelessWidget {
   const MobileEditNoteScaffold({
-    Key? key,
+    super.key,
     required this.child,
-  }) : super(key: key);
+  });
 
   final Widget child;
 

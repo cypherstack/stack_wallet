@@ -13,21 +13,21 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
+import 'conditional_parent.dart';
+import 'loading_indicator.dart';
 
 class CustomLoadingOverlay extends ConsumerStatefulWidget {
   const CustomLoadingOverlay({
-    Key? key,
+    super.key,
     required this.message,
     this.subMessage,
     required this.eventBus,
     this.textColor,
     this.actionButton,
-  }) : super(key: key);
+  });
 
   final String message;
   final String? subMessage;

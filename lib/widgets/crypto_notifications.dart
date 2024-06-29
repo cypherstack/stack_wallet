@@ -13,10 +13,10 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/notifications_api.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../providers/providers.dart';
+import '../services/notifications_api.dart';
+import '../themes/coin_icon_provider.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 
 abstract class CryptoNotificationsEventBus {
   static final instance = EventBus();
@@ -28,7 +28,7 @@ class CryptoNotificationEvent {
   final String walletName;
   final DateTime date;
   final bool shouldWatchForUpdates;
-  final Coin coin;
+  final CryptoCurrency coin;
   final String? txid;
   final int? confirmations;
   final int? requiredConfirmations;
@@ -52,9 +52,9 @@ class CryptoNotificationEvent {
 
 class CryptoNotifications extends ConsumerStatefulWidget {
   const CryptoNotifications({
-    Key? key,
+    super.key,
     required this.child,
-  }) : super(key: key);
+  });
 
   final Widget child;
 
@@ -74,7 +74,7 @@ class _CryptoNotificationsState extends ConsumerState<CryptoNotifications> {
       iconAssetName: ref.read(coinIconProvider(event.coin)),
       date: event.date,
       shouldWatchForUpdates: event.shouldWatchForUpdates,
-      coinName: event.coin.name,
+      coinName: event.coin.identifier,
       txid: event.txid,
       confirmations: event.confirmations,
       requiredConfirmations: event.requiredConfirmations,

@@ -9,18 +9,19 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/conditional_parent.dart';
 
 class DesktopStepItem extends StatelessWidget {
-  const DesktopStepItem(
-      {Key? key,
-      required this.label,
-      required this.value,
-      this.padding = const EdgeInsets.all(16),
-      this.vertical = false})
-      : super(key: key);
+  const DesktopStepItem({
+    super.key,
+    required this.label,
+    required this.value,
+    this.padding = const EdgeInsets.all(16),
+    this.vertical = false,
+  });
 
   final String label;
   final String value;

@@ -64,7 +64,7 @@ class EpicBoxServerModel {
   }
 
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {};
+    final Map<String, dynamic> map = {};
     map['id'] = id;
     map['host'] = host;
     map['port'] = port;

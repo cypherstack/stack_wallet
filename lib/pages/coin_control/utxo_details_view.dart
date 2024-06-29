@@ -13,34 +13,33 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_edit_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/utxo_status_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/isar_models.dart';
+import '../wallet_view/transaction_views/transaction_details_view.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../widgets/custom_buttons/simple_edit_button.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/icon_widgets/utxo_status_icon.dart';
+import '../../widgets/rounded_container.dart';
 
 class UtxoDetailsView extends ConsumerStatefulWidget {
   const UtxoDetailsView({
-    Key? key,
+    super.key,
     required this.utxoId,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const routeName = "/utxoDetails";
 
@@ -244,7 +243,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                           Text(
                             ref.watch(pAmountFormatter(coin)).format(
                                   utxo!.value.toAmountAsRaw(
-                                    fractionDigits: coin.decimals,
+                                    fractionDigits: coin.fractionDigits,
                                   ),
                                 ),
                             style: STextStyles.pageTitleH2(context),
@@ -551,7 +550,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
 }
 
 class _Div extends StatelessWidget {
-  const _Div({Key? key}) : super(key: key);
+  const _Div({super.key});
 
   @override
   Widget build(BuildContext context) {

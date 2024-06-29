@@ -1,12 +1,15 @@
 import 'package:isar/isar.dart';
-import 'package:stackwallet/dto/ordinals/inscription_data.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
-import 'package:stackwallet/models/isar/ordinal.dart';
-import 'package:stackwallet/services/litescribe_api.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
-mixin OrdinalsInterface on ElectrumXInterface {
+import '../../../dto/ordinals/inscription_data.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
+import '../../../models/isar/ordinal.dart';
+import '../../../services/litescribe_api.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import 'electrumx_interface.dart';
+
+mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
+    on ElectrumXInterface<T> {
   final LitescribeAPI _litescribeAPI =
       LitescribeAPI(baseUrl: 'https://litescribe.io/api');
 
@@ -35,7 +38,8 @@ mixin OrdinalsInterface on ElectrumXInterface {
               .addressProperty()
               .findAll();
       final inscriptions = await _getInscriptionDataFromAddresses(
-          uniqueAddresses.cast<String>());
+        uniqueAddresses.cast<String>(),
+      );
 
       final ords = inscriptions
           .map((e) => Ordinal.fromInscriptionData(e, walletId))
@@ -109,11 +113,12 @@ mixin OrdinalsInterface on ElectrumXInterface {
 
   // ===================== Private =============================================
   Future<List<InscriptionData>> _getInscriptionDataFromAddresses(
-      List<String> addresses) async {
-    List<InscriptionData> allInscriptions = [];
-    for (String address in addresses) {
+    List<String> addresses,
+  ) async {
+    final List<InscriptionData> allInscriptions = [];
+    for (final String address in addresses) {
       try {
-        var inscriptions =
+        final inscriptions =
             await _litescribeAPI.getInscriptionsByAddress(address);
         allInscriptions.addAll(inscriptions);
       } catch (e) {

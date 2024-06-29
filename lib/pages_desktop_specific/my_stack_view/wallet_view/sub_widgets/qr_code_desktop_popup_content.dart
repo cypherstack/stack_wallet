@@ -9,16 +9,16 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
+
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../widgets/qr.dart';
 
 class QRCodeDesktopPopupContent extends StatelessWidget {
   const QRCodeDesktopPopupContent({
-    Key? key,
+    super.key,
     required this.value,
-  }) : super(key: key);
+  });
 
   final String value;
 
@@ -39,11 +39,9 @@ class QRCodeDesktopPopupContent extends StatelessWidget {
           const SizedBox(
             height: 14,
           ),
-          QrImageView(
+          QR(
             data: value,
             size: 300,
-            foregroundColor:
-                Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
         ],
       ),

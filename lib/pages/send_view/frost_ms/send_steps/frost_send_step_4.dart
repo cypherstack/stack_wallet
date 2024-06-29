@@ -2,27 +2,27 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/my_stack_view.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../../frost_route_generator.dart';
+import '../../../../pages_desktop_specific/my_stack_view/my_stack_view.dart';
+import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/detail_item.dart';
+import '../../../../widgets/expandable.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
+import '../../../wallet_view/wallet_view.dart';
 
 class FrostSendStep4 extends ConsumerStatefulWidget {
   const FrostSendStep4({super.key});
@@ -93,7 +93,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
               height: 12,
             ),
           Text(
-            "Send ${cryptoCurrency.coin.ticker}",
+            "Send ${cryptoCurrency.ticker}",
             style: STextStyles.w600_20(context),
           ),
           const SizedBox(
@@ -103,7 +103,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
               ? _Recipient(
                   address: recipients[0].address,
                   amount: ref
-                      .watch(pAmountFormatter(cryptoCurrency.coin))
+                      .watch(pAmountFormatter(cryptoCurrency))
                       .format(recipients[0].amount),
                 )
               : Column(
@@ -143,7 +143,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
                           body: _Recipient(
                             address: recipients[i].address,
                             amount: ref
-                                .watch(pAmountFormatter(cryptoCurrency.coin))
+                                .watch(pAmountFormatter(cryptoCurrency))
                                 .format(recipients[i].amount),
                           ),
                         ),
@@ -156,7 +156,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
           DetailItem(
             title: "Transaction fee",
             detail: ref
-                .watch(pAmountFormatter(cryptoCurrency.coin))
+                .watch(pAmountFormatter(cryptoCurrency))
                 .format(ref.watch(pFrostTxData)!.fee!),
             horizontal: true,
           ),
@@ -165,9 +165,10 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
           ),
           DetailItem(
             title: "Total",
-            detail: ref.watch(pAmountFormatter(cryptoCurrency.coin)).format(
-                ref.watch(pFrostTxData)!.fee! +
-                    recipients.map((e) => e.amount).reduce((v, e) => v += e)),
+            detail: ref.watch(pAmountFormatter(cryptoCurrency)).format(
+                  ref.watch(pFrostTxData)!.fee! +
+                      recipients.map((e) => e.amount).reduce((v, e) => v += e),
+                ),
             horizontal: true,
           ),
           const SizedBox(

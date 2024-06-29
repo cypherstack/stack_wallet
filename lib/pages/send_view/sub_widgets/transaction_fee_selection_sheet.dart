@@ -11,23 +11,23 @@
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../providers/providers.dart';
+import '../../../providers/ui/fee_rate_type_state_provider.dart';
+import '../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import '../../../widgets/animated_text.dart';
 
 final feeSheetSessionCacheProvider =
     ChangeNotifierProvider<FeeSheetSessionCache>((ref) {
@@ -44,12 +44,12 @@ class FeeSheetSessionCache extends ChangeNotifier {
 
 class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
   const TransactionFeeSelectionSheet({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.amount,
     required this.updateChosen,
     this.isToken = false,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final Amount amount;
@@ -79,7 +79,7 @@ class _TransactionFeeSelectionSheetState
     required Amount amount,
     required FeeRateType feeRateType,
     required int feeRate,
-    required Coin coin,
+    required CryptoCurrency coin,
   }) async {
     switch (feeRateType) {
       case FeeRateType.fast:
@@ -87,11 +87,13 @@ class _TransactionFeeSelectionSheetState
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
 
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.fast.raw!);
+                amount,
+                MoneroTransactionPriority.fast.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -122,11 +124,13 @@ class _TransactionFeeSelectionSheetState
         if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.regular.raw!);
+                amount,
+                MoneroTransactionPriority.regular.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -156,11 +160,13 @@ class _TransactionFeeSelectionSheetState
         if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
           if (widget.isToken == false) {
             final wallet = ref.read(pWallets).getWallet(walletId);
-            if (coin == Coin.monero || coin == Coin.wownero) {
+            if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
-                  amount, MoneroTransactionPriority.slow.raw!);
+                amount,
+                MoneroTransactionPriority.slow.raw!,
+              );
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-            } else if (coin == Coin.firo || coin == Coin.firoTestNet) {
+            } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
@@ -192,10 +198,12 @@ class _TransactionFeeSelectionSheetState
   }
 
   String estimatedTimeToBeIncludedInNextBlock(
-      int targetBlockTime, int estimatedNumberOfBlocks) {
-    int time = targetBlockTime * estimatedNumberOfBlocks;
+    int targetBlockTime,
+    int estimatedNumberOfBlocks,
+  ) {
+    final int time = targetBlockTime * estimatedNumberOfBlocks;
 
-    int hours = (time / 3600).floor();
+    final int hours = (time / 3600).floor();
     if (hours > 1) {
       return "~$hours hours";
     } else if (hours == 1) {
@@ -295,7 +303,7 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.fast;
                         }
-                        String? fee =
+                        final String? fee =
                             getAmount(FeeRateType.fast, wallet.info.coin);
                         if (fee != null) {
                           widget.updateChosen(fee);
@@ -364,8 +372,10 @@ class _TransactionFeeSelectionSheetState
                                             feeRate: feeObject!.fast,
                                             amount: amount,
                                           ),
-                                          builder: (_,
-                                              AsyncSnapshot<Amount> snapshot) {
+                                          builder: (
+                                            _,
+                                            AsyncSnapshot<Amount> snapshot,
+                                          ) {
                                             if (snapshot.connectionState ==
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
@@ -380,7 +390,8 @@ class _TransactionFeeSelectionSheetState
                                                           false,
                                                     )})",
                                                 style: STextStyles.itemSubtitle(
-                                                    context),
+                                                  context,
+                                                ),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
@@ -388,7 +399,8 @@ class _TransactionFeeSelectionSheetState
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
                                                 style: STextStyles.itemSubtitle(
-                                                    context),
+                                                  context,
+                                                ),
                                               );
                                             }
                                           },
@@ -398,19 +410,16 @@ class _TransactionFeeSelectionSheetState
                                   const SizedBox(
                                     height: 2,
                                   ),
-                                  if (feeObject == null &&
-                                      coin != Coin.ethereum)
+                                  if (feeObject == null && coin is! Ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null &&
-                                      coin != Coin.ethereum)
+                                  if (feeObject != null && coin is! Ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
-                                        Constants.targetBlockTimeInSeconds(
-                                            coin),
+                                        coin.targetBlockTimeSeconds,
                                         feeObject!.numberOfBlocksFast,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
@@ -418,7 +427,7 @@ class _TransactionFeeSelectionSheetState
                                     ),
                                 ],
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -434,7 +443,8 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.average;
                         }
-                        String? fee = getAmount(FeeRateType.average, coin);
+                        final String? fee =
+                            getAmount(FeeRateType.average, coin);
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -500,8 +510,10 @@ class _TransactionFeeSelectionSheetState
                                             feeRate: feeObject!.medium,
                                             amount: amount,
                                           ),
-                                          builder: (_,
-                                              AsyncSnapshot<Amount> snapshot) {
+                                          builder: (
+                                            _,
+                                            AsyncSnapshot<Amount> snapshot,
+                                          ) {
                                             if (snapshot.connectionState ==
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
@@ -516,7 +528,8 @@ class _TransactionFeeSelectionSheetState
                                                           false,
                                                     )})",
                                                 style: STextStyles.itemSubtitle(
-                                                    context),
+                                                  context,
+                                                ),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
@@ -524,7 +537,8 @@ class _TransactionFeeSelectionSheetState
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
                                                 style: STextStyles.itemSubtitle(
-                                                    context),
+                                                  context,
+                                                ),
                                               );
                                             }
                                           },
@@ -534,19 +548,16 @@ class _TransactionFeeSelectionSheetState
                                   const SizedBox(
                                     height: 2,
                                   ),
-                                  if (feeObject == null &&
-                                      coin != Coin.ethereum)
+                                  if (feeObject == null && coin is! Ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null &&
-                                      coin != Coin.ethereum)
+                                  if (feeObject != null && coin is! Ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
-                                        Constants.targetBlockTimeInSeconds(
-                                            coin),
+                                        coin.targetBlockTimeSeconds,
                                         feeObject!.numberOfBlocksAverage,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
@@ -570,7 +581,7 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.slow;
                         }
-                        String? fee = getAmount(FeeRateType.slow, coin);
+                        final String? fee = getAmount(FeeRateType.slow, coin);
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -636,8 +647,10 @@ class _TransactionFeeSelectionSheetState
                                             feeRate: feeObject!.slow,
                                             amount: amount,
                                           ),
-                                          builder: (_,
-                                              AsyncSnapshot<Amount> snapshot) {
+                                          builder: (
+                                            _,
+                                            AsyncSnapshot<Amount> snapshot,
+                                          ) {
                                             if (snapshot.connectionState ==
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
@@ -652,7 +665,8 @@ class _TransactionFeeSelectionSheetState
                                                           false,
                                                     )})",
                                                 style: STextStyles.itemSubtitle(
-                                                    context),
+                                                  context,
+                                                ),
                                                 textAlign: TextAlign.left,
                                               );
                                             } else {
@@ -660,7 +674,8 @@ class _TransactionFeeSelectionSheetState
                                                 stringsToLoopThrough:
                                                     stringsToLoopThrough,
                                                 style: STextStyles.itemSubtitle(
-                                                    context),
+                                                  context,
+                                                ),
                                               );
                                             }
                                           },
@@ -670,19 +685,16 @@ class _TransactionFeeSelectionSheetState
                                   const SizedBox(
                                     height: 2,
                                   ),
-                                  if (feeObject == null &&
-                                      coin != Coin.ethereum)
+                                  if (feeObject == null && coin is! Ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null &&
-                                      coin != Coin.ethereum)
+                                  if (feeObject != null && coin is! Ethereum)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
-                                        Constants.targetBlockTimeInSeconds(
-                                            coin),
+                                        coin.targetBlockTimeSeconds,
                                         feeObject!.numberOfBlocksSlow,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
@@ -732,7 +744,8 @@ class _TransactionFeeSelectionSheetState
                                       onChanged: (x) {
                                         ref
                                             .read(
-                                                feeRateTypeStateProvider.state)
+                                              feeRateTypeStateProvider.state,
+                                            )
                                             .state = FeeRateType.custom;
                                         Navigator.of(context).pop();
                                       },
@@ -781,7 +794,7 @@ class _TransactionFeeSelectionSheetState
     );
   }
 
-  String? getAmount(FeeRateType feeRateType, Coin coin) {
+  String? getAmount(FeeRateType feeRateType, CryptoCurrency coin) {
     try {
       switch (feeRateType) {
         case FeeRateType.fast:

@@ -1,37 +1,37 @@
 import 'package:bitbox/bitbox.dart' as bitbox;
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/input_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/output_v2.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/services/coins/bitcoincash/bch_utils.dart';
-import 'package:stackwallet/services/coins/bitcoincash/cashtokens.dart'
-    as cash_tokens;
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoincash.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
-class BitcoincashWallet extends Bip39HDWallet
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../services/coins/bitcoincash/bch_utils.dart';
+import '../../../services/coins/bitcoincash/cashtokens.dart' as cash_tokens;
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/logger.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../intermediate/bip39_hd_wallet.dart';
+import '../wallet_mixin_interfaces/bcash_interface.dart';
+import '../wallet_mixin_interfaces/cash_fusion_interface.dart';
+import '../wallet_mixin_interfaces/coin_control_interface.dart';
+import '../wallet_mixin_interfaces/electrumx_interface.dart';
+
+class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
+    extends Bip39HDWallet<T>
     with
-        ElectrumXInterface,
-        BCashInterface,
-        CoinControlInterface,
-        CashFusionInterface {
+        ElectrumXInterface<T>,
+        BCashInterface<T>,
+        CoinControlInterface<T>,
+        CashFusionInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 
   BitcoincashWallet(CryptoCurrencyNetwork network)
-      : super(Bitcoincash(network));
+      : super(Bitcoincash(network) as T);
 
   @override
   FilterOperation? get changeAddressFilterOperation => FilterGroup.and(
@@ -75,10 +75,12 @@ class BitcoincashWallet extends Bip39HDWallet
         .not()
         .typeEqualTo(AddressType.nonWallet)
         .and()
-        .group((q) => q
-            .subTypeEqualTo(AddressSubType.receiving)
-            .or()
-            .subTypeEqualTo(AddressSubType.change))
+        .group(
+          (q) => q
+              .subTypeEqualTo(AddressSubType.receiving)
+              .or()
+              .subTypeEqualTo(AddressSubType.change),
+        )
         .findAll();
     return allAddresses;
   }
@@ -99,14 +101,15 @@ class BitcoincashWallet extends Bip39HDWallet
 
   @override
   Future<void> updateTransactions() async {
-    List<Address> allAddressesOld = await fetchAddressesForElectrumXScan();
+    final List<Address> allAddressesOld =
+        await fetchAddressesForElectrumXScan();
 
-    Set<String> receivingAddresses = allAddressesOld
+    final Set<String> receivingAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => convertAddressString(e.value))
         .toSet();
 
-    Set<String> changeAddresses = allAddressesOld
+    final Set<String> changeAddresses = allAddressesOld
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => convertAddressString(e.value))
         .toSet();
@@ -116,7 +119,7 @@ class BitcoincashWallet extends Bip39HDWallet
     final List<Map<String, dynamic>> allTxHashes =
         await fetchHistory(allAddressesSet);
 
-    List<Map<String, dynamic>> allTransactions = [];
+    final List<Map<String, dynamic>> allTransactions = [];
 
     for (final txHash in allTxHashes) {
       // final storedTx = await mainDB.isar.transactionV2s
@@ -130,7 +133,7 @@ class BitcoincashWallet extends Bip39HDWallet
       final tx = await electrumXCachedClient.getTransaction(
         txHash: txHash["tx_hash"] as String,
         verbose: true,
-        coin: cryptoCurrency.coin,
+        cryptoCurrency: cryptoCurrency,
       );
 
       // check for duplicates before adding to list
@@ -171,13 +174,14 @@ class BitcoincashWallet extends Bip39HDWallet
 
           final inputTx = await electrumXCachedClient.getTransaction(
             txHash: txid,
-            coin: cryptoCurrency.coin,
+            cryptoCurrency: cryptoCurrency,
           );
 
           try {
             final prevOutJson = Map<String, dynamic>.from(
-                (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
-                    as Map);
+              (inputTx["vout"] as List).firstWhere((e) => e["n"] == vout)
+                  as Map,
+            );
             final prevOut = OutputV2.fromElectrumXJson(
               prevOutJson,
               decimalPlaces: cryptoCurrency.fractionDigits,
@@ -193,8 +197,9 @@ class BitcoincashWallet extends Bip39HDWallet
             addresses.addAll(prevOut.addresses);
           } catch (e, s) {
             Logging.instance.log(
-                "Error getting prevOutJson: $e\nStack trace: $s",
-                level: LogLevel.Warning);
+              "Error getting prevOutJson: $e\nStack trace: $s",
+              level: LogLevel.Warning,
+            );
           }
         }
 
@@ -359,9 +364,11 @@ class BitcoincashWallet extends Bip39HDWallet
   @override
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
-      rawValue: BigInt.from(((181 * inputCount) + (34 * outputCount) + 10) *
-          (feeRatePerKB / 1000).ceil()),
-      fractionDigits: info.coin.decimals,
+      rawValue: BigInt.from(
+        ((181 * inputCount) + (34 * outputCount) + 10) *
+            (feeRatePerKB / 1000).ceil(),
+      ),
+      fractionDigits: info.coin.fractionDigits,
     );
   }
 

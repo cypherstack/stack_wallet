@@ -9,12 +9,12 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/stack_dialog.dart';
 
 class RecoveryPhraseExplanationDialog extends StatelessWidget {
-  const RecoveryPhraseExplanationDialog({Key? key}) : super(key: key);
+  const RecoveryPhraseExplanationDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

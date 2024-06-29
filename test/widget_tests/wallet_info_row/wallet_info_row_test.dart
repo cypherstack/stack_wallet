@@ -1,16 +1,18 @@
 import 'package:mockito/annotations.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/services/wallets_service.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 
-@GenerateMocks([
-  Wallets,
-  ThemeService,
-], customMocks: [
-  MockSpec<NodeService>(returnNullOnMissingStub: true),
-  // MockSpec<WalletsService>(returnNullOnMissingStub: true),
-])
+@GenerateMocks(
+  [
+    Wallets,
+    ThemeService,
+  ],
+  customMocks: [
+    MockSpec<NodeService>(),
+    // MockSpec<WalletsService>(),
+  ],
+)
 void main() {
   // testWidgets("Test wallet info row displays correctly", (widgetTester) async {
   //   final wallets = MockWallets();

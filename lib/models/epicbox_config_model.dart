@@ -11,7 +11,8 @@
 import 'dart:convert';
 
 import 'package:hive/hive.dart';
-import 'package:stackwallet/models/epicbox_server_model.dart';
+
+import 'epicbox_server_model.dart';
 
 part 'type_adaptors/epicbox_config_model.g.dart';
 
@@ -57,7 +58,7 @@ class EpicBoxConfigModel {
   }
 
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {};
+    final Map<String, dynamic> map = {};
     map['epicbox_domain'] = host;
     map['epicbox_port'] = port;
     map['epicbox_protocol_insecure'] = protocolInsecure;
@@ -84,7 +85,7 @@ class EpicBoxConfigModel {
   }
 
   static EpicBoxConfigModel fromString(String epicBoxConfigString) {
-    dynamic _epicBox = json.decode(epicBoxConfigString);
+    final dynamic _epicBox = json.decode(epicBoxConfigString);
 
     // handle old epicbox config formats
     final oldDomain = _epicBox["domain"] ?? "empty";
@@ -117,8 +118,11 @@ class EpicBoxConfigModel {
     );
   }
 
-  static EpicBoxConfigModel fromServer(EpicBoxServerModel server,
-      {bool? protocolInsecure, int? addressIndex}) {
+  static EpicBoxConfigModel fromServer(
+    EpicBoxServerModel server, {
+    bool? protocolInsecure,
+    int? addressIndex,
+  }) {
     return EpicBoxConfigModel(
       host: server.host,
       port: server.port ?? 443,

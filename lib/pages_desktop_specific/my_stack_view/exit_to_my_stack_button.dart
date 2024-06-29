@@ -9,15 +9,16 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_home_view.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+import '../../app_config.dart';
+import '../desktop_home_view.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
 
 class ExitToMyStackButton extends StatelessWidget {
   const ExitToMyStackButton({
-    Key? key,
+    super.key,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressed;
 
@@ -44,7 +45,7 @@ class ExitToMyStackButton extends StatelessWidget {
               horizontal: 30,
             ),
             child: Text(
-              "Exit to My Stack",
+              "Exit to My ${AppConfig.prefix}",
               style: STextStyles.desktopButtonSmallSecondaryEnabled(context),
             ),
           ),

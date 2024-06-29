@@ -20,40 +20,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../notifications/show_flush_bar.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/address_utils.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/clipboard_interface.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/qr.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
+import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfield_icon_button.dart';
 
 class GenerateUriQrCodeView extends StatefulWidget {
   const GenerateUriQrCodeView({
-    Key? key,
+    super.key,
     required this.coin,
     required this.receivingAddress,
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/generateUriQrCodeView";
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final String receivingAddress;
   final ClipboardInterface clipboard;
 
@@ -76,19 +77,20 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
 
   Future<void> _capturePng(bool shouldSaveInsteadOfShare) async {
     try {
-      RenderRepaintBoundary boundary =
+      final RenderRepaintBoundary boundary =
           _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage();
-      ByteData? byteData =
+      final ui.Image image = await boundary.toImage();
+      final ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
-      Uint8List pngBytes = byteData!.buffer.asUint8List();
+      final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       if (shouldSaveInsteadOfShare) {
         if (Util.isDesktop) {
           final dir = Directory("${Platform.environment['HOME']}");
           if (!dir.existsSync()) {
             throw Exception(
-                "Home dir not found while trying to open filepicker on QR image save");
+              "Home dir not found while trying to open filepicker on QR image save",
+            );
           }
           final path = await FilePicker.platform.saveFile(
             fileName: "qrcode.png",
@@ -127,8 +129,10 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(["${tempDir.path}/qrcode.png"],
-            text: "Receive URI QR Code");
+        await Share.shareFiles(
+          ["${tempDir.path}/qrcode.png"],
+          text: "Receive URI QR Code",
+        );
       }
     } catch (e) {
       //todo: comeback to this
@@ -149,7 +153,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       return null;
     }
 
-    Map<String, String> queryParams = {};
+    final Map<String, String> queryParams = {};
 
     if (amountString.isNotEmpty) {
       queryParams["amount"] = amountString;
@@ -159,9 +163,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     }
 
     String receivingAddress = widget.receivingAddress;
-    if ((widget.coin == Coin.bitcoincash ||
-            widget.coin == Coin.eCash ||
-            widget.coin == Coin.bitcoincashTestnet) &&
+    if ((widget.coin is Bitcoincash || widget.coin is Ecash) &&
         receivingAddress.contains(":")) {
       // remove cash addr prefix
       receivingAddress = receivingAddress.split(":").sublist(1).join();
@@ -173,8 +175,10 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       queryParams,
     );
 
-    Logging.instance.log("Generated receiving QR code for: $uriString",
-        level: LogLevel.Info);
+    Logging.instance.log(
+      "Generated receiving QR code for: $uriString",
+      level: LogLevel.Info,
+    );
 
     return uriString;
   }
@@ -211,14 +215,10 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                   child: SizedBox(
                     width: width + 20,
                     height: width + 20,
-                    child: QrImageView(
-                        data: uriString,
-                        size: width,
-                        backgroundColor:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        foregroundColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                    child: QR(
+                      data: uriString,
+                      size: width,
+                    ),
                   ),
                 ),
               ),
@@ -256,9 +256,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     isDesktop = Util.isDesktop;
 
     String receivingAddress = widget.receivingAddress;
-    if ((widget.coin == Coin.bitcoincash ||
-            widget.coin == Coin.eCash ||
-            widget.coin == Coin.bitcoincashTestnet) &&
+    if ((widget.coin is Bitcoincash || widget.coin is Ecash) &&
         receivingAddress.contains(":")) {
       // remove cash addr prefix
       receivingAddress = receivingAddress.split(":").sublist(1).join();
@@ -553,15 +551,10 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                 child: SizedBox(
                                   width: 234,
                                   height: 234,
-                                  child: QrImageView(
-                                      data: _uriString,
-                                      size: 220,
-                                      backgroundColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .popupBG,
-                                      foregroundColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark),
+                                  child: QR(
+                                    data: _uriString,
+                                    size: 220,
+                                  ),
                                 ),
                               ),
                             ),
@@ -615,7 +608,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                   ),
                                 ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),

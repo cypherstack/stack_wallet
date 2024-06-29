@@ -10,12 +10,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
+
+import '../../../app_config.dart';
+import '../../../providers/providers.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/text_styles.dart';
 
 class HomeViewButtonBar extends ConsumerStatefulWidget {
-  const HomeViewButtonBar({Key? key}) : super(key: key);
+  const HomeViewButtonBar({super.key});
 
   @override
   ConsumerState<HomeViewButtonBar> createState() => _HomeViewButtonBarState();
@@ -86,97 +88,101 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             ),
           ),
         ),
-        const SizedBox(
-          width: 8,
-        ),
-        Expanded(
-          child: TextButton(
-            style: selectedIndex == 1
-                ? Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    )
-                : Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    ),
-            onPressed: () async {
-              FocusScope.of(context).unfocus();
-              if (selectedIndex != 1) {
-                ref.read(homeViewPageIndexStateProvider.state).state = 1;
-              }
-              // DateTime now = DateTime.now();
-              // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-              //   print("loading?");
-              // await ExchangeDataLoadingService().loadAll(ref);
-              // }
-              // if (now.difference(_lastRefreshed) > _refreshInterval) {
-              //   await ExchangeDataLoadingService().loadAll(ref);
-              // }
-            },
-            child: Text(
-              "Swap",
-              style: STextStyles.button(context).copyWith(
-                fontSize: 14,
-                color: selectedIndex == 1
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextPrimary
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextSecondary,
+        if (AppConfig.hasFeature(AppFeature.swap))
+          const SizedBox(
+            width: 8,
+          ),
+        if (AppConfig.hasFeature(AppFeature.swap))
+          Expanded(
+            child: TextButton(
+              style: selectedIndex == 1
+                  ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonStyle(context)!
+                      .copyWith(
+                        minimumSize:
+                            MaterialStateProperty.all<Size>(const Size(46, 36)),
+                      )
+                  : Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context)!
+                      .copyWith(
+                        minimumSize:
+                            MaterialStateProperty.all<Size>(const Size(46, 36)),
+                      ),
+              onPressed: () async {
+                FocusScope.of(context).unfocus();
+                if (selectedIndex != 1) {
+                  ref.read(homeViewPageIndexStateProvider.state).state = 1;
+                }
+                // DateTime now = DateTime.now();
+                // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
+                //   print("loading?");
+                // await ExchangeDataLoadingService().loadAll(ref);
+                // }
+                // if (now.difference(_lastRefreshed) > _refreshInterval) {
+                //   await ExchangeDataLoadingService().loadAll(ref);
+                // }
+              },
+              child: Text(
+                "Swap",
+                style: STextStyles.button(context).copyWith(
+                  fontSize: 14,
+                  color: selectedIndex == 1
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextPrimary
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(
-          width: 8,
-        ),
-        Expanded(
-          child: TextButton(
-            style: selectedIndex == 2
-                ? Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    )
-                : Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    ),
-            onPressed: () async {
-              FocusScope.of(context).unfocus();
-              if (selectedIndex != 2) {
-                ref.read(homeViewPageIndexStateProvider.state).state = 2;
-              }
-              // await BuyDataLoadingService().loadAll(ref);
-            },
-            child: Text(
-              "Buy",
-              style: STextStyles.button(context).copyWith(
-                fontSize: 14,
-                color: selectedIndex == 2
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextPrimary
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextSecondary,
+        if (AppConfig.hasFeature(AppFeature.buy))
+          const SizedBox(
+            width: 8,
+          ),
+        if (AppConfig.hasFeature(AppFeature.buy))
+          Expanded(
+            child: TextButton(
+              style: selectedIndex == 2
+                  ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonStyle(context)!
+                      .copyWith(
+                        minimumSize:
+                            MaterialStateProperty.all<Size>(const Size(46, 36)),
+                      )
+                  : Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context)!
+                      .copyWith(
+                        minimumSize:
+                            MaterialStateProperty.all<Size>(const Size(46, 36)),
+                      ),
+              onPressed: () async {
+                FocusScope.of(context).unfocus();
+                if (selectedIndex != 2) {
+                  ref.read(homeViewPageIndexStateProvider.state).state = 2;
+                }
+                // await BuyDataLoadingService().loadAll(ref);
+              },
+              child: Text(
+                "Buy",
+                style: STextStyles.button(context).copyWith(
+                  fontSize: 14,
+                  color: selectedIndex == 2
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextPrimary
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

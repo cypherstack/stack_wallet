@@ -9,14 +9,16 @@
  */
 
 import 'package:decimal/decimal.dart';
-import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
-import 'package:stackwallet/models/exchange/response_objects/range.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
-import 'package:stackwallet/services/exchange/exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_response.dart';
-import 'package:stackwallet/services/exchange/simpleswap/simpleswap_api.dart';
+
+import '../../../app_config.dart';
+import '../../../models/exchange/response_objects/estimate.dart';
+import '../../../models/exchange/response_objects/range.dart';
+import '../../../models/exchange/response_objects/trade.dart';
+import '../../../models/isar/exchange_cache/currency.dart';
+import '../../../models/isar/exchange_cache/pair.dart';
+import '../exchange.dart';
+import '../exchange_response.dart';
+import 'simpleswap_api.dart';
 
 class SimpleSwapExchange extends Exchange {
   SimpleSwapExchange._();
@@ -76,7 +78,7 @@ class SimpleSwapExchange extends Exchange {
                   ? SupportedRateType.both
                   : SupportedRateType.estimated,
               isAvailable: true,
-              isStackCoin: Currency.checkIsStackCoin(e.symbol),
+              isStackCoin: AppConfig.isStackCoin(e.symbol),
               tokenContract: null,
             ),
           )
@@ -173,7 +175,9 @@ class SimpleSwapExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-      String forCurrency, bool fixedRate) {
+    String forCurrency,
+    bool fixedRate,
+  ) {
     // TODO: implement getPairedCurrencies
     throw UnimplementedError();
   }

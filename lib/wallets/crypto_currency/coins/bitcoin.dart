@@ -1,25 +1,57 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/interfaces/paynym_currency_interface.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 
-class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../interfaces/electrumx_currency_interface.dart';
+import '../interfaces/paynym_currency_interface.dart';
+import '../intermediate/bip39_hd_currency.dart';
+
+class Bitcoin extends Bip39HDCurrency
+    with ElectrumXCurrencyInterface, PaynymCurrencyInterface {
   Bitcoin(super.network) {
+    _idMain = "bitcoin";
+    _uriScheme = "bitcoin";
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        coin = Coin.bitcoin;
+        _id = _idMain;
+        _name = "Bitcoin";
+        _ticker = "BTC";
       case CryptoCurrencyNetwork.test:
-        coin = Coin.bitcoinTestNet;
+        _id = "bitcoinTestNet";
+        _name = "tBitcoin";
+        _ticker = "tBTC";
+      case CryptoCurrencyNetwork.test4:
+        _id = "bitcoinTestNet4";
+        _name = "t4Bitcoin";
+        _ticker = "t4BTC";
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
 
   @override
   // change this to change the number of confirms a tx needs in order to show as confirmed
@@ -43,6 +75,8 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
         return "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
       case CryptoCurrencyNetwork.test:
         return "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
+      case CryptoCurrencyNetwork.test4:
+        return "00000000da84f2bafbbc53dee25a72ae507ff4914b867c565be350b0da8bf043";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -66,11 +100,12 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
           messagePrefix: '\x18Bitcoin Signed Message:\n',
-          minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: dustLimit.raw, // TODO.
-          feePerKb: BigInt.from(1), // TODO.
+          minFee: BigInt.from(1), // Not used in stack wallet currently
+          minOutput: dustLimit.raw, // Not used in stack wallet currently
+          feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       case CryptoCurrencyNetwork.test:
+      case CryptoCurrencyNetwork.test4:
         return coinlib.Network(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
@@ -79,9 +114,9 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
           messagePrefix: "\x18Bitcoin Signed Message:\n",
-          minFee: BigInt.from(1), // TODO [prio=high].
-          minOutput: dustLimit.raw, // TODO.
-          feePerKb: BigInt.from(1), // TODO.
+          minFee: BigInt.from(1), // Not used in stack wallet currently
+          minOutput: dustLimit.raw, // Not used in stack wallet currently
+          feePerKb: BigInt.from(1), // Not used in stack wallet currently
         );
       default:
         throw Exception("Unsupported network: $network");
@@ -194,10 +229,43 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return DefaultNodes.bitcoin;
+        return NodeModel(
+          host: "bitcoin.stackwallet.com",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
 
       case CryptoCurrencyNetwork.test:
-        return DefaultNodes.bitcoinTestnet;
+        return NodeModel(
+          host: "bitcoin-testnet.stackwallet.com",
+          port: 51002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
+
+      case CryptoCurrencyNetwork.test4:
+        return NodeModel(
+          host: "bitcoin-testnet4.stackwallet.com",
+          port: 50002,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+        );
 
       default:
         throw UnimplementedError();
@@ -205,10 +273,52 @@ class Bitcoin extends Bip39HDCurrency with PaynymCurrencyInterface {
   }
 
   @override
-  bool operator ==(Object other) {
-    return other is Bitcoin && other.network == network;
+  int get defaultSeedPhraseLength => 12;
+
+  @override
+  int get fractionDigits => 8;
+
+  @override
+  bool get hasBuySupport => true;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => true;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+
+  @override
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(100000000);
+
+  @override
+  int get targetBlockTimeSeconds => 600;
+
+  @override
+  DerivePathType get defaultDerivePathType => DerivePathType.bip86;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://mempool.space/tx/$txid");
+      case CryptoCurrencyNetwork.test:
+        return Uri.parse("https://mempool.space/testnet/tx/$txid");
+      case CryptoCurrencyNetwork.test4:
+        return Uri.parse("https://mempool.space/testnet4/tx/$txid");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
   }
 
   @override
-  int get hashCode => Object.hash(Bitcoin, network);
+  int get transactionVersion => 1;
+
+  @override
+  BigInt get defaultFeeRate => BigInt.from(1000);
+  // https://github.com/bitcoin/bitcoin/blob/feab35189bc00bc4cf15e9dcb5cf6b34ff3a1e91/test/functional/mempool_limit.py#L259
 }

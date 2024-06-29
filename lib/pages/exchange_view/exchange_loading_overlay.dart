@@ -10,17 +10,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/exchange/changenow_initial_load_status.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_loading_overlay.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../providers/exchange/changenow_initial_load_status.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/text_styles.dart';
+import '../../widgets/custom_loading_overlay.dart';
+import '../../widgets/stack_dialog.dart';
 
 class ExchangeLoadingOverlayView extends ConsumerStatefulWidget {
   const ExchangeLoadingOverlayView({
-    Key? key,
+    super.key,
     required this.unawaitedLoad,
-  }) : super(key: key);
+  });
 
   final VoidCallback unawaitedLoad;
 
@@ -80,7 +81,9 @@ class _ExchangeLoadingOverlayViewState
                 .overlay
                 .withOpacity(0.7),
             child: const CustomLoadingOverlay(
-                message: "Loading Exchange data", eventBus: null),
+              message: "Loading Exchange data",
+              eventBus: null,
+            ),
           ),
         if ((_statusEst == ChangeNowLoadStatus.failed ||
                 _statusFixed == ChangeNowLoadStatus.failed) &&

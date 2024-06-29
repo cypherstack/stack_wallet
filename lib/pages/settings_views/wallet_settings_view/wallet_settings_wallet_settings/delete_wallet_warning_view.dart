@@ -10,20 +10,22 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
+
+import '../../../../providers/providers.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/rounded_container.dart';
+import 'delete_wallet_recovery_phrase_view.dart';
 
 class DeleteWalletWarningView extends ConsumerWidget {
   const DeleteWalletWarningView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/deleteWalletWarning";
 
@@ -86,9 +88,10 @@ class DeleteWalletWarningView extends ConsumerWidget {
                 child: Text(
                   "Cancel",
                   style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
+                  ),
                 ),
               ),
               const SizedBox(
@@ -100,14 +103,50 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     .getPrimaryEnabledButtonStyle(context),
                 onPressed: () async {
                   final wallet = ref.read(pWallets).getWallet(walletId);
-                  final mnemonic =
-                      await (wallet as MnemonicInterface).getMnemonicAsWords();
+
+                  // TODO: [prio=med] take wallets that don't have a mnemonic into account
+
+                  List<String>? mnemonic;
+                  ({
+                    String myName,
+                    String config,
+                    String keys,
+                    ({String config, String keys})? prevGen,
+                  })? frostWalletData;
+
+                  if (wallet is BitcoinFrostWallet) {
+                    final futures = [
+                      wallet.getSerializedKeys(),
+                      wallet.getMultisigConfig(),
+                      wallet.getSerializedKeysPrevGen(),
+                      wallet.getMultisigConfigPrevGen(),
+                    ];
+
+                    final results = await Future.wait(futures);
+
+                    if (results.length == 4) {
+                      frostWalletData = (
+                        myName: wallet.frostInfo.myName,
+                        config: results[1]!,
+                        keys: results[0]!,
+                        prevGen: results[2] == null || results[3] == null
+                            ? null
+                            : (
+                                config: results[3]!,
+                                keys: results[2]!,
+                              ),
+                      );
+                    }
+                  } else if (wallet is MnemonicInterface) {
+                    mnemonic = await wallet.getMnemonicAsWords();
+                  }
                   if (context.mounted) {
                     await Navigator.of(context).pushNamed(
                       DeleteWalletRecoveryPhraseView.routeName,
                       arguments: (
                         walletId: walletId,
-                        mnemonicWords: mnemonic,
+                        mnemonicWords: mnemonic ?? [],
+                        frostWalletData: frostWalletData,
                       ),
                     );
                   }

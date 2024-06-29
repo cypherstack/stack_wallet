@@ -1,23 +1,24 @@
 import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/services/frost.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/widgets/custom_buttons/checkbox_text_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/frost_qr_dialog_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/simple_copy_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/detail_item.dart';
-import 'package:stackwallet/widgets/dialogs/frost/frost_error_dialog.dart';
-import 'package:stackwallet/widgets/frost_step_user_steps.dart';
-import 'package:stackwallet/widgets/textfields/frost_step_field.dart';
+
+import '../../../../frost_route_generator.dart';
+import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../services/frost.dart';
+import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
+import '../../../../widgets/custom_buttons/frost_qr_dialog_button.dart';
+import '../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/detail_item.dart';
+import '../../../../widgets/dialogs/frost/frost_error_dialog.dart';
+import '../../../../widgets/frost_step_user_steps.dart';
+import '../../../../widgets/textfields/frost_step_field.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostSendStep3 extends ConsumerStatefulWidget {
   const FrostSendStep3({super.key});
@@ -64,7 +65,8 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
     participantsWithoutMe = frostInfo.participants
         .toSet()
         .intersection(
-            ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet())
+          ref.read(pFrostSelectParticipantsUnordered.state).state!.toSet(),
+        )
         .toList();
 
     participantsWithoutMe.remove(myName);
@@ -181,8 +183,9 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
               final List<String> shares = [];
               for (final participant in participantsAll) {
                 if (participantsWithoutMe.contains(participant)) {
-                  shares.add(sharesCollected[
-                      participantsWithoutMe.indexOf(participant)]);
+                  shares.add(
+                    sharesCollected[participantsWithoutMe.indexOf(participant)],
+                  );
                 } else {
                   shares.add("");
                 }

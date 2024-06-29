@@ -9,13 +9,13 @@
  */
 
 import 'package:isar/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
-import 'package:stackwallet/services/ethereum/ethereum_api.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/wallets/isar/models/token_wallet_info.dart';
+import '../../db/isar/main_db.dart';
+import '../../models/balance.dart';
+import '../../models/isar/models/ethereum/eth_contract.dart';
+import 'ethereum_api.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/logger.dart';
+import '../../wallets/isar/models/token_wallet_info.dart';
 
 class CachedEthTokenBalance {
   final String walletId;

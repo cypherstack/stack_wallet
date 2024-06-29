@@ -13,19 +13,21 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/startup_preferences/startup_wallet_selection_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../app_config.dart';
+import '../../../../providers/providers.dart';
+import '../../../../themes/coin_icon_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import 'startup_wallet_selection_view.dart';
 
 class StartupPreferencesView extends ConsumerStatefulWidget {
-  const StartupPreferencesView({Key? key}) : super(key: key);
+  const StartupPreferencesView({super.key});
 
   static const String routeName = "/startupPreferences";
 
@@ -129,15 +131,19 @@ class _StartupPreferencesViewState
                                               value: false,
                                               groupValue: ref.watch(
                                                 prefsChangeNotifierProvider
-                                                    .select((value) => value
-                                                        .gotoWalletOnStartup),
+                                                    .select(
+                                                  (value) =>
+                                                      value.gotoWalletOnStartup,
+                                                ),
                                               ),
                                               onChanged: (value) {
                                                 if (value is bool) {
                                                   ref
-                                                      .read(
-                                                          prefsChangeNotifierProvider)
-                                                      .gotoWalletOnStartup = value;
+                                                          .read(
+                                                            prefsChangeNotifierProvider,
+                                                          )
+                                                          .gotoWalletOnStartup =
+                                                      value;
                                                 }
                                               },
                                             ),
@@ -154,14 +160,16 @@ class _StartupPreferencesViewState
                                                   "Home screen",
                                                   style:
                                                       STextStyles.titleBold12(
-                                                          context),
+                                                    context,
+                                                  ),
                                                   textAlign: TextAlign.left,
                                                 ),
                                                 Text(
-                                                  "Stack Wallet home screen",
+                                                  "${AppConfig.appName} home screen",
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                          context),
+                                                    context,
+                                                  ),
                                                   textAlign: TextAlign.left,
                                                 ),
                                               ],
@@ -207,15 +215,19 @@ class _StartupPreferencesViewState
                                               value: true,
                                               groupValue: ref.watch(
                                                 prefsChangeNotifierProvider
-                                                    .select((value) => value
-                                                        .gotoWalletOnStartup),
+                                                    .select(
+                                                  (value) =>
+                                                      value.gotoWalletOnStartup,
+                                                ),
                                               ),
                                               onChanged: (value) {
                                                 if (value is bool) {
                                                   ref
-                                                      .read(
-                                                          prefsChangeNotifierProvider)
-                                                      .gotoWalletOnStartup = value;
+                                                          .read(
+                                                            prefsChangeNotifierProvider,
+                                                          )
+                                                          .gotoWalletOnStartup =
+                                                      value;
                                                 }
                                               },
                                             ),
@@ -232,15 +244,17 @@ class _StartupPreferencesViewState
                                                   "Specific wallet",
                                                   style:
                                                       STextStyles.titleBold12(
-                                                          context),
+                                                    context,
+                                                  ),
                                                   textAlign: TextAlign.left,
                                                 ),
                                                 (safe &&
                                                         ref.watch(
                                                               prefsChangeNotifierProvider
-                                                                  .select((value) =>
-                                                                      value
-                                                                          .startupWalletId),
+                                                                  .select(
+                                                                (value) => value
+                                                                    .startupWalletId,
+                                                              ),
                                                             ) !=
                                                             null)
                                                     ? Padding(
@@ -256,8 +270,11 @@ class _StartupPreferencesViewState
                                                                     ref.watch(
                                                                       pWalletCoin(
                                                                         ref.watch(
-                                                                          prefsChangeNotifierProvider.select((value) =>
-                                                                              value.startupWalletId!),
+                                                                          prefsChangeNotifierProvider
+                                                                              .select(
+                                                                            (value) =>
+                                                                                value.startupWalletId!,
+                                                                          ),
                                                                         ),
                                                                       ),
                                                                     ),
@@ -272,15 +289,19 @@ class _StartupPreferencesViewState
                                                               ref.watch(
                                                                 pWalletName(
                                                                   ref.watch(
-                                                                    prefsChangeNotifierProvider.select(
-                                                                        (value) =>
-                                                                            value.startupWalletId!),
+                                                                    prefsChangeNotifierProvider
+                                                                        .select(
+                                                                      (value) =>
+                                                                          value
+                                                                              .startupWalletId!,
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               ),
                                                               style: STextStyles
                                                                   .itemSubtitle(
-                                                                      context),
+                                                                context,
+                                                              ),
                                                             ),
                                                           ],
                                                         ),
@@ -289,7 +310,8 @@ class _StartupPreferencesViewState
                                                         "Select a specific wallet to load into on startup",
                                                         style: STextStyles
                                                             .itemSubtitle(
-                                                                context),
+                                                          context,
+                                                        ),
                                                         textAlign:
                                                             TextAlign.left,
                                                       ),
@@ -302,13 +324,19 @@ class _StartupPreferencesViewState
                                   ),
                                 ),
                               ),
-                              if (!ref.watch(prefsChangeNotifierProvider.select(
-                                  (value) => value.gotoWalletOnStartup)))
+                              if (!ref.watch(
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.gotoWalletOnStartup,
+                                ),
+                              ))
                                 const SizedBox(
                                   height: 12,
                                 ),
-                              if (ref.watch(prefsChangeNotifierProvider.select(
-                                  (value) => value.gotoWalletOnStartup)))
+                              if (ref.watch(
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.gotoWalletOnStartup,
+                                ),
+                              ))
                                 Container(
                                   color: Colors.transparent,
                                   child: Padding(
@@ -340,8 +368,9 @@ class _StartupPreferencesViewState
                                             ),
                                             onPressed: () {
                                               Navigator.of(context).pushNamed(
-                                                  StartupWalletSelectionView
-                                                      .routeName);
+                                                StartupWalletSelectionView
+                                                    .routeName,
+                                              );
                                             },
                                             child: Column(
                                               crossAxisAlignment:
@@ -350,7 +379,8 @@ class _StartupPreferencesViewState
                                                 Text(
                                                   "Select wallet...",
                                                   style: STextStyles.link2(
-                                                      context),
+                                                    context,
+                                                  ),
                                                   textAlign: TextAlign.left,
                                                 ),
                                               ],

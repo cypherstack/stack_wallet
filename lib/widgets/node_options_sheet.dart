@@ -13,39 +13,33 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:solana/solana.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
-import 'package:stackwallet/providers/global/active_wallet_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/default_nodes.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/test_epic_box_connection.dart';
-import 'package:stackwallet/utilities/test_eth_node_connection.dart';
-import 'package:stackwallet/utilities/test_monero_node_connection.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
 import 'package:tuple/tuple.dart';
+
+import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
+import '../providers/global/active_wallet_provider.dart';
+import '../providers/global/secure_store_provider.dart';
+import '../providers/providers.dart';
+import '../themes/stack_colors.dart';
+import '../utilities/assets.dart';
+import '../utilities/constants.dart';
+import '../utilities/default_nodes.dart';
+import '../utilities/enums/sync_type_enum.dart';
+import '../utilities/test_node_connection.dart';
+import '../utilities/text_styles.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import 'rounded_white_container.dart';
 
 class NodeOptionsSheet extends ConsumerWidget {
   const NodeOptionsSheet({
-    Key? key,
+    super.key,
     required this.nodeId,
     required this.coin,
     required this.popBackToRoute,
-  }) : super(key: key);
+  });
 
   final String nodeId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final String popBackToRoute;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
@@ -81,153 +75,20 @@ class NodeOptionsSheet extends ConsumerWidget {
     }
   }
 
-  Future<bool> _testConnection(
-      NodeModel node, BuildContext context, WidgetRef ref) async {
-    bool testPassed = false;
-
-    switch (coin) {
-      case Coin.epicCash:
-        try {
-          testPassed = await testEpicNodeConnection(
-                NodeFormData()
-                  ..host = node.host
-                  ..useSSL = node.useSSL
-                  ..port = node.port,
-              ) !=
-              null;
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-        break;
-
-      case Coin.monero:
-      case Coin.wownero:
-        try {
-          final uri = Uri.parse(node.host);
-          if (uri.scheme.startsWith("http")) {
-            final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
-
-            String uriString = "${uri.scheme}://${uri.host}:${node.port}$path";
-
-            final response = await testMoneroNodeConnection(
-              Uri.parse(uriString),
-              false,
-            );
-
-            if (response.cert != null) {
-              // if (mounted) {
-              final shouldAllowBadCert = await showBadX509CertificateDialog(
-                response.cert!,
-                response.url!,
-                response.port!,
-                context,
-              );
-
-              if (shouldAllowBadCert) {
-                final response =
-                    await testMoneroNodeConnection(Uri.parse(uriString), true);
-                testPassed = response.success;
-              }
-              // }
-            } else {
-              testPassed = response.success;
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        }
-
-        break;
-
-      case Coin.bitcoin:
-      case Coin.litecoin:
-      case Coin.dogecoin:
-      case Coin.firo:
-      case Coin.particl:
-      case Coin.bitcoinTestNet:
-      case Coin.firoTestNet:
-      case Coin.dogecoinTestNet:
-      case Coin.bitcoincash:
-      case Coin.litecoinTestNet:
-      case Coin.namecoin:
-      case Coin.bitcoincashTestnet:
-      case Coin.eCash:
-      case Coin.bitcoinFrost:
-      case Coin.bitcoinFrostTestNet:
-      case Coin.peercoin:
-      case Coin.peercoinTestNet:
-        try {
-          testPassed = await checkElectrumServer(
-            host: node.host,
-            port: node.port,
-            useSSL: node.useSSL,
-            overridePrefs: ref.read(prefsChangeNotifierProvider),
-            overrideTorService: ref.read(pTorService),
-          );
-        } catch (_) {
-          testPassed = false;
-        }
-
-        break;
-
-      case Coin.ethereum:
-        try {
-          testPassed = await testEthNodeConnection(node.host);
-        } catch (_) {
-          testPassed = false;
-        }
-        break;
-
-      case Coin.nano:
-      case Coin.banano:
-      case Coin.tezos:
-      case Coin.stellar:
-      case Coin.stellarTestnet:
-        throw UnimplementedError();
-      //TODO: check network/node
-
-      case Coin.solana:
-        try {
-          RpcClient rpcClient;
-          if (node.host.startsWith("http") || node.host.startsWith("https")) {
-            rpcClient = RpcClient("${node.host}:${node.port}");
-          } else {
-            rpcClient = RpcClient("http://${node.host}:${node.port}");
-          }
-          await rpcClient.getEpochInfo().then((value) => testPassed = true);
-        } catch (_) {
-          testPassed = false;
-        }
-        break;
-    }
-
-    if (testPassed) {
-      // showFloatingFlushBar(
-      //   type: FlushBarType.success,
-      //   message: "Server ping success",
-      //   context: context,
-      // );
-    } else {
-      unawaited(showFloatingFlushBar(
-        type: FlushBarType.warning,
-        iconAsset: Assets.svg.circleAlert,
-        message: "Could not connect to node",
-        context: context,
-      ));
-    }
-
-    return testPassed;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
-    final node = ref.watch(nodeServiceChangeNotifierProvider
-        .select((value) => value.getNodeById(id: nodeId)))!;
+    final node = ref.watch(
+      nodeServiceChangeNotifierProvider
+          .select((value) => value.getNodeById(id: nodeId)),
+    )!;
 
     final status = ref
-                .watch(nodeServiceChangeNotifierProvider
-                    .select((value) => value.getPrimaryNodeFor(coin: coin)))
+                .watch(
+                  nodeServiceChangeNotifierProvider.select(
+                    (value) => value.getPrimaryNodeFor(currency: coin),
+                  ),
+                )
                 ?.id !=
             nodeId
         ? "Disconnected"
@@ -301,7 +162,8 @@ class NodeOptionsSheet extends ConsumerWidget {
                             height: 15,
                             width: 19,
                             color: node.id.startsWith(
-                                    DefaultNodes.defaultNodeIdPrefix)
+                              DefaultNodes.defaultNodeIdPrefix,
+                            )
                                 ? Theme.of(context)
                                     .extension<StackColors>()!
                                     .accentColorDark
@@ -367,9 +229,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           "Details",
                           style: STextStyles.button(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark),
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
+                          ),
                         ),
                       ),
                     ),
@@ -389,21 +252,38 @@ class NodeOptionsSheet extends ConsumerWidget {
                         onPressed: status == "Connected"
                             ? null
                             : () async {
-                                final canConnect =
-                                    await _testConnection(node, context, ref);
-                                if (!canConnect) {
-                                  return;
+                                final pw = await node.getPassword(
+                                  ref.read(secureStoreProvider),
+                                );
+                                if (context.mounted) {
+                                  final canConnect = await testNodeConnection(
+                                    context: context,
+                                    nodeFormData: NodeFormData()
+                                      ..name = node.name
+                                      ..host = node.host
+                                      ..login = node.loginName
+                                      ..password = pw
+                                      ..port = node.port
+                                      ..useSSL = node.useSSL
+                                      ..isFailover = node.isFailover
+                                      ..trusted = node.trusted,
+                                    cryptoCurrency: coin,
+                                    ref: ref,
+                                  );
+                                  if (!canConnect) {
+                                    return;
+                                  }
+
+                                  await ref
+                                      .read(nodeServiceChangeNotifierProvider)
+                                      .setPrimaryNodeFor(
+                                        coin: coin,
+                                        node: node,
+                                        shouldNotifyListeners: true,
+                                      );
+
+                                  await _notifyWalletsOfUpdatedNode(ref);
                                 }
-
-                                await ref
-                                    .read(nodeServiceChangeNotifierProvider)
-                                    .setPrimaryNodeFor(
-                                      coin: coin,
-                                      node: node,
-                                      shouldNotifyListeners: true,
-                                    );
-
-                                await _notifyWalletsOfUpdatedNode(ref);
                               },
                         child: Text(
                           // status == "Connected" ? "Disconnect" : "Connect",

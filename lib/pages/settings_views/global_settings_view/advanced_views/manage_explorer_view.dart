@@ -10,23 +10,24 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/block_explorers.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/block_explorers.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
 
 class ManageExplorerView extends ConsumerStatefulWidget {
   const ManageExplorerView({
-    Key? key,
+    super.key,
     required this.coin,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/manageExplorer";
 
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<ManageExplorerView> createState() => _ManageExplorerViewState();
@@ -39,10 +40,10 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
   void initState() {
     super.initState();
     textEditingController = TextEditingController(
-        text:
-            getBlockExplorerTransactionUrlFor(coin: widget.coin, txid: "[TXID]")
-                .toString()
-                .replaceAll("%5BTXID%5D", "[TXID]"));
+      text: getBlockExplorerTransactionUrlFor(coin: widget.coin, txid: "[TXID]")
+          .toString()
+          .replaceAll("%5BTXID%5D", "[TXID]"),
+    );
   }
 
   @override
@@ -72,32 +73,33 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
           child: Column(
             children: [
               Expanded(
-                  child: Column(
-                children: [
-                  TextField(
-                    controller: textEditingController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  RoundedWhiteContainer(
-                    child: Center(
-                      child: Text(
-                        "Edit your block explorer above. Keep in mind that "
-                        "every block explorer has a slightly different URL "
-                        "scheme.\n\nPaste in your block explorer of choice,"
-                        " then edit in [TXID] where the transaction ID "
-                        "should go, and Stack Wallet will auto fill the "
-                        "transaction ID in that place of URL.",
-                        style: STextStyles.itemSubtitle(context),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: textEditingController,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
                       ),
                     ),
-                  ),
-                ],
-              )),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    RoundedWhiteContainer(
+                      child: Center(
+                        child: Text(
+                          "Edit your block explorer above. Keep in mind that "
+                          "every block explorer has a slightly different URL "
+                          "scheme.\n\nPaste in your block explorer of choice,"
+                          " then edit in [TXID] where the transaction ID "
+                          "should go, and Stack Wallet will auto fill the "
+                          "transaction ID in that place of URL.",
+                          style: STextStyles.itemSubtitle(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: ConstrainedBox(
@@ -129,7 +131,7 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

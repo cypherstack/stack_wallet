@@ -9,9 +9,9 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/node_service_provider.dart';
-import 'package:stackwallet/services/wallets.dart';
+import '../db/main_db_provider.dart';
+import 'node_service_provider.dart';
+import '../../services/wallets.dart';
 
 final pWallets = Provider<Wallets>((ref) {
   final mainDB = ref.read(mainDBProvider);

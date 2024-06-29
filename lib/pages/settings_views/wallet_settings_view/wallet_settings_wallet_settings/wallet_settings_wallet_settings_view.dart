@@ -10,24 +10,32 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
-import 'package:stackwallet/pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+
+import '../../../../providers/providers.dart';
+import '../../../../route_generator.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/stack_dialog.dart';
+import '../../../pinpad_views/lock_screen_view.dart';
+import 'delete_wallet_warning_view.dart';
+import 'lelantus_settings_view.dart';
+import 'rbf_settings_view.dart';
+import 'rename_wallet_view.dart';
+import 'spark_info.dart';
 
 class WalletSettingsWalletSettingsView extends ConsumerWidget {
   const WalletSettingsWalletSettingsView({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/walletSettingsWalletSettings";
 
@@ -122,9 +130,10 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                             child: Text(
                               "Cancel",
                               style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorDark),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
+                              ),
                             ),
                           ),
                           rightButton: TextButton(
@@ -150,7 +159,8 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                                         "Delete wallet",
                                   ),
                                   settings: const RouteSettings(
-                                      name: "/deleteWalletLockscreen"),
+                                    name: "/deleteWalletLockscreen",
+                                  ),
                                 ),
                               );
                             },
@@ -178,6 +188,116 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                     ),
                   ),
                 ),
+                if (ref.watch(pWallets).getWallet(walletId)
+                    is LelantusInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId)
+                    is LelantusInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          LelantusSettingsView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Lelantus settings",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId) is SparkInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId) is SparkInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          SparkInfoView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Spark info",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId) is RbfInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (ref.watch(pWallets).getWallet(walletId) is RbfInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          RbfSettingsView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "RBF settings",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

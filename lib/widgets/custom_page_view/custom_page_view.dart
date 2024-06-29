@@ -18,7 +18,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show precisionErrorTolerance;
 import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter/rendering.dart';
-import 'package:stackwallet/widgets/custom_page_view/custom_sliver_fill_viewport.dart';
+
+import 'custom_sliver_fill_viewport.dart';
 
 /// A controller for [CustomPageView].
 ///
@@ -227,14 +228,19 @@ class PageController extends ScrollController {
   /// The returned [Future] resolves when the animation completes.
   ///
   /// The `duration` and `curve` arguments must not be null.
-  Future<void> previousPage(
-      {required Duration duration, required Curve curve}) {
+  Future<void> previousPage({
+    required Duration duration,
+    required Curve curve,
+  }) {
     return animateToPage(page!.round() - 1, duration: duration, curve: curve);
   }
 
   @override
-  ScrollPosition createScrollPosition(ScrollPhysics physics,
-      ScrollContext context, ScrollPosition? oldPosition) {
+  ScrollPosition createScrollPosition(
+    ScrollPhysics physics,
+    ScrollContext context,
+    ScrollPosition? oldPosition,
+  ) {
     return _PagePosition(
       physics: physics,
       context: context,
@@ -260,21 +266,14 @@ class PageController extends ScrollController {
 class PageMetrics extends FixedScrollMetrics {
   /// Creates an immutable snapshot of values associated with a [CustomPageView].
   PageMetrics({
-    required double? minScrollExtent,
-    required double? maxScrollExtent,
-    required double? pixels,
-    required double? viewportDimension,
-    required AxisDirection axisDirection,
-    required double devicePixelRatio,
+    required super.minScrollExtent,
+    required super.maxScrollExtent,
+    required super.pixels,
+    required super.viewportDimension,
+    required super.axisDirection,
+    required super.devicePixelRatio,
     required this.viewportFraction,
-  }) : super(
-          minScrollExtent: minScrollExtent,
-          maxScrollExtent: maxScrollExtent,
-          pixels: pixels,
-          viewportDimension: viewportDimension,
-          axisDirection: axisDirection,
-          devicePixelRatio: devicePixelRatio,
-        );
+  });
 
   @override
   PageMetrics copyWith({
@@ -315,21 +314,18 @@ class PageMetrics extends FixedScrollMetrics {
 class _PagePosition extends ScrollPositionWithSingleContext
     implements PageMetrics {
   _PagePosition({
-    required ScrollPhysics physics,
-    required ScrollContext context,
+    required super.physics,
+    required super.context,
     this.initialPage = 0,
     bool keepPage = true,
     double viewportFraction = 1.0,
-    ScrollPosition? oldPosition,
+    super.oldPosition,
   })  : assert(viewportFraction > 0.0),
         _viewportFraction = viewportFraction,
         _pageToUseOnStartup = initialPage.toDouble(),
         super(
-          physics: physics,
-          context: context,
           initialPixels: null,
           keepScrollOffset: keepPage,
-          oldPosition: oldPosition,
         );
 
   final int initialPage;
@@ -405,14 +401,18 @@ class _PagePosition extends ScrollPositionWithSingleContext
     return !hasPixels || !hasContentDimensions
         ? null
         : _cachedPage ??
-            getPageFromPixels(pixels.clamp(minScrollExtent, maxScrollExtent),
-                viewportDimension);
+            getPageFromPixels(
+              pixels.clamp(minScrollExtent, maxScrollExtent),
+              viewportDimension,
+            );
   }
 
   @override
   void saveScrollOffset() {
-    PageStorage.of(context.storageContext).writeState(context.storageContext,
-        _cachedPage ?? getPageFromPixels(pixels, viewportDimension));
+    PageStorage.of(context.storageContext).writeState(
+      context.storageContext,
+      _cachedPage ?? getPageFromPixels(pixels, viewportDimension),
+    );
   }
 
   @override
@@ -427,7 +427,8 @@ class _PagePosition extends ScrollPositionWithSingleContext
   @override
   void saveOffset() {
     context.saveOffset(
-        _cachedPage ?? getPageFromPixels(pixels, viewportDimension));
+      _cachedPage ?? getPageFromPixels(pixels, viewportDimension),
+    );
   }
 
   @override
@@ -507,8 +508,8 @@ class _PagePosition extends ScrollPositionWithSingleContext
 class _ForceImplicitScrollPhysics extends ScrollPhysics {
   const _ForceImplicitScrollPhysics({
     required this.allowImplicitScrolling,
-    ScrollPhysics? parent,
-  }) : super(parent: parent);
+    super.parent,
+  });
 
   @override
   _ForceImplicitScrollPhysics applyTo(ScrollPhysics? ancestor) {
@@ -533,7 +534,7 @@ class _ForceImplicitScrollPhysics extends ScrollPhysics {
 ///  * [CustomPageView.physics], which can override the physics used by a page view.
 class PageScrollPhysics extends ScrollPhysics {
   /// Creates physics for a [CustomPageView].
-  const PageScrollPhysics({ScrollPhysics? parent}) : super(parent: parent);
+  const PageScrollPhysics({super.parent});
 
   @override
   PageScrollPhysics applyTo(ScrollPhysics? ancestor) {
@@ -551,7 +552,10 @@ class PageScrollPhysics extends ScrollPhysics {
   }
 
   double _getTargetPixels(
-      ScrollMetrics position, Tolerance tolerance, double velocity) {
+    ScrollMetrics position,
+    Tolerance tolerance,
+    double velocity,
+  ) {
     double page = _getPage(position);
     if (velocity < -tolerance.velocity) {
       page -= 0.5;
@@ -563,7 +567,9 @@ class PageScrollPhysics extends ScrollPhysics {
 
   @override
   Simulation? createBallisticSimulation(
-      ScrollMetrics position, double velocity) {
+    ScrollMetrics position,
+    double velocity,
+  ) {
     // If we're out of range and not headed back in range, defer to the parent
     // ballistics, which should put us back in range at a page boundary.
     if ((velocity <= 0.0 && position.pixels <= position.minScrollExtent) ||
@@ -573,8 +579,13 @@ class PageScrollPhysics extends ScrollPhysics {
     final Tolerance tolerance = this.tolerance;
     final double target = _getTargetPixels(position, tolerance, velocity);
     if (target != position.pixels) {
-      return ScrollSpringSimulation(spring, position.pixels, target, velocity,
-          tolerance: tolerance);
+      return ScrollSpringSimulation(
+        spring,
+        position.pixels,
+        target,
+        velocity,
+        tolerance: tolerance,
+      );
     }
     return null;
   }
@@ -641,7 +652,7 @@ class CustomPageView extends StatefulWidget {
   /// rather than into the contents of the [CustomPageView].
   /// {@endtemplate}
   CustomPageView({
-    Key? key,
+    super.key,
     this.scrollDirection = Axis.horizontal,
     this.reverse = false,
     PageController? controller,
@@ -657,8 +668,7 @@ class CustomPageView extends StatefulWidget {
     this.scrollBehavior,
     this.padEnds = true,
   })  : controller = controller ?? _defaultPageController,
-        childrenDelegate = SliverChildListDelegate(children),
-        super(key: key);
+        childrenDelegate = SliverChildListDelegate(children);
 
   /// Creates a scrollable list that works page by page using widgets that are
   /// created on demand.
@@ -684,7 +694,7 @@ class CustomPageView extends StatefulWidget {
   ///
   /// {@macro flutter.widgets.PageView.allowImplicitScrolling}
   CustomPageView.builder({
-    Key? key,
+    super.key,
     this.scrollDirection = Axis.horizontal,
     this.reverse = false,
     PageController? controller,
@@ -706,8 +716,7 @@ class CustomPageView extends StatefulWidget {
           itemBuilder,
           findChildIndexCallback: findChildIndexCallback,
           childCount: itemCount,
-        ),
-        super(key: key);
+        );
 
   /// Creates a scrollable list that works page by page with a custom child
   /// model.
@@ -794,7 +803,7 @@ class CustomPageView extends StatefulWidget {
   ///
   /// {@macro flutter.widgets.PageView.allowImplicitScrolling}
   CustomPageView.custom({
-    Key? key,
+    super.key,
     this.scrollDirection = Axis.horizontal,
     this.reverse = false,
     PageController? controller,
@@ -809,8 +818,7 @@ class CustomPageView extends StatefulWidget {
     this.scrollBehavior,
     this.viewportFractionalPadding = 0.25,
     this.padEnds = true,
-  })  : controller = controller ?? _defaultPageController,
-        super(key: key);
+  }) : controller = controller ?? _defaultPageController;
 
   final double viewportFractionalPadding;
 
@@ -951,8 +959,10 @@ class _CustomPageViewState extends State<CustomPageView> {
       allowImplicitScrolling: widget.allowImplicitScrolling,
     ).applyTo(
       widget.pageSnapping
-          ? _kPagePhysics.applyTo(widget.physics ??
-              widget.scrollBehavior?.getScrollPhysics(context))
+          ? _kPagePhysics.applyTo(
+              widget.physics ??
+                  widget.scrollBehavior?.getScrollPhysics(context),
+            )
           : widget.physics ?? widget.scrollBehavior?.getScrollPhysics(context),
     );
 
@@ -1008,17 +1018,35 @@ class _CustomPageViewState extends State<CustomPageView> {
     description
         .add(EnumProperty<Axis>('scrollDirection', widget.scrollDirection));
     description.add(
-        FlagProperty('reverse', value: widget.reverse, ifTrue: 'reversed'));
-    description.add(DiagnosticsProperty<PageController>(
-        'controller', widget.controller,
-        showName: false));
-    description.add(DiagnosticsProperty<ScrollPhysics>(
-        'physics', widget.physics,
-        showName: false));
-    description.add(FlagProperty('pageSnapping',
-        value: widget.pageSnapping, ifFalse: 'snapping disabled'));
-    description.add(FlagProperty('allowImplicitScrolling',
+      FlagProperty('reverse', value: widget.reverse, ifTrue: 'reversed'),
+    );
+    description.add(
+      DiagnosticsProperty<PageController>(
+        'controller',
+        widget.controller,
+        showName: false,
+      ),
+    );
+    description.add(
+      DiagnosticsProperty<ScrollPhysics>(
+        'physics',
+        widget.physics,
+        showName: false,
+      ),
+    );
+    description.add(
+      FlagProperty(
+        'pageSnapping',
+        value: widget.pageSnapping,
+        ifFalse: 'snapping disabled',
+      ),
+    );
+    description.add(
+      FlagProperty(
+        'allowImplicitScrolling',
         value: widget.allowImplicitScrolling,
-        ifTrue: 'allow implicit scrolling'));
+        ifTrue: 'allow implicit scrolling',
+      ),
+    );
   }
 }

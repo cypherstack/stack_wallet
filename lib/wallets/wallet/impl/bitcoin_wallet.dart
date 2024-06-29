@@ -1,16 +1,23 @@
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/crypto_currency/interfaces/paynym_currency_interface.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../../crypto_currency/interfaces/paynym_currency_interface.dart';
+import '../intermediate/bip39_hd_wallet.dart';
+import '../wallet_mixin_interfaces/coin_control_interface.dart';
+import '../wallet_mixin_interfaces/cpfp_interface.dart';
+import '../wallet_mixin_interfaces/electrumx_interface.dart';
+import '../wallet_mixin_interfaces/paynym_interface.dart';
+import '../wallet_mixin_interfaces/rbf_interface.dart';
 
 class BitcoinWallet<T extends PaynymCurrencyInterface> extends Bip39HDWallet<T>
-    with ElectrumXInterface<T>, CoinControlInterface, PaynymInterface<T> {
+    with
+        ElectrumXInterface<T>,
+        CoinControlInterface,
+        PaynymInterface<T>,
+        RbfInterface<T>,
+        CpfpInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 
@@ -48,8 +55,9 @@ class BitcoinWallet<T extends PaynymCurrencyInterface> extends Bip39HDWallet<T>
   Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(
-          ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-              (feeRatePerKB / 1000).ceil()),
+        ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
+            (feeRatePerKB / 1000).ceil(),
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }

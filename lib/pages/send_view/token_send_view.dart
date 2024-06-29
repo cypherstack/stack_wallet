@@ -15,46 +15,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/send_view_auto_fill_data.dart';
-import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
-import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
-import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
-import 'package:stackwallet/wallets/isar/providers/eth/token_balance_provider.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/eth_token_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import '../../models/isar/models/isar_models.dart';
+import '../../models/send_view_auto_fill_data.dart';
+import '../address_book_views/address_book_view.dart';
+import 'confirm_transaction_view.dart';
+import 'sub_widgets/building_transaction_dialog.dart';
+import 'sub_widgets/transaction_fee_selection_sheet.dart';
+import '../../providers/providers.dart';
+import '../../providers/ui/fee_rate_type_state_provider.dart';
+import '../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../route_generator.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/address_utils.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/amount/amount_input_formatter.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/barcode_scanner_interface.dart';
+import '../../utilities/clipboard_interface.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/prefs.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import '../../wallets/isar/providers/eth/token_balance_provider.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/models/tx_data.dart';
+import '../../widgets/animated_text.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/icon_widgets/addressbook_icon.dart';
+import '../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../widgets/icon_widgets/eth_token_icon.dart';
+import '../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/stack_dialog.dart';
+import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfield_icon_button.dart';
 
 class TokenSendView extends ConsumerStatefulWidget {
   const TokenSendView({
@@ -70,7 +70,7 @@ class TokenSendView extends ConsumerStatefulWidget {
   static const String routeName = "/tokenSendView";
 
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final EthContract tokenContract;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
@@ -82,7 +82,7 @@ class TokenSendView extends ConsumerStatefulWidget {
 
 class _TokenSendViewState extends ConsumerState<TokenSendView> {
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final EthContract tokenContract;
   late final ClipboardInterface clipboard;
   late final BarcodeScannerInterface scanner;
@@ -317,7 +317,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
       _cryptoAmountChangedFeeUpdateTimer?.cancel();
       _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
+        if (coin is! Epiccash && !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees();
           });
@@ -329,7 +329,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   void _baseAmountChanged() {
     _baseAmountChangedFeeUpdateTimer?.cancel();
     _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (coin != Coin.epicCash && !_cryptoFocus.hasFocus) {
+      if (coin is! Epiccash && !_cryptoFocus.hasFocus) {
         setState(() {
           _calculateFeesFuture = calculateFees();
         });
@@ -1161,7 +1161,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          if (coin != Coin.epicCash)
+                          if (coin is! Epiccash)
                             Text(
                               "Transaction fee (estimated)",
                               style: STextStyles.smallMed12(context),

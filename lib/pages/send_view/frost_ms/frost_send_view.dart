@@ -14,39 +14,41 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
-import 'package:stackwallet/pages/send_view/frost_ms/recipient.dart';
-import 'package:stackwallet/providers/frost_wallet/frost_wallet_providers.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/show_loading.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/fee_slider.dart';
-import 'package:stackwallet/widgets/frost_scaffold.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../frost_route_generator.dart';
+import '../../../models/isar/models/isar_models.dart';
+import '../../../providers/frost_wallet/frost_wallet_providers.dart';
+import '../../../providers/providers.dart';
+import '../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/show_loading.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/models/tx_data.dart';
+import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/fee_slider.dart';
+import '../../../widgets/frost_scaffold.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_dialog.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
+import '../../coin_control/coin_control_view.dart';
+import 'recipient.dart';
 
 class FrostSendView extends ConsumerStatefulWidget {
   const FrostSendView({
@@ -58,7 +60,7 @@ class FrostSendView extends ConsumerStatefulWidget {
   static const String routeName = "/frostSendView";
 
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
 
   @override
   ConsumerState<FrostSendView> createState() => _FrostSendViewState();
@@ -69,7 +71,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
   int _greatestWidgetIndex = 0;
 
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   late TextEditingController noteController;
   late TextEditingController onChainNoteController;
@@ -164,9 +166,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -232,7 +235,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
-        );
+        ) &&
+        (coin is Firo
+            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            : true);
 
     return ConditionalParent(
       condition: !Util.isDesktop,
@@ -346,9 +352,11 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                ref.watch(pAmountFormatter(coin)).format(ref
-                                    .watch(pWalletBalance(walletId))
-                                    .spendable),
+                                ref.watch(pAmountFormatter(coin)).format(
+                                      ref
+                                          .watch(pWalletBalance(walletId))
+                                          .spendable,
+                                    ),
                                 style:
                                     STextStyles.titleBold12(context).copyWith(
                                   fontSize: 10,
@@ -358,7 +366,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                             ],
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -389,8 +397,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                           ? null
                           : () {
                               ref
-                                  .read(pRecipient(recipientWidgetIndexes[i])
-                                      .notifier)
+                                  .read(
+                                    pRecipient(recipientWidgetIndexes[i])
+                                        .notifier,
+                                  )
                                   .state = null;
                               recipientWidgetIndexes.removeAt(i);
                               setState(() {});

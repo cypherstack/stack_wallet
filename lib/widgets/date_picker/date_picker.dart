@@ -2,12 +2,12 @@ import 'dart:math';
 
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/util.dart';
+import '../conditional_parent.dart';
+import '../desktop/primary_button.dart';
+import '../desktop/secondary_button.dart';
 
 part 'sw_date_picker.dart';
 

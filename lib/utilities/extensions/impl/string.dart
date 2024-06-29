@@ -9,12 +9,14 @@
  */
 
 import 'dart:convert';
+import 'dart:core';
 import 'dart:typed_data';
 
 import 'package:dart_bs58/dart_bs58.dart';
 import 'package:dart_bs58check/dart_bs58check.dart';
 import 'package:hex/hex.dart';
-import 'package:stackwallet/utilities/extensions/extensions.dart';
+
+import '../extensions.dart';
 
 extension StringExtensions on String {
   Uint8List get toUint8ListFromUtf8 => Uint8List.fromList(utf8.encode(this));
@@ -27,4 +29,19 @@ extension StringExtensions on String {
   Uint8List get toUint8ListFromBase58CheckEncoded => bs58check.decode(this);
 
   BigInt get toBigIntFromHex => toUint8ListFromHex.toBigInt;
+
+  String get toHexFromBase64 => base64Decode(LineSplitter.split(this).join())
+      .map((e) => e.toRadixString(16).padLeft(2, '0'))
+      .join();
+
+  String get toHexReversedFromBase64 =>
+      base64Decode(LineSplitter.split(this).join())
+          .reversed
+          .map((e) => e.toRadixString(16).padLeft(2, '0'))
+          .join();
+
+  /// Capitalize the first letter of a string.
+  String capitalize() {
+    return isEmpty ? this : "${this[0].toUpperCase()}${substring(1)}";
+  }
 }

@@ -13,25 +13,26 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_attention_delete_wallet.dart';
-import 'package:stackwallet/providers/desktop/storage_crypto_handler_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
+
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/stack_text_field.dart';
+import 'desktop_attention_delete_wallet.dart';
 
 class DesktopDeleteWalletDialog extends ConsumerStatefulWidget {
   const DesktopDeleteWalletDialog({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -54,10 +55,10 @@ class _DesktopDeleteWalletDialog
     unawaited(
       showDialog(
         context: context,
-        builder: (context) => Column(
+        builder: (context) => const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: const [
+          children: [
             LoadingIndicator(
               width: 200,
               height: 200,
@@ -190,7 +191,8 @@ class _DesktopDeleteWalletDialog
                               ),
                               GestureDetector(
                                 key: const Key(
-                                    "desktopDeleteWalletShowPasswordButtonKey"),
+                                  "desktopDeleteWalletShowPasswordButtonKey",
+                                ),
                                 onTap: () async {
                                   setState(() {
                                     hidePassword = !hidePassword;
@@ -252,7 +254,7 @@ class _DesktopDeleteWalletDialog
                           : null,
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),

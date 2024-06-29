@@ -10,15 +10,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../custom_buttons/app_bar_icon_button.dart';
 
 class DesktopDialogCloseButton extends StatelessWidget {
   const DesktopDialogCloseButton({
-    Key? key,
+    super.key,
     this.onPressedOverride,
-  }) : super(key: key);
+  });
 
   final VoidCallback? onPressedOverride;
 

@@ -11,8 +11,8 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
 
 import '../sample_data/theme_json.dart';
@@ -37,8 +37,9 @@ void main() {
             isFailover: false,
             isDown: false));
 
-    when(mockNodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).thenAnswer(
-        (realInvocation) => NodeModel(
+    when(mockNodeService.getPrimaryNodeFor(
+            currency: Bitcoin(CryptoCurrencyNetwork.main)))
+        .thenAnswer((realInvocation) => NodeModel(
             host: "127.0.0.1",
             port: 2000,
             name: "Some other name",
@@ -66,8 +67,10 @@ void main() {
               ),
             ],
           ),
-          home: const NodeOptionsSheet(
-              nodeId: "node id", coin: Coin.bitcoin, popBackToRoute: ""),
+          home: NodeOptionsSheet(
+              nodeId: "node id",
+              coin: Bitcoin(CryptoCurrencyNetwork.main),
+              popBackToRoute: ""),
         ),
       ),
     );
@@ -80,7 +83,9 @@ void main() {
     expect(find.text("Details"), findsOneWidget);
     expect(find.text("Connect"), findsOneWidget);
 
-    verify(mockNodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).called(1);
+    verify(mockNodeService.getPrimaryNodeFor(
+            currency: Bitcoin(CryptoCurrencyNetwork.main)))
+        .called(1);
     verify(mockNodeService.getNodeById(id: "node id")).called(1);
     verify(mockNodeService.addListener(any)).called(1);
     verifyNoMoreInteractions(mockNodeService);
@@ -107,7 +112,9 @@ void main() {
       ),
     );
 
-    when(mockNodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).thenAnswer(
+    when(mockNodeService.getPrimaryNodeFor(
+            currency: Bitcoin(CryptoCurrencyNetwork.main)))
+        .thenAnswer(
       (_) => NodeModel(
         host: "127.0.0.1",
         port: 2000,
@@ -146,9 +153,9 @@ void main() {
             }
             return null;
           },
-          home: const NodeOptionsSheet(
+          home: NodeOptionsSheet(
             nodeId: "node id",
-            coin: Coin.bitcoin,
+            coin: Bitcoin(CryptoCurrencyNetwork.main),
             popBackToRoute: "coinNodes",
           ),
         ),
@@ -158,7 +165,7 @@ void main() {
     await tester.tap(find.text("Details"));
     await tester.pumpAndSettle();
 
-    var currentRoute = navigatorKey.currentState?.overlay?.context;
+    final currentRoute = navigatorKey.currentState?.overlay?.context;
     expect(currentRoute, isNotNull);
   });
 
@@ -182,7 +189,9 @@ void main() {
       ),
     );
 
-    when(mockNodeService.getPrimaryNodeFor(coin: Coin.bitcoin)).thenAnswer(
+    when(mockNodeService.getPrimaryNodeFor(
+            currency: Bitcoin(CryptoCurrencyNetwork.main)))
+        .thenAnswer(
       (_) => NodeModel(
         host: "127.0.0.1",
         port: 2000,
@@ -214,9 +223,9 @@ void main() {
               ),
             ],
           ),
-          home: const NodeOptionsSheet(
+          home: NodeOptionsSheet(
             nodeId: "node id",
-            coin: Coin.bitcoin,
+            coin: Bitcoin(CryptoCurrencyNetwork.main),
             popBackToRoute: "",
           ),
         ),

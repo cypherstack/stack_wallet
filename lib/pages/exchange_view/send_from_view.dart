@@ -14,49 +14,50 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/pages/exchange_view/confirm_change_now_send.dart';
-import 'package:stackwallet/pages/home_view/home_view.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/expandable.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
+import '../../models/exchange/response_objects/trade.dart';
+import 'confirm_change_now_send.dart';
+import '../home_view/home_view.dart';
+import '../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../../pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
+import '../../providers/providers.dart';
+import '../../route_generator.dart';
+import '../../themes/coin_icon_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../themes/theme_providers.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/expandable.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
-    Key? key,
+    super.key,
     required this.coin,
     required this.trade,
     required this.amount,
     required this.address,
     this.shouldPopRoot = false,
     this.fromDesktopStep4 = false,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/sendFrom";
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final Amount amount;
   final String address;
   final Trade trade;
@@ -68,7 +69,7 @@ class SendFromView extends ConsumerStatefulWidget {
 }
 
 class _SendFromViewState extends ConsumerState<SendFromView> {
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final Amount amount;
   late final String address;
   late final Trade trade;
@@ -279,7 +280,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
-        final memo = coin == Coin.stellar || coin == Coin.stellarTestnet
+        final memo = coin is Stellar
             ? trade.payInExtraId.isNotEmpty
                 ? trade.payInExtraId
                 : null
@@ -427,7 +428,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
     final coin = ref.watch(pWalletCoin(walletId));
 
-    final isFiro = coin == Coin.firoTestNet || coin == Coin.firo;
+    final isFiro = coin is Firo;
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(0),
@@ -602,10 +603,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .colorForCoin(coin)
-                      .withOpacity(0.5),
+                  color: ref.watch(pCoinColor(coin)).withOpacity(0.5),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),

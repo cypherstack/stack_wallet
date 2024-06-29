@@ -8,36 +8,35 @@
  *
  */
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/isar/models/contact_entry.dart';
-import 'package:stackwallet/pages/address_book_views/subviews/new_contact_address_entry_form.dart';
-import 'package:stackwallet/providers/global/address_book_service_provider.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/address_entry_data_provider.dart';
-import 'package:stackwallet/providers/ui/address_book_providers/valid_contact_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
+
+import '../../../models/isar/models/contact_entry.dart';
+import '../../../providers/global/address_book_service_provider.dart';
+import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
+import '../../../providers/ui/address_book_providers/valid_contact_state_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/barcode_scanner_interface.dart';
+import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
+import 'new_contact_address_entry_form.dart';
 
 class EditContactAddressView extends ConsumerStatefulWidget {
   const EditContactAddressView({
-    Key? key,
+    super.key,
     required this.contactId,
     required this.addressEntry,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
-  }) : super(key: key);
+  });
 
   static const String routeName = "/editContactAddress";
 
@@ -67,7 +66,7 @@ class _EditContactAddressViewState
         const Duration(milliseconds: 75),
       );
     }
-    List<ContactAddressEntry> entries = contact.addresses.toList();
+    final List<ContactAddressEntry> entries = contact.addresses.toList();
 
     final entry = entries.firstWhere(
       (e) =>
@@ -79,12 +78,12 @@ class _EditContactAddressViewState
     final index = entries.indexOf(entry);
     entries.remove(entry);
 
-    ContactAddressEntry editedEntry =
+    final ContactAddressEntry editedEntry =
         ref.read(addressEntryDataProvider(0)).buildAddressEntry();
 
     entries.insert(index, editedEntry);
 
-    ContactEntry editedContact = contact.copyWith(addresses: entries);
+    final ContactEntry editedContact = contact.copyWith(addresses: entries);
 
     if (await ref.read(addressBookServiceProvider).editContact(editedContact)) {
       if (mounted) {
@@ -108,8 +107,10 @@ class _EditContactAddressViewState
 
   @override
   Widget build(BuildContext context) {
-    final contact = ref.watch(addressBookServiceProvider
-        .select((value) => value.getContactById(contactId)));
+    final contact = ref.watch(
+      addressBookServiceProvider
+          .select((value) => value.getContactById(contactId)),
+    );
 
     final bool isDesktop = Util.isDesktop;
 
@@ -239,9 +240,10 @@ class _EditContactAddressViewState
                 //Deleting an entry directly from _addresses gives error
                 // "Cannot remove from a fixed-length list", so we remove the
                 // entry from a copy
-                var tempAddresses = List<ContactAddressEntry>.from(_addresses);
+                final tempAddresses =
+                    List<ContactAddressEntry>.from(_addresses);
                 tempAddresses.remove(entry);
-                ContactEntry editedContact =
+                final ContactEntry editedContact =
                     contact.copyWith(addresses: tempAddresses);
                 if (await ref
                     .read(addressBookServiceProvider)
@@ -272,7 +274,8 @@ class _EditContactAddressViewState
                     if (!isDesktop && FocusScope.of(context).hasFocus) {
                       FocusScope.of(context).unfocus();
                       await Future<void>.delayed(
-                          const Duration(milliseconds: 75));
+                        const Duration(milliseconds: 75),
+                      );
                     }
                     if (mounted) {
                       Navigator.of(context).pop();

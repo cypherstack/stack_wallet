@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:electrum_adapter/electrum_adapter.dart';
-import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+
+import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../services/tor_service.dart';
+import '../logger.dart';
+import '../prefs.dart';
 
 Future<bool> checkElectrumServer({
   required String host,
@@ -33,7 +34,8 @@ Future<bool> checkElectrumServer({
         } else {
           // ... But if the killswitch is set, then we throw an exception.
           throw Exception(
-              "Tor preference and killswitch set but Tor is not enabled, not connecting to Electrum adapter");
+            "Tor preference and killswitch set but Tor is not enabled, not connecting to Electrum adapter",
+          );
           // TODO [prio=low]: Try to start Tor.
         }
       } else {
@@ -45,16 +47,18 @@ Future<bool> checkElectrumServer({
     final client = await ElectrumClient.connect(
       host: host,
       port: port,
-      useSSL: useSSL,
+      useSSL: useSSL && !host.endsWith('.onion'),
       proxyInfo: proxyInfo,
     ).timeout(
-      const Duration(seconds: 5),
+      Duration(seconds: (proxyInfo == null ? 5 : 30)),
       onTimeout: () => throw Exception(
         "The checkElectrumServer connect() call timed out.",
       ),
     );
 
-    await client.ping().timeout(const Duration(seconds: 5));
+    await client
+        .ping()
+        .timeout(Duration(seconds: (proxyInfo == null ? 5 : 30)));
 
     return true;
   } catch (_) {

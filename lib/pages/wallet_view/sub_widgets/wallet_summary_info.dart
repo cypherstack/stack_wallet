@@ -12,33 +12,35 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/providers/wallet/wallet_balance_toggle_state_provider.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/wallet_balance_toggle_state.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/wallet/impl/banano_wallet.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+
+import '../../../providers/providers.dart';
+import '../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
+import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/enums/wallet_balance_toggle_state.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../wallets/crypto_currency/coins/banano.dart';
+import '../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/impl/banano_wallet.dart';
+import '../../../widgets/conditional_parent.dart';
+import 'wallet_balance_toggle_sheet.dart';
+import 'wallet_refresh_button.dart';
 
 class WalletSummaryInfo extends ConsumerWidget {
   const WalletSummaryInfo({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.initialSyncStatus,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
@@ -63,18 +65,21 @@ class WalletSummaryInfo extends ConsumerWidget {
     debugPrint("BUILD: $runtimeType");
 
     final externalCalls = ref.watch(
-        prefsChangeNotifierProvider.select((value) => value.externalCalls));
+      prefsChangeNotifierProvider.select((value) => value.externalCalls),
+    );
     final coin = ref.watch(pWalletCoin(walletId));
     final balance = ref.watch(pWalletBalance(walletId));
 
     final locale = ref.watch(
-        localeServiceChangeNotifierProvider.select((value) => value.locale));
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     final baseCurrency = ref
         .watch(prefsChangeNotifierProvider.select((value) => value.currency));
 
-    final priceTuple = ref.watch(priceAnd24hChangeNotifierProvider
-        .select((value) => value.getPrice(coin)));
+    final priceTuple = ref.watch(
+      priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin)),
+    );
 
     final _showAvailable =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
@@ -83,7 +88,7 @@ class WalletSummaryInfo extends ConsumerWidget {
     final Amount balanceToShow;
     final String title;
 
-    if (coin == Coin.firo || coin == Coin.firoTestNet) {
+    if (coin is Firo) {
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
@@ -110,7 +115,7 @@ class WalletSummaryInfo extends ConsumerWidget {
 
     List<int>? imageBytes;
 
-    if (coin == Coin.banano) {
+    if (coin is Banano) {
       imageBytes = (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
           .getMonkeyImageBytes();
     }
@@ -206,7 +211,7 @@ class WalletSummaryInfo extends ConsumerWidget {
                 initialSyncStatus: initialSyncStatus,
               ),
             ],
-          )
+          ),
         ],
       ),
     );

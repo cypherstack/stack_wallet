@@ -11,16 +11,16 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import '../../../networking/http.dart';
+import '../../../services/tor_service.dart';
+import '../../../utilities/prefs.dart';
 
 class PayNymBot extends StatelessWidget {
   const PayNymBot({
-    Key? key,
+    super.key,
     required this.paymentCodeString,
     this.size = 60.0,
-  }) : super(key: key);
+  });
 
   final String paymentCodeString;
   final double size;

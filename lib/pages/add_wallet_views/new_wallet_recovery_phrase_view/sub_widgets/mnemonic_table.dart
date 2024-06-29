@@ -9,15 +9,15 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:stackwallet/pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table_item.dart';
+import 'mnemonic_table_item.dart';
 
 class MnemonicTable extends StatelessWidget {
   const MnemonicTable({
-    Key? key,
+    super.key,
     required this.words,
     required this.isDesktop,
     this.itemBorderColor,
-  }) : super(key: key);
+  });
 
   final List<String> words;
   final bool isDesktop;

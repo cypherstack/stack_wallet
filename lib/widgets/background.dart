@@ -13,15 +13,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_providers.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
+import '../themes/stack_colors.dart';
+import '../themes/theme_providers.dart';
+import 'conditional_parent.dart';
 
 class Background extends ConsumerWidget {
   const Background({
-    Key? key,
+    super.key,
     required this.child,
-  }) : super(key: key);
+  });
 
   final Widget child;
 

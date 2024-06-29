@@ -11,22 +11,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/languages_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../providers/providers.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/enums/languages_enum.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
+import '../../../widgets/background.dart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/rounded_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 
 class LanguageSettingsView extends ConsumerStatefulWidget {
-  const LanguageSettingsView({Key? key}) : super(key: key);
+  const LanguageSettingsView({super.key});
 
   static const String routeName = "/languageSettings";
 
@@ -82,7 +83,8 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
   List<String> _filtered() {
     return listWithoutSelected
         .where(
-            (element) => element.toLowerCase().contains(filter.toLowerCase()))
+          (element) => element.toLowerCase().contains(filter.toLowerCase()),
+        )
         .toList();
   }
 
@@ -225,7 +227,8 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                             child: Padding(
                               padding: const EdgeInsets.all(4),
                               key: Key(
-                                  "languageSelect_${listWithoutSelected[index]}"),
+                                "languageSelect_${listWithoutSelected[index]}",
+                              ),
                               child: RoundedContainer(
                                 padding: const EdgeInsets.all(0),
                                 color: index == 0
@@ -275,10 +278,12 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                                               listWithoutSelected[index],
                                               key: (index == 0)
                                                   ? const Key(
-                                                      "selectedLanguageSettingsLanguageText")
+                                                      "selectedLanguageSettingsLanguageText",
+                                                    )
                                                   : null,
                                               style: STextStyles.largeMedium14(
-                                                  context),
+                                                context,
+                                              ),
                                             ),
                                             const SizedBox(
                                               height: 2,
@@ -287,10 +292,12 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                                               listWithoutSelected[index],
                                               key: (index == 0)
                                                   ? const Key(
-                                                      "selectedLanguageSettingsLanguageTextDescription")
+                                                      "selectedLanguageSettingsLanguageTextDescription",
+                                                    )
                                                   : null,
                                               style: STextStyles.itemSubtitle(
-                                                  context),
+                                                context,
+                                              ),
                                             ),
                                           ],
                                         ),

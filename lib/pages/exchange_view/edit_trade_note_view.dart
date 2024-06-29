@@ -10,23 +10,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/providers/exchange/trade_note_service_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+import '../../providers/exchange/trade_note_service_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfield_icon_button.dart';
 
 class EditTradeNoteView extends ConsumerStatefulWidget {
   const EditTradeNoteView({
-    Key? key,
+    super.key,
     required this.tradeId,
     required this.note,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/editTradeNote";
 
@@ -151,7 +151,7 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                               "Save",
                               style: STextStyles.button(context),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),

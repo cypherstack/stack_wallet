@@ -13,25 +13,26 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/fusion_tx_group_card.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+
+import '../../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../../providers/db/main_db_provider.dart';
+import '../../../../providers/global/wallets_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../widgets/loading_indicator.dart';
+import '../../sub_widgets/no_transactions_found.dart';
+import '../../wallet_view.dart';
+import 'fusion_tx_group_card.dart';
+import 'transaction_v2_list_item.dart';
 
 class TransactionsV2List extends ConsumerStatefulWidget {
   const TransactionsV2List({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -45,7 +46,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
 
   late final StreamSubscription<List<TransactionV2>> _subscription;
   late final Query<TransactionV2> _query;
-  late final Coin coin;
+  late final CryptoCurrency coin;
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
@@ -72,27 +73,25 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
   @override
   void initState() {
     coin = ref.read(pWallets).getWallet(widget.walletId).info.coin;
-    _query = ref
-        .read(mainDBProvider)
-        .isar
-        .transactionV2s
-        .buildQuery<TransactionV2>(
-            whereClauses: [
-              IndexWhereClause.equalTo(
-                indexName: 'walletId',
-                value: [widget.walletId],
-              )
-            ],
-            filter: ref
-                .read(pWallets)
-                .getWallet(widget.walletId)
-                .transactionFilterOperation,
-            sortBy: [
-              const SortProperty(
-                property: "timestamp",
-                sort: Sort.desc,
-              ),
-            ]);
+    _query =
+        ref.read(mainDBProvider).isar.transactionV2s.buildQuery<TransactionV2>(
+              whereClauses: [
+                IndexWhereClause.equalTo(
+                  indexName: 'walletId',
+                  value: [widget.walletId],
+                ),
+              ],
+              filter: ref
+                  .read(pWallets)
+                  .getWallet(widget.walletId)
+                  .transactionFilterOperation,
+              sortBy: [
+                const SortProperty(
+                  property: "timestamp",
+                  sort: Sort.desc,
+                ),
+              ],
+            );
 
     _subscription = _query.watch().listen((event) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -158,7 +157,8 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
             if (tx.subType == TransactionSubType.cashFusion) {
               if (fusions.isNotEmpty) {
                 final prevTime = DateTime.fromMillisecondsSinceEpoch(
-                    fusions.last.timestamp * 1000);
+                  fusions.last.timestamp * 1000,
+                );
                 final thisTime =
                     DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
 

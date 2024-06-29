@@ -2,7 +2,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
   test("displayAmount BTC", () {
@@ -15,7 +15,7 @@ void main() {
       AmountUnit.normal.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
         maxDecimalPlaces: 8,
       ),
       "10.12345678 BTC",
@@ -25,7 +25,7 @@ void main() {
       AmountUnit.milli.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
         maxDecimalPlaces: 8,
       ),
       "10,123.45678 mBTC",
@@ -35,7 +35,7 @@ void main() {
       AmountUnit.micro.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
         maxDecimalPlaces: 8,
       ),
       "10,123,456.78 µBTC",
@@ -45,7 +45,7 @@ void main() {
       AmountUnit.nano.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
         maxDecimalPlaces: 8,
       ),
       "1,012,345,678 sats",
@@ -56,16 +56,18 @@ void main() {
   });
 
   test("displayAmount ETH", () {
+    final eth = Ethereum(CryptoCurrencyNetwork.main);
+
     final Amount amount = Amount.fromDecimal(
       Decimal.parse("10.123456789123456789"),
-      fractionDigits: Coin.ethereum.decimals,
+      fractionDigits: eth.fractionDigits,
     );
 
     expect(
       AmountUnit.normal.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 8,
       ),
       "~10.12345678 ETH",
@@ -75,7 +77,7 @@ void main() {
       AmountUnit.normal.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 4,
       ),
       "~10.1234 ETH",
@@ -85,7 +87,7 @@ void main() {
       AmountUnit.normal.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 18,
       ),
       "10.123456789123456789 ETH",
@@ -95,7 +97,7 @@ void main() {
       AmountUnit.milli.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 9,
       ),
       "~10,123.456789123 mETH",
@@ -105,7 +107,7 @@ void main() {
       AmountUnit.micro.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 8,
       ),
       "~10,123,456.78912345 µETH",
@@ -115,7 +117,7 @@ void main() {
       AmountUnit.nano.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 1,
       ),
       "~10,123,456,789.1 gwei",
@@ -125,7 +127,7 @@ void main() {
       AmountUnit.pico.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 18,
       ),
       "10,123,456,789,123.456789 mwei",
@@ -135,7 +137,7 @@ void main() {
       AmountUnit.femto.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 4,
       ),
       "10,123,456,789,123,456.789 kwei",
@@ -145,7 +147,7 @@ void main() {
       AmountUnit.atto.displayAmount(
         amount: amount,
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
         maxDecimalPlaces: 1,
       ),
       "10,123,456,789,123,456,789 wei",
@@ -153,20 +155,21 @@ void main() {
   });
 
   test("parse eth string to amount", () {
+    final eth = Ethereum(CryptoCurrencyNetwork.main);
     final Amount amount = Amount.fromDecimal(
       Decimal.parse("10.123456789123456789"),
-      fractionDigits: Coin.ethereum.decimals,
+      fractionDigits: eth.fractionDigits,
     );
 
     expect(
       AmountUnit.nano.tryParse(
         "~10,123,456,789.1 gwei",
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
       ),
       Amount.fromDecimal(
         Decimal.parse("10.1234567891"),
-        fractionDigits: Coin.ethereum.decimals,
+        fractionDigits: eth.fractionDigits,
       ),
     );
 
@@ -174,7 +177,7 @@ void main() {
       AmountUnit.atto.tryParse(
         "10,123,456,789,123,456,789 wei",
         locale: "en_US",
-        coin: Coin.ethereum,
+        coin: eth,
       ),
       amount,
     );
@@ -190,7 +193,7 @@ void main() {
       AmountUnit.normal.tryParse(
         "10.12345678 BTC",
         locale: "en_US",
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
       ),
       amount,
     );
@@ -199,7 +202,7 @@ void main() {
       AmountUnit.milli.tryParse(
         "10,123.45678 mBTC",
         locale: "en_US",
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
       ),
       amount,
     );
@@ -208,7 +211,7 @@ void main() {
       AmountUnit.micro.tryParse(
         "10,123,456.7822 µBTC",
         locale: "en_US",
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
       ),
       amount,
     );
@@ -217,7 +220,7 @@ void main() {
       AmountUnit.nano.tryParse(
         "1,012,345,678 sats",
         locale: "en_US",
-        coin: Coin.bitcoin,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
       ),
       amount,
     );

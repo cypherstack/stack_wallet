@@ -13,19 +13,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
-import 'package:stackwallet/models/paynym/paynym_response.dart';
-import 'package:stackwallet/notifications/show_flush_bar.dart';
-import 'package:stackwallet/providers/global/paynym_api_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/providers/wallet/my_paynym_account_state_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+
+import '../../models/paynym/paynym_account_lite.dart';
+import '../../models/paynym/paynym_response.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/paynym_api_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../providers/wallet/my_paynym_account_state_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/util.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../desktop/primary_button.dart';
+import '../desktop/secondary_button.dart';
+import '../loading_indicator.dart';
 
 enum PaynymFollowToggleButtonStyle {
   primary,
@@ -35,11 +36,11 @@ enum PaynymFollowToggleButtonStyle {
 
 class PaynymFollowToggleButton extends ConsumerStatefulWidget {
   const PaynymFollowToggleButton({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.paymentCodeStringToFollow,
     this.style = PaynymFollowToggleButtonStyle.primary,
-  }) : super(key: key);
+  });
 
   final String walletId;
   final String paymentCodeStringToFollow;
@@ -83,8 +84,11 @@ class _PaynymFollowToggleButtonState
     // sign token with notification private key
     String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref.read(paynymAPIProvider).follow(token.value!,
-        signature, followedAccount.value!.nonSegwitPaymentCode.code);
+    var result = await ref.read(paynymAPIProvider).follow(
+          token.value!,
+          signature,
+          followedAccount.value!.nonSegwitPaymentCode.code,
+        );
 
     int i = 0;
     for (;
@@ -96,8 +100,11 @@ class _PaynymFollowToggleButtonState
       // sign token with notification private key
       signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref.read(paynymAPIProvider).follow(token.value!, signature,
-          followedAccount.value!.nonSegwitPaymentCode.code);
+      result = await ref.read(paynymAPIProvider).follow(
+            token.value!,
+            signature,
+            followedAccount.value!.nonSegwitPaymentCode.code,
+          );
       await Future<void>.delayed(const Duration(milliseconds: 200));
 
       print("RRR result: $result");
@@ -181,8 +188,11 @@ class _PaynymFollowToggleButtonState
     // sign token with notification private key
     String signature = await wallet.signStringWithNotificationKey(token.value!);
 
-    var result = await ref.read(paynymAPIProvider).unfollow(token.value!,
-        signature, followedAccount.value!.nonSegwitPaymentCode.code);
+    var result = await ref.read(paynymAPIProvider).unfollow(
+          token.value!,
+          signature,
+          followedAccount.value!.nonSegwitPaymentCode.code,
+        );
 
     int i = 0;
     for (;
@@ -194,8 +204,11 @@ class _PaynymFollowToggleButtonState
       // sign token with notification private key
       signature = await wallet.signStringWithNotificationKey(token.value!);
 
-      result = await ref.read(paynymAPIProvider).unfollow(token.value!,
-          signature, followedAccount.value!.nonSegwitPaymentCode.code);
+      result = await ref.read(paynymAPIProvider).unfollow(
+            token.value!,
+            signature,
+            followedAccount.value!.nonSegwitPaymentCode.code,
+          );
       await Future<void>.delayed(const Duration(milliseconds: 200));
       print("unfollow RRR result: $result");
     }

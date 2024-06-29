@@ -11,23 +11,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/providers/global/prefs_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/languages_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/languages_enum.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/rounded_container.dart';
+import '../../../../widgets/stack_text_field.dart';
+import '../../../../widgets/textfield_icon_button.dart';
 
 class LanguageDialog extends ConsumerStatefulWidget {
-  const LanguageDialog({Key? key}) : super(key: key);
+  const LanguageDialog({super.key});
 
   @override
   ConsumerState<LanguageDialog> createState() => _LanguageDialog();
@@ -80,7 +81,8 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
   List<String> _filtered() {
     return listWithoutSelected
         .where(
-            (element) => element.toLowerCase().contains(filter.toLowerCase()))
+          (element) => element.toLowerCase().contains(filter.toLowerCase()),
+        )
         .toList();
   }
 
@@ -141,11 +143,12 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                 return [
                   SliverOverlapAbsorber(
                     handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context),
+                      context,
+                    ),
                     sliver: SliverToBoxAdapter(
                       child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 16, horizontal: 32),
                         child: Column(
                           children: [
                             Padding(
@@ -164,9 +167,11 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                     height: 2,
                                   ),
                                   textAlign: TextAlign.left,
-                                  decoration: standardInputDecoration("Search",
-                                          searchLanguageFocusNode, context)
-                                      .copyWith(
+                                  decoration: standardInputDecoration(
+                                    "Search",
+                                    searchLanguageFocusNode,
+                                    context,
+                                  ).copyWith(
                                     prefixIcon: Padding(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 10,
@@ -234,10 +239,12 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                               child: Padding(
                                 padding: const EdgeInsets.all(4),
                                 key: Key(
-                                    "desktopSelectLanguage_${listWithoutSelected[index]}"),
+                                  "desktopSelectLanguage_${listWithoutSelected[index]}",
+                                ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 32),
+                                    horizontal: 32,
+                                  ),
                                   child: RoundedContainer(
                                     padding: const EdgeInsets.all(0),
                                     color: index == 0
@@ -287,11 +294,13 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                                   listWithoutSelected[index],
                                                   key: (index == 0)
                                                       ? const Key(
-                                                          "desktopSettingsSelectedLanguageText")
+                                                          "desktopSettingsSelectedLanguageText",
+                                                        )
                                                       : null,
                                                   style:
                                                       STextStyles.largeMedium14(
-                                                          context),
+                                                    context,
+                                                  ),
                                                 ),
                                                 const SizedBox(
                                                   height: 2,
@@ -300,11 +309,13 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                                   listWithoutSelected[index],
                                                   key: (index == 0)
                                                       ? const Key(
-                                                          "desktopSettingsSelectedLanguageTextDescription")
+                                                          "desktopSettingsSelectedLanguageTextDescription",
+                                                        )
                                                       : null,
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                          context),
+                                                    context,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -347,7 +358,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                     label: "Save Changes",
                     onPressed: () {},
                   ),
-                )
+                ),
               ],
             ),
           ),

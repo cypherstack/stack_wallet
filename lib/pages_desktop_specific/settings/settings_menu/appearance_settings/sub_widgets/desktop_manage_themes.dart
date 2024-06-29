@@ -10,17 +10,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings/sub_widgets/desktop_install_theme.dart';
-import 'package:stackwallet/pages_desktop_specific/settings/settings_menu/appearance_settings/sub_widgets/desktop_themes_gallery.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/toggle.dart';
+import 'desktop_install_theme.dart';
+import 'desktop_themes_gallery.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/constants.dart';
+import '../../../../../utilities/text_styles.dart';
+import '../../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../../widgets/toggle.dart';
 
 class DesktopManageThemesDialog extends ConsumerStatefulWidget {
-  const DesktopManageThemesDialog({Key? key}) : super(key: key);
+  const DesktopManageThemesDialog({super.key});
 
   @override
   ConsumerState<DesktopManageThemesDialog> createState() =>

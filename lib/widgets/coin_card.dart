@@ -13,11 +13,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/themes/coin_card_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
+import '../themes/coin_card_provider.dart';
+import '../themes/theme_providers.dart';
+import '../utilities/assets.dart';
+import '../utilities/constants.dart';
+import '../wallets/isar/providers/wallet_info_provider.dart';
 
 class CoinCard extends ConsumerWidget {
   const CoinCard({
@@ -68,9 +68,7 @@ class CoinCard extends ConsumerWidget {
             width: width,
             height: height,
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .colorForCoin(coin),
+              color: ref.watch(pCoinColor(coin)),
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),

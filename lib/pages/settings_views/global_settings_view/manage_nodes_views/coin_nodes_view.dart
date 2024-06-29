@@ -13,31 +13,32 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import 'package:stackwallet/pages/settings_views/sub_widgets/nodes_list.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../../../themes/coin_icon_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../sub_widgets/nodes_list.dart';
+import 'add_edit_node_view.dart';
 
 class CoinNodesView extends ConsumerStatefulWidget {
   const CoinNodesView({
-    Key? key,
+    super.key,
     required this.coin,
     this.rootNavigator = false,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/coinNodes";
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final bool rootNavigator;
 
   @override
@@ -59,7 +60,10 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
   Widget build(BuildContext context) {
     if (Util.isDesktop) {
       return DesktopDialog(
+        maxHeight: null,
+        maxWidth: 580,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -129,11 +133,15 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
             const SizedBox(
               width: 12,
             ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: NodesList(
-                coin: widget.coin,
-                popBackToRoute: CoinNodesView.routeName,
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: SingleChildScrollView(
+                  child: NodesList(
+                    coin: widget.coin,
+                    popBackToRoute: CoinNodesView.routeName,
+                  ),
+                ),
               ),
             ),
           ],

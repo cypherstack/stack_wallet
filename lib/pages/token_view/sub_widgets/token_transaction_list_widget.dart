@@ -13,22 +13,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/pages/wallet_view/sub_widgets/no_transactions_found.dart';
-import 'package:stackwallet/pages/wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/global/wallets_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/eth/current_token_wallet_provider.dart';
-import 'package:stackwallet/widgets/loading_indicator.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../wallet_view/sub_widgets/no_transactions_found.dart';
+import '../../wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import '../../../widgets/loading_indicator.dart';
 
 class TokenTransactionsList extends ConsumerStatefulWidget {
   const TokenTransactionsList({
-    Key? key,
+    super.key,
     required this.walletId,
-  }) : super(key: key);
+  });
 
   final String walletId;
 
@@ -81,7 +81,7 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
                 IndexWhereClause.equalTo(
                   indexName: 'walletId',
                   value: [widget.walletId],
-                )
+                ),
               ],
               filter: ref.read(pCurrentTokenWallet)!.transactionFilterOperation,
               sortBy: [

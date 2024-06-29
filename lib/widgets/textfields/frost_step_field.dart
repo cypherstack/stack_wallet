@@ -1,16 +1,17 @@
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
+
+import '../../themes/stack_colors.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../conditional_parent.dart';
+import '../icon_widgets/clipboard_icon.dart';
+import '../icon_widgets/qrcode_icon.dart';
+import '../icon_widgets/x_icon.dart';
+import '../textfield_icon_button.dart';
 
 class FrostStepField extends StatefulWidget {
   const FrostStepField({
@@ -154,7 +155,8 @@ class _FrostStepFieldState extends State<FrostStepField> {
                           if (FocusScope.of(context).hasFocus) {
                             FocusScope.of(context).unfocus();
                             await Future<void>.delayed(
-                                const Duration(milliseconds: 75));
+                              const Duration(milliseconds: 75),
+                            );
                           }
 
                           final qrResult = await BarcodeScanner.scan();

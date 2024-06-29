@@ -14,23 +14,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
-import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
-import 'package:stackwallet/services/exchange/exchange_data_loading_service.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
+import '../../../models/isar/exchange_cache/currency.dart';
+import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../../../services/exchange/exchange_data_loading_service.dart';
+import '../../../themes/coin_icon_provider.dart';
+import '../../../themes/theme_providers.dart';
+import '../../../utilities/constants.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 class WalletInfoCoinIcon extends ConsumerWidget {
   const WalletInfoCoinIcon({
-    Key? key,
+    super.key,
     required this.coin,
     this.size = 32,
     this.contractAddress,
-  }) : super(key: key);
+  });
 
-  final Coin coin;
+  final CryptoCurrency coin;
   final String? contractAddress;
   final double size;
 
@@ -55,10 +55,7 @@ class WalletInfoCoinIcon extends ConsumerWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .extension<StackColors>()!
-            .colorForCoin(coin)
-            .withOpacity(0.4),
+        color: ref.watch(pCoinColor(coin)).withOpacity(0.4),
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),

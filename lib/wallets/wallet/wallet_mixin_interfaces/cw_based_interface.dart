@@ -11,20 +11,21 @@ import 'package:cw_core/wallet_type.dart';
 import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stackwallet/models/balance.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
-import 'package:stackwallet/models/paymint/fee_object_model.dart';
-import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/updated_in_background_event.dart';
-import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import 'package:stackwallet/services/event_bus/global_event_bus.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/stack_file_system.dart';
-import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
-import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
+import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
+import '../../../services/event_bus/events/global/updated_in_background_event.dart';
+import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/stack_file_system.dart';
+import '../../crypto_currency/intermediate/cryptonote_currency.dart';
+import '../intermediate/cryptonote_wallet.dart';
+import 'multi_address_interface.dart';
 
 mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
     implements MultiAddressInterface<T> {
@@ -344,7 +345,7 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
       if (entries != null) {
         for (final element in entries) {
           if (element.value.direction == TransactionDirection.incoming) {
-            int curAddressIndex =
+            final int curAddressIndex =
                 element.value.additionalInfo!['addressIndex'] as int;
             if (curAddressIndex > highestIndex) {
               highestIndex = curAddressIndex;
@@ -381,13 +382,15 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
-          "SocketException caught in _checkReceivingAddressForTransactions(): $se\n$s",
-          level: LogLevel.Error);
+        "SocketException caught in _checkReceivingAddressForTransactions(): $se\n$s",
+        level: LogLevel.Error,
+      );
       return;
     } catch (e, s) {
       Logging.instance.log(
-          "Exception rethrown from _checkReceivingAddressForTransactions(): $e\n$s",
-          level: LogLevel.Error);
+        "Exception rethrown from _checkReceivingAddressForTransactions(): $e\n$s",
+        level: LogLevel.Error,
+      );
       rethrow;
     }
   }

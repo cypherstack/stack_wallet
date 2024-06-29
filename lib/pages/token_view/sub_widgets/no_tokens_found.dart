@@ -9,11 +9,11 @@
  */
 
 import 'package:flutter/cupertino.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class NoTokensFound extends StatelessWidget {
-  const NoTokensFound({Key? key}) : super(key: key);
+  const NoTokensFound({super.key});
 
   @override
   Widget build(BuildContext context) {

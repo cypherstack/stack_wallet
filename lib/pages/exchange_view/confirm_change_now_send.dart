@@ -12,49 +12,49 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:stackwallet/models/exchange/response_objects/trade.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/trade_wallet_lookup.dart';
-import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
-import 'package:stackwallet/pages/wallet_view/wallet_view.dart';
-import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import 'package:stackwallet/providers/db/main_db_provider.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/conditional_parent.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog.dart';
-import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
-import 'package:stackwallet/widgets/rounded_container.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../models/exchange/response_objects/trade.dart';
+import '../../models/isar/models/isar_models.dart';
+import '../../models/trade_wallet_lookup.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import '../../providers/db/main_db_provider.dart';
+import '../../providers/providers.dart';
+import '../../route_generator.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
+import '../pinpad_views/lock_screen_view.dart';
+import '../send_view/sub_widgets/sending_transaction_dialog.dart';
+import '../wallet_view/wallet_view.dart';
 
 class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
   const ConfirmChangeNowSendView({
-    Key? key,
+    super.key,
     required this.txData,
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
     required this.trade,
     this.shouldSendPublicFiroFunds,
     this.fromDesktopStep4 = false,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/confirmChangeNowSend";
 
@@ -147,16 +147,14 @@ class _ConfirmChangeNowSendViewState
           );
 
       // pop back to wallet
-      if (mounted) {
+      if (context.mounted) {
         if (Util.isDesktop) {
+          // pop sending dialog
           Navigator.of(context, rootNavigator: true).pop();
 
-          // stupid hack
+          // one day we'll do routing right
+          Navigator.of(context, rootNavigator: true).pop();
           if (widget.fromDesktopStep4) {
-            Navigator.of(context, rootNavigator: true).pop();
-            Navigator.of(context, rootNavigator: true).pop();
-            Navigator.of(context, rootNavigator: true).pop();
-            Navigator.of(context, rootNavigator: true).pop();
             Navigator.of(context, rootNavigator: true).pop();
           }
         }
@@ -343,7 +341,7 @@ class _ConfirmChangeNowSendViewState
                   Text(
                     "Confirm ${ref.watch(pWalletCoin(walletId)).ticker} transaction",
                     style: STextStyles.desktopH3(context),
-                  )
+                  ),
                 ],
               ),
               Padding(
@@ -385,8 +383,11 @@ class _ConfirmChangeNowSendViewState
                         children: [
                           Text(
                             ref
-                                .watch(pAmountFormatter(
-                                    ref.watch(pWalletCoin(walletId))))
+                                .watch(
+                                  pAmountFormatter(
+                                    ref.watch(pWalletCoin(walletId)),
+                                  ),
+                                )
                                 .format(widget.txData.fee!),
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context)
@@ -462,7 +463,7 @@ class _ConfirmChangeNowSendViewState
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -575,41 +576,49 @@ class _ConfirmChangeNowSendViewState
                     builder: (child) => Row(
                       children: [
                         child,
-                        Builder(builder: (context) {
-                          final coin = ref.watch(pWalletCoin(walletId));
-                          final price = ref.watch(
+                        Builder(
+                          builder: (context) {
+                            final coin = ref.watch(pWalletCoin(walletId));
+                            final price = ref.watch(
                               priceAnd24hChangeNotifierProvider
-                                  .select((value) => value.getPrice(coin)));
-                          final amountWithoutChange =
-                              widget.txData.amountWithoutChange!;
-                          final value =
-                              (price.item1 * amountWithoutChange.decimal)
-                                  .toAmount(fractionDigits: 2);
-                          final currency = ref.watch(prefsChangeNotifierProvider
-                              .select((value) => value.currency));
-                          final locale = ref.watch(
-                            localeServiceChangeNotifierProvider.select(
-                              (value) => value.locale,
-                            ),
-                          );
+                                  .select((value) => value.getPrice(coin)),
+                            );
+                            final amountWithoutChange =
+                                widget.txData.amountWithoutChange!;
+                            final value =
+                                (price.item1 * amountWithoutChange.decimal)
+                                    .toAmount(fractionDigits: 2);
+                            final currency = ref.watch(
+                              prefsChangeNotifierProvider
+                                  .select((value) => value.currency),
+                            );
+                            final locale = ref.watch(
+                              localeServiceChangeNotifierProvider.select(
+                                (value) => value.locale,
+                              ),
+                            );
 
-                          return Text(
-                            " | ${value.fiatString(locale: locale)} $currency",
-                            style:
-                                STextStyles.desktopTextExtraExtraSmall(context)
-                                    .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle2,
-                            ),
-                          );
-                        })
+                            return Text(
+                              " | ${value.fiatString(locale: locale)} $currency",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                      context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle2,
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                     child: Text(
                       ref
-                          .watch(pAmountFormatter(
-                              ref.watch(pWalletCoin(walletId))))
+                          .watch(
+                            pAmountFormatter(
+                              ref.watch(pWalletCoin(walletId)),
+                            ),
+                          )
                           .format((widget.txData.amountWithoutChange!)),
                       style: STextStyles.itemSubtitle12(context),
                       textAlign: TextAlign.right,
@@ -638,7 +647,8 @@ class _ConfirmChangeNowSendViewState
                   Text(
                     ref
                         .watch(
-                            pAmountFormatter(ref.read(pWalletCoin(walletId))))
+                          pAmountFormatter(ref.read(pWalletCoin(walletId))),
+                        )
                         .format(
                           widget.txData.fee!,
                         ),

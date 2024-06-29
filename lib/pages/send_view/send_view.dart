@@ -15,77 +15,79 @@ import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_native_splash/cli_commands.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:stackwallet/models/isar/models/isar_models.dart';
-import 'package:stackwallet/models/paynym/paynym_account_lite.dart';
-import 'package:stackwallet/models/send_view_auto_fill_data.dart';
-import 'package:stackwallet/pages/address_book_views/address_book_view.dart';
-import 'package:stackwallet/pages/coin_control/coin_control_view.dart';
-import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/firo_balance_selection_sheet.dart';
-import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
-import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
-import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
-import 'package:stackwallet/route_generator.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/amount/amount_formatter.dart';
-import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
-import 'package:stackwallet/utilities/amount/amount_unit.dart';
-import 'package:stackwallet/utilities/assets.dart';
-import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
-import 'package:stackwallet/utilities/clipboard_interface.dart';
-import 'package:stackwallet/utilities/constants.dart';
-import 'package:stackwallet/utilities/enums/coin_enum.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/utilities/logger.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import 'package:stackwallet/widgets/animated_text.dart';
-import 'package:stackwallet/widgets/background.dart';
-import 'package:stackwallet/widgets/custom_buttons/app_bar_icon_button.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/fee_slider.dart';
-import 'package:stackwallet/widgets/icon_widgets/addressbook_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/clipboard_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/qrcode_icon.dart';
-import 'package:stackwallet/widgets/icon_widgets/x_icon.dart';
-import 'package:stackwallet/widgets/rounded_white_container.dart';
-import 'package:stackwallet/widgets/stack_dialog.dart';
-import 'package:stackwallet/widgets/stack_text_field.dart';
-import 'package:stackwallet/widgets/textfield_icon_button.dart';
 import 'package:tuple/tuple.dart';
+
+import '../../models/isar/models/isar_models.dart';
+import '../../models/paynym/paynym_account_lite.dart';
+import '../../models/send_view_auto_fill_data.dart';
+import '../../providers/providers.dart';
+import '../../providers/ui/fee_rate_type_state_provider.dart';
+import '../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../route_generator.dart';
+import '../../themes/coin_icon_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/address_utils.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/amount/amount_input_formatter.dart';
+import '../../utilities/amount/amount_unit.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/barcode_scanner_interface.dart';
+import '../../utilities/clipboard_interface.dart';
+import '../../utilities/constants.dart';
+import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/extensions/extensions.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/prefs.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../widgets/animated_text.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
+import '../../widgets/fee_slider.dart';
+import '../../widgets/icon_widgets/addressbook_icon.dart';
+import '../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
+import '../../widgets/stack_text_field.dart';
+import '../../widgets/textfield_icon_button.dart';
+import '../address_book_views/address_book_view.dart';
+import '../coin_control/coin_control_view.dart';
+import 'confirm_transaction_view.dart';
+import 'sub_widgets/building_transaction_dialog.dart';
+import 'sub_widgets/firo_balance_selection_sheet.dart';
+import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
-    Key? key,
+    super.key,
     required this.walletId,
     required this.coin,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.accountLite,
-  }) : super(key: key);
+  });
 
   static const String routeName = "/sendView";
 
   final String walletId;
-  final Coin coin;
+  final CryptoCurrency coin;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
   final BarcodeScannerInterface barcodeScanner;
@@ -97,7 +99,7 @@ class SendView extends ConsumerStatefulWidget {
 
 class _SendViewState extends ConsumerState<SendView> {
   late final String walletId;
-  late final Coin coin;
+  late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
   late final BarcodeScannerInterface scanner;
 
@@ -125,6 +127,8 @@ class _SendViewState extends ConsumerState<SendView> {
   String? _address;
 
   bool _addressToggleFlag = false;
+
+  bool _isFiroExWarningDisplayed = false;
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
@@ -178,7 +182,7 @@ class _SendViewState extends ConsumerState<SendView> {
         // autofill amount field
         if (results["amount"] != null) {
           final Amount amount = Decimal.parse(results["amount"]!).toAmount(
-            fractionDigits: coin.decimals,
+            fractionDigits: coin.fractionDigits,
           );
           cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
                 amount,
@@ -232,15 +236,15 @@ class _SendViewState extends ConsumerState<SendView> {
           ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
       if (_price == Decimal.zero) {
-        amount = 0.toAmountAsRaw(fractionDigits: coin.decimals);
+        amount = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
       } else {
         amount = baseAmount <= Amount.zero
-            ? 0.toAmountAsRaw(fractionDigits: coin.decimals)
+            ? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits)
             : (baseAmount.decimal / _price)
                 .toDecimal(
-                  scaleOnInfinitePrecision: coin.decimals,
+                  scaleOnInfinitePrecision: coin.fractionDigits,
                 )
-                .toAmount(fractionDigits: coin.decimals);
+                .toAmount(fractionDigits: coin.fractionDigits);
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
         return;
@@ -258,7 +262,7 @@ class _SendViewState extends ConsumerState<SendView> {
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      amount = 0.toAmountAsRaw(fractionDigits: coin.decimals);
+      amount = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -309,11 +313,11 @@ class _SendViewState extends ConsumerState<SendView> {
 
       _cryptoAmountChangedFeeUpdateTimer?.cancel();
       _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (coin != Coin.epicCash && !_baseFocus.hasFocus) {
+        if (coin is! Epiccash && !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees(
               amount == null
-                  ? 0.toAmountAsRaw(fractionDigits: coin.decimals)
+                  ? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits)
                   : amount!,
             );
           });
@@ -330,11 +334,11 @@ class _SendViewState extends ConsumerState<SendView> {
   void _baseAmountChanged() {
     _baseAmountChangedFeeUpdateTimer?.cancel();
     _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (coin != Coin.epicCash && !_cryptoFocus.hasFocus) {
+      if (coin is! Epiccash && !_cryptoFocus.hasFocus) {
         setState(() {
           _calculateFeesFuture = calculateFees(
             ref.read(pSendAmount) == null
-                ? 0.toAmountAsRaw(fractionDigits: coin.decimals)
+                ? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits)
                 : ref.read(pSendAmount)!,
           );
         });
@@ -356,8 +360,8 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final value = fee.contains(",")
         ? Decimal.parse(fee.replaceFirst(",", "."))
-            .toAmount(fractionDigits: coin.decimals)
-        : Decimal.parse(fee).toAmount(fractionDigits: coin.decimals);
+            .toAmount(fractionDigits: coin.fractionDigits)
+        : Decimal.parse(fee).toAmount(fractionDigits: coin.fractionDigits);
 
     if (shouldSetState) {
       setState(() => _currentFee = value);
@@ -391,9 +395,21 @@ class _SendViewState extends ConsumerState<SendView> {
         ref.read(pValidSparkSendToAddress.notifier).state =
             SparkInterface.validateSparkAddress(
           address: address ?? "",
-          isTestNet:
-              wallet.cryptoCurrency.network == CryptoCurrencyNetwork.test,
+          isTestNet: wallet.cryptoCurrency.network.isTestNet,
         );
+
+        ref.read(pIsExchangeAddress.state).state =
+            (coin as Firo).isExchangeAddress(address ?? "");
+
+        if (ref.read(publicPrivateBalanceStateProvider) == FiroType.spark &&
+            ref.read(pIsExchangeAddress) &&
+            !_isFiroExWarningDisplayed) {
+          _isFiroExWarningDisplayed = true;
+          showFiroExchangeAddressWarning(
+            context,
+            () => _isFiroExWarningDisplayed = false,
+          );
+        }
       }
 
       ref.read(pValidSendToAddress.notifier).state =
@@ -455,7 +471,7 @@ class _SendViewState extends ConsumerState<SendView> {
     }
 
     Amount fee;
-    if (coin == Coin.monero) {
+    if (coin is Monero) {
       MoneroTransactionPriority specialMoneroId;
       switch (ref.read(feeRateTypeStateProvider.state).state) {
         case FeeRateType.fast:
@@ -552,7 +568,7 @@ class _SendViewState extends ConsumerState<SendView> {
     final coinControlEnabled =
         ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
-    if (coin != Coin.ethereum &&
+    if (coin is! Ethereum &&
             !(wallet is CoinControlInterface && coinControlEnabled) ||
         (wallet is CoinControlInterface &&
             coinControlEnabled &&
@@ -751,9 +767,7 @@ class _SendViewState extends ConsumerState<SendView> {
             break;
         }
       } else {
-        final memo = coin == Coin.stellar || coin == Coin.stellarTestnet
-            ? memoController.text
-            : null;
+        final memo = coin is Stellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
@@ -877,17 +891,20 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   void initState() {
     coin = widget.coin;
-    ref.refresh(feeSheetSessionCacheProvider);
-    _currentFee = 0.toAmountAsRaw(fractionDigits: coin.decimals);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.refresh(feeSheetSessionCacheProvider);
+      ref.refresh(pIsExchangeAddress);
+    });
+    _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
 
     _calculateFeesFuture =
-        calculateFees(0.toAmountAsRaw(fractionDigits: coin.decimals));
+        calculateFees(0.toAmountAsRaw(fractionDigits: coin.fractionDigits));
     _data = widget.autoFillData;
     walletId = widget.walletId;
     clipboard = widget.clipboard;
     scanner = widget.barcodeScanner;
-    isStellar = coin == Coin.stellar || coin == Coin.stellarTestnet;
-    isFiro = coin == Coin.firo || coin == Coin.firoTestNet;
+    isStellar = coin is Stellar;
+    isFiro = coin is Firo;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -905,7 +922,7 @@ class _SendViewState extends ConsumerState<SendView> {
       if (_data!.amount != null) {
         final amount = Amount.fromDecimal(
           _data!.amount!,
-          fractionDigits: coin.decimals,
+          fractionDigits: coin.fractionDigits,
         );
 
         cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -927,7 +944,7 @@ class _SendViewState extends ConsumerState<SendView> {
       noteController.text = "PayNym send";
     }
 
-    // if (coin != Coin.epicCash) {
+    // if (coin is! Epiccash) {
     // _cryptoFocus.addListener(() {
     //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
     //     if (_amountToSend == null) {
@@ -999,14 +1016,22 @@ class _SendViewState extends ConsumerState<SendView> {
           prefsChangeNotifierProvider.select(
             (value) => value.enableCoinControl,
           ),
-        );
+        ) &&
+        (coin is Firo
+            ? ref.watch(publicPrivateBalanceStateProvider) == FiroType.public
+            : true);
 
     if (isFiro) {
+      final isExchangeAddress = ref.watch(pIsExchangeAddress);
+
       ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
+        selectedUTXOs = {};
+
         if (ref.read(pSendAmount) == null) {
           setState(() {
-            _calculateFeesFuture =
-                calculateFees(0.toAmountAsRaw(fractionDigits: coin.decimals));
+            _calculateFeesFuture = calculateFees(
+              0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
+            );
           });
         } else {
           setState(() {
@@ -1015,11 +1040,24 @@ class _SendViewState extends ConsumerState<SendView> {
             );
           });
         }
+
+        if (previous != next &&
+            next == FiroType.spark &&
+            isExchangeAddress &&
+            !_isFiroExWarningDisplayed) {
+          _isFiroExWarningDisplayed = true;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => showFiroExchangeAddressWarning(
+              context,
+              () => _isFiroExWarningDisplayed = false,
+            ),
+          );
+        }
       });
     }
 
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin == Coin.epicCash) {
+    if (coin is Epiccash) {
       sendToController.addListener(() {
         _address = sendToController.text.trim();
 
@@ -1119,8 +1157,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                           style: STextStyles.label(context)
                                               .copyWith(fontSize: 10),
                                         ),
-                                      if (coin != Coin.firo &&
-                                          coin != Coin.firoTestNet)
+                                      if (coin is! Firo)
                                         Text(
                                           "Available balance",
                                           style: STextStyles.label(context)
@@ -1233,7 +1270,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              // if (coin == Coin.monero)
+                              // if (coin is Monero)
                               //   CustomTextButton(
                               //     text: "Use OpenAlias",
                               //     onTap: () async {
@@ -1359,8 +1396,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         );
                                                       }
 
-                                                      if (coin ==
-                                                          Coin.epicCash) {
+                                                      if (coin is Epiccash) {
                                                         // strip http:// and https:// if content contains @
                                                         content = formatAddress(
                                                           content,
@@ -1433,10 +1469,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                               child: TextField(
                                 key: const Key("sendViewMemoFieldKey"),
-                                maxLength: (coin == Coin.firo ||
-                                        coin == Coin.firoTestNet)
-                                    ? 31
-                                    : null,
+                                maxLength: (coin is Firo) ? 31 : null,
                                 controller: memoController,
                                 readOnly: false,
                                 autocorrect: false,
@@ -1527,7 +1560,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                       _data!.contactLabel == _address) {
                                     error = SparkInterface.validateSparkAddress(
                                       address: _data!.address,
-                                      isTestNet: coin.isTestNet,
+                                      isTestNet: coin.network ==
+                                          CryptoCurrencyNetwork.test,
                                     )
                                         ? "Unsupported"
                                         : null;
@@ -1733,7 +1767,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              if (coin != Coin.ethereum && coin != Coin.tezos)
+                              if (coin is! Ethereum && coin is! Tezos)
                                 CustomTextButton(
                                   text: "Send all ${coin.ticker}",
                                   onTap: () async {
@@ -1815,7 +1849,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             textAlign: TextAlign.right,
                             inputFormatters: [
                               AmountInputFormatter(
-                                decimals: coin.decimals,
+                                decimals: coin.fractionDigits,
                                 unit: ref.watch(pAmountUnit(coin)),
                                 locale: locale,
                               ),
@@ -1825,7 +1859,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               //         newValue) =>
                               //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
                               //     // RegExp(r'^\d{1,3}([,\.]\d+)?|[,\.\d]+$')
-                              //     getAmountRegex(locale, coin.decimals)
+                              //     getAmountRegex(locale, coin.fractionDigits)
                               //             .hasMatch(newValue.text)
                               //         ? newValue
                               //         : oldValue),
@@ -2001,17 +2035,17 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          if (coin == Coin.epicCash)
+                          if (coin is Epiccash)
                             Text(
                               "On chain Note (optional)",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          if (coin == Coin.epicCash)
+                          if (coin is Epiccash)
                             const SizedBox(
                               height: 8,
                             ),
-                          if (coin == Coin.epicCash)
+                          if (coin is Epiccash)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -2055,12 +2089,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
-                          if (coin == Coin.epicCash)
+                          if (coin is Epiccash)
                             const SizedBox(
                               height: 12,
                             ),
                           Text(
-                            (coin == Coin.epicCash)
+                            (coin is Epiccash)
                                 ? "Local Note (optional)"
                                 : "Note (optional)",
                             style: STextStyles.smallMed12(context),
@@ -2111,26 +2145,23 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          if (coin != Coin.epicCash &&
-                              coin != Coin.nano &&
-                              coin != Coin.banano &&
-                              coin != Coin.tezos)
+                          if (coin is! Epiccash &&
+                              coin is! NanoCurrency &&
+                              coin is! Tezos)
                             Text(
                               "Transaction fee (estimated)",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          if (coin != Coin.epicCash &&
-                              coin != Coin.nano &&
-                              coin != Coin.banano &&
-                              coin != Coin.tezos)
+                          if (coin is! Epiccash &&
+                              coin is! NanoCurrency &&
+                              coin is! Tezos)
                             const SizedBox(
                               height: 8,
                             ),
-                          if (coin != Coin.epicCash &&
-                              coin != Coin.nano &&
-                              coin != Coin.banano &&
-                              coin != Coin.tezos)
+                          if (coin is! Epiccash &&
+                              coin is! NanoCurrency &&
+                              coin is! Tezos)
                             Stack(
                               children: [
                                 TextField(
@@ -2187,7 +2218,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                             ?.decimal ??
                                                         Decimal.zero)
                                                     .toAmount(
-                                                  fractionDigits: coin.decimals,
+                                                  fractionDigits:
+                                                      coin.fractionDigits,
                                                 ),
                                                 updateChosen: (String fee) {
                                                   if (fee == "custom") {
