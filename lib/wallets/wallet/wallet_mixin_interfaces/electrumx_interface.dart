@@ -937,8 +937,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     int highestIndexWithHistory = 0;
 
     for (int index = 0;
-        index < cryptoCurrency.maxNumberOfIndexesToCheck &&
-            gapCounter < cryptoCurrency.maxUnusedAddressGap;
+        gapCounter < cryptoCurrency.maxUnusedAddressGap;
         index += txCountBatchSize) {
       Logging.instance.log(
         "index: $index, \t GapCounter $chain ${type.name}: $gapCounter",
@@ -1017,10 +1016,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final List<Address> addressArray = [];
     int gapCounter = 0;
     int index = 0;
-    for (;
-        index < cryptoCurrency.maxNumberOfIndexesToCheck &&
-            gapCounter < cryptoCurrency.maxUnusedAddressGap;
-        index++) {
+    for (; gapCounter < cryptoCurrency.maxUnusedAddressGap; index++) {
       Logging.instance.log(
         "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
         level: LogLevel.Info,
