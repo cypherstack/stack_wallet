@@ -61,9 +61,12 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
 
   int pinCount = 1;
 
+  final TextEditingController _pinTextController = TextEditingController();
+
   @override
   void initState() {
     _secureStore = ref.read(secureStoreProvider);
+    _pinTextController.addListener(_onPinChanged);
     super.initState();
   }
 
@@ -74,7 +77,21 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
     _pinPutController2.dispose();
     _pinPutFocusNode1.dispose();
     _pinPutFocusNode2.dispose();
+    _pinTextController.removeListener(_onPinChanged);
     super.dispose();
+  }
+
+  void _onPinChanged() async {
+    String enteredPin = _pinTextController.text;
+    final storedPin = await _secureStore.read(key: 'stack_pin');
+    final autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
+
+    if (enteredPin.length >= 4 && autoPin && enteredPin == storedPin) {
+      await _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.linear,
+      );
+    }
   }
 
   @override
