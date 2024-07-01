@@ -23,6 +23,7 @@ import '../../utilities/prefs.dart';
 import '../../utilities/stack_file_system.dart';
 import 'change_now/change_now_exchange.dart';
 import 'majestic_bank/majestic_bank_exchange.dart';
+import 'nanswap/nanswap_exchange.dart';
 import 'trocador/trocador_exchange.dart';
 
 class ExchangeDataLoadingService {
@@ -170,6 +171,7 @@ class ExchangeDataLoadingService {
         final futures = [
           loadMajesticBankCurrencies(),
           loadTrocadorCurrencies(),
+          loadNanswapCurrencies(),
         ];
 
         // If using Tor, don't load data for exchanges which don't support Tor.
@@ -377,6 +379,31 @@ class ExchangeDataLoadingService {
     } else {
       Logging.instance.log(
         "loadTrocadorCurrencies: $responseCurrencies",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
+  Future<void> loadNanswapCurrencies() async {
+    if (_isar == null) {
+      await initDB();
+    }
+    final responseCurrencies =
+        await NanswapExchange.instance.getAllCurrencies(false);
+
+    if (responseCurrencies.value != null) {
+      await isar.writeTxn(() async {
+        final idsToDelete = await isar.currencies
+            .where()
+            .exchangeNameEqualTo(NanswapExchange.exchangeName)
+            .idProperty()
+            .findAll();
+        await isar.currencies.deleteAll(idsToDelete);
+        await isar.currencies.putAll(responseCurrencies.value!);
+      });
+    } else {
+      Logging.instance.log(
+        "loadNanswapCurrencies: $responseCurrencies",
         level: LogLevel.Warning,
       );
     }

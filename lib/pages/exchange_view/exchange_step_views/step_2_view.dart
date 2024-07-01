@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../providers/providers.dart';
-import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/barcode_scanner_interface.dart';
@@ -126,8 +125,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   @override
   Widget build(BuildContext context) {
-    final supportsRefund =
-        ref.watch(efExchangeProvider).name != MajesticBankExchange.exchangeName;
+    final supportsRefund = ref.watch(efExchangeProvider).supportsRefundAddress;
 
     return Background(
       child: Scaffold(

@@ -47,6 +47,9 @@ class MajesticBankExchange extends Exchange {
   };
 
   @override
+  bool get supportsRefundAddress => false;
+
+  @override
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
     required String to,

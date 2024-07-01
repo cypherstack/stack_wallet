@@ -9,8 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../services/exchange/change_now/change_now_exchange.dart';
 import '../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../services/exchange/nanswap/nanswap_exchange.dart';
 import '../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../services/exchange/trocador/trocador_exchange.dart';
 
@@ -45,6 +47,7 @@ class _EXCHANGE {
   String get majesticBankBlue => "${_path}mb_blue.svg";
   String get majesticBankGreen => "${_path}mb_green.svg";
   String get trocador => "${_path}trocador.svg";
+  String get nanswap => "${_path}nanswap.svg";
 
   String getIconFor({required String exchangeName}) {
     switch (exchangeName) {
@@ -56,6 +59,8 @@ class _EXCHANGE {
         return majesticBankBlue;
       case TrocadorExchange.exchangeName:
         return trocador;
+      case NanswapExchange.exchangeName:
+        return nanswap;
       default:
         throw ArgumentError("Invalid exchange name passed to "
             "Assets.exchange.getIconFor()");
