@@ -223,7 +223,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     final storedPin = await _secureStore.read(key: 'stack_pin');
     final autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
 
-    if (autoPin && enteredPin == storedPin) {
+    if (enteredPin.length >= 4 && autoPin && enteredPin == storedPin) {
       await Future<void>.delayed(
         const Duration(milliseconds: 200),
       );

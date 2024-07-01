@@ -86,7 +86,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
     final storedPin = await _secureStore.read(key: 'stack_pin');
     final autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
 
-    if (autoPin && enteredPin == storedPin) {
+    if (enteredPin.length >= 4 && autoPin && enteredPin == storedPin) {
       await _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.linear,
