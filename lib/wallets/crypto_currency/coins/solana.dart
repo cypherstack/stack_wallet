@@ -46,8 +46,7 @@ class Solana extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host:
-              "https://api.mainnet-beta.solana.com/", // TODO: Change this to stack wallet one
+          host: "https://solana.stackwallet.com",
           port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
@@ -70,9 +69,13 @@ class Solana extends Bip39Currency {
 
   @override
   bool validateAddress(String address) {
-    return isPointOnEd25519Curve(
-      Ed25519HDPublicKey.fromBase58(address).toByteArray(),
-    );
+    try {
+      return isPointOnEd25519Curve(
+        Ed25519HDPublicKey.fromBase58(address).toByteArray(),
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
