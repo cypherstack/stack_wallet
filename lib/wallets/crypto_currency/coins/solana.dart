@@ -69,9 +69,13 @@ class Solana extends Bip39Currency {
 
   @override
   bool validateAddress(String address) {
-    return isPointOnEd25519Curve(
-      Ed25519HDPublicKey.fromBase58(address).toByteArray(),
-    );
+    try {
+      return isPointOnEd25519Curve(
+        Ed25519HDPublicKey.fromBase58(address).toByteArray(),
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
