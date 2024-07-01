@@ -243,6 +243,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           SparkInfoView.routeName,
+                          arguments: walletId,
                         );
                       },
                       child: Padding(

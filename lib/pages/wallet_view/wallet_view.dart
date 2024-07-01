@@ -80,7 +80,6 @@ import '../buy_view/buy_in_wallet_view.dart';
 import '../cashfusion/cashfusion_view.dart';
 import '../coin_control/coin_control_view.dart';
 import '../exchange_view/wallet_initiated_exchange_view.dart';
-import '../home_view/home_view.dart';
 import '../monkey/monkey_view.dart';
 import '../notification_views/notifications_view.dart';
 import '../ordinals/ordinals_view.dart';
@@ -257,40 +256,43 @@ class _WalletViewState extends ConsumerState<WalletView> {
     super.dispose();
   }
 
-  DateTime? _cachedTime;
+  // DateTime? _cachedTime;
 
   Future<bool> _onWillPop() async {
     if (_rescanningOnOpen || _lelantusRescanRecovery) {
       return false;
     }
 
-    final now = DateTime.now();
-    const timeout = Duration(milliseconds: 1500);
-    if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
-      _cachedTime = now;
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => WillPopScope(
-            onWillPop: () async {
-              Navigator.of(context).popUntil(
-                ModalRoute.withName(HomeView.routeName),
-              );
-              _logout();
-              return false;
-            },
-            child: const StackDialog(title: "Tap back again to exit wallet"),
-          ),
-        ).timeout(
-          timeout,
-          onTimeout: () => Navigator.of(context).popUntil(
-            ModalRoute.withName(WalletView.routeName),
-          ),
-        ),
-      );
-    }
-    return false;
+    _logout();
+
+    return true;
+    // final now = DateTime.now();
+    // const timeout = Duration(milliseconds: 1500);
+    // if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
+    //   _cachedTime = now;
+    //   unawaited(
+    //     showDialog<dynamic>(
+    //       context: context,
+    //       barrierDismissible: false,
+    //       builder: (_) => WillPopScope(
+    //         onWillPop: () async {
+    //           Navigator.of(context).popUntil(
+    //             ModalRoute.withName(HomeView.routeName),
+    //           );
+    //           _logout();
+    //           return false;
+    //         },
+    //         child: const StackDialog(title: "Tap back again to exit wallet"),
+    //       ),
+    //     ).timeout(
+    //       timeout,
+    //       onTimeout: () => Navigator.of(context).popUntil(
+    //         ModalRoute.withName(WalletView.routeName),
+    //       ),
+    //     ),
+    //   );
+    // }
+    // return false;
   }
 
   void _logout() async {

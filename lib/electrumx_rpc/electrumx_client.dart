@@ -1043,7 +1043,7 @@ class ElectrumXClient {
       final start = DateTime.now();
       final response = await request(
         requestID: requestID,
-        command: "spark.getmempooltxids",
+        command: "spark.getmempoolsparktxids",
       );
 
       final txids = List<String>.from(response as List)
@@ -1072,7 +1072,7 @@ class ElectrumXClient {
       final start = DateTime.now();
       final response = await request(
         requestID: requestID,
-        command: "spark.getmempooltxs",
+        command: "spark.getmempoolsparktxs",
         args: [
           {
             "txids": txids,
@@ -1087,10 +1087,10 @@ class ElectrumXClient {
           (
             txid: entry.key,
             serialContext:
-                List<String>.from(entry.value["Serial_context"] as List),
+                List<String>.from(entry.value["serial_context"] as List),
             // the space after lTags is required lol
             lTags: List<String>.from(entry.value["lTags "] as List),
-            coins: List<String>.from(entry.value["Coins"] as List),
+            coins: List<String>.from(entry.value["coins"] as List),
           ),
         );
       }
@@ -1140,6 +1140,38 @@ class ElectrumXClient {
       rethrow;
     }
   }
+  // ===========================================================================
+
+  Future<bool> isMasterNodeCollateral({
+    String? requestID,
+    required String txid,
+    required int index,
+  }) async {
+    try {
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: "blockchain.checkifmncollateral",
+        args: [
+          txid,
+          index.toString(),
+        ],
+      );
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.isMasterNodeCollateral, "
+        "response: $response, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Info,
+      );
+
+      return response as bool;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
   // ===========================================================================
 
   /// Get the current fee rate.

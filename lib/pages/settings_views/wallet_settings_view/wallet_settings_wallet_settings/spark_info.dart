@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../db/sqlite/firo_cache.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/detail_item.dart';
@@ -11,9 +12,12 @@ import '../../../../widgets/detail_item.dart';
 class SparkInfoView extends ConsumerWidget {
   const SparkInfoView({
     super.key,
+    required this.walletId,
   });
 
   static const String routeName = "/sparkInfo";
+
+  final String walletId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +41,9 @@ class SparkInfoView extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               FutureBuilder(
-                future: FiroCacheCoordinator.getSparkCacheSize(),
+                future: FiroCacheCoordinator.getSparkCacheSize(
+                  ref.watch(pWalletCoin(walletId)).network,
+                ),
                 builder: (_, snapshot) {
                   String detail = "Loading...";
                   if (snapshot.connectionState == ConnectionState.done) {

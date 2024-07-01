@@ -430,7 +430,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                   ),
                                                   if (coin is Firo)
                                                     FiroCacheCoordinator
-                                                        .clearSharedCache(),
+                                                        .clearSharedCache(
+                                                      coin.network,
+                                                    ),
                                                 ],
                                               ),
                                               context: context,

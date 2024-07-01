@@ -14,15 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../exceptions/wallet/insufficient_balance_exception.dart';
 import '../../../models/paynym/paynym_account_lite.dart';
 import '../../../notifications/show_flush_bar.dart';
-import 'confirm_paynym_connect_dialog.dart';
-import '../paynym_home_view.dart';
-import '../subwidgets/paynym_bot.dart';
-import '../../send_view/confirm_transaction_view.dart';
-import '../../send_view/send_view.dart';
 import '../../../providers/global/locale_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../route_generator.dart';
@@ -37,9 +33,14 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/loading_indicator.dart';
+import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/stack_dialog.dart';
-import 'package:tuple/tuple.dart';
+import '../../send_view/confirm_transaction_view.dart';
+import '../../send_view/send_view.dart';
+import '../paynym_home_view.dart';
+import '../subwidgets/paynym_bot.dart';
+import 'confirm_paynym_connect_dialog.dart';
 
 class PaynymDetailsPopup extends ConsumerStatefulWidget {
   const PaynymDetailsPopup({
@@ -365,12 +366,10 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                 const SizedBox(
                   width: 20,
                 ),
-                QrImageView(
+                QR(
                   padding: const EdgeInsets.all(0),
                   size: 100,
                   data: widget.accountLite.code,
-                  foregroundColor:
-                      Theme.of(context).extension<StackColors>()!.textDark,
                 ),
               ],
             ),

@@ -19,8 +19,7 @@ import '../../../../../providers/global/wallets_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/text_styles.dart';
-import '../../../../../wallets/crypto_currency/coins/banano.dart';
-import '../../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
@@ -187,7 +186,9 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               onPressed: () async => widget.onFusionPressed?.call(),
             ),
           if (wallet is SparkInterface)
-            const _MoreFeaturesClearSparkCacheItem(),
+            _MoreFeaturesClearSparkCacheItem(
+              cryptoCurrency: wallet.cryptoCurrency,
+            ),
           if (wallet is LelantusInterface)
             _MoreFeaturesItemBase(
               child: Row(
@@ -371,10 +372,10 @@ class _MoreFeaturesItemBase extends StatelessWidget {
 class _MoreFeaturesClearSparkCacheItem extends StatefulWidget {
   const _MoreFeaturesClearSparkCacheItem({
     super.key,
+    required this.cryptoCurrency,
   });
 
-  static const double iconSizeBG = 46;
-  static const double iconSize = 24;
+  final CryptoCurrency cryptoCurrency;
 
   @override
   State<_MoreFeaturesClearSparkCacheItem> createState() =>
@@ -396,7 +397,9 @@ class _MoreFeaturesClearSparkCacheItemState
         }
         _onPressedLock = true;
         try {
-          await FiroCacheCoordinator.clearSharedCache();
+          await FiroCacheCoordinator.clearSharedCache(
+            widget.cryptoCurrency.network,
+          );
           setState(() {
             // trigger rebuild for cache size display
           });
@@ -434,7 +437,9 @@ class _MoreFeaturesClearSparkCacheItemState
                 style: STextStyles.w600_20(context),
               ),
               FutureBuilder(
-                future: FiroCacheCoordinator.getSparkCacheSize(),
+                future: FiroCacheCoordinator.getSparkCacheSize(
+                  widget.cryptoCurrency.network,
+                ),
                 builder: (_, snapshot) {
                   return Text(
                     snapshot.data ?? "",

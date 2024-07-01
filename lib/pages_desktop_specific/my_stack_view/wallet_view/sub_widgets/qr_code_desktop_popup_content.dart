@@ -9,10 +9,10 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import '../../../../themes/stack_colors.dart';
+
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../../widgets/qr.dart';
 
 class QRCodeDesktopPopupContent extends StatelessWidget {
   const QRCodeDesktopPopupContent({
@@ -39,11 +39,9 @@ class QRCodeDesktopPopupContent extends StatelessWidget {
           const SizedBox(
             height: 14,
           ),
-          QrImageView(
+          QR(
             data: value,
             size: 300,
-            foregroundColor:
-                Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
         ],
       ),

@@ -56,6 +56,7 @@ import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../widgets/fee_slider.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
@@ -126,6 +127,8 @@ class _SendViewState extends ConsumerState<SendView> {
   String? _address;
 
   bool _addressToggleFlag = false;
+
+  bool _isFiroExWarningDisplayed = false;
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
@@ -394,6 +397,19 @@ class _SendViewState extends ConsumerState<SendView> {
           address: address ?? "",
           isTestNet: wallet.cryptoCurrency.network.isTestNet,
         );
+
+        ref.read(pIsExchangeAddress.state).state =
+            (coin as Firo).isExchangeAddress(address ?? "");
+
+        if (ref.read(publicPrivateBalanceStateProvider) == FiroType.spark &&
+            ref.read(pIsExchangeAddress) &&
+            !_isFiroExWarningDisplayed) {
+          _isFiroExWarningDisplayed = true;
+          showFiroExchangeAddressWarning(
+            context,
+            () => _isFiroExWarningDisplayed = false,
+          );
+        }
       }
 
       ref.read(pValidSendToAddress.notifier).state =
@@ -875,7 +891,10 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   void initState() {
     coin = widget.coin;
-    ref.refresh(feeSheetSessionCacheProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.refresh(feeSheetSessionCacheProvider);
+      ref.refresh(pIsExchangeAddress);
+    });
     _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
 
     _calculateFeesFuture =
@@ -1003,6 +1022,8 @@ class _SendViewState extends ConsumerState<SendView> {
             : true);
 
     if (isFiro) {
+      final isExchangeAddress = ref.watch(pIsExchangeAddress);
+
       ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
         selectedUTXOs = {};
 
@@ -1018,6 +1039,19 @@ class _SendViewState extends ConsumerState<SendView> {
               ref.read(pSendAmount)!,
             );
           });
+        }
+
+        if (previous != next &&
+            next == FiroType.spark &&
+            isExchangeAddress &&
+            !_isFiroExWarningDisplayed) {
+          _isFiroExWarningDisplayed = true;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => showFiroExchangeAddressWarning(
+              context,
+              () => _isFiroExWarningDisplayed = false,
+            ),
+          );
         }
       });
     }

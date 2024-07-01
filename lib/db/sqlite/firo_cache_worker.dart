@@ -25,11 +25,12 @@ class _FiroCacheWorker {
     return await completer.future;
   }
 
-  static Future<_FiroCacheWorker> spawn() async {
+  static Future<_FiroCacheWorker> spawn(CryptoCurrencyNetwork network) async {
     final dir = await StackFileSystem.applicationFiroCacheSQLiteDirectory();
-    final setCacheFilePath = "${dir.path}/${_FiroCache.sparkSetCacheFileName}";
+    final setCacheFilePath =
+        "${dir.path}/${_FiroCache.sparkSetCacheFileName(network)}";
     final usedTagsCacheFilePath =
-        "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName}";
+        "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName(network)}";
 
     final initPort = RawReceivePort();
     final connection = Completer<(ReceivePort, SendPort)>.sync();

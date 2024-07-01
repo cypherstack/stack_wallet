@@ -14,19 +14,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../../exceptions/wallet/insufficient_balance_exception.dart';
 import '../../../models/paynym/paynym_account_lite.dart';
 import '../../../notifications/show_flush_bar.dart';
-import '../dialogs/confirm_paynym_connect_dialog.dart';
-import 'paynym_bot.dart';
-import '../../send_view/confirm_transaction_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/paynym/desktop_paynym_send_dialog.dart';
 import '../../../providers/global/locale_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
-
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/models/tx_data.dart';
@@ -36,8 +32,12 @@ import '../../../widgets/custom_buttons/paynym_follow_toggle_button.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/loading_indicator.dart';
+import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../send_view/confirm_transaction_view.dart';
+import '../dialogs/confirm_paynym_connect_dialog.dart';
+import 'paynym_bot.dart';
 
 class DesktopPaynymDetails extends ConsumerStatefulWidget {
   const DesktopPaynymDetails({
@@ -359,12 +359,10 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                     const SizedBox(
                       width: 20,
                     ),
-                    QrImageView(
+                    QR(
                       padding: const EdgeInsets.all(0),
                       size: 100,
                       data: widget.accountLite.code,
-                      foregroundColor:
-                          Theme.of(context).extension<StackColors>()!.textDark,
                     ),
                   ],
                 ),

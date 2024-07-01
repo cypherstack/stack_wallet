@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../../../frost_route_generator.dart';
-import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -14,7 +13,9 @@ import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
 import '../../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
+import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostSendStep1a extends ConsumerStatefulWidget {
   const FrostSendStep1a({super.key});
@@ -169,14 +170,9 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                QrImageView(
+                QR(
                   data: ref.watch(pFrostTxData.state).state!.frostMSConfig!,
                   size: qrImageSize,
-                  backgroundColor:
-                      Theme.of(context).extension<StackColors>()!.background,
-                  foregroundColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
                 ),
               ],
             ),

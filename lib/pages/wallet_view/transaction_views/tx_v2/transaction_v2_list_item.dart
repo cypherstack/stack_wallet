@@ -13,6 +13,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/breathing.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/trade_card.dart';
@@ -49,98 +50,100 @@ class TxListItem extends ConsumerWidget {
             color: Theme.of(context).extension<StackColors>()!.popupBG,
             borderRadius: radius,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TransactionCardV2(
-                key: UniqueKey(),
-                transaction: _tx,
-              ),
-              TradeCard(
-                key: Key(
-                  _tx.txid +
-                      _tx.type.name +
-                      _tx.hashCode.toString() +
-                      trade.uuid,
-                ), //
-                trade: trade,
-                onTap: () async {
-                  if (Util.isDesktop) {
-                    await showDialog<void>(
-                      context: context,
-                      builder: (context) => Navigator(
-                        initialRoute: TradeDetailsView.routeName,
-                        onGenerateRoute: RouteGenerator.generateRoute,
-                        onGenerateInitialRoutes: (_, __) {
-                          return [
-                            FadePageRoute(
-                              DesktopDialog(
-                                maxHeight: null,
-                                maxWidth: 580,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 32,
-                                        bottom: 16,
+          child: Breathing(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TransactionCardV2(
+                  key: UniqueKey(),
+                  transaction: _tx,
+                ),
+                TradeCard(
+                  key: Key(
+                    _tx.txid +
+                        _tx.type.name +
+                        _tx.hashCode.toString() +
+                        trade.uuid,
+                  ), //
+                  trade: trade,
+                  onTap: () async {
+                    if (Util.isDesktop) {
+                      await showDialog<void>(
+                        context: context,
+                        builder: (context) => Navigator(
+                          initialRoute: TradeDetailsView.routeName,
+                          onGenerateRoute: RouteGenerator.generateRoute,
+                          onGenerateInitialRoutes: (_, __) {
+                            return [
+                              FadePageRoute(
+                                DesktopDialog(
+                                  maxHeight: null,
+                                  maxWidth: 580,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 32,
+                                          bottom: 16,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Trade details",
+                                              style: STextStyles.desktopH3(
+                                                  context),
+                                            ),
+                                            DesktopDialogCloseButton(
+                                              onPressedOverride: Navigator.of(
+                                                context,
+                                                rootNavigator: true,
+                                              ).pop,
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            "Trade details",
-                                            style:
-                                                STextStyles.desktopH3(context),
-                                          ),
-                                          DesktopDialogCloseButton(
-                                            onPressedOverride: Navigator.of(
-                                              context,
-                                              rootNavigator: true,
-                                            ).pop,
-                                          ),
-                                        ],
+                                      Flexible(
+                                        child: TradeDetailsView(
+                                          tradeId: trade.tradeId,
+                                          // TODO: [prio:med]
+                                          // transactionIfSentFromStack: tx,
+                                          transactionIfSentFromStack: null,
+                                          walletName: ref
+                                              .watch(pWalletName(_tx.walletId)),
+                                          walletId: _tx.walletId,
+                                        ),
                                       ),
-                                    ),
-                                    Flexible(
-                                      child: TradeDetailsView(
-                                        tradeId: trade.tradeId,
-                                        // TODO: [prio:med]
-                                        // transactionIfSentFromStack: tx,
-                                        transactionIfSentFromStack: null,
-                                        walletName: ref
-                                            .watch(pWalletName(_tx.walletId)),
-                                        walletId: _tx.walletId,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                ),
+                                const RouteSettings(
+                                  name: TradeDetailsView.routeName,
                                 ),
                               ),
-                              const RouteSettings(
-                                name: TradeDetailsView.routeName,
-                              ),
-                            ),
-                          ];
-                        },
-                      ),
-                    );
-                  } else {
-                    unawaited(
-                      Navigator.of(context).pushNamed(
-                        TradeDetailsView.routeName,
-                        arguments: Tuple4(
-                          trade.tradeId,
-                          _tx,
-                          _tx.walletId,
-                          ref.read(pWalletName(_tx.walletId)),
+                            ];
+                          },
                         ),
-                      ),
-                    );
-                  }
-                },
-              ),
-            ],
+                      );
+                    } else {
+                      unawaited(
+                        Navigator.of(context).pushNamed(
+                          TradeDetailsView.routeName,
+                          arguments: Tuple4(
+                            trade.tradeId,
+                            _tx,
+                            _tx.walletId,
+                            ref.read(pWalletName(_tx.walletId)),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         );
       } else {
@@ -149,10 +152,12 @@ class TxListItem extends ConsumerWidget {
             color: Theme.of(context).extension<StackColors>()!.popupBG,
             borderRadius: radius,
           ),
-          child: TransactionCardV2(
-            // this may mess with combined firo transactions
-            key: UniqueKey(),
-            transaction: _tx,
+          child: Breathing(
+            child: TransactionCardV2(
+              // this may mess with combined firo transactions
+              key: UniqueKey(),
+              transaction: _tx,
+            ),
           ),
         );
       }
@@ -165,9 +170,11 @@ class TxListItem extends ConsumerWidget {
         color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: radius,
       ),
-      child: FusionTxGroupCard(
-        key: UniqueKey(),
-        group: group,
+      child: Breathing(
+        child: FusionTxGroupCard(
+          key: UniqueKey(),
+          group: group,
+        ),
       ),
     );
   }

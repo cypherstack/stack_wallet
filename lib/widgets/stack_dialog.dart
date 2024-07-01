@@ -188,14 +188,19 @@ class StackOkDialog extends StatelessWidget {
               height: 8,
             ),
           if (message != null)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  message!,
-                  style: STextStyles.smallMed14(context),
-                ),
-              ],
+            ConstrainedBox(
+              constraints:
+                  BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      message!,
+                      style: STextStyles.smallMed14(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
           const SizedBox(
             height: 20,

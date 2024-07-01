@@ -278,13 +278,17 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     final List<Map<String, dynamic>> setMaps = [];
     final List<({int groupId, String blockHash})> idAndBlockHashes = [];
     for (int i = 1; i <= currentId; i++) {
-      final resultSet = await FiroCacheCoordinator.getSetCoinsForGroupId(i);
+      final resultSet = await FiroCacheCoordinator.getSetCoinsForGroupId(
+        i,
+        network: cryptoCurrency.network,
+      );
       if (resultSet.isEmpty) {
         continue;
       }
 
       final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
         i,
+        cryptoCurrency.network,
       );
       if (info == null) {
         throw Exception("The `info` should never be null here");
@@ -716,13 +720,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       return result;
     } catch (e) {
       Logging.instance.log(
-        "refreshSparkMempoolData() failed: $e",
+        "_refreshSparkCoinsMempoolCheck() failed: $e",
         level: LogLevel.Error,
       );
       return [];
     } finally {
       Logging.instance.log(
-        "$walletId ${info.name} refreshSparkCoinsMempoolCheck() run "
+        "$walletId ${info.name} _refreshSparkCoinsMempoolCheck() run "
         "duration: ${DateTime.now().difference(start)}",
         level: LogLevel.Debug,
       );
@@ -741,6 +745,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           final setExists =
               await FiroCacheCoordinator.checkSetInfoForGroupIdExists(
             id,
+            cryptoCurrency.network,
           );
           if (!setExists) {
             groupIds.add(id);
@@ -755,6 +760,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
           e,
           electrumXClient,
+          cryptoCurrency.network,
         ),
       );
 
@@ -763,6 +769,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         ...possibleFutures,
         FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
           electrumXClient,
+          cryptoCurrency.network,
         ),
       ]);
 
@@ -782,11 +789,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             groupIdTimestampUTCMap[i.toString()] as int? ?? 0;
         final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
           i,
+          cryptoCurrency.network,
         );
         final anonymitySetResult =
             await FiroCacheCoordinator.getSetCoinsForGroupId(
           i,
           newerThanTimeStamp: lastCheckedTimeStampUTC,
+          network: cryptoCurrency.network,
         );
         final coinsRaw = anonymitySetResult
             .map(
@@ -882,7 +891,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // only fetch tags from db if we need them to compare against any items
       // in coinsToCheck
       if (coinsToCheck.isNotEmpty) {
-        spentCoinTags = await FiroCacheCoordinator.getUsedCoinTags(0);
+        spentCoinTags = await FiroCacheCoordinator.getUsedCoinTags(
+          0,
+          cryptoCurrency.network,
+        );
       }
 
       // check and update coins if required
@@ -992,6 +1004,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
     final pairs = await FiroCacheCoordinator.getUsedCoinTxidsFor(
       tags: tags,
+      network: cryptoCurrency.network,
     );
 
     pairs.removeWhere((e) => usedCoinTxidsFoundLocally.contains(e.txid));

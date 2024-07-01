@@ -10,8 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../pinpad_views/lock_screen_view.dart';
-import 'change_pin_view/change_pin_view.dart';
+
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
@@ -21,6 +20,8 @@ import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../pinpad_views/lock_screen_view.dart';
+import 'change_pin_view/change_pin_view.dart';
 
 class SecurityView extends StatelessWidget {
   const SecurityView({
@@ -193,6 +194,54 @@ class SecurityView extends StatelessWidget {
                                   ref
                                       .read(prefsChangeNotifierProvider)
                                       .randomizePIN = newValue;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // The "autoPin" preference (whether to automatically accept a correct PIN).
+              const SizedBox(
+                height: 8,
+              ),
+              RoundedWhiteContainer(
+                child: Consumer(
+                  builder: (_, ref, __) {
+                    return RawMaterialButton(
+                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      onPressed: null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Auto-accept correct PIN",
+                              style: STextStyles.titleBold12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: DraggableSwitchButton(
+                                isOn: ref.watch(
+                                  prefsChangeNotifierProvider
+                                      .select((value) => value.autoPin),
+                                ),
+                                onValueChanged: (newValue) {
+                                  ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .autoPin = newValue;
                                 },
                               ),
                             ),

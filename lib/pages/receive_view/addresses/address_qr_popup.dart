@@ -18,7 +18,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../notifications/show_flush_bar.dart';
@@ -31,6 +30,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/qr.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class AddressQrPopup extends StatefulWidget {
@@ -140,17 +140,13 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
           Center(
             child: RepaintBoundary(
               key: _qrKey,
-              child: QrImageView(
+              child: QR(
                 data: AddressUtils.buildUriString(
                   widget.coin,
                   widget.addressString,
                   {},
                 ),
                 size: 220,
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.popupBG,
-                foregroundColor:
-                    Theme.of(context).extension<StackColors>()!.accentColorDark,
               ),
             ),
           ),

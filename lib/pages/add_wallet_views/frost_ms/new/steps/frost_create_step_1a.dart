@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+
 import '../../../../../frost_route_generator.dart';
-import '../../../../wallet_view/transaction_views/transaction_details_view.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../../services/frost.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -17,6 +16,8 @@ import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/detail_item.dart';
 import '../../../../../widgets/dialogs/simple_mobile_dialog.dart';
 import '../../../../../widgets/frost_step_user_steps.dart';
+import '../../../../../widgets/qr.dart';
+import '../../../../wallet_view/transaction_views/transaction_details_view.dart';
 
 class FrostCreateStep1a extends ConsumerStatefulWidget {
   const FrostCreateStep1a({super.key});
@@ -162,14 +163,9 @@ class _FrostCreateStep1aState extends ConsumerState<FrostCreateStep1a> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                QrImageView(
+                QR(
                   data: ref.watch(pFrostMultisigConfig.state).state ?? "Error",
                   size: 220,
-                  backgroundColor:
-                      Theme.of(context).extension<StackColors>()!.background,
-                  foregroundColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
                 ),
               ],
             ),

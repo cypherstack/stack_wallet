@@ -13,7 +13,6 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
@@ -37,6 +36,7 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/desktop/simple_desktop_dialog.dart';
 import '../../../widgets/fade_stack.dart';
+import '../../../widgets/qr.dart';
 import '../subwidgets/desktop_exchange_steps_indicator.dart';
 import 'subwidgets/desktop_step_1.dart';
 import 'subwidgets/desktop_step_2.dart';
@@ -397,7 +397,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                                   height: 48,
                                 ),
                                 Center(
-                                  child: QrImageView(
+                                  child: QR(
                                     // TODO: grab coin uri scheme from somewhere
                                     // data: "${coin.uriScheme}:$receivingAddress",
                                     data: ref.watch(
@@ -406,9 +406,6 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                                       ),
                                     ),
                                     size: 290,
-                                    foregroundColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
                                   ),
                                 ),
                                 const SizedBox(

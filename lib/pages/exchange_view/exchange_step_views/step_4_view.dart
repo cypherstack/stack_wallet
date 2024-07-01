@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
@@ -37,6 +36,7 @@ import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
@@ -751,7 +751,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             height: 24,
                                           ),
                                           Center(
-                                            child: QrImageView(
+                                            child: QR(
                                               // TODO: grab coin uri scheme from somewhere
                                               // data: "${coin.uriScheme}:$receivingAddress",
                                               data: model.trade!.payInAddress,
@@ -759,9 +759,6 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                       .size
                                                       .width /
                                                   2,
-                                              foregroundColor: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorDark,
                                             ),
                                           ),
                                           const SizedBox(

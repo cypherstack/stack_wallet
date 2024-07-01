@@ -249,17 +249,15 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                       walletId: widget.walletId,
                       addressId: snapshot.data![index],
                       coin: coin,
-                      onPressed: !isDesktop
-                          ? null
-                          : () {
-                              Navigator.of(context).pushNamed(
-                                AddressDetailsView.routeName,
-                                arguments: Tuple2(
-                                  snapshot.data![index],
-                                  widget.walletId,
-                                ),
-                              );
-                            },
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          AddressDetailsView.routeName,
+                          arguments: Tuple2(
+                            snapshot.data![index],
+                            widget.walletId,
+                          ),
+                        );
+                      },
                     ),
                   );
                 } else {

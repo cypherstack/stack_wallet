@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
@@ -30,6 +29,7 @@ import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../../widgets/detail_item.dart';
+import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
@@ -317,15 +317,9 @@ class WalletBackupView extends ConsumerWidget {
                                       child: SizedBox(
                                         width: width + 20,
                                         height: width + 20,
-                                        child: QrImageView(
+                                        child: QR(
                                           data: data,
                                           size: width,
-                                          backgroundColor: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .popupBG,
-                                          foregroundColor: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
                                         ),
                                       ),
                                     ),
