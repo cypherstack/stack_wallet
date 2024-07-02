@@ -72,13 +72,18 @@ class WalletSummaryInfo extends ConsumerWidget {
 
   List<FiroType> getAvailableBalances(FiroWallet firoWallet) {
     final List<FiroType> availableBalances = [];
-    if (firoWallet.info.cachedBalanceTertiary.spendable.raw > BigInt.zero) {
+    if (firoWallet.info.cachedBalanceTertiary.spendable.raw > BigInt.zero ||
+        firoWallet.info.cachedBalanceTertiary.pendingSpendable.raw >
+            BigInt.zero) {
       availableBalances.add(FiroType.spark);
     }
-    if (firoWallet.info.cachedBalanceSecondary.spendable.raw > BigInt.zero) {
+    if (firoWallet.info.cachedBalanceSecondary.spendable.raw > BigInt.zero ||
+        firoWallet.info.cachedBalanceSecondary.pendingSpendable.raw >
+            BigInt.zero) {
       availableBalances.add(FiroType.lelantus);
     }
-    if (firoWallet.info.cachedBalance.spendable.raw > BigInt.zero) {
+    if (firoWallet.info.cachedBalance.spendable.raw > BigInt.zero ||
+        firoWallet.info.cachedBalance.pendingSpendable.raw > BigInt.zero) {
       availableBalances.add(FiroType.public);
     }
     return availableBalances;
