@@ -200,17 +200,19 @@ class WalletSummaryInfo extends ConsumerWidget {
                               .textFavoriteCard,
                         ),
                       ),
-                      const SizedBox(
-                        width: 4,
-                      ),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFavoriteCard,
-                        width: 8,
-                        height: 4,
-                      ),
+                      if (availableBalances.length > 1) ...[
+                        const SizedBox(
+                          width: 4,
+                        ),
+                        SvgPicture.asset(
+                          Assets.svg.chevronDown,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFavoriteCard,
+                          width: 8,
+                          height: 4,
+                        ),
+                      ],
                     ],
                   ),
                 ),
