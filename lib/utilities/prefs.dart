@@ -1130,4 +1130,30 @@ class Prefs extends ChangeNotifier {
         ) as bool? ??
         false;
   }
+
+  // Show or hide exchange (buy & swap) features.
+
+  bool _showExchange = true;
+
+  bool get showExchange => _showExchange;
+
+  set showExchange(bool showExchange) {
+    if (_showExchange != showExchange) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "showExchange",
+        value: showExchange,
+      );
+      _showExchange = showExchange;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getShowExchange() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "showExchange",
+        ) as bool? ??
+        true;
+  }
 }
