@@ -28,9 +28,9 @@ import '../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/coins/banano.dart';
-import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
+import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../widgets/conditional_parent.dart';
 import 'wallet_balance_toggle_sheet.dart';
 import 'wallet_refresh_button.dart';
@@ -45,7 +45,35 @@ class WalletSummaryInfo extends ConsumerWidget {
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
 
-  void showSheet(BuildContext context) {
+  void showSheet(BuildContext context, WidgetRef ref) {
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
+    final firoWallet = wallet as FiroWallet;
+    final availableBalances = getAvailableBalances(firoWallet);
+
+    // Remove any elements whose balance is zero.
+    availableBalances.removeWhere((element) {
+      switch (element) {
+        case FiroType.spark:
+          return firoWallet.info.cachedBalanceTertiary.spendable.raw ==
+              BigInt.zero;
+        case FiroType.lelantus:
+          return firoWallet.info.cachedBalanceSecondary.spendable.raw ==
+              BigInt.zero;
+        case FiroType.public:
+          return firoWallet.info.cachedBalance.spendable.raw == BigInt.zero;
+      }
+    });
+
+    if (availableBalances.length <= 2) {
+      final state = ref.read(publicPrivateBalanceStateProvider.state).state;
+      final newState = availableBalances.firstWhere(
+          (balanceType) => balanceType != state,
+          orElse: () => availableBalances.first);
+      ref.read(publicPrivateBalanceStateProvider.state).state = newState;
+      return;
+    }
+
     showModalBottomSheet<dynamic>(
       backgroundColor: Colors.transparent,
       context: context,
@@ -58,6 +86,20 @@ class WalletSummaryInfo extends ConsumerWidget {
       ),
       builder: (_) => WalletBalanceToggleSheet(walletId: walletId),
     );
+  }
+
+  List<FiroType> getAvailableBalances(FiroWallet firoWallet) {
+    final List<FiroType> availableBalances = [];
+    if (firoWallet.info.cachedBalanceTertiary.spendable.raw > BigInt.zero) {
+      availableBalances.add(FiroType.spark);
+    }
+    if (firoWallet.info.cachedBalanceSecondary.spendable.raw > BigInt.zero) {
+      availableBalances.add(FiroType.lelantus);
+    }
+    if (firoWallet.info.cachedBalance.spendable.raw > BigInt.zero) {
+      availableBalances.add(FiroType.public);
+    }
+    return availableBalances;
   }
 
   @override
@@ -87,8 +129,13 @@ class WalletSummaryInfo extends ConsumerWidget {
 
     final Amount balanceToShow;
     final String title;
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
+    List<FiroType> availableBalances = [];
 
-    if (coin is Firo) {
+    if (wallet is FiroWallet) {
+      availableBalances = getAvailableBalances(wallet);
+
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
@@ -140,9 +187,9 @@ class WalletSummaryInfo extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GestureDetector(
-                  onTap: () {
-                    showSheet(context);
-                  },
+                  onTap: availableBalances.length > 1
+                      ? () => showSheet(context, ref)
+                      : null,
                   child: Row(
                     children: [
                       Text(
