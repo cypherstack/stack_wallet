@@ -45,26 +45,8 @@ class WalletSummaryInfo extends ConsumerWidget {
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
 
-  void showSheet(BuildContext context, WidgetRef ref) {
-    final wallet =
-        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
-    final firoWallet = wallet as FiroWallet;
-    final availableBalances = getAvailableBalances(firoWallet);
-
-    // Remove any elements whose balance is zero.
-    availableBalances.removeWhere((element) {
-      switch (element) {
-        case FiroType.spark:
-          return firoWallet.info.cachedBalanceTertiary.spendable.raw ==
-              BigInt.zero;
-        case FiroType.lelantus:
-          return firoWallet.info.cachedBalanceSecondary.spendable.raw ==
-              BigInt.zero;
-        case FiroType.public:
-          return firoWallet.info.cachedBalance.spendable.raw == BigInt.zero;
-      }
-    });
-
+  void showSheet(
+      BuildContext context, WidgetRef ref, List<FiroType> availableBalances) {
     if (availableBalances.length <= 2) {
       final state = ref.read(publicPrivateBalanceStateProvider.state).state;
       final newState = availableBalances.firstWhere(
@@ -111,6 +93,8 @@ class WalletSummaryInfo extends ConsumerWidget {
     );
     final coin = ref.watch(pWalletCoin(walletId));
     final balance = ref.watch(pWalletBalance(walletId));
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
 
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
@@ -129,8 +113,6 @@ class WalletSummaryInfo extends ConsumerWidget {
 
     final Amount balanceToShow;
     final String title;
-    final wallet =
-        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
     List<FiroType> availableBalances = [];
 
     if (wallet is FiroWallet) {
@@ -187,9 +169,12 @@ class WalletSummaryInfo extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GestureDetector(
-                  onTap: availableBalances.length > 1
-                      ? () => showSheet(context, ref)
-                      : null,
+                  onTap: () {
+                    if (availableBalances.isNotEmpty &&
+                        availableBalances.length > 1) {
+                      showSheet(context, ref, availableBalances);
+                    }
+                  },
                   child: Row(
                     children: [
                       Text(
