@@ -198,6 +198,7 @@ import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'wallets/models/tx_data.dart';
 import 'wallets/wallet/wallet.dart';
+import 'wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
 
@@ -908,11 +909,12 @@ class RouteGenerator {
         );
 
       case XPubView.routeName:
-        if (args is String) {
+        if (args is (String, ({List<XPub> xpubs, String fingerprint}))) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => XPubView(
-              walletId: args,
+              walletId: args.$1,
+              xpubData: args.$2,
             ),
             settings: RouteSettings(
               name: settings.name,
