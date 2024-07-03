@@ -1131,4 +1131,30 @@ class Prefs extends ChangeNotifier {
         ) as bool? ??
         false;
   }
+
+  // Reuse addresses (ie., don't generate new addresses by default).
+
+  bool _reuseAddress = false;
+
+  bool get reuseAddress => _reuseAddress;
+
+  set reuseAddress(bool reuseAddress) {
+    if (_reuseAddress != reuseAddress) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "reuseAddress",
+        value: reuseAddress,
+      );
+      _reuseAddress = reuseAddress;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getReuseAddress() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "reuseAddress",
+        ) as bool? ??
+        true;
+  }
 }
