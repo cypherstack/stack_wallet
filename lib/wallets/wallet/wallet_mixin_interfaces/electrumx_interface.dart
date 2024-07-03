@@ -1333,6 +1333,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         needsGenerate = txCount > 0 || currentReceiving.derivationIndex < 0;
       }
 
+      // If the reuseAddress flag is set, don't generate a new address.
+      if (prefs.reuseAddress) {
+        return;
+      }
+
       if (needsGenerate) {
         await generateNewReceivingAddress();
 
