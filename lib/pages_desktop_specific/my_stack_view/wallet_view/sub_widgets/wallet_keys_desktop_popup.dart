@@ -12,38 +12,46 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../../../pages/wallet_view/transaction_views/transaction_details_view.dart';
+import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../../widgets/custom_tab_view.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/detail_item.dart';
+import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import 'qr_code_desktop_popup_content.dart';
 
-class WalletKeysDesktopPopup extends StatelessWidget {
+class WalletKeysDesktopPopup extends ConsumerWidget {
   const WalletKeysDesktopPopup({
     super.key,
     required this.words,
+    required this.walletId,
     this.frostData,
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
   final List<String> words;
+  final String walletId;
   final ({String keys, String config})? frostData;
   final ClipboardInterface clipboardInterface;
 
   static const String routeName = "walletKeysDesktopPopup";
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return DesktopDialog(
       maxWidth: 614,
       maxHeight: double.infinity,
@@ -168,96 +176,218 @@ class WalletKeysDesktopPopup extends StatelessWidget {
                     ),
                   ],
                 )
-              : Column(
+              : (ref.watch(pWallets).getWallet(walletId)
+                      is ExtendedKeysInterface)
+                  ? CustomTabView(
+                      titles: const ["Mnemonic", "XPriv(s)"],
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: _Mnemonic(
+                            words: words,
+                          ),
+                        ),
+                        _MasterSeedPrivateKey(
+                          words: words,
+                          walletId: walletId,
+                        ),
+                      ],
+                    )
+                  : _Mnemonic(
+                      words: words,
+                    ),
+          const SizedBox(
+            height: 32,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Mnemonic extends StatelessWidget {
+  const _Mnemonic({
+    super.key,
+    required this.words,
+    this.clipboardInterface = const ClipboardWrapper(),
+  });
+
+  final List<String> words;
+  final ClipboardInterface clipboardInterface;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          "Recovery phrase",
+          style: STextStyles.desktopTextMedium(context),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
+            ),
+            child: Text(
+              "Please write down your recovery phrase in the correct order and "
+              "save it to keep your funds secure. You will also be asked to"
+              " verify the words on the next screen.",
+              style: STextStyles.desktopTextExtraExtraSmall(context),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 24,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 32,
+          ),
+          child: MnemonicTable(
+            words: words,
+            isDesktop: true,
+            itemBorderColor:
+                Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          ),
+        ),
+        const SizedBox(
+          height: 24,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 32,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  label: "Show QR code",
+                  onPressed: () {
+                    // TODO: address utils
+                    final String value = AddressUtils.encodeQRSeedData(words);
+                    Navigator.of(context).pushNamed(
+                      QRCodeDesktopPopupContent.routeName,
+                      arguments: value,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(
+                width: 16,
+              ),
+              Expanded(
+                child: PrimaryButton(
+                  label: "Copy",
+                  onPressed: () async {
+                    await clipboardInterface.setData(
+                      ClipboardData(text: words.join(" ")),
+                    );
+                    if (context.mounted) {
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.info,
+                          message: "Copied to clipboard",
+                          iconAsset: Assets.svg.copy,
+                          context: context,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MasterSeedPrivateKey extends ConsumerStatefulWidget {
+  const _MasterSeedPrivateKey({
+    super.key,
+    required this.words,
+    required this.walletId,
+    this.clipboardInterface = const ClipboardWrapper(),
+  });
+
+  final List<String> words;
+  final String walletId;
+  final ClipboardInterface clipboardInterface;
+
+  @override
+  ConsumerState<_MasterSeedPrivateKey> createState() =>
+      _MasterSeedPrivateKeyState();
+}
+
+class _MasterSeedPrivateKeyState extends ConsumerState<_MasterSeedPrivateKey> {
+  final controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 12,
+          ),
+          FutureBuilder(
+            future: (ref.read(pWallets).getWallet(widget.walletId)
+                    as ExtendedKeysInterface)
+                .getXPrivs(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      "Recovery phrase",
-                      style: STextStyles.desktopTextMedium(context),
+                    DetailItem(
+                      title: "Master fingerprint",
+                      detail: snapshot.data!.fingerprint,
                     ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                        ),
-                        child: Text(
-                          "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 24,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                      ),
-                      child: MnemonicTable(
-                        words: words,
-                        isDesktop: true,
-                        itemBorderColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackSecondary,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 24,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: SecondaryButton(
-                              label: "Show QR code",
-                              onPressed: () {
-                                // TODO: address utils
-                                final String value =
-                                    AddressUtils.encodeQRSeedData(words);
-                                Navigator.of(context).pushNamed(
-                                  QRCodeDesktopPopupContent.routeName,
-                                  arguments: value,
-                                );
-                              },
+                    ...snapshot.data!.xprivs.map(
+                      (e) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            DetailItem(
+                              title: "Derivation",
+                              detail: e.path,
                             ),
-                          ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: PrimaryButton(
-                              label: "Copy",
-                              onPressed: () async {
-                                await clipboardInterface.setData(
-                                  ClipboardData(text: words.join(" ")),
-                                );
-                                if (context.mounted) {
-                                  unawaited(
-                                    showFloatingFlushBar(
-                                      type: FlushBarType.info,
-                                      message: "Copied to clipboard",
-                                      iconAsset: Assets.svg.copy,
-                                      context: context,
-                                    ),
-                                  );
-                                }
-                              },
+                            DetailItem(
+                              title: "xpriv",
+                              detail: e.xpriv,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
-                ),
-          const SizedBox(
-            height: 32,
+                );
+              } else {
+                return const LoadingIndicator(
+                  width: 100,
+                  height: 100,
+                );
+              }
+            },
           ),
         ],
       ),

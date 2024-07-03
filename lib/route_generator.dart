@@ -2293,11 +2293,13 @@ class RouteGenerator {
       case WalletKeysDesktopPopup.routeName:
         if (args is ({
           List<String> mnemonic,
+          String walletId,
           ({String keys, String config})? frostData
         })) {
           return FadePageRoute(
             WalletKeysDesktopPopup(
               words: args.mnemonic,
+              walletId: args.walletId,
               frostData: args.frostData,
             ),
             RouteSettings(

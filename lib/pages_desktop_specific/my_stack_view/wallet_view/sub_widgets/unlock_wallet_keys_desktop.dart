@@ -105,6 +105,7 @@ class _UnlockWalletKeysDesktopState
           WalletKeysDesktopPopup.routeName,
           arguments: (
             mnemonic: words ?? [],
+            walletId: widget.walletId,
             frostData: frostData,
           ),
         );
@@ -344,6 +345,7 @@ class _UnlockWalletKeysDesktopState
                                   WalletKeysDesktopPopup.routeName,
                                   arguments: (
                                     mnemonic: words ?? [],
+                                    walletId: widget.walletId,
                                     frostData: frostData,
                                   ),
                                 );

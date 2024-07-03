@@ -19,10 +19,12 @@ import '../wallet_mixin_interfaces/bcash_interface.dart';
 import '../wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
+import '../wallet_mixin_interfaces/extended_keys_interface.dart';
 
 class EcashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     with
         ElectrumXInterface<T>,
+        ExtendedKeysInterface<T>,
         BCashInterface<T>,
         CoinControlInterface<T>,
         CashFusionInterface<T> {
