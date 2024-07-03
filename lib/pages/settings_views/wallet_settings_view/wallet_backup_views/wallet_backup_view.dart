@@ -13,7 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
@@ -25,8 +25,10 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/qr.dart';
@@ -42,6 +44,7 @@ class WalletBackupView extends ConsumerWidget {
     required this.mnemonic,
     this.frostWalletData,
     this.clipboardInterface = const ClipboardWrapper(),
+    this.xprivData,
   });
 
   static const String routeName = "/walletBackup";
@@ -55,13 +58,13 @@ class WalletBackupView extends ConsumerWidget {
     ({String config, String keys})? prevGen,
   })? frostWalletData;
   final ClipboardInterface clipboardInterface;
+  final ({List<XPriv> xprivs, String fingerprint})? xprivData;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
 
     final bool frost = frostWalletData != null;
-    final prevGen = frostWalletData?.prevGen != null;
 
     return Background(
       child: Scaffold(
@@ -77,294 +80,460 @@ class WalletBackupView extends ConsumerWidget {
             style: STextStyles.navBarTitle(context),
           ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                  shadows: const [],
-                  icon: SvgPicture.asset(
-                    Assets.svg.copy,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                  ),
-                  onPressed: () async {
-                    await clipboardInterface
-                        .setData(ClipboardData(text: mnemonic.join(" ")));
-                    unawaited(
-                      showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "Copied to clipboard",
-                        iconAsset: Assets.svg.copy,
-                        context: context,
+            if (xprivData != null)
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: CustomTextButton(
+                  text: "xpriv(s)",
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      MobileXPrivsView.routeName,
+                      arguments: (
+                        walletId: walletId,
+                        xprivData: xprivData!,
                       ),
                     );
                   },
                 ),
+
+                // child: AspectRatio(
+                //   aspectRatio: 1,
+                //   child: AppBarIconButton(
+                //     color:
+                //         Theme.of(context).extension<StackColors>()!.background,
+                //     shadows: const [],
+                //     icon: SvgPicture.asset(
+                //       Assets.svg.copy,
+                //       width: 20,
+                //       height: 20,
+                //       color: Theme.of(context)
+                //           .extension<StackColors>()!
+                //           .topNavIconPrimary,
+                //     ),
+                //     onPressed: () async {
+                //       await clipboardInterface
+                //           .setData(ClipboardData(text: mnemonic.join(" ")));
+                //       unawaited(
+                //         showFloatingFlushBar(
+                //           type: FlushBarType.info,
+                //           message: "Copied to clipboard",
+                //           iconAsset: Assets.svg.copy,
+                //           context: context,
+                //         ),
+                //       );
+                //     },
+                //   ),
+                // ),
               ),
-            ),
+            if (!frost && xprivData == null)
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.copy,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                    ),
+                    onPressed: () async {
+                      await clipboardInterface
+                          .setData(ClipboardData(text: mnemonic.join(" ")));
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.info,
+                          message: "Copied to clipboard",
+                          iconAsset: Assets.svg.copy,
+                          context: context,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
           ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: frost
-              ? LayoutBuilder(
-                  builder: (builderContext, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight - 24,
+              ? _FrostKeys(
+                  frostWalletData: frostWalletData,
+                  walletId: walletId,
+                )
+              : _Mnemonic(
+                  walletId: walletId,
+                  mnemonic: mnemonic,
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _XPrivs extends StatelessWidget {
+  const _XPrivs({super.key, required this.walletId, required this.xprivData});
+
+  final String walletId;
+  final ({List<XPriv> xprivs, String fingerprint}) xprivData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DetailItem(
+          title: "Master fingerprint",
+          detail: xprivData.fingerprint,
+          horizontal: true,
+        ),
+        const SizedBox(
+          height: 16,
+        ),
+        ...xprivData.xprivs.map(
+          (e) => Padding(
+            padding: const EdgeInsets.only(
+              bottom: 16,
+            ),
+            child: Column(
+              children: [
+                DetailItem(
+                  title: e.path,
+                  detail: e.xpriv,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Mnemonic extends ConsumerWidget {
+  const _Mnemonic({super.key, required this.walletId, required this.mnemonic});
+
+  final String walletId;
+  final List<String> mnemonic;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(
+          height: 4,
+        ),
+        Text(
+          ref.watch(pWalletName(walletId)),
+          textAlign: TextAlign.center,
+          style: STextStyles.label(context).copyWith(
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(
+          height: 4,
+        ),
+        Text(
+          "Recovery Phrase",
+          textAlign: TextAlign.center,
+          style: STextStyles.pageTitleH1(context),
+        ),
+        const SizedBox(
+          height: 16,
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).extension<StackColors>()!.popupBG,
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              "Please write down your backup key. Keep it safe and never share it with anyone. Your backup key is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your backup key. Only you have access to your wallet.",
+              style: STextStyles.label(context),
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: MnemonicTable(
+              words: mnemonic,
+              isDesktop: false,
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 12,
+        ),
+        TextButton(
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getPrimaryEnabledButtonStyle(context),
+          onPressed: () {
+            final String data = AddressUtils.encodeQRSeedData(mnemonic);
+
+            showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: true,
+              builder: (_) {
+                final width = MediaQuery.of(context).size.width / 2;
+                return StackDialogBase(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Text(
+                          "Recovery phrase QR code",
+                          style: STextStyles.pageTitleH2(context),
                         ),
-                        child: IntrinsicHeight(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              RoundedWhiteContainer(
-                                child: Text(
-                                  "Please write down your backup data. Keep it safe and "
-                                  "never share it with anyone. "
-                                  "Your backup data is the only way you can access your "
-                                  "funds if you forget your PIN, lose your phone, etc."
-                                  "\n\n"
-                                  "${AppConfig.appName} does not keep nor is able to restore "
-                                  "your backup data. "
-                                  "Only you have access to your wallet.",
-                                  style: STextStyles.label(context),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 24,
-                              ),
-                              // DetailItem(
-                              //   title: "My name",
-                              //   detail: frostWalletData!.myName,
-                              //   button: Util.isDesktop
-                              //       ? IconCopyButton(
-                              //           data: frostWalletData!.myName,
-                              //         )
-                              //       : SimpleCopyButton(
-                              //           data: frostWalletData!.myName,
-                              //         ),
-                              // ),
-                              // const SizedBox(
-                              //   height: 16,
-                              // ),
-                              DetailItem(
-                                title: "Multisig config",
-                                detail: frostWalletData!.config,
-                                button: Util.isDesktop
-                                    ? IconCopyButton(
-                                        data: frostWalletData!.config,
-                                      )
-                                    : SimpleCopyButton(
-                                        data: frostWalletData!.config,
-                                      ),
-                              ),
-                              const SizedBox(
-                                height: 16,
-                              ),
-                              DetailItem(
-                                title: "Keys",
-                                detail: frostWalletData!.keys,
-                                button: Util.isDesktop
-                                    ? IconCopyButton(
-                                        data: frostWalletData!.keys,
-                                      )
-                                    : SimpleCopyButton(
-                                        data: frostWalletData!.keys,
-                                      ),
-                              ),
-                              if (prevGen)
-                                const SizedBox(
-                                  height: 24,
-                                ),
-                              if (prevGen)
-                                RoundedWhiteContainer(
-                                  child: Text(
-                                    "Previous generation info",
-                                    style: STextStyles.label(context),
-                                  ),
-                                ),
-                              if (prevGen)
-                                const SizedBox(
-                                  height: 12,
-                                ),
-                              if (prevGen)
-                                DetailItem(
-                                  title: "Previous multisig config",
-                                  detail: frostWalletData!.prevGen!.config,
-                                  button: Util.isDesktop
-                                      ? IconCopyButton(
-                                          data:
-                                              frostWalletData!.prevGen!.config,
-                                        )
-                                      : SimpleCopyButton(
-                                          data:
-                                              frostWalletData!.prevGen!.config,
-                                        ),
-                                ),
-                              if (prevGen)
-                                const SizedBox(
-                                  height: 16,
-                                ),
-                              if (prevGen)
-                                DetailItem(
-                                  title: "Previous keys",
-                                  detail: frostWalletData!.prevGen!.keys,
-                                  button: Util.isDesktop
-                                      ? IconCopyButton(
-                                          data: frostWalletData!.prevGen!.keys,
-                                        )
-                                      : SimpleCopyButton(
-                                          data: frostWalletData!.prevGen!.keys,
-                                        ),
-                                ),
-                            ],
+                      ),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      Center(
+                        child: RepaintBoundary(
+                          // key: _qrKey,
+                          child: SizedBox(
+                            width: width + 20,
+                            height: width + 20,
+                            child: QR(
+                              data: data,
+                              size: width,
+                            ),
                           ),
                         ),
                       ),
-                    );
-                  },
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      ref.watch(pWalletName(walletId)),
-                      textAlign: TextAlign.center,
-                      style: STextStyles.label(context).copyWith(
-                        fontSize: 12,
+                      const SizedBox(
+                        height: 12,
                       ),
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      "Recovery Phrase",
-                      textAlign: TextAlign.center,
-                      style: STextStyles.pageTitleH1(context),
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color:
-                            Theme.of(context).extension<StackColors>()!.popupBG,
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
+                      Center(
+                        child: SizedBox(
+                          width: width,
+                          child: TextButton(
+                            onPressed: () async {
+                              // await _capturePng(true);
+                              Navigator.of(context).pop();
+                            },
+                            style: Theme.of(context)
+                                .extension<StackColors>()!
+                                .getSecondaryEnabledButtonStyle(
+                                  context,
+                                ),
+                            child: Text(
+                              "Cancel",
+                              style: STextStyles.button(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(
-                          "Please write down your backup key. Keep it safe and never share it with anyone. Your backup key is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\nStack Wallet does not keep nor is able to restore your backup key. Only you have access to your wallet.",
-                          style: STextStyles.label(context),
-                        ),
-                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+          child: Text(
+            "Show QR Code",
+            style: STextStyles.button(context),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FrostKeys extends StatelessWidget {
+  const _FrostKeys({
+    super.key,
+    required this.walletId,
+    this.frostWalletData,
+  });
+
+  static const String routeName = "/walletBackup";
+
+  final String walletId;
+  final ({
+    String myName,
+    String config,
+    String keys,
+    ({String config, String keys})? prevGen,
+  })? frostWalletData;
+
+  @override
+  Widget build(BuildContext context) {
+    final prevGen = frostWalletData?.prevGen != null;
+    return LayoutBuilder(
+      builder: (builderContext, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - 24,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  RoundedWhiteContainer(
+                    child: Text(
+                      "Please write down your backup data. Keep it safe and "
+                      "never share it with anyone. "
+                      "Your backup data is the only way you can access your "
+                      "funds if you forget your PIN, lose your phone, etc."
+                      "\n\n"
+                      "${AppConfig.appName} does not keep nor is able to restore "
+                      "your backup data. "
+                      "Only you have access to your wallet.",
+                      style: STextStyles.label(context),
                     ),
+                  ),
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  // DetailItem(
+                  //   title: "My name",
+                  //   detail: frostWalletData!.myName,
+                  //   button: Util.isDesktop
+                  //       ? IconCopyButton(
+                  //           data: frostWalletData!.myName,
+                  //         )
+                  //       : SimpleCopyButton(
+                  //           data: frostWalletData!.myName,
+                  //         ),
+                  // ),
+                  // const SizedBox(
+                  //   height: 16,
+                  // ),
+                  DetailItem(
+                    title: "Multisig config",
+                    detail: frostWalletData!.config,
+                    button: Util.isDesktop
+                        ? IconCopyButton(
+                            data: frostWalletData!.config,
+                          )
+                        : SimpleCopyButton(
+                            data: frostWalletData!.config,
+                          ),
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  DetailItem(
+                    title: "Keys",
+                    detail: frostWalletData!.keys,
+                    button: Util.isDesktop
+                        ? IconCopyButton(
+                            data: frostWalletData!.keys,
+                          )
+                        : SimpleCopyButton(
+                            data: frostWalletData!.keys,
+                          ),
+                  ),
+                  if (prevGen)
                     const SizedBox(
-                      height: 8,
+                      height: 24,
                     ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: MnemonicTable(
-                          words: mnemonic,
-                          isDesktop: false,
-                        ),
+                  if (prevGen)
+                    RoundedWhiteContainer(
+                      child: Text(
+                        "Previous generation info",
+                        style: STextStyles.label(context),
                       ),
                     ),
+                  if (prevGen)
                     const SizedBox(
                       height: 12,
                     ),
-                    TextButton(
-                      style: Theme.of(context)
-                          .extension<StackColors>()!
-                          .getPrimaryEnabledButtonStyle(context),
-                      onPressed: () {
-                        final String data =
-                            AddressUtils.encodeQRSeedData(mnemonic);
-
-                        showDialog<dynamic>(
-                          context: context,
-                          useSafeArea: false,
-                          barrierDismissible: true,
-                          builder: (_) {
-                            final width = MediaQuery.of(context).size.width / 2;
-                            return StackDialogBase(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Center(
-                                    child: Text(
-                                      "Recovery phrase QR code",
-                                      style: STextStyles.pageTitleH2(context),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  Center(
-                                    child: RepaintBoundary(
-                                      // key: _qrKey,
-                                      child: SizedBox(
-                                        width: width + 20,
-                                        height: width + 20,
-                                        child: QR(
-                                          data: data,
-                                          size: width,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  Center(
-                                    child: SizedBox(
-                                      width: width,
-                                      child: TextButton(
-                                        onPressed: () async {
-                                          // await _capturePng(true);
-                                          Navigator.of(context).pop();
-                                        },
-                                        style: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .getSecondaryEnabledButtonStyle(
-                                              context,
-                                            ),
-                                        child: Text(
-                                          "Cancel",
-                                          style: STextStyles.button(context)
-                                              .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: Text(
-                        "Show QR Code",
-                        style: STextStyles.button(context),
-                      ),
+                  if (prevGen)
+                    DetailItem(
+                      title: "Previous multisig config",
+                      detail: frostWalletData!.prevGen!.config,
+                      button: Util.isDesktop
+                          ? IconCopyButton(
+                              data: frostWalletData!.prevGen!.config,
+                            )
+                          : SimpleCopyButton(
+                              data: frostWalletData!.prevGen!.config,
+                            ),
                     ),
-                  ],
-                ),
+                  if (prevGen)
+                    const SizedBox(
+                      height: 16,
+                    ),
+                  if (prevGen)
+                    DetailItem(
+                      title: "Previous keys",
+                      detail: frostWalletData!.prevGen!.keys,
+                      button: Util.isDesktop
+                          ? IconCopyButton(
+                              data: frostWalletData!.prevGen!.keys,
+                            )
+                          : SimpleCopyButton(
+                              data: frostWalletData!.prevGen!.keys,
+                            ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class MobileXPrivsView extends StatelessWidget {
+  const MobileXPrivsView({
+    super.key,
+    required this.walletId,
+    this.clipboardInterface = const ClipboardWrapper(),
+    required this.xprivData,
+  });
+
+  static const String routeName = "/mobileXPrivView";
+
+  final String walletId;
+  final ClipboardInterface clipboardInterface;
+  final ({List<XPriv> xprivs, String fingerprint}) xprivData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+      appBar: AppBar(
+        leading: AppBarBackButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Text(
+          "Wallet xpriv(s)",
+          style: STextStyles.navBarTitle(context),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: SingleChildScrollView(
+          child: _XPrivs(
+            walletId: walletId,
+            xprivData: xprivData,
+          ),
         ),
       ),
     );

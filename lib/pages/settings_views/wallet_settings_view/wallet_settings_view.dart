@@ -261,6 +261,10 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
 
                                         // TODO: [prio=med] take wallets that don't have a mnemonic into account
 
+                                        ({
+                                          List<XPriv> xprivs,
+                                          String fingerprint
+                                        })? xprivData;
                                         List<String>? mnemonic;
                                         ({
                                           String myName,
@@ -302,6 +306,10 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                               await wallet.getMnemonicAsWords();
                                         }
 
+                                        if (wallet is ExtendedKeysInterface) {
+                                          xprivData = await wallet.getXPrivs();
+                                        }
+
                                         if (context.mounted) {
                                           await Navigator.push(
                                             context,
@@ -315,6 +323,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                   mnemonic: mnemonic ?? [],
                                                   frostWalletData:
                                                       frostWalletData,
+                                                  xprivData: xprivData,
                                                 ),
                                                 showBackButton: true,
                                                 routeOnSuccess:

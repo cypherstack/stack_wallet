@@ -1277,6 +1277,63 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonic,
+          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              xprivData: args.xprivData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonic,
+          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+          ({
+            String myName,
+            String config,
+            String keys,
+            ({String config, String keys})? prevGen,
+          })? frostWalletData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              frostWalletData: args.frostWalletData,
+              xprivData: args.xprivData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case MobileXPrivsView.routeName:
+        if (args is ({
+          String walletId,
+          ({List<XPriv> xprivs, String fingerprint}) xprivData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => MobileXPrivsView(
+              walletId: args.walletId,
+              xprivData: args.xprivData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
