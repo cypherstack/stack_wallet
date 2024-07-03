@@ -29,11 +29,15 @@ import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
+import '../../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -52,6 +56,8 @@ class DesktopReceive extends ConsumerStatefulWidget {
     this.clipboard = const ClipboardWrapper(),
   });
 
+  static const String routeName = "/desktopReceive";
+
   final String walletId;
   final String? contractAddress;
   final ClipboardInterface clipboard;
@@ -65,10 +71,17 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late final String walletId;
   late final ClipboardInterface clipboard;
   late final bool supportsSpark;
+  late final bool showMultiType;
 
   String? _sparkAddress;
   String? _qrcodeContent;
   bool _showSparkAddress = true;
+
+  int _currentIndex = 0;
+
+  final List<AddressType> _walletAddressTypes = [];
+  final Map<AddressType, String> _addressMap = {};
+  final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
 
   Future<void> generateNewAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
@@ -97,10 +110,32 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
       await wallet.generateNewReceivingAddress();
 
+      final Address? address;
+      if (wallet is Bip39HDWallet && wallet is! BCashInterface) {
+        final type = DerivePathType.values.firstWhere(
+          (e) => e.getAddressType() == _walletAddressTypes[_currentIndex],
+        );
+        address = await wallet.generateNextReceivingAddress(
+          derivePathType: type,
+        );
+        await ref.read(mainDBProvider).isar.writeTxn(() async {
+          await ref.read(mainDBProvider).isar.addresses.put(address!);
+        });
+      } else {
+        await wallet.generateNewReceivingAddress();
+        address = null;
+      }
+
       shouldPop = true;
 
       if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(DesktopReceive.routeName));
+
+        setState(() {
+          _addressMap[_walletAddressTypes[_currentIndex]] =
+              address?.value ?? ref.read(pWalletReceivingAddress(walletId));
+        });
       }
     }
   }
@@ -155,7 +190,57 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     walletId = widget.walletId;
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
+    final wallet = ref.read(pWallets).getWallet(walletId);
     supportsSpark = ref.read(pWallets).getWallet(walletId) is SparkInterface;
+    showMultiType = supportsSpark ||
+        ref.read(pWallets).getWallet(walletId) is MultiAddressInterface;
+
+    _walletAddressTypes.add(wallet.info.mainAddressType);
+
+    if (showMultiType) {
+      if (supportsSpark) {
+        _walletAddressTypes.insert(0, AddressType.spark);
+      } else {
+        _walletAddressTypes.addAll(
+          (wallet as Bip39HDWallet)
+              .supportedAddressTypes
+              .where((e) => e != wallet.info.mainAddressType),
+        );
+      }
+    }
+
+    if (_walletAddressTypes.length > 1 && wallet is BitcoinWallet) {
+      _walletAddressTypes.removeWhere((e) => e == AddressType.p2pkh);
+    }
+
+    _addressMap[_walletAddressTypes[_currentIndex]] =
+        ref.read(pWalletReceivingAddress(walletId));
+
+    if (showMultiType) {
+      for (final type in _walletAddressTypes) {
+        _addressSubMap[type] = ref
+            .read(mainDBProvider)
+            .isar
+            .addresses
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .typeEqualTo(type)
+            .sortByDerivationIndexDesc()
+            .findFirst()
+            .asStream()
+            .listen((event) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _addressMap[type] =
+                    event?.value ?? _addressMap[type] ?? "[No address yet]";
+              });
+            }
+          });
+        });
+      }
+    }
 
     if (supportsSpark) {
       _streamSub = ref
@@ -193,6 +278,13 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    final String address;
+    if (showMultiType) {
+      address = _addressMap[_walletAddressTypes[_currentIndex]]!;
+    } else {
+      address = ref.watch(pWalletReceivingAddress(walletId));
+    }
+
     if (supportsSpark) {
       if (_showSparkAddress) {
         _qrcodeContent = _sparkAddress;
@@ -207,33 +299,30 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ConditionalParent(
-          condition: supportsSpark,
+          condition: showMultiType,
           builder: (child) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonHideUnderline(
-                child: DropdownButton2<bool>(
-                  value: _showSparkAddress,
+                child: DropdownButton2<int>(
+                  value: _currentIndex,
                   items: [
-                    DropdownMenuItem(
-                      value: true,
-                      child: Text(
-                        "Spark address",
-                        style: STextStyles.desktopTextMedium(context),
+                    for (int i = 0; i < _walletAddressTypes.length; i++)
+                      DropdownMenuItem(
+                        value: i,
+                        child: Text(
+                          supportsSpark &&
+                                  _walletAddressTypes[i] == AddressType.p2pkh
+                              ? "Transparent address"
+                              : "${_walletAddressTypes[i].readableName} address",
+                          style: STextStyles.w500_14(context),
+                        ),
                       ),
-                    ),
-                    DropdownMenuItem(
-                      value: false,
-                      child: Text(
-                        "Transparent address",
-                        style: STextStyles.desktopTextMedium(context),
-                      ),
-                    ),
                   ],
                   onChanged: (value) {
-                    if (value is bool && value != _showSparkAddress) {
+                    if (value != null && value != _currentIndex) {
                       setState(() {
-                        _showSparkAddress = value;
+                        _currentIndex = value;
                       });
                     }
                   },
@@ -248,6 +337,16 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .textFieldActiveSearchIconRight,
+                      ),
+                    ),
+                  ),
+                  buttonStyleData: ButtonStyleData(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
                       ),
                     ),
                   ),
@@ -280,7 +379,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   child: GestureDetector(
                     onTap: () {
                       clipboard.setData(
-                        ClipboardData(text: _sparkAddress ?? "Error"),
+                        ClipboardData(text: address),
                       );
                       showFloatingFlushBar(
                         type: FlushBarType.info,
@@ -311,7 +410,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                       pCurrentTokenWallet.select(
                                         (value) => value!.tokenContract.symbol,
                                       ),
-                                    )} SPARK address",
+                                    )}${supportsSpark ? " SPARK" : ""} address",
                                   style: STextStyles.itemSubtitle(context),
                                 ),
                                 const Spacer(),
@@ -343,7 +442,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    _sparkAddress ?? "Error",
+                                    address,
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
                                       context,
