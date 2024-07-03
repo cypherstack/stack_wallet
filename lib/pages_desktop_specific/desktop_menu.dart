@@ -168,7 +168,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                 onPressed: () {
                   ref.read(currentDesktopMenuItemProvider.state).state =
                       DesktopMenuItemId.settings;
-                  ref.watch(selectedSettingsMenuItemStateProvider.state).state =
+                  ref.read(selectedSettingsMenuItemStateProvider.state).state =
                       4;
                 },
               ),
@@ -186,6 +186,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DesktopMenuItem(
+                      key: ValueKey('myStack'),
                       duration: duration,
                       icon: const DesktopMyStackIcon(),
                       label: "My ${AppConfig.prefix}",
@@ -193,10 +194,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],
                     ),
-                    if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
-                      const SizedBox(height: 2),
-                    if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
+                    if (AppConfig.hasFeature(AppFeature.swap) &&
+                        showExchange) ...[
+                      const SizedBox(
+                        height: 2,
+                      ),
                       DesktopMenuItem(
+                        key: ValueKey('swap'),
                         duration: duration,
                         icon: const DesktopExchangeIcon(),
                         label: "Swap",
@@ -204,10 +208,14 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         onChanged: updateSelectedMenuItem,
                         controller: controllers[1],
                       ),
-                    if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
-                      const SizedBox(height: 2),
-                    if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
+                    ],
+                    if (AppConfig.hasFeature(AppFeature.buy) &&
+                        showExchange) ...[
+                      const SizedBox(
+                        height: 2,
+                      ),
                       DesktopMenuItem(
+                        key: ValueKey('buy'),
                         duration: duration,
                         icon: const DesktopBuyIcon(),
                         label: "Buy crypto",
@@ -215,10 +223,12 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         onChanged: updateSelectedMenuItem,
                         controller: controllers[2],
                       ),
+                    ],
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: ValueKey('notifications'),
                       duration: duration,
                       icon: const DesktopNotificationsIcon(),
                       label: "Notifications",
@@ -230,6 +240,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: ValueKey('addressBook'),
                       duration: duration,
                       icon: const DesktopAddressBookIcon(),
                       label: "Address Book",
@@ -241,6 +252,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: ValueKey('settings'),
                       duration: duration,
                       icon: const DesktopSettingsIcon(),
                       label: "Settings",
@@ -252,6 +264,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: ValueKey('support'),
                       duration: duration,
                       icon: const DesktopSupportIcon(),
                       label: "Support",
@@ -263,6 +276,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: ValueKey('about'),
                       duration: duration,
                       icon: const DesktopAboutIcon(),
                       label: "About",
@@ -273,6 +287,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     const Spacer(),
                     if (!Platform.isIOS)
                       DesktopMenuItem(
+                        key: ValueKey('exit'),
                         duration: duration,
                         labelLength: 123,
                         icon: const DesktopExitIcon(),
