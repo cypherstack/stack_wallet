@@ -17,6 +17,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app_config.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
+import '../providers/providers.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
@@ -114,6 +115,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final prefs = ref.watch(prefsChangeNotifierProvider);
+
+    final showExchange = prefs.showExchange;
+
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: AnimatedContainer(
@@ -188,11 +193,9 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],
                     ),
-                    if (AppConfig.hasFeature(AppFeature.swap))
-                      const SizedBox(
-                        height: 2,
-                      ),
-                    if (AppConfig.hasFeature(AppFeature.swap))
+                    if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
+                      const SizedBox(height: 2),
+                    if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
                       DesktopMenuItem(
                         duration: duration,
                         icon: const DesktopExchangeIcon(),
@@ -201,11 +204,9 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         onChanged: updateSelectedMenuItem,
                         controller: controllers[1],
                       ),
-                    if (AppConfig.hasFeature(AppFeature.buy))
-                      const SizedBox(
-                        height: 2,
-                      ),
-                    if (AppConfig.hasFeature(AppFeature.buy))
+                    if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
+                      const SizedBox(height: 2),
+                    if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
                       DesktopMenuItem(
                         duration: duration,
                         icon: const DesktopBuyIcon(),
