@@ -204,7 +204,7 @@ class AdvancedSettingsView extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Show exchange features",
+                              "Enable exchange features",
                               style: STextStyles.titleBold12(context),
                               textAlign: TextAlign.left,
                             ),
@@ -214,13 +214,13 @@ class AdvancedSettingsView extends StatelessWidget {
                               child: DraggableSwitchButton(
                                 isOn: ref.watch(
                                   prefsChangeNotifierProvider.select(
-                                    (value) => value.showExchange,
+                                    (value) => value.enableExchange,
                                   ),
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
                                       .read(prefsChangeNotifierProvider)
-                                      .showExchange = newValue;
+                                      .enableExchange = newValue;
                                 },
                               ),
                             ),

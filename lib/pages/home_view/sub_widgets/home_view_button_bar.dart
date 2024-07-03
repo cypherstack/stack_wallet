@@ -46,7 +46,7 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
   Widget build(BuildContext context) {
     final prefs = ref.watch(prefsChangeNotifierProvider);
 
-    final showExchange = prefs.showExchange;
+    final showExchange = prefs.enableExchange;
 
     final selectedIndex = ref.watch(homeViewPageIndexStateProvider.state).state;
     return Row(

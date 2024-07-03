@@ -354,7 +354,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final coin = wallet.info.coin;
 
     final prefs = ref.watch(prefsChangeNotifierProvider);
-    final showExchange = prefs.showExchange;
+    final showExchange = prefs.enableExchange;
 
     final showMore = wallet is PaynymInterface ||
         (wallet is CoinControlInterface &&

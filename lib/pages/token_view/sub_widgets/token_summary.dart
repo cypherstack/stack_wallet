@@ -219,7 +219,7 @@ class TokenWalletOptions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(prefsChangeNotifierProvider);
-    final showExchange = prefs.showExchange;
+    final showExchange = prefs.enableExchange;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

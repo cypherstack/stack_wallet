@@ -378,7 +378,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
 
-      if (AppConfig.hasFeature(AppFeature.swap)) {
+      if (AppConfig.hasFeature(AppFeature.swap) &&
+          ref.read(prefsChangeNotifierProvider).enableExchange) {
         await ExchangeDataLoadingService.instance.initDB();
         // run without awaiting
         if (ref.read(prefsChangeNotifierProvider).externalCalls &&

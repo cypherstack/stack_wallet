@@ -174,7 +174,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Show exchange features",
+                              "Enable exchange features",
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
                                 color: Theme.of(context)
@@ -189,13 +189,13 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               child: DraggableSwitchButton(
                                 isOn: ref.watch(
                                   prefsChangeNotifierProvider.select(
-                                    (value) => value.showExchange,
+                                    (value) => value.enableExchange,
                                   ),
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
                                       .read(prefsChangeNotifierProvider)
-                                      .showExchange = newValue;
+                                      .enableExchange = newValue;
                                 },
                               ),
                             ),

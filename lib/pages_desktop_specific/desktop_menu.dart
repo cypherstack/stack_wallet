@@ -117,7 +117,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   Widget build(BuildContext context) {
     final prefs = ref.watch(prefsChangeNotifierProvider);
 
-    final showExchange = prefs.showExchange;
+    final showExchange = prefs.enableExchange;
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,

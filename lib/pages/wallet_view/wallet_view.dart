@@ -519,7 +519,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     final coin = ref.watch(pWalletCoin(walletId));
 
     final prefs = ref.watch(prefsChangeNotifierProvider);
-    final showExchange = prefs.showExchange;
+    final showExchange = prefs.enableExchange;
 
     return ConditionalParent(
       condition: _rescanningOnOpen,
