@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -27,15 +28,61 @@ class DetailItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle detailStyle;
+    TextStyle detailStyle = STextStyles.w500_14(context);
+    String _detail = detail;
     if (overrideDetailTextColor != null) {
       detailStyle = STextStyles.w500_14(context).copyWith(
         color: overrideDetailTextColor,
       );
-    } else {
-      detailStyle = STextStyles.w500_14(context);
     }
 
+    if (detail.isEmpty && showEmptyDetail) {
+      _detail = "$title will appear here";
+      detailStyle = detailStyle.copyWith(
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+      );
+    }
+
+    return DetailItemBase(
+      horizontal: horizontal,
+      title: disableSelectableText
+          ? Text(
+              title,
+              style: STextStyles.itemSubtitle(context),
+            )
+          : SelectableText(
+              title,
+              style: STextStyles.itemSubtitle(context),
+            ),
+      detail: disableSelectableText
+          ? Text(
+              _detail,
+              style: detailStyle,
+            )
+          : SelectableText(
+              _detail,
+              style: detailStyle,
+            ),
+    );
+  }
+}
+
+class DetailItemBase extends StatelessWidget {
+  const DetailItemBase({
+    super.key,
+    required this.title,
+    required this.detail,
+    this.button,
+    this.horizontal = false,
+  });
+
+  final Widget title;
+  final Widget detail;
+  final Widget? button;
+  final bool horizontal;
+
+  @override
+  Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !Util.isDesktop,
       builder: (child) => RoundedWhiteContainer(
@@ -51,24 +98,8 @@ class DetailItem extends StatelessWidget {
             ? Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  disableSelectableText
-                      ? Text(
-                          title,
-                          style: STextStyles.itemSubtitle(context),
-                        )
-                      : SelectableText(
-                          title,
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                  disableSelectableText
-                      ? Text(
-                          detail,
-                          style: detailStyle,
-                        )
-                      : SelectableText(
-                          detail,
-                          style: detailStyle,
-                        ),
+                  title,
+                  detail,
                 ],
               )
             : Column(
@@ -77,48 +108,14 @@ class DetailItem extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      disableSelectableText
-                          ? Text(
-                              title,
-                              style: STextStyles.itemSubtitle(context),
-                            )
-                          : SelectableText(
-                              title,
-                              style: STextStyles.itemSubtitle(context),
-                            ),
+                      title,
                       button ?? Container(),
                     ],
                   ),
                   const SizedBox(
                     height: 5,
                   ),
-                  detail.isEmpty && showEmptyDetail
-                      ? disableSelectableText
-                          ? Text(
-                              "$title will appear here",
-                              style: STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle3,
-                              ),
-                            )
-                          : SelectableText(
-                              "$title will appear here",
-                              style: STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle3,
-                              ),
-                            )
-                      : disableSelectableText
-                          ? Text(
-                              detail,
-                              style: detailStyle,
-                            )
-                          : SelectableText(
-                              detail,
-                              style: detailStyle,
-                            ),
+                  detail,
                 ],
               ),
       ),
