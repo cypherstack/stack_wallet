@@ -186,7 +186,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DesktopMenuItem(
-                      key: ValueKey('myStack'),
+                      key: const ValueKey('myStack'),
                       duration: duration,
                       icon: const DesktopMyStackIcon(),
                       label: "My ${AppConfig.prefix}",
@@ -200,7 +200,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         height: 2,
                       ),
                       DesktopMenuItem(
-                        key: ValueKey('swap'),
+                        key: const ValueKey('swap'),
                         duration: duration,
                         icon: const DesktopExchangeIcon(),
                         label: "Swap",
@@ -215,7 +215,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         height: 2,
                       ),
                       DesktopMenuItem(
-                        key: ValueKey('buy'),
+                        key: const ValueKey('buy'),
                         duration: duration,
                         icon: const DesktopBuyIcon(),
                         label: "Buy crypto",
@@ -228,7 +228,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
-                      key: ValueKey('notifications'),
+                      key: const ValueKey('notifications'),
                       duration: duration,
                       icon: const DesktopNotificationsIcon(),
                       label: "Notifications",
@@ -240,7 +240,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
-                      key: ValueKey('addressBook'),
+                      key: const ValueKey('addressBook'),
                       duration: duration,
                       icon: const DesktopAddressBookIcon(),
                       label: "Address Book",
@@ -252,7 +252,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
-                      key: ValueKey('settings'),
+                      key: const ValueKey('settings'),
                       duration: duration,
                       icon: const DesktopSettingsIcon(),
                       label: "Settings",
@@ -264,7 +264,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
-                      key: ValueKey('support'),
+                      key: const ValueKey('support'),
                       duration: duration,
                       icon: const DesktopSupportIcon(),
                       label: "Support",
@@ -276,7 +276,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       height: 2,
                     ),
                     DesktopMenuItem(
-                      key: ValueKey('about'),
+                      key: const ValueKey('about'),
                       duration: duration,
                       icon: const DesktopAboutIcon(),
                       label: "About",
@@ -287,7 +287,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     const Spacer(),
                     if (!Platform.isIOS)
                       DesktopMenuItem(
-                        key: ValueKey('exit'),
+                        key: const ValueKey('exit'),
                         duration: duration,
                         labelLength: 123,
                         icon: const DesktopExitIcon(),

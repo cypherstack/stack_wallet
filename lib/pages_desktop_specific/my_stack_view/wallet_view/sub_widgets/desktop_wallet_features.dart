@@ -353,6 +353,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final wallet = ref.watch(pWallets).getWallet(widget.walletId);
     final coin = wallet.info.coin;
 
+    final prefs = ref.watch(prefsChangeNotifierProvider);
+    final showExchange = prefs.showExchange;
+
     final showMore = wallet is PaynymInterface ||
         (wallet is CoinControlInterface &&
             ref.watch(
@@ -368,7 +371,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     return Row(
       children: [
-        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.swap))
+        if (Constants.enableExchange &&
+            AppConfig.hasFeature(AppFeature.swap) &&
+            showExchange)
           SecondaryButton(
             label: "Swap",
             width: buttonWidth,
@@ -383,11 +388,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             ),
             onPressed: () => _onSwapPressed(),
           ),
-        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
+        if (Constants.enableExchange &&
+            AppConfig.hasFeature(AppFeature.buy) &&
+            showExchange)
           const SizedBox(
             width: 16,
           ),
-        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
+        if (Constants.enableExchange &&
+            AppConfig.hasFeature(AppFeature.buy) &&
+            showExchange)
           SecondaryButton(
             label: "Buy",
             width: buttonWidth,
