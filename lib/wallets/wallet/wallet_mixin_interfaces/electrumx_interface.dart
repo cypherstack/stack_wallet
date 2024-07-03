@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -23,6 +24,7 @@ import '../../../utilities/logger.dart';
 import '../../../utilities/paynym_is_api.dart';
 import '../../crypto_currency/coins/firo.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../impl/bitcoin_wallet.dart';
 import '../impl/firo_wallet.dart';
@@ -1333,9 +1335,16 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         needsGenerate = txCount > 0 || currentReceiving.derivationIndex < 0;
       }
 
-      // If the reuseAddress flag is set, don't generate a new address.
-      if (prefs.reuseAddress) {
-        return;
+      // If reuseAddress is set, don't generate an address by default.
+      final WalletInfo info = mainDB.isar.walletInfo
+          .where()
+          .walletIdEqualTo(walletId)
+          .findFirstSync()!;
+      if (info.otherDataJsonString != null) {
+        final otherData = jsonDecode(info.otherDataJsonString!);
+        if (otherData[WalletInfoKeys.reuseAddress] as bool? ?? false) {
+          return;
+        }
       }
 
       if (needsGenerate) {
