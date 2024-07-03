@@ -405,17 +405,19 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     color: Colors.transparent,
                     child: Column(
                       children: [
-                        CheckboxTextButton(
-                          label: "Scan for Lelantus transactions",
-                          onChanged: (newValue) {
-                            setState(() {
-                              enableLelantusScanning = newValue ?? true;
-                            });
-                          },
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
+                        if (coin is Firo)
+                          CheckboxTextButton(
+                            label: "Scan for Lelantus transactions",
+                            onChanged: (newValue) {
+                              setState(() {
+                                enableLelantusScanning = newValue ?? true;
+                              });
+                            },
+                          ),
+                        if (coin is Firo)
+                          const SizedBox(
+                            height: 8,
+                          ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
