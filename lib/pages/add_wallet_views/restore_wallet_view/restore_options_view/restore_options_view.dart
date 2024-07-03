@@ -502,6 +502,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                             ),
                           ),
                         ),
+                        const SizedBox(
+                          height: 16,
+                        ),
                       ],
                     ),
                   ),

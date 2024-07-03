@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/isar/models/isar_models.dart';
+import '../pages/pinpad_views/pinpad_dialog.dart';
+import '../pages_desktop_specific/password/request_desktop_auth_dialog.dart';
 import '../providers/global/wallets_provider.dart';
 import '../utilities/show_loading.dart';
 import '../utilities/text_styles.dart';
@@ -41,21 +43,36 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
     _lock = true;
 
     try {
-      final wallet =
-          ref.read(pWallets).getWallet(widget.walletId) as Bip39HDWallet;
-
-      _private = await showLoading(
-        whileFuture: wallet.getPrivateKeyWIF(widget.address),
+      final verified = await showDialog<String?>(
         context: context,
-        message: "Loading...",
-        delay: const Duration(milliseconds: 800),
-        rootNavigator: Util.isDesktop,
+        builder: (context) => Util.isDesktop
+            ? const RequestDesktopAuthDialog(title: "Show WIF private key")
+            : const PinpadDialog(
+                biometricsAuthenticationTitle: "Show WIF private key",
+                biometricsLocalizedReason:
+                    "Authenticate to show WIF private key",
+                biometricsCancelButtonString: "CANCEL",
+              ),
+        barrierDismissible: !Util.isDesktop,
       );
 
-      if (context.mounted) {
-        setState(() {});
-      } else {
-        _private == null;
+      if (verified == "verified success" && mounted) {
+        final wallet =
+            ref.read(pWallets).getWallet(widget.walletId) as Bip39HDWallet;
+
+        _private = await showLoading(
+          whileFuture: wallet.getPrivateKeyWIF(widget.address),
+          context: context,
+          message: "Loading...",
+          delay: const Duration(milliseconds: 800),
+          rootNavigator: Util.isDesktop,
+        );
+
+        if (context.mounted) {
+          setState(() {});
+        } else {
+          _private == null;
+        }
       }
     } finally {
       _lock = false;
@@ -71,7 +88,7 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
         enabled: _private == null,
       ),
       title: Text(
-        "Private key",
+        "Private key (WIF)",
         style: STextStyles.itemSubtitle(context),
       ),
       detail: SelectableText(
