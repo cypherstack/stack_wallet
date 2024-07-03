@@ -17,9 +17,14 @@ import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/stack_dialog.dart';
 import 'debug_info_dialog.dart';
 import 'desktop_manage_block_explorers_dialog.dart';
 import 'stack_privacy_dialog.dart';
@@ -37,6 +42,11 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+
+    final reuseAddress = ref.watch(prefsChangeNotifierProvider.select(
+      (value) => value.reuseAddress,
+    ));
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -155,6 +165,206 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                   ref
                                       .read(prefsChangeNotifierProvider)
                                       .enableCoinControl = newValue;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // reuseAddress pref.
+                      const Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Divider(
+                          thickness: 0.5,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Reuse addresses",
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: DraggableSwitchButton(
+                                isOn: reuseAddress,
+                                onValueChanged: (newValue) {
+                                  if (newValue) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        final isDesktop = Util.isDesktop;
+                                        return isDesktop
+                                            ? DesktopDialog(
+                                                maxWidth: 576,
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 32),
+                                                          child: Text(
+                                                            "Warning!",
+                                                            style: STextStyles
+                                                                .desktopH3(
+                                                                    context),
+                                                          ),
+                                                        ),
+                                                        const DesktopDialogCloseButton(),
+                                                      ],
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                        top: 8,
+                                                        left: 32,
+                                                        right: 32,
+                                                        bottom: 32,
+                                                      ),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Text(
+                                                            "Reusing addresses reduces your privacy and security. Are you sure you want to reuse addresses by default?",
+                                                            style: STextStyles
+                                                                .desktopTextSmall(
+                                                                    context),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 43,
+                                                          ),
+                                                          Row(
+                                                            children: [
+                                                              Expanded(
+                                                                child:
+                                                                    SecondaryButton(
+                                                                  buttonHeight:
+                                                                      ButtonHeight
+                                                                          .l,
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop();
+                                                                  },
+                                                                  label:
+                                                                      "Cancel",
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 16,
+                                                              ),
+                                                              Expanded(
+                                                                child:
+                                                                    PrimaryButton(
+                                                                  buttonHeight:
+                                                                      ButtonHeight
+                                                                          .l,
+                                                                  onPressed:
+                                                                      () {
+                                                                    ref.read(prefsChangeNotifierProvider).reuseAddress =
+                                                                        newValue;
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop();
+                                                                  },
+                                                                  label:
+                                                                      "Continue",
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            : WillPopScope(
+                                                onWillPop: () async {
+                                                  return true;
+                                                },
+                                                child: StackDialog(
+                                                  title: "Warning!",
+                                                  message:
+                                                      "Reusing addresses reduces your privacy and security. Are you sure you want to reuse addresses by default?",
+                                                  leftButton: TextButton(
+                                                    style: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .getSecondaryEnabledButtonStyle(
+                                                            context),
+                                                    child: Text(
+                                                      "Cancel",
+                                                      style: STextStyles
+                                                          .itemSubtitle12(
+                                                              context),
+                                                    ),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                  rightButton: TextButton(
+                                                    style: Theme.of(context)
+                                                        .extension<
+                                                            StackColors>()!
+                                                        .getPrimaryEnabledButtonStyle(
+                                                            context),
+                                                    child: Text(
+                                                      "Continue",
+                                                      style: STextStyles.button(
+                                                          context),
+                                                    ),
+                                                    onPressed: () {
+                                                      ref
+                                                          .read(
+                                                              prefsChangeNotifierProvider)
+                                                          .reuseAddress = newValue;
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                      },
+                                    ).then((confirmed) {
+                                      if (confirmed == true) {
+                                        ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .reuseAddress = true;
+                                      } else {
+                                        ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .reuseAddress = false;
+                                      }
+                                    });
+                                  } else {
+                                    ref
+                                        .read(
+                                          prefsChangeNotifierProvider,
+                                        )
+                                        .reuseAddress = newValue;
+                                  }
                                 },
                               ),
                             ),
