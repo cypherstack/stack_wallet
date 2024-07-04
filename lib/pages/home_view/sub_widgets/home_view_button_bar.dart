@@ -44,10 +44,6 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
 
   @override
   Widget build(BuildContext context) {
-    final prefs = ref.watch(prefsChangeNotifierProvider);
-
-    final showExchange = prefs.enableExchange;
-
     final selectedIndex = ref.watch(homeViewPageIndexStateProvider.state).state;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -90,11 +86,11 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
             ),
           ),
         ),
-        if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
+        if (AppConfig.hasFeature(AppFeature.swap))
           const SizedBox(
             width: 8,
           ),
-        if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
+        if (AppConfig.hasFeature(AppFeature.swap))
           Expanded(
             child: TextButton(
               style: selectedIndex == 1
@@ -141,11 +137,11 @@ class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
               ),
             ),
           ),
-        if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
+        if (AppConfig.hasFeature(AppFeature.buy))
           const SizedBox(
             width: 8,
           ),
-        if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
+        if (AppConfig.hasFeature(AppFeature.buy))
           Expanded(
             child: TextButton(
               style: selectedIndex == 2
