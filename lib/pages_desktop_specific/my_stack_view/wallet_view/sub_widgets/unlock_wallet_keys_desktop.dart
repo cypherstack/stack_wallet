@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../models/keys/key_data_interface.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../providers/providers.dart';
@@ -22,6 +23,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -85,7 +87,6 @@ class _UnlockWalletKeysDesktopState
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
       ({String keys, String config})? frostData;
       List<String>? words;
-      ({List<XPriv> xprivs, String fingerprint})? xprivData;
 
       // TODO: [prio=low] handle wallets that don't have a mnemonic
       // All wallets currently are mnemonic based
@@ -102,8 +103,11 @@ class _UnlockWalletKeysDesktopState
         words = await wallet.getMnemonicAsWords();
       }
 
+      KeyDataInterface? keyData;
       if (wallet is ExtendedKeysInterface) {
-        xprivData = await wallet.getXPrivs();
+        keyData = await wallet.getXPrivs();
+      } else if (wallet is CwBasedInterface) {
+        keyData = await wallet.getKeys();
       }
 
       if (mounted) {
@@ -113,7 +117,7 @@ class _UnlockWalletKeysDesktopState
             mnemonic: words ?? [],
             walletId: widget.walletId,
             frostData: frostData,
-            xprivData: xprivData,
+            keyData: keyData,
           ),
         );
       }
@@ -327,10 +331,6 @@ class _UnlockWalletKeysDesktopState
 
                               ({String keys, String config})? frostData;
                               List<String>? words;
-                              ({
-                                List<XPriv> xprivs,
-                                String fingerprint
-                              })? xprivData;
 
                               final wallet =
                                   ref.read(pWallets).getWallet(widget.walletId);
@@ -350,11 +350,14 @@ class _UnlockWalletKeysDesktopState
                                 words = await wallet.getMnemonicAsWords();
                               }
 
+                              KeyDataInterface? keyData;
                               if (wallet is ExtendedKeysInterface) {
-                                xprivData = await wallet.getXPrivs();
+                                keyData = await wallet.getXPrivs();
+                              } else if (wallet is CwBasedInterface) {
+                                keyData = await wallet.getKeys();
                               }
 
-                              if (mounted) {
+                              if (context.mounted) {
                                 await Navigator.of(context)
                                     .pushReplacementNamed(
                                   WalletKeysDesktopPopup.routeName,
@@ -362,7 +365,7 @@ class _UnlockWalletKeysDesktopState
                                     mnemonic: words ?? [],
                                     walletId: widget.walletId,
                                     frostData: frostData,
-                                    xprivData: xprivData,
+                                    keyData: keyData,
                                   ),
                                 );
                               }

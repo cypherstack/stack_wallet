@@ -14,8 +14,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../models/keys/cw_key_data.dart';
+import '../../../../models/keys/key_data_interface.dart';
+import '../../../../models/keys/xpriv_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_backup_views/cn_wallet_keys.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_xprivs.dart';
 import '../../../../pages/wallet_view/transaction_views/transaction_details_view.dart';
 import '../../../../themes/stack_colors.dart';
@@ -23,7 +27,6 @@ import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../widgets/custom_tab_view.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -39,14 +42,14 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
     required this.walletId,
     this.frostData,
     this.clipboardInterface = const ClipboardWrapper(),
-    this.xprivData,
+    this.keyData,
   });
 
   final List<String> words;
   final String walletId;
   final ({String keys, String config})? frostData;
   final ClipboardInterface clipboardInterface;
-  final ({List<XPriv> xprivs, String fingerprint})? xprivData;
+  final KeyDataInterface? keyData;
 
   static const String routeName = "walletKeysDesktopPopup";
 
@@ -176,9 +179,13 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                     ),
                   ],
                 )
-              : xprivData != null
+              : keyData != null
                   ? CustomTabView(
-                      titles: const ["Mnemonic", "XPriv(s)"],
+                      titles: [
+                        "Mnemonic",
+                        if (keyData is XPrivData) "XPriv(s)",
+                        if (keyData is CWKeyData) "Keys",
+                      ],
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(top: 16),
@@ -186,10 +193,16 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                             words: words,
                           ),
                         ),
-                        WalletXPrivs(
-                          xprivData: xprivData!,
-                          walletId: walletId,
-                        ),
+                        if (keyData is XPrivData)
+                          WalletXPrivs(
+                            xprivData: keyData as XPrivData,
+                            walletId: walletId,
+                          ),
+                        if (keyData is CWKeyData)
+                          CNWalletKeys(
+                            cwKeyData: keyData as CWKeyData,
+                            walletId: walletId,
+                          ),
                       ],
                     )
                   : _Mnemonic(
