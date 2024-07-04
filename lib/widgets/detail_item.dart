@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -15,6 +16,8 @@ class DetailItem extends StatelessWidget {
     this.showEmptyDetail = true,
     this.horizontal = false,
     this.disableSelectableText = false,
+    this.borderColor,
+    this.expandDetail = false,
   });
 
   final String title;
@@ -24,25 +27,83 @@ class DetailItem extends StatelessWidget {
   final bool horizontal;
   final bool disableSelectableText;
   final Color? overrideDetailTextColor;
+  final Color? borderColor;
+  final bool expandDetail;
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle detailStyle;
+    TextStyle detailStyle = STextStyles.w500_14(context);
+    String _detail = detail;
     if (overrideDetailTextColor != null) {
       detailStyle = STextStyles.w500_14(context).copyWith(
         color: overrideDetailTextColor,
       );
-    } else {
-      detailStyle = STextStyles.w500_14(context);
     }
 
+    if (detail.isEmpty && showEmptyDetail) {
+      _detail = "$title will appear here";
+      detailStyle = detailStyle.copyWith(
+        color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
+      );
+    }
+
+    return DetailItemBase(
+      horizontal: horizontal,
+      borderColor: borderColor,
+      expandDetail: expandDetail,
+      title: disableSelectableText
+          ? Text(
+              title,
+              style: STextStyles.itemSubtitle(context),
+            )
+          : SelectableText(
+              title,
+              style: STextStyles.itemSubtitle(context),
+            ),
+      detail: disableSelectableText
+          ? Text(
+              _detail,
+              style: detailStyle,
+            )
+          : SelectableText(
+              _detail,
+              style: detailStyle,
+            ),
+    );
+  }
+}
+
+class DetailItemBase extends StatelessWidget {
+  const DetailItemBase({
+    super.key,
+    required this.title,
+    required this.detail,
+    this.button,
+    this.horizontal = false,
+    this.borderColor,
+    this.expandDetail = false,
+  });
+
+  final Widget title;
+  final Widget detail;
+  final Widget? button;
+  final bool horizontal;
+  final Color? borderColor;
+  final bool expandDetail;
+
+  @override
+  Widget build(BuildContext context) {
     return ConditionalParent(
-      condition: !Util.isDesktop,
+      condition: !Util.isDesktop || borderColor != null,
       builder: (child) => RoundedWhiteContainer(
+        padding: Util.isDesktop
+            ? const EdgeInsets.all(16)
+            : const EdgeInsets.all(12),
+        borderColor: borderColor,
         child: child,
       ),
       child: ConditionalParent(
-        condition: Util.isDesktop,
+        condition: Util.isDesktop && borderColor == null,
         builder: (child) => Padding(
           padding: const EdgeInsets.all(16),
           child: child,
@@ -51,24 +112,16 @@ class DetailItem extends StatelessWidget {
             ? Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  disableSelectableText
-                      ? Text(
-                          title,
-                          style: STextStyles.itemSubtitle(context),
-                        )
-                      : SelectableText(
-                          title,
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                  disableSelectableText
-                      ? Text(
-                          detail,
-                          style: detailStyle,
-                        )
-                      : SelectableText(
-                          detail,
-                          style: detailStyle,
-                        ),
+                  title,
+                  if (expandDetail)
+                    const SizedBox(
+                      width: 16,
+                    ),
+                  ConditionalParent(
+                    condition: expandDetail,
+                    builder: (child) => Expanded(child: child),
+                    child: detail,
+                  ),
                 ],
               )
             : Column(
@@ -77,48 +130,18 @@ class DetailItem extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      disableSelectableText
-                          ? Text(
-                              title,
-                              style: STextStyles.itemSubtitle(context),
-                            )
-                          : SelectableText(
-                              title,
-                              style: STextStyles.itemSubtitle(context),
-                            ),
+                      title,
                       button ?? Container(),
                     ],
                   ),
                   const SizedBox(
                     height: 5,
                   ),
-                  detail.isEmpty && showEmptyDetail
-                      ? disableSelectableText
-                          ? Text(
-                              "$title will appear here",
-                              style: STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle3,
-                              ),
-                            )
-                          : SelectableText(
-                              "$title will appear here",
-                              style: STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle3,
-                              ),
-                            )
-                      : disableSelectableText
-                          ? Text(
-                              detail,
-                              style: detailStyle,
-                            )
-                          : SelectableText(
-                              detail,
-                              style: detailStyle,
-                            ),
+                  ConditionalParent(
+                    condition: expandDetail,
+                    builder: (child) => Expanded(child: child),
+                    child: detail,
+                  ),
                 ],
               ),
       ),

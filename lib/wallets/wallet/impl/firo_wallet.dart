@@ -22,6 +22,7 @@ import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
+import '../wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../wallet_mixin_interfaces/lelantus_interface.dart';
 import '../wallet_mixin_interfaces/spark_interface.dart';
 
@@ -30,6 +31,7 @@ const sparkStartBlock = 819300; // (approx 18 Jan 2024)
 class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     with
         ElectrumXInterface<T>,
+        ExtendedKeysInterface<T>,
         LelantusInterface<T>,
         SparkInterface<T>,
         CoinControlInterface<T> {

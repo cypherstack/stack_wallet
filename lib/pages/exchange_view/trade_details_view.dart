@@ -30,6 +30,7 @@ import '../../route_generator.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../themes/stack_colors.dart';
@@ -1329,6 +1330,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         case MajesticBankExchange.exchangeName:
                           url =
                               "https://majesticbank.sc/track?trx=${trade.tradeId}";
+                          break;
+                        case NanswapExchange.exchangeName:
+                          url =
+                              "https://nanswap.com/transaction/${trade.tradeId}";
                           break;
 
                         default:

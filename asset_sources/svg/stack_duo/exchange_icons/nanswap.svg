@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="75.209999mm"
+   height="75.209999mm"
+   viewBox="0 0 213.19692 213.2"
+   version="1.1"
+   id="svg30"
+   sodipodi:docname="nanswap2.svg"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
+  <metadata
+     id="metadata36">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>nanswap</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs34" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2635"
+     inkscape:window-height="1461"
+     id="namedview32"
+     showgrid="false"
+     inkscape:zoom="0.29390619"
+     inkscape:cx="-79.957486"
+     inkscape:cy="142.12913"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg30" />
+  <title
+     id="title2">nanswap</title>
+  <circle
+     cx="106.6"
+     cy="106.6"
+     r="106.6"
+     id="circle4"
+     style="fill:#4a90e2" />
+  <path
+     d="m 166.7,66.500006 a 20,20 0 0 1 -20,20 c -15,0 -20,5 -20,19.999994 a 20,20 0 0 1 -20,20 c -15,0 -20,5 -20,20 a 20,20 0 1 1 -20,-20 c 15,0 20,-5 20,-20 a 20,20 0 0 1 20,-19.999994 c 15,0 20,-5 20,-20 a 20,20 0 0 1 40,0 z"
+     id="path6"
+     inkscape:connector-curvature="0"
+     style="fill:#000034" />
+  <path
+     d="m 66.5,46.500006 a 20,20 0 0 1 20,20 c 0,15 5,20 20,20 A 20,20 0 0 1 126.5,106.5 c 0,15 5,20 20,20 a 20,20 0 1 1 -20,20 c 0,-15 -5,-20 -20,-20 a 20,20 0 0 1 -20,-20 c 0,-14.999994 -5,-19.999994 -20,-19.999994 a 20,20 0 0 1 0,-40 z"
+     id="path8"
+     inkscape:connector-curvature="0"
+     style="fill:#000034" />
+</svg>
