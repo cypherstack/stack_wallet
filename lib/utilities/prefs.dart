@@ -71,7 +71,7 @@ class Prefs extends ChangeNotifier {
       _useTor = await _getUseTor();
       _fusionServerInfo = await _getFusionServerInfo();
       _autoPin = await _getAutoPin();
-      _enableExchange = await _getShowExchange();
+      _enableExchange = await _getEnableExchange();
 
       _initialized = true;
     }
@@ -1151,7 +1151,7 @@ class Prefs extends ChangeNotifier {
     }
   }
 
-  Future<bool> _getShowExchange() async {
+  Future<bool> _getEnableExchange() async {
     return await DB.instance.get<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "showExchange",
