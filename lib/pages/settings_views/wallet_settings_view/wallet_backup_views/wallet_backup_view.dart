@@ -89,10 +89,10 @@ class WalletBackupView extends ConsumerWidget {
                 padding: const EdgeInsets.all(10),
                 child: CustomTextButton(
                   text: switch (keyData.runtimeType) {
-                    XPrivData() => "xpriv(s)",
-                    CWKeyData() => "keys",
-                    Type() => throw UnimplementedError(
-                        "Don't forget to add your KeyDataInterface here!",
+                    const (XPrivData) => "xpriv(s)",
+                    const (CWKeyData) => "keys",
+                    _ => throw UnimplementedError(
+                        "Don't forget to add your KeyDataInterface here! ${keyData.runtimeType}",
                       ),
                   },
                   onTap: () {
@@ -469,9 +469,9 @@ class MobileKeyDataView extends StatelessWidget {
           ),
           title: Text(
             "Wallet ${switch (keyData.runtimeType) {
-              XPrivData() => "xpriv(s)",
-              CWKeyData() => "keys",
-              Type() => throw UnimplementedError(
+              const (XPrivData) => "xpriv(s)",
+              const (CWKeyData) => "keys",
+              _ => throw UnimplementedError(
                   "Don't forget to add your KeyDataInterface here!",
                 ),
             }}",
@@ -491,15 +491,15 @@ class MobileKeyDataView extends StatelessWidget {
                       children: [
                         Expanded(
                           child: switch (keyData.runtimeType) {
-                            XPrivData() => WalletXPrivs(
+                            const (XPrivData) => WalletXPrivs(
                                 walletId: walletId,
                                 xprivData: keyData as XPrivData,
                               ),
-                            CWKeyData() => CNWalletKeys(
+                            const (CWKeyData) => CNWalletKeys(
                                 walletId: walletId,
                                 cwKeyData: keyData as CWKeyData,
                               ),
-                            Type() => throw UnimplementedError(
+                            _ => throw UnimplementedError(
                                 "Don't forget to add your KeyDataInterface here!",
                               ),
                           },
