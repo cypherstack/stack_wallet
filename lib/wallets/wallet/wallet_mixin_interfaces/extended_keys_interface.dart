@@ -73,7 +73,15 @@ mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
 
     return (
       fingerprint: fingerprint,
-      xprivs: await Future.wait(futures),
+      xprivs: [
+        (
+          path: "Master",
+          xpriv: master.encode(
+            cryptoCurrency.networkParams.privHDPrefix,
+          ),
+        ),
+        ...(await Future.wait(futures)),
+      ],
     );
   }
 }

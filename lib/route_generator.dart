@@ -2365,15 +2365,38 @@ class RouteGenerator {
               name: settings.name,
             ),
           );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
+        } else if (args is ({
+          List<String> mnemonic,
+          String walletId,
+          ({String keys, String config})? frostData,
+          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+        })) {
+          return FadePageRoute(
+            WalletKeysDesktopPopup(
+              words: args.mnemonic,
+              walletId: args.walletId,
+              frostData: args.frostData,
+              xprivData: args.xprivData,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          List<String> mnemonic,
+          String walletId,
+          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+        })) {
+          return FadePageRoute(
+            WalletKeysDesktopPopup(
+              words: args.mnemonic,
+              walletId: args.walletId,
+              xprivData: args.xprivData,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 

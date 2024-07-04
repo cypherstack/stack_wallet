@@ -22,6 +22,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -84,6 +85,7 @@ class _UnlockWalletKeysDesktopState
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
       ({String keys, String config})? frostData;
       List<String>? words;
+      ({List<XPriv> xprivs, String fingerprint})? xprivData;
 
       // TODO: [prio=low] handle wallets that don't have a mnemonic
       // All wallets currently are mnemonic based
@@ -100,6 +102,10 @@ class _UnlockWalletKeysDesktopState
         words = await wallet.getMnemonicAsWords();
       }
 
+      if (wallet is ExtendedKeysInterface) {
+        xprivData = await wallet.getXPrivs();
+      }
+
       if (mounted) {
         await Navigator.of(context).pushReplacementNamed(
           WalletKeysDesktopPopup.routeName,
@@ -107,6 +113,7 @@ class _UnlockWalletKeysDesktopState
             mnemonic: words ?? [],
             walletId: widget.walletId,
             frostData: frostData,
+            xprivData: xprivData,
           ),
         );
       }
@@ -320,6 +327,10 @@ class _UnlockWalletKeysDesktopState
 
                               ({String keys, String config})? frostData;
                               List<String>? words;
+                              ({
+                                List<XPriv> xprivs,
+                                String fingerprint
+                              })? xprivData;
 
                               final wallet =
                                   ref.read(pWallets).getWallet(widget.walletId);
@@ -339,6 +350,10 @@ class _UnlockWalletKeysDesktopState
                                 words = await wallet.getMnemonicAsWords();
                               }
 
+                              if (wallet is ExtendedKeysInterface) {
+                                xprivData = await wallet.getXPrivs();
+                              }
+
                               if (mounted) {
                                 await Navigator.of(context)
                                     .pushReplacementNamed(
@@ -347,6 +362,7 @@ class _UnlockWalletKeysDesktopState
                                     mnemonic: words ?? [],
                                     walletId: widget.walletId,
                                     frostData: frostData,
+                                    xprivData: xprivData,
                                   ),
                                 );
                               }

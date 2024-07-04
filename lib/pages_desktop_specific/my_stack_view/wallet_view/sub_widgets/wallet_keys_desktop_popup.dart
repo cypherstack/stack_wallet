@@ -16,8 +16,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_xprivs.dart';
 import '../../../../pages/wallet_view/transaction_views/transaction_details_view.dart';
-import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/assets.dart';
@@ -29,8 +29,6 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
-import '../../../../widgets/detail_item.dart';
-import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import 'qr_code_desktop_popup_content.dart';
 
@@ -41,12 +39,14 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
     required this.walletId,
     this.frostData,
     this.clipboardInterface = const ClipboardWrapper(),
+    this.xprivData,
   });
 
   final List<String> words;
   final String walletId;
   final ({String keys, String config})? frostData;
   final ClipboardInterface clipboardInterface;
+  final ({List<XPriv> xprivs, String fingerprint})? xprivData;
 
   static const String routeName = "walletKeysDesktopPopup";
 
@@ -77,7 +77,7 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
             ],
           ),
           const SizedBox(
-            height: 28,
+            height: 6,
           ),
           frostData != null
               ? Column(
@@ -176,8 +176,7 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                     ),
                   ],
                 )
-              : (ref.watch(pWallets).getWallet(walletId)
-                      is ExtendedKeysInterface)
+              : xprivData != null
                   ? CustomTabView(
                       titles: const ["Mnemonic", "XPriv(s)"],
                       children: [
@@ -187,8 +186,8 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                             words: words,
                           ),
                         ),
-                        _MasterSeedPrivateKey(
-                          words: words,
+                        WalletXPrivs(
+                          xprivData: xprivData!,
                           walletId: walletId,
                         ),
                       ],
@@ -303,94 +302,6 @@ class _Mnemonic extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _MasterSeedPrivateKey extends ConsumerStatefulWidget {
-  const _MasterSeedPrivateKey({
-    super.key,
-    required this.words,
-    required this.walletId,
-    this.clipboardInterface = const ClipboardWrapper(),
-  });
-
-  final List<String> words;
-  final String walletId;
-  final ClipboardInterface clipboardInterface;
-
-  @override
-  ConsumerState<_MasterSeedPrivateKey> createState() =>
-      _MasterSeedPrivateKeyState();
-}
-
-class _MasterSeedPrivateKeyState extends ConsumerState<_MasterSeedPrivateKey> {
-  final controller = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          const SizedBox(
-            height: 12,
-          ),
-          FutureBuilder(
-            future: (ref.read(pWallets).getWallet(widget.walletId)
-                    as ExtendedKeysInterface)
-                .getXPrivs(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DetailItem(
-                      title: "Master fingerprint",
-                      detail: snapshot.data!.fingerprint,
-                    ),
-                    ...snapshot.data!.xprivs.map(
-                      (e) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            DetailItem(
-                              title: "Derivation",
-                              detail: e.path,
-                            ),
-                            DetailItem(
-                              title: "xpriv",
-                              detail: e.xpriv,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                return const LoadingIndicator(
-                  width: 100,
-                  height: 100,
-                );
-              }
-            },
-          ),
-        ],
-      ),
     );
   }
 }

@@ -36,6 +36,7 @@ import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
+import 'wallet_xprivs.dart';
 
 class WalletBackupView extends ConsumerWidget {
   const WalletBackupView({
@@ -96,35 +97,6 @@ class WalletBackupView extends ConsumerWidget {
                     );
                   },
                 ),
-
-                // child: AspectRatio(
-                //   aspectRatio: 1,
-                //   child: AppBarIconButton(
-                //     color:
-                //         Theme.of(context).extension<StackColors>()!.background,
-                //     shadows: const [],
-                //     icon: SvgPicture.asset(
-                //       Assets.svg.copy,
-                //       width: 20,
-                //       height: 20,
-                //       color: Theme.of(context)
-                //           .extension<StackColors>()!
-                //           .topNavIconPrimary,
-                //     ),
-                //     onPressed: () async {
-                //       await clipboardInterface
-                //           .setData(ClipboardData(text: mnemonic.join(" ")));
-                //       unawaited(
-                //         showFloatingFlushBar(
-                //           type: FlushBarType.info,
-                //           message: "Copied to clipboard",
-                //           iconAsset: Assets.svg.copy,
-                //           context: context,
-                //         ),
-                //       );
-                //     },
-                //   ),
-                // ),
               ),
             if (!frost && xprivData == null)
               Padding(
@@ -146,14 +118,16 @@ class WalletBackupView extends ConsumerWidget {
                     onPressed: () async {
                       await clipboardInterface
                           .setData(ClipboardData(text: mnemonic.join(" ")));
-                      unawaited(
-                        showFloatingFlushBar(
-                          type: FlushBarType.info,
-                          message: "Copied to clipboard",
-                          iconAsset: Assets.svg.copy,
-                          context: context,
-                        ),
-                      );
+                      if (context.mounted) {
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.info,
+                            message: "Copied to clipboard",
+                            iconAsset: Assets.svg.copy,
+                            context: context,
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
@@ -173,45 +147,6 @@ class WalletBackupView extends ConsumerWidget {
                 ),
         ),
       ),
-    );
-  }
-}
-
-class _XPrivs extends StatelessWidget {
-  const _XPrivs({super.key, required this.walletId, required this.xprivData});
-
-  final String walletId;
-  final ({List<XPriv> xprivs, String fingerprint}) xprivData;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        DetailItem(
-          title: "Master fingerprint",
-          detail: xprivData.fingerprint,
-          horizontal: true,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        ...xprivData.xprivs.map(
-          (e) => Padding(
-            padding: const EdgeInsets.only(
-              bottom: 16,
-            ),
-            child: Column(
-              children: [
-                DetailItem(
-                  title: e.path,
-                  detail: e.xpriv,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -514,25 +449,46 @@ class MobileXPrivsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).extension<StackColors>()!.background,
-      appBar: AppBar(
-        leading: AppBarBackButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+    return Background(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Text(
+            "Wallet xpriv(s)",
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
-        title: Text(
-          "Wallet xpriv(s)",
-          style: STextStyles.navBarTitle(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: SingleChildScrollView(
-          child: _XPrivs(
-            walletId: walletId,
-            xprivData: xprivData,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Expanded(
+                          child: WalletXPrivs(
+                            walletId: walletId,
+                            xprivData: xprivData,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),

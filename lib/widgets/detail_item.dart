@@ -16,6 +16,8 @@ class DetailItem extends StatelessWidget {
     this.showEmptyDetail = true,
     this.horizontal = false,
     this.disableSelectableText = false,
+    this.borderColor,
+    this.expandDetail = false,
   });
 
   final String title;
@@ -25,6 +27,8 @@ class DetailItem extends StatelessWidget {
   final bool horizontal;
   final bool disableSelectableText;
   final Color? overrideDetailTextColor;
+  final Color? borderColor;
+  final bool expandDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +49,8 @@ class DetailItem extends StatelessWidget {
 
     return DetailItemBase(
       horizontal: horizontal,
+      borderColor: borderColor,
+      expandDetail: expandDetail,
       title: disableSelectableText
           ? Text(
               title,
@@ -74,22 +80,30 @@ class DetailItemBase extends StatelessWidget {
     required this.detail,
     this.button,
     this.horizontal = false,
+    this.borderColor,
+    this.expandDetail = false,
   });
 
   final Widget title;
   final Widget detail;
   final Widget? button;
   final bool horizontal;
+  final Color? borderColor;
+  final bool expandDetail;
 
   @override
   Widget build(BuildContext context) {
     return ConditionalParent(
-      condition: !Util.isDesktop,
+      condition: !Util.isDesktop || borderColor != null,
       builder: (child) => RoundedWhiteContainer(
+        padding: Util.isDesktop
+            ? const EdgeInsets.all(16)
+            : const EdgeInsets.all(12),
+        borderColor: borderColor,
         child: child,
       ),
       child: ConditionalParent(
-        condition: Util.isDesktop,
+        condition: Util.isDesktop && borderColor == null,
         builder: (child) => Padding(
           padding: const EdgeInsets.all(16),
           child: child,
@@ -99,7 +113,15 @@ class DetailItemBase extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   title,
-                  detail,
+                  if (expandDetail)
+                    const SizedBox(
+                      width: 16,
+                    ),
+                  ConditionalParent(
+                    condition: expandDetail,
+                    builder: (child) => Expanded(child: child),
+                    child: detail,
+                  ),
                 ],
               )
             : Column(
@@ -115,7 +137,11 @@ class DetailItemBase extends StatelessWidget {
                   const SizedBox(
                     height: 5,
                   ),
-                  detail,
+                  ConditionalParent(
+                    condition: expandDetail,
+                    builder: (child) => Expanded(child: child),
+                    child: detail,
+                  ),
                 ],
               ),
       ),
