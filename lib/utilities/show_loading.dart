@@ -11,9 +11,24 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
 import '../themes/stack_colors.dart';
-import 'logger.dart';
 import '../widgets/custom_loading_overlay.dart';
+import 'logger.dart';
+
+Future<T> minWaitFuture<T>(
+  Future<T> future, {
+  required Duration delay,
+}) async {
+  final results = await Future.wait(
+    [
+      future,
+      Future<dynamic>.delayed(delay),
+    ],
+  );
+
+  return results.first as T;
+}
 
 Future<T?> showLoading<T>({
   required Future<T> whileFuture,
@@ -23,6 +38,7 @@ Future<T?> showLoading<T>({
   bool rootNavigator = false,
   bool opaqueBG = false,
   void Function(Exception)? onException,
+  Duration? delay,
 }) async {
   unawaited(
     showDialog<void>(
@@ -49,7 +65,11 @@ Future<T?> showLoading<T>({
   T? result;
 
   try {
-    result = await whileFuture;
+    if (delay != null) {
+      result = await minWaitFuture(whileFuture, delay: delay);
+    } else {
+      result = await whileFuture;
+    }
   } catch (e, s) {
     Logging.instance.log(
       "showLoading caught: $e\n$s",

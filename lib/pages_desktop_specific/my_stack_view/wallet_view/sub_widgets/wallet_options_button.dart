@@ -18,15 +18,19 @@ import 'package:flutter_svg/svg.dart';
 import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
+import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
 import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
@@ -61,7 +65,7 @@ enum _WalletOptions {
   }
 }
 
-class WalletOptionsButton extends StatelessWidget {
+class WalletOptionsButton extends ConsumerWidget {
   const WalletOptionsButton({
     super.key,
     required this.walletId,
@@ -70,7 +74,7 @@ class WalletOptionsButton extends StatelessWidget {
   final String walletId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return RawMaterialButton(
       constraints: const BoxConstraints(
         minHeight: 32,
@@ -148,28 +152,40 @@ class WalletOptionsButton extends StatelessWidget {
               }
               break;
             case _WalletOptions.showXpub:
-              final result = await showDialog<bool?>(
+              final xpubData = await showLoading(
+                delay: const Duration(milliseconds: 800),
+                whileFuture: (ref.read(pWallets).getWallet(walletId)
+                        as ExtendedKeysInterface)
+                    .getXPubs(),
                 context: context,
-                barrierDismissible: false,
-                builder: (context) => Navigator(
-                  initialRoute: XPubView.routeName,
-                  onGenerateRoute: RouteGenerator.generateRoute,
-                  onGenerateInitialRoutes: (_, __) {
-                    return [
-                      RouteGenerator.generateRoute(
-                        RouteSettings(
-                          name: XPubView.routeName,
-                          arguments: walletId,
-                        ),
-                      ),
-                    ];
-                  },
-                ),
+                message: "Loading xpubs",
+                rootNavigator: Util.isDesktop,
               );
 
-              if (result == true) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
+              if (context.mounted) {
+                final result = await showDialog<bool?>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Navigator(
+                    initialRoute: XPubView.routeName,
+                    onGenerateRoute: RouteGenerator.generateRoute,
+                    onGenerateInitialRoutes: (_, __) {
+                      return [
+                        RouteGenerator.generateRoute(
+                          RouteSettings(
+                            name: XPubView.routeName,
+                            arguments: (walletId, xpubData),
+                          ),
+                        ),
+                      ];
+                    },
+                  ),
+                );
+
+                if (result == true) {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
                 }
               }
               break;
@@ -279,9 +295,8 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
 
     final firoDebug = kDebugMode && (coin is Firo);
 
-    // TODO: [prio=low]
-    // final bool xpubEnabled = manager.hasXPub;
-    final bool xpubEnabled = false;
+    final bool xpubEnabled =
+        ref.watch(pWallets).getWallet(walletId) is ExtendedKeysInterface;
 
     final bool canChangeRep = coin is NanoCurrency;
 

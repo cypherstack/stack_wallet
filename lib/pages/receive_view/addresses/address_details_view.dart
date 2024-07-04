@@ -22,6 +22,7 @@ import '../../../utilities/address_utils.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/address_private_key.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -30,6 +31,7 @@ import '../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../widgets/custom_buttons/simple_edit_button.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/detail_item.dart';
 import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/transaction_card.dart';
@@ -298,9 +300,9 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   const SizedBox(
                     height: 16,
                   ),
-                _Item(
+                DetailItem(
                   title: "Address",
-                  data: address.value,
+                  detail: address.value,
                   button: isDesktop
                       ? IconCopyButton(
                           data: address.value,
@@ -312,9 +314,9 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                 const _Div(
                   height: 12,
                 ),
-                _Item(
+                DetailItem(
                   title: "Label",
-                  data: label!.value,
+                  detail: label!.value,
                   button: SimpleEditButton(
                     editValue: label!.value,
                     editLabel: 'label',
@@ -338,9 +340,9 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     height: 12,
                   ),
                 if (address.derivationPath != null)
-                  _Item(
+                  DetailItem(
                     title: "Derivation path",
-                    data: address.derivationPath!.value,
+                    detail: address.derivationPath!.value,
                     button: Container(),
                   ),
                 if (address.type == AddressType.spark)
@@ -348,26 +350,33 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     height: 12,
                   ),
                 if (address.type == AddressType.spark)
-                  _Item(
+                  DetailItem(
                     title: "Diversifier",
-                    data: address.derivationIndex.toString(),
+                    detail: address.derivationIndex.toString(),
                     button: Container(),
                   ),
                 const _Div(
                   height: 12,
                 ),
-                _Item(
+                DetailItem(
                   title: "Type",
-                  data: address.type.readableName,
+                  detail: address.type.readableName,
                   button: Container(),
                 ),
                 const _Div(
                   height: 12,
                 ),
-                _Item(
+                DetailItem(
                   title: "Sub type",
-                  data: address.subType.prettyName,
+                  detail: address.subType.prettyName,
                   button: Container(),
+                ),
+                const _Div(
+                  height: 12,
+                ),
+                AddressPrivateKey(
+                  walletId: widget.walletId,
+                  address: address,
                 ),
                 if (!isDesktop)
                   const SizedBox(
@@ -627,67 +636,6 @@ class _Tags extends StatelessWidget {
                   ),
                 ),
         ],
-      ),
-    );
-  }
-}
-
-class _Item extends StatelessWidget {
-  const _Item({
-    super.key,
-    required this.title,
-    required this.data,
-    required this.button,
-  });
-
-  final String title;
-  final String data;
-  final Widget button;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConditionalParent(
-      condition: !Util.isDesktop,
-      builder: (child) => RoundedWhiteContainer(
-        child: child,
-      ),
-      child: ConditionalParent(
-        condition: Util.isDesktop,
-        builder: (child) => Padding(
-          padding: const EdgeInsets.all(16),
-          child: child,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: STextStyles.itemSubtitle(context),
-                ),
-                button,
-              ],
-            ),
-            const SizedBox(
-              height: 5,
-            ),
-            data.isNotEmpty
-                ? SelectableText(
-                    data,
-                    style: STextStyles.w500_14(context),
-                  )
-                : Text(
-                    "$title will appear here",
-                    style: STextStyles.w500_14(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle3,
-                    ),
-                  ),
-          ],
-        ),
       ),
     );
   }
