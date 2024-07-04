@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -1335,16 +1334,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         needsGenerate = txCount > 0 || currentReceiving.derivationIndex < 0;
       }
 
+      // TODO this in the wrong place
       // If reuseAddress is set, don't generate an address by default.
-      final WalletInfo info = mainDB.isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirstSync()!;
-      if (info.otherDataJsonString != null) {
-        final otherData = jsonDecode(info.otherDataJsonString!);
-        if (otherData[WalletInfoKeys.reuseAddress] as bool? ?? false) {
-          return;
-        }
+      if (info.otherData[WalletInfoKeys.reuseAddress] as bool? ?? false) {
+        return;
       }
 
       if (needsGenerate) {

@@ -422,7 +422,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Reuse addresses by default",
+                      "Reuse receiving address by default",
                       style: STextStyles.w600_20(context),
                     ),
                   ],
