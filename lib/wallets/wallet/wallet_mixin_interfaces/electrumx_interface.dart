@@ -1316,6 +1316,17 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> checkReceivingAddressForTransactions() async {
+    if (info.otherData[WalletInfoKeys.reuseAddress] == true) {
+      try {
+        throw Exception();
+      } catch (_, s) {
+        Logging.instance.log(
+          "checkReceivingAddressForTransactions called but reuse address flag set: $s",
+          level: LogLevel.Error,
+        );
+      }
+    }
+
     try {
       final currentReceiving = await getCurrentReceivingAddress();
 
@@ -1334,18 +1345,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         needsGenerate = txCount > 0 || currentReceiving.derivationIndex < 0;
       }
 
-      // TODO this in the wrong place
-      // If reuseAddress is set, don't generate an address by default.
-      if (info.otherData[WalletInfoKeys.reuseAddress] as bool? ?? false) {
-        return;
-      }
-
       if (needsGenerate) {
         await generateNewReceivingAddress();
 
-        // TODO: get rid of this? Could cause problems (long loading/infinite loop or something)
-        // keep checking until address with no tx history is set as current
-        await checkReceivingAddressForTransactions();
+        // TODO: [prio=low] Make sure we scan all addresses but only show one.
+        if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+          // TODO: get rid of this? Could cause problems (long loading/infinite loop or something)
+          // keep checking until address with no tx history is set as current
+          await checkReceivingAddressForTransactions();
+        }
       }
     } catch (e, s) {
       Logging.instance.log(
