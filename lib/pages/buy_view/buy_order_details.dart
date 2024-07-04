@@ -8,11 +8,15 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../models/buy/response_objects/order.dart';
+import '../../notifications/show_flush_bar.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/assets.dart';
@@ -44,6 +48,16 @@ class _BuyOrderDetailsViewState extends ConsumerState<BuyOrderDetailsView> {
 
   @override
   Widget build(BuildContext context) {
+    final orderDetails = '''
+Purchase ID: ${widget.order.paymentId}
+User ID: ${widget.order.userId}
+Quote ID: ${widget.order.quote.id}
+Quoted cost: ${widget.order.quote.youPayFiatPrice.toStringAsFixed(2)} ${widget.order.quote.fiat.ticker.toUpperCase()}
+Quoted amount: ${widget.order.quote.youReceiveCryptoAmount} ${widget.order.quote.crypto.ticker.toUpperCase()}
+Receiving ${widget.order.quote.crypto.ticker.toUpperCase()} address: ${widget.order.quote.receivingAddress}
+Provider: Simplex
+''';
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
@@ -271,6 +285,43 @@ class _BuyOrderDetailsViewState extends ConsumerState<BuyOrderDetailsView> {
                 textAlign: TextAlign.center,
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: orderDetails));
+              if (context.mounted) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.info,
+                    message: "Copied to clipboard",
+                    context: context,
+                  ),
+                );
+              }
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  Assets.svg.copy,
+                  width: 20,
+                  height: 20,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  "Copy to clipboard",
+                  style: STextStyles.desktopButtonSecondaryEnabled(
+                    context,
+                  ),
+                ),
+              ],
+            ),
           ),
           const Spacer(),
           PrimaryButton(

@@ -188,12 +188,14 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     _timeout = Duration.zero;
 
     _checkUseBiometrics();
+    _pinTextController.addListener(_onPinChanged);
     super.initState();
   }
 
   @override
   dispose() {
     // _shakeController.dispose();
+    _pinTextController.removeListener(_onPinChanged);
     super.dispose();
   }
 
@@ -208,12 +210,26 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     );
   }
 
-  final _pinTextController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
 
   late SecureStorageInterface _secureStore;
   late Biometrics biometrics;
   int pinCount = 1;
+
+  final _pinTextController = TextEditingController();
+
+  void _onPinChanged() async {
+    String enteredPin = _pinTextController.text;
+    final storedPin = await _secureStore.read(key: 'stack_pin');
+    final autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
+
+    if (enteredPin.length >= 4 && autoPin && enteredPin == storedPin) {
+      await Future<void>.delayed(
+        const Duration(milliseconds: 200),
+      );
+      unawaited(_onUnlock());
+    }
+  }
 
   Widget get _body => Background(
         child: SafeArea(

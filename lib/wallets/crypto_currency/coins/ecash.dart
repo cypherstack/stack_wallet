@@ -50,8 +50,6 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   int get maxUnusedAddressGap => 50;
-  @override
-  int get maxNumberOfIndexesToCheck => 10000000;
 
   @override
   // change this to change the number of confirms a tx needs in order to show as confirmed

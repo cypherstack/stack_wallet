@@ -18,6 +18,7 @@ import '../../../services/node_service.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
@@ -245,14 +246,15 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   @override
-  Future<bool> pingCheck() {
+  Future<bool> pingCheck() async {
+    String? health;
     try {
       _checkClient();
-      _rpcClient?.getHealth();
-      return Future.value(true);
+      health = await _rpcClient?.getHealth();
+      return health != null;
     } catch (e, s) {
       Logging.instance.log(
-        "$runtimeType Solana pingCheck failed: $e\n$s",
+        "$runtimeType Solana pingCheck failed \"health=$health\": $e\n$s",
         level: LogLevel.Error,
       );
       return Future.value(false);
@@ -453,32 +455,67 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   @override
-  Future<bool> updateUTXOs() {
+  Future<bool> updateUTXOs() async {
     // No UTXOs in Solana
-    return Future.value(false);
+    return false;
   }
 
   /// Make sure the Solana RpcClient uses Tor if it's enabled.
   ///
-  void _checkClient() async {
+  void _checkClient() {
+    final node = getCurrentNode();
+    _rpcClient = createRpcClient(
+      node.host,
+      node.port,
+      node.useSSL,
+      prefs,
+      TorService.sharedInstance,
+    );
+  }
+
+  // static helper function for building a sol rpc client
+  static RpcClient createRpcClient(
+    final String host,
+    final int port,
+    final bool useSSL,
+    final Prefs prefs,
+    final TorService torService,
+  ) {
     HttpClient? httpClient;
 
     if (prefs.useTor) {
       // Make proxied HttpClient.
-      final ({InternetAddress host, int port}) proxyInfo =
-          TorService.sharedInstance.getProxyInfo();
+      final proxyInfo = torService.getProxyInfo();
 
       final proxySettings = ProxySettings(proxyInfo.host, proxyInfo.port);
       httpClient = HttpClient();
       SocksTCPClient.assignToHttpClient(httpClient, [proxySettings]);
     }
 
-    _rpcClient = RpcClient(
-      "${getCurrentNode().host}:${getCurrentNode().port}",
+    final regex = RegExp("^(http|https)://");
+
+    String editedHost;
+    if (host.startsWith(regex)) {
+      editedHost = host.replaceFirst(regex, "");
+    } else {
+      editedHost = host;
+    }
+
+    while (editedHost.endsWith("/")) {
+      editedHost = editedHost.substring(0, editedHost.length - 1);
+    }
+
+    final uri = Uri(
+      scheme: useSSL ? "https" : "http",
+      host: editedHost,
+      port: port,
+    );
+
+    return RpcClient(
+      uri.toString(),
       timeout: const Duration(seconds: 30),
       customHeaders: {},
       httpClient: httpClient,
     );
-    return;
   }
 }

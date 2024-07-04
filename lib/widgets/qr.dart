@@ -11,17 +11,21 @@ class QR extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QrImageView(
-      data: data,
-      size: size,
-      padding: padding ?? const EdgeInsets.all(10),
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
-      // backgroundColor:
-      // Theme.of(context).extension<StackColors>()!.background,
-      // foregroundColor: Theme.of(context)
-      //     .extension<StackColors>()!
-      //     .accentColorDark,
+    return SizedBox(
+      width: size,
+      height: size,
+      child: QrImageView(
+        data: data,
+        size: size,
+        padding: padding ?? const EdgeInsets.all(10),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        // backgroundColor:
+        // Theme.of(context).extension<StackColors>()!.background,
+        // foregroundColor: Theme.of(context)
+        //     .extension<StackColors>()!
+        //     .accentColorDark,
+      ),
     );
   }
 }
