@@ -9,6 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
+
 import '../../models/exchange/response_objects/estimate.dart';
 import '../../models/exchange/response_objects/range.dart';
 import '../../models/exchange/response_objects/trade.dart';
@@ -17,6 +18,7 @@ import '../../models/isar/exchange_cache/pair.dart';
 import 'change_now/change_now_exchange.dart';
 import 'exchange_response.dart';
 import 'majestic_bank/majestic_bank_exchange.dart';
+import 'nanswap/nanswap_exchange.dart';
 import 'simpleswap/simpleswap_exchange.dart';
 import 'trocador/trocador_exchange.dart';
 
@@ -33,6 +35,8 @@ abstract class Exchange {
         return MajesticBankExchange.instance;
       case TrocadorExchange.exchangeName:
         return TrocadorExchange.instance;
+      case NanswapExchange.exchangeName:
+        return NanswapExchange.instance;
       default:
         final split = name.split(" ");
         if (split.length >= 2) {
@@ -44,6 +48,8 @@ abstract class Exchange {
   }
 
   String get name;
+
+  bool get supportsRefundAddress => true;
 
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(bool fixedRate);
 
@@ -97,6 +103,7 @@ abstract class Exchange {
   static List<Exchange> get exchangesWithTorSupport => [
         MajesticBankExchange.instance,
         TrocadorExchange.instance,
+        NanswapExchange.instance, // Maybe??
       ];
 
   /// List of exchange names which support Tor.

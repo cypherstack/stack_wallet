@@ -10,13 +10,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../step_scaffold.dart';
-import 'desktop_step_item.dart';
+
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../step_scaffold.dart';
+import 'desktop_step_item.dart';
 
 class DesktopStep3 extends ConsumerStatefulWidget {
   const DesktopStep3({
@@ -97,20 +98,22 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
                     ) ??
                     "Error",
               ),
-              Container(
-                height: 1,
-                color: Theme.of(context).extension<StackColors>()!.background,
-              ),
-              DesktopStepItem(
-                vertical: true,
-                label:
-                    "Refund ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} address",
-                value: ref.watch(
-                      desktopExchangeModelProvider
-                          .select((value) => value!.refundAddress),
-                    ) ??
-                    "Error",
-              ),
+              if (ref.watch(efExchangeProvider).supportsRefundAddress)
+                Container(
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                ),
+              if (ref.watch(efExchangeProvider).supportsRefundAddress)
+                DesktopStepItem(
+                  vertical: true,
+                  label:
+                      "Refund ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} address",
+                  value: ref.watch(
+                        desktopExchangeModelProvider
+                            .select((value) => value!.refundAddress),
+                      ) ??
+                      "Error",
+                ),
             ],
           ),
         ),

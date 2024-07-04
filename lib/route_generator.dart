@@ -198,6 +198,7 @@ import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'wallets/models/tx_data.dart';
 import 'wallets/wallet/wallet.dart';
+import 'wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
 
@@ -908,11 +909,12 @@ class RouteGenerator {
         );
 
       case XPubView.routeName:
-        if (args is String) {
+        if (args is (String, ({List<XPub> xpubs, String fingerprint}))) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => XPubView(
-              walletId: args,
+              walletId: args.$1,
+              xpubData: args.$2,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1270,6 +1272,63 @@ class RouteGenerator {
               walletId: args.walletId,
               mnemonic: args.mnemonic,
               frostWalletData: args.frostWalletData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonic,
+          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              xprivData: args.xprivData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonic,
+          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+          ({
+            String myName,
+            String config,
+            String keys,
+            ({String config, String keys})? prevGen,
+          })? frostWalletData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              frostWalletData: args.frostWalletData,
+              xprivData: args.xprivData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case MobileXPrivsView.routeName:
+        if (args is ({
+          String walletId,
+          ({List<XPriv> xprivs, String fingerprint}) xprivData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => MobileXPrivsView(
+              walletId: args.walletId,
+              xprivData: args.xprivData,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -2293,26 +2352,51 @@ class RouteGenerator {
       case WalletKeysDesktopPopup.routeName:
         if (args is ({
           List<String> mnemonic,
+          String walletId,
           ({String keys, String config})? frostData
         })) {
           return FadePageRoute(
             WalletKeysDesktopPopup(
               words: args.mnemonic,
+              walletId: args.walletId,
               frostData: args.frostData,
             ),
             RouteSettings(
               name: settings.name,
             ),
           );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
+        } else if (args is ({
+          List<String> mnemonic,
+          String walletId,
+          ({String keys, String config})? frostData,
+          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+        })) {
+          return FadePageRoute(
+            WalletKeysDesktopPopup(
+              words: args.mnemonic,
+              walletId: args.walletId,
+              frostData: args.frostData,
+              xprivData: args.xprivData,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          List<String> mnemonic,
+          String walletId,
+          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+        })) {
+          return FadePageRoute(
+            WalletKeysDesktopPopup(
+              words: args.mnemonic,
+              walletId: args.walletId,
+              xprivData: args.xprivData,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 

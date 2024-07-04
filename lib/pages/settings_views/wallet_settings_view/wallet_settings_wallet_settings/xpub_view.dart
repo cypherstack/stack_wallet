@@ -13,80 +13,45 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../../../notifications/show_flush_bar.dart';
-import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/wallet/wallet.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_tab_view.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
-import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
-class XPubView extends ConsumerStatefulWidget {
+class XPubView extends ConsumerWidget {
   const XPubView({
     super.key,
     required this.walletId,
+    required this.xpubData,
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
   final String walletId;
   final ClipboardInterface clipboardInterface;
+  final ({List<XPub> xpubs, String fingerprint}) xpubData;
 
   static const String routeName = "/xpub";
 
   @override
-  ConsumerState<XPubView> createState() => _XPubViewState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool isDesktop = Util.isDesktop;
 
-class _XPubViewState extends ConsumerState<XPubView> {
-  final bool isDesktop = Util.isDesktop;
-
-  late ClipboardInterface _clipboardInterface;
-  late final Wallet wallet;
-
-  String? xpub;
-
-  @override
-  void initState() {
-    _clipboardInterface = widget.clipboardInterface;
-    wallet = ref.read(pWallets).getWallet(widget.walletId);
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  Future<void> _copy() async {
-    await _clipboardInterface.setData(ClipboardData(text: xpub!));
-    if (mounted) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.info,
-          message: "Copied to clipboard",
-          iconAsset: Assets.svg.copy,
-          context: context,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -100,35 +65,9 @@ class _XPubViewState extends ConsumerState<XPubView> {
               },
             ),
             title: Text(
-              "Wallet xPub",
+              "Wallet xpub(s)",
               style: STextStyles.navBarTitle(context),
             ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    shadows: const [],
-                    icon: SvgPicture.asset(
-                      Assets.svg.copy,
-                      width: 24,
-                      height: 24,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
-                    ),
-                    onPressed: () {
-                      if (xpub != null) {
-                        _copy();
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ],
           ),
           body: Padding(
             padding: const EdgeInsets.only(
@@ -136,7 +75,7 @@ class _XPubViewState extends ConsumerState<XPubView> {
               left: 16,
               right: 16,
             ),
-            child: child,
+            child: SingleChildScrollView(child: child),
           ),
         ),
       ),
@@ -146,6 +85,7 @@ class _XPubViewState extends ConsumerState<XPubView> {
           maxWidth: 600,
           maxHeight: double.infinity,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -155,7 +95,7 @@ class _XPubViewState extends ConsumerState<XPubView> {
                       left: 32,
                     ),
                     child: Text(
-                      "${wallet.info.name} xPub",
+                      "${ref.watch(pWalletName(walletId))} xpub(s)",
                       style: STextStyles.desktopH2(context),
                     ),
                   ),
@@ -167,62 +107,40 @@ class _XPubViewState extends ConsumerState<XPubView> {
                   ),
                 ],
               ),
-              AnimatedSize(
-                duration: const Duration(
-                  milliseconds: 150,
-                ),
+              Flexible(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                  child: child,
+                  child: SingleChildScrollView(
+                    child: child,
+                  ),
                 ),
               ),
             ],
           ),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (isDesktop) const SizedBox(height: 44),
-            ConditionalParent(
-              condition: !isDesktop,
-              builder: (child) => Expanded(
-                child: child,
-              ),
-              child: FutureBuilder(
-                future: Future(() => "fixme"),
-                // future: wallet.xpub,
-                builder: (context, AsyncSnapshot<String> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      snapshot.hasData) {
-                    xpub = snapshot.data!;
-                  }
-
-                  const height = 600.0;
-                  Widget child;
-                  if (xpub == null) {
-                    child = const SizedBox(
-                      key: Key("loadingXPUB"),
-                      height: height,
-                      child: Center(
-                        child: LoadingIndicator(
-                          width: 100,
-                        ),
+            if (isDesktop) const SizedBox(height: 16),
+            DetailItem(
+              title: "Master fingerprint",
+              detail: xpubData.fingerprint,
+              horizontal: true,
+            ),
+            if (isDesktop) const SizedBox(height: 16),
+            CustomTabView(
+              titles: xpubData.xpubs.map((e) => e.path).toList(),
+              children: xpubData.xpubs
+                  .map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _XPub(
+                        xpub: e.xpub,
+                        derivation: e.path,
                       ),
-                    );
-                  } else {
-                    child = _XPub(
-                      xpub: xpub!,
-                      height: height,
-                    );
-                  }
-
-                  return AnimatedSwitcher(
-                    duration: const Duration(
-                      milliseconds: 200,
                     ),
-                    child: child,
-                  );
-                },
-              ),
+                  )
+                  .toList(),
             ),
           ],
         ),
@@ -235,85 +153,86 @@ class _XPub extends StatelessWidget {
   const _XPub({
     super.key,
     required this.xpub,
-    required this.height,
+    required this.derivation,
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
   final String xpub;
-  final double height;
+  final String derivation;
+
   final ClipboardInterface clipboardInterface;
 
   @override
   Widget build(BuildContext context) {
     final bool isDesktop = Util.isDesktop;
 
-    return SizedBox(
-      height: isDesktop ? height : double.infinity,
-      child: Column(
-        children: [
-          ConditionalParent(
-            condition: !isDesktop,
-            builder: (child) => RoundedWhiteContainer(
-              child: child,
-            ),
-            child: QR(
-              data: xpub,
-              size: isDesktop ? 280 : MediaQuery.of(context).size.width / 1.5,
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(
+          height: 25,
+        ),
+        ConditionalParent(
+          condition: !isDesktop,
+          builder: (child) => RoundedWhiteContainer(
+            child: child,
           ),
-          const SizedBox(height: 25),
-          RoundedWhiteContainer(
-            padding: const EdgeInsets.all(16),
-            borderColor:
-                Theme.of(context).extension<StackColors>()!.backgroundAppBar,
-            child: SelectableText(
-              xpub,
-              style: STextStyles.largeMedium14(context),
-            ),
+          child: QR(
+            data: xpub,
+            size: isDesktop ? 280 : MediaQuery.of(context).size.width / 1.5,
           ),
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              if (isDesktop)
-                Expanded(
-                  child: SecondaryButton(
-                    buttonHeight: ButtonHeight.xl,
-                    label: "Cancel",
-                    onPressed: Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop,
-                  ),
-                ),
-              if (isDesktop) const SizedBox(width: 16),
+        ),
+        const SizedBox(height: 25),
+        RoundedWhiteContainer(
+          padding: const EdgeInsets.all(16),
+          borderColor:
+              Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+          child: SelectableText(
+            xpub,
+            style: STextStyles.largeMedium14(context),
+          ),
+        ),
+        const SizedBox(height: 32),
+        Row(
+          children: [
+            if (isDesktop)
               Expanded(
-                child: PrimaryButton(
+                child: SecondaryButton(
                   buttonHeight: ButtonHeight.xl,
-                  label: "Copy",
-                  onPressed: () async {
-                    await clipboardInterface.setData(
-                      ClipboardData(
-                        text: xpub,
-                      ),
-                    );
-                    if (context.mounted) {
-                      unawaited(
-                        showFloatingFlushBar(
-                          type: FlushBarType.info,
-                          message: "Copied to clipboard",
-                          iconAsset: Assets.svg.copy,
-                          context: context,
-                        ),
-                      );
-                    }
-                  },
+                  label: "Cancel",
+                  onPressed: Navigator.of(
+                    context,
+                    rootNavigator: true,
+                  ).pop,
                 ),
               ),
-            ],
-          ),
-          if (!isDesktop) const Spacer(),
-        ],
-      ),
+            if (isDesktop) const SizedBox(width: 16),
+            Expanded(
+              child: PrimaryButton(
+                buttonHeight: ButtonHeight.xl,
+                label: "Copy",
+                onPressed: () async {
+                  await clipboardInterface.setData(
+                    ClipboardData(
+                      text: xpub,
+                    ),
+                  );
+                  if (context.mounted) {
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.info,
+                        message: "Copied to clipboard",
+                        iconAsset: Assets.svg.copy,
+                        context: context,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

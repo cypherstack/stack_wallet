@@ -18,7 +18,6 @@ import '../../../models/exchange/response_objects/trade.dart';
 import '../../../providers/global/trades_service_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../services/exchange/exchange_response.dart';
-import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
 import '../../../services/notifications_api.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -63,8 +62,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
   @override
   Widget build(BuildContext context) {
-    final supportsRefund =
-        ref.watch(efExchangeProvider).name != MajesticBankExchange.exchangeName;
+    final supportsRefund = ref.watch(efExchangeProvider).supportsRefundAddress;
 
     return Background(
       child: Scaffold(

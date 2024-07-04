@@ -70,6 +70,7 @@ class Prefs extends ChangeNotifier {
       await _setMaxDecimals();
       _useTor = await _getUseTor();
       _fusionServerInfo = await _getFusionServerInfo();
+      _autoPin = await _getAutoPin();
 
       _initialized = true;
     }

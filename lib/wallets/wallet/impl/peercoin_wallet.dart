@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -11,10 +12,14 @@ import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
+import '../wallet_mixin_interfaces/extended_keys_interface.dart';
 
 class PeercoinWallet<T extends ElectrumXCurrencyInterface>
     extends Bip39HDWallet<T>
-    with ElectrumXInterface<T>, CoinControlInterface<T> {
+    with
+        ElectrumXInterface<T>,
+        ExtendedKeysInterface<T>,
+        CoinControlInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 

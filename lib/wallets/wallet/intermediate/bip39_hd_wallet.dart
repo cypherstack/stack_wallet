@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar/isar.dart';
@@ -6,6 +8,7 @@ import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/extensions/extensions.dart';
 import '../../crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../wallet_mixin_interfaces/multi_address_interface.dart';
 import 'bip39_wallet.dart';
@@ -26,6 +29,22 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       passphrase: await getMnemonicPassphrase(),
     );
     return coinlib.HDPrivateKey.fromSeed(seed);
+  }
+
+  Future<String> getPrivateKeyWIF(Address address) async {
+    final keys =
+        (await getRootHDNode()).derivePath(address.derivationPath!.value);
+
+    final List<int> data = [
+      cryptoCurrency.networkParams.wifPrefix,
+      ...keys.privateKey.data,
+      if (keys.privateKey.compressed) 1,
+    ];
+    final checksum =
+        coinlib.sha256DoubleHash(Uint8List.fromList(data)).sublist(0, 4);
+    data.addAll(checksum);
+
+    return Uint8List.fromList(data).toBase58Encoded;
   }
 
   Future<Address> generateNextReceivingAddress({

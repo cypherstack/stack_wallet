@@ -11,6 +11,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -264,7 +265,12 @@ class _FiroRescanRecoveryErrorViewState
                         if (wallet is MnemonicInterface) {
                           final mnemonic = await wallet.getMnemonicAsWords();
 
-                          if (mounted) {
+                          ({List<XPriv> xprivs, String fingerprint})? xprivData;
+                          if (wallet is ExtendedKeysInterface) {
+                            xprivData = await wallet.getXPrivs();
+                          }
+
+                          if (context.mounted) {
                             await Navigator.push(
                               context,
                               RouteGenerator.getRoute(
@@ -274,6 +280,7 @@ class _FiroRescanRecoveryErrorViewState
                                   routeOnSuccessArguments: (
                                     walletId: widget.walletId,
                                     mnemonic: mnemonic,
+                                    xprivData: xprivData,
                                   ),
                                   showBackButton: true,
                                   routeOnSuccess: WalletBackupView.routeName,
