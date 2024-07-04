@@ -56,8 +56,6 @@ class DesktopReceive extends ConsumerStatefulWidget {
     this.clipboard = const ClipboardWrapper(),
   });
 
-  static const String routeName = "/desktopReceive";
-
   final String walletId;
   final String? contractAddress;
   final ClipboardInterface clipboard;
@@ -72,10 +70,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late final ClipboardInterface clipboard;
   late final bool supportsSpark;
   late final bool showMultiType;
-
-  String? _sparkAddress;
-  String? _qrcodeContent;
-  bool _showSparkAddress = true;
 
   int _currentIndex = 0;
 
@@ -108,8 +102,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         ),
       );
 
-      await wallet.generateNewReceivingAddress();
-
       final Address? address;
       if (wallet is Bip39HDWallet && wallet is! BCashInterface) {
         final type = DerivePathType.values.firstWhere(
@@ -129,8 +121,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       shouldPop = true;
 
       if (mounted) {
-        Navigator.of(context)
-            .popUntil(ModalRoute.withName(DesktopReceive.routeName));
+        Navigator.of(context, rootNavigator: true).pop();
 
         setState(() {
           _addressMap[_walletAddressTypes[_currentIndex]] =
@@ -174,11 +165,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
-        if (_sparkAddress != address.value) {
-          setState(() {
-            _sparkAddress = address.value;
-          });
-        }
+        setState(() {
+          _addressMap[AddressType.spark] = address.value;
+        });
       }
     }
   }
@@ -242,29 +231,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       }
     }
 
-    if (supportsSpark) {
-      _streamSub = ref
-          .read(mainDBProvider)
-          .isar
-          .addresses
-          .where()
-          .walletIdEqualTo(walletId)
-          .filter()
-          .typeEqualTo(AddressType.spark)
-          .sortByDerivationIndexDesc()
-          .findFirst()
-          .asStream()
-          .listen((event) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {
-              _sparkAddress = event?.value;
-            });
-          }
-        });
-      });
-    }
-
     super.initState();
   }
 
@@ -283,16 +249,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       address = _addressMap[_walletAddressTypes[_currentIndex]]!;
     } else {
       address = ref.watch(pWalletReceivingAddress(walletId));
-    }
-
-    if (supportsSpark) {
-      if (_showSparkAddress) {
-        _qrcodeContent = _sparkAddress;
-      } else {
-        _qrcodeContent = ref.watch(pWalletReceivingAddress(walletId));
-      }
-    } else {
-      _qrcodeContent = ref.watch(pWalletReceivingAddress(walletId));
     }
 
     return Column(
@@ -373,95 +329,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               const SizedBox(
                 height: 12,
               ),
-              if (_showSparkAddress)
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      clipboard.setData(
-                        ClipboardData(text: address),
-                      );
-                      showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "Copied to clipboard",
-                        iconAsset: Assets.svg.copy,
-                        context: context,
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .backgroundAppBar,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      child: RoundedWhiteContainer(
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "Your ${widget.contractAddress == null ? coin.ticker : ref.watch(
-                                      pCurrentTokenWallet.select(
-                                        (value) => value!.tokenContract.symbol,
-                                      ),
-                                    )}${supportsSpark ? " SPARK" : ""} address",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                const Spacer(),
-                                Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      Assets.svg.copy,
-                                      width: 15,
-                                      height: 15,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .infoItemIcons,
-                                    ),
-                                    const SizedBox(
-                                      width: 4,
-                                    ),
-                                    Text(
-                                      "Copy",
-                                      style: STextStyles.link2(context),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    address,
-                                    style:
-                                        STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    ).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              if (!_showSparkAddress) child,
+              child,
             ],
           ),
           child: MouseRegion(
@@ -534,7 +402,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                         children: [
                           Expanded(
                             child: Text(
-                              ref.watch(pWalletReceivingAddress(walletId)),
+                              address,
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ).copyWith(
@@ -566,7 +434,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             supportsSpark)
           SecondaryButton(
             buttonHeight: ButtonHeight.l,
-            onPressed: supportsSpark && _showSparkAddress
+            onPressed: supportsSpark &&
+                    _walletAddressTypes[_currentIndex] == AddressType.spark
                 ? generateNewSparkAddress
                 : generateNewAddress,
             label: "Generate new address",
@@ -578,7 +447,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           child: QR(
             data: AddressUtils.buildUriString(
               coin,
-              _qrcodeContent ?? "",
+              address,
               {},
             ),
             size: 200,
@@ -617,7 +486,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                             RouteGenerator.generateRoute(
                               RouteSettings(
                                 name: GenerateUriQrCodeView.routeName,
-                                arguments: Tuple2(coin, _qrcodeContent ?? ""),
+                                arguments: Tuple2(coin, address),
                               ),
                             ),
                           ],
@@ -634,7 +503,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
                     builder: (_) => GenerateUriQrCodeView(
                       coin: coin,
-                      receivingAddress: _qrcodeContent ?? "",
+                      receivingAddress: address,
                     ),
                     settings: const RouteSettings(
                       name: GenerateUriQrCodeView.routeName,
