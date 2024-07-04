@@ -22,6 +22,7 @@ import 'models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'models/isar/models/contact_entry.dart';
 import 'models/isar/models/isar_models.dart';
 import 'models/isar/ordinal.dart';
+import 'models/keys/key_data_interface.dart';
 import 'models/paynym/paynym_account_lite.dart';
 import 'models/send_view_auto_fill_data.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
@@ -1280,14 +1281,14 @@ class RouteGenerator {
         } else if (args is ({
           String walletId,
           List<String> mnemonic,
-          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+          KeyDataInterface? keyData,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => WalletBackupView(
               walletId: args.walletId,
               mnemonic: args.mnemonic,
-              xprivData: args.xprivData,
+              keyData: args.keyData,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1296,7 +1297,7 @@ class RouteGenerator {
         } else if (args is ({
           String walletId,
           List<String> mnemonic,
-          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+          KeyDataInterface? keyData,
           ({
             String myName,
             String config,
@@ -1310,7 +1311,7 @@ class RouteGenerator {
               walletId: args.walletId,
               mnemonic: args.mnemonic,
               frostWalletData: args.frostWalletData,
-              xprivData: args.xprivData,
+              keyData: args.keyData,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1319,16 +1320,16 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case MobileXPrivsView.routeName:
+      case MobileKeyDataView.routeName:
         if (args is ({
           String walletId,
-          ({List<XPriv> xprivs, String fingerprint}) xprivData,
+          KeyDataInterface keyData,
         })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => MobileXPrivsView(
+            builder: (_) => MobileKeyDataView(
               walletId: args.walletId,
-              xprivData: args.xprivData,
+              keyData: args.keyData,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -2369,14 +2370,14 @@ class RouteGenerator {
           List<String> mnemonic,
           String walletId,
           ({String keys, String config})? frostData,
-          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+          KeyDataInterface? keyData,
         })) {
           return FadePageRoute(
             WalletKeysDesktopPopup(
               words: args.mnemonic,
               walletId: args.walletId,
               frostData: args.frostData,
-              xprivData: args.xprivData,
+              keyData: args.keyData,
             ),
             RouteSettings(
               name: settings.name,
@@ -2385,13 +2386,13 @@ class RouteGenerator {
         } else if (args is ({
           List<String> mnemonic,
           String walletId,
-          ({List<XPriv> xprivs, String fingerprint})? xprivData,
+          KeyDataInterface? keyData,
         })) {
           return FadePageRoute(
             WalletKeysDesktopPopup(
               words: args.mnemonic,
               walletId: args.walletId,
-              xprivData: args.xprivData,
+              keyData: args.keyData,
             ),
             RouteSettings(
               name: settings.name,
