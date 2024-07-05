@@ -25,6 +25,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../isar/models/wallet_info.dart';
 import '../intermediate/cryptonote_wallet.dart';
 import 'multi_address_interface.dart';
 
@@ -286,7 +287,9 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
     await updateTransactions();
     await updateBalance();
 
-    await checkReceivingAddressForTransactions();
+    if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+      await checkReceivingAddressForTransactions();
+    }
 
     if (cwWalletBase?.syncStatus is SyncedSyncStatus) {
       refreshMutex.release();
@@ -342,6 +345,17 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   @override
   Future<void> checkReceivingAddressForTransactions() async {
+    if (info.otherData[WalletInfoKeys.reuseAddress] == true) {
+      try {
+        throw Exception();
+      } catch (_, s) {
+        Logging.instance.log(
+          "checkReceivingAddressForTransactions called but reuse address flag set: $s",
+          level: LogLevel.Error,
+        );
+      }
+    }
+
     try {
       int highestIndex = -1;
       final entries = cwWalletBase?.transactionHistory?.transactions?.entries;
@@ -380,8 +394,10 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
           // we need to update the address
           await mainDB.updateAddress(existing, newReceivingAddress);
         }
-        // keep checking until address with no tx history is set as current
-        await checkReceivingAddressForTransactions();
+        if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+          // keep checking until address with no tx history is set as current
+          await checkReceivingAddressForTransactions();
+        }
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(
