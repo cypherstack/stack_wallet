@@ -277,22 +277,6 @@ class _Mnemonic extends StatelessWidget {
             children: [
               Expanded(
                 child: SecondaryButton(
-                  label: "Show QR code",
-                  onPressed: () {
-                    // TODO: address utils
-                    final String value = AddressUtils.encodeQRSeedData(words);
-                    Navigator.of(context).pushNamed(
-                      QRCodeDesktopPopupContent.routeName,
-                      arguments: value,
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(
-                width: 16,
-              ),
-              Expanded(
-                child: PrimaryButton(
                   label: "Copy",
                   onPressed: () async {
                     await clipboardInterface.setData(
@@ -308,6 +292,22 @@ class _Mnemonic extends StatelessWidget {
                         ),
                       );
                     }
+                  },
+                ),
+              ),
+              const SizedBox(
+                width: 16,
+              ),
+              Expanded(
+                child: PrimaryButton(
+                  label: "Show QR code",
+                  onPressed: () {
+                    // TODO: address utils
+                    final String value = AddressUtils.encodeQRSeedData(words);
+                    Navigator.of(context).pushNamed(
+                      QRCodeDesktopPopupContent.routeName,
+                      arguments: value,
+                    );
                   },
                 ),
               ),

@@ -13,7 +13,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../app_config.dart';
 import '../../../../models/keys/cw_key_data.dart';
@@ -32,6 +31,8 @@ import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -47,7 +48,6 @@ class WalletBackupView extends ConsumerWidget {
     required this.walletId,
     required this.mnemonic,
     this.frostWalletData,
-    this.clipboardInterface = const ClipboardWrapper(),
     this.keyData,
   });
 
@@ -61,7 +61,6 @@ class WalletBackupView extends ConsumerWidget {
     String keys,
     ({String config, String keys})? prevGen,
   })? frostWalletData;
-  final ClipboardInterface clipboardInterface;
   final KeyDataInterface? keyData;
 
   @override
@@ -107,40 +106,6 @@ class WalletBackupView extends ConsumerWidget {
                   },
                 ),
               ),
-            if (!frost && keyData == null)
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    shadows: const [],
-                    icon: SvgPicture.asset(
-                      Assets.svg.copy,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
-                    ),
-                    onPressed: () async {
-                      await clipboardInterface
-                          .setData(ClipboardData(text: mnemonic.join(" ")));
-                      if (context.mounted) {
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.info,
-                            message: "Copied to clipboard",
-                            iconAsset: Assets.svg.copy,
-                            context: context,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ),
           ],
         ),
         body: Padding(
@@ -161,19 +126,22 @@ class WalletBackupView extends ConsumerWidget {
 }
 
 class _Mnemonic extends ConsumerWidget {
-  const _Mnemonic({super.key, required this.walletId, required this.mnemonic});
+  const _Mnemonic({
+    super.key,
+    required this.walletId,
+    required this.mnemonic,
+    this.clipboardInterface = const ClipboardWrapper(),
+  });
 
   final String walletId;
   final List<String> mnemonic;
+  final ClipboardInterface clipboardInterface;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(
-          height: 4,
-        ),
         Text(
           ref.watch(pWalletName(walletId)),
           textAlign: TextAlign.center,
@@ -221,10 +189,28 @@ class _Mnemonic extends ConsumerWidget {
         const SizedBox(
           height: 12,
         ),
-        TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getPrimaryEnabledButtonStyle(context),
+        SecondaryButton(
+          label: "Copy",
+          onPressed: () async {
+            await clipboardInterface
+                .setData(ClipboardData(text: mnemonic.join(" ")));
+            if (context.mounted) {
+              unawaited(
+                showFloatingFlushBar(
+                  type: FlushBarType.info,
+                  message: "Copied to clipboard",
+                  iconAsset: Assets.svg.copy,
+                  context: context,
+                ),
+              );
+            }
+          },
+        ),
+        const SizedBox(
+          height: 12,
+        ),
+        PrimaryButton(
+          label: "Show QR Code",
           onPressed: () {
             final String data = AddressUtils.encodeQRSeedData(mnemonic);
 
@@ -293,10 +279,6 @@ class _Mnemonic extends ConsumerWidget {
               },
             );
           },
-          child: Text(
-            "Show QR Code",
-            style: STextStyles.button(context),
-          ),
         ),
       ],
     );
@@ -309,8 +291,6 @@ class _FrostKeys extends StatelessWidget {
     required this.walletId,
     this.frostWalletData,
   });
-
-  static const String routeName = "/walletBackup";
 
   final String walletId;
   final ({
