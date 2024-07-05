@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock/wakelock.dart';
 
 import '../../pages_desktop_specific/cashfusion/sub_widgets/fusion_progress.dart';
 import '../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
@@ -84,6 +85,8 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
         message: "Stopping fusion",
       );
 
+      await Wakelock.disable();
+
       return true;
     } else {
       return false;
@@ -97,6 +100,12 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
   }
 
   @override
+  void dispose() {
+    Wakelock.disable();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final bool _succeeded =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).succeeded;
@@ -107,6 +116,8 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     final int _fusionRoundsCompleted = ref
         .watch(fusionProgressUIStateProvider(widget.walletId))
         .fusionRoundsCompleted;
+
+    Wakelock.enable();
 
     return WillPopScope(
       onWillPop: () async {
