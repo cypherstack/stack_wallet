@@ -24,6 +24,10 @@ import 'desktop_menu.dart';
 
 class DMIController {
   VoidCallback? toggle;
+  final bool isMinimized;
+
+  DMIController({required this.isMinimized});
+
   void dispose() {
     toggle = null;
   }
@@ -287,11 +291,17 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
     labelLength = widget.labelLength;
     controller = widget.controller;
 
+    _iconOnly = controller?.isMinimized ?? false;
     controller?.toggle = toggle;
     animationController = AnimationController(
       vsync: this,
       duration: duration,
-    )..forward();
+    );
+    if (_iconOnly) {
+      animationController.reverse();
+    } else {
+      animationController.forward();
+    }
 
     super.initState();
   }

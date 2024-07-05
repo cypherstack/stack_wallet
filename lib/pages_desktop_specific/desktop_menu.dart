@@ -61,6 +61,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   late final DMIController torButtonController;
 
   double _width = expandedWidth;
+  bool _isMinimized = false;
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
@@ -81,24 +82,25 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
     setState(() {
       _width = expanded ? minimizedWidth : expandedWidth;
+      _isMinimized = !_isMinimized;
     });
   }
 
   @override
   void initState() {
     controllers = [
-      DMIController(),
-      DMIController(),
-      DMIController(),
-      DMIController(),
-      DMIController(),
-      DMIController(),
-      DMIController(),
-      DMIController(),
-      DMIController(),
+      DMIController(isMinimized: _isMinimized),
+      DMIController(isMinimized: _isMinimized),
+      DMIController(isMinimized: _isMinimized),
+      DMIController(isMinimized: _isMinimized),
+      DMIController(isMinimized: _isMinimized),
+      DMIController(isMinimized: _isMinimized),
+      DMIController(isMinimized: _isMinimized),
+      DMIController(isMinimized: _isMinimized),
+      DMIController(isMinimized: _isMinimized),
     ];
 
-    torButtonController = DMIController();
+    torButtonController = DMIController(isMinimized: _isMinimized);
 
     super.initState();
   }
