@@ -175,7 +175,7 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
           PrimaryButton(
             label: "Generate transaction",
             enabled: _userVerifyContinue &&
-                !fieldIsEmptyFlags.reduce((v, e) => v |= e),
+                !fieldIsEmptyFlags.fold(false, (v, e) => v |= e),
             onPressed: () async {
               // collect Share strings
               final sharesCollected = controllers.map((e) => e.text).toList();
