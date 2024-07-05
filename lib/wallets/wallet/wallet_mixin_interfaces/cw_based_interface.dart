@@ -14,6 +14,7 @@ import 'package:mutex/mutex.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/keys/cw_key_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -24,6 +25,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../isar/models/wallet_info.dart';
 import '../intermediate/cryptonote_wallet.dart';
 import 'multi_address_interface.dart';
 
@@ -195,6 +197,8 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   Address addressFor({required int index, int account = 0});
 
+  Future<CWKeyData?> getKeys();
+
   // ============ Private ======================================================
   Future<void> _refreshTxDataHelper() async {
     if (_txRefreshLock) return;
@@ -283,7 +287,9 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
     await updateTransactions();
     await updateBalance();
 
-    await checkReceivingAddressForTransactions();
+    if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+      await checkReceivingAddressForTransactions();
+    }
 
     if (cwWalletBase?.syncStatus is SyncedSyncStatus) {
       refreshMutex.release();
@@ -339,6 +345,17 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   @override
   Future<void> checkReceivingAddressForTransactions() async {
+    if (info.otherData[WalletInfoKeys.reuseAddress] == true) {
+      try {
+        throw Exception();
+      } catch (_, s) {
+        Logging.instance.log(
+          "checkReceivingAddressForTransactions called but reuse address flag set: $s",
+          level: LogLevel.Error,
+        );
+      }
+    }
+
     try {
       int highestIndex = -1;
       final entries = cwWalletBase?.transactionHistory?.transactions?.entries;
@@ -377,8 +394,10 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
           // we need to update the address
           await mainDB.updateAddress(existing, newReceivingAddress);
         }
-        // keep checking until address with no tx history is set as current
-        await checkReceivingAddressForTransactions();
+        if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+          // keep checking until address with no tx history is set as current
+          await checkReceivingAddressForTransactions();
+        }
       }
     } on SocketException catch (se, s) {
       Logging.instance.log(

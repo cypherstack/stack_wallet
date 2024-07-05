@@ -13,9 +13,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../models/keys/cw_key_data.dart';
+import '../../../../models/keys/key_data_interface.dart';
+import '../../../../models/keys/xpriv_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
@@ -25,17 +27,19 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
+import 'cn_wallet_keys.dart';
 import 'wallet_xprivs.dart';
 
 class WalletBackupView extends ConsumerWidget {
@@ -44,8 +48,7 @@ class WalletBackupView extends ConsumerWidget {
     required this.walletId,
     required this.mnemonic,
     this.frostWalletData,
-    this.clipboardInterface = const ClipboardWrapper(),
-    this.xprivData,
+    this.keyData,
   });
 
   static const String routeName = "/walletBackup";
@@ -58,8 +61,7 @@ class WalletBackupView extends ConsumerWidget {
     String keys,
     ({String config, String keys})? prevGen,
   })? frostWalletData;
-  final ClipboardInterface clipboardInterface;
-  final ({List<XPriv> xprivs, String fingerprint})? xprivData;
+  final KeyDataInterface? keyData;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -81,55 +83,27 @@ class WalletBackupView extends ConsumerWidget {
             style: STextStyles.navBarTitle(context),
           ),
           actions: [
-            if (xprivData != null)
+            if (keyData != null)
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: CustomTextButton(
-                  text: "xpriv(s)",
+                  text: switch (keyData.runtimeType) {
+                    const (XPrivData) => "xpriv(s)",
+                    const (CWKeyData) => "keys",
+                    _ => throw UnimplementedError(
+                        "Don't forget to add your KeyDataInterface here! ${keyData.runtimeType}",
+                      ),
+                  },
                   onTap: () {
                     Navigator.pushNamed(
                       context,
-                      MobileXPrivsView.routeName,
+                      MobileKeyDataView.routeName,
                       arguments: (
                         walletId: walletId,
-                        xprivData: xprivData!,
+                        keyData: keyData!,
                       ),
                     );
                   },
-                ),
-              ),
-            if (!frost && xprivData == null)
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    shadows: const [],
-                    icon: SvgPicture.asset(
-                      Assets.svg.copy,
-                      width: 20,
-                      height: 20,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
-                    ),
-                    onPressed: () async {
-                      await clipboardInterface
-                          .setData(ClipboardData(text: mnemonic.join(" ")));
-                      if (context.mounted) {
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.info,
-                            message: "Copied to clipboard",
-                            iconAsset: Assets.svg.copy,
-                            context: context,
-                          ),
-                        );
-                      }
-                    },
-                  ),
                 ),
               ),
           ],
@@ -152,19 +126,22 @@ class WalletBackupView extends ConsumerWidget {
 }
 
 class _Mnemonic extends ConsumerWidget {
-  const _Mnemonic({super.key, required this.walletId, required this.mnemonic});
+  const _Mnemonic({
+    super.key,
+    required this.walletId,
+    required this.mnemonic,
+    this.clipboardInterface = const ClipboardWrapper(),
+  });
 
   final String walletId;
   final List<String> mnemonic;
+  final ClipboardInterface clipboardInterface;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(
-          height: 4,
-        ),
         Text(
           ref.watch(pWalletName(walletId)),
           textAlign: TextAlign.center,
@@ -212,10 +189,28 @@ class _Mnemonic extends ConsumerWidget {
         const SizedBox(
           height: 12,
         ),
-        TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getPrimaryEnabledButtonStyle(context),
+        SecondaryButton(
+          label: "Copy",
+          onPressed: () async {
+            await clipboardInterface
+                .setData(ClipboardData(text: mnemonic.join(" ")));
+            if (context.mounted) {
+              unawaited(
+                showFloatingFlushBar(
+                  type: FlushBarType.info,
+                  message: "Copied to clipboard",
+                  iconAsset: Assets.svg.copy,
+                  context: context,
+                ),
+              );
+            }
+          },
+        ),
+        const SizedBox(
+          height: 12,
+        ),
+        PrimaryButton(
+          label: "Show QR Code",
           onPressed: () {
             final String data = AddressUtils.encodeQRSeedData(mnemonic);
 
@@ -284,10 +279,6 @@ class _Mnemonic extends ConsumerWidget {
               },
             );
           },
-          child: Text(
-            "Show QR Code",
-            style: STextStyles.button(context),
-          ),
         ),
       ],
     );
@@ -300,8 +291,6 @@ class _FrostKeys extends StatelessWidget {
     required this.walletId,
     this.frostWalletData,
   });
-
-  static const String routeName = "/walletBackup";
 
   final String walletId;
   final ({
@@ -433,19 +422,19 @@ class _FrostKeys extends StatelessWidget {
   }
 }
 
-class MobileXPrivsView extends StatelessWidget {
-  const MobileXPrivsView({
+class MobileKeyDataView extends StatelessWidget {
+  const MobileKeyDataView({
     super.key,
     required this.walletId,
     this.clipboardInterface = const ClipboardWrapper(),
-    required this.xprivData,
+    required this.keyData,
   });
 
   static const String routeName = "/mobileXPrivView";
 
   final String walletId;
   final ClipboardInterface clipboardInterface;
-  final ({List<XPriv> xprivs, String fingerprint}) xprivData;
+  final KeyDataInterface keyData;
 
   @override
   Widget build(BuildContext context) {
@@ -459,7 +448,13 @@ class MobileXPrivsView extends StatelessWidget {
             },
           ),
           title: Text(
-            "Wallet xpriv(s)",
+            "Wallet ${switch (keyData.runtimeType) {
+              const (XPrivData) => "xpriv(s)",
+              const (CWKeyData) => "keys",
+              _ => throw UnimplementedError(
+                  "Don't forget to add your KeyDataInterface here!",
+                ),
+            }}",
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -475,10 +470,19 @@ class MobileXPrivsView extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Expanded(
-                          child: WalletXPrivs(
-                            walletId: walletId,
-                            xprivData: xprivData,
-                          ),
+                          child: switch (keyData.runtimeType) {
+                            const (XPrivData) => WalletXPrivs(
+                                walletId: walletId,
+                                xprivData: keyData as XPrivData,
+                              ),
+                            const (CWKeyData) => CNWalletKeys(
+                                walletId: walletId,
+                                cwKeyData: keyData as CWKeyData,
+                              ),
+                            _ => throw UnimplementedError(
+                                "Don't forget to add your KeyDataInterface here!",
+                              ),
+                          },
                         ),
                         const SizedBox(
                           height: 16,

@@ -338,7 +338,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               onTap: () {
                 clipboard.setData(
                   ClipboardData(
-                    text: ref.watch(pWalletReceivingAddress(walletId)),
+                    text: address,
                   ),
                 );
                 showFloatingFlushBar(

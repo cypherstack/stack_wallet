@@ -23,6 +23,7 @@ import '../../../utilities/logger.dart';
 import '../../../utilities/paynym_is_api.dart';
 import '../../crypto_currency/coins/firo.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../impl/bitcoin_wallet.dart';
 import '../impl/firo_wallet.dart';
@@ -1315,6 +1316,17 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> checkReceivingAddressForTransactions() async {
+    if (info.otherData[WalletInfoKeys.reuseAddress] == true) {
+      try {
+        throw Exception();
+      } catch (_, s) {
+        Logging.instance.log(
+          "checkReceivingAddressForTransactions called but reuse address flag set: $s",
+          level: LogLevel.Error,
+        );
+      }
+    }
+
     try {
       final currentReceiving = await getCurrentReceivingAddress();
 
@@ -1336,9 +1348,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       if (needsGenerate) {
         await generateNewReceivingAddress();
 
-        // TODO: get rid of this? Could cause problems (long loading/infinite loop or something)
-        // keep checking until address with no tx history is set as current
-        await checkReceivingAddressForTransactions();
+        // TODO: [prio=low] Make sure we scan all addresses but only show one.
+        if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+          // TODO: get rid of this? Could cause problems (long loading/infinite loop or something)
+          // keep checking until address with no tx history is set as current
+          await checkReceivingAddressForTransactions();
+        }
       }
     } catch (e, s) {
       Logging.instance.log(
