@@ -11,17 +11,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
+import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
@@ -31,7 +35,7 @@ import 'rbf_settings_view.dart';
 import 'rename_wallet_view.dart';
 import 'spark_info.dart';
 
-class WalletSettingsWalletSettingsView extends ConsumerWidget {
+class WalletSettingsWalletSettingsView extends ConsumerStatefulWidget {
   const WalletSettingsWalletSettingsView({
     super.key,
     required this.walletId,
@@ -42,7 +46,88 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
   final String walletId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WalletSettingsWalletSettingsView> createState() =>
+      _WalletSettingsWalletSettingsViewState();
+}
+
+class _WalletSettingsWalletSettingsViewState
+    extends ConsumerState<WalletSettingsWalletSettingsView> {
+  bool _switchReuseAddressToggledLock = false; // Mutex.
+  Future<void> _switchReuseAddressToggled(bool newValue) async {
+    if (newValue) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          final isDesktop = Util.isDesktop;
+          return StackDialog(
+            title: "Warning!",
+            message:
+                "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
+            leftButton: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonStyle(context),
+              child: Text(
+                "Cancel",
+                style: STextStyles.itemSubtitle12(context),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            rightButton: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonStyle(context),
+              child: Text(
+                "Continue",
+                style: STextStyles.button(context),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          );
+        },
+      ).then((confirmed) async {
+        if (_switchReuseAddressToggledLock) {
+          return;
+        }
+        _switchReuseAddressToggledLock = true; // Lock mutex.
+
+        try {
+          if (confirmed == true) {
+            await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+              newEntries: {
+                WalletInfoKeys.reuseAddress: true,
+              },
+              isar: ref.read(mainDBProvider).isar,
+            );
+          } else {
+            await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+              newEntries: {
+                WalletInfoKeys.reuseAddress: false,
+              },
+              isar: ref.read(mainDBProvider).isar,
+            );
+          }
+        } finally {
+          // ensure _switchReuseAddressToggledLock is set to false no matter what.
+          _switchReuseAddressToggledLock = false;
+        }
+      });
+    } else {
+      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+        newEntries: {
+          WalletInfoKeys.reuseAddress: false,
+        },
+        isar: ref.read(mainDBProvider).isar,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -80,7 +165,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                     onPressed: () {
                       Navigator.of(context).pushNamed(
                         RenameWalletView.routeName,
-                        arguments: walletId,
+                        arguments: widget.walletId,
                       );
                     },
                     child: Padding(
@@ -102,6 +187,166 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                 const SizedBox(
                   height: 8,
                 ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is RbfInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          RbfSettingsView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "RBF settings",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(
+                  height: 8,
+                ),
+                RoundedWhiteContainer(
+                  child: Consumer(
+                    builder: (_, ref, __) {
+                      return RawMaterialButton(
+                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        onPressed: null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Reuse receiving address by default",
+                                style: STextStyles.titleBold12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                        pWalletInfo(widget.walletId)
+                                            .select((value) => value.otherData),
+                                      )[WalletInfoKeys.reuseAddress] as bool? ??
+                                      false,
+                                  onValueChanged: (newValue) {
+                                    _switchReuseAddressToggled(newValue);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is LelantusInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is LelantusInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          LelantusSettingsView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Lelantus settings",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is SparkInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is SparkInterface)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          SparkInfoView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Spark info",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is RbfInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
                 RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
                   child: RawMaterialButton(
@@ -119,7 +364,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                         context: context,
                         builder: (_) => StackDialog(
                           title:
-                              "Do you want to delete ${ref.read(pWalletName(walletId))}?",
+                              "Do you want to delete ${ref.read(pWalletName(widget.walletId))}?",
                           leftButton: TextButton(
                             style: Theme.of(context)
                                 .extension<StackColors>()!
@@ -148,7 +393,7 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                                   shouldUseMaterialRoute:
                                       RouteGenerator.useMaterialPageRoute,
                                   builder: (_) => LockscreenView(
-                                    routeOnSuccessArguments: walletId,
+                                    routeOnSuccessArguments: widget.walletId,
                                     showBackButton: true,
                                     routeOnSuccess:
                                         DeleteWalletWarningView.routeName,
@@ -188,116 +433,6 @@ class WalletSettingsWalletSettingsView extends ConsumerWidget {
                     ),
                   ),
                 ),
-                if (ref.watch(pWallets).getWallet(walletId)
-                    is LelantusInterface)
-                  const SizedBox(
-                    height: 8,
-                  ),
-                if (ref.watch(pWallets).getWallet(walletId)
-                    is LelantusInterface)
-                  RoundedWhiteContainer(
-                    padding: const EdgeInsets.all(0),
-                    child: RawMaterialButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          LelantusSettingsView.routeName,
-                          arguments: walletId,
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0,
-                          vertical: 20,
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              "Lelantus settings",
-                              style: STextStyles.titleBold12(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                if (ref.watch(pWallets).getWallet(walletId) is SparkInterface)
-                  const SizedBox(
-                    height: 8,
-                  ),
-                if (ref.watch(pWallets).getWallet(walletId) is SparkInterface)
-                  RoundedWhiteContainer(
-                    padding: const EdgeInsets.all(0),
-                    child: RawMaterialButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          SparkInfoView.routeName,
-                          arguments: walletId,
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0,
-                          vertical: 20,
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              "Spark info",
-                              style: STextStyles.titleBold12(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                if (ref.watch(pWallets).getWallet(walletId) is RbfInterface)
-                  const SizedBox(
-                    height: 8,
-                  ),
-                if (ref.watch(pWallets).getWallet(walletId) is RbfInterface)
-                  RoundedWhiteContainer(
-                    padding: const EdgeInsets.all(0),
-                    child: RawMaterialButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          RbfSettingsView.routeName,
-                          arguments: walletId,
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0,
-                          vertical: 20,
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              "RBF settings",
-                              style: STextStyles.titleBold12(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
