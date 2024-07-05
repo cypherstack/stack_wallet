@@ -36,7 +36,6 @@ import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/rounded_container.dart';
-import '../../../../../widgets/stack_dialog.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({
@@ -113,102 +112,72 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
         context: context,
         builder: (context) {
           final isDesktop = Util.isDesktop;
-          return isDesktop
-              ? DesktopDialog(
-                  maxWidth: 576,
+          return DesktopDialog(
+            maxWidth: 576,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "Warning!",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ),
+                    const DesktopDialogCloseButton(),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 8,
+                    left: 32,
+                    right: 32,
+                    bottom: 32,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Text(
+                        "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
+                        style: STextStyles.desktopTextSmall(context),
+                      ),
+                      const SizedBox(
+                        height: 43,
+                      ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 32),
-                            child: Text(
-                              "Warning!",
-                              style: STextStyles.desktopH3(context),
+                          Expanded(
+                            child: SecondaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () {
+                                Navigator.of(context).pop(false);
+                              },
+                              label: "Cancel",
                             ),
                           ),
-                          const DesktopDialogCloseButton(),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: PrimaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                              label: "Continue",
+                            ),
+                          ),
                         ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          top: 8,
-                          left: 32,
-                          right: 32,
-                          bottom: 32,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
-                              style: STextStyles.desktopTextSmall(context),
-                            ),
-                            const SizedBox(
-                              height: 43,
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: SecondaryButton(
-                                    buttonHeight: ButtonHeight.l,
-                                    onPressed: () {
-                                      Navigator.of(context).pop(false);
-                                    },
-                                    label: "Cancel",
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 16,
-                                ),
-                                Expanded(
-                                  child: PrimaryButton(
-                                    buttonHeight: ButtonHeight.l,
-                                    onPressed: () {
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    label: "Continue",
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                   ),
-                )
-              : StackDialog(
-                  title: "Warning!",
-                  message:
-                      "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
-                  leftButton: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getSecondaryEnabledButtonStyle(context),
-                    child: Text(
-                      "Cancel",
-                      style: STextStyles.itemSubtitle12(context),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                    },
-                  ),
-                  rightButton: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryEnabledButtonStyle(context),
-                    child: Text(
-                      "Continue",
-                      style: STextStyles.button(context),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
-                );
+                ),
+              ],
+            ),
+          );
         },
       ).then((confirmed) async {
         if (_switchReuseAddressToggledLock) {
