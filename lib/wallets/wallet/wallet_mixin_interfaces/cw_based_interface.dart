@@ -14,6 +14,7 @@ import 'package:mutex/mutex.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/keys/cw_key_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -194,6 +195,8 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   Future<void> open();
 
   Address addressFor({required int index, int account = 0});
+
+  Future<CWKeyData?> getKeys();
 
   // ============ Private ======================================================
   Future<void> _refreshTxDataHelper() async {
