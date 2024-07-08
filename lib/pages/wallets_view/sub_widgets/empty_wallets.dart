@@ -33,6 +33,9 @@ class EmptyWallets extends ConsumerWidget {
 
     final isDesktop = Util.isDesktop;
 
+    final stack =
+        ref.watch(themeProvider.select((value) => value.assets.stack));
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -47,15 +50,22 @@ class EmptyWallets extends ConsumerWidget {
               const Spacer(
                 flex: 2,
               ),
-              SvgPicture.file(
-                File(
-                  ref.watch(
-                    themeProvider.select(
-                      (value) => value.assets.stack,
-                    ),
-                  ),
-                ),
+              SizedBox(
                 width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
+                child: (stack.endsWith(".png"))
+                    ? Image.file(
+                        File(
+                          stack,
+                        ),
+                      )
+                    : SvgPicture.file(
+                        File(
+                          stack,
+                        ),
+                        width: isDesktop
+                            ? 324
+                            : MediaQuery.of(context).size.width / 3,
+                      ),
               ),
               SizedBox(
                 height: isDesktop ? 30 : 16,
