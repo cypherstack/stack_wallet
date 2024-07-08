@@ -71,7 +71,7 @@ class EmptyWallets extends ConsumerWidget {
                 height: isDesktop ? 30 : 16,
               ),
               Text(
-                "You do not have any wallets yet. Start building your crypto Stack!",
+                AppConfig.emptyWalletsMessage,
                 textAlign: TextAlign.center,
                 style: isDesktop
                     ? STextStyles.desktopSubtitleH2(context).copyWith(

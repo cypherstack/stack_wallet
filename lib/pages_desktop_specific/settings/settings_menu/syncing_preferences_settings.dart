@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../app_config.dart';
 import '../../../pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -115,7 +116,7 @@ class _SyncingPreferencesSettings
                             ),
                             TextSpan(
                               text:
-                                  "\n\nSet up your syncing preferences for all wallets in your Stack.",
+                                  "\n\nSet up your syncing preferences for all wallets in your ${AppConfig.prefix}.",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ),

@@ -24,6 +24,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../../app_config.dart';
 import '../../../../models/isar/models/log.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/debug_service_provider.dart';
@@ -421,7 +422,7 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                           },
                                           child: CustomLoadingOverlay(
                                             message:
-                                                "Generating Stack logs file",
+                                                "Generating ${AppConfig.prefix} logs file",
                                             eventBus: eventBus,
                                           ),
                                         ),

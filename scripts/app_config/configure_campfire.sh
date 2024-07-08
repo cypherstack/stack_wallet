@@ -43,6 +43,8 @@ part of 'app_config.dart';
 const _prefix = "Campfire";
 const _separator = "";
 const _suffix = "";
+const _emptyWalletsMessage =
+    "Join us around the Campfire and create a wallet!";
 const _appDataDirName = "campfire";
 const _shortDescriptionText = "Your privacy. Your wallet. Your Firo.";
 const _commitHash = "$BUILT_COMMIT_HASH";

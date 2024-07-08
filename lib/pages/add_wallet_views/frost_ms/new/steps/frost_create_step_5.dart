@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../app_config.dart';
 import '../../../../../frost_route_generator.dart';
 import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../pages_desktop_specific/desktop_home_view.dart';
@@ -45,7 +46,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
   static const _warning = "These are your private keys. Please back them up, "
       "keep them safe and never share it with anyone. Your private keys are the"
       " only way you can access your funds if you forget PIN, lose your phone, "
-      "etc. Stack Wallet does not keep nor is able to restore your private keys"
+      "etc. ${AppConfig.prefix} does not keep nor is able to restore your private keys"
       ".";
 
   late final String seed, recoveryString, serializedKeys, multisigConfig;

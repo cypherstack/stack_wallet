@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../app_config.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
@@ -427,7 +428,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       ),
                                       Flexible(
                                         child: Text(
-                                          "I understand that Stack Wallet does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
+                                          "I understand that ${AppConfig.appName} does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
                                           style: isDesktop
                                               ? STextStyles.desktopTextMedium(
                                                   context,

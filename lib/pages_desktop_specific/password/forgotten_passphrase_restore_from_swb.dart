@@ -245,7 +245,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                   height: 32,
                 ),
                 Text(
-                  "Use your Stack wallet backup file to restore your wallets, address book, and wallet preferences.",
+                  "Use your Stack backup file to restore your wallets, address book, and wallet preferences.",
                   textAlign: TextAlign.center,
                   style: STextStyles.desktopTextSmall(context).copyWith(
                     color: Theme.of(context)

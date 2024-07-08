@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../pages_desktop_specific/password/create_password_view.dart';
 import '../providers/global/prefs_provider.dart';
@@ -108,7 +109,7 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Choose your Stack experience",
+                    "Choose your ${AppConfig.prefix} experience",
                     style: isDesktop
                         ? STextStyles.desktopH2(context)
                         : STextStyles.pageTitleH1(context),
@@ -253,10 +254,12 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                               )
                                   .then((_) {
                                 if (isEasy) {
-                                  unawaited(
-                                    ExchangeDataLoadingService.instance
-                                        .loadAll(),
-                                  );
+                                  if (AppConfig.hasFeature(AppFeature.swap)) {
+                                    unawaited(
+                                      ExchangeDataLoadingService.instance
+                                          .loadAll(),
+                                    );
+                                  }
                                   // unawaited(
                                   //     BuyDataLoadingService().loadAll(ref));
                                   ref
