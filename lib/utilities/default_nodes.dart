@@ -8,11 +8,12 @@
  *
  */
 
+import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";
   static String buildId(CryptoCurrency cryptoCurrency) =>
       "$defaultNodeIdPrefix${cryptoCurrency.identifier}";
-  static const String defaultName = "Stack Default";
+  static const String defaultName = "${AppConfig.prefix} Default";
 }

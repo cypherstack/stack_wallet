@@ -287,21 +287,23 @@ packages:
     source: hosted
     version: "4.6.0"
   coinlib:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: coinlib
-      sha256: "44aa3f7b07d3b03d58353e7657f43cdaf76a70ad2cce5bdac9306208099d8df5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
+      path: coinlib
+      ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      resolved-ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      url: "https://github.com/peercoin/coinlib.git"
+    source: git
+    version: "2.1.0-rc.1"
   coinlib_flutter:
     dependency: "direct main"
     description:
-      name: coinlib_flutter
-      sha256: b352378773158dbaec37bd542c297682f3812f9881acb676971f0f4c5893631f
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
+      path: coinlib_flutter
+      ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      resolved-ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      url: "https://github.com/peercoin/coinlib.git"
+    source: git
+    version: "2.1.0-rc.1"
   collection:
     dependency: transitive
     description:
@@ -1588,8 +1590,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/solana"
-      ref: a83e375678eb22fe544dc125d29bbec0fb833882
-      resolved-ref: a83e375678eb22fe544dc125d29bbec0fb833882
+      ref: "706be5f166d31736c443cca4cd311b7fcfc2a9bf"
+      resolved-ref: "706be5f166d31736c443cca4cd311b7fcfc2a9bf"
       url: "https://github.com/cypherstack/espresso-cash-public.git"
     source: git
     version: "0.30.4"

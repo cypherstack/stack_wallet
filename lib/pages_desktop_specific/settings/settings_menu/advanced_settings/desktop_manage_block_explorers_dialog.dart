@@ -226,9 +226,9 @@ class _DesktopEditBlockExplorerDialogState
                     " every block explorer has a slightly different URL scheme."
                     "\n\n"
                     "Paste in your block explorer of choice, then edit in"
-                    " [TXID] where the transaction ID should go, and Stack"
-                    " Wallet will auto fill the transaction ID in that place"
-                    " of the URL.",
+                    " [TXID] where the transaction ID should go, and "
+                    "${AppConfig.appName} will auto fill the transaction"
+                    " ID in that place of the URL.",
                     style: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
                 ),
