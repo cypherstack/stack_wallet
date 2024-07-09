@@ -21,6 +21,7 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
@@ -220,52 +221,63 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                const SizedBox(
-                  height: 8,
-                ),
-                RoundedWhiteContainer(
-                  child: Consumer(
-                    builder: (_, ref, __) {
-                      return RawMaterialButton(
-                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        onPressed: null,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Reuse receiving address by default",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                              SizedBox(
-                                height: 20,
-                                width: 40,
-                                child: DraggableSwitchButton(
-                                  isOn: ref.watch(
-                                        pWalletInfo(widget.walletId)
-                                            .select((value) => value.otherData),
-                                      )[WalletInfoKeys.reuseAddress] as bool? ??
-                                      false,
-                                  onValueChanged: (newValue) {
-                                    _switchReuseAddressToggled(newValue);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is RbfInterface)
+                  const SizedBox(
+                    height: 8,
                   ),
-                ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is MultiAddressInterface)
+                  RoundedWhiteContainer(
+                    child: Consumer(
+                      builder: (_, ref, __) {
+                        return RawMaterialButton(
+                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                          ),
+                          onPressed: null,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Reuse receiving address by default",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                  width: 40,
+                                  child: DraggableSwitchButton(
+                                    isOn: ref.watch(
+                                          pWalletInfo(widget.walletId).select(
+                                              (value) => value.otherData),
+                                        )[WalletInfoKeys.reuseAddress]
+                                            as bool? ??
+                                        false,
+                                    onValueChanged: (newValue) {
+                                      _switchReuseAddressToggled(newValue);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is MultiAddressInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
                 if (ref.watch(pWallets).getWallet(widget.walletId)
                     is LelantusInterface)
                   const SizedBox(
