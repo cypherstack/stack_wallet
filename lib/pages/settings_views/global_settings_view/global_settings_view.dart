@@ -99,7 +99,7 @@ class GlobalSettingsView extends StatelessWidget {
                                 SettingsListButton(
                                   iconAssetName: Assets.svg.downloadFolder,
                                   iconSize: 14,
-                                  title: "Stack backup & restore",
+                                  title: "${AppConfig.prefix} backup & restore",
                                   onPressed: () {
                                     Navigator.push(
                                       context,
@@ -113,9 +113,9 @@ class GlobalSettingsView extends StatelessWidget {
                                           biometricsCancelButtonString:
                                               "CANCEL",
                                           biometricsLocalizedReason:
-                                              "Authenticate to access Stack backup & restore settings",
+                                              "Authenticate to access ${AppConfig.prefix} backup & restore settings",
                                           biometricsAuthenticationTitle:
-                                              "Stack backup",
+                                              "${AppConfig.prefix} backup",
                                         ),
                                         settings: const RouteSettings(
                                           name: "/swblockscreen",

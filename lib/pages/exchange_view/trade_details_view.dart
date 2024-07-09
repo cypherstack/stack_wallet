@@ -264,7 +264,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           trade.status == "waiting" ||
                           trade.status == "Waiting"))
                     SecondaryButton(
-                      label: "Send from Stack",
+                      label: "Send from ${AppConfig.prefix}",
                       buttonHeight: ButtonHeight.l,
                       onPressed: () {
                         CryptoCurrency coin;
@@ -1379,7 +1379,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     trade.status == "waiting" ||
                     trade.status == "Waiting"))
               SecondaryButton(
-                label: "Send from Stack",
+                label: "Send from ${AppConfig.prefix}",
                 onPressed: () {
                   CryptoCurrency coin;
                   try {

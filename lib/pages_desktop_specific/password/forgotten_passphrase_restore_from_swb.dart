@@ -94,7 +94,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                 color: Colors.transparent,
                 child: Center(
                   child: Text(
-                    "Decrypting Stack backup file",
+                    "Decrypting ${AppConfig.prefix} backup file",
                     style: STextStyles.pageTitleH2(context).copyWith(
                       color:
                           Theme.of(context).extension<StackColors>()!.textWhite,
@@ -245,7 +245,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                   height: 32,
                 ),
                 Text(
-                  "Use your Stack backup file to restore your wallets, address book, and wallet preferences.",
+                  "Use your ${AppConfig.prefix} backup file to restore your wallets, address book, and wallet preferences.",
                   textAlign: TextAlign.center,
                   style: STextStyles.desktopTextSmall(context).copyWith(
                     color: Theme.of(context)

@@ -181,8 +181,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
               unawaited(
                 showFloatingFlushBar(
                   context: context,
-                  message:
-                      "Restored Epic funds from your Seed have no Data.\nUse Stack Backup to keep your transaction history.",
+                  message: "Restored Epic funds from your Seed have no Data.",
                   type: FlushBarType.warning,
                   duration: const Duration(seconds: 5),
                 ),
