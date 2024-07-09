@@ -14,10 +14,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../app_config.dart';
 import '../../models/exchange/response_objects/trade.dart';
-import 'confirm_change_now_send.dart';
-import '../home_view/home_view.dart';
-import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
@@ -43,6 +42,9 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/expandable.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
+import '../home_view/home_view.dart';
+import '../send_view/sub_widgets/building_transaction_dialog.dart';
+import 'confirm_change_now_send.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
@@ -135,7 +137,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
                       left: 32,
                     ),
                     child: Text(
-                      "Send from Stack",
+                      "Send from ${AppConfig.prefix}",
                       style: STextStyles.desktopH3(context),
                     ),
                   ),

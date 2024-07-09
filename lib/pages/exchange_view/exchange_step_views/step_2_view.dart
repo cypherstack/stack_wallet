@@ -194,7 +194,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               ),
                               if (AppConfig.isStackCoin(model.receiveTicker))
                                 CustomTextButton(
-                                  text: "Choose from Stack",
+                                  text: "Choose from ${AppConfig.prefix}",
                                   onTap: () {
                                     try {
                                       final coin = AppConfig.coins.firstWhere(
@@ -480,7 +480,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 ),
                                 if (AppConfig.isStackCoin(model.sendTicker))
                                   CustomTextButton(
-                                    text: "Choose from Stack",
+                                    text: "Choose from ${AppConfig.prefix}",
                                     onTap: () {
                                       try {
                                         final coin = AppConfig.coins.firstWhere(

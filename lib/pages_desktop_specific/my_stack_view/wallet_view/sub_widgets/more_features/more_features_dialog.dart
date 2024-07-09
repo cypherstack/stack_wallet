@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../../app_config.dart';
 import '../../../../../db/sqlite/firo_cache.dart';
 import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/global/prefs_provider.dart';
@@ -281,7 +282,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
           if (wallet is OrdinalsInterface)
             _MoreFeaturesItem(
               label: "Ordinals",
-              detail: "View and control your ordinals in Stack",
+              detail: "View and control your ordinals in ${AppConfig.prefix}",
               iconAsset: Assets.svg.ordinal,
               onPressed: () async => widget.onOrdinalsPressed?.call(),
             ),

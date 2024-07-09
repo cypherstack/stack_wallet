@@ -174,7 +174,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                               "write it down. Keep it safe and never share it with "
                               "anyone. Your recovery phrase is the only way you can"
                               " access your funds if you forget your PIN, lose your"
-                              " phone, etc.\n\nStack Wallet does not keep nor is "
+                              " phone, etc.\n\n${AppConfig.appName} does not keep nor is "
                               "able to restore your recover phrase. Only you have "
                               "access to your wallet.",
                               style: isDesktop

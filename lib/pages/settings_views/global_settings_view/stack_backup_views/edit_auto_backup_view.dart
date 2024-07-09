@@ -20,6 +20,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
+import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -221,10 +222,11 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
           barrierDismissible: false,
           builder: (_) => Platform.isAndroid
               ? StackOkDialog(
-                  title: "Stack Auto Backup saved to:",
+                  title: "${AppConfig.prefix} Auto Backup saved to:",
                   message: fileToSave,
                 )
-              : const StackOkDialog(title: "Stack Auto Backup saved"),
+              : const StackOkDialog(
+                  title: "${AppConfig.prefix} Auto Backup saved"),
         );
         if (mounted) {
           passwordController.text = "";

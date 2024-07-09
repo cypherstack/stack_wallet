@@ -171,7 +171,7 @@ class _IntroViewState extends ConsumerState<IntroView> {
                         ),
                       if (isDesktop)
                         SecondaryButton(
-                          label: "Restore from Stack backup",
+                          label: "Restore from ${AppConfig.prefix} backup",
                           onPressed: () {
                             Navigator.of(context).pushNamed(
                               CreatePasswordView.routeName,
@@ -314,7 +314,7 @@ class GetStartedButton extends StatelessWidget {
                 );
               },
               child: Text(
-                "Create new Stack",
+                "Create new ${AppConfig.prefix}",
                 style: STextStyles.button(context).copyWith(fontSize: 20),
               ),
             ),

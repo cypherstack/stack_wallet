@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../app_config.dart';
 import '../../../../providers/global/auto_swb_service_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
@@ -316,7 +317,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       children: [
                         const TextSpan(
                           text:
-                              "Auto Backup is a custom Stack Wallet feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.\n\nFor more information, please see our website ",
+                              "Auto Backup is a custom ${AppConfig.appName} feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.\n\nFor more information, please see our website ",
                         ),
                         TextSpan(
                           text: "stackwallet.com.",
