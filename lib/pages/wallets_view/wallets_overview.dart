@@ -20,6 +20,8 @@ import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
+import '../../services/event_bus/events/wallet_added_event.dart';
+import '../../services/event_bus/global_event_bus.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
@@ -111,11 +113,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
     return element.toLowerCase().contains(term);
   }
 
-  @override
-  void initState() {
-    _searchController = TextEditingController();
-    searchFieldFocusNode = FocusNode();
-
+  void updateWallets() {
     final walletsData =
         ref.read(mainDBProvider).isar.walletInfo.where().findAllSync();
     walletsData.removeWhere((e) => e.coin != widget.coin);
@@ -155,15 +153,39 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
     } else {
       // add non token wallet tuple to list
       for (final data in walletsData) {
-        wallets.add(
-          Tuple2(
-            ref.read(pWallets).getWallet(
-                  data.walletId,
-                ),
-            [],
-          ),
-        );
+        // desktop single coin apps may cause issues so lets just ignore the error and move on
+        try {
+          wallets.add(
+            Tuple2(
+              ref.read(pWallets).getWallet(
+                    data.walletId,
+                  ),
+              [],
+            ),
+          );
+        } catch (_) {
+          // lol bandaid for single coin based apps
+        }
       }
+    }
+  }
+
+  @override
+  void initState() {
+    _searchController = TextEditingController();
+    searchFieldFocusNode = FocusNode();
+
+    updateWallets();
+
+    if (AppConfig.isSingleCoinApp) {
+      GlobalEventBus.instance.on<WalletAddedEvent>().listen((_) {
+        updateWallets();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      });
     }
 
     super.initState();

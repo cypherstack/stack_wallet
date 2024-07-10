@@ -13,12 +13,10 @@ import 'dart:async';
 import 'package:flutter_libmonero/monero/monero.dart' as monero;
 import 'package:flutter_libmonero/wownero/wownero.dart' as wownero;
 import 'package:isar/isar.dart';
+
+import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../db/isar/main_db.dart';
-import 'node_service.dart';
-import 'notifications_service.dart';
-import 'trade_sent_from_stack_service.dart';
-import '../app_config.dart';
 import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
@@ -28,6 +26,11 @@ import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
 import '../wallets/wallet/wallet.dart';
 import '../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import 'event_bus/events/wallet_added_event.dart';
+import 'event_bus/global_event_bus.dart';
+import 'node_service.dart';
+import 'notifications_service.dart';
+import 'trade_sent_from_stack_service.dart';
 
 class Wallets {
   Wallets._private();
@@ -59,6 +62,7 @@ class Wallets {
       );
     }
     _wallets[wallet.walletId] = wallet;
+    GlobalEventBus.instance.fire(WalletAddedEvent());
   }
 
   Future<void> deleteWallet(
