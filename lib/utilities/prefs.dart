@@ -11,18 +11,19 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:uuid/uuid.dart';
+
+import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
-import '../app_config.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import 'amount/amount_unit.dart';
 import 'constants.dart';
 import 'enums/backup_frequency_type.dart';
 import 'enums/languages_enum.dart';
 import 'enums/sync_type_enum.dart';
-import '../wallets/crypto_currency/crypto_currency.dart';
-import '../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import 'package:uuid/uuid.dart';
 
 class Prefs extends ChangeNotifier {
   Prefs._();
@@ -69,6 +70,7 @@ class Prefs extends ChangeNotifier {
       await _setMaxDecimals();
       _useTor = await _getUseTor();
       _fusionServerInfo = await _getFusionServerInfo();
+      _autoPin = await _getAutoPin();
 
       _initialized = true;
     }
@@ -1102,5 +1104,31 @@ class Prefs extends ChangeNotifier {
     }
 
     return actualMap;
+  }
+
+  // Automatic PIN entry.
+
+  bool _autoPin = false;
+
+  bool get autoPin => _autoPin;
+
+  set autoPin(bool autoPin) {
+    if (_autoPin != autoPin) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "autoPin",
+        value: autoPin,
+      );
+      _autoPin = autoPin;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getAutoPin() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "autoPin",
+        ) as bool? ??
+        false;
   }
 }

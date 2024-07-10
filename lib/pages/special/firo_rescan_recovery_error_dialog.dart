@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../models/keys/key_data_interface.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -11,6 +12,8 @@ import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -264,7 +267,14 @@ class _FiroRescanRecoveryErrorViewState
                         if (wallet is MnemonicInterface) {
                           final mnemonic = await wallet.getMnemonicAsWords();
 
-                          if (mounted) {
+                          KeyDataInterface? keyData;
+                          if (wallet is ExtendedKeysInterface) {
+                            keyData = await wallet.getXPrivs();
+                          } else if (wallet is CwBasedInterface) {
+                            keyData = await wallet.getKeys();
+                          }
+
+                          if (context.mounted) {
                             await Navigator.push(
                               context,
                               RouteGenerator.getRoute(
@@ -274,6 +284,7 @@ class _FiroRescanRecoveryErrorViewState
                                   routeOnSuccessArguments: (
                                     walletId: widget.walletId,
                                     mnemonic: mnemonic,
+                                    keyData: keyData,
                                   ),
                                   showBackButton: true,
                                   routeOnSuccess: WalletBackupView.routeName,

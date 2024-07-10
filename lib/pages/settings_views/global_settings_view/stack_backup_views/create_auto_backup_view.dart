@@ -18,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
+import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -651,12 +652,12 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                         builder: (_) => Platform.isAndroid
                                             ? StackOkDialog(
                                                 title:
-                                                    "Stack Auto Backup enabled and saved to:",
+                                                    "${AppConfig.prefix} Auto Backup enabled and saved to:",
                                                 message: fileToSave,
                                               )
                                             : const StackOkDialog(
                                                 title:
-                                                    "Stack Auto Backup enabled!",
+                                                    "${AppConfig.prefix} Auto Backup enabled!",
                                               ),
                                       );
                                       if (mounted) {

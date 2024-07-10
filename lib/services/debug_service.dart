@@ -15,6 +15,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
+import '../app_config.dart';
 import '../models/isar/models/log.dart';
 import '../utilities/logger.dart';
 
@@ -98,7 +99,7 @@ class DebugService extends ChangeNotifier {
   Future<String> exportToFile(String directory, EventBus eventBus) async {
     final now = DateTime.now();
     final filename =
-        "Stack_Wallet_logs_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.txt";
+        "${AppConfig.prefix}_Wallet_logs_${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}.txt";
     final filepath = "$directory/$filename";
     final File file = await File(filepath).create();
 

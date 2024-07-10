@@ -28,6 +28,7 @@ import 'package:tuple/tuple.dart';
 import '../../../db/hive/db.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/keys/cw_key_data.dart';
 import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
@@ -212,6 +213,25 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
     }
 
     return;
+  }
+
+  @override
+  Future<CWKeyData?> getKeys() async {
+    final base = (CwBasedInterface.cwWalletBase as WowneroWalletBase?);
+
+    if (base == null ||
+        base.walletInfo.name != walletId ||
+        CwBasedInterface.exitMutex.isLocked) {
+      return null;
+    }
+
+    return CWKeyData(
+      walletId: walletId,
+      publicViewKey: base.keys.publicViewKey,
+      privateViewKey: base.keys.privateViewKey,
+      publicSpendKey: base.keys.publicSpendKey,
+      privateSpendKey: base.keys.privateSpendKey,
+    );
   }
 
   @override

@@ -1155,7 +1155,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 ),
                 if (AppConfig.isStackCoin(selectedCrypto?.ticker))
                   CustomTextButton(
-                    text: "Choose from Stack",
+                    text: "Choose from ${AppConfig.prefix}",
                     onTap: () {
                       try {
                         final coin = AppConfig.getCryptoCurrencyForTicker(

@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app_config.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/text_styles.dart';
@@ -91,7 +92,7 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                           "every block explorer has a slightly different URL "
                           "scheme.\n\nPaste in your block explorer of choice,"
                           " then edit in [TXID] where the transaction ID "
-                          "should go, and Stack Wallet will auto fill the "
+                          "should go, and ${AppConfig.appName} will auto fill the "
                           "transaction ID in that place of URL.",
                           style: STextStyles.itemSubtitle(context),
                         ),

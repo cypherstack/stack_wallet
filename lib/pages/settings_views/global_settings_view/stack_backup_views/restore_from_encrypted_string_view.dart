@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
@@ -205,7 +206,7 @@ class _RestoreFromEncryptedStringViewState
                                               color: Colors.transparent,
                                               child: Center(
                                                 child: Text(
-                                                  "Decrypting Stack backup file",
+                                                  "Decrypting ${AppConfig.prefix} backup file",
                                                   style:
                                                       STextStyles.pageTitleH2(
                                                     context,

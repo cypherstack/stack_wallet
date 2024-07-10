@@ -22,6 +22,7 @@ import 'models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'models/isar/models/contact_entry.dart';
 import 'models/isar/models/isar_models.dart';
 import 'models/isar/ordinal.dart';
+import 'models/keys/key_data_interface.dart';
 import 'models/paynym/paynym_account_lite.dart';
 import 'models/send_view_auto_fill_data.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
@@ -198,6 +199,7 @@ import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'wallets/models/tx_data.dart';
 import 'wallets/wallet/wallet.dart';
+import 'wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
 
@@ -908,11 +910,12 @@ class RouteGenerator {
         );
 
       case XPubView.routeName:
-        if (args is String) {
+        if (args is (String, ({List<XPub> xpubs, String fingerprint}))) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => XPubView(
-              walletId: args,
+              walletId: args.$1,
+              xpubData: args.$2,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -1270,6 +1273,63 @@ class RouteGenerator {
               walletId: args.walletId,
               mnemonic: args.mnemonic,
               frostWalletData: args.frostWalletData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonic,
+          KeyDataInterface? keyData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              keyData: args.keyData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          String walletId,
+          List<String> mnemonic,
+          KeyDataInterface? keyData,
+          ({
+            String myName,
+            String config,
+            String keys,
+            ({String config, String keys})? prevGen,
+          })? frostWalletData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletBackupView(
+              walletId: args.walletId,
+              mnemonic: args.mnemonic,
+              frostWalletData: args.frostWalletData,
+              keyData: args.keyData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case MobileKeyDataView.routeName:
+        if (args is ({
+          String walletId,
+          KeyDataInterface keyData,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => MobileKeyDataView(
+              walletId: args.walletId,
+              keyData: args.keyData,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -2293,26 +2353,51 @@ class RouteGenerator {
       case WalletKeysDesktopPopup.routeName:
         if (args is ({
           List<String> mnemonic,
+          String walletId,
           ({String keys, String config})? frostData
         })) {
           return FadePageRoute(
             WalletKeysDesktopPopup(
               words: args.mnemonic,
+              walletId: args.walletId,
               frostData: args.frostData,
             ),
             RouteSettings(
               name: settings.name,
             ),
           );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
+        } else if (args is ({
+          List<String> mnemonic,
+          String walletId,
+          ({String keys, String config})? frostData,
+          KeyDataInterface? keyData,
+        })) {
+          return FadePageRoute(
+            WalletKeysDesktopPopup(
+              words: args.mnemonic,
+              walletId: args.walletId,
+              frostData: args.frostData,
+              keyData: args.keyData,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
+        } else if (args is ({
+          List<String> mnemonic,
+          String walletId,
+          KeyDataInterface? keyData,
+        })) {
+          return FadePageRoute(
+            WalletKeysDesktopPopup(
+              words: args.mnemonic,
+              walletId: args.walletId,
+              keyData: args.keyData,
+            ),
+            RouteSettings(
+              name: settings.name,
+            ),
+          );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 

@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solana/solana.dart';
 
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -15,6 +14,7 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/crypto_currency/intermediate/nano_currency.dart';
+import '../wallets/wallet/impl/solana_wallet.dart';
 import 'connection_check/electrum_connection_check.dart';
 import 'logger.dart';
 import 'test_epic_box_connection.dart';
@@ -210,14 +210,20 @@ Future<bool> testNodeConnection({
 
     case Solana():
       try {
-        RpcClient rpcClient;
-        if (formData.host!.startsWith("http") ||
-            formData.host!.startsWith("https")) {
-          rpcClient = RpcClient("${formData.host}:${formData.port}");
-        } else {
-          rpcClient = RpcClient("http://${formData.host}:${formData.port}");
-        }
-        await rpcClient.getEpochInfo().then((value) => testPassed = true);
+        final rpcClient = SolanaWallet.createRpcClient(
+          formData.host!,
+          formData.port!,
+          formData.useSSL ?? false,
+          ref.read(prefsChangeNotifierProvider),
+          ref.read(pTorService),
+        );
+
+        final health = await rpcClient.getHealth();
+        Logging.instance.log(
+          "Solana testNodeConnection \"health=$health\"",
+          level: LogLevel.Info,
+        );
+        return true;
       } catch (_) {
         testPassed = false;
       }

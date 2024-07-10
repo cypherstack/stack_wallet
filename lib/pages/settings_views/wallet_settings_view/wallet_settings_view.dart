@@ -18,6 +18,7 @@ import 'package:tuple/tuple.dart';
 import '../../../db/hive/db.dart';
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/epicbox_config_model.dart';
+import '../../../models/keys/key_data_interface.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../providers/ui/transaction_filter_provider.dart';
@@ -35,6 +36,8 @@ import '../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -95,9 +98,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   void initState() {
     walletId = widget.walletId;
     coin = widget.coin;
-    // TODO: [prio=low] xpubs
-    // xPubEnabled = ref.read(pWallets).getWallet(walletId).hasXPub;
-    xPubEnabled = false;
+    xPubEnabled =
+        ref.read(pWallets).getWallet(walletId) is ExtendedKeysInterface;
+
     xpub = "";
 
     _currentSyncStatus = widget.initialSyncStatus;
@@ -301,6 +304,13 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                               await wallet.getMnemonicAsWords();
                                         }
 
+                                        KeyDataInterface? keyData;
+                                        if (wallet is ExtendedKeysInterface) {
+                                          keyData = await wallet.getXPrivs();
+                                        } else if (wallet is CwBasedInterface) {
+                                          keyData = await wallet.getKeys();
+                                        }
+
                                         if (context.mounted) {
                                           await Navigator.push(
                                             context,
@@ -314,6 +324,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                   mnemonic: mnemonic ?? [],
                                                   frostWalletData:
                                                       frostWalletData,
+                                                  keyData: keyData,
                                                 ),
                                                 showBackButton: true,
                                                 routeOnSuccess:
@@ -373,11 +384,30 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                       return SettingsListButton(
                                         iconAssetName: Assets.svg.eye,
                                         title: "Wallet xPub",
-                                        onPressed: () {
-                                          Navigator.of(context).pushNamed(
-                                            XPubView.routeName,
-                                            arguments: widget.walletId,
+                                        onPressed: () async {
+                                          final xpubData = await showLoading(
+                                            delay: const Duration(
+                                              milliseconds: 800,
+                                            ),
+                                            whileFuture: (ref
+                                                        .read(pWallets)
+                                                        .getWallet(walletId)
+                                                    as ExtendedKeysInterface)
+                                                .getXPubs(),
+                                            context: context,
+                                            message: "Loading xpubs",
+                                            rootNavigator: Util.isDesktop,
                                           );
+                                          if (context.mounted) {
+                                            await Navigator.of(context)
+                                                .pushNamed(
+                                              XPubView.routeName,
+                                              arguments: (
+                                                widget.walletId,
+                                                xpubData
+                                              ),
+                                            );
+                                          }
                                         },
                                       );
                                     },

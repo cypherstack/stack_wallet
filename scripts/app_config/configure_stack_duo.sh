@@ -37,6 +37,8 @@ part of 'app_config.dart';
 const _prefix = "Stack";
 const _separator = " ";
 const _suffix = "Duo";
+const _emptyWalletsMessage =
+    "You do not have any wallets yet. Start building your crypto Stack!";
 const _appDataDirName = "stackduo";
 const _shortDescriptionText = "An open-source, multicoin wallet for everyone";
 const _commitHash = "$BUILT_COMMIT_HASH";

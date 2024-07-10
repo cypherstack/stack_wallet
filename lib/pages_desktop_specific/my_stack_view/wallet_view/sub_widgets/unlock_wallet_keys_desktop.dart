@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../models/keys/key_data_interface.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../providers/providers.dart';
@@ -22,6 +23,8 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -100,12 +103,21 @@ class _UnlockWalletKeysDesktopState
         words = await wallet.getMnemonicAsWords();
       }
 
+      KeyDataInterface? keyData;
+      if (wallet is ExtendedKeysInterface) {
+        keyData = await wallet.getXPrivs();
+      } else if (wallet is CwBasedInterface) {
+        keyData = await wallet.getKeys();
+      }
+
       if (mounted) {
         await Navigator.of(context).pushReplacementNamed(
           WalletKeysDesktopPopup.routeName,
           arguments: (
             mnemonic: words ?? [],
+            walletId: widget.walletId,
             frostData: frostData,
+            keyData: keyData,
           ),
         );
       }
@@ -338,13 +350,22 @@ class _UnlockWalletKeysDesktopState
                                 words = await wallet.getMnemonicAsWords();
                               }
 
-                              if (mounted) {
+                              KeyDataInterface? keyData;
+                              if (wallet is ExtendedKeysInterface) {
+                                keyData = await wallet.getXPrivs();
+                              } else if (wallet is CwBasedInterface) {
+                                keyData = await wallet.getKeys();
+                              }
+
+                              if (context.mounted) {
                                 await Navigator.of(context)
                                     .pushReplacementNamed(
                                   WalletKeysDesktopPopup.routeName,
                                   arguments: (
                                     mnemonic: words ?? [],
+                                    walletId: widget.walletId,
                                     frostData: frostData,
+                                    keyData: keyData,
                                   ),
                                 );
                               }

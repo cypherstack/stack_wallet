@@ -171,7 +171,12 @@ dependencies:
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
-  coinlib_flutter: ^2.0.0
+#  coinlib_flutter: ^2.1.0-rc.1
+  coinlib_flutter:
+    git:
+      url: https://github.com/peercoin/coinlib.git
+      ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      path: coinlib_flutter
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -180,7 +185,7 @@ dependencies:
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
       url: https://github.com/cypherstack/espresso-cash-public.git
-      ref: a83e375678eb22fe544dc125d29bbec0fb833882
+      ref: 706be5f166d31736c443cca4cd311b7fcfc2a9bf
       path: packages/solana
   calendar_date_picker2: ^1.0.2
   sqlite3: ^2.4.3
@@ -210,6 +215,20 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+
+  # coin lib git for testing while waiting for publishing
+  coinlib:
+    git:
+      url: https://github.com/peercoin/coinlib.git
+      ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      path: coinlib
+
+  coinlib_flutter:
+    git:
+      url: https://github.com/peercoin/coinlib.git
+      ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      path: coinlib_flutter
+
   # adding here due to pure laziness
   tor_ffi_plugin:
     git:

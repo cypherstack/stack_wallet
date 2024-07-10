@@ -133,21 +133,41 @@ class TxData {
               .reduce((total, amount) => total += amount)
           : null;
 
-  Amount? get amountWithoutChange =>
-      recipients != null && recipients!.isNotEmpty
-          ? recipients!
-              .where((e) => !e.isChange)
-              .map((e) => e.amount)
-              .reduce((total, amount) => total += amount)
-          : null;
+  Amount? get amountWithoutChange {
+    if (recipients != null && recipients!.isNotEmpty) {
+      if (recipients!.where((e) => !e.isChange).isEmpty) {
+        return Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: recipients!.first.amount.fractionDigits,
+        );
+      } else {
+        return recipients!
+            .where((e) => !e.isChange)
+            .map((e) => e.amount)
+            .reduce((total, amount) => total += amount);
+      }
+    } else {
+      return null;
+    }
+  }
 
-  Amount? get amountSparkWithoutChange =>
-      sparkRecipients != null && sparkRecipients!.isNotEmpty
-          ? sparkRecipients!
-              .where((e) => !e.isChange)
-              .map((e) => e.amount)
-              .reduce((total, amount) => total += amount)
-          : null;
+  Amount? get amountSparkWithoutChange {
+    if (sparkRecipients != null && sparkRecipients!.isNotEmpty) {
+      if (sparkRecipients!.where((e) => !e.isChange).isEmpty) {
+        return Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: sparkRecipients!.first.amount.fractionDigits,
+        );
+      } else {
+        return sparkRecipients!
+            .where((e) => !e.isChange)
+            .map((e) => e.amount)
+            .reduce((total, amount) => total += amount);
+      }
+    } else {
+      return null;
+    }
+  }
 
   int? get estimatedSatsPerVByte => fee != null && vSize != null
       ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()

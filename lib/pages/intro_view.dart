@@ -49,6 +49,8 @@ class _IntroViewState extends ConsumerState<IntroView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
+    final stack =
+        ref.watch(themeProvider.select((value) => value.assets.stack));
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -68,16 +70,22 @@ class _IntroViewState extends ConsumerState<IntroView> {
                         constraints: const BoxConstraints(
                           maxWidth: 300,
                         ),
-                        child: SvgPicture.file(
-                          File(
-                            ref.watch(
-                              themeProvider.select(
-                                (value) => value.assets.stack,
-                              ),
-                            ),
-                          ),
+                        child: SizedBox(
                           width: isDesktop ? 324 : 266,
                           height: isDesktop ? 324 : 266,
+                          child: (stack.endsWith(".png"))
+                              ? Image.file(
+                                  File(
+                                    stack,
+                                  ),
+                                )
+                              : SvgPicture.file(
+                                  File(
+                                    stack,
+                                  ),
+                                  width: isDesktop ? 324 : 266,
+                                  height: isDesktop ? 324 : 266,
+                                ),
                         ),
                       ),
                     ),
@@ -163,7 +171,7 @@ class _IntroViewState extends ConsumerState<IntroView> {
                         ),
                       if (isDesktop)
                         SecondaryButton(
-                          label: "Restore from Stack backup",
+                          label: "Restore from ${AppConfig.prefix} backup",
                           onPressed: () {
                             Navigator.of(context).pushNamed(
                               CreatePasswordView.routeName,
@@ -306,7 +314,7 @@ class GetStartedButton extends StatelessWidget {
                 );
               },
               child: Text(
-                "Create new Stack",
+                "Create new ${AppConfig.prefix}",
                 style: STextStyles.button(context).copyWith(fontSize: 20),
               ),
             ),
