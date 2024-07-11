@@ -9,17 +9,24 @@
  */
 
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
 
+import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../../models/isar/models/isar_models.dart';
 import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
+import '../../../../providers/db/main_db_provider.dart';
+import '../../../../providers/global/locale_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
+import '../../../../services/csv_exporter.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
@@ -31,6 +38,7 @@ import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
 import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
@@ -43,7 +51,8 @@ enum _WalletOptions {
   showXpub,
   lelantusCoins,
   sparkCoins,
-  frostOptions;
+  frostOptions,
+  exportTxsCsv;
 
   String get prettyName {
     switch (this) {
@@ -61,8 +70,47 @@ enum _WalletOptions {
         return "Spark Coins";
       case _WalletOptions.frostOptions:
         return "FROST settings";
+      case _WalletOptions.exportTxsCsv:
+        return "Export to CSV";
     }
   }
+}
+
+void _export(String walletId, WidgetRef ref) async {
+  final wallet = ref.read(pWallets).getWallet(walletId);
+  final mainDB = ref.read(mainDBProvider);
+
+  final transactions = await mainDB.isar.transactionV2s
+      .where()
+      .walletIdEqualTo(walletId)
+      .findAll();
+  final notes = await mainDB.isar.transactionNotes
+      .where()
+      .walletIdEqualTo(walletId)
+      .findAll();
+  final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+
+  EthContract? ethContract;
+  String? sparkChangeAddress;
+
+  if (wallet is SparkInterface) {
+    sparkChangeAddress = wallet.sparkChangeAddress;
+  }
+
+  // final ethContract = ref
+  //     .read(mainDBProvider)
+  //     .getEthContractSync(_transaction.contractAddress!);
+
+  final csv = CsvExporter.transactionV2sToCsv(
+    transactions,
+    notes,
+    wallet.info.coin,
+    locale,
+    ethContract,
+    sparkChangeAddress,
+  );
+
+  log(csv);
 }
 
 class WalletOptionsButton extends ConsumerWidget {
@@ -110,6 +158,9 @@ class WalletOptionsButton extends ConsumerWidget {
               onFrostMSWalletOptionsPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.frostOptions);
               },
+              onExportTOCsvPressed: () async {
+                Navigator.of(context).pop(_WalletOptions.exportTxsCsv);
+              },
               walletId: walletId,
             );
           },
@@ -117,6 +168,10 @@ class WalletOptionsButton extends ConsumerWidget {
 
         if (context.mounted && func != null) {
           switch (func) {
+            case _WalletOptions.exportTxsCsv:
+              _export(walletId, ref);
+              break;
+
             case _WalletOptions.addressList:
               unawaited(
                 Navigator.of(context).pushNamed(
@@ -277,6 +332,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onFiroShowLelantusCoins,
     required this.onFiroShowSparkCoins,
     required this.onFrostMSWalletOptionsPressed,
+    required this.onExportTOCsvPressed,
     required this.walletId,
   });
 
@@ -287,6 +343,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   final VoidCallback onFiroShowLelantusCoins;
   final VoidCallback onFiroShowSparkCoins;
   final VoidCallback onFrostMSWalletOptionsPressed;
+  final VoidCallback onExportTOCsvPressed;
   final String walletId;
 
   @override
@@ -540,6 +597,41 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  TransparentButton(
+                    onPressed: onExportTOCsvPressed,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SvgPicture.asset(
+                            Assets.svg.arrowUpRight,
+                            width: 20,
+                            height: 20,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveSearchIconLeft,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              _WalletOptions.exportTxsCsv.prettyName,
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(
                     height: 8,
                   ),

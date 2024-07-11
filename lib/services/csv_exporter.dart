@@ -8,7 +8,7 @@ import '../utilities/amount/amount_unit.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 abstract final class CsvExporter {
-  String transactionV2sToCsv(
+  static String transactionV2sToCsv(
     List<TransactionV2> transactions,
     List<TransactionNote> notes,
     CryptoCurrency coin,
@@ -19,14 +19,16 @@ abstract final class CsvExporter {
     final List<List<dynamic>?> rows = [];
 
     rows.add([
-      "timestamp",
-      "height",
-      "txid",
-      "amount",
-      "fee",
-      "type",
-      "sub type",
-      "note",
+      "Timestamp",
+      "Height",
+      "Txid",
+      "Amount",
+      "Fee",
+      "Type",
+      "Sub Type",
+      "Note",
+      "Input Addresses",
+      "Output Addresses",
     ]);
 
     for (final _transaction in transactions) {
@@ -80,6 +82,12 @@ abstract final class CsvExporter {
       );
       row.add(note.value);
 
+      // in addresses
+      row.add(_transaction.inputs.map((e) => e.addresses.join(",")).join(","));
+
+      // out addresses
+      row.add(_transaction.outputs.map((e) => e.addresses.join(",")).join(","));
+
       // finally add row
       rows.add(row);
     }
@@ -90,7 +98,7 @@ abstract final class CsvExporter {
     return csv;
   }
 
-  String _parseAmountFromTxnV2(
+  static String _parseAmountFromTxnV2(
     TransactionV2 txn,
     AmountFormatter amountFormatter,
     EthContract? ethContract,
