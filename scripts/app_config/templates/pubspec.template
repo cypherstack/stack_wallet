@@ -190,6 +190,7 @@ dependencies:
   calendar_date_picker2: ^1.0.2
   sqlite3: ^2.4.3
   sqlite3_flutter_libs: ^0.5.22
+  camera_linux: ^0.0.8
 
 dev_dependencies:
   flutter_test:
