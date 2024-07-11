@@ -14,6 +14,8 @@ import 'logger.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 class AddressUtils {
+  static final Set<String> recognizedParams = {'amount', 'label', 'message'};
+
   static String condenseAddress(String address) {
     return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
   }
@@ -170,8 +172,13 @@ class AddressUtils {
   //   // }
   // }
 
-  /// parse an address uri
-  /// returns an empty map if the input string does not begin with "firo:"
+  /// Return only recognized parameters.
+  static Map<String, String> filterParams(Map<String, String> params) {
+    return Map.fromEntries(params.entries
+        .where((entry) => recognizedParams.contains(entry.key.toLowerCase())));
+  }
+
+  /// Parses a URI string.
   static Map<String, String> parseUri(String uri) {
     final Map<String, String> result = {};
     try {
@@ -202,9 +209,11 @@ class AddressUtils {
         sanitizedAddress = address.replaceFirst(prefix, "");
       }
     }
+    // Filter unrecognized parameters.
+    final filteredParams = filterParams(params);
     String uriString = "${coin.uriScheme}:$sanitizedAddress";
-    if (params.isNotEmpty) {
-      uriString += Uri(queryParameters: params).toString();
+    if (filteredParams.isNotEmpty) {
+      uriString += Uri(queryParameters: filteredParams).toString();
     }
     return uriString;
   }
