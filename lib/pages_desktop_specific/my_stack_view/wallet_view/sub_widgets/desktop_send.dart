@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:camera_linux/camera_linux.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -64,6 +65,7 @@ import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../../../widgets/fee_slider.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/stack_text_field.dart';
@@ -139,6 +141,121 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     "Calculating..",
     "Calculating...",
   ];
+  final _cameraLinuxPlugin = CameraLinux();
+  bool _isCameraOpen = false;
+  late String _base64Image;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  // Below this point is WIP.
+  // Open Default Camera
+  Future<void> _initializeCamera() async {
+    await _cameraLinuxPlugin.initializeCamera();
+  }
+
+  // Capture The Image
+  Future<void> _captureImage() async {
+    _base64Image = await _cameraLinuxPlugin.captureImage();
+    setState(() {
+      _isCameraOpen = true;
+    });
+    return;
+  }
+
+  // Close The Camera
+  void _stopCamera() {
+    _cameraLinuxPlugin.stopCamera();
+    setState(() {
+      _isCameraOpen = false;
+    });
+  }
+
+  // WIP, copied from mobile view.  Need to redo.
+  Future<void> _scanQr() async {
+    try {
+      // ref
+      //     .read(
+      //         shouldShowLockscreenOnResumeStateProvider
+      //             .state)
+      //     .state = false;
+      if (FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+        await Future<void>.delayed(const Duration(milliseconds: 75));
+      }
+
+      // final qrResult = await scanner.scan();
+      await _captureImage();
+      print("Image Captured: $_base64Image");
+
+      // Parse the base64 _base64Image to get the QR code data.
+      // TODO.
+
+      final results = AddressUtils.parseUri(
+          _base64Image); // Doesn't work (of course--need to parse image for QR then decode *that*).
+
+      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
+
+      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
+        // auto fill address
+        _address = (results["address"] ?? "").trim();
+        sendToController.text = _address!;
+
+        // // autofill notes field
+        // if (results["message"] != null) {
+        //   noteController.text = results["message"]!;
+        // } else if (results["label"] != null) {
+        //   noteController.text = results["label"]!;
+        // }
+
+        // autofill amount field
+        if (results["amount"] != null) {
+          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
+            fractionDigits: coin.fractionDigits,
+          );
+          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+                amount,
+                withUnitName: false,
+              );
+          ref.read(pSendAmount.notifier).state = amount;
+        }
+
+        _setValidAddressProviders(_address);
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
+
+        // now check for non standard encoded basic address
+      } else if (ref
+          .read(pWallets)
+          .getWallet(walletId)
+          .cryptoCurrency
+          .validateAddress(qrResult.rawContent)) {
+        _address = qrResult.rawContent.trim();
+        sendToController.text = _address ?? "";
+
+        _setValidAddressProviders(_address);
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
+      }
+    } on PlatformException catch (e, s) {
+      // ref
+      //     .read(
+      //         shouldShowLockscreenOnResumeStateProvider
+      //             .state)
+      //     .state = true;
+      // here we ignore the exception caused by not giving permission
+      // to use the camera to scan a qr code
+      Logging.instance.log(
+        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
 
   Future<void> previewSend() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
@@ -1482,6 +1599,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         //     onTap: scanQr,
                         //     child: const QrCodeIcon(),
                         //   )
+                        if (sendToController.text.isEmpty)
+                          TextFieldIconButton(
+                            semanticsLabel:
+                                "Scan QR Button. Opens Camera For Scanning QR Code.",
+                            key: const Key(
+                              "sendViewScanQrButtonKey",
+                            ),
+                            onTap: _scanQr,
+                            child: const QrCodeIcon(),
+                          ),
                       ],
                     ),
                   ),
