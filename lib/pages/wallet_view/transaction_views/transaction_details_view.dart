@@ -134,13 +134,15 @@ class _TransactionDetailsViewState
   }
 
   String whatIsIt(Transaction tx, int height) {
+    String prettyConfirms() => "(${tx.getConfirmations(height)}/$minConfirms)";
+
     final type = tx.type;
     if (coin is Firo) {
       if (tx.subType == TransactionSubType.mint) {
         if (tx.isConfirmed(height, minConfirms)) {
           return "Minted";
         } else {
-          return "Minting";
+          return "Minting ${prettyConfirms()}";
         }
       }
     }
@@ -157,7 +159,7 @@ class _TransactionDetailsViewState
           } else if ((_transaction.numberOfMessages ?? 0) > 1) {
             return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
           } else {
-            return "Receiving";
+            return "Receiving ${prettyConfirms()}";
           }
         }
       } else if (type == TransactionType.outgoing) {
@@ -169,7 +171,7 @@ class _TransactionDetailsViewState
           } else if ((_transaction.numberOfMessages ?? 0) > 1) {
             return "Sending (waiting for confirmations)";
           } else {
-            return "Sending";
+            return "Sending ${prettyConfirms()}";
           }
         }
       }
@@ -182,16 +184,20 @@ class _TransactionDetailsViewState
       if (tx.isConfirmed(height, minConfirms)) {
         return "Received";
       } else {
-        return "Receiving";
+        return "Receiving ${prettyConfirms()}";
       }
     } else if (type == TransactionType.outgoing) {
       if (tx.isConfirmed(height, minConfirms)) {
         return "Sent";
       } else {
-        return "Sending";
+        return "Sending ${prettyConfirms()}";
       }
     } else if (type == TransactionType.sentToSelf) {
-      return "Sent to self";
+      if (tx.isConfirmed(height, minConfirms)) {
+        return "Sent to self";
+      } else {
+        return "Sent to self ${prettyConfirms()}";
+      }
     } else {
       return type.name;
     }
