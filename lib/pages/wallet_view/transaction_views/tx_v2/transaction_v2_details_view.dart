@@ -1054,6 +1054,12 @@ class _TransactionV2DetailsViewState
                                 ),
                               ),
                             if (coin is Epiccash)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin is Epiccash)
                               RoundedWhiteContainer(
                                 padding: isDesktop
                                     ? const EdgeInsets.all(16)
