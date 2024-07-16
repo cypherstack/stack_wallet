@@ -1054,6 +1054,12 @@ class _TransactionV2DetailsViewState
                                 ),
                               ),
                             if (coin is Epiccash)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (coin is Epiccash)
                               RoundedWhiteContainer(
                                 padding: isDesktop
                                     ? const EdgeInsets.all(16)
@@ -1457,59 +1463,95 @@ class _TransactionV2DetailsViewState
                                 : const SizedBox(
                                     height: 12,
                                   ),
-                            RoundedWhiteContainer(
-                              padding: isDesktop
-                                  ? const EdgeInsets.all(16)
-                                  : const EdgeInsets.all(12),
-                              child: Builder(
-                                builder: (context) {
-                                  final String height;
+                            Builder(
+                              builder: (context) {
+                                final String height;
+                                final String confirmations;
+                                final confirms = _transaction.getConfirmations(
+                                  currentHeight,
+                                );
 
-                                  if (widget.coin is Bitcoincash ||
-                                      widget.coin is Ecash) {
+                                if (widget.coin is Bitcoincash ||
+                                    widget.coin is Ecash) {
+                                  height = _transaction.height != null &&
+                                          _transaction.height! > 0
+                                      ? "${_transaction.height!}"
+                                      : "Pending";
+                                  confirmations = confirms.toString();
+                                } else if (widget.coin is Epiccash &&
+                                    _transaction.slateId == null) {
+                                  confirmations = "Unknown";
+                                  height = "Unknown";
+                                } else {
+                                  final confirmed = _transaction.isConfirmed(
+                                    currentHeight,
+                                    minConfirms,
+                                  );
+                                  if (widget.coin is! Epiccash && confirmed) {
                                     height =
-                                        "${_transaction.height != null && _transaction.height! > 0 ? _transaction.height! : "Pending"}";
+                                        "${_transaction.height == 0 ? "Unknown" : _transaction.height}";
                                   } else {
-                                    height = widget.coin is! Epiccash &&
-                                            _transaction.isConfirmed(
-                                              currentHeight,
-                                              minConfirms,
-                                            )
-                                        ? "${_transaction.height == 0 ? "Unknown" : _transaction.height}"
-                                        : _transaction.getConfirmations(
-                                                  currentHeight,
-                                                ) >
-                                                0
-                                            ? "${_transaction.height}"
-                                            : "Pending";
+                                    height = confirms > 0
+                                        ? "${_transaction.height}"
+                                        : "Pending";
                                   }
 
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Column(
+                                  confirmations = confirms.toString();
+                                }
+
+                                return Column(
+                                  children: [
+                                    RoundedWhiteContainer(
+                                      padding: isDesktop
+                                          ? const EdgeInsets.all(16)
+                                          : const EdgeInsets.all(12),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            "Block height",
-                                            style: isDesktop
-                                                ? STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                    context,
-                                                  )
-                                                : STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Block height",
+                                                style: isDesktop
+                                                    ? STextStyles
+                                                        .desktopTextExtraExtraSmall(
+                                                        context,
+                                                      )
+                                                    : STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                              ),
+                                              if (isDesktop)
+                                                const SizedBox(
+                                                  height: 2,
+                                                ),
+                                              if (isDesktop)
+                                                SelectableText(
+                                                  height,
+                                                  style: isDesktop
+                                                      ? STextStyles
+                                                          .desktopTextExtraExtraSmall(
+                                                          context,
+                                                        ).copyWith(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .extension<
+                                                                  StackColors>()!
+                                                              .textDark,
+                                                        )
+                                                      : STextStyles
+                                                          .itemSubtitle12(
+                                                          context,
+                                                        ),
+                                                ),
+                                            ],
                                           ),
-                                          if (isDesktop)
-                                            const SizedBox(
-                                              height: 2,
-                                            ),
-                                          if (isDesktop)
+                                          if (!isDesktop)
                                             SelectableText(
                                               height,
                                               style: isDesktop
@@ -1526,30 +1568,91 @@ class _TransactionV2DetailsViewState
                                                       context,
                                                     ),
                                             ),
+                                          if (isDesktop)
+                                            IconCopyButton(data: height),
                                         ],
                                       ),
-                                      if (!isDesktop)
-                                        SelectableText(
-                                          height,
-                                          style: isDesktop
-                                              ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                  context,
-                                                ).copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark,
-                                                )
-                                              : STextStyles.itemSubtitle12(
-                                                  context,
+                                    ),
+                                    isDesktop
+                                        ? const _Divider()
+                                        : const SizedBox(
+                                            height: 12,
+                                          ),
+                                    RoundedWhiteContainer(
+                                      padding: isDesktop
+                                          ? const EdgeInsets.all(16)
+                                          : const EdgeInsets.all(12),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Confirmations",
+                                                style: isDesktop
+                                                    ? STextStyles
+                                                        .desktopTextExtraExtraSmall(
+                                                        context,
+                                                      )
+                                                    : STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                              ),
+                                              if (isDesktop)
+                                                const SizedBox(
+                                                  height: 2,
                                                 ),
-                                        ),
-                                      if (isDesktop)
-                                        IconCopyButton(data: height),
-                                    ],
-                                  );
-                                },
-                              ),
+                                              if (isDesktop)
+                                                SelectableText(
+                                                  confirmations,
+                                                  style: isDesktop
+                                                      ? STextStyles
+                                                          .desktopTextExtraExtraSmall(
+                                                          context,
+                                                        ).copyWith(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .extension<
+                                                                  StackColors>()!
+                                                              .textDark,
+                                                        )
+                                                      : STextStyles
+                                                          .itemSubtitle12(
+                                                          context,
+                                                        ),
+                                                ),
+                                            ],
+                                          ),
+                                          if (!isDesktop)
+                                            SelectableText(
+                                              confirmations,
+                                              style: isDesktop
+                                                  ? STextStyles
+                                                      .desktopTextExtraExtraSmall(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                              StackColors>()!
+                                                          .textDark,
+                                                    )
+                                                  : STextStyles.itemSubtitle12(
+                                                      context,
+                                                    ),
+                                            ),
+                                          if (isDesktop)
+                                            IconCopyButton(data: height),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
 
                             if (kDebugMode)
