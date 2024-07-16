@@ -185,9 +185,11 @@ class _WalletSettingsWalletSettingsViewState
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 8,
-                ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                is RbfInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
                 if (ref.watch(pWallets).getWallet(widget.walletId)
                     is RbfInterface)
                   RoundedWhiteContainer(
@@ -222,7 +224,7 @@ class _WalletSettingsWalletSettingsViewState
                     ),
                   ),
                 if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is RbfInterface)
+                    is MultiAddressInterface)
                   const SizedBox(
                     height: 8,
                   ),
@@ -272,11 +274,6 @@ class _WalletSettingsWalletSettingsViewState
                         );
                       },
                     ),
-                  ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is MultiAddressInterface)
-                  const SizedBox(
-                    height: 8,
                   ),
                 if (ref.watch(pWallets).getWallet(widget.walletId)
                     is LelantusInterface)
@@ -354,11 +351,9 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is RbfInterface)
-                  const SizedBox(
-                    height: 8,
-                  ),
+                const SizedBox(
+                  height: 8,
+                ),
                 RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
                   child: RawMaterialButton(
