@@ -249,7 +249,7 @@ class _WalletSettingsWalletSettingsViewState
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Reuse receiving address by default",
+                                  "Reuse receiving address",
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
