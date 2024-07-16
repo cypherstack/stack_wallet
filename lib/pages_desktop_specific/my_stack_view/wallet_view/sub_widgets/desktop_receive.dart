@@ -190,11 +190,16 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       if (supportsSpark) {
         _walletAddressTypes.insert(0, AddressType.spark);
       } else {
-        _walletAddressTypes.addAll(
-          (wallet as Bip39HDWallet)
-              .supportedAddressTypes
-              .where((e) => e != wallet.info.mainAddressType),
-        );
+        if (wallet is Bip39HDWallet) {
+          _walletAddressTypes.addAll(
+            wallet.supportedAddressTypes
+                .where((e) => e != wallet.info.mainAddressType),
+          );
+        } else {
+          // CryptoNote or other wallet.
+          wallet.info.mainAddressType;
+          // TODO [prio=low]: show/support other address types.
+        }
       }
     }
 
