@@ -737,18 +737,58 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         content = content.substring(0, content.indexOf("\n"));
       }
 
-      if (coin is Epiccash) {
-        // strip http:// and https:// if content contains @
-        content = formatAddress(content);
+      // Check if the pasted value is a URI:
+      final results = AddressUtils.parseUri(content);
+      if (results.isNotEmpty) {
+        if (results["scheme"] == coin.uriScheme) {
+          // auto fill address
+          _address = results["address"] ?? "";
+          if (coin is Bitcoincash || coin is Ecash) {
+            sendToController.text = results["scheme"] != null
+                ? results["scheme"]! + ":" + _address!
+                : _address!;
+          } else {
+            sendToController.text = _address!;
+          }
+
+          // autofill notes field
+          if (results["message"] != null) {
+            _note = results["message"]!;
+          } else if (results["label"] != null) {
+            _note = results["label"]!;
+          }
+
+          // autofill amount field
+          if (results["amount"] != null) {
+            final amount = Decimal.parse(results["amount"]!).toAmount(
+              fractionDigits: coin.fractionDigits,
+            );
+            cryptoAmountController.text = ref
+                .read(pAmountFormatter(coin))
+                .format(amount, withUnitName: false);
+            ref.read(pSendAmount.notifier).state = amount;
+          }
+
+          setState(() {
+            _addressToggleFlag = sendToController.text.isNotEmpty;
+          });
+
+          return;
+        }
+      } else {
+        if (coin is Epiccash) {
+          // strip http:// and https:// if content contains @
+          content = formatAddress(content);
+        }
+
+        sendToController.text = content;
+        _address = content;
+
+        _setValidAddressProviders(_address);
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
       }
-
-      sendToController.text = content;
-      _address = content;
-
-      _setValidAddressProviders(_address);
-      setState(() {
-        _addressToggleFlag = sendToController.text.isNotEmpty;
-      });
     }
   }
 
