@@ -149,10 +149,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           rawValue: BigInt.from(utxo.value),
           fractionDigits: cryptoCurrency.fractionDigits,
         );
-        if (sum < total) {
-          utxosToUse.add(utxo);
-        } else {
-          utxosRemaining.addAll(utxos.sublist(i));
+        utxosToUse.add(utxo);
+        if (sum > total) {
+          if (i + 1 < utxos.length) {
+            utxosRemaining.addAll(utxos.sublist(i));
+          }
           break;
         }
       }
