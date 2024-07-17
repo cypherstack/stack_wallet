@@ -144,6 +144,15 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
   @override
+  _i6.Future<void> checkElectrumAdapter() => (super.noSuchMethod(
+        Invocation.method(
+          #checkElectrumAdapter,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
   _i6.Future<dynamic> request({
     required String? command,
     List<dynamic>? args = const [],
@@ -462,7 +471,14 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
         returnValue: _i6.Future<Set<String>>.value(<String>{}),
       ) as _i6.Future<Set<String>>);
   @override
-  _i6.Future<Map<String, dynamic>> getMempoolSparkData({
+  _i6.Future<
+      List<
+          ({
+            List<String> coins,
+            List<String> lTags,
+            List<String> serialContext,
+            String txid
+          })>> getMempoolSparkData({
     String? requestID,
     required List<String>? txids,
   }) =>
@@ -475,9 +491,27 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
             #txids: txids,
           },
         ),
-        returnValue:
-            _i6.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i6.Future<Map<String, dynamic>>);
+        returnValue: _i6.Future<
+            List<
+                ({
+                  List<String> coins,
+                  List<String> lTags,
+                  List<String> serialContext,
+                  String txid
+                })>>.value(<({
+          List<String> coins,
+          List<String> lTags,
+          List<String> serialContext,
+          String txid
+        })>[]),
+      ) as _i6.Future<
+          List<
+              ({
+                List<String> coins,
+                List<String> lTags,
+                List<String> serialContext,
+                String txid
+              })>>);
   @override
   _i6.Future<List<List<dynamic>>> getSparkUnhashedUsedCoinsTagsWithTxHashes({
     String? requestID,
@@ -494,6 +528,24 @@ class MockElectrumXClient extends _i1.Mock implements _i4.ElectrumXClient {
         ),
         returnValue: _i6.Future<List<List<dynamic>>>.value(<List<dynamic>>[]),
       ) as _i6.Future<List<List<dynamic>>>);
+  @override
+  _i6.Future<bool> isMasterNodeCollateral({
+    String? requestID,
+    required String? txid,
+    required int? index,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #isMasterNodeCollateral,
+          [],
+          {
+            #requestID: requestID,
+            #txid: txid,
+            #index: index,
+          },
+        ),
+        returnValue: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
   @override
   _i6.Future<Map<String, dynamic>> getFeeRate({String? requestID}) =>
       (super.noSuchMethod(
