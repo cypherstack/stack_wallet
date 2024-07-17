@@ -182,7 +182,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     final wallet = ref.read(pWallets).getWallet(walletId);
     supportsSpark = ref.read(pWallets).getWallet(walletId) is SparkInterface;
     showMultiType = supportsSpark ||
-        ref.read(pWallets).getWallet(walletId) is MultiAddressInterface;
+        (wallet is! BCashInterface &&
+            wallet is Bip39HDWallet &&
+            wallet.supportedAddressTypes.length > 1);
 
     _walletAddressTypes.add(wallet.info.mainAddressType);
 
