@@ -142,13 +142,17 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         fractionDigits: cryptoCurrency.fractionDigits,
       );
       final Set<UTXO> utxosToUse = {};
-      for (final utxo in utxos) {
+      final Set<UTXO> utxosRemaining = {};
+      for (int i = 0; i < utxos.length; i++) {
+        final utxo = utxos[i];
         sum += Amount(
           rawValue: BigInt.from(utxo.value),
           fractionDigits: cryptoCurrency.fractionDigits,
         );
-        utxosToUse.add(utxo);
-        if (sum > total) {
+        if (sum < total) {
+          utxosToUse.add(utxo);
+        } else {
+          utxosRemaining.addAll(utxos.sublist(i));
           break;
         }
       }
@@ -183,13 +187,40 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       await checkChangeAddressForTransactions();
       final changeAddress = await getCurrentChangeAddress();
 
-      final config = Frost.createSignConfig(
-        network: network,
-        inputs: inputs,
-        outputs: txData.recipients!,
-        changeAddress: changeAddress!.value,
-        feePerWeight: feePerWeight,
-      );
+      String? config;
+
+      while (config == null) {
+        try {
+          config = Frost.createSignConfig(
+            network: network,
+            inputs: inputs,
+            outputs: txData.recipients!,
+            changeAddress: changeAddress!.value,
+            feePerWeight: feePerWeight,
+          );
+        } on FrostdartException catch (e) {
+          if (e.errorCode == NOT_ENOUGH_FUNDS_ERROR &&
+              utxosRemaining.isNotEmpty) {
+            // add extra utxo
+            final utxo = utxosRemaining.take(1).first;
+            final dData = await getDerivationData(
+              utxo.address,
+            );
+            final publicKey = cryptoCurrency.addressToPubkey(
+              address: utxo.address!,
+            );
+            inputs.add(
+              (
+                utxo: utxo,
+                scriptPubKey: publicKey,
+                addressDerivationData: dData,
+              ),
+            );
+          } else {
+            rethrow;
+          }
+        }
+      }
 
       return txData.copyWith(frostMSConfig: config, utxos: utxosToUse);
     } catch (_) {
@@ -1380,6 +1411,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           // rust doesn't like the addressDerivationData
           index++;
           continue;
+        } else {
+          rethrow;
         }
       }
     }
@@ -1408,6 +1441,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           // rust doesn't like the addressDerivationData
           index++;
           continue;
+        } else {
+          rethrow;
         }
       }
     }
@@ -1484,6 +1519,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
             // rust doesn't like the addressDerivationData
             index++;
             continue;
+          } else {
+            rethrow;
           }
         }
       }
