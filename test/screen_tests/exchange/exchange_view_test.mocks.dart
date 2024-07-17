@@ -473,6 +473,19 @@ class MockPrefs extends _i1.Mock implements _i5.Prefs {
         returnValueForMissingStub: null,
       );
   @override
+  bool get autoPin => (super.noSuchMethod(
+        Invocation.getter(#autoPin),
+        returnValue: false,
+      ) as bool);
+  @override
+  set autoPin(bool? autoPin) => super.noSuchMethod(
+        Invocation.setter(
+          #autoPin,
+          autoPin,
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
