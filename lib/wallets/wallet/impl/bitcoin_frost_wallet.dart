@@ -1455,6 +1455,98 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     );
   }
 
+  Future<void> lookAhead() async {
+    Address? currentReceiving = await getCurrentReceivingAddress();
+    if (currentReceiving == null) {
+      await generateNewReceivingAddress();
+      currentReceiving = await getCurrentReceivingAddress();
+    }
+    Address? currentChange = await getCurrentChangeAddress();
+    if (currentChange == null) {
+      await generateNewChangeAddress();
+      currentChange = await getCurrentChangeAddress();
+    }
+
+    final List<Address> nextReceivingAddresses = [];
+    final List<Address> nextChangeAddresses = [];
+
+    int receiveIndex = currentReceiving!.derivationIndex;
+    int changeIndex = currentChange!.derivationIndex;
+    for (int i = 0; i < 10; i++) {
+      final receiveAddress = await _generateAddressSafe(
+        chain: 0,
+        startingIndex: receiveIndex + 1,
+      );
+      receiveIndex = receiveAddress.derivationIndex;
+      nextReceivingAddresses.add(receiveAddress);
+
+      final changeAddress = await _generateAddressSafe(
+        chain: 1,
+        startingIndex: changeIndex + 1,
+      );
+      changeIndex = changeAddress.derivationIndex;
+      nextChangeAddresses.add(changeAddress);
+    }
+
+    int activeReceiveIndex = currentReceiving.derivationIndex;
+    int activeChangeIndex = currentChange.derivationIndex;
+    for (final address in nextReceivingAddresses) {
+      final txCount = await _fetchTxCount(address: address);
+      if (txCount > 0) {
+        activeReceiveIndex = max(activeReceiveIndex, address.derivationIndex);
+      }
+    }
+    for (final address in nextChangeAddresses) {
+      final txCount = await _fetchTxCount(address: address);
+      if (txCount > 0) {
+        activeChangeIndex = max(activeChangeIndex, address.derivationIndex);
+      }
+    }
+
+    nextReceivingAddresses
+        .removeWhere((e) => e.derivationIndex > activeReceiveIndex);
+    if (nextReceivingAddresses.isNotEmpty) {
+      await mainDB.updateOrPutAddresses(nextReceivingAddresses);
+      await info.updateReceivingAddress(
+        newAddress: nextReceivingAddresses.last.value,
+        isar: mainDB.isar,
+      );
+    }
+    nextChangeAddresses
+        .removeWhere((e) => e.derivationIndex > activeChangeIndex);
+    if (nextChangeAddresses.isNotEmpty) {
+      await mainDB.updateOrPutAddresses(nextChangeAddresses);
+    }
+  }
+
+  Future<Address> _generateAddressSafe({
+    required final int chain,
+    required int startingIndex,
+  }) async {
+    final serializedKeys = (await getSerializedKeys())!;
+
+    Address? address;
+    while (address == null) {
+      try {
+        address = await _generateAddress(
+          change: chain,
+          index: startingIndex,
+          serializedKeys: serializedKeys,
+        );
+      } on FrostdartException catch (e) {
+        if (e.errorCode == 72) {
+          // rust doesn't like the addressDerivationData
+          startingIndex++;
+          continue;
+        } else {
+          rethrow;
+        }
+      }
+    }
+
+    return address;
+  }
+
   /// Can and will often throw unless [index], [change], and [account] are zero.
   /// Caller MUST handle exception!
   Future<Address> _generateAddress({
