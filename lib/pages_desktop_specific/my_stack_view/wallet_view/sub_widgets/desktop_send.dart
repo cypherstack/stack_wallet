@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:camera_linux/camera_linux.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
@@ -18,6 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image/image.dart' as img;
+import 'package:zxing2/qrcode.dart';
 
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
@@ -145,12 +148,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   bool _isCameraOpen = false;
   late String _base64Image;
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeCamera();
-  }
-
   // Below this point is WIP.
   // Open Default Camera
   Future<void> _initializeCamera() async {
@@ -189,14 +186,52 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       // final qrResult = await scanner.scan();
       await _captureImage();
-      print("Image Captured: $_base64Image");
+      // print("Image Captured: $_base64Image");
 
       // Parse the base64 _base64Image to get the QR code data.
-      // TODO.
+      //
+      // Take the String _base64Image (encoded in base 64) and decode it to an image.
+      var image = img.decodeImage(base64Decode(_base64Image));
+      if (image == null) {
+        throw Exception("Failed to decode image");
+      }
+      LuminanceSource source = RGBLuminanceSource(
+          image.width,
+          image.height,
+          image
+              .convert(numChannels: 4)
+              .getBytes(order: img.ChannelOrder.abgr)
+              .buffer
+              .asInt32List());
+      var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
 
-      final results = AddressUtils.parseUri(
-          _base64Image); // Doesn't work (of course--need to parse image for QR then decode *that*).
+      // Convert to Image.memory for display in Flutter
+      Uint8List displayBytes = Uint8List.fromList(img.encodePng(image));
+      // Show dialog with bitmap displayed.
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("QR Code Image"),
+            content: Image.memory(
+                Uint8List.fromList(Uint8List.fromList(img.encodePng(image)))),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("Close"),
+              ),
+            ],
+          );
+        },
+      );
 
+      var reader = QRCodeReader();
+      var qrDecode = reader.decode(bitmap);
+      print("QR Code Data: ${qrDecode.text}");
+
+      final results = AddressUtils.parseUri(qrDecode.text);
       Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
 
       if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
@@ -229,18 +264,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         });
 
         // now check for non standard encoded basic address
-      } else if (ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(qrResult.rawContent)) {
-        _address = qrResult.rawContent.trim();
-        sendToController.text = _address ?? "";
+      } else {
+        if (results.keys.contains("address") &&
+            results["address"]!.isNotEmpty &&
+            ref
+                .read(pWallets)
+                .getWallet(walletId)
+                .cryptoCurrency
+                .validateAddress(results["address"]!)) {
+          _address = results["address"]!.trim();
+          sendToController.text = _address ?? "";
 
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
+          _setValidAddressProviders(_address);
+          setState(() {
+            _addressToggleFlag = sendToController.text.isNotEmpty;
+          });
+        }
       }
     } on PlatformException catch (e, s) {
       // ref
@@ -252,6 +291,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       // to use the camera to scan a qr code
       Logging.instance.log(
         "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    } catch (e, s) {
+      // ref
+      //     .read(
+      //         shouldShowLockscreenOnResumeStateProvider
+      //             .state)
+      //     .state = true;
+      Logging.instance.log(
+        "Failed to scan qr code in SendView: $e\n$s",
         level: LogLevel.Warning,
       );
     }
@@ -1035,6 +1084,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     });
 
+    _initializeCamera();
+    // Maybe we could/should do this when the QR button is pressed; camera plug-
+    // in docs say to init cam in initState.
+
     super.initState();
   }
 
@@ -1593,12 +1646,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                             },
                             child: const AddressBookIcon(),
                           ),
-                        // if (sendToController.text.isEmpty)
-                        //   TextFieldIconButton(
-                        //     key: const Key("sendViewScanQrButtonKey"),
-                        //     onTap: scanQr,
-                        //     child: const QrCodeIcon(),
-                        //   )
                         if (sendToController.text.isEmpty)
                           TextFieldIconButton(
                             semanticsLabel:

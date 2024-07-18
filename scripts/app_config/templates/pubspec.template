@@ -191,6 +191,7 @@ dependencies:
   sqlite3: ^2.4.3
   sqlite3_flutter_libs: ^0.5.22
   camera_linux: ^0.0.8
+  zxing2: ^0.2.3
 
 dev_dependencies:
   flutter_test:
