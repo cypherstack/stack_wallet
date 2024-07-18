@@ -22,6 +22,7 @@ import '../../../utilities/address_utils.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../widgets/address_private_key.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
@@ -371,13 +372,17 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   detail: address.subType.prettyName,
                   button: Container(),
                 ),
-                const _Div(
-                  height: 12,
-                ),
-                AddressPrivateKey(
-                  walletId: widget.walletId,
-                  address: address,
-                ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is Bip39HDWallet)
+                  const _Div(
+                    height: 12,
+                  ),
+                if (ref.watch(pWallets).getWallet(widget.walletId)
+                    is Bip39HDWallet)
+                  AddressPrivateKey(
+                    walletId: widget.walletId,
+                    address: address,
+                  ),
                 if (!isDesktop)
                   const SizedBox(
                     height: 20,
