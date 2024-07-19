@@ -192,6 +192,10 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.22
   camera_linux: ^0.0.8
   zxing2: ^0.2.3
+  camera_windows:
+    git:
+      url: https://github.com/cypherstack/packages.git
+      path: packages/camera/camera_windows
 
 dev_dependencies:
   flutter_test:
