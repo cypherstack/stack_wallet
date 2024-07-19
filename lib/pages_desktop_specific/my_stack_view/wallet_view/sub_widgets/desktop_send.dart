@@ -171,138 +171,49 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     });
   }
 
-  // WIP, copied from mobile view.  Need to redo.
   Future<void> _scanQr() async {
     try {
-      // ref
-      //     .read(
-      //         shouldShowLockscreenOnResumeStateProvider
-      //             .state)
-      //     .state = false;
-      if (FocusScope.of(context).hasFocus) {
-        FocusScope.of(context).unfocus();
-        await Future<void>.delayed(const Duration(milliseconds: 75));
-      }
-
-      // final qrResult = await scanner.scan();
-      await _captureImage();
-      // print("Image Captured: $_base64Image");
-
-      // Parse the base64 _base64Image to get the QR code data.
-      //
-      // Take the String _base64Image (encoded in base 64) and decode it to an image.
-      var image = img.decodeImage(base64Decode(_base64Image));
-      if (image == null) {
-        throw Exception("Failed to decode image");
-      }
-      LuminanceSource source = RGBLuminanceSource(
-          image.width,
-          image.height,
-          image
-              .convert(numChannels: 4)
-              .getBytes(order: img.ChannelOrder.abgr)
-              .buffer
-              .asInt32List());
-      var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
-
-      // Convert to Image.memory for display in Flutter
-      Uint8List displayBytes = Uint8List.fromList(img.encodePng(image));
-      // Show dialog with bitmap displayed.
       await showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: const Text("QR Code Image"),
-            content: Image.memory(
-                Uint8List.fromList(Uint8List.fromList(img.encodePng(image)))),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text("Close"),
-              ),
-            ],
+          return QrCodeScannerDialog(
+            walletId: widget.walletId,
+            onQrCodeDetected: (qrCodeData) {
+              try {
+                var results = AddressUtils.parseUri(qrCodeData);
+                if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
+                  _address = (results["address"] ?? "").trim();
+                  sendToController.text = _address!;
+
+                  if (results["amount"] != null) {
+                    final Amount amount =
+                        Decimal.parse(results["amount"]!).toAmount(
+                      fractionDigits: coin.fractionDigits,
+                    );
+                    cryptoAmountController.text =
+                        ref.read(pAmountFormatter(coin)).format(
+                              amount,
+                              withUnitName: false,
+                            );
+                    ref.read(pSendAmount.notifier).state = amount;
+                  }
+
+                  _setValidAddressProviders(_address);
+                  setState(() {
+                    _addressToggleFlag = sendToController.text.isNotEmpty;
+                  });
+                }
+              } catch (e, s) {
+                Logging.instance.log("Error processing QR code data: $e\n$s",
+                    level: LogLevel.Error);
+              }
+            },
           );
         },
       );
-
-      var reader = QRCodeReader();
-      var qrDecode = reader.decode(bitmap);
-      print("QR Code Data: ${qrDecode.text}");
-
-      final results = AddressUtils.parseUri(qrDecode.text);
-      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
-
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
-        // auto fill address
-        _address = (results["address"] ?? "").trim();
-        sendToController.text = _address!;
-
-        // // autofill notes field
-        // if (results["message"] != null) {
-        //   noteController.text = results["message"]!;
-        // } else if (results["label"] != null) {
-        //   noteController.text = results["label"]!;
-        // }
-
-        // autofill amount field
-        if (results["amount"] != null) {
-          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
-            fractionDigits: coin.fractionDigits,
-          );
-          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
-                amount,
-                withUnitName: false,
-              );
-          ref.read(pSendAmount.notifier).state = amount;
-        }
-
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
-
-        // now check for non standard encoded basic address
-      } else {
-        if (results.keys.contains("address") &&
-            results["address"]!.isNotEmpty &&
-            ref
-                .read(pWallets)
-                .getWallet(walletId)
-                .cryptoCurrency
-                .validateAddress(results["address"]!)) {
-          _address = results["address"]!.trim();
-          sendToController.text = _address ?? "";
-
-          _setValidAddressProviders(_address);
-          setState(() {
-            _addressToggleFlag = sendToController.text.isNotEmpty;
-          });
-        }
-      }
-    } on PlatformException catch (e, s) {
-      // ref
-      //     .read(
-      //         shouldShowLockscreenOnResumeStateProvider
-      //             .state)
-      //     .state = true;
-      // here we ignore the exception caused by not giving permission
-      // to use the camera to scan a qr code
-      Logging.instance.log(
-        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
-      );
     } catch (e, s) {
-      // ref
-      //     .read(
-      //         shouldShowLockscreenOnResumeStateProvider
-      //             .state)
-      //     .state = true;
-      Logging.instance.log(
-        "Failed to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.log("Error opening QR code scanner dialog: $e\n$s",
+          level: LogLevel.Error);
     }
   }
 
@@ -861,6 +772,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
         level: LogLevel.Warning,
       );
+    } catch (e, s) {
+      Logging.instance.log(
+        "Failed to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
     }
   }
 
@@ -1083,10 +999,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       }
     });
-
-    _initializeCamera();
-    // Maybe we could/should do this when the QR button is pressed; camera plug-
-    // in docs say to init cam in initState.
 
     super.initState();
   }
@@ -2065,4 +1977,161 @@ String formatAddress(String epicAddress) {
     epicAddress = epicAddress.substring(0, epicAddress.length - 1);
   }
   return epicAddress;
+}
+
+class QrCodeScannerDialog extends StatefulWidget {
+  final String walletId;
+  final Function(String) onQrCodeDetected;
+
+  QrCodeScannerDialog({
+    required this.walletId,
+    required this.onQrCodeDetected,
+  });
+
+  @override
+  _QrCodeScannerDialogState createState() => _QrCodeScannerDialogState();
+}
+
+class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
+  final _cameraLinuxPlugin = CameraLinux();
+  late String _base64Image;
+  bool _isCameraOpen = false;
+  Image? _image;
+  String? _qrCodeData;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  @override
+  void dispose() {
+    _stopCamera();
+    super.dispose();
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      await _cameraLinuxPlugin.initializeCamera();
+      Logging.instance
+          .log("Camera initialized successfully", level: LogLevel.Info);
+      _captureAndScanImage();
+    } catch (e, s) {
+      Logging.instance
+          .log("Failed to initialize camera: $e\n$s", level: LogLevel.Error);
+    }
+  }
+
+  Future<void> _captureAndScanImage() async {
+    while (_qrCodeData == null && mounted) {
+      try {
+        _base64Image = await _cameraLinuxPlugin.captureImage();
+        Logging.instance
+            .log("Image captured successfully", level: LogLevel.Info);
+        _isCameraOpen = true;
+
+        var image = img.decodeImage(base64Decode(_base64Image));
+        if (image == null) {
+          throw Exception("Failed to decode image");
+        }
+
+        LuminanceSource source = RGBLuminanceSource(
+          image.width,
+          image.height,
+          image
+              .convert(numChannels: 4)
+              .getBytes(order: img.ChannelOrder.abgr)
+              .buffer
+              .asInt32List(),
+        );
+        var bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
+        _image = Image.memory(Uint8List.fromList(img.encodePng(image)));
+        var reader = QRCodeReader();
+
+        try {
+          var qrDecode = reader.decode(bitmap);
+          _qrCodeData = qrDecode.text;
+          Logging.instance.log("QR code decoded successfully: $_qrCodeData",
+              level: LogLevel.Info);
+          widget.onQrCodeDetected(_qrCodeData!);
+          Navigator.of(context).pop();
+          break; // Exit the loop once QR code is detected
+        } catch (e) {
+          Logging.instance
+              .log("Failed to decode QR code: $e", level: LogLevel.Error);
+          setState(() {
+            // Update the dialog with the new image.
+          });
+        }
+
+        await Future.delayed(
+            const Duration(milliseconds: 1000)); // Add delay here.
+      } catch (e, s) {
+        Logging.instance.log("Failed to capture and scan image: $e\n$s",
+            level: LogLevel.Error);
+      }
+    }
+  }
+
+  void _stopCamera() {
+    try {
+      _cameraLinuxPlugin.stopCamera();
+      Logging.instance.log("Camera stopped successfully", level: LogLevel.Info);
+      setState(() {
+        _isCameraOpen = false;
+      });
+    } catch (e, s) {
+      Logging.instance
+          .log("Failed to stop camera: $e\n$s", level: LogLevel.Error);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DesktopDialog(
+      maxWidth: 696,
+      maxHeight: 600,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 32),
+                child: Text(
+                  "Scan QR code",
+                  style: STextStyles.desktopH3(context),
+                ),
+              ),
+              const DesktopDialogCloseButton(),
+            ],
+          ),
+          Expanded(
+            child: _isCameraOpen
+                ? _image != null
+                    ? _image!
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      )
+                : const Center(
+                    child: Text("Camera is not open"),
+                  ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: PrimaryButton(
+              buttonHeight: ButtonHeight.l,
+              label: "Close",
+              onPressed: () {
+                _stopCamera();
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
