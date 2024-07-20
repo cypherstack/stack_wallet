@@ -2050,6 +2050,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       Logging.instance.log("Failed to initialize camera: $e\n$s", level: LogLevel.Error);
       if (mounted) {
         widget.onSnackbar("Failed to initialize camera. Please try again.");
+        setState(() {
+          _isScanning = false;
+        });
       }
     }
   }
@@ -2089,15 +2092,19 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           final XFile xfile = await _cameraWindowsPlugin!.takePicture(_cameraId);
           final bytes = await xfile.readAsBytes();
           base64Image = base64Encode(bytes);
+          // We could use a Uint8List to optimize for Windows and macOS.
         }
         if (base64Image == null || base64Image.isEmpty) {
-          Logging.instance.log("Failed to capture image", level: LogLevel.Info);
+          Logging.instance.log("Failed to capture image", level: LogLevel.Error);
           await Future.delayed(const Duration(milliseconds: 250));
           continue;
         }
         final img.Image? image = img.decodeImage(base64Decode(base64Image));
+        // TODO [prio=low]: Optimize this process. Docs say:
+        // > WARNING Since this will check the image data against all known
+        // > decoders, it is much slower than using an explicit decoder
         if (image == null) {
-          Logging.instance.log("Failed to decode image", level: LogLevel.Info);
+          Logging.instance.log("Failed to decode image", level: LogLevel.Error);
           await Future.delayed(const Duration(milliseconds: 250));
           continue;
         }
