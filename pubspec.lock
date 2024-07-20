@@ -255,7 +255,7 @@ packages:
     source: hosted
     version: "0.0.8"
   camera_platform_interface:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: camera_platform_interface
       sha256: b3ede1f171532e0d83111fe0980b46d17f1aa9788a07a2fbed07366bbdbb9061
