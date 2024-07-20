@@ -13,6 +13,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera_linux/camera_linux.dart';
+import 'package:camera_windows/camera_windows.dart';
+import 'package:camera_platform_interface/camera_platform_interface.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -22,6 +24,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image/image.dart' as img;
+import 'package:share_plus/share_plus.dart';
 import 'package:zxing2/qrcode.dart';
 
 import '../../../../models/isar/models/contact_entry.dart';
@@ -146,32 +149,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     "Calculating..",
     "Calculating...",
   ];
-  final _cameraLinuxPlugin = CameraLinux();
-  bool _isCameraOpen = false;
-  late String _base64Image;
-
-  // Below this point is WIP.
-  // Open Default Camera
-  Future<void> _initializeCamera() async {
-    await _cameraLinuxPlugin.initializeCamera();
-  }
-
-  // Capture The Image
-  Future<void> _captureImage() async {
-    _base64Image = await _cameraLinuxPlugin.captureImage();
-    setState(() {
-      _isCameraOpen = true;
-    });
-    return;
-  }
-
-  // Close The Camera
-  void _stopCamera() {
-    _cameraLinuxPlugin.stopCamera();
-    setState(() {
-      _isCameraOpen = false;
-    });
-  }
+  final CameraLinux? _cameraLinuxPlugin = Platform.isLinux ? CameraLinux() : null;
 
   Future<void> scanWebcam() async {
     try {
@@ -2011,10 +1989,12 @@ class QrCodeScannerDialog extends StatefulWidget {
 }
 
 class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
-  final _cameraLinuxPlugin = CameraLinux();
+  final CameraLinux? _cameraLinuxPlugin = Platform.isLinux ? CameraLinux() : null;
+  final CameraWindows? _cameraWindowsPlugin = Platform.isWindows ? CameraWindows() : null;
   bool _isCameraOpen = false;
   Image? _image;
   bool _isScanning = false;
+  int _cameraId = -1;
 
   @override
   void initState() {
@@ -2030,19 +2010,38 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
   Future<void> _initializeCamera() async {
     try {
-      await _cameraLinuxPlugin.initializeCamera();
-      Logging.instance
-          .log("Camera initialized successfully", level: LogLevel.Info);
+      if (Platform.isLinux && _cameraLinuxPlugin != null) {
+        await _cameraLinuxPlugin!.initializeCamera();
+        Logging.instance.log("Linux Camera initialized", level: LogLevel.Info);
+      } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
+        final List<CameraDescription> cameras = await _cameraWindowsPlugin!.availableCameras();
+        if (cameras.isEmpty) {
+          throw CameraException('No cameras available', 'No cameras found.');
+        }
+        final CameraDescription camera = cameras[0]; // Could be user-selected.
+        _cameraId = await _cameraWindowsPlugin!.createCameraWithSettings(
+          camera,
+          const MediaSettings(
+            resolutionPreset: ResolutionPreset.low,
+            fps: 4,
+            videoBitrate: 200000,
+            enableAudio: false,
+          ),
+        );
+        await _cameraWindowsPlugin!.initializeCamera(_cameraId);
+        // await _cameraWindowsPlugin!.onCameraInitialized(_cameraId).first;
+        // TODO [prio=low]: Make this work. ^^^
+        Logging.instance.log("Windows Camera initialized with ID: $_cameraId", level: LogLevel.Info);
+      }
       if (mounted) {
         setState(() {
           _isCameraOpen = true;
           _isScanning = true;
         });
       }
-      _captureAndScanImage();
+      unawaited(_captureAndScanImage()); // Could be awaited.
     } catch (e, s) {
-      Logging.instance
-          .log("Failed to initialize camera: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log("Failed to initialize camera: $e\n$s", level: LogLevel.Error);
       if (mounted) {
         widget.onSnackbar("Failed to initialize camera. Please try again.");
       }
@@ -2051,11 +2050,19 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
   Future<void> _stopCamera() async {
     try {
-      _cameraLinuxPlugin.stopCamera();
-      Logging.instance.log("Camera stopped successfully", level: LogLevel.Info);
+      if (Platform.isLinux && _cameraLinuxPlugin != null) {
+        _cameraLinuxPlugin!.stopCamera();
+        Logging.instance.log("Linux Camera stopped", level: LogLevel.Info);
+      } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
+        if (_cameraId >= 0) {
+          await _cameraWindowsPlugin!.dispose(_cameraId);
+          Logging.instance.log("Windows Camera stopped with ID: $_cameraId", level: LogLevel.Info);
+        } else {
+          Logging.instance.log("Windows Camera ID is null. Cannot dispose.", level: LogLevel.Error);
+        }
+      }
     } catch (e, s) {
-      Logging.instance
-          .log("Failed to stop camera: $e\n$s", level: LogLevel.Error);
+      Logging.instance.log("Failed to stop camera: $e\n$s", level: LogLevel.Error);
     } finally {
       if (mounted) {
         setState(() {
@@ -2069,7 +2076,19 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   Future<void> _captureAndScanImage() async {
     while (_isCameraOpen && _isScanning) {
       try {
-        final base64Image = await _cameraLinuxPlugin.captureImage();
+        String? base64Image;
+        if (Platform.isLinux && _cameraLinuxPlugin != null) {
+          base64Image = await _cameraLinuxPlugin!.captureImage();
+        } else if (Platform.isWindows) {
+          final XFile xfile = await _cameraWindowsPlugin!.takePicture(_cameraId);
+          final bytes = await xfile.readAsBytes();
+          base64Image = base64Encode(bytes);
+        }
+        if (base64Image == null || base64Image.isEmpty) {
+          Logging.instance.log("Failed to capture image", level: LogLevel.Info);
+          await Future.delayed(const Duration(milliseconds: 250));
+          continue;
+        }
         final img.Image? image = img.decodeImage(base64Decode(base64Image));
         if (image == null) {
           Logging.instance.log("Failed to decode image", level: LogLevel.Info);
@@ -2080,7 +2099,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         if (mounted) {
           setState(() {
             _image = Image.memory(
-              base64Decode(base64Image),
+              base64Decode(base64Image!),
               fit: BoxFit.cover,
             );
           });
@@ -2094,8 +2113,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           }
           break;
         } else {
-          Logging.instance
-              .log("No QR code found in the image", level: LogLevel.Info);
+          // Logging.instance.log("No QR code found in the image", level: LogLevel.Info);
+          // Spammy.
           if (mounted) {
             widget.onSnackbar("No QR code found in the image.");
           }
@@ -2103,11 +2122,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
         await Future.delayed(const Duration(milliseconds: 250));
       } catch (e, s) {
-        Logging.instance.log("Failed to capture and scan image: $e\n$s",
-            level: LogLevel.Error);
+        // Logging.instance.log("Failed to capture and scan image: $e\n$s", level: LogLevel.Error);
+        // Spammy.
         if (mounted) {
-          widget.onSnackbar(
-              "Error capturing or scanning the image. Please try again.");
+          widget.onSnackbar("Error capturing or scanning the image. Please try again.");
         }
       }
     }
@@ -2124,8 +2142,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             .buffer
             .asInt32List(),
       );
-      final BinaryBitmap bitmap =
-          BinaryBitmap(GlobalHistogramBinarizer(source));
+      final BinaryBitmap bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
 
       final QRCodeReader reader = QRCodeReader();
       final qrDecode = reader.decode(bitmap);
@@ -2134,8 +2151,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       }
       return qrDecode.text;
     } catch (e, s) {
-      Logging.instance
-          .log("Failed to decode QR code: $e\n$s", level: LogLevel.Error);
+      // Logging.instance.log("Failed to decode QR code: $e\n$s", level: LogLevel.Error);
+      // Spammy.
       return null;
     }
   }
@@ -2164,13 +2181,13 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           Expanded(
             child: _isCameraOpen
                 ? _image != null
-                    ? _image!
-                    : const Center(
-                        child: CircularProgressIndicator(),
-                      )
+                ? _image!
                 : const Center(
-                    child: Text("Camera is not open"),
-                  ),
+              child: CircularProgressIndicator(),
+            )
+                : const Center(
+              child: Text("Camera is not open"),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -2196,10 +2213,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                     final filePath = result.files.single.path!;
                     try {
                       final img.Image? image =
-                          img.decodeImage(File(filePath).readAsBytesSync());
+                      img.decodeImage(File(filePath).readAsBytesSync());
                       if (image == null) {
-                        widget.onSnackbar(
-                            "Failed to decode image. Please select a valid image file.");
+                        widget.onSnackbar("Failed to decode image. Please select a valid image file.");
                         return;
                       }
 
@@ -2211,10 +2227,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                         widget.onSnackbar("No QR code found in the image.");
                       }
                     } catch (e, s) {
-                      Logging.instance.log("Failed to decode image: $e\n$s",
-                          level: LogLevel.Error);
-                      widget.onSnackbar(
-                          "Error processing the image. Please try again.");
+                      Logging.instance.log("Failed to decode image: $e\n$s", level: LogLevel.Error);
+                      widget.onSnackbar("Error processing the image. Please try again.");
                     }
                   },
                 ),

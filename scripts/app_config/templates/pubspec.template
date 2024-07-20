@@ -193,9 +193,10 @@ dependencies:
   camera_linux: ^0.0.8
   zxing2: ^0.2.3
   camera_windows:
-    git:
+    git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
       url: https://github.com/cypherstack/packages.git
       path: packages/camera/camera_windows
+  camera_platform_interface: ^2.8.0
 
 dev_dependencies:
   flutter_test:
