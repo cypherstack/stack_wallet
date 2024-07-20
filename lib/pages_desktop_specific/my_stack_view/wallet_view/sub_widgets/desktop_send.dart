@@ -1999,6 +1999,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   @override
   void initState() {
     super.initState();
+    _isCameraOpen = false;
+    _isScanning = false;
     _initializeCamera();
   }
 
@@ -2010,6 +2012,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
   Future<void> _initializeCamera() async {
     try {
+      setState(() {
+        _isScanning = true; // Show the progress indicator
+      });
+
       if (Platform.isLinux && _cameraLinuxPlugin != null) {
         await _cameraLinuxPlugin!.initializeCamera();
         Logging.instance.log("Linux Camera initialized", level: LogLevel.Info);
@@ -2186,7 +2192,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
               child: CircularProgressIndicator(),
             )
                 : const Center(
-              child: Text("Camera is not open"),
+              child: CircularProgressIndicator(), // Show progress indicator immediately
             ),
           ),
           Padding(
