@@ -197,6 +197,7 @@ dependencies:
       url: https://github.com/cypherstack/packages.git
       path: packages/camera/camera_windows
   camera_platform_interface: ^2.8.0
+  camera_macos: ^0.0.8
 
 dev_dependencies:
   flutter_test:
