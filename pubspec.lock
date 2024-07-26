@@ -273,11 +273,12 @@ packages:
   camera_windows:
     dependency: "direct main"
     description:
-      name: camera_windows
-      sha256: "04434bcc3b06e16d7fac13d5cefd5f75ad3a0cce600db0198197a1ce9a61513b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.4+1"
+      path: "packages/camera/camera_windows"
+      ref: HEAD
+      resolved-ref: "9bfbfd643ba4e6865ec34124e42a1cc502c400c0"
+      url: "https://github.com/cypherstack/packages.git"
+    source: git
+    version: "0.2.4"
   characters:
     dependency: transitive
     description:
@@ -870,10 +871,10 @@ packages:
     dependency: transitive
     description:
       name: freezed_annotation
-      sha256: c3fd9336eb55a38cc1bbd79ab17573113a8deccd0ecbbf926cca3c62803b5c2d
+      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.4"
   frontend_server_client:
     dependency: transitive
     description:
