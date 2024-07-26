@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera_linux/camera_linux.dart';
+import 'package:camera_macos/camera_macos_arguments.dart';
 import 'package:camera_macos/camera_macos_controller.dart';
 import 'package:camera_macos/camera_macos_device.dart';
 import 'package:camera_macos/camera_macos_platform_interface.dart';
@@ -2054,6 +2055,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           throw Exception('No cameras available');
         }
         _macOSDeviceId = videoDevices.first.deviceId;
+        await CameraMacOS.instance.initialize(cameraMacOSMode: CameraMacOSMode.photo);
 
         setState(() {
           _isCameraOpen = true;
