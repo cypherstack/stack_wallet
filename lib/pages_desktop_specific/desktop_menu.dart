@@ -59,7 +59,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   late final DMIController torButtonController;
 
   double _width = expandedWidth;
-  bool _isMinimized = false;
+  bool get _isMinimized => _width < expandedWidth;
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
@@ -80,25 +80,24 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
     setState(() {
       _width = expanded ? minimizedWidth : expandedWidth;
-      _isMinimized = !_isMinimized;
     });
   }
 
   @override
   void initState() {
     controllers = [
-      DMIController(isMinimized: _isMinimized),
-      DMIController(isMinimized: _isMinimized),
-      DMIController(isMinimized: _isMinimized),
-      DMIController(isMinimized: _isMinimized),
-      DMIController(isMinimized: _isMinimized),
-      DMIController(isMinimized: _isMinimized),
-      DMIController(isMinimized: _isMinimized),
-      DMIController(isMinimized: _isMinimized),
-      DMIController(isMinimized: _isMinimized),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
+      DMIController(),
     ];
 
-    torButtonController = DMIController(isMinimized: _isMinimized);
+    torButtonController = DMIController();
 
     super.initState();
   }
@@ -193,6 +192,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: DesktopMenuItemId.myStack,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     if (AppConfig.hasFeature(AppFeature.swap) &&
                         showExchange) ...[
@@ -207,6 +207,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         value: DesktopMenuItemId.exchange,
                         onChanged: updateSelectedMenuItem,
                         controller: controllers[1],
+                        isExpandedInitially: !_isMinimized,
                       ),
                     ],
                     if (AppConfig.hasFeature(AppFeature.buy) &&
@@ -222,6 +223,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         value: DesktopMenuItemId.buy,
                         onChanged: updateSelectedMenuItem,
                         controller: controllers[2],
+                        isExpandedInitially: !_isMinimized,
                       ),
                     ],
                     const SizedBox(
@@ -235,6 +237,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: DesktopMenuItemId.notifications,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[3],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const SizedBox(
                       height: 2,
@@ -247,6 +250,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: DesktopMenuItemId.addressBook,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[4],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const SizedBox(
                       height: 2,
@@ -259,6 +263,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: DesktopMenuItemId.settings,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[5],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const SizedBox(
                       height: 2,
@@ -271,6 +276,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: DesktopMenuItemId.support,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[6],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const SizedBox(
                       height: 2,
@@ -283,6 +289,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       value: DesktopMenuItemId.about,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[7],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const Spacer(),
                     if (!Platform.isIOS)
@@ -305,6 +312,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                           //   }
                         },
                         controller: controllers[8],
+                        isExpandedInitially: !_isMinimized,
                       ),
                   ],
                 ),
