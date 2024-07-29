@@ -518,6 +518,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
       await updateChainHeight();
 
+      if (this is BitcoinFrostWallet) {
+        await (this as BitcoinFrostWallet).lookAhead();
+      }
+
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.

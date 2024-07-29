@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../app_config.dart';
 import '../../../../db/hive/db.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/price_provider.dart';
@@ -69,7 +70,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  "Choose Your Stack Experience",
+                  "Choose Your ${AppConfig.prefix} Experience",
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),
@@ -192,9 +193,11 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                       )
                           .then((_) {
                         if (isEasy) {
-                          unawaited(
-                            ExchangeDataLoadingService.instance.loadAll(),
-                          );
+                          if (AppConfig.hasFeature(AppFeature.swap)) {
+                            unawaited(
+                              ExchangeDataLoadingService.instance.loadAll(),
+                            );
+                          }
                           ref
                               .read(priceAnd24hChangeNotifierProvider)
                               .start(true);

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../app_config.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -267,7 +268,7 @@ class AdvancedSettingsView extends StatelessWidget {
                               text: TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: "Stack Experience",
+                                    text: "${AppConfig.prefix} Experience",
                                     style: STextStyles.titleBold12(context),
                                   ),
                                   TextSpan(

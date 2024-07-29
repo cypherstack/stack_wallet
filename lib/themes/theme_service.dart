@@ -31,7 +31,9 @@ final pThemeService = Provider<ThemeService>((ref) {
 });
 
 class ThemeService {
-  static const _currentDefaultThemeVersion = 10;
+  // dumb quick conditional based on name. Should really be done better
+  static const _currentDefaultThemeVersion =
+      AppConfig.appName == "Campfire" ? 17 : 15;
   ThemeService._();
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();

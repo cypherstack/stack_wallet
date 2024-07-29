@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 
+import '../../app_config.dart';
 import '../../db/hive/db.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages/intro_view.dart';
@@ -143,7 +144,7 @@ class _ForgotPasswordDesktopViewState
                         ),
                         TextSpan(
                           text: widget.shouldCreateNew
-                              ? "create a new Stack"
+                              ? "create a new ${AppConfig.prefix}"
                               : "restore from backup",
                           style: STextStyles.desktopTextSmallBold(context),
                         ),

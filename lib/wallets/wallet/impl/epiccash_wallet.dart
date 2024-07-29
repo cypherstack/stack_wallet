@@ -609,7 +609,7 @@ class EpiccashWallet extends Bip39Wallet {
           wallet: wallet!,
           selectionStrategyIsAll: 0,
           minimumConfirmations: cryptoCurrency.minConfirms,
-          message: txData.noteOnChain!,
+          message: txData.noteOnChain ?? "",
           amount: txData.recipients!.first.amount.raw.toInt(),
           address: txData.recipients!.first.address,
         );

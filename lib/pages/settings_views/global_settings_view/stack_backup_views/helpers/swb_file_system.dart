@@ -14,6 +14,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import '../../../../../app_config.dart';
 import '../../../../../utilities/util.dart';
 
 class SWBFileSystem {
@@ -39,17 +41,18 @@ class SWBFileSystem {
     // debugPrint(rootPath!.absolute.toString());
 
     late Directory sampleFolder;
+    const dirName = "${AppConfig.prefix}_backup";
 
     if (Platform.isIOS) {
       sampleFolder = Directory(rootPath!.path);
     } else if (Platform.isAndroid) {
-      sampleFolder = Directory('${rootPath!.path}Documents/Stack_backups');
+      sampleFolder = Directory('${rootPath!.path}Documents/$dirName');
     } else if (Platform.isLinux) {
-      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
+      sampleFolder = Directory('${rootPath!.path}/$dirName');
     } else if (Platform.isWindows) {
-      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
+      sampleFolder = Directory('${rootPath!.path}/$dirName');
     } else if (Platform.isMacOS) {
-      sampleFolder = Directory('${rootPath!.path}/Stack_backups');
+      sampleFolder = Directory('${rootPath!.path}/$dirName');
     }
 
     try {
@@ -79,17 +82,20 @@ class SWBFileSystem {
   }
 
   Future<void> pickDir(BuildContext context) async {
-    final String? path;
+    final String? chosenPath;
     if (Platform.isIOS) {
-      path = startPath?.path;
+      chosenPath = startPath?.path;
     } else {
-      path = await FilePicker.platform.getDirectoryPath(
+      final String path = Platform.isWindows
+          ? startPath!.path.replaceAll("/", "\\")
+          : startPath!.path;
+      chosenPath = await FilePicker.platform.getDirectoryPath(
         dialogTitle: "Choose Backup location",
-        initialDirectory: startPath!.path,
+        initialDirectory: path,
         lockParentWindow: true,
       );
     }
-    dirPath = path;
+    dirPath = chosenPath;
   }
 
   Future<void> openFile(BuildContext context) async {

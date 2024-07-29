@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mutex/mutex.dart';
 
 import '../../notifications/show_flush_bar.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
@@ -70,6 +71,7 @@ class LockscreenView extends ConsumerStatefulWidget {
 
 class _LockscreenViewState extends ConsumerState<LockscreenView> {
   late final ShakeController _shakeController;
+  late final bool _autoPin;
 
   late int _attempts;
   bool _attemptLock = false;
@@ -186,16 +188,18 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     biometrics = widget.biometrics;
     _attempts = 0;
     _timeout = Duration.zero;
-
+    _autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
+    if (_autoPin) {
+      _pinTextController.addListener(_onPinChangedAutologinCheck);
+    }
     _checkUseBiometrics();
-    _pinTextController.addListener(_onPinChanged);
     super.initState();
   }
 
   @override
   dispose() {
     // _shakeController.dispose();
-    _pinTextController.removeListener(_onPinChanged);
+    _pinTextController.removeListener(_onPinChangedAutologinCheck);
     super.dispose();
   }
 
@@ -218,16 +222,120 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   final _pinTextController = TextEditingController();
 
-  void _onPinChanged() async {
-    String enteredPin = _pinTextController.text;
-    final storedPin = await _secureStore.read(key: 'stack_pin');
-    final autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
+  final Mutex _autoPinCheckLock = Mutex();
+  void _onPinChangedAutologinCheck() async {
+    if (mounted) {
+      await _autoPinCheckLock.acquire();
+    }
 
-    if (enteredPin.length >= 4 && autoPin && enteredPin == storedPin) {
+    try {
+      if (_autoPin && _pinTextController.text.length >= 4) {
+        final storedPin = await _secureStore.read(key: 'stack_pin');
+        if (_pinTextController.text == storedPin) {
+          await Future<void>.delayed(
+            const Duration(milliseconds: 200),
+          );
+          unawaited(_onUnlock());
+        }
+      }
+    } finally {
+      _autoPinCheckLock.release();
+    }
+  }
+
+  void _onSubmitPin(String pin) async {
+    _attempts++;
+
+    if (_attempts > maxAttemptsBeforeThrottling) {
+      _attemptLock = true;
+      switch (_attempts) {
+        case 4:
+          _timeout = const Duration(seconds: 30);
+          break;
+
+        case 5:
+          _timeout = const Duration(seconds: 60);
+          break;
+
+        case 6:
+          _timeout = const Duration(minutes: 5);
+          break;
+
+        case 7:
+          _timeout = const Duration(minutes: 10);
+          break;
+
+        case 8:
+          _timeout = const Duration(minutes: 20);
+          break;
+
+        case 9:
+          _timeout = const Duration(minutes: 30);
+          break;
+
+        default:
+          _timeout = const Duration(minutes: 60);
+      }
+
+      _timer?.cancel();
+      _timer = Timer(_timeout, () {
+        _attemptLock = false;
+        _attempts = 0;
+      });
+    }
+
+    if (_attemptLock) {
+      String prettyTime = "";
+      if (_timeout.inSeconds >= 60) {
+        prettyTime += "${_timeout.inMinutes} minutes";
+      } else {
+        prettyTime += "${_timeout.inSeconds} seconds";
+      }
+
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message:
+              "Incorrect PIN entered too many times. Please wait $prettyTime",
+          context: context,
+          iconAsset: Assets.svg.alertCircle,
+        ),
+      );
+
+      await Future<void>.delayed(
+        const Duration(milliseconds: 100),
+      );
+
+      _pinTextController.text = '';
+
+      return;
+    }
+
+    final storedPin = await _secureStore.read(key: 'stack_pin');
+
+    if (storedPin == pin) {
       await Future<void>.delayed(
         const Duration(milliseconds: 200),
       );
       unawaited(_onUnlock());
+    } else {
+      unawaited(_shakeController.shake());
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Incorrect PIN. Please try again",
+            context: context,
+            iconAsset: Assets.svg.alertCircle,
+          ),
+        );
+      }
+
+      await Future<void>.delayed(
+        const Duration(milliseconds: 100),
+      );
+
+      _pinTextController.text = '';
     }
   }
 
@@ -329,98 +437,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                           isRandom: ref
                               .read(prefsChangeNotifierProvider)
                               .randomizePIN,
-                          onSubmit: (String pin) async {
-                            _attempts++;
-
-                            if (_attempts > maxAttemptsBeforeThrottling) {
-                              _attemptLock = true;
-                              switch (_attempts) {
-                                case 4:
-                                  _timeout = const Duration(seconds: 30);
-                                  break;
-
-                                case 5:
-                                  _timeout = const Duration(seconds: 60);
-                                  break;
-
-                                case 6:
-                                  _timeout = const Duration(minutes: 5);
-                                  break;
-
-                                case 7:
-                                  _timeout = const Duration(minutes: 10);
-                                  break;
-
-                                case 8:
-                                  _timeout = const Duration(minutes: 20);
-                                  break;
-
-                                case 9:
-                                  _timeout = const Duration(minutes: 30);
-                                  break;
-
-                                default:
-                                  _timeout = const Duration(minutes: 60);
-                              }
-
-                              _timer?.cancel();
-                              _timer = Timer(_timeout, () {
-                                _attemptLock = false;
-                                _attempts = 0;
-                              });
-                            }
-
-                            if (_attemptLock) {
-                              String prettyTime = "";
-                              if (_timeout.inSeconds >= 60) {
-                                prettyTime += "${_timeout.inMinutes} minutes";
-                              } else {
-                                prettyTime += "${_timeout.inSeconds} seconds";
-                              }
-
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message:
-                                      "Incorrect PIN entered too many times. Please wait $prettyTime",
-                                  context: context,
-                                  iconAsset: Assets.svg.alertCircle,
-                                ),
-                              );
-
-                              await Future<void>.delayed(
-                                const Duration(milliseconds: 100),
-                              );
-
-                              _pinTextController.text = '';
-
-                              return;
-                            }
-
-                            final storedPin =
-                                await _secureStore.read(key: 'stack_pin');
-
-                            if (storedPin == pin) {
-                              await Future<void>.delayed(
-                                const Duration(milliseconds: 200),
-                              );
-                              unawaited(_onUnlock());
-                            } else {
-                              unawaited(_shakeController.shake());
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: "Incorrect PIN. Please try again",
-                                  context: context,
-                                  iconAsset: Assets.svg.alertCircle,
-                                ),
-                              );
-
-                              await Future<void>.delayed(
-                                const Duration(milliseconds: 100),
-                              );
-
-                              _pinTextController.text = '';
+                          onSubmit: (pin) {
+                            if (!_autoPinCheckLock.isLocked) {
+                              _onSubmitPin(pin);
                             }
                           },
                         ),

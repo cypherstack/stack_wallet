@@ -10,9 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'auto_backup_view.dart';
-import 'create_backup_view.dart';
-import 'restore_from_file_view.dart';
+
+import '../../../../app_config.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
@@ -20,6 +19,9 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import 'auto_backup_view.dart';
+import 'create_backup_view.dart';
+import 'restore_from_file_view.dart';
 
 class StackBackupView extends StatelessWidget {
   const StackBackupView({
@@ -42,7 +44,7 @@ class StackBackupView extends StatelessWidget {
             },
           ),
           title: Text(
-            "Stack backup",
+            "${AppConfig.prefix} backup",
             style: STextStyles.navBarTitle(context),
           ),
         ),

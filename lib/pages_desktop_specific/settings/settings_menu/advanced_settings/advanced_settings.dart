@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../app_config.dart';
 import '../../../../pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -225,7 +226,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Stack Experience",
+                                      "${AppConfig.prefix} Experience",
                                       style: STextStyles.desktopTextExtraSmall(
                                         context,
                                       ).copyWith(

@@ -74,7 +74,9 @@ class _ForgotPasswordDesktopViewState
                 SizedBox(
                   width: 400,
                   child: Text(
-                    "${AppConfig.appName} does not store your password. Create new wallet or use a Stack backup file to restore your wallet.",
+                    "${AppConfig.appName} does not store your password. "
+                    "Create new wallet or use a ${AppConfig.prefix} "
+                    "backup file to restore your wallet.",
                     textAlign: TextAlign.center,
                     style: STextStyles.desktopTextSmall(context).copyWith(
                       color: Theme.of(context)
@@ -87,7 +89,7 @@ class _ForgotPasswordDesktopViewState
                   height: 48,
                 ),
                 PrimaryButton(
-                  label: "Create new Stack",
+                  label: "Create new ${AppConfig.prefix}",
                   onPressed: () {
                     const shouldCreateNew = true;
                     Navigator.of(context).pushNamed(
@@ -100,7 +102,7 @@ class _ForgotPasswordDesktopViewState
                   height: 24,
                 ),
                 SecondaryButton(
-                  label: "Restore from Stack backup",
+                  label: "Restore from ${AppConfig.prefix} backup",
                   onPressed: () {
                     const shouldCreateNew = false;
                     Navigator.of(context).pushNamed(

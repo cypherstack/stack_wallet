@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../../app_config.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
@@ -89,7 +90,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                             .snackBarBackError,
                         child: Text(
                           "If you cancel, the restore will not complete, and "
-                          "the wallets will not appear in your Stack.",
+                          "the wallets will not appear in your ${AppConfig.prefix}.",
                           style: STextStyles.desktopTextMedium(context),
                         ),
                       ),

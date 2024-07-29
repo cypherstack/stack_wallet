@@ -11,7 +11,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -21,7 +20,6 @@ import '../providers/providers.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
-import '../wallets/crypto_currency/crypto_currency.dart';
 import '../widgets/desktop/desktop_tor_status_button.dart';
 import '../widgets/desktop/living_stack_icon.dart';
 import 'desktop_menu_item.dart';
@@ -296,15 +294,15 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         label: "Exit",
                         value: 7,
                         onChanged: (_) {
-                          // todo: save stuff/ notify before exit?
-                          if (AppConfig.coins
-                              .where((e) => e is Monero || e is Wownero)
-                              .isNotEmpty) {
-                            // hack to insta kill because xmr/wow native lib code sucks
-                            exit(0);
-                          } else {
-                            SystemNavigator.pop();
-                          }
+                          // // todo: save stuff/ notify before exit?
+                          // if (AppConfig.coins
+                          //     .where((e) => e is Monero || e is Wownero)
+                          //     .isNotEmpty) {
+                          //   // hack to insta kill because xmr/wow native lib code sucks
+                          exit(0);
+                          //   } else {
+                          //     SystemNavigator.pop();
+                          //   }
                         },
                         controller: controllers[8],
                       ),

@@ -338,7 +338,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                         color: Colors.transparent,
                                         child: Center(
                                           child: Text(
-                                            "Decrypting Stack backup file",
+                                            "Decrypting ${AppConfig.prefix} backup file",
                                             style: STextStyles.pageTitleH2(
                                               context,
                                             ).copyWith(
@@ -452,7 +452,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                             color: Colors.transparent,
                                             child: Center(
                                               child: Text(
-                                                "Decrypting Stack backup file",
+                                                "Decrypting ${AppConfig.prefix} backup file",
                                                 style: STextStyles.pageTitleH2(
                                                   context,
                                                 ).copyWith(

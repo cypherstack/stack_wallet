@@ -206,7 +206,8 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   void sendFromStack() {
     final trade = ref.read(desktopExchangeModelProvider)!.trade!;
     final address = trade.payInAddress;
-    final coin = AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency)!;
+    final coin = AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency) ??
+        AppConfig.getCryptoCurrencyByPrettyName(trade.payInCurrency);
     final amount = Decimal.parse(trade.payInAmount).toAmount(
       fractionDigits: coin.fractionDigits,
     );

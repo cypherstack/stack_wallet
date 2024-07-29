@@ -942,6 +942,9 @@ class _SendViewState extends ConsumerState<SendView> {
     if (isPaynymSend) {
       sendToController.text = widget.accountLite!.nymName;
       noteController.text = "PayNym send";
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _setValidAddressProviders(sendToController.text),
+      );
     }
 
     // if (coin is! Epiccash) {

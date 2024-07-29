@@ -242,7 +242,7 @@ void main(List<String> args) async {
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
-  await NotificationApi.init();
+  unawaited(NotificationApi.init());
 
   await loadCoinlibFuture;
 

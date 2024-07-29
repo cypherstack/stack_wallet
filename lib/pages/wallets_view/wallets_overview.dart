@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
@@ -20,6 +19,8 @@ import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
+import '../../services/event_bus/events/wallet_added_event.dart';
+import '../../services/event_bus/global_event_bus.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
@@ -58,6 +59,8 @@ class WalletsOverview extends ConsumerStatefulWidget {
   ConsumerState<WalletsOverview> createState() => _EthWalletsOverviewState();
 }
 
+typedef WalletListItemData = ({Wallet wallet, List<EthContract> contracts});
+
 class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   final isDesktop = Util.isDesktop;
 
@@ -66,28 +69,29 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
   String _searchString = "";
 
-  final List<Tuple2<Wallet, List<EthContract>>> wallets = [];
+  final Map<String, WalletListItemData> wallets = {};
 
-  List<Tuple2<Wallet, List<EthContract>>> _filter(String searchTerm) {
+  List<WalletListItemData> _filter(String searchTerm) {
     if (searchTerm.isEmpty) {
-      return wallets;
+      return wallets.values.toList()
+        ..sort((a, b) => a.wallet.info.name.compareTo(b.wallet.info.name));
     }
 
-    final List<Tuple2<Wallet, List<EthContract>>> results = [];
+    final Map<String, WalletListItemData> results = {};
     final term = searchTerm.toLowerCase();
 
-    for (final tuple in wallets) {
+    for (final entry in wallets.entries) {
       bool includeManager = false;
       // search wallet name and total balance
-      includeManager |= _elementContains(tuple.item1.info.name, term);
+      includeManager |= _elementContains(entry.value.wallet.info.name, term);
       includeManager |= _elementContains(
-        tuple.item1.info.cachedBalance.total.decimal.toString(),
+        entry.value.wallet.info.cachedBalance.total.decimal.toString(),
         term,
       );
 
       final List<EthContract> contracts = [];
 
-      for (final contract in tuple.item2) {
+      for (final contract in entry.value.contracts) {
         if (_elementContains(contract.name, term)) {
           contracts.add(contract);
         } else if (_elementContains(contract.symbol, term)) {
@@ -100,22 +104,19 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
       }
 
       if (includeManager || contracts.isNotEmpty) {
-        results.add(Tuple2(tuple.item1, contracts));
+        results.addEntries([entry]);
       }
     }
 
-    return results;
+    return results.values.toList()
+      ..sort((a, b) => a.wallet.info.name.compareTo(b.wallet.info.name));
   }
 
   bool _elementContains(String element, String term) {
     return element.toLowerCase().contains(term);
   }
 
-  @override
-  void initState() {
-    _searchController = TextEditingController();
-    searchFieldFocusNode = FocusNode();
-
+  void updateWallets() {
     final walletsData =
         ref.read(mainDBProvider).isar.walletInfo.where().findAllSync();
     walletsData.removeWhere((e) => e.coin != widget.coin);
@@ -143,27 +144,47 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         }
 
         // add tuple to list
-        wallets.add(
-          Tuple2(
-            ref.read(pWallets).getWallet(
-                  data.walletId,
-                ),
-            contracts,
-          ),
+        wallets[data.walletId] = (
+          wallet: ref.read(pWallets).getWallet(
+                data.walletId,
+              ),
+          contracts: contracts,
         );
       }
     } else {
       // add non token wallet tuple to list
       for (final data in walletsData) {
-        wallets.add(
-          Tuple2(
-            ref.read(pWallets).getWallet(
+        // desktop single coin apps may cause issues so lets just ignore the error and move on
+        try {
+          wallets[data.walletId] = (
+            wallet: ref.read(pWallets).getWallet(
                   data.walletId,
                 ),
-            [],
-          ),
-        );
+            contracts: [],
+          );
+        } catch (_) {
+          // lol bandaid for single coin based apps
+        }
       }
+    }
+  }
+
+  @override
+  void initState() {
+    _searchController = TextEditingController();
+    searchFieldFocusNode = FocusNode();
+
+    updateWallets();
+
+    if (AppConfig.isSingleCoinApp) {
+      GlobalEventBus.instance.on<WalletAddedEvent>().listen((_) {
+        updateWallets();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      });
     }
 
     super.initState();
@@ -293,24 +314,27 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                 final data = _filter(_searchString);
                 return ListView.separated(
                   itemBuilder: (_, index) {
-                    final element = data[index];
+                    final entry = data[index];
+                    final wallet = entry.wallet;
 
-                    if (element.item1.cryptoCurrency.hasTokenSupport) {
+                    if (wallet.cryptoCurrency.hasTokenSupport) {
                       if (isDesktop) {
                         return DesktopExpandingWalletCard(
                           key: Key(
-                            "${element.item1.info.name}_${element.item2.map((e) => e.address).join()}",
+                            "${wallet.walletId}_${entry.contracts.map((e) => e.address).join()}",
                           ),
-                          data: element,
+                          data: entry,
                           navigatorState: widget.navigatorState!,
                         );
                       } else {
                         return MasterWalletCard(
-                          walletId: element.item1.walletId,
+                          key: Key(wallet.walletId),
+                          walletId: wallet.walletId,
                         );
                       }
                     } else {
                       return ConditionalParent(
+                        key: Key(wallet.walletId),
                         condition: isDesktop,
                         builder: (child) => RoundedWhiteContainer(
                           padding: const EdgeInsets.symmetric(
@@ -323,7 +347,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                           child: child,
                         ),
                         child: SimpleWalletCard(
-                          walletId: element.item1.walletId,
+                          walletId: wallet.walletId,
                           popPrevious: widget
                                       .overrideSimpleWalletCardPopPreviousValueWith ==
                                   null
