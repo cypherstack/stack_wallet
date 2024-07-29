@@ -1,3 +1,4 @@
+import '../../../models/keys/xpriv_data.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'electrumx_interface.dart';
 
@@ -42,7 +43,7 @@ mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
-  Future<({List<XPriv> xprivs, String fingerprint})> getXPrivs() async {
+  Future<XPrivData> getXPrivs() async {
     final paths = cryptoCurrency.supportedDerivationPathTypes.map(
       (e) => (
         path: e,
@@ -71,7 +72,8 @@ mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
       );
     });
 
-    return (
+    return XPrivData(
+      walletId: walletId,
       fingerprint: fingerprint,
       xprivs: [
         (

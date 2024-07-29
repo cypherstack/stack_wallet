@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../app_config.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
@@ -87,7 +88,7 @@ class _DesktopChooseFromStackState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Choose from Stack",
+          "Choose from ${AppConfig.prefix}",
           style: STextStyles.desktopH3(context),
         ),
         const SizedBox(

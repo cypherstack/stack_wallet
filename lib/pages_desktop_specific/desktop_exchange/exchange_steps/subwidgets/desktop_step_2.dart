@@ -326,7 +326,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
               ),
             ))
               CustomTextButton(
-                text: "Choose from Stack",
+                text: "Choose from ${AppConfig.prefix}",
                 onTap: selectRecipientAddressFromStack,
               ),
           ],
@@ -472,7 +472,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                 ),
               ))
                 CustomTextButton(
-                  text: "Choose from Stack",
+                  text: "Choose from ${AppConfig.prefix}",
                   onTap: selectRefundAddressFromStack,
                 ),
             ],

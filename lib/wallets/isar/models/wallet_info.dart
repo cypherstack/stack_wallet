@@ -511,4 +511,5 @@ abstract class WalletInfoKeys {
   static const String firoSparkCacheSetTimestampCache =
       "firoSparkCacheSetTimestampCacheKey";
   static const String enableOptInRbf = "enableOptInRbfKey";
+  static const String reuseAddress = "reuseAddressKey";
 }

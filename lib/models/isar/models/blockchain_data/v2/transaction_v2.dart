@@ -87,7 +87,10 @@ class TransactionV2 {
     );
   }
 
+  @ignore
   int? get size => _getFromOtherData(key: TxV2OdKeys.size) as int?;
+
+  @ignore
   int? get vSize => _getFromOtherData(key: TxV2OdKeys.vSize) as int?;
 
   bool get isEpiccashTransaction =>
@@ -192,6 +195,9 @@ class TransactionV2 {
     required int currentChainHeight,
     required int minConfirms,
   }) {
+    String prettyConfirms() =>
+        "(${getConfirmations(currentChainHeight)}/$minConfirms)";
+
     if (subType == TransactionSubType.cashFusion ||
         subType == TransactionSubType.mint ||
         (subType == TransactionSubType.sparkMint &&
@@ -199,7 +205,7 @@ class TransactionV2 {
       if (isConfirmed(currentChainHeight, minConfirms)) {
         return "Anonymized";
       } else {
-        return "Anonymizing";
+        return "Anonymizing ${prettyConfirms()}";
       }
     }
 
@@ -219,7 +225,7 @@ class TransactionV2 {
           } else if ((numberOfMessages ?? 0) > 1) {
             return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
           } else {
-            return "Receiving";
+            return "Receiving ${prettyConfirms()}";
           }
         }
       } else if (type == TransactionType.outgoing) {
@@ -231,7 +237,7 @@ class TransactionV2 {
           } else if ((numberOfMessages ?? 0) > 1) {
             return "Sending (waiting for confirmations)";
           } else {
-            return "Sending";
+            return "Sending ${prettyConfirms()}";
           }
         }
       }
@@ -244,16 +250,20 @@ class TransactionV2 {
       if (isConfirmed(currentChainHeight, minConfirms)) {
         return "Received";
       } else {
-        return "Receiving";
+        return "Receiving ${prettyConfirms()}";
       }
     } else if (type == TransactionType.outgoing) {
       if (isConfirmed(currentChainHeight, minConfirms)) {
         return "Sent";
       } else {
-        return "Sending";
+        return "Sending ${prettyConfirms()}";
       }
     } else if (type == TransactionType.sentToSelf) {
-      return "Sent to self";
+      if (isConfirmed(currentChainHeight, minConfirms)) {
+        return "Sent to self";
+      } else {
+        return "Sent to self ${prettyConfirms()}";
+      }
     } else {
       return type.name;
     }

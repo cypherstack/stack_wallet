@@ -787,7 +787,9 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
         for (final tuple in receiveResults) {
           if (tuple.addresses.isEmpty) {
-            await checkReceivingAddressForTransactions();
+            if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+              await checkReceivingAddressForTransactions();
+            }
           } else {
             highestReceivingIndexWithHistory = max(
               tuple.index,

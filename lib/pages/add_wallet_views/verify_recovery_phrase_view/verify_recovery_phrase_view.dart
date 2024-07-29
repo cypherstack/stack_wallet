@@ -14,14 +14,9 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../notifications/show_flush_bar.dart';
-import '../add_token_view/edit_wallet_tokens_view.dart';
-import '../new_wallet_options/new_wallet_options_view.dart';
-import '../new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
-import '../select_wallet_for_token_view.dart';
-import 'sub_widgets/word_table.dart';
-import 'verify_mnemonic_passphrase_dialog.dart';
-import '../../home_view/home_view.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/db/main_db_provider.dart';
@@ -38,7 +33,13 @@ import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
-import 'package:tuple/tuple.dart';
+import '../../home_view/home_view.dart';
+import '../add_token_view/edit_wallet_tokens_view.dart';
+import '../new_wallet_options/new_wallet_options_view.dart';
+import '../new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
+import '../select_wallet_for_token_view.dart';
+import 'sub_widgets/word_table.dart';
+import 'verify_mnemonic_passphrase_dialog.dart';
 
 final createSpecialEthWalletRoutingFlag = StateProvider((ref) => false);
 
@@ -114,7 +115,8 @@ class _VerifyRecoveryPhraseViewState
 
   Future<void> _continue(bool isMatch) async {
     if (isMatch) {
-      if (ref.read(pNewWalletOptions.state).state != null) {
+      if (ref.read(pNewWalletOptions) != null &&
+          ref.read(pNewWalletOptions)!.mnemonicPassphrase.isNotEmpty) {
         final passphraseVerified = await _verifyMnemonicPassphrase();
 
         if (!passphraseVerified) {

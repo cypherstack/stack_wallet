@@ -518,6 +518,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
     final coin = ref.watch(pWalletCoin(walletId));
 
+    final prefs = ref.watch(prefsChangeNotifierProvider);
+    final showExchange = prefs.enableExchange;
+
     return ConditionalParent(
       condition: _rescanningOnOpen,
       builder: (child) {
@@ -1053,7 +1056,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   ),
                   if (Constants.enableExchange &&
                       ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
-                      AppConfig.hasFeature(AppFeature.swap))
+                      AppConfig.hasFeature(AppFeature.swap) &&
+                      showExchange)
                     WalletNavigationBarItemData(
                       label: "Swap",
                       icon: const ExchangeNavIcon(),
@@ -1061,7 +1065,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   if (Constants.enableExchange &&
                       ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
-                      AppConfig.hasFeature(AppFeature.buy))
+                      AppConfig.hasFeature(AppFeature.buy) &&
+                      showExchange)
                     WalletNavigationBarItemData(
                       label: "Buy",
                       icon: const BuyNavIcon(),

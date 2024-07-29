@@ -18,6 +18,7 @@ import 'package:tuple/tuple.dart';
 import '../../../db/hive/db.dart';
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/epicbox_config_model.dart';
+import '../../../models/keys/key_data_interface.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../providers/ui/transaction_filter_provider.dart';
@@ -35,6 +36,7 @@ import '../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../widgets/background.dart';
@@ -261,10 +263,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
 
                                         // TODO: [prio=med] take wallets that don't have a mnemonic into account
 
-                                        ({
-                                          List<XPriv> xprivs,
-                                          String fingerprint
-                                        })? xprivData;
                                         List<String>? mnemonic;
                                         ({
                                           String myName,
@@ -306,8 +304,11 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                               await wallet.getMnemonicAsWords();
                                         }
 
+                                        KeyDataInterface? keyData;
                                         if (wallet is ExtendedKeysInterface) {
-                                          xprivData = await wallet.getXPrivs();
+                                          keyData = await wallet.getXPrivs();
+                                        } else if (wallet is CwBasedInterface) {
+                                          keyData = await wallet.getKeys();
                                         }
 
                                         if (context.mounted) {
@@ -323,7 +324,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                   mnemonic: mnemonic ?? [],
                                                   frostWalletData:
                                                       frostWalletData,
-                                                  xprivData: xprivData,
+                                                  keyData: keyData,
                                                 ),
                                                 showBackButton: true,
                                                 routeOnSuccess:

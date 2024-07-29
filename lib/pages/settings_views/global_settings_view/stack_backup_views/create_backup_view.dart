@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
+import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -774,7 +775,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                                         height: 26,
                                                       ),
                                                       Text(
-                                                        "Stack backup saved to: \n",
+                                                        "${AppConfig.prefix} backup saved to: \n",
                                                         style: STextStyles
                                                             .desktopH3(context),
                                                       ),

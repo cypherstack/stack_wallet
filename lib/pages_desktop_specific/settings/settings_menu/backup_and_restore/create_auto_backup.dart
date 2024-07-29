@@ -20,6 +20,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:zxcvbn/zxcvbn.dart';
 
+import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
@@ -776,7 +777,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                     if (Platform.isAndroid) {
                                       return StackOkDialog(
                                         title:
-                                            "Stack Auto Backup enabled and saved to:",
+                                            "${AppConfig.prefix} Auto Backup enabled and saved to:",
                                         message: fileToSave,
                                       );
                                     } else if (Util.isDesktop) {
@@ -800,7 +801,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                                         .spaceBetween,
                                                 children: [
                                                   Text(
-                                                    "Stack Auto Backup enabled!",
+                                                    "${AppConfig.prefix} Auto Backup enabled!",
                                                     style:
                                                         STextStyles.desktopH3(
                                                       context,
@@ -834,7 +835,8 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                       );
                                     } else {
                                       return const StackOkDialog(
-                                        title: "Stack Auto Backup enabled!",
+                                        title:
+                                            "${AppConfig.prefix} Auto Backup enabled!",
                                       );
                                     }
                                   },

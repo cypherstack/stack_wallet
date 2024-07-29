@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
 import '../../providers/global/notifications_provider.dart';
+import '../../providers/global/prefs_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -172,6 +173,20 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+
+    // dirty hack
+    ref.listen(
+        prefsChangeNotifierProvider.select((value) => value.enableExchange),
+        (prev, next) {
+      if (next == false &&
+          mounted &&
+          ref.read(homeViewPageIndexStateProvider) != 0) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => ref.read(homeViewPageIndexStateProvider.state).state = 0,
+        );
+      }
+    });
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Background(
@@ -345,7 +360,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
           ),
           body: Column(
             children: [
-              if (_children.length > 1)
+              if (_children.length > 1 &&
+                  ref.watch(prefsChangeNotifierProvider).enableExchange)
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context)

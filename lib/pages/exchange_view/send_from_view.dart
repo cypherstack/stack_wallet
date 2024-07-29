@@ -14,10 +14,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../app_config.dart';
 import '../../models/exchange/response_objects/trade.dart';
-import 'confirm_change_now_send.dart';
-import '../home_view/home_view.dart';
-import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
@@ -29,12 +28,14 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -43,6 +44,9 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/expandable.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
+import '../home_view/home_view.dart';
+import '../send_view/sub_widgets/building_transaction_dialog.dart';
+import 'confirm_change_now_send.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
@@ -135,7 +139,7 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
                       left: 32,
                     ),
                     child: Text(
-                      "Send from Stack",
+                      "Send from ${AppConfig.prefix}",
                       style: STextStyles.desktopH3(context),
                     ),
                   ),
@@ -269,6 +273,15 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         ),
       );
 
+      // Currently CwBasedInterface wallets (xmr/wow) shouldn't even have
+      // access to this screen but this is needed to get past an error that
+      // would occur only to lead to another error which is why xmr/wow wallets
+      // don't have access to this screen currently
+      if (wallet is CwBasedInterface) {
+        await wallet.init();
+        await wallet.open();
+      }
+
       final time = Future<dynamic>.delayed(
         const Duration(
           milliseconds: 2500,
@@ -373,7 +386,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           );
         }
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();

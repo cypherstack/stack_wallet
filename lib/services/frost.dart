@@ -284,7 +284,13 @@ abstract class Frost {
 
   static String createSignConfig({
     required int network,
-    required List<({UTXO utxo, Uint8List scriptPubKey})> inputs,
+    required List<
+            ({
+              UTXO utxo,
+              Uint8List scriptPubKey,
+              AddressDerivationData addressDerivationData
+            })>
+        inputs,
     required List<({String address, Amount amount, bool isChange})> outputs,
     required String changeAddress,
     required int feePerWeight,
@@ -299,6 +305,7 @@ abstract class Frost {
                 vout: e.utxo.vout,
                 value: e.utxo.value,
                 scriptPubKey: e.scriptPubKey,
+                addressDerivationData: e.addressDerivationData,
               ),
             )
             .toList(),

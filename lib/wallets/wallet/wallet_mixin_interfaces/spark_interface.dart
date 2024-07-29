@@ -183,14 +183,75 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<Amount> estimateFeeForSpark(Amount amount) async {
-    // int spendAmount = amount.raw.toInt();
-    // if (spendAmount == 0) {
-    return Amount(
-      rawValue: BigInt.from(0),
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
-    // }
-    // TODO actual fee estimation
+    final spendAmount = amount.raw.toInt();
+    if (spendAmount == 0) {
+      return Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+    } else {
+      // fetch spendable spark coins
+      final coins = await mainDB.isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .filter()
+          .isUsedEqualTo(false)
+          .and()
+          .heightIsNotNull()
+          .and()
+          .not()
+          .valueIntStringEqualTo("0")
+          .findAll();
+
+      final available =
+          coins.map((e) => e.value).fold(BigInt.zero, (p, e) => p + e);
+
+      if (amount.raw > available) {
+        return Amount(
+          rawValue: BigInt.from(0),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+      }
+
+      // prepare coin data for ffi
+      final serializedCoins = coins
+          .map(
+            (e) => (
+              serializedCoin: e.serializedCoinB64!,
+              serializedCoinContext: e.contextB64!,
+              groupId: e.groupId,
+              height: e.height!,
+            ),
+          )
+          .toList();
+
+      final root = await getRootHDNode();
+      final String derivationPath;
+      if (cryptoCurrency.network.isTestNet) {
+        derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
+      } else {
+        derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
+      }
+      final privateKey = root.derivePath(derivationPath).privateKey.data;
+      int estimate = await _asyncSparkFeesWrapper(
+        privateKeyHex: privateKey.toHex,
+        index: kDefaultSparkIndex,
+        sendAmount: spendAmount,
+        subtractFeeFromAmount: true,
+        serializedCoins: serializedCoins,
+        // privateRecipientsCount: (txData.sparkRecipients?.length ?? 0),
+        privateRecipientsCount: 1, // ROUGHLY!
+      );
+
+      if (estimate < 0) {
+        estimate = 0;
+      }
+
+      return Amount(
+        rawValue: BigInt.from(estimate),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+    }
   }
 
   /// Spark to Spark/Transparent (spend) creation
@@ -374,7 +435,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         recipientCount + (txData.sparkRecipients?.length ?? 0);
     final BigInt estimatedFee;
     if (isSendAll) {
-      final estFee = LibSpark.estimateSparkFee(
+      final estFee = await _asyncSparkFeesWrapper(
         privateKeyHex: privateKey.toHex,
         index: kDefaultSparkIndex,
         sendAmount: txAmount.raw.toInt(),
@@ -2001,4 +2062,54 @@ class MutableSparkRecipient {
   String toString() {
     return 'MutableSparkRecipient{ address: $address, value: $value, memo: $memo }';
   }
+}
+
+typedef SerializedCoinData = ({
+  int groupId,
+  int height,
+  String serializedCoin,
+  String serializedCoinContext
+});
+
+Future<int> _asyncSparkFeesWrapper({
+  required String privateKeyHex,
+  int index = 1,
+  required int sendAmount,
+  required bool subtractFeeFromAmount,
+  required List<SerializedCoinData> serializedCoins,
+  required int privateRecipientsCount,
+}) async {
+  return await compute(
+    _estSparkFeeComputeFunc,
+    (
+      privateKeyHex: privateKeyHex,
+      index: index,
+      sendAmount: sendAmount,
+      subtractFeeFromAmount: subtractFeeFromAmount,
+      serializedCoins: serializedCoins,
+      privateRecipientsCount: privateRecipientsCount,
+    ),
+  );
+}
+
+int _estSparkFeeComputeFunc(
+  ({
+    String privateKeyHex,
+    int index,
+    int sendAmount,
+    bool subtractFeeFromAmount,
+    List<SerializedCoinData> serializedCoins,
+    int privateRecipientsCount,
+  }) args,
+) {
+  final est = LibSpark.estimateSparkFee(
+    privateKeyHex: args.privateKeyHex,
+    index: args.index,
+    sendAmount: args.sendAmount,
+    subtractFeeFromAmount: args.subtractFeeFromAmount,
+    serializedCoins: args.serializedCoins,
+    privateRecipientsCount: args.privateRecipientsCount,
+  );
+
+  return est;
 }

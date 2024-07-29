@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../models/keys/xpriv_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -23,7 +24,6 @@ import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/qr.dart';
@@ -37,7 +37,7 @@ class WalletXPrivs extends ConsumerStatefulWidget {
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
-  final ({List<XPriv> xprivs, String fingerprint}) xprivData;
+  final XPrivData xprivData;
   final String walletId;
   final ClipboardInterface clipboardInterface;
 
