@@ -218,6 +218,9 @@ class TokenWalletOptions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final prefs = ref.watch(prefsChangeNotifierProvider);
+    final showExchange = prefs.enableExchange;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -251,11 +254,11 @@ class TokenWalletOptions extends ConsumerWidget {
           subLabel: "Send",
           iconAssetPathSVG: Assets.svg.arrowUpRight,
         ),
-        if (AppConfig.hasFeature(AppFeature.swap))
+        if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
           const SizedBox(
             width: 16,
           ),
-        if (AppConfig.hasFeature(AppFeature.swap))
+        if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
           TokenOptionsButton(
             onPressed: () => _onExchangePressed(context),
             subLabel: "Swap",
@@ -265,11 +268,11 @@ class TokenWalletOptions extends ConsumerWidget {
               ),
             ),
           ),
-        if (AppConfig.hasFeature(AppFeature.buy))
+        if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
           const SizedBox(
             width: 16,
           ),
-        if (AppConfig.hasFeature(AppFeature.buy))
+        if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
           TokenOptionsButton(
             onPressed: () => _onBuyPressed(context),
             subLabel: "Buy",
