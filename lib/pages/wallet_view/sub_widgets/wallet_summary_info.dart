@@ -28,9 +28,9 @@ import '../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/coins/banano.dart';
+import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
-import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../widgets/conditional_parent.dart';
 import 'wallet_balance_toggle_sheet.dart';
 import 'wallet_refresh_button.dart';
@@ -45,17 +45,7 @@ class WalletSummaryInfo extends ConsumerWidget {
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
 
-  void showSheet(
-      BuildContext context, WidgetRef ref, List<FiroType> availableBalances) {
-    if (availableBalances.length <= 2) {
-      final state = ref.read(publicPrivateBalanceStateProvider.state).state;
-      final newState = availableBalances.firstWhere(
-          (balanceType) => balanceType != state,
-          orElse: () => availableBalances.first);
-      ref.read(publicPrivateBalanceStateProvider.state).state = newState;
-      return;
-    }
-
+  void showSheet(BuildContext context) {
     showModalBottomSheet<dynamic>(
       backgroundColor: Colors.transparent,
       context: context,
@@ -70,25 +60,6 @@ class WalletSummaryInfo extends ConsumerWidget {
     );
   }
 
-  List<FiroType> getAvailableBalances(FiroWallet firoWallet) {
-    final List<FiroType> availableBalances = [];
-    if (firoWallet.info.cachedBalanceTertiary.spendable.raw > BigInt.zero ||
-        firoWallet.info.cachedBalanceTertiary.pendingSpendable.raw >
-            BigInt.zero) {
-      availableBalances.add(FiroType.spark);
-    }
-    if (firoWallet.info.cachedBalanceSecondary.spendable.raw > BigInt.zero ||
-        firoWallet.info.cachedBalanceSecondary.pendingSpendable.raw >
-            BigInt.zero) {
-      availableBalances.add(FiroType.lelantus);
-    }
-    if (firoWallet.info.cachedBalance.spendable.raw > BigInt.zero ||
-        firoWallet.info.cachedBalance.pendingSpendable.raw > BigInt.zero) {
-      availableBalances.add(FiroType.public);
-    }
-    return availableBalances;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
@@ -98,8 +69,6 @@ class WalletSummaryInfo extends ConsumerWidget {
     );
     final coin = ref.watch(pWalletCoin(walletId));
     final balance = ref.watch(pWalletBalance(walletId));
-    final wallet =
-        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
 
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
@@ -112,17 +81,16 @@ class WalletSummaryInfo extends ConsumerWidget {
       priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin)),
     );
 
-    final _showAvailable =
-        ref.watch(walletBalanceToggleStateProvider.state).state ==
-            WalletBalanceToggleState.available;
+    final _showAvailable = ref.watch(walletBalanceToggleStateProvider) ==
+        WalletBalanceToggleState.available;
 
     final Amount balanceToShow;
     final String title;
-    List<FiroType> availableBalances = [];
 
-    if (wallet is FiroWallet) {
-      availableBalances = getAvailableBalances(wallet);
+    final bool toggleBalance;
 
+    if (coin is Firo) {
+      toggleBalance = false;
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
@@ -143,6 +111,7 @@ class WalletSummaryInfo extends ConsumerWidget {
           break;
       }
     } else {
+      toggleBalance = true;
       balanceToShow = _showAvailable ? balance.spendable : balance.total;
       title = _showAvailable ? "Available balance" : "Full balance";
     }
@@ -175,9 +144,19 @@ class WalletSummaryInfo extends ConsumerWidget {
               children: [
                 GestureDetector(
                   onTap: () {
-                    if (availableBalances.isNotEmpty &&
-                        availableBalances.length > 1) {
-                      showSheet(context, ref, availableBalances);
+                    if (toggleBalance) {
+                      if (ref.read(walletBalanceToggleStateProvider) ==
+                          WalletBalanceToggleState.available) {
+                        ref
+                            .read(walletBalanceToggleStateProvider.notifier)
+                            .state = WalletBalanceToggleState.full;
+                      } else {
+                        ref
+                            .read(walletBalanceToggleStateProvider.notifier)
+                            .state = WalletBalanceToggleState.available;
+                      }
+                    } else {
+                      showSheet(context);
                     }
                   },
                   child: Row(
@@ -190,7 +169,7 @@ class WalletSummaryInfo extends ConsumerWidget {
                               .textFavoriteCard,
                         ),
                       ),
-                      if (availableBalances.length > 1) ...[
+                      if (!toggleBalance) ...[
                         const SizedBox(
                           width: 4,
                         ),
