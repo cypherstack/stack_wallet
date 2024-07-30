@@ -79,6 +79,7 @@ import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/rounded_container.dart';
+import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 import '../../../coin_control/desktop_coin_control_use_dialog.dart';
@@ -152,8 +153,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     "Calculating..",
     "Calculating...",
   ];
-  final CameraLinux? _cameraLinuxPlugin =
-      Platform.isLinux ? CameraLinux() : null;
 
   Future<void> scanWebcam() async {
     try {
@@ -170,12 +169,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     level: LogLevel.Error);
               }
             },
-            onSnackbar: (message) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                ),
-              );
+            onSnackbar: (message) async {
+              // TODO [prio=low]: Implement snackbar messages.
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   SnackBar(
+              //     content: Text(message),
+              //   ),
+              // );
+
+              if (context.mounted) {
+                return await showDialog<void>(
+                  context: context,
+                  builder: (_) => StackOkDialog(
+                    title: "Error scanning QR code",
+                    message: message,
+                  ),
+                );
+              }
             },
           );
         },
@@ -1980,7 +1990,7 @@ String formatAddress(String epicAddress) {
 class QrCodeScannerDialog extends StatefulWidget {
   final String walletId;
   final Function(String) onQrCodeDetected;
-  final Function(String) onSnackbar;
+  final Function(String) onSnackbar; // This isn't really a snackbar currently.
 
   QrCodeScannerDialog({
     required this.walletId,
@@ -2003,6 +2013,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   bool _isScanning = false;
   int _cameraId = -1;
   String? _macOSDeviceId;
+  int _imageDelayInMs = 250;
 
   @override
   void initState() {
@@ -2055,7 +2066,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           throw Exception('No cameras available');
         }
         _macOSDeviceId = videoDevices.first.deviceId;
-        await CameraMacOS.instance.initialize(cameraMacOSMode: CameraMacOSMode.photo);
+        await CameraMacOS.instance
+            .initialize(cameraMacOSMode: CameraMacOSMode.photo);
 
         setState(() {
           _isCameraOpen = true;
@@ -2138,22 +2150,23 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           if (macOSimg == null) {
             Logging.instance
                 .log("Failed to capture image", level: LogLevel.Error);
-            await Future.delayed(const Duration(milliseconds: 250));
+            await Future.delayed(Duration(milliseconds: _imageDelayInMs));
             continue;
           }
           final img.Image? image = img.decodeImage(macOSimg.bytes!);
           if (image == null) {
             Logging.instance
                 .log("Failed to capture image", level: LogLevel.Error);
-            await Future.delayed(const Duration(milliseconds: 250));
+            await Future.delayed(Duration(milliseconds: _imageDelayInMs));
             continue;
           }
           base64Image = base64Encode(Uint8List.fromList(img.encodePng(image)));
         }
         if (base64Image == null || base64Image.isEmpty) {
-          Logging.instance
-              .log("Failed to capture image", level: LogLevel.Error);
-          await Future.delayed(const Duration(milliseconds: 250));
+          // Logging.instance
+          //     .log("Failed to capture image", level: LogLevel.Error);
+          // Spammy.
+          await Future.delayed(Duration(milliseconds: _imageDelayInMs));
           continue;
         }
         final img.Image? image = img.decodeImage(base64Decode(base64Image));
@@ -2162,7 +2175,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // > decoders, it is much slower than using an explicit decoder
         if (image == null) {
           Logging.instance.log("Failed to decode image", level: LogLevel.Error);
-          await Future.delayed(const Duration(milliseconds: 250));
+          await Future.delayed(Duration(milliseconds: _imageDelayInMs));
           continue;
         }
 
@@ -2184,13 +2197,13 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           break;
         } else {
           // Logging.instance.log("No QR code found in the image", level: LogLevel.Info);
+          // if (mounted) {
+          //   widget.onSnackbar("No QR code found in the image.");
+          // }
           // Spammy.
-          if (mounted) {
-            widget.onSnackbar("No QR code found in the image.");
-          }
         }
 
-        await Future.delayed(const Duration(milliseconds: 250));
+        await Future.delayed(Duration(milliseconds: _imageDelayInMs));
       } catch (e, s) {
         // Logging.instance.log("Failed to capture and scan image: $e\n$s", level: LogLevel.Error);
         // Spammy.
