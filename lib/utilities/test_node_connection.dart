@@ -41,6 +41,11 @@ Future<bool> _xmrHelper(
 
   final uriString = "${uri.scheme}://${uri.host}:${port ?? 0}$path";
 
+
+  if (proxyInfo == null && uri.host.endsWith(".onion")) {
+    return false;
+  }
+
   final response = await testMoneroNodeConnection(
     Uri.parse(uriString),
     false,
@@ -131,6 +136,16 @@ Future<bool> testNodeConnection({
                 proxyInfo,
               );
             }
+          } else if (!uri.hasScheme && uri.host.endsWith(".onion")) {
+            // We can just test http for onion addresses.
+            testPassed = await _xmrHelper(
+              formData
+                ..host = url
+                ..useSSL = false,
+              context,
+              onSuccess,
+              proxyInfo,
+            );
           } else {
             testPassed = await _xmrHelper(
               formData
