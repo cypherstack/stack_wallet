@@ -40,12 +40,17 @@ Future<bool> _xmrHelper(
   final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
 
   final uriString = "${uri.scheme}://${uri.host}:${port ?? 0}$path";
+  final uriString = uri.host.endsWith(".onion")
+      ? "${uri.toString()}:$port$path"
+      : uri.hasScheme
+          ? uri.toString()
+          : "${data.useSSL! ? "https" : "http"}://$url:$port$path";
 
   final response = await testMoneroNodeConnection(
     Uri.parse(uriString),
     false,
     proxyInfo: proxyInfo,
-  );
+  ).timeout(Duration(seconds: proxyInfo != null ? 30 : 10));
 
   if (response.cert != null) {
     if (context.mounted) {

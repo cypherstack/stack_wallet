@@ -108,6 +108,11 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       await socket.connect();
       await socket.connectTo(uri.host, uri.port);
 
+      // If this is an onion node and connectTo didn't throw, it's a success.
+      // if (uri.host.endsWith(".onion")) {
+      //   return MoneroNodeConnectionResponse(null, null, null, true);
+      // }
+
       final body = utf8.encode(
         jsonEncode({
           "jsonrpc": "2.0",
