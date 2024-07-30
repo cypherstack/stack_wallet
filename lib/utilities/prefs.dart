@@ -71,6 +71,7 @@ class Prefs extends ChangeNotifier {
       _useTor = await _getUseTor();
       _fusionServerInfo = await _getFusionServerInfo();
       _autoPin = await _getAutoPin();
+      _enableExchange = await _getEnableExchange();
 
       _initialized = true;
     }
@@ -1130,5 +1131,31 @@ class Prefs extends ChangeNotifier {
           key: "autoPin",
         ) as bool? ??
         false;
+  }
+
+  // Show or hide exchange (buy & swap) features.
+
+  bool _enableExchange = true;
+
+  bool get enableExchange => _enableExchange;
+
+  set enableExchange(bool showExchange) {
+    if (_enableExchange != showExchange) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "showExchange",
+        value: showExchange,
+      );
+      _enableExchange = showExchange;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getEnableExchange() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "showExchange",
+        ) as bool? ??
+        true;
   }
 }

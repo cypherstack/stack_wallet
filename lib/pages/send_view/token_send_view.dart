@@ -15,12 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
-import '../address_book_views/address_book_view.dart';
-import 'confirm_transaction_view.dart';
-import 'sub_widgets/building_transaction_dialog.dart';
-import 'sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
@@ -55,6 +52,10 @@ import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../address_book_views/address_book_view.dart';
+import 'confirm_transaction_view.dart';
+import 'sub_widgets/building_transaction_dialog.dart';
+import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class TokenSendView extends ConsumerStatefulWidget {
   const TokenSendView({
@@ -529,7 +530,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();

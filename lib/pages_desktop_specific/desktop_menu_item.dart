@@ -24,6 +24,9 @@ import 'desktop_menu.dart';
 
 class DMIController {
   VoidCallback? toggle;
+
+  DMIController();
+
   void dispose() {
     toggle = null;
   }
@@ -237,6 +240,7 @@ class DesktopMenuItem<T> extends ConsumerStatefulWidget {
     required this.duration,
     this.labelLength = 125,
     this.controller,
+    required this.isExpandedInitially,
   });
 
   final Widget icon;
@@ -246,6 +250,7 @@ class DesktopMenuItem<T> extends ConsumerStatefulWidget {
   final Duration duration;
   final double labelLength;
   final DMIController? controller;
+  final bool isExpandedInitially;
 
   @override
   ConsumerState<DesktopMenuItem<T>> createState() => _DesktopMenuItemState<T>();
@@ -287,11 +292,17 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
     labelLength = widget.labelLength;
     controller = widget.controller;
 
+    _iconOnly = !widget.isExpandedInitially;
     controller?.toggle = toggle;
     animationController = AnimationController(
       vsync: this,
       duration: duration,
-    )..forward();
+    );
+    if (_iconOnly) {
+      animationController.value = 0;
+    } else {
+      animationController.value = 1;
+    }
 
     super.initState();
   }

@@ -16,6 +16,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app_config.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
+import '../providers/providers.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
@@ -58,6 +59,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   late final DMIController torButtonController;
 
   double _width = expandedWidth;
+  bool get _isMinimized => _width < expandedWidth;
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
@@ -112,6 +114,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final prefs = ref.watch(prefsChangeNotifierProvider);
+
+    final showExchange = prefs.enableExchange;
+
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: AnimatedContainer(
@@ -161,7 +167,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                 onPressed: () {
                   ref.read(currentDesktopMenuItemProvider.state).state =
                       DesktopMenuItemId.settings;
-                  ref.watch(selectedSettingsMenuItemStateProvider.state).state =
+                  ref.read(selectedSettingsMenuItemStateProvider.state).state =
                       4;
                 },
               ),
@@ -179,97 +185,116 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DesktopMenuItem(
+                      key: const ValueKey('myStack'),
                       duration: duration,
                       icon: const DesktopMyStackIcon(),
                       label: "My ${AppConfig.prefix}",
                       value: DesktopMenuItemId.myStack,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[0],
+                      isExpandedInitially: !_isMinimized,
                     ),
-                    if (AppConfig.hasFeature(AppFeature.swap))
+                    if (AppConfig.hasFeature(AppFeature.swap) &&
+                        showExchange) ...[
                       const SizedBox(
                         height: 2,
                       ),
-                    if (AppConfig.hasFeature(AppFeature.swap))
                       DesktopMenuItem(
+                        key: const ValueKey('swap'),
                         duration: duration,
                         icon: const DesktopExchangeIcon(),
                         label: "Swap",
                         value: DesktopMenuItemId.exchange,
                         onChanged: updateSelectedMenuItem,
                         controller: controllers[1],
+                        isExpandedInitially: !_isMinimized,
                       ),
-                    if (AppConfig.hasFeature(AppFeature.buy))
+                    ],
+                    if (AppConfig.hasFeature(AppFeature.buy) &&
+                        showExchange) ...[
                       const SizedBox(
                         height: 2,
                       ),
-                    if (AppConfig.hasFeature(AppFeature.buy))
                       DesktopMenuItem(
+                        key: const ValueKey('buy'),
                         duration: duration,
                         icon: const DesktopBuyIcon(),
                         label: "Buy crypto",
                         value: DesktopMenuItemId.buy,
                         onChanged: updateSelectedMenuItem,
                         controller: controllers[2],
+                        isExpandedInitially: !_isMinimized,
                       ),
+                    ],
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: const ValueKey('notifications'),
                       duration: duration,
                       icon: const DesktopNotificationsIcon(),
                       label: "Notifications",
                       value: DesktopMenuItemId.notifications,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[3],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: const ValueKey('addressBook'),
                       duration: duration,
                       icon: const DesktopAddressBookIcon(),
                       label: "Address Book",
                       value: DesktopMenuItemId.addressBook,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[4],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: const ValueKey('settings'),
                       duration: duration,
                       icon: const DesktopSettingsIcon(),
                       label: "Settings",
                       value: DesktopMenuItemId.settings,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[5],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: const ValueKey('support'),
                       duration: duration,
                       icon: const DesktopSupportIcon(),
                       label: "Support",
                       value: DesktopMenuItemId.support,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[6],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const SizedBox(
                       height: 2,
                     ),
                     DesktopMenuItem(
+                      key: const ValueKey('about'),
                       duration: duration,
                       icon: const DesktopAboutIcon(),
                       label: "About",
                       value: DesktopMenuItemId.about,
                       onChanged: updateSelectedMenuItem,
                       controller: controllers[7],
+                      isExpandedInitially: !_isMinimized,
                     ),
                     const Spacer(),
                     if (!Platform.isIOS)
                       DesktopMenuItem(
+                        key: const ValueKey('exit'),
                         duration: duration,
                         labelLength: 123,
                         icon: const DesktopExitIcon(),
@@ -287,6 +312,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                           //   }
                         },
                         controller: controllers[8],
+                        isExpandedInitially: !_isMinimized,
                       ),
                   ],
                 ),
