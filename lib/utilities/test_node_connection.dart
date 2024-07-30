@@ -45,7 +45,7 @@ Future<bool> _xmrHelper(
     Uri.parse(uriString),
     false,
     proxyInfo: proxyInfo,
-  );
+  ).timeout(Duration(seconds: proxyInfo != null ? 30 : 10));
 
   if (response.cert != null) {
     if (context.mounted) {
