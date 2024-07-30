@@ -28,6 +28,7 @@ import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -315,7 +316,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           );
         }
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
       if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context).pop();
