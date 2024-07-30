@@ -65,13 +65,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       return false;
     };
 
-    if (proxyInfo == null) {
-      // If the host ends in .onion, we can't access it without Tor.
-      if (uri.host.endsWith('.onion')) {
-        return MoneroNodeConnectionResponse(null, null, null, false);
-      }
-
-      // Proxyless connections can use an HttpClient; proxied ones cannot.
+    if (!uri.host.endsWith(".onion")) {
       final request = await httpClient.postUrl(uri);
 
       final body = utf8.encode(
@@ -101,7 +95,12 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       // or we can check for certain values in the response to decide
       return MoneroNodeConnectionResponse(null, null, null, true);
     } else {
-      // Proxied connections cannot use an HttpClient.
+      if (proxyInfo == null) {
+        // If the host ends in .onion, we can't access it without Tor.
+        return MoneroNodeConnectionResponse(null, null, null, false);
+      }
+
+      // An HttpClient cannot be used for onion nodes.
       //
       // The SOCKSSocket class from the tor_ffi_plugin package can be used to
       // connect to .onion addresses.  We'll do the same things as above but
