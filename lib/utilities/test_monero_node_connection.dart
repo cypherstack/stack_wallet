@@ -38,34 +38,62 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
     int port,
   })? proxyInfo,
 }) async {
-  final httpClient = HttpClient();
-  MoneroNodeConnectionResponse? badCertResponse;
-
-  try {
-    if (proxyInfo != null) {
-      SocksTCPClient.assignToHttpClient(httpClient, [
-        ProxySettings(
-          proxyInfo.host,
-          proxyInfo.port,
-        ),
-      ]);
+  if (uri.host.endsWith(".onion")) {
+    if (proxyInfo == null) {
+      // If the host ends in .onion, we can't access it without Tor.
+      return MoneroNodeConnectionResponse(null, null, null, false);
     }
 
-    httpClient.badCertificateCallback = (cert, url, port) {
-      if (allowBadX509Certificate) {
-        return true;
+    SOCKSSocket? socket;
+    try {
+      // An HttpClient cannot be used for onion nodes.
+      //
+      // The SOCKSSocket class from the tor_ffi_plugin package can be used to
+      // connect to .onion addresses.  We'll do the same things as above but
+      // with SOCKSSocket instead of httpClient.
+      socket = await SOCKSSocket.create(
+        proxyHost: proxyInfo.host.address,
+        proxyPort: proxyInfo.port,
+        sslEnabled: false,
+      );
+      await socket.connect();
+      await socket.connectTo(uri.host, uri.port);
+      //   assume success as connect did not fail
+      return MoneroNodeConnectionResponse(null, null, null, true);
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      return MoneroNodeConnectionResponse(null, null, null, false);
+    } finally {
+      await socket?.close();
+    }
+  } else {
+    final httpClient = HttpClient();
+    MoneroNodeConnectionResponse? badCertResponse;
+    try {
+      if (proxyInfo != null) {
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(
+            proxyInfo.host,
+            proxyInfo.port,
+          ),
+        ]);
       }
 
-      if (badCertResponse == null) {
-        badCertResponse = MoneroNodeConnectionResponse(cert, url, port, false);
-      } else {
+      httpClient.badCertificateCallback = (cert, url, port) {
+        if (allowBadX509Certificate) {
+          return true;
+        }
+
+        if (badCertResponse == null) {
+          badCertResponse =
+              MoneroNodeConnectionResponse(cert, url, port, false);
+        } else {
+          return false;
+        }
+
         return false;
-      }
+      };
 
-      return false;
-    };
-
-    if (!uri.host.endsWith(".onion")) {
       final request = await httpClient.postUrl(uri);
 
       final body = utf8.encode(
@@ -94,69 +122,16 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       // TODO: json decoded without error so assume connection exists?
       // or we can check for certain values in the response to decide
       return MoneroNodeConnectionResponse(null, null, null, true);
-    } else {
-      if (proxyInfo == null) {
-        // If the host ends in .onion, we can't access it without Tor.
+    } catch (e, s) {
+      if (badCertResponse != null) {
+        return badCertResponse!;
+      } else {
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
         return MoneroNodeConnectionResponse(null, null, null, false);
       }
-
-      // An HttpClient cannot be used for onion nodes.
-      //
-      // The SOCKSSocket class from the tor_ffi_plugin package can be used to
-      // connect to .onion addresses.  We'll do the same things as above but
-      // with SOCKSSocket instead of httpClient.
-      final socket = await SOCKSSocket.create(
-        proxyHost: proxyInfo.host.address,
-        proxyPort: proxyInfo.port,
-        sslEnabled: false,
-      );
-      await socket.connect();
-      await socket.connectTo(uri.host, uri.port);
-
-      final body = utf8.encode(
-        jsonEncode({
-          "jsonrpc": "2.0",
-          "id": "0",
-          "method": "get_info",
-        }),
-      );
-
-      // Write the request body to the socket.
-      socket.write(body);
-
-      // If this is an onion address and there are no errors yet, assume success.
-      if (uri.host.endsWith('.onion')) {
-        return MoneroNodeConnectionResponse(null, null, null, true);
-      }
-
-      // Read the response.
-      final response = await socket.inputStream.first;
-      final result = utf8.decode(response);
-
-      // Close the socket.
-      await socket.close();
-      return MoneroNodeConnectionResponse(null, null, null, true);
-
-      // Parse the response.
-      //
-      // This is commented because any issues should throw.
-      // final Map<String, dynamic> jsonResponse = jsonDecode(result);
-      // print(jsonResponse);
-      // if (jsonResponse.containsKey('result')) {
-      //   return MoneroNodeConnectionResponse(null, null, null, true);
-      // } else {
-      //   return MoneroNodeConnectionResponse(null, null, null, false);
-      // }
+    } finally {
+      httpClient.close(force: true);
     }
-  } catch (e, s) {
-    if (badCertResponse != null) {
-      return badCertResponse!;
-    } else {
-      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-      return MoneroNodeConnectionResponse(null, null, null, false);
-    }
-  } finally {
-    httpClient.close(force: true);
   }
 }
 
