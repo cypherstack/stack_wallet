@@ -169,24 +169,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     level: LogLevel.Error);
               }
             },
-            onSnackbar: (message) async {
-              // TODO [prio=low]: Implement snackbar messages.
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   SnackBar(
-              //     content: Text(message),
-              //   ),
-              // );
-
-              if (context.mounted) {
-                return await showDialog<void>(
-                  context: context,
-                  builder: (_) => StackOkDialog(
-                    title: "Error scanning QR code",
-                    message: message,
-                  ),
-                );
-              }
-            },
           );
         },
       );
@@ -1990,12 +1972,10 @@ String formatAddress(String epicAddress) {
 class QrCodeScannerDialog extends StatefulWidget {
   final String walletId;
   final Function(String) onQrCodeDetected;
-  final Function(String) onSnackbar; // This isn't really a snackbar currently.
 
   QrCodeScannerDialog({
     required this.walletId,
     required this.onQrCodeDetected,
-    required this.onSnackbar,
   });
 
   @override
@@ -2088,7 +2068,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       Logging.instance
           .log("Failed to initialize camera: $e\n$s", level: LogLevel.Error);
       if (mounted) {
-        widget.onSnackbar("Failed to initialize camera. Please try again.");
+        // widget.onSnackbar("Failed to initialize camera. Please try again.");
         setState(() {
           _isScanning = false;
         });
@@ -2207,10 +2187,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       } catch (e, s) {
         // Logging.instance.log("Failed to capture and scan image: $e\n$s", level: LogLevel.Error);
         // Spammy.
-        if (mounted) {
-          widget.onSnackbar(
-              "Error capturing or scanning the image. Please try again.");
-        }
+
+        // if (mounted) {
+        //   widget.onSnackbar(
+        //       "Error capturing or scanning the image. Please try again.");
+        // }
       }
     }
   }
@@ -2292,17 +2273,38 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                     );
 
                     if (result == null || result.files.single.path == null) {
-                      widget.onSnackbar("No file selected.");
+                      await showDialog<void>(
+                        context: context,
+                        builder: (_) => const StackOkDialog(
+                          title: "Error scanning QR code",
+                          message: "No file selected.",
+                        ),
+                      );
                       return;
                     }
 
-                    final filePath = result.files.single.path!;
+                    final filePath = result?.files.single.path!;
+                    if (filePath == null) {
+                      await showDialog<void>(
+                        context: context,
+                        builder: (_) => const StackOkDialog(
+                          title: "Error scanning QR code",
+                          message: "Error selecting file.",
+                        ),
+                      );
+                      return;
+                    }
                     try {
                       final img.Image? image =
-                          img.decodeImage(File(filePath).readAsBytesSync());
+                          img.decodeImage(File(filePath!).readAsBytesSync());
                       if (image == null) {
-                        widget.onSnackbar(
-                            "Failed to decode image. Please select a valid image file.");
+                        await showDialog<void>(
+                          context: context,
+                          builder: (_) => const StackOkDialog(
+                            title: "Error scanning QR code",
+                            message: "Failed to decode image.",
+                          ),
+                        );
                         return;
                       }
 
@@ -2311,13 +2313,25 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                         widget.onQrCodeDetected(scanResult);
                         Navigator.of(context).pop();
                       } else {
-                        widget.onSnackbar("No QR code found in the image.");
+                        await showDialog<void>(
+                          context: context,
+                          builder: (_) => const StackOkDialog(
+                            title: "Error scanning QR code",
+                            message: "No QR code found in the image.",
+                          ),
+                        );
                       }
                     } catch (e, s) {
                       Logging.instance.log("Failed to decode image: $e\n$s",
                           level: LogLevel.Error);
-                      widget.onSnackbar(
-                          "Error processing the image. Please try again.");
+                      await showDialog<void>(
+                        context: context,
+                        builder: (_) => const StackOkDialog(
+                          title: "Error scanning QR code",
+                          message:
+                              "Error processing the image. Please try again.",
+                        ),
+                      );
                     }
                   },
                 ),
