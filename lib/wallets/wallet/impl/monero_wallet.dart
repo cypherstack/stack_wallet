@@ -202,7 +202,10 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
   Future<void> updateNode() async {
     final node = getCurrentNode();
 
-    final host = Uri.parse(node.host).host;
+    String host = Uri.parse(node.host).host;
+    if (host.isEmpty) {
+      host = node.host;
+    }
     ({InternetAddress host, int port})? proxy;
     if (prefs.useTor) {
       proxy = TorService.sharedInstance.getProxyInfo();
