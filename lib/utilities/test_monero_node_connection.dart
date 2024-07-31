@@ -58,8 +58,39 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       );
       await socket.connect();
       await socket.connectTo(uri.host, uri.port);
-      //   assume success as connect did not fail
-      return MoneroNodeConnectionResponse(null, null, null, true);
+
+      final body = jsonEncode({
+        "jsonrpc": "2.0",
+        "id": "0",
+        "method": "get_info",
+      });
+
+      final request = 'POST /json_rpc HTTP/1.1\r\n'
+          'Host: ${uri.host}\r\n'
+          'Content-Type: application/json\r\n'
+          'Content-Length: ${body.length}\r\n'
+          '\r\n'
+          '$body';
+
+      socket.write(request);
+      print("Request sent: $request");
+
+      final buffer = StringBuffer();
+      await for (var response in socket.inputStream) {
+        buffer.write(utf8.decode(response));
+        if (buffer.toString().contains("\r\n\r\n")) {
+          break;
+        }
+      }
+
+      final result = buffer.toString();
+      print("Response received: $result");
+
+      // Check if the response contains "results" and does not contain "error"
+      final success =
+          result.contains('"result":') && !result.contains('"error"');
+
+      return MoneroNodeConnectionResponse(null, null, null, success);
     } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Warning);
       return MoneroNodeConnectionResponse(null, null, null, false);
@@ -119,9 +150,12 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
       final response = await request.close();
       final result = await response.transform(utf8.decoder).join();
-      // TODO: json decoded without error so assume connection exists?
-      // or we can check for certain values in the response to decide
-      return MoneroNodeConnectionResponse(null, null, null, true);
+      print("HTTP Response: $result");
+
+      final success =
+          result.contains('"result":') && !result.contains('"error"');
+
+      return MoneroNodeConnectionResponse(null, null, null, success);
     } catch (e, s) {
       if (badCertResponse != null) {
         return badCertResponse!;
