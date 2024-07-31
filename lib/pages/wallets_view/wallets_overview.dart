@@ -72,6 +72,16 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   final Map<String, WalletListItemData> wallets = {};
 
   List<WalletListItemData> _filter(String searchTerm) {
+    // clean out deleted wallets
+    final existingWalletIds = ref
+        .read(mainDBProvider)
+        .isar
+        .walletInfo
+        .where()
+        .walletIdProperty()
+        .findAllSync();
+    wallets.removeWhere((k, v) => !existingWalletIds.contains(k));
+
     if (searchTerm.isEmpty) {
       return wallets.values.toList()
         ..sort((a, b) => a.wallet.info.name.compareTo(b.wallet.info.name));
