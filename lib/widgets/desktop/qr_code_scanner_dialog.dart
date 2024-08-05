@@ -15,9 +15,10 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:zxing2/qrcode.dart';
 
+import '../../notifications/show_flush_bar.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
-import '../stack_dialog.dart';
 import 'desktop_dialog.dart';
 import 'desktop_dialog_close_button.dart';
 
@@ -322,24 +323,22 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                     );
 
                     if (result == null || result.files.single.path == null) {
-                      await showDialog<void>(
+                      await showFloatingFlushBar(
+                        type: FlushBarType.info,
+                        message: "No file selected",
+                        iconAsset: Assets.svg.file,
                         context: context,
-                        builder: (_) => const StackOkDialog(
-                          title: "Error scanning QR code",
-                          message: "No file selected.",
-                        ),
                       );
                       return;
                     }
 
                     final filePath = result?.files.single.path!;
                     if (filePath == null) {
-                      await showDialog<void>(
+                      await showFloatingFlushBar(
+                        type: FlushBarType.info,
+                        message: "Error selecting file.",
+                        iconAsset: Assets.svg.file,
                         context: context,
-                        builder: (_) => const StackOkDialog(
-                          title: "Error scanning QR code",
-                          message: "Error selecting file.",
-                        ),
                       );
                       return;
                     }
@@ -347,12 +346,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                       final img.Image? image =
                           img.decodeImage(File(filePath!).readAsBytesSync());
                       if (image == null) {
-                        await showDialog<void>(
+                        await showFloatingFlushBar(
+                          type: FlushBarType.info,
+                          message: "Failed to decode image.",
+                          iconAsset: Assets.svg.file,
                           context: context,
-                          builder: (_) => const StackOkDialog(
-                            title: "Error scanning QR code",
-                            message: "Failed to decode image.",
-                          ),
                         );
                         return;
                       }
@@ -362,24 +360,22 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                         widget.onQrCodeDetected(scanResult);
                         Navigator.of(context).pop();
                       } else {
-                        await showDialog<void>(
+                        await showFloatingFlushBar(
+                          type: FlushBarType.info,
+                          message: "No QR code found in the image.",
+                          iconAsset: Assets.svg.file,
                           context: context,
-                          builder: (_) => const StackOkDialog(
-                            title: "Error scanning QR code",
-                            message: "No QR code found in the image.",
-                          ),
                         );
                       }
                     } catch (e, s) {
                       Logging.instance.log("Failed to decode image: $e\n$s",
                           level: LogLevel.Error);
-                      await showDialog<void>(
+                      await showFloatingFlushBar(
+                        type: FlushBarType.info,
+                        message:
+                            "Error processing the image. Please try again.",
+                        iconAsset: Assets.svg.file,
                         context: context,
-                        builder: (_) => const StackOkDialog(
-                          title: "Error scanning QR code",
-                          message:
-                              "Error processing the image. Please try again.",
-                        ),
                       );
                     }
                   },
