@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +10,7 @@ import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../conditional_parent.dart';
+import '../desktop/qr_code_scanner_dialog.dart';
 import '../icon_widgets/clipboard_icon.dart';
 import '../icon_widgets/qrcode_icon.dart';
 import '../icon_widgets/x_icon.dart';
@@ -69,6 +72,50 @@ class _FrostStepFieldState extends State<FrostStepField> {
     };
 
     super.initState();
+  }
+
+  Future<void> scanQr() async {
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        if (FocusScope.of(context).hasFocus) {
+          FocusScope.of(context).unfocus();
+          await Future<void>.delayed(
+            const Duration(milliseconds: 75),
+          );
+        }
+
+        final qrResult = await BarcodeScanner.scan();
+
+        widget.controller.text = qrResult.rawContent;
+
+        _changed(widget.controller.text);
+      } else {
+        // Platform.isLinux, Platform.isWindows, or Platform.isMacOS.
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return QrCodeScannerDialog(
+              onQrCodeDetected: (qrCodeData) {
+                try {
+                  // TODO [prio=low]: Validate QR code data.
+                  widget.controller.text = qrCodeData;
+
+                  _changed(widget.controller.text);
+                } catch (e, s) {
+                  Logging.instance.log("Error processing QR code data: $e\n$s",
+                      level: LogLevel.Error);
+                }
+              },
+            );
+          },
+        );
+      }
+    } on PlatformException catch (e, s) {
+      Logging.instance.log(
+        "Failed to get camera permissions while trying to scan qr code: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
   }
 
   @override
@@ -150,27 +197,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
                       semanticsLabel:
                           "Scan QR Button. Opens Camera For Scanning QR Code.",
                       key: _qrKey,
-                      onTap: () async {
-                        try {
-                          if (FocusScope.of(context).hasFocus) {
-                            FocusScope.of(context).unfocus();
-                            await Future<void>.delayed(
-                              const Duration(milliseconds: 75),
-                            );
-                          }
-
-                          final qrResult = await BarcodeScanner.scan();
-
-                          widget.controller.text = qrResult.rawContent;
-
-                          _changed(widget.controller.text);
-                        } on PlatformException catch (e, s) {
-                          Logging.instance.log(
-                            "Failed to get camera permissions while trying to scan qr code: $e\n$s",
-                            level: LogLevel.Warning,
-                          );
-                        }
-                      },
+                      onTap: scanQr,
                       child: const QrCodeIcon(),
                     ),
                 ],
