@@ -150,7 +150,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
       final response = await request.close();
       final result = await response.transform(utf8.decoder).join();
-      print("HTTP Response: $result");
+      // print("HTTP Response: $result");
 
       final success =
           result.contains('"result":') && !result.contains('"error"');
