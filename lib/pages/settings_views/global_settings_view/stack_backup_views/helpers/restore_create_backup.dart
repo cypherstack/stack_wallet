@@ -486,7 +486,13 @@ abstract class SWB {
         privateKey: privateKey,
       );
 
-      await wallet.init();
+      if (wallet is MoneroWallet /*|| wallet is WowneroWallet doesn't work.*/) {
+        await wallet.init(isRestore: true);
+      } else if (wallet is WowneroWallet) {
+        await wallet.init(isRestore: true);
+      } else {
+        await wallet.init();
+      }
 
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
