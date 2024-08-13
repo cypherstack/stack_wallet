@@ -52,6 +52,8 @@ import '../../../../../wallets/isar/models/frost_wallet_info.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../../wallets/wallet/impl/monero_wallet.dart';
+import '../../../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
