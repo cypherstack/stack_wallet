@@ -4,11 +4,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:on_chain/ada/ada.dart';
+import 'package:on_chain/ada/src/provider/provider/provider.dart';
 
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../providers/global/prefs_provider.dart';
 import '../services/tor_service.dart';
+import '../wallets/api/cardano/blockfrost_http_provider.dart';
 import '../wallets/api/tezos/tezos_rpc_api.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
@@ -107,7 +110,9 @@ Future<bool> testNodeConnection({
 
     case CryptonoteCurrency():
       try {
-        final proxyInfo = ref.read(prefsChangeNotifierProvider).useTor
+        final proxyInfo = ref
+            .read(prefsChangeNotifierProvider)
+            .useTor
             ? ref.read(pTorService).getProxyInfo()
             : null;
 
@@ -190,7 +195,7 @@ Future<bool> testNodeConnection({
     case Stellar():
       try {
         testPassed =
-            await testStellarNodeConnection(formData.host!, formData.port!);
+        await testStellarNodeConnection(formData.host!, formData.port!);
       } catch (_) {}
       break;
 
@@ -206,7 +211,9 @@ Future<bool> testNodeConnection({
               "action": "version",
             },
           ),
-          proxyInfo: ref.read(prefsChangeNotifierProvider).useTor
+          proxyInfo: ref
+              .read(prefsChangeNotifierProvider)
+              .useTor
               ? ref.read(pTorService).getProxyInfo()
               : null,
         );
@@ -239,6 +246,29 @@ Future<bool> testNodeConnection({
           level: LogLevel.Info,
         );
         return true;
+      } catch (_) {
+        testPassed = false;
+      }
+      break;
+
+    case Cardano():
+      try {
+        final blockfrostProvider = BlockforestProvider(
+          BlockfrostHttpProvider(
+            url: "${formData.host!}:${formData.port!}/api/v0",
+          ),
+        );
+
+        final health = await blockfrostProvider.request(
+          BlockfrostRequestBackendHealthStatus(),
+        );
+
+        Logging.instance.log(
+          "Cardano testNodeConnection \"health=$health\"",
+          level: LogLevel.Info,
+        );
+
+        return health;
       } catch (_) {
         testPassed = false;
       }

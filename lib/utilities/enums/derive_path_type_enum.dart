@@ -18,7 +18,8 @@ enum DerivePathType {
   eth,
   eCash44,
   solana,
-  bip86;
+  bip86,
+  cardanoShelley;
 
   AddressType getAddressType() {
     switch (this) {
@@ -41,6 +42,9 @@ enum DerivePathType {
 
       case DerivePathType.bip86:
         return AddressType.p2tr;
+
+      case DerivePathType.cardanoShelley:
+        return AddressType.cardanoShelley;
     }
   }
 }
