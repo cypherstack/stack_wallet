@@ -730,13 +730,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   void _processQrCodeData(String qrCodeData) {
     try {
-      var results = AddressUtils.parseUri(qrCodeData);
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
-        _address = (results["address"] ?? "").trim();
+      final paymentData = AddressUtils.parsePaymentUri(qrCodeData);
+      if (paymentData.coin.uriScheme == coin.uriScheme) {
+        // Auto fill address.
+        _address = paymentData.address.trim();
         sendToController.text = _address!;
 
-        if (results["amount"] != null) {
-          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
+        // Amount.
+        if (paymentData.amount != null) {
+          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
             fractionDigits: coin.fractionDigits,
           );
           cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -744,6 +746,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 withUnitName: false,
               );
           ref.read(pSendAmount.notifier).state = amount;
+        }
+
+        // Note/message.
+        if (paymentData.message != null) {
+          _note = paymentData.message;
+        } else if (paymentData.label != null) {
+          _note = paymentData.label;
         }
 
         _setValidAddressProviders(_address);
@@ -796,18 +805,65 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         content = content.substring(0, content.indexOf("\n"));
       }
 
-      if (coin is Epiccash) {
-        // strip http:// and https:// if content contains @
-        content = formatAddress(content);
+      try {
+        final paymentData = AddressUtils.parsePaymentUri(content);
+        if (paymentData.coin.uriScheme == coin.uriScheme) {
+          // auto fill address
+          _address = paymentData.address;
+          sendToController.text = _address!;
+
+          // autofill notes field.
+          if (paymentData.message != null) {
+            _note = paymentData.message;
+          } else if (paymentData.label != null) {
+            _note = paymentData.label;
+          }
+
+          // autofill amoutn field
+          if (paymentData.amount != null) {
+            final amount = Decimal.parse(paymentData.amount!).toAmount(
+              fractionDigits: coin.fractionDigits,
+            );
+            cryptoAmountController.text = ref
+                .read(pAmountFormatter(coin))
+                .format(amount, withUnitName: false);
+            ref.read(pSendAmount.notifier).state = amount;
+          }
+
+          // Trigger validation after pasting.
+          _setValidAddressProviders(_address);
+          setState(() {
+            _addressToggleFlag = sendToController.text.isNotEmpty;
+          });
+        } else {
+          if (coin is Epiccash) {
+            content = AddressUtils().formatAddress(content);
+          }
+
+          sendToController.text = content;
+          _address = content;
+
+          _setValidAddressProviders(_address);
+          setState(() {
+            _addressToggleFlag = sendToController.text.isNotEmpty;
+          });
+        }
+      } catch (e) {
+        // If parsing fails, treat it as a plain address.
+        if (coin is Epiccash) {
+          // strip http:// and https:// if content contains @
+          content = AddressUtils().formatAddress(content);
+        }
+
+        sendToController.text = content;
+        _address = content;
+
+        // Trigger validation after pasting.
+        _setValidAddressProviders(_address);
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
       }
-
-      sendToController.text = content;
-      _address = content;
-
-      _setValidAddressProviders(_address);
-      setState(() {
-        _addressToggleFlag = sendToController.text.isNotEmpty;
-      });
     }
   }
 

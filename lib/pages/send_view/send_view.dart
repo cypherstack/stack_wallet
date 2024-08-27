@@ -163,25 +163,23 @@ class _SendViewState extends ConsumerState<SendView> {
         level: LogLevel.Info,
       );
 
-      final results = AddressUtils.parseUri(qrResult.rawContent);
+      final paymentData = AddressUtils.parsePaymentUri(qrResult.rawContent);
 
-      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
-
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
+      if (paymentData.coin.uriScheme == coin.uriScheme) {
         // auto fill address
-        _address = (results["address"] ?? "").trim();
+        _address = paymentData.address.trim();
         sendToController.text = _address!;
 
         // autofill notes field
-        if (results["message"] != null) {
-          noteController.text = results["message"]!;
-        } else if (results["label"] != null) {
-          noteController.text = results["label"]!;
+        if (paymentData.message != null) {
+          noteController.text = paymentData.message!;
+        } else if (paymentData.label != null) {
+          noteController.text = paymentData.label!;
         }
 
         // autofill amount field
-        if (results["amount"] != null) {
-          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
+        if (paymentData.amount != null) {
+          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
             fractionDigits: coin.fractionDigits,
           );
           cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -1071,7 +1069,7 @@ class _SendViewState extends ConsumerState<SendView> {
             _address = _address!.substring(0, _address!.indexOf("\n"));
           }
 
-          sendToController.text = formatAddress(_address!);
+          sendToController.text = AddressUtils().formatAddress(_address!);
         }
       });
     }
@@ -1402,7 +1400,8 @@ class _SendViewState extends ConsumerState<SendView> {
 
                                                       if (coin is Epiccash) {
                                                         // strip http:// and https:// if content contains @
-                                                        content = formatAddress(
+                                                        content = AddressUtils()
+                                                            .formatAddress(
                                                           content,
                                                         );
                                                       }
@@ -2420,23 +2419,4 @@ class _SendViewState extends ConsumerState<SendView> {
       ),
     );
   }
-}
-
-String formatAddress(String epicAddress) {
-  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
-  if ((epicAddress.startsWith("http://") ||
-          epicAddress.startsWith("https://")) &&
-      epicAddress.contains("@")) {
-    epicAddress = epicAddress.replaceAll("http://", "");
-    epicAddress = epicAddress.replaceAll("https://", "");
-  }
-  // strip mailto: prefix
-  if (epicAddress.startsWith("mailto:")) {
-    epicAddress = epicAddress.replaceAll("mailto:", "");
-  }
-  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
-  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
-    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
-  }
-  return epicAddress;
 }
