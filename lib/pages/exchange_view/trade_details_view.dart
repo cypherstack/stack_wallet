@@ -190,6 +190,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 
     final isDesktop = Util.isDesktop;
 
+    final showSendFromStackButton = !hasTx &&
+        !["xmr", "monero", "wow", "wownero"]
+            .contains(trade.payInCurrency.toLowerCase()) &&
+        AppConfig.isStackCoin(trade.payInCurrency) &&
+        (trade.status == "New" ||
+            trade.status == "new" ||
+            trade.status == "waiting" ||
+            trade.status == "Waiting");
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -248,21 +257,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       children: children,
                     ),
                   ),
-                  if (!hasTx &&
-                      AppConfig.isStackCoin(trade.payInCurrency) &&
-                      (trade.status == "New" ||
-                          trade.status == "new" ||
-                          trade.status == "waiting" ||
-                          trade.status == "Waiting"))
+                  if (showSendFromStackButton)
                     const SizedBox(
                       height: 32,
                     ),
-                  if (!hasTx &&
-                      AppConfig.isStackCoin(trade.payInCurrency) &&
-                      (trade.status == "New" ||
-                          trade.status == "new" ||
-                          trade.status == "waiting" ||
-                          trade.status == "Waiting"))
+                  if (showSendFromStackButton)
                     SecondaryButton(
                       label: "Send from ${AppConfig.prefix}",
                       buttonHeight: ButtonHeight.l,
@@ -1371,13 +1370,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               const SizedBox(
                 height: 12,
               ),
-            if (!isDesktop &&
-                !hasTx &&
-                AppConfig.isStackCoin(trade.payInCurrency) &&
-                (trade.status == "New" ||
-                    trade.status == "new" ||
-                    trade.status == "waiting" ||
-                    trade.status == "Waiting"))
+            if (!isDesktop && showSendFromStackButton)
               SecondaryButton(
                 label: "Send from ${AppConfig.prefix}",
                 onPressed: () {

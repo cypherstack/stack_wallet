@@ -246,6 +246,39 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  camera_linux:
+    dependency: "direct main"
+    description:
+      name: camera_linux
+      sha256: "6ea08c23f643364e650e8fad73653747c049cbd00803a7c317132379ee3653ac"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.8"
+  camera_macos:
+    dependency: "direct main"
+    description:
+      name: camera_macos
+      sha256: e2ac75c56560f0e86a44de839e6e7f792d786e224c653d51d0c745db80adaff8
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.8"
+  camera_platform_interface:
+    dependency: "direct main"
+    description:
+      name: camera_platform_interface
+      sha256: b3ede1f171532e0d83111fe0980b46d17f1aa9788a07a2fbed07366bbdbb9061
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.8.0"
+  camera_windows:
+    dependency: "direct main"
+    description:
+      path: "packages/camera/camera_windows"
+      ref: HEAD
+      resolved-ref: "9bfbfd643ba4e6865ec34124e42a1cc502c400c0"
+      url: "https://github.com/cypherstack/packages.git"
+    source: git
+    version: "0.2.4"
   characters:
     dependency: transitive
     description:
@@ -254,6 +287,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+  charcode:
+    dependency: transitive
+    description:
+      name: charcode
+      sha256: fb98c0f6d12c920a02ee2d998da788bca066ca5f148492b7085ee23372b12306
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.1"
   checked_yaml:
     dependency: transitive
     description:
@@ -830,10 +871,10 @@ packages:
     dependency: transitive
     description:
       name: freezed_annotation
-      sha256: c3fd9336eb55a38cc1bbd79ab17573113a8deccd0ecbbf926cca3c62803b5c2d
+      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.4"
   frontend_server_client:
     dependency: transitive
     description:
@@ -2128,6 +2169,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  zxing2:
+    dependency: "direct main"
+    description:
+      name: zxing2
+      sha256: "6cf995abd3c86f01ba882968dedffa7bc130185e382f2300239d2e857fc7912c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.3"
 sdks:
   dart: ">=3.3.4 <4.0.0"
   flutter: ">=3.19.6"

@@ -75,6 +75,14 @@ class _NewContactAddressEntryFormState
     addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
     coins = [...AppConfig.coins];
+
+    if (AppConfig.isSingleCoinApp) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(addressEntryDataProvider(widget.id)).coin = coins.first;
+        }
+      });
+    }
     super.initState();
   }
 
@@ -109,7 +117,7 @@ class _NewContactAddressEntryFormState
 
     return Column(
       children: [
-        if (isDesktop)
+        if (isDesktop && !AppConfig.isSingleCoinApp)
           DropdownButtonHideUnderline(
             child: DropdownButton2<CryptoCurrency>(
               hint: Text(
@@ -188,7 +196,7 @@ class _NewContactAddressEntryFormState
               ],
             ),
           ),
-        if (!isDesktop)
+        if (!isDesktop && !AppConfig.isSingleCoinApp)
           TextField(
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
@@ -280,9 +288,10 @@ class _NewContactAddressEntryFormState
               ),
             ),
           ),
-        const SizedBox(
-          height: 8,
-        ),
+        if (!AppConfig.isSingleCoinApp)
+          const SizedBox(
+            height: 8,
+          ),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,

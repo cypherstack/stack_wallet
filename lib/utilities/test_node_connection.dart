@@ -41,11 +41,16 @@ Future<bool> _xmrHelper(
 
   final uriString = "${uri.scheme}://${uri.host}:${port ?? 0}$path";
 
+
+  if (proxyInfo == null && uri.host.endsWith(".onion")) {
+    return false;
+  }
+
   final response = await testMoneroNodeConnection(
     Uri.parse(uriString),
     false,
     proxyInfo: proxyInfo,
-  );
+  ).timeout(Duration(seconds: proxyInfo != null ? 30 : 10));
 
   if (response.cert != null) {
     if (context.mounted) {
@@ -109,7 +114,7 @@ Future<bool> testNodeConnection({
         final url = formData.host!;
         final uri = Uri.tryParse(url);
         if (uri != null) {
-          if (!uri.hasScheme) {
+          if (!uri.hasScheme && !uri.host.endsWith(".onion")) {
             // try https first
             testPassed = await _xmrHelper(
               formData

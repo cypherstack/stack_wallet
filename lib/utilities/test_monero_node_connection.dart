@@ -38,34 +38,93 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
     int port,
   })? proxyInfo,
 }) async {
-  final httpClient = HttpClient();
-  MoneroNodeConnectionResponse? badCertResponse;
-
-  try {
-    if (proxyInfo != null) {
-      SocksTCPClient.assignToHttpClient(httpClient, [
-        ProxySettings(
-          proxyInfo.host,
-          proxyInfo.port,
-        ),
-      ]);
+  if (uri.host.endsWith(".onion")) {
+    if (proxyInfo == null) {
+      // If the host ends in .onion, we can't access it without Tor.
+      return MoneroNodeConnectionResponse(null, null, null, false);
     }
 
-    httpClient.badCertificateCallback = (cert, url, port) {
-      if (allowBadX509Certificate) {
-        return true;
+    SOCKSSocket? socket;
+    try {
+      // An HttpClient cannot be used for onion nodes.
+      //
+      // The SOCKSSocket class from the tor_ffi_plugin package can be used to
+      // connect to .onion addresses.  We'll do the same things as above but
+      // with SOCKSSocket instead of httpClient.
+      socket = await SOCKSSocket.create(
+        proxyHost: proxyInfo.host.address,
+        proxyPort: proxyInfo.port,
+        sslEnabled: false,
+      );
+      await socket.connect();
+      await socket.connectTo(uri.host, uri.port);
+
+      final body = jsonEncode({
+        "jsonrpc": "2.0",
+        "id": "0",
+        "method": "get_info",
+      });
+
+      final request = 'POST /json_rpc HTTP/1.1\r\n'
+          'Host: ${uri.host}\r\n'
+          'Content-Type: application/json\r\n'
+          'Content-Length: ${body.length}\r\n'
+          '\r\n'
+          '$body';
+
+      socket.write(request);
+      print("Request sent: $request");
+
+      final buffer = StringBuffer();
+      await for (var response in socket.inputStream) {
+        buffer.write(utf8.decode(response));
+        if (buffer.toString().contains("\r\n\r\n")) {
+          break;
+        }
       }
 
-      if (badCertResponse == null) {
-        badCertResponse = MoneroNodeConnectionResponse(cert, url, port, false);
-      } else {
+      final result = buffer.toString();
+      print("Response received: $result");
+
+      // Check if the response contains "results" and does not contain "error"
+      final success =
+          result.contains('"result":') && !result.contains('"error"');
+
+      return MoneroNodeConnectionResponse(null, null, null, success);
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      return MoneroNodeConnectionResponse(null, null, null, false);
+    } finally {
+      await socket?.close();
+    }
+  } else {
+    final httpClient = HttpClient();
+    MoneroNodeConnectionResponse? badCertResponse;
+    try {
+      if (proxyInfo != null) {
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(
+            proxyInfo.host,
+            proxyInfo.port,
+          ),
+        ]);
+      }
+
+      httpClient.badCertificateCallback = (cert, url, port) {
+        if (allowBadX509Certificate) {
+          return true;
+        }
+
+        if (badCertResponse == null) {
+          badCertResponse =
+              MoneroNodeConnectionResponse(cert, url, port, false);
+        } else {
+          return false;
+        }
+
         return false;
-      }
+      };
 
-      return false;
-    };
-
-    if (!uri.host.endsWith('.onion')) {
       final request = await httpClient.postUrl(uri);
 
       final body = utf8.encode(
@@ -91,62 +150,22 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
       final response = await request.close();
       final result = await response.transform(utf8.decoder).join();
-      // TODO: json decoded without error so assume connection exists?
-      // or we can check for certain values in the response to decide
-      return MoneroNodeConnectionResponse(null, null, null, true);
-    } else {
-      // If the URL ends in .onion, we can't use an httpClient to connect to it.
-      //
-      // The SOCKSSocket class from the tor_ffi_plugin package can be used to
-      // connect to .onion addresses.  We'll do the same things as above but
-      // with SOCKSSocket instead of httpClient.
-      final socket = await SOCKSSocket.create(
-        proxyHost: proxyInfo!.host.address,
-        proxyPort: proxyInfo.port,
-        sslEnabled: false,
-      );
-      await socket.connect();
-      await socket.connectTo(uri.host, uri.port);
+      // print("HTTP Response: $result");
 
-      final body = utf8.encode(
-        jsonEncode({
-          "jsonrpc": "2.0",
-          "id": "0",
-          "method": "get_info",
-        }),
-      );
+      final success =
+          result.contains('"result":') && !result.contains('"error"');
 
-      // Write the request body to the socket.
-      socket.write(body);
-
-      // Read the response.
-      final response = await socket.inputStream.first;
-      final result = utf8.decode(response);
-
-      // Close the socket.
-      await socket.close();
-      return MoneroNodeConnectionResponse(null, null, null, true);
-
-      // Parse the response.
-      //
-      // This is commented because any issues should throw.
-      // final Map<String, dynamic> jsonResponse = jsonDecode(result);
-      // print(jsonResponse);
-      // if (jsonResponse.containsKey('result')) {
-      //   return MoneroNodeConnectionResponse(null, null, null, true);
-      // } else {
-      //   return MoneroNodeConnectionResponse(null, null, null, false);
-      // }
+      return MoneroNodeConnectionResponse(null, null, null, success);
+    } catch (e, s) {
+      if (badCertResponse != null) {
+        return badCertResponse!;
+      } else {
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+        return MoneroNodeConnectionResponse(null, null, null, false);
+      }
+    } finally {
+      httpClient.close(force: true);
     }
-  } catch (e, s) {
-    if (badCertResponse != null) {
-      return badCertResponse!;
-    } else {
-      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-      return MoneroNodeConnectionResponse(null, null, null, false);
-    }
-  } finally {
-    httpClient.close(force: true);
   }
 }
 

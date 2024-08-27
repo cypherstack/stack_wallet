@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  camera_windows
   connectivity_plus
   desktop_drop
   flutter_libepiccash

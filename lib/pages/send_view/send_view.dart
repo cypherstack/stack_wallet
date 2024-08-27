@@ -829,7 +829,8 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();
@@ -942,6 +943,9 @@ class _SendViewState extends ConsumerState<SendView> {
     if (isPaynymSend) {
       sendToController.text = widget.accountLite!.nymName;
       noteController.text = "PayNym send";
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _setValidAddressProviders(sendToController.text),
+      );
     }
 
     // if (coin is! Epiccash) {

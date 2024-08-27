@@ -87,7 +87,10 @@ class TransactionV2 {
     );
   }
 
+  @ignore
   int? get size => _getFromOtherData(key: TxV2OdKeys.size) as int?;
+
+  @ignore
   int? get vSize => _getFromOtherData(key: TxV2OdKeys.vSize) as int?;
 
   bool get isEpiccashTransaction =>
