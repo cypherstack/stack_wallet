@@ -569,9 +569,6 @@ class _NewWalletRecoveryPhraseWarningViewState
                                               // currently a special case due to the
                                               // xmr/wow libraries handling their
                                               // own mnemonic generation
-                                            } else if (coin is Cardano) {
-                                              mnemonicPassphrase = "";
-                                              mnemonic = Bip39MnemonicGenerator().fromWordsNumber(Bip39WordsNum.wordsNum15).toList().join(" ");
                                             } else if (wordCount > 0) {
                                               if (ref
                                                       .read(
