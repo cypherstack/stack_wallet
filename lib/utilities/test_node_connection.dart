@@ -114,7 +114,7 @@ Future<bool> testNodeConnection({
         final url = formData.host!;
         final uri = Uri.tryParse(url);
         if (uri != null) {
-          if (!uri.hasScheme) {
+          if (!uri.hasScheme && !uri.host.endsWith(".onion")) {
             // try https first
             testPassed = await _xmrHelper(
               formData
@@ -136,16 +136,6 @@ Future<bool> testNodeConnection({
                 proxyInfo,
               );
             }
-          } else if (!uri.hasScheme && uri.host.endsWith(".onion")) {
-            // We can just test http for onion addresses.
-            testPassed = await _xmrHelper(
-              formData
-                ..host = url
-                ..useSSL = false,
-              context,
-              onSuccess,
-              proxyInfo,
-            );
           } else {
             testPassed = await _xmrHelper(
               formData

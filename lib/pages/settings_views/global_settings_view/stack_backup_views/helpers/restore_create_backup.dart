@@ -52,6 +52,8 @@ import '../../../../../wallets/isar/models/frost_wallet_info.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../../wallets/wallet/impl/monero_wallet.dart';
+import '../../../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
@@ -486,7 +488,13 @@ abstract class SWB {
         privateKey: privateKey,
       );
 
-      await wallet.init();
+      if (wallet is MoneroWallet /*|| wallet is WowneroWallet doesn't work.*/) {
+        await wallet.init(isRestore: true);
+      } else if (wallet is WowneroWallet) {
+        await wallet.init(isRestore: true);
+      } else {
+        await wallet.init();
+      }
 
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
