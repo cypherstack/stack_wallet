@@ -16,11 +16,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_libepiccash/lib.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../pinpad_views/lock_screen_view.dart';
-import 'sub_widgets/sending_transaction_dialog.dart';
-import '../wallet_view/wallet_view.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import '../../providers/db/main_db_provider.dart';
@@ -53,6 +51,9 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../pinpad_views/lock_screen_view.dart';
+import '../wallet_view/wallet_view.dart';
+import 'sub_widgets/sending_transaction_dialog.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
   const ConfirmTransactionView({
