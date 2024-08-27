@@ -39,7 +39,7 @@ class EthTokenWallet extends Wallet {
   late web3dart.DeployedContract _deployedContract;
   late web3dart.ContractFunction _sendFunction;
 
-  static const _gasLimit = 200000;
+  static const _gasLimit = 65000;
 
   // ===========================================================================
 
