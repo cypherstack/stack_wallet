@@ -10,6 +10,7 @@
 
 import 'dart:convert';
 
+import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 class AddressUtils {
@@ -345,18 +346,10 @@ class AddressUtils {
 
   /// Method to get CryptoCurrency based on URI scheme.
   static CryptoCurrency _getCryptoCurrencyByScheme(String scheme) {
-    switch (scheme) {
-      case 'bitcoin':
-        return Bitcoin(CryptoCurrencyNetwork.main);
-      case 'bitcoincash':
-        return Bitcoincash(CryptoCurrencyNetwork.main);
-      case 'ethereum':
-        return Ethereum(CryptoCurrencyNetwork.main);
-      case 'monero':
-        return Monero(CryptoCurrencyNetwork.main);
-      // Add more cases as needed for other coins
-      default:
-        throw UnsupportedError('Unsupported URI scheme: $scheme');
+    if (AppConfig.coins.map((e) => e.uriScheme).toSet().contains(scheme)) {
+      return AppConfig.coins.firstWhere((e) => e.uriScheme == scheme);
+    } else {
+      throw UnsupportedError('Unsupported URI scheme: $scheme');
     }
   }
 
