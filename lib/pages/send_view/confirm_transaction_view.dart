@@ -522,9 +522,11 @@ class _ConfirmTransactionViewState
                         SelectableText(
                           ref.watch(pAmountFormatter(coin)).format(
                                 amountWithoutChange,
-                                ethContract: ref
-                                    .watch(pCurrentTokenWallet)
-                                    ?.tokenContract,
+                                ethContract: widget.isTokenTx
+                                    ? ref
+                                        .watch(pCurrentTokenWallet)!
+                                        .tokenContract
+                                    : null,
                               ),
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
@@ -745,9 +747,11 @@ class _ConfirmTransactionViewState
                                     SelectableText(
                                       ref.watch(pAmountFormatter(coin)).format(
                                             amountWithoutChange,
-                                            ethContract: ref
-                                                .read(pCurrentTokenWallet)
-                                                ?.tokenContract,
+                                            ethContract: widget.isTokenTx
+                                                ? ref
+                                                    .watch(pCurrentTokenWallet)!
+                                                    .tokenContract
+                                                : null,
                                           ),
                                       style: STextStyles
                                           .desktopTextExtraExtraSmall(
