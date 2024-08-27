@@ -198,6 +198,8 @@ dependencies:
       path: packages/camera/camera_windows
   camera_platform_interface: ^2.8.0
   camera_macos: ^0.0.8
+  blockchain_utils: ^3.3.0
+  on_chain: ^3.7.0
 
 dev_dependencies:
   flutter_test:
