@@ -841,6 +841,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ref.read(pSendAmount.notifier).state = amount;
           }
 
+          // Trigger validation after pasting.
+          _setValidAddressProviders(_address);
           setState(() {
             _addressToggleFlag = sendToController.text.isNotEmpty;
           });
@@ -856,6 +858,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         sendToController.text = content;
         _address = content;
 
+        // Trigger validation after pasting.
         _setValidAddressProviders(_address);
         setState(() {
           _addressToggleFlag = sendToController.text.isNotEmpty;

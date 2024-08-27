@@ -97,7 +97,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QR(
                         data: AddressUtils.buildUriString(
-                          ref.watch(pWalletCoin(widget.walletId)),
+                          ref.watch(pWalletCoin(widget.walletId)).uriScheme,
                           address.value,
                           {},
                         ),
@@ -289,7 +289,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QR(
                         data: AddressUtils.buildUriString(
-                          coin,
+                          coin.uriScheme,
                           address.value,
                           {},
                         ),
