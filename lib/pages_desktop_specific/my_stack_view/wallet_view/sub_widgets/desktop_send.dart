@@ -743,13 +743,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   void _processQrCodeData(String qrCodeData) {
     try {
-      var results = AddressUtils.parseUri(qrCodeData);
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
-        _address = (results["address"] ?? "").trim();
+      final paymentData = AddressUtils.parsePaymentUri(qrCodeData);
+      if (paymentData.coin.uriScheme == coin.uriScheme) {
+        // Auto fill address.
+        _address = paymentData.address.trim();
         sendToController.text = _address!;
 
-        if (results["amount"] != null) {
-          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
+        // Amount.
+        if (paymentData.amount != null) {
+          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
             fractionDigits: coin.fractionDigits,
           );
           cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -757,6 +759,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 withUnitName: false,
               );
           ref.read(pSendAmount.notifier).state = amount;
+        }
+
+        // Note/message.
+        if (paymentData.message != null) {
+          _note = paymentData.message;
+        } else if (paymentData.label != null) {
+          _note = paymentData.label;
         }
 
         _setValidAddressProviders(_address);
@@ -809,30 +818,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         content = content.substring(0, content.indexOf("\n"));
       }
 
-      // Check if the pasted value is a URI:
-      final results = AddressUtils.parseUri(content);
-      if (results.isNotEmpty) {
-        if (results["scheme"] == coin.uriScheme) {
+      try {
+        final paymentData = AddressUtils.parsePaymentUri(content);
+        if (paymentData.coin.uriScheme == coin.uriScheme) {
           // auto fill address
-          _address = results["address"] ?? "";
-          if (coin is Bitcoincash || coin is Ecash) {
-            sendToController.text = results["scheme"] != null
-                ? results["scheme"]! + ":" + _address!
-                : _address!;
-          } else {
-            sendToController.text = _address!;
+          _address = paymentData.address;
+          sendToController.text = _address!;
+
+          // autofill notes field.
+          if (paymentData.message != null) {
+            _note = paymentData.message;
+          } else if (paymentData.label != null) {
+            _note = paymentData.label;
           }
 
-          // autofill notes field
-          if (results["message"] != null) {
-            _note = results["message"]!;
-          } else if (results["label"] != null) {
-            _note = results["label"]!;
-          }
-
-          // autofill amount field
-          if (results["amount"] != null) {
-            final amount = Decimal.parse(results["amount"]!).toAmount(
+          // autofill amoutn field
+          if (paymentData.amount != null) {
+            final amount = Decimal.parse(paymentData.amount!).toAmount(
               fractionDigits: coin.fractionDigits,
             );
             cryptoAmountController.text = ref
@@ -846,13 +848,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           setState(() {
             _addressToggleFlag = sendToController.text.isNotEmpty;
           });
+        } else {
+          if (coin is Epiccash) {
+            content = AddressUtils().formatAddress(content);
+          }
 
-          return;
+          sendToController.text = content;
+          _address = content;
+
+          _setValidAddressProviders(_address);
+          setState(() {
+            _addressToggleFlag = sendToController.text.isNotEmpty;
+          });
         }
-      } else {
+      } catch (e) {
+        // If parsing fails, treat it as a plain address.
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
-          content = formatAddress(content);
+          content = AddressUtils().formatAddress(content);
         }
 
         sendToController.text = content;

@@ -359,6 +359,26 @@ class AddressUtils {
         throw UnsupportedError('Unsupported URI scheme: $scheme');
     }
   }
+
+  /// Formats an address string to remove any unnecessary prefixes or suffixes.
+  String formatAddress(String epicAddress) {
+    // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
+    if ((epicAddress.startsWith("http://") ||
+            epicAddress.startsWith("https://")) &&
+        epicAddress.contains("@")) {
+      epicAddress = epicAddress.replaceAll("http://", "");
+      epicAddress = epicAddress.replaceAll("https://", "");
+    }
+    // strip mailto: prefix
+    if (epicAddress.startsWith("mailto:")) {
+      epicAddress = epicAddress.replaceAll("mailto:", "");
+    }
+    // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+    if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+      epicAddress = epicAddress.substring(0, epicAddress.length - 1);
+    }
+    return epicAddress;
+  }
 }
 
 class PaymentUriData {
