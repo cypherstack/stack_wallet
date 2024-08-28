@@ -224,7 +224,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
 
     if (isSendAll || isSendAllCoinControlUtxos) {
-      assert(satoshiAmountToSend == satoshisBeingUsed);
+      if (satoshiAmountToSend != satoshisBeingUsed) {
+        throw Exception(
+          "Something happened that should never actually happen. "
+          "Please report this error to the developers.",
+        );
+      }
       return await _sendAllBuilder(
         txData: txData,
         recipientAddress: recipientAddress,
