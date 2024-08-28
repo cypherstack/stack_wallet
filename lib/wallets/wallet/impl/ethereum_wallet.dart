@@ -84,6 +84,66 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     _credentials = web3.EthPrivateKey.fromHex(privateKey);
   }
 
+  TxData _prepareTempTx(TxData txData, String myAddress) {
+    // hack eth tx data into inputs and outputs
+    final List<OutputV2> outputs = [];
+    final List<InputV2> inputs = [];
+
+    final amount = txData.recipients!.first.amount;
+    final addressTo = txData.recipients!.first.address;
+
+    final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+      scriptPubKeyHex: "00",
+      valueStringSats: amount.raw.toString(),
+      addresses: [
+        addressTo,
+      ],
+      walletOwns: addressTo == myAddress,
+    );
+    final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+      scriptSigHex: null,
+      scriptSigAsm: null,
+      sequence: null,
+      outpoint: null,
+      addresses: [myAddress],
+      valueStringSats: amount.raw.toString(),
+      witness: null,
+      innerRedeemScriptAsm: null,
+      coinbase: null,
+      walletOwns: true,
+    );
+
+    outputs.add(output);
+    inputs.add(input);
+
+    final otherData = {
+      "nonce": txData.nonce,
+      "isCancelled": false,
+      "overrideFee": txData.fee!.toJsonString(),
+    };
+
+    final txn = TransactionV2(
+      walletId: walletId,
+      blockHash: null,
+      hash: txData.txHash!,
+      txid: txData.txid!,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      height: null,
+      inputs: List.unmodifiable(inputs),
+      outputs: List.unmodifiable(outputs),
+      version: -1,
+      type: addressTo == myAddress
+          ? TransactionType.sentToSelf
+          : TransactionType.outgoing,
+      subType: TransactionSubType.none,
+      otherData: jsonEncode(otherData),
+    );
+
+    return txData.copyWith(
+      tempTx: txn,
+    );
+  }
+
   // ==================== Overrides ============================================
 
   @override
@@ -447,7 +507,10 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   }
 
   @override
-  Future<TxData> confirmSend({required TxData txData}) async {
+  Future<TxData> confirmSend({
+    required TxData txData,
+    TxData Function(TxData txData, String myAddress)? prepareTempTx,
+  }) async {
     final client = getEthClient();
     if (_credentials == null) {
       await _initCredentials();
@@ -459,10 +522,15 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       chainId: txData.chainId!.toInt(),
     );
 
-    return txData.copyWith(
-      txid: txid,
-      txHash: txid,
+    final data = (prepareTempTx ?? _prepareTempTx)(
+      txData.copyWith(
+        txid: txid,
+        txHash: txid,
+      ),
+      (await getCurrentReceivingAddress())!.value,
     );
+
+    return await updateSentCachedTxData(txData: data);
   }
 
   @override

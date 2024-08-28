@@ -170,7 +170,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     }
 
     final uriString = AddressUtils.buildUriString(
-      widget.coin,
+      widget.coin.uriScheme,
       receivingAddress,
       queryParams,
     );
@@ -263,7 +263,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     }
 
     _uriString = AddressUtils.buildUriString(
-      widget.coin,
+      widget.coin.uriScheme,
       receivingAddress,
       {},
     );

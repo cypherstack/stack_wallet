@@ -10,10 +10,21 @@
 
 import 'dart:convert';
 
-import 'logger.dart';
+import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 class AddressUtils {
+  static final Set<String> recognizedParams = {
+    'amount',
+    'label',
+    'message',
+    'tx_amount', // For Monero/Wownero.
+    'tx_payment_id',
+    'recipient_name',
+    'tx_description',
+    // TODO [prio=med]: Add more recognized params for other coins.
+  };
+
   static String condenseAddress(String address) {
     return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
   }
@@ -170,42 +181,150 @@ class AddressUtils {
   //   // }
   // }
 
-  /// parse an address uri
-  /// returns an empty map if the input string does not begin with "firo:"
+  /// Return only recognized parameters.
+  static Map<String, String> filterParams(Map<String, String> params) {
+    return Map.fromEntries(params.entries
+        .where((entry) => recognizedParams.contains(entry.key.toLowerCase())));
+  }
+
+  /// Parses a URI string and returns a map with parsed components.
   static Map<String, String> parseUri(String uri) {
     final Map<String, String> result = {};
     try {
       final u = Uri.parse(uri);
       if (u.hasScheme) {
         result["scheme"] = u.scheme.toLowerCase();
-        result["address"] = u.path;
-        result.addAll(u.queryParameters);
+
+        // Handle different URI formats.
+        if (result["scheme"] == "bitcoin" ||
+            result["scheme"] == "bitcoincash") {
+          result["address"] = u.path;
+        } else if (result["scheme"] == "monero") {
+          // Monero addresses can contain '?' which Uri.parse interprets as query start.
+          final addressEnd =
+              uri.indexOf('?', 7); // 7 is the length of "monero:".
+          if (addressEnd != -1) {
+            result["address"] = uri.substring(7, addressEnd);
+          } else {
+            result["address"] = uri.substring(7);
+          }
+        } else {
+          // Default case, treat path as address.
+          result["address"] = u.path;
+        }
+
+        // Parse query parameters.
+        result.addAll(_parseQueryParameters(u.queryParameters));
+
+        // Handle Monero-specific fragment (tx_description).
+        if (u.fragment.isNotEmpty && result["scheme"] == "monero") {
+          result["tx_description"] = Uri.decodeComponent(u.fragment);
+        }
       }
     } catch (e) {
-      Logging.instance
-          .log("Exception caught in parseUri($uri): $e", level: LogLevel.Error);
+      print("Exception caught in parseUri($uri): $e");
     }
     return result;
   }
 
-  /// builds a uri string with the given address and query parameters if any
+  /// Helper method to parse and normalize query parameters.
+  static Map<String, String> _parseQueryParameters(Map<String, String> params) {
+    final Map<String, String> result = {};
+    params.forEach((key, value) {
+      final lowerKey = key.toLowerCase();
+      if (recognizedParams.contains(lowerKey)) {
+        switch (lowerKey) {
+          case 'amount':
+          case 'tx_amount':
+            result['amount'] = _normalizeAmount(value);
+            break;
+          case 'label':
+          case 'recipient_name':
+            result['label'] = Uri.decodeComponent(value);
+            break;
+          case 'message':
+          case 'tx_description':
+            result['message'] = Uri.decodeComponent(value);
+            break;
+          case 'tx_payment_id':
+            result['tx_payment_id'] = Uri.decodeComponent(value);
+            break;
+          default:
+            result[lowerKey] = Uri.decodeComponent(value);
+        }
+      } else {
+        // Include unrecognized parameters as-is.
+        result[key] = Uri.decodeComponent(value);
+      }
+    });
+    return result;
+  }
+
+  /// Normalizes amount value to a standard format.
+  static String _normalizeAmount(String amount) {
+    // Remove any non-numeric characters except for '.'
+    final sanitized = amount.replaceAll(RegExp(r'[^\d.]'), '');
+    // Ensure only one decimal point
+    final parts = sanitized.split('.');
+    if (parts.length > 2) {
+      return '${parts[0]}.${parts.sublist(1).join()}';
+    }
+    return sanitized;
+  }
+
+  /// Centralized method to handle various cryptocurrency URIs and return a common object.
+  static PaymentUriData parsePaymentUri(String uri) {
+    final Map<String, String> parsedData = parseUri(uri);
+
+    // Normalize the URI scheme.
+    final String scheme = parsedData['scheme'] ?? '';
+    parsedData.remove('scheme');
+
+    // Determine the coin type based on the URI scheme.
+    final CryptoCurrency coin = _getCryptoCurrencyByScheme(scheme);
+
+    // Filter out unrecognized parameters.
+    final filteredParams = filterParams(parsedData);
+
+    return PaymentUriData(
+      coin: coin,
+      address: parsedData['address'] ?? '',
+      amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
+      label: filteredParams['label'] ?? filteredParams['recipient_name'],
+      message: filteredParams['message'] ?? filteredParams['tx_description'],
+      paymentId: filteredParams['tx_payment_id'], // Specific to Monero
+      additionalParams: filteredParams,
+    );
+  }
+
+  /// Builds a uri string with the given address and query parameters (if any)
   static String buildUriString(
-    CryptoCurrency coin,
+    String scheme,
     String address,
     Map<String, String> params,
   ) {
-    // TODO: other sanitation as well ?
-    String sanitizedAddress = address;
-    if (coin is Bitcoincash || coin is Ecash) {
-      final prefix = "${coin.uriScheme}:";
-      if (address.startsWith(prefix)) {
-        sanitizedAddress = address.replaceFirst(prefix, "");
+    // Filter unrecognized parameters.
+    final filteredParams = filterParams(params);
+    String uriString = "$scheme:$address";
+
+    if (scheme.toLowerCase() == "monero") {
+      // Handle Monero-specific formatting.
+      if (filteredParams.containsKey("tx_description")) {
+        final description = filteredParams.remove("tx_description")!;
+        if (filteredParams.isNotEmpty) {
+          uriString += Uri(queryParameters: filteredParams).toString();
+        }
+        uriString += "#${Uri.encodeComponent(description)}";
+      } else if (filteredParams.isNotEmpty) {
+        uriString += Uri(queryParameters: filteredParams).toString();
+      }
+    } else {
+      // General case for other cryptocurrencies.
+      if (filteredParams.isNotEmpty) {
+        uriString += Uri(queryParameters: filteredParams).toString();
       }
     }
-    String uriString = "${coin.uriScheme}:$sanitizedAddress";
-    if (params.isNotEmpty) {
-      uriString += Uri(queryParameters: params).toString();
-    }
+
     return uriString;
   }
 
@@ -215,10 +334,7 @@ class AddressUtils {
     try {
       result = Map<String, dynamic>.from(jsonDecode(data) as Map);
     } catch (e) {
-      Logging.instance.log(
-        "Exception caught in parseQRSeedData($data): $e",
-        level: LogLevel.Error,
-      );
+      print("Exception caught in parseQRSeedData($data): $e");
     }
     return result;
   }
@@ -227,4 +343,53 @@ class AddressUtils {
   static String encodeQRSeedData(List<String> words) {
     return jsonEncode({"mnemonic": words});
   }
+
+  /// Method to get CryptoCurrency based on URI scheme.
+  static CryptoCurrency _getCryptoCurrencyByScheme(String scheme) {
+    if (AppConfig.coins.map((e) => e.uriScheme).toSet().contains(scheme)) {
+      return AppConfig.coins.firstWhere((e) => e.uriScheme == scheme);
+    } else {
+      throw UnsupportedError('Unsupported URI scheme: $scheme');
+    }
+  }
+
+  /// Formats an address string to remove any unnecessary prefixes or suffixes.
+  String formatAddress(String epicAddress) {
+    // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
+    if ((epicAddress.startsWith("http://") ||
+            epicAddress.startsWith("https://")) &&
+        epicAddress.contains("@")) {
+      epicAddress = epicAddress.replaceAll("http://", "");
+      epicAddress = epicAddress.replaceAll("https://", "");
+    }
+    // strip mailto: prefix
+    if (epicAddress.startsWith("mailto:")) {
+      epicAddress = epicAddress.replaceAll("mailto:", "");
+    }
+    // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+    if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+      epicAddress = epicAddress.substring(0, epicAddress.length - 1);
+    }
+    return epicAddress;
+  }
+}
+
+class PaymentUriData {
+  final CryptoCurrency coin;
+  final String address;
+  final String? amount;
+  final String? label;
+  final String? message;
+  final String? paymentId; // Specific to Monero.
+  final Map<String, String> additionalParams;
+
+  PaymentUriData({
+    required this.coin,
+    required this.address,
+    this.amount,
+    this.label,
+    this.message,
+    this.paymentId,
+    required this.additionalParams,
+  });
 }

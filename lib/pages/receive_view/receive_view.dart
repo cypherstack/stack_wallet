@@ -577,7 +577,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           children: [
                             QR(
                               data: AddressUtils.buildUriString(
-                                coin,
+                                coin.uriScheme,
                                 address,
                                 {},
                               ),

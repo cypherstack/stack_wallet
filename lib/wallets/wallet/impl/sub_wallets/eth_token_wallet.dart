@@ -39,7 +39,7 @@ class EthTokenWallet extends Wallet {
   late web3dart.DeployedContract _deployedContract;
   late web3dart.ContractFunction _sendFunction;
 
-  static const _gasLimit = 200000;
+  static const _gasLimit = 65000;
 
   // ===========================================================================
 
@@ -66,6 +66,67 @@ class EthTokenWallet extends Wallet {
 
   String _addressFromTopic(String topic) =>
       checksumEthereumAddress("0x${topic.substring(topic.length - 40)}");
+
+  TxData _prepareTempTx(TxData txData, String myAddress) {
+    final otherData = {
+      "nonce": txData.nonce!,
+      "isCancelled": false,
+      "overrideFee": txData.fee!.toJsonString(),
+      "contractAddress": tokenContract.address,
+    };
+
+    final amount = txData.recipients!.first.amount;
+    final addressTo = txData.recipients!.first.address;
+
+    // hack eth tx data into inputs and outputs
+    final List<OutputV2> outputs = [];
+    final List<InputV2> inputs = [];
+
+    final output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+      scriptPubKeyHex: "00",
+      valueStringSats: amount.raw.toString(),
+      addresses: [
+        addressTo,
+      ],
+      walletOwns: addressTo == myAddress,
+    );
+    final input = InputV2.isarCantDoRequiredInDefaultConstructor(
+      scriptSigHex: null,
+      scriptSigAsm: null,
+      sequence: null,
+      outpoint: null,
+      addresses: [myAddress],
+      valueStringSats: amount.raw.toString(),
+      witness: null,
+      innerRedeemScriptAsm: null,
+      coinbase: null,
+      walletOwns: true,
+    );
+
+    outputs.add(output);
+    inputs.add(input);
+
+    final tempTx = TransactionV2(
+      walletId: walletId,
+      blockHash: null,
+      hash: txData.txHash!,
+      txid: txData.txid!,
+      timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      height: null,
+      inputs: List.unmodifiable(inputs),
+      outputs: List.unmodifiable(outputs),
+      version: -1,
+      type: addressTo == myAddress
+          ? TransactionType.sentToSelf
+          : TransactionType.outgoing,
+      subType: TransactionSubType.ethToken,
+      otherData: jsonEncode(otherData),
+    );
+
+    return txData.copyWith(
+      tempTx: tempTx,
+    );
+  }
 
   // ===========================================================================
 
@@ -205,7 +266,10 @@ class EthTokenWallet extends Wallet {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      return await ethWallet.confirmSend(txData: txData);
+      return await ethWallet.confirmSend(
+        txData: txData,
+        prepareTempTx: _prepareTempTx,
+      );
     } catch (e) {
       // rethrow to pass error in alert
       rethrow;
