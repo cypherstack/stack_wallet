@@ -105,6 +105,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     required TxData txData,
     required bool coinControl,
     required bool isSendAll,
+    required bool isSendAllCoinControlUtxos,
     int additionalOutputs = 0,
     List<UTXO>? utxos,
   }) async {
@@ -144,7 +145,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     if (spendableSatoshiValue < satoshiAmountToSend) {
       throw Exception("Insufficient balance");
-    } else if (spendableSatoshiValue == satoshiAmountToSend && !isSendAll) {
+    } else if (spendableSatoshiValue == satoshiAmountToSend &&
+        !isSendAll &&
+        !isSendAllCoinControlUtxos) {
       throw Exception("Insufficient balance to pay transaction fee");
     }
 
@@ -220,7 +223,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     // gather required signing data
     final utxoSigningData = await fetchBuildTxData(utxoObjectsToUse);
 
-    if (isSendAll) {
+    if (isSendAll || isSendAllCoinControlUtxos) {
+      assert(satoshiAmountToSend == satoshisBeingUsed);
       return await _sendAllBuilder(
         txData: txData,
         recipientAddress: recipientAddress,
@@ -357,6 +361,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           additionalOutputs: additionalOutputs + 1,
           utxos: utxos,
           coinControl: coinControl,
+          isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
         );
       }
       throw Exception("Insufficient balance to pay transaction fee");
@@ -1681,10 +1686,22 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
+      if (txData.amount == null) {
+        throw Exception("No recipients in attempted transaction!");
+      }
+
       final feeRateType = txData.feeRateType;
       final customSatsPerVByte = txData.satsPerVByte;
       final feeRateAmount = txData.feeRateAmount;
       final utxos = txData.utxos;
+
+      final bool coinControl = utxos != null;
+
+      final isSendAllCoinControlUtxos = coinControl &&
+          txData.amount!.raw ==
+              utxos
+                  .map((e) => e.value)
+                  .fold(BigInt.zero, (p, e) => p + BigInt.from(e));
 
       if (customSatsPerVByte != null) {
         // check for send all
@@ -1693,8 +1710,6 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             txData.amount == info.cachedBalance.spendable) {
           isSendAll = true;
         }
-
-        final bool coinControl = utxos != null;
 
         if (coinControl &&
             this is CpfpInterface &&
@@ -1709,6 +1724,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           isSendAll: isSendAll,
           utxos: utxos?.toList(),
           coinControl: coinControl,
+          isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
         );
 
         Logging.instance
@@ -1750,8 +1766,6 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           isSendAll = true;
         }
 
-        final bool coinControl = utxos != null;
-
         final result = await coinSelection(
           txData: txData.copyWith(
             feeRateAmount: rate,
@@ -1759,6 +1773,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           isSendAll: isSendAll,
           utxos: utxos?.toList(),
           coinControl: coinControl,
+          isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
         );
 
         Logging.instance.log("prepare send: $result", level: LogLevel.Info);
