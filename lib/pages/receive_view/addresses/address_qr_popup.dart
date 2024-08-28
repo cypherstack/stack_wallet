@@ -142,7 +142,7 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
               key: _qrKey,
               child: QR(
                 data: AddressUtils.buildUriString(
-                  widget.coin,
+                  widget.coin.uriScheme,
                   widget.addressString,
                   {},
                 ),

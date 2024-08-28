@@ -448,7 +448,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         Center(
           child: QR(
             data: AddressUtils.buildUriString(
-              coin,
+              coin.uriScheme,
               address,
               {},
             ),
