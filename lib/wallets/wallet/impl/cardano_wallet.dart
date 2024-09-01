@@ -353,10 +353,11 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       await updateProvider();
 
       final addressUtxos = await blockfrostProvider!.request(
-        BlockfrostRequestAddressUTXOs(
-          ADAAddress.fromAddress(
+        BlockfrostRequestAddressUTXOsOfAGivenAsset(
+          address: ADAAddress.fromAddress(
             (await getCurrentReceivingAddress())!.value,
           ),
+          asset: "lovelace",
         ),
       );
 
@@ -402,7 +403,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       await info.updateCachedChainHeight(
           newHeight: latestBlock.height == null ? 0 : latestBlock.height!,
-          isar: mainDB.isar);
+          isar: mainDB.isar,);
     } catch (e, s) {
       Logging.instance.log(
         "Error updating transactions in cardano_wallet.dart: $e\n$s",
@@ -443,11 +444,21 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         );
         var txType = isar.TransactionType.unknown;
 
-        var txOutputIndex = -1;
-
         for (final input in utxoInfo.inputs) {
           if (input.address == currentAddr) {
             txType = isar.TransactionType.outgoing;
+          }
+        }
+
+        if (txType == isar.TransactionType.outgoing) {
+          var isSelfTx = true;
+          for (final output in utxoInfo.outputs) {
+            if (output.address != currentAddr) {
+              isSelfTx = false;
+            }
+          }
+          if (isSelfTx) {
+            txType = isar.TransactionType.sentToSelf;
           }
         }
 
@@ -455,42 +466,33 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
           for (final output in utxoInfo.outputs) {
             if (output.address == currentAddr) {
               txType = isar.TransactionType.incoming;
-              txOutputIndex = output.outputIndex;
             }
           }
         }
 
         var receiverAddr = "Unknown?";
+        var amount = 0;
 
         if (txType == isar.TransactionType.incoming) {
           receiverAddr = currentAddr;
+          for (final output in utxoInfo.outputs) {
+            if (output.address == currentAddr) {
+              amount += int.parse(output.amount.first.quantity);
+            }
+          }
         } else if (txType == isar.TransactionType.outgoing) {
           for (final output in utxoInfo.outputs) {
             if (output.address != currentAddr) {
               receiverAddr = output.address;
-              txOutputIndex = output.outputIndex;
+              amount += int.parse(output.amount.first.quantity);
             }
           }
+        } else if (txType == isar.TransactionType.sentToSelf) {
+          receiverAddr = currentAddr;
+          for (final output in utxoInfo.outputs) {
+            amount += int.parse(output.amount.first.quantity);
+          }
         }
-
-        var amount = 0;
-
-        // Temporary solution until https://github.com/mrtnetwork/On_chain/issues/9 is solved.
-        // Use the library when the mentioned issue is solved.
-        final currentNode = getCurrentNode();
-        final response = await _httpClient.get(
-          url: Uri.parse(
-              "${currentNode.host}:${currentNode.port}/api/v0/txs/${tx.txHash}/utxos",),
-          proxyInfo: Prefs.instance.useTor
-              ? TorService.sharedInstance.getProxyInfo()
-              : null,
-        );
-        final json = jsonDecode(response.body);
-        if (txOutputIndex != -1) {
-          amount = int.parse(json["outputs"][txOutputIndex]["amount"][0]
-              ["quantity"]! as String,);
-        }
-        // Temporary solution part end.
 
         final transaction = isar.Transaction(
           walletId: walletId,
