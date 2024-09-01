@@ -476,13 +476,13 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         if (txType == isar.TransactionType.incoming) {
           receiverAddr = currentAddr;
           for (final output in utxoInfo.outputs) {
-            if (output.address == currentAddr) {
+            if (output.address == currentAddr && output.amount.first.unit == "lovelace") {
               amount += int.parse(output.amount.first.quantity);
             }
           }
         } else if (txType == isar.TransactionType.outgoing) {
           for (final output in utxoInfo.outputs) {
-            if (output.address != currentAddr) {
+            if (output.address != currentAddr && output.amount.first.unit == "lovelace") {
               receiverAddr = output.address;
               amount += int.parse(output.amount.first.quantity);
             }
@@ -490,7 +490,9 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         } else if (txType == isar.TransactionType.sentToSelf) {
           receiverAddr = currentAddr;
           for (final output in utxoInfo.outputs) {
-            amount += int.parse(output.amount.first.quantity);
+            if (output.amount.first.unit == "lovelace") {
+              amount += int.parse(output.amount.first.quantity);
+            }
           }
         }
 
