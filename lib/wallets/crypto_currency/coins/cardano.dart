@@ -112,6 +112,9 @@ class Cardano extends Bip39Currency {
   int get targetBlockTimeSeconds => 20;
 
   @override
+  bool get torSupport => true;
+
+  @override
   bool validateAddress(String address) {
     switch (network) {
       case CryptoCurrencyNetwork.main:

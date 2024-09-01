@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:blockchain_utils/bip/bip/bip44/base/bip44_base.dart';
 import 'package:blockchain_utils/bip/cardano/bip32/cardano_icarus_bip32.dart';
@@ -7,6 +8,7 @@ import 'package:blockchain_utils/bip/cardano/cip1852/conf/cip1852_coins.dart';
 import 'package:blockchain_utils/bip/cardano/mnemonic/cardano_icarus_seed_generator.dart';
 import 'package:blockchain_utils/bip/cardano/shelley/cardano_shelley.dart';
 import 'package:on_chain/ada/ada.dart';
+import 'package:socks5_proxy/socks.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import 'package:tuple/tuple.dart';
@@ -84,12 +86,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
   @override
   Future<bool> pingCheck() async {
     try {
-      final currentNode = getCurrentNode();
-      blockfrostProvider = BlockforestProvider(
-        BlockfrostHttpProvider(
-          url: "${currentNode.host}:${currentNode.port}/api/v0",
-        ),
-      );
+      await updateProvider();
 
       final health = await blockfrostProvider!.request(
         BlockfrostRequestBackendHealthStatus(),
@@ -176,7 +173,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       );
 
       var leftAmountForUtxos = txData.amount!.raw;
-      var listOfUtxosToBeUsed = <ADAAccountUTXOResponse>[];
+      final listOfUtxosToBeUsed = <ADAAccountUTXOResponse>[];
       var totalBalance = BigInt.zero;
 
       for (final utxo in utxos) {
@@ -271,7 +268,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
 
       var leftAmountForUtxos = txData.amount!.raw + txData.fee!.raw;
-      var listOfUtxosToBeUsed = <ADAAccountUTXOResponse>[];
+      final listOfUtxosToBeUsed = <ADAAccountUTXOResponse>[];
       var totalBalance = BigInt.zero;
 
       for (final utxo in utxos) {
@@ -551,9 +548,19 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
   Future<void> updateProvider() async {
     final currentNode = getCurrentNode();
+    final client = HttpClient();
+    if (prefs.useTor) {
+      final proxyInfo = TorService.sharedInstance.getProxyInfo();
+      final proxySettings = ProxySettings(
+        proxyInfo.host,
+        proxyInfo.port,
+      );
+      SocksTCPClient.assignToHttpClient(client, [proxySettings]);
+    }
     blockfrostProvider = BlockforestProvider(
       BlockfrostHttpProvider(
         url: "${currentNode.host}:${currentNode.port}/",
+        client: client,
       ),
     );
   }

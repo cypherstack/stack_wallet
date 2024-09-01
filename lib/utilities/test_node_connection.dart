@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_chain/ada/ada.dart';
 import 'package:on_chain/ada/src/provider/provider/provider.dart';
+import 'package:socks5_proxy/socks.dart';
 
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -243,9 +244,21 @@ Future<bool> testNodeConnection({
 
     case Cardano():
       try {
+        final client = HttpClient();
+        if (ref
+            .read(prefsChangeNotifierProvider)
+            .useTor) {
+          final proxyInfo = TorService.sharedInstance.getProxyInfo();
+          final proxySettings = ProxySettings(
+            proxyInfo.host,
+            proxyInfo.port,
+          );
+          SocksTCPClient.assignToHttpClient(client, [proxySettings]);
+        }
         final blockfrostProvider = BlockforestProvider(
           BlockfrostHttpProvider(
             url: "${formData.host!}:${formData.port!}/api/v0",
+            client: client,
           ),
         );
 
