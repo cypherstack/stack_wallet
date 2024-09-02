@@ -154,6 +154,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
+  String _receivingAddressValidationErrorString = "";
+
   void selectCrypto() async {
     if (ref.read(simplexProvider).supportedCryptos.isEmpty) {
       bool shouldPop = false;
@@ -1218,6 +1220,15 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   _address = newValue;
                   setState(() {
                     _addressToggleFlag = newValue.isNotEmpty;
+
+                    // TODO [prio=low]: Validate address.
+                    if (newValue.startsWith("bc1p")) {
+                      // Display an error message or handle invalid address
+                      _receivingAddressValidationErrorString =
+                          "Taproot addresses are not allowed.";
+                    } else {
+                      _receivingAddressValidationErrorString = "";
+                    }
                   });
                 },
                 focusNode: _receiveAddressFocusNode,
@@ -1430,6 +1441,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 ),
               ),
             ),
+            SizedBox(
+              height: isDesktop ? 10 : 4,
+            ),
+            if (_receivingAddressValidationErrorString.isNotEmpty)
+              Text(
+                _receivingAddressValidationErrorString,
+                style: STextStyles.errorSmall(context),
+              ),
             SizedBox(
               height: isDesktop ? 20 : 12,
             ),
