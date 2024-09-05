@@ -837,6 +837,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   Future<int> fetchChainHeight({int retries = 1}) async {
     try {
+      // Ensure server version is initialized and genesis hash is checked.
+      if (_serverVersion == null) {
+        await _initializeServerVersionAndCheckGenesisHash();
+      }
+
       return await ClientManager.sharedInstance.getChainHeightFor(
         cryptoCurrency,
       );
@@ -1804,6 +1809,21 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   @override
   Future<void> init() async {
     try {
+      // Server features and genesis hash check deferred.
+      // See _initializeServerVersionAndCheckGenesisHash.
+
+      await super.init();
+    } catch (e, s) {
+      // do nothing, still allow user into wallet
+      Logging.instance.log(
+        "$runtimeType init() did not complete: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
+  Future<void> _initializeServerVersionAndCheckGenesisHash() async {
+    try {
       final features = await electrumXClient
           .getServerFeatures()
           .timeout(const Duration(seconds: 5));
@@ -1814,17 +1834,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           _parseServerVersion(features["server_version"] as String);
 
       if (cryptoCurrency.genesisHash != features['genesis_hash']) {
-        throw Exception("genesis hash does not match!");
+        throw Exception("Genesis hash does not match!");
       }
     } catch (e, s) {
-      // do nothing, still allow user into wallet
       Logging.instance.log(
-        "$runtimeType init() did not complete: $e\n$s",
+        "$runtimeType _initializeServerVersionAndCheckGenesisHash() did not complete: $e\n$s",
         level: LogLevel.Warning,
       );
     }
-
-    await super.init();
   }
 
   // ===========================================================================
