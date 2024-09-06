@@ -11,8 +11,6 @@ import 'package:camera_windows/camera_windows.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-import 'package:stackwallet/widgets/desktop/primary_button.dart';
-import 'package:stackwallet/widgets/desktop/secondary_button.dart';
 import 'package:zxing2/qrcode.dart';
 
 import '../../notifications/show_flush_bar.dart';
@@ -21,6 +19,8 @@ import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import 'desktop_dialog.dart';
 import 'desktop_dialog_close_button.dart';
+import 'primary_button.dart';
+import 'secondary_button.dart';
 
 class QrCodeScannerDialog extends StatefulWidget {
   final Function(String) onQrCodeDetected;
