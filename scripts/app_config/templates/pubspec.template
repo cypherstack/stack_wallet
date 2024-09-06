@@ -14,8 +14,8 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.3.4 <4.0.0"
-  flutter: ^3.19.6
+  sdk: ">=3.5.2 <4.0.0"
+  flutter: ^3.24.2
 
 dependencies:
   flutter:
@@ -134,7 +134,7 @@ dependencies:
   wakelock: ^0.6.2
   intl: ^0.17.0
   devicelocale: ^0.6.0
-  device_info_plus: ^9.0.2
+  device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
   tuple: ^2.0.0
@@ -156,7 +156,7 @@ dependencies:
   dart_bs58: ^1.0.1
   dart_bs58check: ^3.0.2
   hex: ^0.2.0
-  archive: ^3.3.2
+  archive: ^3.6.1
   desktop_drop: ^0.4.1
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
@@ -166,7 +166,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/cypherstack/tezart.git
-      ref: 13fa937ea9a9fc34caf047e068df9535f65c27ad
+      ref: d000cc245e51d3ff50e6467960fb3d9159d5b2a9
   socks5_proxy: ^1.0.3+dev.3
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
@@ -224,6 +224,9 @@ flutter_native_splash:
 
 dependency_overrides:
 
+  # needed for dart 3.5+ (at least for now)
+  win32: ^5.5.4
+
   # coin lib git for testing while waiting for publishing
   coinlib:
     git:
@@ -280,7 +283,7 @@ dependency_overrides:
 
   crypto: 3.0.2
   analyzer: ^5.2.0
-  pinenacl: ^0.3.3
+  pinenacl: ^0.6.0
   http: ^0.13.0
 
 # For information on the generic Dart part of this file, see the
