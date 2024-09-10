@@ -732,9 +732,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "7a11d0cadf8c7a6a5d5144dab18cef9536aa5943"
-      resolved-ref: "7a11d0cadf8c7a6a5d5144dab18cef9536aa5943"
-      url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
+      ref: "69e9a50715b89497951eba67f1313549708b7c6d"
+      resolved-ref: "69e9a50715b89497951eba67f1313549708b7c6d"
+      url: "https://github.com/mrcyjanek/flutter_libsparkmobile.git"
     source: git
     version: "0.0.1"
   flutter_lints:

@@ -53,14 +53,21 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 ### Build dependencies
 Install basic dependencies
 ```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils g++ gcc gperf libopencv-dev
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection vapigen meson
+```
+
+libtinfo5 (required for monero_c, will be dropped once we are at 0.19.x.. maybe)
+```
+wget http://mirrors.kernel.org/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2ubuntu0.1_amd64.deb -O libtinfo5.deb \
+    && apt install ./libtinfo5.deb \
+    && rm libtinfo5.deb
 ```
 
 Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.67.1 1.72.0 1.73.0
+rustup install 1.67.1 1.71.0 1.72.0 1.73.0
 rustup default 1.67.1
 cargo install cargo-ndk --version 2.12.7 --locked
 ```

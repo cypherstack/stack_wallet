@@ -6,5 +6,5 @@ mkdir -p build && cd build
 cmake ..
 cmake --build .
 mkdir -p ../../../../../build
-cp src/libsecp256k1.so.2.2.1 "../../../../../build/libsecp256k1.so"
+cp src/libsecp256k1.so.2.*.* "../../../../../build/libsecp256k1.so"
 cd ../../../
