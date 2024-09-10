@@ -60,7 +60,7 @@ Install [Rust](https://www.rust-lang.org/tools/install) with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.67.1 1.72.0 1.73.0
+rustup install 1.67.1 1.71.0 1.72.0 1.73.0
 rustup default 1.67.1
 cargo install cargo-ndk --version 2.12.7 --locked
 ```
@@ -209,7 +209,7 @@ Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.67.1 1.72.0 1.73.0
+rustup install 1.67.1 1.71.0 1.72.0 1.73.0
 rustup default 1.67.1
 cargo install cargo-ndk --version 2.12.7 --locked
 cargo install cbindgen cargo-lipo
@@ -310,7 +310,7 @@ Run `flutter doctor` in PowerShell to confirm its installation.
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
 ```
-rustup install 1.67.1 1.72.0 1.73.0
+rustup install 1.67.1 1.71.0 1.72.0 1.73.0
 rustup default 1.67.1
 cargo install cargo-ndk --version 2.12.7 --locked
 ```
