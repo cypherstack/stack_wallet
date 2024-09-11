@@ -32,8 +32,8 @@ dependencies:
 
   flutter_libsparkmobile:
     git:
-      url: https://github.com/mrcyjanek/flutter_libsparkmobile.git
-      ref: 69e9a50715b89497951eba67f1313549708b7c6d
+      url: https://github.com/cypherstack/flutter_libsparkmobile.git
+      ref: d88de9506fda95a3114134817d172a841d93947e
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
