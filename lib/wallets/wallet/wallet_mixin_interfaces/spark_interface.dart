@@ -23,6 +23,7 @@ import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import 'cpfp_interface.dart';
 import 'electrumx_interface.dart';
 
 const kDefaultSparkIndex = 1;
@@ -1809,36 +1810,44 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         throw Exception("Attempted send of zero amount");
       }
 
+      final utxos = txData.utxos;
+      final bool coinControl = utxos != null;
+
+      final utxosTotal = coinControl
+          ? utxos
+              .map((e) => e.value)
+              .fold(BigInt.zero, (p, e) => p + BigInt.from(e))
+          : null;
+
+      if (coinControl && utxosTotal! < total) {
+        throw Exception("Insufficient selected UTXOs!");
+      }
+
+      final isSendAllCoinControlUtxos = coinControl && total == utxosTotal;
+
       final currentHeight = await chainHeight;
 
-      // coin control not enabled for firo currently so we can ignore this
-      // final utxosToUse = txData.utxos?.toList() ??  await mainDB.isar.utxos
-      //     .where()
-      //     .walletIdEqualTo(walletId)
-      //     .filter()
-      //     .isBlockedEqualTo(false)
-      //     .and()
-      //     .group((q) => q.usedEqualTo(false).or().usedIsNull())
-      //     .and()
-      //     .valueGreaterThan(0)
-      //     .findAll();
-      final spendableUtxos = await mainDB.isar.utxos
-          .where()
-          .walletIdEqualTo(walletId)
-          .filter()
-          .isBlockedEqualTo(false)
-          .and()
-          .group((q) => q.usedEqualTo(false).or().usedIsNull())
-          .and()
-          .valueGreaterThan(0)
-          .findAll();
+      final availableOutputs = utxos?.toList() ??
+          await mainDB.isar.utxos
+              .where()
+              .walletIdEqualTo(walletId)
+              .filter()
+              .isBlockedEqualTo(false)
+              .and()
+              .group((q) => q.usedEqualTo(false).or().usedIsNull())
+              .and()
+              .valueGreaterThan(0)
+              .findAll();
 
-      spendableUtxos.removeWhere(
-        (e) => !e.isConfirmed(
-          currentHeight,
-          cryptoCurrency.minConfirms,
-        ),
-      );
+      final canCPFP = this is CpfpInterface && coinControl;
+
+      final spendableUtxos = availableOutputs
+          .where(
+            (e) =>
+                canCPFP ||
+                e.isConfirmed(currentHeight, cryptoCurrency.minConfirms),
+          )
+          .toList();
 
       if (spendableUtxos.isEmpty) {
         throw Exception("No available UTXOs found to anonymize");
@@ -1849,7 +1858,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           .reduce((value, element) => value += element);
 
       final bool subtractFeeFromAmount;
-      if (available < total) {
+      if (isSendAllCoinControlUtxos) {
+        subtractFeeFromAmount = true;
+      } else if (available < total) {
         throw Exception("Insufficient balance");
       } else if (available == total) {
         subtractFeeFromAmount = true;

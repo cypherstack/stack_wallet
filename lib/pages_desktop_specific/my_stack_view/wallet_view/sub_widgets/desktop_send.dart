@@ -18,6 +18,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
@@ -932,30 +933,45 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     ref.read(pSendAmount.notifier).state = amount;
   }
 
-  Future<void> sendAllTapped() async {
-    final info = ref.read(pWalletInfo(walletId));
+  String _getSendAllTitle(bool showCoinControl, Set<UTXO> selectedUTXOs) {
+    if (showCoinControl && selectedUTXOs.isNotEmpty) {
+      return "Send all selected";
+    }
 
-    if (coin is Firo) {
+    return "Send all ${coin.ticker}";
+  }
+
+  Amount _selectedUtxosAmount(Set<UTXO> utxos) => Amount(
+        rawValue:
+            utxos.map((e) => BigInt.from(e.value)).reduce((v, e) => v += e),
+        fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
+      );
+
+  Future<void> _sendAllTapped(bool showCoinControl) async {
+    final Amount amount;
+
+    if (showCoinControl && ref.read(desktopUseUTXOs).isNotEmpty) {
+      amount = _selectedUtxosAmount(ref.read(desktopUseUTXOs));
+    } else if (coin is Firo) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case FiroType.public:
-          cryptoAmountController.text = info.cachedBalance.spendable.decimal
-              .toStringAsFixed(coin.fractionDigits);
+          amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
         case FiroType.lelantus:
-          cryptoAmountController.text = info
-              .cachedBalanceSecondary.spendable.decimal
-              .toStringAsFixed(coin.fractionDigits);
+          amount = ref.read(pWalletBalanceSecondary(walletId)).spendable;
           break;
         case FiroType.spark:
-          cryptoAmountController.text = info
-              .cachedBalanceTertiary.spendable.decimal
-              .toStringAsFixed(coin.fractionDigits);
+          amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
           break;
       }
     } else {
-      cryptoAmountController.text = info.cachedBalance.spendable.decimal
-          .toStringAsFixed(coin.fractionDigits);
+      amount = ref.read(pWalletBalance(walletId)).spendable;
     }
+
+    cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+          amount,
+          withUnitName: false,
+        );
   }
 
   void _showDesktopCoinControl() async {
@@ -1280,8 +1296,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             if (coin is! Ethereum && coin is! Tezos)
               CustomTextButton(
-                text: "Send all ${coin.ticker}",
-                onTap: sendAllTapped,
+                text: _getSendAllTitle(
+                  showCoinControl,
+                  ref.watch(desktopUseUTXOs),
+                ),
+                onTap: () => _sendAllTapped(showCoinControl),
               ),
           ],
         ),

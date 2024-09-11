@@ -881,6 +881,48 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
+  String _getSendAllTitle(bool showCoinControl, Set<UTXO> selectedUTXOs) {
+    if (showCoinControl && selectedUTXOs.isNotEmpty) {
+      return "Send all selected";
+    }
+
+    return "Send all ${coin.ticker}";
+  }
+
+  Amount _selectedUtxosAmount(Set<UTXO> utxos) => Amount(
+        rawValue:
+            utxos.map((e) => BigInt.from(e.value)).reduce((v, e) => v += e),
+        fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
+      );
+
+  Future<void> _sendAllTapped(bool showCoinControl) async {
+    final Amount amount;
+
+    if (showCoinControl && selectedUTXOs.isNotEmpty) {
+      amount = _selectedUtxosAmount(selectedUTXOs);
+    } else if (isFiro) {
+      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+        case FiroType.public:
+          amount = ref.read(pWalletBalance(walletId)).spendable;
+          break;
+        case FiroType.lelantus:
+          amount = ref.read(pWalletBalanceSecondary(walletId)).spendable;
+          break;
+        case FiroType.spark:
+          amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
+          break;
+      }
+    } else {
+      amount = ref.read(pWalletBalance(walletId)).spendable;
+    }
+
+    cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+          amount,
+          withUnitName: false,
+        );
+    _cryptoAmountChanged();
+  }
+
   bool get isPaynymSend => widget.accountLite != null;
 
   bool isCustomFee = false;
@@ -1772,59 +1814,9 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                               if (coin is! Ethereum && coin is! Tezos)
                                 CustomTextButton(
-                                  text: "Send all ${coin.ticker}",
-                                  onTap: () async {
-                                    if (isFiro) {
-                                      final Amount amount;
-                                      switch (ref
-                                          .read(
-                                            publicPrivateBalanceStateProvider
-                                                .state,
-                                          )
-                                          .state) {
-                                        case FiroType.public:
-                                          amount = ref
-                                              .read(pWalletBalance(walletId))
-                                              .spendable;
-                                          break;
-                                        case FiroType.lelantus:
-                                          amount = ref
-                                              .read(
-                                                pWalletBalanceSecondary(
-                                                  walletId,
-                                                ),
-                                              )
-                                              .spendable;
-                                          break;
-                                        case FiroType.spark:
-                                          amount = ref
-                                              .read(
-                                                pWalletBalanceTertiary(
-                                                  walletId,
-                                                ),
-                                              )
-                                              .spendable;
-                                          break;
-                                      }
-
-                                      cryptoAmountController.text = ref
-                                          .read(pAmountFormatter(coin))
-                                          .format(
-                                            amount,
-                                            withUnitName: false,
-                                          );
-                                    } else {
-                                      cryptoAmountController.text = ref
-                                          .read(pAmountFormatter(coin))
-                                          .format(
-                                            ref
-                                                .read(pWalletBalance(walletId))
-                                                .spendable,
-                                            withUnitName: false,
-                                          );
-                                    }
-                                    _cryptoAmountChanged();
-                                  },
+                                  text: _getSendAllTitle(
+                                      showCoinControl, selectedUTXOs),
+                                  onTap: () => _sendAllTapped(showCoinControl),
                                 ),
                             ],
                           ),
