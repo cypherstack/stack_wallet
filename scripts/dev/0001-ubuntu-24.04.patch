@@ -1,0 +1,100 @@
+From f76f37404784a9283c55a7b11eef109edda3d05a Mon Sep 17 00:00:00 2001
+From: Czarek Nakamoto <cyjan@mrcyjanek.net>
+Date: Tue, 3 Sep 2024 09:04:02 +0200
+Subject: [PATCH] ubuntu 24.04
+
+---
+ docs/building.md                              | 11 +++++++++--
+ pubspec.lock                                  |  6 +++---
+ scripts/app_config/templates/pubspec.template |  4 ++--
+ scripts/linux/build_secp256k1.sh              |  2 +-
+ scripts/linux/build_secure_storage_deps.sh    |  2 +-
+ 5 files changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/docs/building.md b/docs/building.md
+index d4597d7e..12948e4a 100644
+--- a/docs/building.md
++++ b/docs/building.md
+@@ -53,14 +53,21 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
+ ### Build dependencies
+ Install basic dependencies
+ ```
+-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python libtool libtinfo5 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm python3-distutils g++ gcc gperf libopencv-dev
++sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection vapigen meson
++```
++
++libtinfo5 (required for monero_c, will be dropped once we are at 0.19.x.. maybe)
++```
++wget http://mirrors.kernel.org/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2ubuntu0.1_amd64.deb -O libtinfo5.deb \
++    && apt install ./libtinfo5.deb \
++    && rm libtinfo5.deb
+ ```
+ 
+ Install [Rust](https://www.rust-lang.org/tools/install) with command:
+ ```
+ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+ source ~/.bashrc 
+-rustup install 1.67.1 1.72.0 1.73.0
++rustup install 1.67.1 1.71.0 1.72.0 1.73.0
+ rustup default 1.67.1
+ cargo install cargo-ndk --version 2.12.7 --locked
+ ```
+diff --git a/pubspec.lock b/pubspec.lock
+index 001cb4b6..f51df73d 100644
+--- a/pubspec.lock
++++ b/pubspec.lock
+@@ -732,9 +732,9 @@ packages:
+     dependency: "direct main"
+     description:
+       path: "."
+-      ref: "7a11d0cadf8c7a6a5d5144dab18cef9536aa5943"
+-      resolved-ref: "7a11d0cadf8c7a6a5d5144dab18cef9536aa5943"
+-      url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
++      ref: "69e9a50715b89497951eba67f1313549708b7c6d"
++      resolved-ref: "69e9a50715b89497951eba67f1313549708b7c6d"
++      url: "https://github.com/mrcyjanek/flutter_libsparkmobile.git"
+     source: git
+     version: "0.0.1"
+   flutter_lints:
+diff --git a/scripts/app_config/templates/pubspec.template b/scripts/app_config/templates/pubspec.template
+index dc0323d2..0116b939 100644
+--- a/scripts/app_config/templates/pubspec.template
++++ b/scripts/app_config/templates/pubspec.template
+@@ -32,8 +32,8 @@ dependencies:
+ 
+   flutter_libsparkmobile:
+     git:
+-      url: https://github.com/cypherstack/flutter_libsparkmobile.git
+-      ref: 7a11d0cadf8c7a6a5d5144dab18cef9536aa5943
++      url: https://github.com/mrcyjanek/flutter_libsparkmobile.git
++      ref: 69e9a50715b89497951eba67f1313549708b7c6d
+ 
+   flutter_libmonero:
+     path: ./crypto_plugins/flutter_libmonero
+diff --git a/scripts/linux/build_secp256k1.sh b/scripts/linux/build_secp256k1.sh
+index 6fdd9f58..e333b723 100755
+--- a/scripts/linux/build_secp256k1.sh
++++ b/scripts/linux/build_secp256k1.sh
+@@ -6,5 +6,5 @@ mkdir -p build && cd build
+ cmake ..
+ cmake --build .
+ mkdir -p ../../../../../build
+-cp src/libsecp256k1.so.2.2.1 "../../../../../build/libsecp256k1.so"
++cp src/libsecp256k1.so.2.*.* "../../../../../build/libsecp256k1.so"
+ cd ../../../
+diff --git a/scripts/linux/build_secure_storage_deps.sh b/scripts/linux/build_secure_storage_deps.sh
+index aff3097d..9956d286 100755
+--- a/scripts/linux/build_secure_storage_deps.sh
++++ b/scripts/linux/build_secure_storage_deps.sh
+@@ -32,7 +32,7 @@ if ! [ -x "$(command -v meson)" ]; then
+   echo 'Error: meson is not installed.' >&2
+   exit 1
+ fi
+-meson _build
++meson _build -Dmanpage=false -Dgtk_doc=false
+ if ! [ -x "$(command -v ninja)" ]; then
+   echo 'Error: ninja is not installed.' >&2
+   exit 1
+-- 
+2.43.0
+
