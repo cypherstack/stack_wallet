@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cbor/simple.dart';
 import 'package:on_chain/ada/src/provider/blockfrost/core/core.dart';
 import 'package:on_chain/ada/src/provider/service/service.dart';
+
+import '../../../utilities/logger.dart';
 
 class BlockfrostHttpProvider implements BlockfrostServiceProvider {
   BlockfrostHttpProvider({
@@ -36,12 +39,13 @@ class BlockfrostHttpProvider implements BlockfrostServiceProvider {
   Future<dynamic> post(BlockforestRequestDetails params,
       [Duration? timeout,]) async {
     final request = await client.postUrl(Uri.parse(params.url(url, "api/$version"))).timeout(timeout ?? defaultRequestTimeout);
-    request.headers.add("Content-Type", "application/json");
+    // Need to change this for other operations than submitting transactions
+    request.headers.add("Content-Type", "application/cbor");
     request.headers.add("Accept", "application/json");
     if (projectId != null) {
       request.headers.add("project_id", projectId!);
     }
-    request.write(json.encode(params.body));
+    request.add(params.body as List<int>);
     final response = await request.close();
     final data = json.decode(await response.transform(utf8.decoder).join());
     return data;
