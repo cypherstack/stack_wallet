@@ -54,11 +54,13 @@ class MockWalletsService extends _i1.Mock implements _i3.WalletsService {
         returnValue: _i4.Future<Map<String, _i3.WalletInfo>>.value(
             <String, _i3.WalletInfo>{}),
       ) as _i4.Future<Map<String, _i3.WalletInfo>>);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   void addListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -67,6 +69,7 @@ class MockWalletsService extends _i1.Mock implements _i3.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -75,6 +78,7 @@ class MockWalletsService extends _i1.Mock implements _i3.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -83,6 +87,7 @@ class MockWalletsService extends _i1.Mock implements _i3.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(
@@ -109,21 +114,25 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
           Invocation.getter(#secureStorageInterface),
         ),
       ) as _i2.SecureStorageInterface);
+
   @override
   List<_i7.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
         returnValue: <_i7.NodeModel>[],
       ) as List<_i7.NodeModel>);
+
   @override
   List<_i7.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
         returnValue: <_i7.NodeModel>[],
       ) as List<_i7.NodeModel>);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   _i4.Future<void> updateDefaults() => (super.noSuchMethod(
         Invocation.method(
@@ -133,6 +142,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   _i4.Future<void> setPrimaryNodeFor({
     required _i8.CryptoCurrency? coin,
@@ -152,6 +162,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   _i7.NodeModel? getPrimaryNodeFor({required _i8.CryptoCurrency? currency}) =>
       (super.noSuchMethod(Invocation.method(
@@ -159,6 +170,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         [],
         {#currency: currency},
       )) as _i7.NodeModel?);
+
   @override
   List<_i7.NodeModel> getNodesFor(_i8.CryptoCurrency? coin) =>
       (super.noSuchMethod(
@@ -168,6 +180,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         ),
         returnValue: <_i7.NodeModel>[],
       ) as List<_i7.NodeModel>);
+
   @override
   _i7.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
@@ -175,6 +188,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         [],
         {#id: id},
       )) as _i7.NodeModel?);
+
   @override
   List<_i7.NodeModel> failoverNodesFor(
           {required _i8.CryptoCurrency? currency}) =>
@@ -186,6 +200,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         ),
         returnValue: <_i7.NodeModel>[],
       ) as List<_i7.NodeModel>);
+
   @override
   _i4.Future<void> add(
     _i7.NodeModel? node,
@@ -204,6 +219,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   _i4.Future<void> delete(
     String? id,
@@ -220,6 +236,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   _i4.Future<void> setEnabledState(
     String? id,
@@ -238,6 +255,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   _i4.Future<void> edit(
     _i7.NodeModel? editedNode,
@@ -256,6 +274,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   _i4.Future<void> updateCommunityNodes() => (super.noSuchMethod(
         Invocation.method(
@@ -265,6 +284,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   void addListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -273,6 +293,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -281,6 +302,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -289,6 +311,7 @@ class MockNodeService extends _i1.Mock implements _i6.NodeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(

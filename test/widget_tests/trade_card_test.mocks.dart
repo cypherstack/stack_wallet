@@ -62,6 +62,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
           Invocation.getter(#client),
         ),
       ) as _i2.HTTP);
+
   @override
   set client(_i2.HTTP? _client) => super.noSuchMethod(
         Invocation.setter(
@@ -70,6 +71,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i3.MainDB get db => (super.noSuchMethod(
         Invocation.getter(#db),
@@ -78,11 +80,13 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
           Invocation.getter(#db),
         ),
       ) as _i3.MainDB);
+
   @override
   List<_i5.StackTheme> get installedThemes => (super.noSuchMethod(
         Invocation.getter(#installedThemes),
         returnValue: <_i5.StackTheme>[],
       ) as List<_i5.StackTheme>);
+
   @override
   void init(_i3.MainDB? db) => super.noSuchMethod(
         Invocation.method(
@@ -91,6 +95,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i6.Future<void> install({required _i7.Uint8List? themeArchiveData}) =>
       (super.noSuchMethod(
@@ -102,6 +107,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
+
   @override
   _i6.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
         Invocation.method(
@@ -112,6 +118,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
+
   @override
   _i6.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
         Invocation.method(
@@ -121,6 +128,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
       ) as _i6.Future<void>);
+
   @override
   _i6.Future<bool> verifyInstalled({required String? themeId}) =>
       (super.noSuchMethod(
@@ -131,6 +139,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
         ),
         returnValue: _i6.Future<bool>.value(false),
       ) as _i6.Future<bool>);
+
   @override
   _i6.Future<List<_i4.StackThemeMetaData>> fetchThemes() => (super.noSuchMethod(
         Invocation.method(
@@ -140,6 +149,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
         returnValue: _i6.Future<List<_i4.StackThemeMetaData>>.value(
             <_i4.StackThemeMetaData>[]),
       ) as _i6.Future<List<_i4.StackThemeMetaData>>);
+
   @override
   _i6.Future<_i7.Uint8List> fetchTheme(
           {required _i4.StackThemeMetaData? themeMetaData}) =>
@@ -151,6 +161,7 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
         ),
         returnValue: _i6.Future<_i7.Uint8List>.value(_i7.Uint8List(0)),
       ) as _i6.Future<_i7.Uint8List>);
+
   @override
   _i5.StackTheme? getTheme({required String? themeId}) =>
       (super.noSuchMethod(Invocation.method(
@@ -176,6 +187,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#bellNew),
         ),
       ) as String);
+
   @override
   String get buy => (super.noSuchMethod(
         Invocation.getter(#buy),
@@ -184,6 +196,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#buy),
         ),
       ) as String);
+
   @override
   String get exchange => (super.noSuchMethod(
         Invocation.getter(#exchange),
@@ -192,6 +205,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#exchange),
         ),
       ) as String);
+
   @override
   String get personaIncognito => (super.noSuchMethod(
         Invocation.getter(#personaIncognito),
@@ -200,6 +214,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#personaIncognito),
         ),
       ) as String);
+
   @override
   String get personaEasy => (super.noSuchMethod(
         Invocation.getter(#personaEasy),
@@ -208,6 +223,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#personaEasy),
         ),
       ) as String);
+
   @override
   String get stack => (super.noSuchMethod(
         Invocation.getter(#stack),
@@ -216,6 +232,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#stack),
         ),
       ) as String);
+
   @override
   String get stackIcon => (super.noSuchMethod(
         Invocation.getter(#stackIcon),
@@ -224,6 +241,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#stackIcon),
         ),
       ) as String);
+
   @override
   String get receive => (super.noSuchMethod(
         Invocation.getter(#receive),
@@ -232,6 +250,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#receive),
         ),
       ) as String);
+
   @override
   String get receivePending => (super.noSuchMethod(
         Invocation.getter(#receivePending),
@@ -240,6 +259,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#receivePending),
         ),
       ) as String);
+
   @override
   String get receiveCancelled => (super.noSuchMethod(
         Invocation.getter(#receiveCancelled),
@@ -248,6 +268,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#receiveCancelled),
         ),
       ) as String);
+
   @override
   String get send => (super.noSuchMethod(
         Invocation.getter(#send),
@@ -256,6 +277,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#send),
         ),
       ) as String);
+
   @override
   String get sendPending => (super.noSuchMethod(
         Invocation.getter(#sendPending),
@@ -264,6 +286,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#sendPending),
         ),
       ) as String);
+
   @override
   String get sendCancelled => (super.noSuchMethod(
         Invocation.getter(#sendCancelled),
@@ -272,6 +295,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#sendCancelled),
         ),
       ) as String);
+
   @override
   String get themeSelector => (super.noSuchMethod(
         Invocation.getter(#themeSelector),
@@ -280,6 +304,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#themeSelector),
         ),
       ) as String);
+
   @override
   String get themePreview => (super.noSuchMethod(
         Invocation.getter(#themePreview),
@@ -288,6 +313,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#themePreview),
         ),
       ) as String);
+
   @override
   String get txExchange => (super.noSuchMethod(
         Invocation.getter(#txExchange),
@@ -296,6 +322,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#txExchange),
         ),
       ) as String);
+
   @override
   String get txExchangePending => (super.noSuchMethod(
         Invocation.getter(#txExchangePending),
@@ -304,6 +331,7 @@ class MockIThemeAssets extends _i1.Mock implements _i5.IThemeAssets {
           Invocation.getter(#txExchangePending),
         ),
       ) as String);
+
   @override
   String get txExchangeFailed => (super.noSuchMethod(
         Invocation.getter(#txExchangeFailed),
