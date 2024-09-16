@@ -14,7 +14,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace "com.place.holder"
     compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+//    ndkVersion flutter.ndkVersion
+    ndkVersion = "26.1.10909125"
 
     packagingOptions {
         pickFirst 'lib/x86/libc++_shared.so'
