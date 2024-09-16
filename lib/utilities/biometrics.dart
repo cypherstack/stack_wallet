@@ -10,8 +10,8 @@
 
 import 'dart:io';
 
-import 'package:local_auth/auth_strings.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_android/local_auth_android.dart';
 
 import 'logger.dart';
 
@@ -62,10 +62,11 @@ class Biometrics {
         if (availableSystems.contains(BiometricType.face)) {
           try {
             final bool didAuthenticate = await localAuth.authenticate(
-              biometricOnly: true,
               localizedReason: localizedReason,
-              stickyAuth: true,
-              iOSAuthStrings: const IOSAuthMessages(),
+              options: const AuthenticationOptions(
+                stickyAuth: true,
+                biometricOnly: true,
+              ),
             );
 
             if (didAuthenticate) {
@@ -80,10 +81,11 @@ class Biometrics {
         } else if (availableSystems.contains(BiometricType.fingerprint)) {
           try {
             final bool didAuthenticate = await localAuth.authenticate(
-              biometricOnly: true,
               localizedReason: localizedReason,
-              stickyAuth: true,
-              iOSAuthStrings: const IOSAuthMessages(),
+              options: const AuthenticationOptions(
+                stickyAuth: true,
+                biometricOnly: true,
+              ),
             );
 
             if (didAuthenticate) {
@@ -100,14 +102,18 @@ class Biometrics {
         if (availableSystems.contains(BiometricType.fingerprint)) {
           try {
             final bool didAuthenticate = await localAuth.authenticate(
-              biometricOnly: true,
               localizedReason: localizedReason,
-              stickyAuth: true,
-              androidAuthStrings: AndroidAuthMessages(
-                biometricHint: "",
-                cancelButton: cancelButtonText,
-                signInTitle: title,
+              options: const AuthenticationOptions(
+                stickyAuth: true,
+                biometricOnly: true,
               ),
+              authMessages: <AuthMessages>[
+                AndroidAuthMessages(
+                  biometricHint: "",
+                  cancelButton: cancelButtonText,
+                  signInTitle: title,
+                ),
+              ],
             );
 
             if (didAuthenticate) {

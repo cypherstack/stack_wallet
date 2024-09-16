@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../providers/cash_fusion/fusion_progress_ui_state_provider.dart';
 import '../../../providers/global/prefs_provider.dart';
@@ -139,7 +139,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
           message: "Stopping fusion",
         );
 
-        await Wakelock.disable();
+        await WakelockPlus.disable();
 
         return true;
       } else {
@@ -156,7 +156,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
 
   @override
   dispose() {
-    Wakelock.disable();
+    WakelockPlus.disable();
     super.dispose();
   }
 
@@ -173,7 +173,7 @@ class _FusionDialogViewState extends ConsumerState<FusionDialogView> {
         .fusionRoundsCompleted;
 
     if (!Platform.isLinux) {
-      Wakelock.enable();
+      WakelockPlus.enable();
     }
 
     return DesktopDialog(

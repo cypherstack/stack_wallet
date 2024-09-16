@@ -18,7 +18,7 @@ import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../../app_config.dart';
 import '../../../../../db/hive/db.dart';
@@ -700,7 +700,7 @@ abstract class SWB {
     StackRestoringUIState? uiState,
     SecureStorageInterface secureStorageInterface,
   ) async {
-    if (!Platform.isLinux) await Wakelock.enable();
+    if (!Platform.isLinux) await WakelockPlus.enable();
 
     Logging.instance.log(
       "SWB creating temp backup",
@@ -914,7 +914,7 @@ abstract class SWB {
       await status;
     }
 
-    if (!Platform.isLinux) await Wakelock.disable();
+    if (!Platform.isLinux) await WakelockPlus.disable();
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(
       preRestoreState,

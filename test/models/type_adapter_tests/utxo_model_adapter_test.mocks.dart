@@ -48,11 +48,13 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         Invocation.getter(#availableBytes),
         returnValue: 0,
       ) as int);
+
   @override
   int get usedBytes => (super.noSuchMethod(
         Invocation.getter(#usedBytes),
         returnValue: 0,
       ) as int);
+
   @override
   void skip(int? bytes) => super.noSuchMethod(
         Invocation.method(
@@ -61,6 +63,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   int readByte() => (super.noSuchMethod(
         Invocation.method(
@@ -69,6 +72,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: 0,
       ) as int);
+
   @override
   _i4.Uint8List viewBytes(int? bytes) => (super.noSuchMethod(
         Invocation.method(
@@ -77,6 +81,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: _i4.Uint8List(0),
       ) as _i4.Uint8List);
+
   @override
   _i4.Uint8List peekBytes(int? bytes) => (super.noSuchMethod(
         Invocation.method(
@@ -85,6 +90,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: _i4.Uint8List(0),
       ) as _i4.Uint8List);
+
   @override
   int readWord() => (super.noSuchMethod(
         Invocation.method(
@@ -93,6 +99,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: 0,
       ) as int);
+
   @override
   int readInt32() => (super.noSuchMethod(
         Invocation.method(
@@ -101,6 +108,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: 0,
       ) as int);
+
   @override
   int readUint32() => (super.noSuchMethod(
         Invocation.method(
@@ -109,6 +117,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: 0,
       ) as int);
+
   @override
   int readInt() => (super.noSuchMethod(
         Invocation.method(
@@ -117,6 +126,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: 0,
       ) as int);
+
   @override
   double readDouble() => (super.noSuchMethod(
         Invocation.method(
@@ -125,6 +135,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: 0.0,
       ) as double);
+
   @override
   bool readBool() => (super.noSuchMethod(
         Invocation.method(
@@ -133,6 +144,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: false,
       ) as bool);
+
   @override
   String readString([
     int? byteCount,
@@ -157,6 +169,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
           ),
         ),
       ) as String);
+
   @override
   _i4.Uint8List readByteList([int? length]) => (super.noSuchMethod(
         Invocation.method(
@@ -165,6 +178,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: _i4.Uint8List(0),
       ) as _i4.Uint8List);
+
   @override
   List<int> readIntList([int? length]) => (super.noSuchMethod(
         Invocation.method(
@@ -173,6 +187,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: <int>[],
       ) as List<int>);
+
   @override
   List<double> readDoubleList([int? length]) => (super.noSuchMethod(
         Invocation.method(
@@ -181,6 +196,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: <double>[],
       ) as List<double>);
+
   @override
   List<bool> readBoolList([int? length]) => (super.noSuchMethod(
         Invocation.method(
@@ -189,6 +205,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: <bool>[],
       ) as List<bool>);
+
   @override
   List<String> readStringList([
     int? length,
@@ -204,6 +221,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: <String>[],
       ) as List<String>);
+
   @override
   List<dynamic> readList([int? length]) => (super.noSuchMethod(
         Invocation.method(
@@ -212,6 +230,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: <dynamic>[],
       ) as List<dynamic>);
+
   @override
   Map<dynamic, dynamic> readMap([int? length]) => (super.noSuchMethod(
         Invocation.method(
@@ -220,6 +239,7 @@ class MockBinaryReader extends _i2.Mock implements _i3.BinaryReader {
         ),
         returnValue: <dynamic, dynamic>{},
       ) as Map<dynamic, dynamic>);
+
   @override
   _i3.HiveList<_i1.HiveObjectMixin> readHiveList([int? length]) =>
       (super.noSuchMethod(
@@ -253,6 +273,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeWord(int? value) => super.noSuchMethod(
         Invocation.method(
@@ -261,6 +282,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeInt32(int? value) => super.noSuchMethod(
         Invocation.method(
@@ -269,6 +291,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeUint32(int? value) => super.noSuchMethod(
         Invocation.method(
@@ -277,6 +300,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeInt(int? value) => super.noSuchMethod(
         Invocation.method(
@@ -285,6 +309,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeDouble(double? value) => super.noSuchMethod(
         Invocation.method(
@@ -293,6 +318,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeBool(bool? value) => super.noSuchMethod(
         Invocation.method(
@@ -301,6 +327,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeString(
     String? value, {
@@ -318,6 +345,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeByteList(
     List<int>? bytes, {
@@ -331,6 +359,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeIntList(
     List<int>? list, {
@@ -344,6 +373,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeDoubleList(
     List<double>? list, {
@@ -357,6 +387,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeBoolList(
     List<bool>? list, {
@@ -370,6 +401,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeStringList(
     List<String>? list, {
@@ -387,6 +419,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeList(
     List<dynamic>? list, {
@@ -400,6 +433,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeMap(
     Map<dynamic, dynamic>? map, {
@@ -413,6 +447,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void writeHiveList(
     _i3.HiveList<_i1.HiveObjectMixin>? list, {
@@ -426,6 +461,7 @@ class MockBinaryWriter extends _i2.Mock implements _i3.BinaryWriter {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void write<T>(
     T? value, {
