@@ -1927,8 +1927,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "647cadc3c82c276dc07915b02d24538fd610f220"
-      resolved-ref: "647cadc3c82c276dc07915b02d24538fd610f220"
+      ref: "534ec251b339199446b723c01a25d324ae7bb974"
+      resolved-ref: "534ec251b339199446b723c01a25d324ae7bb974"
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"

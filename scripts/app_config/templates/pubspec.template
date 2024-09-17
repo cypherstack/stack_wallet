@@ -252,7 +252,7 @@ dependency_overrides:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 647cadc3c82c276dc07915b02d24538fd610f220
+      ref: 534ec251b339199446b723c01a25d324ae7bb974
 
   monero:
     git:
