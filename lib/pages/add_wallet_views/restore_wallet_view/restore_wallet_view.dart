@@ -22,7 +22,7 @@ import 'package:flutter_libmonero/monero/monero.dart' as libxmr;
 import 'package:flutter_libmonero/wownero/wownero.dart' as libwow;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
@@ -282,7 +282,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           ),
         );
       } else {
-        if (!Platform.isLinux) await Wakelock.enable();
+        if (!Platform.isLinux) await WakelockPlus.enable();
 
         final info = WalletInfo.createNew(
           coin: widget.coin,
@@ -426,12 +426,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             }
 
             if (!Platform.isLinux && !isDesktop) {
-              await Wakelock.disable();
+              await WakelockPlus.disable();
             }
           }
         } catch (e) {
           if (!Platform.isLinux && !isDesktop) {
-            await Wakelock.disable();
+            await WakelockPlus.disable();
           }
 
           // if (e is HiveError &&
@@ -463,7 +463,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         }
 
         if (!Platform.isLinux && !isDesktop) {
-          await Wakelock.disable();
+          await WakelockPlus.disable();
         }
       }
     }

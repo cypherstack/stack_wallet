@@ -19,8 +19,8 @@ FCResult _updateSparkUsedTagsWith(
 ) {
   // hash the tags here since this function is called in a background isolate
   final hashedTags = LibSpark.hashTags(
-    base64Tags: tags.map((e) => e[0] as String),
-  );
+    base64Tags: tags.map((e) => e[0] as String).toSet(),
+  ).toList();
 
   if (hashedTags.isEmpty) {
     // nothing to add, return early

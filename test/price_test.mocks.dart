@@ -70,6 +70,7 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
           ),
         )),
       ) as _i3.Future<_i2.Response>);
+
   @override
   _i3.Future<_i2.Response> post({
     required Uri? url,
