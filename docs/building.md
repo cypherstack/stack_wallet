@@ -13,12 +13,12 @@ Here you will find instructions on how to install the necessary tools for buildi
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Flutter
-Install Flutter 3.24.2 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.24.2` tag, and add its `flutter/bin` folder to your PATH as in
+Install Flutter 3.24.3 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.24.3` tag, and add its `flutter/bin` folder to your PATH as in
 ```sh
 FLUTTER_DIR="$HOME/development/flutter"
 git clone https://github.com/flutter/flutter.git "$FLUTTER_DIR"
 cd "$FLUTTER_DIR"
-git checkout 3.24.2
+git checkout 3.24.3
 echo 'export PATH="$PATH:'"$FLUTTER_DIR"'/bin"' >> "$HOME/.profile"
 source "$HOME/.profile"
 flutter precache
@@ -224,7 +224,7 @@ rustup target add aarch64-apple-ios aarch64-apple-darwin
 Optionally download [Android Studio](https://developer.android.com/studio) as an IDE and activate its Dart and Flutter plugins.  VS Code may work as an alternative, but this is not recommended.
 
 ### Flutter
-Install [Flutter](https://docs.flutter.dev/get-started/install) 3.24.2 on your Mac host by following [these instructions](https://docs.flutter.dev/get-started/install/macos).  Run `flutter doctor` in a terminal to confirm its installation.
+Install [Flutter](https://docs.flutter.dev/get-started/install) 3.24.3 on your Mac host by following [these instructions](https://docs.flutter.dev/get-started/install/macos).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Build plugins and configure
 #### Building plugins for iOS 
@@ -294,13 +294,13 @@ If the DLLs were built on the WSL filesystem instead of on Windows, copy the res
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.24.2 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk) or by cloning https://github.com/flutter/flutter, checking out the `3.24.2` tag, and adding its `flutter/bin` folder to your PATH as in
+Install Flutter 3.24.3 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk) or by cloning https://github.com/flutter/flutter, checking out the `3.24.3` tag, and adding its `flutter/bin` folder to your PATH as in
 ```bat
 @echo off
 set "FLUTTER_DIR=%USERPROFILE%\development\flutter"
 git clone https://github.com/flutter/flutter.git "%FLUTTER_DIR%"
 cd /d "%FLUTTER_DIR%"
-git checkout 3.24.2
+git checkout 3.24.3
 setx PATH "%PATH%;%FLUTTER_DIR%\bin"
 echo Flutter setup completed. Please restart your command prompt.
 ```
