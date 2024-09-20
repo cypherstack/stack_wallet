@@ -1,4 +1,4 @@
-import 'package:cw_wownero/api/wallet.dart' as wownero_wallet;
+import 'package:monero/wownero.dart' as wownero;
 
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -48,7 +48,7 @@ class Wownero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
-    return wownero_wallet.addressValid(address);
+    return wownero.Wallet_addressValid(address, 0);
   }
 
   @override
