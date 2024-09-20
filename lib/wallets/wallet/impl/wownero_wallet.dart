@@ -12,9 +12,9 @@ import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/exceptions/creation_transaction_exception.dart';
-import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:cw_wownero/wownero_wallet.dart';
+import 'package:cw_wownero/wownero_wallet_service.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart'
@@ -77,8 +77,14 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
   }
 
   @override
+  WowneroWalletBase? cwWalletBase;
+
+  @override
+  WowneroWalletService? cwWalletService;
+
+  @override
   Address addressFor({required int index, int account = 0}) {
-    final String address = (CwBasedInterface.cwWalletBase as WowneroWalletBase)
+    final String address = (cwWalletBase as WowneroWalletBase)
         .getTransactionAddress(account, index);
 
     final newReceivingAddress = Address(
@@ -96,8 +102,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
-    if (CwBasedInterface.cwWalletBase == null ||
-        CwBasedInterface.cwWalletBase?.syncStatus is! SyncedSyncStatus) {
+    if (cwWalletBase == null || cwWalletBase?.syncStatus is! SyncedSyncStatus) {
       return Amount.zeroWith(
         fractionDigits: cryptoCurrency.fractionDigits,
       );
@@ -152,7 +157,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
           // unsure why this delay?
           await Future<void>.delayed(const Duration(milliseconds: 500));
         } catch (e) {
-          approximateFee = CwBasedInterface.cwWalletBase!.calculateEstimatedFee(
+          approximateFee = cwWalletBase!.calculateEstimatedFee(
             priority,
             amount.raw.toInt(),
           );
@@ -172,9 +177,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<bool> pingCheck() async {
-    return await (CwBasedInterface.cwWalletBase as WowneroWalletBase?)
-            ?.isConnected() ??
-        false;
+    return await cwWalletBase?.isConnected() ?? false;
   }
 
   @override
@@ -188,7 +191,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
     }
     if (_requireMutex) {
       await _torConnectingLock.protect(() async {
-        await CwBasedInterface.cwWalletBase?.connectToNode(
+        await cwWalletBase?.connectToNode(
           node: Node(
             uri: "$host:${node.port}",
             type: WalletType.wownero,
@@ -200,7 +203,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         );
       });
     } else {
-      await CwBasedInterface.cwWalletBase?.connectToNode(
+      await cwWalletBase?.connectToNode(
         node: Node(
           uri: "$host:${node.port}",
           type: WalletType.wownero,
@@ -217,11 +220,9 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<CWKeyData?> getKeys() async {
-    final base = (CwBasedInterface.cwWalletBase as WowneroWalletBase?);
+    final base = cwWalletBase;
 
-    if (base == null ||
-        base.walletInfo.name != walletId ||
-        CwBasedInterface.exitMutex.isLocked) {
+    if (base == null || base.walletInfo.name != walletId) {
       return null;
     }
 
@@ -236,11 +237,9 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<void> updateTransactions() async {
-    final base = (CwBasedInterface.cwWalletBase as WowneroWalletBase?);
+    final base = cwWalletBase;
 
-    if (base == null ||
-        base.walletInfo.name != walletId ||
-        CwBasedInterface.exitMutex.isLocked) {
+    if (base == null || base.walletInfo.name != walletId) {
       return;
     }
     await base.updateTransactions();
@@ -287,9 +286,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         if (tx.value.direction == TransactionDirection.incoming) {
           final addressInfo = tx.value.additionalInfo;
 
-          final addressString =
-              (CwBasedInterface.cwWalletBase as WowneroWalletBase?)
-                  ?.getTransactionAddress(
+          final addressString = cwWalletBase?.getTransactionAddress(
             addressInfo!['accountIndex'] as int,
             addressInfo['addressIndex'] as int,
           );
@@ -364,11 +361,11 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<void> init({bool? isRestore}) async {
-    await CwBasedInterface.exitMutex.protect(() async {});
-    CwBasedInterface.cwWalletService = wow_dart.wownero
-        .createWowneroWalletService(DB.instance.moneroWalletInfoBox);
+    cwWalletService = wow_dart.wownero
+            .createWowneroWalletService(DB.instance.moneroWalletInfoBox)
+        as WowneroWalletService;
 
-    if (!(await CwBasedInterface.cwWalletService!.isWalletExit(walletId)) &&
+    if (!(await cwWalletService!.isWalletExist(walletId)) &&
         isRestore != true) {
       WalletInfo walletInfo;
       WalletCredentials credentials;
@@ -398,15 +395,16 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
         final _walletCreationService = WalletCreationService(
           secureStorage: secureStorageInterface,
-          walletService: CwBasedInterface.cwWalletService,
+          walletService: cwWalletService!,
           keyService: cwKeysStorage,
+          type: WalletType.wownero,
         );
-        // _walletCreationService.changeWalletType();
-        _walletCreationService.type = WalletType.wownero;
         // To restore from a seed
-        final wallet = await _walletCreationService.create(credentials);
+        final wallet = await _walletCreationService.create(credentials)
+            as WowneroWalletBase;
 
-        final height = wownerodart.Wallet_getRefreshFromBlockHeight(wptr!);
+        final height =
+            wownerodart.Wallet_getRefreshFromBlockHeight(wallet.wallet.wptr);
 
         await info.updateRestoreHeight(
           newRestoreHeight: height,
@@ -433,7 +431,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         wallet.close();
       } catch (e, s) {
         Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
-        CwBasedInterface.cwWalletBase?.close();
+        cwWalletBase?.close();
       }
       await updateNode();
     }
@@ -443,9 +441,6 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
   @override
   Future<void> open() async {
-    // await any previous exit
-    await CwBasedInterface.exitMutex.protect(() async {});
-
     String? password;
     try {
       password = await cwKeysStorage.getWalletPassword(walletName: walletId);
@@ -453,18 +448,20 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
       throw Exception("Password not found $e, $s");
     }
 
-    CwBasedInterface.cwWalletBase?.close();
-    CwBasedInterface.cwWalletBase = (await CwBasedInterface.cwWalletService!
-        .openWallet(walletId, password)) as WowneroWalletBase;
+    bool wasNull = false;
 
-    (CwBasedInterface.cwWalletBase as WowneroWalletBase?)?.onNewBlock =
-        onNewBlock;
-    (CwBasedInterface.cwWalletBase as WowneroWalletBase?)?.onNewTransaction =
-        onNewTransaction;
-    (CwBasedInterface.cwWalletBase as WowneroWalletBase?)?.syncStatusChanged =
-        syncStatusChanged;
+    if (cwWalletBase == null) {
+      wasNull = true;
+      // cwWalletBaseT?.close();
+      cwWalletBase = (await cwWalletService!.openWallet(walletId, password))
+          as WowneroWalletBase;
 
-    await updateNode();
+      cwWalletBase?.onNewBlock = onNewBlock;
+      cwWalletBase?.onNewTransaction = onNewTransaction;
+      cwWalletBase?.syncStatusChanged = syncStatusChanged;
+
+      await updateNode();
+    }
 
     Address? currentAddress = await getCurrentReceivingAddress();
     if (currentAddress == null) {
@@ -478,39 +475,29 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
       );
     }
 
-    await (CwBasedInterface.cwWalletBase as WowneroWalletBase?)?.startSync();
+    if (wasNull) {
+      await cwWalletBase?.startSync();
+    } else {
+      cwWalletBase?.wallet.startListeners();
+    }
     unawaited(refresh());
-    autoSaveTimer?.cancel();
+
     autoSaveTimer = Timer.periodic(
       const Duration(seconds: 193),
-      (_) async => await CwBasedInterface.cwWalletBase?.save(),
+      (_) async => await cwWalletBase?.save(),
     );
   }
 
   @override
-  Future<void> exitCwWallet() async {
-    (CwBasedInterface.cwWalletBase as WowneroWalletBase?)?.onNewBlock = null;
-    (CwBasedInterface.cwWalletBase as WowneroWalletBase?)?.onNewTransaction =
-        null;
-    (CwBasedInterface.cwWalletBase as WowneroWalletBase?)?.syncStatusChanged =
-        null;
-    await (CwBasedInterface.cwWalletBase as WowneroWalletBase?)
-        ?.save(prioritySave: true);
-  }
-
-  @override
   Future<void> recover({required bool isRescan}) async {
-    await CwBasedInterface.exitMutex.protect(() async {});
-
     if (isRescan) {
       await refreshMutex.protect(() async {
         // clear blockchain info
         await mainDB.deleteWalletBlockchainData(walletId);
 
-        final restoreHeight =
-            CwBasedInterface.cwWalletBase?.walletInfo.restoreHeight;
+        final restoreHeight = cwWalletBase?.walletInfo.restoreHeight;
         highestPercentCached = 0;
-        await CwBasedInterface.cwWalletBase?.rescan(height: restoreHeight ?? 0);
+        await cwWalletBase?.rescan(height: restoreHeight ?? 0);
       });
       unawaited(refresh());
       return;
@@ -534,12 +521,14 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
           height = max(height, 0);
         }
 
-        // TODO: info.updateRestoreHeight
-        // await DB.instance
-        //     .put<dynamic>(boxName: walletId, key: "restoreHeight", value: height);
+        await info.updateRestoreHeight(
+          newRestoreHeight: height,
+          isar: mainDB.isar,
+        );
 
-        CwBasedInterface.cwWalletService = wow_dart.wownero
-            .createWowneroWalletService(DB.instance.moneroWalletInfoBox);
+        cwWalletService = wow_dart.wownero
+                .createWowneroWalletService(DB.instance.moneroWalletInfoBox)
+            as WowneroWalletService;
         WalletInfo walletInfo;
         WalletCredentials credentials;
         final String name = walletId;
@@ -569,14 +558,15 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
           final cwWalletCreationService = WalletCreationService(
             secureStorage: secureStorageInterface,
-            walletService: CwBasedInterface.cwWalletService,
+            walletService: cwWalletService!,
             keyService: cwKeysStorage,
+            type: WalletType.wownero,
           );
-          cwWalletCreationService.type = WalletType.wownero;
           // To restore from a seed
           final wallet = await cwWalletCreationService
               .restoreFromSeed(credentials) as WowneroWalletBase;
-          height = wownerodart.Wallet_getRefreshFromBlockHeight(wptr!);
+          height =
+              wownerodart.Wallet_getRefreshFromBlockHeight(wallet.wallet.wptr);
           walletInfo.address = wallet.walletAddresses.address;
           walletInfo.restoreHeight = height;
           await info.updateRestoreHeight(
@@ -585,8 +575,8 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
           );
           await DB.instance
               .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
-          CwBasedInterface.cwWalletBase?.close();
-          CwBasedInterface.cwWalletBase = wallet;
+          cwWalletBase?.close();
+          cwWalletBase = wallet;
           if (walletInfo.address != null) {
             final newReceivingAddress = await getCurrentReceivingAddress() ??
                 Address(
@@ -610,8 +600,8 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         }
         await updateNode();
 
-        await CwBasedInterface.cwWalletBase?.rescan(height: credentials.height);
-        CwBasedInterface.cwWalletBase?.close();
+        await cwWalletBase?.rescan(height: credentials.height);
+        cwWalletBase?.close();
       } catch (e, s) {
         Logging.instance.log(
           "Exception rethrown from recoverFromMnemonic(): $e\n$s",
@@ -654,8 +644,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
 
           final List<wownero_output.Output> outputs = [];
           for (final recipient in txData.recipients!) {
-            final output =
-                wownero_output.Output(CwBasedInterface.cwWalletBase!);
+            final output = wownero_output.Output(cwWalletBase!);
             output.address = recipient.address;
             output.sendAll = isSendAll;
             final String amountToSend = recipient.amount.decimal.toString();
@@ -670,8 +659,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
           );
 
           await prepareSendMutex.protect(() async {
-            awaitPendingTransaction =
-                CwBasedInterface.cwWalletBase!.createTransaction(tmp);
+            awaitPendingTransaction = cwWalletBase!.createTransaction(tmp);
           });
         } catch (e, s) {
           Logging.instance.log(
@@ -739,14 +727,8 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
   @override
   Future<Amount> get availableBalance async {
     try {
-      if (CwBasedInterface.exitMutex.isLocked) {
-        throw Exception("Exit in progress");
-      }
-
       int runningBalance = 0;
-      for (final entry in (CwBasedInterface.cwWalletBase as WowneroWalletBase?)!
-          .balance!
-          .entries) {
+      for (final entry in cwWalletBase!.balance!.entries) {
         runningBalance += entry.value.unlockedBalance;
       }
       return Amount(
@@ -761,13 +743,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
   @override
   Future<Amount> get totalBalance async {
     try {
-      if (CwBasedInterface.exitMutex.isLocked) {
-        throw Exception("Exit in progress");
-      }
-      final balanceEntries =
-          (CwBasedInterface.cwWalletBase as WowneroWalletBase?)
-              ?.balance
-              ?.entries;
+      final balanceEntries = cwWalletBase?.balance?.entries;
       if (balanceEntries != null) {
         int bal = 0;
         for (final element in balanceEntries) {
@@ -778,8 +754,7 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       } else {
-        final transactions =
-            CwBasedInterface.cwWalletBase!.transactionHistory!.transactions;
+        final transactions = cwWalletBase!.transactionHistory!.transactions;
         int transactionBalance = 0;
         for (final tx in transactions!.entries) {
           if (tx.value.direction == TransactionDirection.incoming) {

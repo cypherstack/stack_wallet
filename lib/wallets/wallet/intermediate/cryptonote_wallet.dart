@@ -9,20 +9,6 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency> extends Wallet<T>
     with MnemonicInterface<T> {
   CryptonoteWallet(super.currency);
 
-  Completer<void>? walletOpenCompleter;
-
-  void resetWalletOpenCompleter() {
-    if (walletOpenCompleter == null || walletOpenCompleter!.isCompleted) {
-      walletOpenCompleter = Completer<void>();
-    }
-  }
-
-  Future<void> waitForWalletOpen() async {
-    if (walletOpenCompleter != null && !walletOpenCompleter!.isCompleted) {
-      await walletOpenCompleter!.future;
-    }
-  }
-
   // ========== Overrides ======================================================
 
   @override

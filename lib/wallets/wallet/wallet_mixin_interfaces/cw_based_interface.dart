@@ -29,7 +29,8 @@ import '../../isar/models/wallet_info.dart';
 import '../intermediate/cryptonote_wallet.dart';
 import 'multi_address_interface.dart';
 
-mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
+mixin CwBasedInterface<T extends CryptonoteCurrency, U extends WalletBase,
+        V extends WalletService> on CryptonoteWallet<T>
     implements MultiAddressInterface<T> {
   final prepareSendMutex = Mutex();
   final estimateFeeMutex = Mutex();
@@ -38,10 +39,6 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
   KeyService get cwKeysStorage =>
       _cwKeysStorageCached ??= KeyService(secureStorageInterface);
 
-  static WalletService? cwWalletService;
-  static WalletBase? cwWalletBase;
-
-  bool _hasCalledExit = false;
   bool _txRefreshLock = false;
   int _lastCheckedHeight = -1;
   int _txCount = 0;
@@ -94,6 +91,7 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   void syncStatusChanged() async {
     final syncStatus = cwWalletBase?.syncStatus;
+
     if (syncStatus != null) {
       if (syncStatus.progress() == 1 && refreshMutex.isLocked) {
         refreshMutex.release();
@@ -188,10 +186,11 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
 
   // ============ Interface ====================================================
 
+  U? get cwWalletBase;
+  V? get cwWalletService;
+
   Future<Amount> get availableBalance;
   Future<Amount> get totalBalance;
-
-  Future<void> exitCwWallet();
 
   Future<void> open();
 
@@ -303,20 +302,11 @@ mixin CwBasedInterface<T extends CryptonoteCurrency> on CryptonoteWallet<T>
     }
   }
 
-  static Mutex exitMutex = Mutex();
-
   @override
   Future<void> exit() async {
-    if (!_hasCalledExit) {
-      await exitMutex.protect(() async {
-        _hasCalledExit = true;
-        autoSaveTimer?.cancel();
-        await exitCwWallet();
-        cwWalletBase?.close();
-        cwWalletBase = null;
-        cwWalletService = null;
-      });
-    }
+    autoSaveTimer?.cancel();
+    await cwWalletBase?.save();
+    cwWalletBase?.close();
   }
 
   @override
