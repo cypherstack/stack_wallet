@@ -46,115 +46,44 @@ class Biometrics {
     final canCheckBiometrics = await localAuth.canCheckBiometrics;
     final isDeviceSupported = await localAuth.isDeviceSupported();
 
-    //todo: check if print needed
     // debugPrint("canCheckBiometrics: $canCheckBiometrics");
     // debugPrint("isDeviceSupported: $isDeviceSupported");
 
     if (canCheckBiometrics && isDeviceSupported) {
-      final List<BiometricType> availableSystems =
+      List<BiometricType> availableSystems =
           await localAuth.getAvailableBiometrics();
 
-      //todo: check if print needed
-      // debugPrint("availableSystems: $availableSystems");
+      Logging.instance.log(
+        "Bio availableSystems: $availableSystems",
+        level: LogLevel.Info,
+      );
 
       //TODO properly handle caught exceptions
-      if (availableSystems.contains(BiometricType.strong)) {
-        try {
-          final bool didAuthenticate = await localAuth.authenticate(
-            localizedReason: localizedReason,
-            options: const AuthenticationOptions(
-              stickyAuth: true,
-              biometricOnly: true,
+      try {
+        final bool didAuthenticate = await localAuth.authenticate(
+          localizedReason: localizedReason,
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+            biometricOnly: true,
+          ),
+          authMessages: <AuthMessages>[
+            AndroidAuthMessages(
+              biometricHint: "",
+              cancelButton: cancelButtonText,
+              signInTitle: title,
             ),
-            authMessages: <AuthMessages>[
-              AndroidAuthMessages(
-                biometricHint: "",
-                cancelButton: cancelButtonText,
-                signInTitle: title,
-              ),
-            ],
-          );
+          ],
+        );
 
-          if (didAuthenticate) {
-            return true;
-          }
-        } catch (e) {
-          Logging.instance.log(
-            "local_auth exception caught in Biometrics.authenticate(), e: $e",
-            level: LogLevel.Error,
-          );
+        if (didAuthenticate) {
+          return true;
         }
+      } catch (e) {
+        Logging.instance.log(
+          "local_auth exception caught in Biometrics.authenticate(), e: $e",
+          level: LogLevel.Error,
+        );
       }
-
-      // if (Platform.isIOS) {
-      //   if (availableSystems.contains(BiometricType.face)) {
-      //     try {
-      //       final bool didAuthenticate = await localAuth.authenticate(
-      //         localizedReason: localizedReason,
-      //         options: const AuthenticationOptions(
-      //           stickyAuth: true,
-      //           biometricOnly: true,
-      //         ),
-      //       );
-      //
-      //       if (didAuthenticate) {
-      //         return true;
-      //       }
-      //     } catch (e) {
-      //       Logging.instance.log(
-      //         "local_auth exception caught in Biometrics.authenticate(), e: $e",
-      //         level: LogLevel.Error,
-      //       );
-      //     }
-      //   } else if (availableSystems.contains(BiometricType.fingerprint)) {
-      //     try {
-      //       final bool didAuthenticate = await localAuth.authenticate(
-      //         localizedReason: localizedReason,
-      //         options: const AuthenticationOptions(
-      //           stickyAuth: true,
-      //           biometricOnly: true,
-      //         ),
-      //       );
-      //
-      //       if (didAuthenticate) {
-      //         return true;
-      //       }
-      //     } catch (e) {
-      //       Logging.instance.log(
-      //         "local_auth exception caught in Biometrics.authenticate(), e: $e",
-      //         level: LogLevel.Error,
-      //       );
-      //     }
-      //   }
-      // } else if (Platform.isAndroid) {
-      //   if (availableSystems.contains(BiometricType.fingerprint)) {
-      //     try {
-      //       final bool didAuthenticate = await localAuth.authenticate(
-      //         localizedReason: localizedReason,
-      //         options: const AuthenticationOptions(
-      //           stickyAuth: true,
-      //           biometricOnly: true,
-      //         ),
-      //         authMessages: <AuthMessages>[
-      //           AndroidAuthMessages(
-      //             biometricHint: "",
-      //             cancelButton: cancelButtonText,
-      //             signInTitle: title,
-      //           ),
-      //         ],
-      //       );
-      //
-      //       if (didAuthenticate) {
-      //         return true;
-      //       }
-      //     } catch (e) {
-      //       Logging.instance.log(
-      //         "local_auth exception caught in Biometrics.authenticate(), e: $e",
-      //         level: LogLevel.Error,
-      //       );
-      //     }
-      //   }
-      // }
     }
 
     // authentication failed
