@@ -32,6 +32,8 @@ import '../../models/tx_data.dart';
 import '../wallet.dart';
 import '../wallet_mixin_interfaces/multi_address_interface.dart';
 
+const kFrostSecureStartingIndex = 1;
+
 class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     with MultiAddressInterface {
   BitcoinFrostWallet(CryptoCurrencyNetwork network)
@@ -85,8 +87,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       final address = await _generateAddress(
         change: 0,
-        index: 0,
+        index: kFrostSecureStartingIndex,
         serializedKeys: serializedKeys,
+        secure: true,
       );
 
       await mainDB.putAddresses([address]);
@@ -198,6 +201,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
             outputs: txData.recipients!,
             changeAddress: changeAddress!.value,
             feePerWeight: feePerWeight,
+            serializedKeys: (await getSerializedKeys())!,
           );
         } on FrostdartException catch (e) {
           if (e.errorCode == NOT_ENOUGH_FUNDS_ERROR &&
@@ -375,6 +379,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
             property: r"subType",
             value: AddressSubType.change,
           ),
+          const FilterCondition.equalTo(
+            property: r"zSafeFrost",
+            value: true,
+          ),
+          const FilterCondition.greaterThan(
+            property: r"derivationIndex",
+            value: 0,
+          ),
         ],
       );
 
@@ -388,6 +400,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           const FilterCondition.equalTo(
             property: r"subType",
             value: AddressSubType.receiving,
+          ),
+          const FilterCondition.equalTo(
+            property: r"zSafeFrost",
+            value: true,
+          ),
+          const FilterCondition.greaterThan(
+            property: r"derivationIndex",
+            value: 0,
           ),
         ],
       );
@@ -618,13 +638,30 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     if (address == null) {
       final serializedKeys = await getSerializedKeys();
       if (serializedKeys != null) {
-        final address = await _generateAddress(
-          change: 0,
-          index: 0,
-          serializedKeys: serializedKeys,
-        );
+        int index = kFrostSecureStartingIndex;
+        const someSaneMaximum = 200;
+        Address? address;
+        while (index < someSaneMaximum) {
+          try {
+            address = await _generateAddress(
+              change: 0,
+              index: index,
+              serializedKeys: serializedKeys,
+              secure: true,
+            );
 
-        await mainDB.updateOrPutAddresses([address]);
+            await mainDB.updateOrPutAddresses([address]);
+          } catch (_) {}
+          if (address != null) {
+            break;
+          }
+          index++;
+        }
+
+        if (index >= someSaneMaximum) {
+          throw Exception(
+              "index < kFrostSecureStartingIndex hit someSaneMaximum");
+        }
       } else {
         Logging.instance.log(
           "$runtimeType.checkSaveInitialReceivingAddress() failed due"
@@ -818,6 +855,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           _checkGapsLinearly(
             serializedKeys,
             receiveChain,
+            secure: true,
           ),
         ];
         final List<Future<({int index, List<Address> addresses})>>
@@ -825,6 +863,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           _checkGapsLinearly(
             serializedKeys,
             changeChain,
+            secure: true,
           ),
         ];
 
@@ -881,6 +920,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         );
 
         await mainDB.updateOrPutAddresses(addressesToStore);
+
+        await _legacyInsecureScan(serializedKeys);
       });
 
       GlobalEventBus.instance.fire(
@@ -905,6 +946,80 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         ),
       );
       rethrow;
+    }
+  }
+
+  // for legacy support secure is set to false to see
+  // funds received on insecure addresses
+  Future<void> _legacyInsecureScan(String serializedKeys) async {
+    const receiveChain = 0;
+    const changeChain = 1;
+
+    final List<Future<({int index, List<Address> addresses})>> receiveFutures =
+        [
+      _checkGapsLinearly(
+        serializedKeys,
+        receiveChain,
+        secure: false,
+      ),
+    ];
+    final List<Future<({int index, List<Address> addresses})>> changeFutures = [
+      // for legacy support secure is set to false to see
+      // funds received on insecure addresses
+      _checkGapsLinearly(
+        serializedKeys,
+        changeChain,
+        secure: false,
+      ),
+    ];
+
+    // io limitations may require running these linearly instead
+    final futuresResult = await Future.wait([
+      Future.wait(receiveFutures),
+      Future.wait(changeFutures),
+    ]);
+
+    final receiveResults = futuresResult[0];
+    final changeResults = futuresResult[1];
+
+    final List<Address> addressesToStore = [];
+
+    int highestReceivingIndexWithHistory = 0;
+    for (final tuple in receiveResults) {
+      if (tuple.addresses.isNotEmpty) {
+        highestReceivingIndexWithHistory = max(
+          tuple.index,
+          highestReceivingIndexWithHistory,
+        );
+        addressesToStore.addAll(tuple.addresses);
+      }
+    }
+
+    int highestChangeIndexWithHistory = 0;
+    for (final tuple in changeResults) {
+      if (tuple.addresses.isNotEmpty) {
+        highestChangeIndexWithHistory = max(
+          tuple.index,
+          highestChangeIndexWithHistory,
+        );
+        addressesToStore.addAll(tuple.addresses);
+      }
+    }
+
+    // remove extra addresses to help minimize risk of creating a large gap
+    addressesToStore.removeWhere(
+      (e) =>
+          e.subType == AddressSubType.change &&
+          e.derivationIndex > highestChangeIndexWithHistory,
+    );
+    addressesToStore.removeWhere(
+      (e) =>
+          e.subType == AddressSubType.receiving &&
+          e.derivationIndex > highestReceivingIndexWithHistory,
+    );
+
+    if (addressesToStore.isNotEmpty) {
+      await mainDB.updateOrPutAddresses(addressesToStore);
     }
   }
 
@@ -1394,7 +1509,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   @override
   Future<void> generateNewChangeAddress() async {
     final current = await getCurrentChangeAddress();
-    int index = current == null ? 0 : current.derivationIndex + 1;
+    int index = current == null
+        ? kFrostSecureStartingIndex
+        : current.derivationIndex + 1;
     const chain = 1; // change address
 
     final serializedKeys = (await getSerializedKeys())!;
@@ -1406,6 +1523,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           change: chain,
           index: index,
           serializedKeys: serializedKeys,
+          secure: true,
         );
       } on FrostdartException catch (e) {
         if (e.errorCode == 72) {
@@ -1424,7 +1542,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   @override
   Future<void> generateNewReceivingAddress() async {
     final current = await getCurrentReceivingAddress();
-    int index = current == null ? 0 : current.derivationIndex + 1;
+    int index = current == null
+        ? kFrostSecureStartingIndex
+        : current.derivationIndex + 1;
     const chain = 0; // receiving address
 
     final serializedKeys = (await getSerializedKeys())!;
@@ -1436,6 +1556,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           change: chain,
           index: index,
           serializedKeys: serializedKeys,
+          secure: true,
         );
       } on FrostdartException catch (e) {
         if (e.errorCode == 72) {
@@ -1532,6 +1653,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           change: chain,
           index: startingIndex,
           serializedKeys: serializedKeys,
+          secure: true,
         );
       } on FrostdartException catch (e) {
         if (e.errorCode == 72) {
@@ -1554,6 +1676,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     required int change,
     required int index,
     required String serializedKeys,
+    required bool secure,
   }) async {
     final addressDerivationData = (
       account: account,
@@ -1569,6 +1692,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           : Network.Testnet,
       keys: keys,
       addressDerivationData: addressDerivationData,
+      secure: secure,
     );
 
     return Address(
@@ -1583,16 +1707,18 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
               ? AddressSubType.change
               : AddressSubType.unknown,
       type: AddressType.frostMS,
+      zSafeFrost: secure && index >= kFrostSecureStartingIndex,
     );
   }
 
   Future<({List<Address> addresses, int index})> _checkGapsLinearly(
     String serializedKeys,
-    int chain,
-  ) async {
+    int chain, {
+    required bool secure,
+  }) async {
     final List<Address> addressArray = [];
     int gapCounter = 0;
-    int index = 0;
+    int index = secure ? kFrostSecureStartingIndex : 0;
     for (; gapCounter < 20; index++) {
       Logging.instance.log(
         "Frost index: $index, \t GapCounter chain=$chain: $gapCounter",
@@ -1606,6 +1732,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
             change: chain,
             index: index,
             serializedKeys: serializedKeys,
+            secure: secure,
           );
         } on FrostdartException catch (e) {
           if (e.errorCode == 72) {
@@ -1620,13 +1747,13 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       // get address tx count
       final count = await _fetchTxCount(
-        address: address!,
+        address: address,
       );
 
       // check and add appropriate addresses
       if (count > 0) {
         // add address to array
-        addressArray.add(address!);
+        addressArray.add(address);
         // reset counter
         gapCounter = 0;
         // add info to derivations

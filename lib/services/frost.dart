@@ -80,6 +80,7 @@ abstract class Frost {
     int feePerWeight,
     List<Output> inputs,
   }) extractDataFromSignConfig({
+    required String serializedKeys,
     required String signConfig,
     required CryptoCurrency coin,
   }) {
@@ -89,6 +90,7 @@ abstract class Frost {
       final signConfigPointer = decodedSignConfig(
         encodedConfig: signConfig,
         network: network,
+        serializedKeys: serializedKeys,
       );
 
       // get various data from config
@@ -126,6 +128,7 @@ abstract class Frost {
       final List<Output> outputs = [];
       for (int i = 0; i < count; i++) {
         final output = signInput(
+          thresholdKeysWrapperPointer: deserializeKeys(keys: serializedKeys),
           signConfig: signConfig,
           index: i,
           network: network,
@@ -283,6 +286,7 @@ abstract class Frost {
   //=================== transaction creation ===================================
 
   static String createSignConfig({
+    required String serializedKeys,
     required int network,
     required List<
             ({
@@ -297,6 +301,7 @@ abstract class Frost {
   }) {
     try {
       final signConfig = newSignConfig(
+        thresholdKeysWrapperPointer: deserializeKeys(keys: serializedKeys),
         network: network,
         outputs: inputs
             .map(
@@ -402,12 +407,16 @@ abstract class Frost {
   }
 
   static Pointer<SignConfig> decodedSignConfig({
+    required String serializedKeys,
     required String encodedConfig,
     required int network,
   }) {
     try {
-      final configPtr =
-          decodeSignConfig(encodedSignConfig: encodedConfig, network: network);
+      final configPtr = decodeSignConfig(
+        thresholdKeysWrapperPointer: deserializeKeys(keys: serializedKeys),
+        encodedSignConfig: encodedConfig,
+        network: network,
+      );
       return configPtr;
     } catch (e, s) {
       Logging.instance.log(
