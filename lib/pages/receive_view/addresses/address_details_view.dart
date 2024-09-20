@@ -8,6 +8,7 @@
  *
  */
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
@@ -372,6 +373,16 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   detail: address.subType.prettyName,
                   button: Container(),
                 ),
+                if (kDebugMode)
+                  const _Div(
+                    height: 12,
+                  ),
+                if (kDebugMode)
+                  DetailItem(
+                    title: "frost secure (kDebugMode)",
+                    detail: address.zSafeFrost.toString(),
+                    button: Container(),
+                  ),
                 if (ref.watch(pWallets).getWallet(widget.walletId)
                     is Bip39HDWallet)
                   const _Div(
