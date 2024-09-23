@@ -7,7 +7,7 @@ part of 'address.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetAddressCollection on Isar {
   IsarCollection<Address> get addresses => this.collection();
@@ -59,6 +59,11 @@ const AddressSchema = CollectionSchema(
       id: 7,
       name: r'walletId',
       type: IsarType.string,
+    ),
+    r'zSafeFrost': PropertySchema(
+      id: 8,
+      name: r'zSafeFrost',
+      type: IsarType.bool,
     )
   },
   estimateSize: _addressEstimateSize,
@@ -124,7 +129,7 @@ const AddressSchema = CollectionSchema(
   getId: _addressGetId,
   getLinks: _addressGetLinks,
   attach: _addressAttach,
-  version: '3.0.5',
+  version: '3.1.8',
 );
 
 int _addressEstimateSize(
@@ -172,6 +177,7 @@ void _addressSerialize(
   writer.writeByte(offsets[5], object.type.index);
   writer.writeString(offsets[6], object.value);
   writer.writeString(offsets[7], object.walletId);
+  writer.writeBool(offsets[8], object.zSafeFrost);
 }
 
 Address _addressDeserialize(
@@ -195,6 +201,7 @@ Address _addressDeserialize(
         AddressType.p2pkh,
     value: reader.readString(offsets[6]),
     walletId: reader.readString(offsets[7]),
+    zSafeFrost: reader.readBoolOrNull(offsets[8]),
   );
   object.id = id;
   return object;
@@ -229,6 +236,8 @@ P _addressDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readBoolOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1474,6 +1483,32 @@ extension AddressQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'zSafeFrost',
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'zSafeFrost',
+      ));
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'zSafeFrost',
+        value: value,
+      ));
+    });
+  }
 }
 
 extension AddressQueryObject
@@ -1621,6 +1656,18 @@ extension AddressQuerySortBy on QueryBuilder<Address, Address, QSortBy> {
       return query.addSortBy(r'walletId', Sort.desc);
     });
   }
+
+  QueryBuilder<Address, Address, QAfterSortBy> sortByZSafeFrost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zSafeFrost', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterSortBy> sortByZSafeFrostDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zSafeFrost', Sort.desc);
+    });
+  }
 }
 
 extension AddressQuerySortThenBy
@@ -1708,6 +1755,18 @@ extension AddressQuerySortThenBy
       return query.addSortBy(r'walletId', Sort.desc);
     });
   }
+
+  QueryBuilder<Address, Address, QAfterSortBy> thenByZSafeFrost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zSafeFrost', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Address, Address, QAfterSortBy> thenByZSafeFrostDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'zSafeFrost', Sort.desc);
+    });
+  }
 }
 
 extension AddressQueryWhereDistinct
@@ -1754,6 +1813,12 @@ extension AddressQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Address, Address, QDistinct> distinctByZSafeFrost() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'zSafeFrost');
     });
   }
 }
@@ -1814,6 +1879,12 @@ extension AddressQueryProperty
       return query.addPropertyName(r'walletId');
     });
   }
+
+  QueryBuilder<Address, bool?, QQueryOperations> zSafeFrostProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'zSafeFrost');
+    });
+  }
 }
 
 // **************************************************************************
@@ -1821,7 +1892,7 @@ extension AddressQueryProperty
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 const DerivationPathSchema = Schema(
   name: r'DerivationPath',

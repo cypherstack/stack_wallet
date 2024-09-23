@@ -13,16 +13,18 @@ description: PLACEHOLDER
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
+isar_version: &isar_version 3.1.8
+
 environment:
-  sdk: ">=3.5.2 <4.0.0"
-  flutter: ^3.24.2
+  sdk: ">=3.5.3 <4.0.0"
+  flutter: ^3.24.3
 
 dependencies:
   flutter:
     sdk: flutter
   ffi: ^2.0.1
   mutex: ^3.0.0
-  web_socket_channel: ^2.4.5
+  web_socket_channel: ^2.4.0
 
   lelantus:
     path: ./crypto_plugins/flutter_liblelantus
@@ -33,7 +35,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 7a11d0cadf8c7a6a5d5144dab18cef9536aa5943
+      ref: cc7b43b731e4a7906dd25d4364a08e34554cee19
 
   flutter_libmonero:
     path: ./crypto_plugins/flutter_libmonero
@@ -63,7 +65,7 @@ dependencies:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: ee1da8a9ba1cbeb50c5b354ea1fd5a25b7c5a3ed
+      ref: 5efe8f8f259317d32b6f037cf91f62e06125c040
 
   bip47:
     git:
@@ -78,11 +80,11 @@ dependencies:
   fusiondart:
     git:
       url: https://github.com/cypherstack/fusiondart.git
-      ref: 7dd8ff0dc9cb0caaac795fa44841a26437edfec3
+      ref: 9dc883f4432c8db4ec44cb8cc836963295d63952
 
   # Utility plugins
   http: ^0.13.0
-  local_auth: ^1.1.10
+  local_auth: ^2.3.0
   permission_handler: ^11.0.0
   flutter_local_notifications: ^17.2.2
   rxdart: ^0.27.3
@@ -130,10 +132,10 @@ dependencies:
   event_bus: ^2.0.0
   uuid: ^3.0.5
   crypto: ^3.0.2
-  barcode_scan2: ^4.2.3
-  wakelock: ^0.6.2
+  barcode_scan2: ^4.3.3
+  wakelock_plus: ^1.2.8
   intl: ^0.17.0
-  devicelocale: ^0.6.0
+  devicelocale: ^0.7.1
   device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
@@ -143,12 +145,16 @@ dependencies:
   share_plus: ^7.0.2
   emojis: ^0.9.9
   pointycastle: ^3.6.0
-  package_info_plus: ^4.0.2
+  package_info_plus: ^8.0.2
   lottie: ^2.3.2
   file_picker: ^8.0.3
   connectivity_plus: ^4.0.1
-  isar: 3.0.5
-  isar_flutter_libs: 3.0.5 # contains the binaries
+  isar:
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
+  isar_flutter_libs: # contains Isar Core
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
   dropdown_button2: ^2.1.3
   string_validator: ^0.3.0
   equatable: ^2.0.5
@@ -157,7 +163,7 @@ dependencies:
   dart_bs58check: ^3.0.2
   hex: ^0.2.0
   archive: ^3.6.1
-  desktop_drop: ^0.4.1
+  desktop_drop: ^0.4.4
   nanodart: ^2.0.0
   basic_utils: ^5.5.4
   stellar_flutter_sdk: ^1.7.8
@@ -167,15 +173,15 @@ dependencies:
     git:
       url: https://github.com/cypherstack/tezart.git
       ref: d000cc245e51d3ff50e6467960fb3d9159d5b2a9
-  socks5_proxy: ^1.0.3+dev.3
+  socks5_proxy: 1.0.3+dev.3
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
 #  coinlib_flutter: ^2.1.0-rc.1
   coinlib_flutter:
     git:
-      url: https://github.com/peercoin/coinlib.git
-      ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      url: https://github.com/julian-CStack/coinlib.git
+      ref: 0acacfd17eacf72135c693a7b862bd9b7cc56739
       path: coinlib_flutter
   electrum_adapter:
     git:
@@ -214,10 +220,12 @@ dev_dependencies:
   mockito: ^5.4.1
   mockingjay: ^0.2.0
 #  lint: ^1.10.0
-  analyzer: ^5.13.0
+  analyzer: ^6.7.0
   import_sorter: ^4.6.0
   flutter_lints: ^3.0.1
-  isar_generator: 3.0.5
+  isar_generator:
+    version: *isar_version
+    hosted: https://pub.isar-community.dev/
 
 flutter_native_splash:
   image: assets/icon/splash.png
@@ -232,21 +240,21 @@ dependency_overrides:
   # coin lib git for testing while waiting for publishing
   coinlib:
     git:
-      url: https://github.com/peercoin/coinlib.git
-      ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      url: https://github.com/julian-CStack/coinlib.git
+      ref: 0acacfd17eacf72135c693a7b862bd9b7cc56739
       path: coinlib
 
   coinlib_flutter:
     git:
-      url: https://github.com/peercoin/coinlib.git
-      ref: b88e68e2e10ffe54d802deeed6b9e83da7721a1f
+      url: https://github.com/julian-CStack/coinlib.git
+      ref: 0acacfd17eacf72135c693a7b862bd9b7cc56739
       path: coinlib_flutter
 
   # adding here due to pure laziness
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 647cadc3c82c276dc07915b02d24538fd610f220
+      ref: 534ec251b339199446b723c01a25d324ae7bb974
 
   monero:
     git:
@@ -269,7 +277,7 @@ dependency_overrides:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: ee1da8a9ba1cbeb50c5b354ea1fd5a25b7c5a3ed
+      ref: 5efe8f8f259317d32b6f037cf91f62e06125c040
 
   # required override for nanodart
   bip39:
@@ -284,7 +292,7 @@ dependency_overrides:
       ref: 9abc0930081c9859884e073bd25ab88b2114d9e7
 
   crypto: 3.0.2
-  analyzer: ^5.2.0
+  analyzer: ^6.7.0
   pinenacl: ^0.6.0
   http: ^0.13.0
 

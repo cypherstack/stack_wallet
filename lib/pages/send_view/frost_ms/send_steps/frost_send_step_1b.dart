@@ -67,6 +67,7 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
       final data = Frost.extractDataFromSignConfig(
         signConfig: config,
         coin: wallet.cryptoCurrency,
+        serializedKeys: (await wallet.getSerializedKeys())!,
       );
 
       final utxos = await ref
