@@ -174,7 +174,8 @@ enum AddressType {
   tezos,
   frostMS,
   p2tr,
-  solana;
+  solana,
+  cardanoShelley;
 
   String get readableName {
     switch (this) {
@@ -210,6 +211,8 @@ enum AddressType {
         return "Solana";
       case AddressType.p2tr:
         return "P2TR (taproot)";
+      case AddressType.cardanoShelley:
+        return "Cardano Shelley";
     }
   }
 }

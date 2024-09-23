@@ -6,6 +6,7 @@ export 'coins/banano.dart';
 export 'coins/bitcoin.dart';
 export 'coins/bitcoin_frost.dart';
 export 'coins/bitcoincash.dart';
+export 'coins/cardano.dart';
 export 'coins/dash.dart';
 export 'coins/dogecoin.dart';
 export 'coins/ecash.dart';
