@@ -206,6 +206,7 @@ dependencies:
   camera_macos: ^0.0.8
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
+  cbor: ^6.3.3
 
 dev_dependencies:
   flutter_test:
