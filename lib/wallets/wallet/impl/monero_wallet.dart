@@ -529,6 +529,11 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
           walletInfo.address = wallet.walletAddresses.address;
           await DB.instance
               .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
+          cwWalletBase?.close();
+          cwWalletBase = wallet as MoneroWalletBase;
+          cwWalletBase?.onNewBlock = onNewBlock;
+          cwWalletBase?.onNewTransaction = onNewTransaction;
+          cwWalletBase?.syncStatusChanged = syncStatusChanged;
           if (walletInfo.address != null) {
             final newReceivingAddress = await getCurrentReceivingAddress() ??
                 Address(
@@ -547,15 +552,12 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
               isar: mainDB.isar,
             );
           }
-          cwWalletBase?.close();
-          cwWalletBase = wallet as MoneroWalletBase;
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
         }
         await updateNode();
 
         await cwWalletBase?.rescan(height: credentials.height);
-        cwWalletBase?.close();
       } catch (e, s) {
         Logging.instance.log(
           "Exception rethrown from recoverFromMnemonic(): $e\n$s",
