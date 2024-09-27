@@ -577,6 +577,9 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
               .add<WalletInfo>(boxName: WalletInfo.boxName, value: walletInfo);
           cwWalletBase?.close();
           cwWalletBase = wallet;
+          cwWalletBase?.onNewBlock = onNewBlock;
+          cwWalletBase?.onNewTransaction = onNewTransaction;
+          cwWalletBase?.syncStatusChanged = syncStatusChanged;
           if (walletInfo.address != null) {
             final newReceivingAddress = await getCurrentReceivingAddress() ??
                 Address(
@@ -601,7 +604,6 @@ class WowneroWallet extends CryptonoteWallet with CwBasedInterface {
         await updateNode();
 
         await cwWalletBase?.rescan(height: credentials.height);
-        cwWalletBase?.close();
       } catch (e, s) {
         Logging.instance.log(
           "Exception rethrown from recoverFromMnemonic(): $e\n$s",
