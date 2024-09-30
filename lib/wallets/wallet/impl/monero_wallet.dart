@@ -7,6 +7,7 @@ import 'package:cw_core/node.dart';
 import 'package:cw_core/pending_transaction.dart';
 import 'package:cw_core/sync_status.dart';
 import 'package:cw_core/transaction_direction.dart';
+import 'package:cw_core/utxo.dart' as cw;
 import 'package:cw_core/wallet_base.dart';
 import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
@@ -26,6 +27,7 @@ import 'package:tuple/tuple.dart';
 import '../../../db/hive/db.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../models/keys/cw_key_data.dart';
 import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../../services/event_bus/events/global/tor_status_changed_event.dart';
@@ -72,6 +74,26 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
         await updateNode();
       },
     );
+
+    // Potentially dangerous hack. See comments in _startInit()
+    _startInit();
+  }
+
+  // cw based wallet listener to handle synchronization of utxo frozen states
+  late final StreamSubscription<List<UTXO>> _streamSub;
+  Future<void> _startInit() async {
+    // Delay required as `mainDB` is not initialized in constructor.
+    // This is a hack and could lead to a race condition.
+    Future.delayed(const Duration(seconds: 2), () {
+      _streamSub = mainDB.isar.utxos
+          .where()
+          .walletIdEqualTo(walletId)
+          .watch(fireImmediately: true)
+          .listen((utxos) async {
+        await onUTXOsCHanged(utxos);
+        await updateBalance(shouldUpdateUtxos: false);
+      });
+    });
   }
 
   @override
@@ -614,8 +636,31 @@ class MoneroWallet extends CryptonoteWallet with CwBasedInterface {
             priority: feePriority,
           );
 
+          final height = await chainHeight;
+          final inputs = txData.utxos
+              ?.map(
+                (e) => cw.UTXO(
+                  address: e.address!,
+                  hash: e.txid,
+                  keyImage: e.keyImage!,
+                  value: e.value,
+                  isFrozen: e.isBlocked,
+                  isUnlocked: e.blockHeight != null &&
+                      (height - (e.blockHeight ?? 0)) >=
+                          cryptoCurrency.minConfirms,
+                  height: e.blockHeight ?? 0,
+                  vout: e.vout,
+                  spent: e.used ?? false,
+                  coinbase: e.isCoinbase,
+                ),
+              )
+              .toList();
+
           await prepareSendMutex.protect(() async {
-            awaitPendingTransaction = cwWalletBase!.createTransaction(tmp);
+            awaitPendingTransaction = cwWalletBase!.createTransaction(
+              tmp,
+              inputs: inputs,
+            );
           });
         } catch (e, s) {
           Logging.instance.log(

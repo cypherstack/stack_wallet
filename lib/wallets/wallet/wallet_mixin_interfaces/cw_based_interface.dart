@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/sync_status.dart';
 import 'package:cw_core/transaction_direction.dart';
+import 'package:cw_core/utxo.dart' as cw;
 import 'package:cw_core/wallet_base.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
@@ -14,6 +16,8 @@ import 'package:mutex/mutex.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../models/keys/cw_key_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
@@ -74,6 +78,44 @@ mixin CwBasedInterface<T extends CryptonoteCurrency, U extends WalletBase,
     currentKnownChainHeight = height;
     updateChainHeight();
     _refreshTxDataHelper();
+  }
+
+  final _utxosUpdateLock = Mutex();
+  Future<void> onUTXOsCHanged(List<UTXO> utxos) async {
+    await _utxosUpdateLock.protect(() async {
+      final cwUtxos = cwWalletBase?.utxos ?? [];
+
+      bool changed = false;
+
+      for (final cw in cwUtxos) {
+        final match = utxos.where(
+          (e) =>
+              e.keyImage != null &&
+              e.keyImage!.isNotEmpty &&
+              e.keyImage == cw.keyImage,
+        );
+
+        if (match.isNotEmpty) {
+          final u = match.first;
+
+          if (u.isBlocked) {
+            if (!cw.isFrozen) {
+              await cwWalletBase?.freeze(cw.keyImage);
+              changed = true;
+            }
+          } else {
+            if (cw.isFrozen) {
+              await cwWalletBase?.thaw(cw.keyImage);
+              changed = true;
+            }
+          }
+        }
+      }
+
+      if (changed) {
+        await cwWalletBase?.updateUTXOs();
+      }
+    });
   }
 
   void onNewTransaction() {
@@ -246,7 +288,64 @@ mixin CwBasedInterface<T extends CryptonoteCurrency, U extends WalletBase,
   FilterOperation? get receivingAddressFilterOperation => null;
 
   @override
-  Future<void> updateBalance() async {
+  Future<bool> updateUTXOs() async {
+    await cwWalletBase?.updateUTXOs();
+
+    final List<UTXO> outputArray = [];
+    for (final rawUTXO in (cwWalletBase?.utxos ?? <cw.UTXO>[])) {
+      if (!rawUTXO.spent) {
+        final current = await mainDB.isar.utxos
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .voutEqualTo(rawUTXO.vout)
+            .and()
+            .txidEqualTo(rawUTXO.hash)
+            .findFirst();
+        final tx = await mainDB.isar.transactions
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .txidEqualTo(rawUTXO.hash)
+            .findFirst();
+
+        final otherDataMap = {
+          "keyImage": rawUTXO.keyImage,
+          "spent": rawUTXO.spent,
+        };
+
+        final utxo = UTXO(
+          address: rawUTXO.address,
+          walletId: walletId,
+          txid: rawUTXO.hash,
+          vout: rawUTXO.vout,
+          value: rawUTXO.value,
+          name: current?.name ?? "",
+          isBlocked: current?.isBlocked ?? rawUTXO.isFrozen,
+          blockedReason: current?.blockedReason ?? "",
+          isCoinbase: rawUTXO.coinbase,
+          blockHash: "",
+          blockHeight:
+              tx?.height ?? (rawUTXO.height > 0 ? rawUTXO.height : null),
+          blockTime: tx?.timestamp,
+          otherData: jsonEncode(otherDataMap),
+        );
+
+        outputArray.add(utxo);
+      }
+    }
+
+    await mainDB.updateUTXOs(walletId, outputArray);
+
+    return true;
+  }
+
+  @override
+  Future<void> updateBalance({bool shouldUpdateUtxos = true}) async {
+    if (shouldUpdateUtxos) {
+      await updateUTXOs();
+    }
+
     final total = await totalBalance;
     final available = await availableBalance;
 
