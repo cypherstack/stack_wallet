@@ -62,4 +62,6 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Firo(CryptoCurrencyNetwork.main),
 ]);
 
+final ({String from, String to}) _swapDefaults = (from: "BTC", to: "FIRO");
+
 EOF
