@@ -49,7 +49,9 @@ const _appDataDirName = "campfire";
 const _shortDescriptionText = "Your privacy. Your wallet. Your Firo.";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
-const Set<AppFeature> _features = {};
+const Set<AppFeature> _features = {
+  AppFeature.swap
+};
 
 const ({String light, String dark})? _appIconAsset = (
   light: "assets/in_app_logo_icons/campfire-icon_light.svg",
