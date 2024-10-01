@@ -487,12 +487,83 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // Should fire events
   Future<void> refresh() async {
+    final refreshCompleter = Completer<void>();
+    final future = refreshCompleter.future.then(
+      (_) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.synced,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+
+        if (shouldAutoSync) {
+          _periodicRefreshTimer ??=
+              Timer.periodic(const Duration(seconds: 150), (timer) async {
+            // chain height check currently broken
+            // if ((await chainHeight) != (await storedChainHeight)) {
+
+            // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
+            // if (await refreshIfThereIsNewData()) {
+            unawaited(refresh());
+
+            // }
+            // }
+          });
+        }
+      },
+      onError: (Object error, StackTrace strace) {
+        GlobalEventBus.instance.fire(
+          NodeConnectionStatusChangedEvent(
+            NodeConnectionStatus.disconnected,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.unableToSync,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+        Logging.instance.log(
+          "Caught exception in refreshWalletData(): $error\n$strace",
+          level: LogLevel.Error,
+        );
+      },
+    );
+
+    unawaited(_refresh(refreshCompleter));
+
+    return future;
+  }
+
+  // Should fire events
+  Future<void> _refresh(Completer<void> completer) async {
     // Awaiting this lock could be dangerous.
     // Since refresh is periodic (generally)
     if (refreshMutex.isLocked) {
       return;
     }
     final start = DateTime.now();
+
+    bool tAlive = true;
+    final t = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (tAlive) {
+        final pingSuccess = await pingCheck();
+        if (!pingSuccess) {
+          tAlive = false;
+        }
+      } else {
+        timer.cancel();
+      }
+    });
+
+    void _checkAlive() {
+      if (!tAlive) throw Exception("refresh alive ping failure");
+    }
 
     try {
       // this acquire should be almost instant due to above check.
@@ -507,136 +578,135 @@ abstract class Wallet<T extends CryptoCurrency> {
         ),
       );
 
+      _checkAlive();
+
       // add some small buffer before making calls.
       // this can probably be removed in the future but was added as a
       // debugging feature
       await Future<void>.delayed(const Duration(milliseconds: 300));
+      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
+      _checkAlive();
       if (this is PaynymInterface) {
         // isSegwit does not matter here at all
         final myCode =
             await (this as PaynymInterface).getPaymentCode(isSegwit: false);
+        _checkAlive();
 
         final nym = await PaynymIsApi().nym(myCode.toString());
+        _checkAlive();
         if (nym.value != null) {
           for (final follower in nym.value!.followers) {
             codesToCheck.add(follower.code);
           }
+          _checkAlive();
           for (final following in nym.value!.following) {
             codesToCheck.add(following.code);
           }
         }
+        _checkAlive();
       }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
+      _checkAlive();
       await updateChainHeight();
 
+      _checkAlive();
       if (this is BitcoinFrostWallet) {
         await (this as BitcoinFrostWallet).lookAhead();
       }
+      _checkAlive();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
+      _checkAlive();
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
           await (this as MultiAddressInterface)
               .checkReceivingAddressForTransactions();
         }
+        _checkAlive();
       }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
+      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         await (this as MultiAddressInterface)
             .checkChangeAddressForTransactions();
       }
+      _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
       if (this is SparkInterface) {
         // this should be called before updateTransactions()
         await (this as SparkInterface).refreshSparkData();
       }
+      _checkAlive();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
+      _checkAlive();
       final fetchFuture = updateTransactions();
+      _checkAlive();
       final utxosRefreshFuture = updateUTXOs();
       // if (currentHeight != storedHeight) {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
 
+      _checkAlive();
       await utxosRefreshFuture;
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
 
+      _checkAlive();
       await fetchFuture;
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is PaynymInterface && codesToCheck.isNotEmpty) {
+        _checkAlive();
         await (this as PaynymInterface)
             .checkForNotificationTransactionsTo(codesToCheck);
         // check utxos again for notification outputs
+        _checkAlive();
         await updateUTXOs();
       }
+      _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
       // await getAllTxsToWatch();
+      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is LelantusInterface) {
         if (info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
             false) {
           await (this as LelantusInterface).refreshLelantusData();
+          _checkAlive();
         }
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 
+      _checkAlive();
       await updateBalance();
 
+      _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.synced,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
 
-      if (shouldAutoSync) {
-        _periodicRefreshTimer ??=
-            Timer.periodic(const Duration(seconds: 150), (timer) async {
-          // chain height check currently broken
-          // if ((await chainHeight) != (await storedChainHeight)) {
+      tAlive = false; // interrupt timer as its not needed anymore
 
-          // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
-          // if (await refreshIfThereIsNewData()) {
-          unawaited(refresh());
-
-          // }
-          // }
-        });
-      }
+      completer.complete();
     } catch (error, strace) {
-      GlobalEventBus.instance.fire(
-        NodeConnectionStatusChangedEvent(
-          NodeConnectionStatus.disconnected,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.unableToSync,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
-      Logging.instance.log(
-        "Caught exception in refreshWalletData(): $error\n$strace",
-        level: LogLevel.Error,
-      );
+      completer.completeError(error, strace);
     } finally {
+      t.cancel();
       refreshMutex.release();
+      if (!completer.isCompleted) {
+        completer.completeError(
+          "finally block hit before completer completed",
+          StackTrace.current,
+        );
+      }
 
       Logging.instance.log(
         "Refresh for "
