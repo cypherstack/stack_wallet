@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:socks5_proxy/socks_client.dart';
+
 import '../utilities/logger.dart';
 
 // WIP wrapper layer
@@ -117,6 +118,10 @@ class HTTP {
       },
       onDone: () => completer.complete(
         Uint8List.fromList(bytes),
+      ),
+      onError: (Object err, StackTrace s) => Logging.instance.log(
+        "Http wrapper layer listen: $err\n$s",
+        level: LogLevel.Error,
       ),
     );
     return completer.future;

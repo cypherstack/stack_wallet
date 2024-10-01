@@ -411,6 +411,17 @@ abstract class Wallet<T extends CryptoCurrency> {
       );
 
       _isConnected = hasNetwork;
+
+      if (status == NodeConnectionStatus.disconnected) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.unableToSync,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+      }
+
       if (hasNetwork) {
         unawaited(refresh());
       }
