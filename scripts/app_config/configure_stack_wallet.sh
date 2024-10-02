@@ -85,4 +85,6 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Stellar(CryptoCurrencyNetwork.test),
 ]);
 
+final ({String from, String to}) _swapDefaults = (from: "BTC", to: "XMR");
+
 EOF
