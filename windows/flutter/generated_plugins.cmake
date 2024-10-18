@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   camera_windows
   connectivity_plus
+  cs_monero_flutter_libs
   desktop_drop
   flutter_libepiccash
   flutter_secure_storage_windows

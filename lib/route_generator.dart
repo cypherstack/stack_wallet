@@ -1456,7 +1456,7 @@ class RouteGenerator {
 
       case RestoreWalletView.routeName:
         if (args
-            is Tuple6<String, CryptoCurrency, int, DateTime, String, bool>) {
+            is Tuple6<String, CryptoCurrency, int, DateTime?, String, bool>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreWalletView(

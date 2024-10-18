@@ -10,7 +10,7 @@ set_rust_to_1671
 
 (cd ../../crypto_plugins/flutter_liblelantus/scripts/macos && ./build_all.sh )
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/macos && ./build_all.sh )
-(cd ../../crypto_plugins/flutter_libmonero/scripts/macos/ && ./build_all.sh )
+(cd ../../crypto_plugins/cs_monero/tools/build_scripts && ./build_macos.sh )
 set_rust_to_1720
 (cd ../../crypto_plugins/frostdart/scripts/macos && ./build_all.sh )
 

@@ -23,7 +23,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -106,7 +106,7 @@ class _UnlockWalletKeysDesktopState
       KeyDataInterface? keyData;
       if (wallet is ExtendedKeysInterface) {
         keyData = await wallet.getXPrivs();
-      } else if (wallet is CwBasedInterface) {
+      } else if (wallet is LibMoneroWallet) {
         keyData = await wallet.getKeys();
       }
 
@@ -353,7 +353,7 @@ class _UnlockWalletKeysDesktopState
                               KeyDataInterface? keyData;
                               if (wallet is ExtendedKeysInterface) {
                                 keyData = await wallet.getXPrivs();
-                              } else if (wallet is CwBasedInterface) {
+                              } else if (wallet is LibMoneroWallet) {
                                 keyData = await wallet.getKeys();
                               }
 
