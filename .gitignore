@@ -101,21 +101,7 @@ pubspec.yaml
 # FVM Version Cache
 .fvm/
 
-android/app/src/main/jniLibs/arm64-v8a/libwownero_wallet2_api_c.so
-android/app/src/main/jniLibs/arm64-v8a/libmonero_wallet2_api_c.so
-android/app/src/main/jniLibs/armeabi-v7a/libmonero_wallet2_api_c.so
-android/app/src/main/jniLibs/armeabi-v7a/libwownero_wallet2_api_c.so
-android/app/src/main/jniLibs/x86_64/libmonero_wallet2_api_c.so
-android/app/src/main/jniLibs/x86_64/libwownero_wallet2_api_c.so
-macos/monero_wallet2_api_c.dylib
-macos/wownero_wallet2_api_c.dylib
-/macos/monero_libwallet2_api_c.dylib
-/macos/wownero_libwallet2_api_c.dylib
-/ios/monero_libwallet2_api_c.dylib
-/ios/wownero_libwallet2_api_c.dylib
-/android/app/src/main/jniLibs/arm64-v8a/libmonero_libwallet2_api_c.so
-/android/app/src/main/jniLibs/armeabi-v7a/libmonero_libwallet2_api_c.so
-/android/app/src/main/jniLibs/x86_64/libmonero_libwallet2_api_c.so
-/android/app/src/main/jniLibs/arm64-v8a/libwownero_libwallet2_api_c.so
-/android/app/src/main/jniLibs/armeabi-v7a/libwownero_libwallet2_api_c.so
-/android/app/src/main/jniLibs/x86_64/libwownero_libwallet2_api_c.so
+scripts/linux/build/libsecret/subprojects/gi-docgen/.meson-subproject-wrap-hash.txt
+
+crypto_plugins/cs_monero/built_outputs
+crypto_plugins/cs_monero/build

@@ -67,7 +67,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   late final TextEditingController passwordController;
 
   final bool _nextEnabled = true;
-  DateTime _restoreFromDate = DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime? _restoreFromDate;
   bool hidePassword = true;
   bool _expandedAdavnced = false;
 

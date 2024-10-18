@@ -16,10 +16,10 @@ import 'dart:math';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
+import 'package:compat/compat.dart' as lib_monero_compat;
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libmonero/monero/monero.dart' as libxmr;
-import 'package:flutter_libmonero/wownero/wownero.dart' as libwow;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -86,7 +86,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
   final String mnemonicPassphrase;
   final int seedWordsLength;
-  final DateTime restoreFromDate;
+  final DateTime? restoreFromDate;
   final bool enableLelantusScanning;
 
   final BarcodeScannerInterface barcodeScanner;
@@ -181,7 +181,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     if (widget.coin is Monero) {
       switch (widget.seedWordsLength) {
         case 25:
-          return libxmr.monero.getMoneroWordList("English").contains(word);
+          return lib_monero.getMoneroWordList("English").contains(word);
         case 16:
           return Monero.sixteenWordsWordList.contains(word);
         default:
@@ -189,7 +189,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
     }
     if (widget.coin is Wownero) {
-      final wowneroWordList = libwow.wownero.getWowneroWordList(
+      final wowneroWordList = lib_monero.getWowneroWordList(
         "English",
         seedWordsLength: widget.seedWordsLength,
       );
@@ -219,29 +219,35 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       int height = 0;
       String? otherDataJsonString;
 
-      if (widget.coin is Monero) {
-        height = libxmr.monero.getHeigthByDate(date: widget.restoreFromDate);
-      } else if (widget.coin is Wownero) {
-        height = libwow.wownero.getHeightByDate(date: widget.restoreFromDate);
+      if (widget.restoreFromDate != null) {
+        if (widget.coin is Monero) {
+          height = lib_monero_compat.getMoneroHeigthByDate(
+            date: widget.restoreFromDate!,
+          );
+        }
+        if (widget.coin is Wownero) {
+          height = lib_monero_compat.getWowneroHeightByDate(
+            date: widget.restoreFromDate!,
+          );
+        }
+        if (height < 0) {
+          height = 0;
+        }
       }
-      // todo: wait until this implemented
-      // else if (widget.coin is Wownero) {
-      //   height = wownero.getHeightByDate(date: widget.restoreFromDate);
-      // }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
       if (widget.coin is Epiccash) {
-        final int secondsSinceEpoch =
-            widget.restoreFromDate.millisecondsSinceEpoch ~/ 1000;
-        const int epicCashFirstBlock = 1565370278;
-        const double overestimateSecondsPerBlock = 61;
-        final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-        final int approximateHeight =
-            chosenSeconds ~/ overestimateSecondsPerBlock;
-        //todo: check if print needed
-        // debugPrint(
-        //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
-        height = approximateHeight;
+        if (widget.restoreFromDate != null) {
+          final int secondsSinceEpoch =
+              widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
+          const int epicCashFirstBlock = 1565370278;
+          const double overestimateSecondsPerBlock = 61;
+          final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+          final int approximateHeight =
+              chosenSeconds ~/ overestimateSecondsPerBlock;
+
+          height = approximateHeight;
+        }
         if (height < 0) {
           height = 0;
         }
