@@ -95,7 +95,7 @@ void main() {
   test("build a uri string with empty params", () {
     expect(
       AddressUtils.buildUriString(
-          Firo(CryptoCurrencyNetwork.main), firoAddress, {}),
+          Firo(CryptoCurrencyNetwork.main).uriScheme, firoAddress, {}),
       "firo:$firoAddress",
     );
   });
@@ -103,7 +103,7 @@ void main() {
   test("build a uri string with one param", () {
     expect(
       AddressUtils.buildUriString(
-        Firo(CryptoCurrencyNetwork.main),
+        Firo(CryptoCurrencyNetwork.main).uriScheme,
         firoAddress,
         {"amount": "10.0123"},
       ),
@@ -114,7 +114,7 @@ void main() {
   test("build a uri string with some params", () {
     expect(
       AddressUtils.buildUriString(
-        Firo(CryptoCurrencyNetwork.main),
+        Firo(CryptoCurrencyNetwork.main).uriScheme,
         firoAddress,
         {"amount": "10.0123", "message": "Some kind of message!"},
       ),
