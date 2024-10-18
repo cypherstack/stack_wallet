@@ -27,8 +27,8 @@ import '../utilities/util.dart';
 import '../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../wallets/wallet/impl/ethereum_wallet.dart';
 import '../wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
+import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../wallets/wallet/wallet.dart';
-import '../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'conditional_parent.dart';
 import 'desktop/primary_button.dart';
 import 'dialogs/basic_dialog.dart';
@@ -97,7 +97,7 @@ class SimpleWalletCard extends ConsumerWidget {
 
     if (context.mounted) {
       final Future<void> loadFuture;
-      if (wallet is CwBasedInterface) {
+      if (wallet is LibMoneroWallet) {
         loadFuture = wallet.init().then((value) async => await (wallet).open());
       } else {
         loadFuture = wallet.init();

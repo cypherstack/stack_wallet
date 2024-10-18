@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_libepiccash/git_versions.dart' as epic_versions;
-import 'package:flutter_libmonero/git_versions.dart' as monero_versions;
+// import 'package:flutter_libmonero/git_versions.dart' as monero_versions;
 import 'package:http/http.dart';
 import 'package:lelantus/git_versions.dart' as firo_versions;
 
@@ -20,7 +20,7 @@ enum CommitStatus { isHead, isOldCommit, notACommit, notLoaded }
 abstract class GitStatus {
   static String get firoCommit => firo_versions.getPluginVersion();
   static String get epicCashCommit => epic_versions.getPluginVersion();
-  static String get moneroCommit => monero_versions.getPluginVersion();
+  // static String get moneroCommit => monero_versions.getPluginVersion();
 
   static String get appCommitHash => AppConfig.commitHash;
 
@@ -78,31 +78,31 @@ abstract class GitStatus {
 
     return _cachedEpicStatus!;
   }
-
-  static CommitStatus? _cachedMoneroStatus;
-  static Future<CommitStatus> getMoneroCommitStatus() async {
-    if (_cachedMoneroStatus != null) {
-      return _cachedMoneroStatus!;
-    }
-
-    final List<bool> results = await Future.wait([
-      _doesCommitExist("cypherstack", "flutter_libmonero", moneroCommit),
-      _isHeadCommit("cypherstack", "flutter_libmonero", "main", moneroCommit),
-    ]);
-
-    final commitExists = results[0];
-    final commitIsHead = results[1];
-
-    if (commitExists && commitIsHead) {
-      _cachedMoneroStatus = CommitStatus.isHead;
-    } else if (commitExists) {
-      _cachedMoneroStatus = CommitStatus.isOldCommit;
-    } else {
-      _cachedMoneroStatus = CommitStatus.notACommit;
-    }
-
-    return _cachedMoneroStatus!;
-  }
+  //
+  // static CommitStatus? _cachedMoneroStatus;
+  // static Future<CommitStatus> getMoneroCommitStatus() async {
+  //   if (_cachedMoneroStatus != null) {
+  //     return _cachedMoneroStatus!;
+  //   }
+  //
+  //   final List<bool> results = await Future.wait([
+  //     _doesCommitExist("cypherstack", "flutter_libmonero", moneroCommit),
+  //     _isHeadCommit("cypherstack", "flutter_libmonero", "main", moneroCommit),
+  //   ]);
+  //
+  //   final commitExists = results[0];
+  //   final commitIsHead = results[1];
+  //
+  //   if (commitExists && commitIsHead) {
+  //     _cachedMoneroStatus = CommitStatus.isHead;
+  //   } else if (commitExists) {
+  //     _cachedMoneroStatus = CommitStatus.isOldCommit;
+  //   } else {
+  //     _cachedMoneroStatus = CommitStatus.notACommit;
+  //   }
+  //
+  //   return _cachedMoneroStatus!;
+  // }
 
   static TextStyle styleForStatus(CommitStatus status, BuildContext context) {
     final Color color;

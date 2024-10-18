@@ -7,6 +7,7 @@ import Foundation
 
 import camera_macos
 import connectivity_plus
+import cs_monero_flutter_libs
 import desktop_drop
 import device_info_plus
 import devicelocale
@@ -28,6 +29,7 @@ import window_size
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   CameraMacosPlugin.register(with: registry.registrar(forPlugin: "CameraMacosPlugin"))
   ConnectivityPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlugin"))
+  CsMoneroFlutterLibsPlugin.register(with: registry.registrar(forPlugin: "CsMoneroFlutterLibsPlugin"))
   DesktopDropPlugin.register(with: registry.registrar(forPlugin: "DesktopDropPlugin"))
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   DevicelocalePlugin.register(with: registry.registrar(forPlugin: "DevicelocalePlugin"))

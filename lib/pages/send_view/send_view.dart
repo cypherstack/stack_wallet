@@ -11,10 +11,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
@@ -470,22 +470,22 @@ class _SendViewState extends ConsumerState<SendView> {
 
     Amount fee;
     if (coin is Monero) {
-      MoneroTransactionPriority specialMoneroId;
+      lib_monero.TransactionPriority specialMoneroId;
       switch (ref.read(feeRateTypeStateProvider.state).state) {
         case FeeRateType.fast:
-          specialMoneroId = MoneroTransactionPriority.fast;
+          specialMoneroId = lib_monero.TransactionPriority.high;
           break;
         case FeeRateType.average:
-          specialMoneroId = MoneroTransactionPriority.regular;
+          specialMoneroId = lib_monero.TransactionPriority.medium;
           break;
         case FeeRateType.slow:
-          specialMoneroId = MoneroTransactionPriority.slow;
+          specialMoneroId = lib_monero.TransactionPriority.normal;
           break;
         default:
           throw ArgumentError("custom fee not available for monero");
       }
 
-      fee = await wallet.estimateFeeFor(amount, specialMoneroId.raw!);
+      fee = await wallet.estimateFeeFor(amount, specialMoneroId.value);
       cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
             fee,
             withUnitName: true,

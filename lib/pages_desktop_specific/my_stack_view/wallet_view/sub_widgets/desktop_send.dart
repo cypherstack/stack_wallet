@@ -10,11 +10,11 @@
 
 import 'dart:async';
 
-import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -1860,7 +1860,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                 if (coin is Monero || coin is Wownero) {
                                   final fee = await wallet.estimateFeeFor(
                                     amount,
-                                    MoneroTransactionPriority.regular.raw!,
+                                    lib_monero.TransactionPriority.medium.value,
                                   );
                                   ref
                                       .read(feeSheetSessionCacheProvider)

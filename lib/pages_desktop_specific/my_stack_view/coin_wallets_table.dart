@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'wallet_view/desktop_wallet_view.dart';
+
 import '../../providers/global/active_wallet_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -18,9 +18,10 @@ import '../../utilities/constants.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/wallet_info_row/wallet_info_row.dart';
+import 'wallet_view/desktop_wallet_view.dart';
 
 class CoinWalletsTable extends ConsumerWidget {
   const CoinWalletsTable({
@@ -81,7 +82,7 @@ class CoinWalletsTable extends ConsumerWidget {
                             final wallet =
                                 ref.read(pWallets).getWallet(walletIds[i]);
                             final Future<void> loadFuture;
-                            if (wallet is CwBasedInterface) {
+                            if (wallet is LibMoneroWallet) {
                               loadFuture = wallet
                                   .init()
                                   .then((value) async => await (wallet).open());

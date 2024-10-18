@@ -54,8 +54,8 @@ import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 
@@ -503,7 +503,7 @@ abstract class SWB {
 
       Future<void>? restoringFuture;
 
-      if (!(wallet is CwBasedInterface || wallet is EpiccashWallet)) {
+      if (!(wallet is LibMoneroWallet || wallet is EpiccashWallet)) {
         if (wallet is BitcoinFrostWallet) {
           restoringFuture = wallet.recover(
             isRescan: false,

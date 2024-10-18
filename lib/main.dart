@@ -13,11 +13,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
-import 'package:cw_core/node.dart';
-import 'package:cw_core/pathForWallet.dart';
-import 'package:cw_core/unspent_coins_info.dart';
-import 'package:cw_core/wallet_info.dart';
-import 'package:cw_core/wallet_type.dart';
+import 'package:compat/compat.dart' as lib_monero_compat;
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -92,10 +89,11 @@ void main(List<String> args) async {
     StackFileSystem.setDesktopOverrideDir(args.last);
   }
 
-  // Tell flutter_libmonero how to get access to the application dir
-  FS.setApplicationRootDirectoryFunction(
-    StackFileSystem.applicationRootDirectory,
-  );
+  // no longer requried
+  // // Tell flutter_libmonero how to get access to the application dir
+  // FS.setApplicationRootDirectoryFunction(
+  //   StackFileSystem.applicationRootDirectory,
+  // );
   // TODO set any other external libs file paths (bad external lib design workaround)
 
   final loadCoinlibFuture = loadCoinlib();
@@ -170,15 +168,18 @@ void main(List<String> args) async {
   // node model adapter
   DB.instance.hive.registerAdapter(NodeModelAdapter());
 
-  DB.instance.hive.registerAdapter(NodeAdapter());
+  // DB.instance.hive.registerAdapter(NodeAdapter());
 
-  if (!DB.instance.hive.isAdapterRegistered(WalletInfoAdapter().typeId)) {
-    DB.instance.hive.registerAdapter(WalletInfoAdapter());
+  if (!DB.instance.hive
+      .isAdapterRegistered(lib_monero_compat.WalletInfoAdapter().typeId)) {
+    DB.instance.hive.registerAdapter(lib_monero_compat.WalletInfoAdapter());
   }
 
-  DB.instance.hive.registerAdapter(WalletTypeAdapter());
+  DB.instance.hive.registerAdapter(lib_monero_compat.WalletTypeAdapter());
 
-  DB.instance.hive.registerAdapter(UnspentCoinsInfoAdapter());
+  // DB.instance.hive.registerAdapter(UnspentCoinsInfoAdapter());
+
+  lib_monero.Logging.useLogger = true;
 
   DB.instance.hive.init(
     (await StackFileSystem.applicationHiveDirectory()).path,

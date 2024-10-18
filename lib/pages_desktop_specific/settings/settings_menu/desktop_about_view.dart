@@ -434,63 +434,63 @@ class DesktopAboutView extends ConsumerWidget {
                                                   );
                                                 },
                                               ),
-                                            if (AppConfig.coins
-                                                .whereType<Monero>()
-                                                .isNotEmpty)
-                                              FutureBuilder(
-                                                future: GitStatus
-                                                    .getMoneroCommitStatus(),
-                                                builder: (
-                                                  context,
-                                                  AsyncSnapshot<CommitStatus>
-                                                      snapshot,
-                                                ) {
-                                                  CommitStatus stateOfCommit =
-                                                      CommitStatus.notLoaded;
-
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    stateOfCommit =
-                                                        snapshot.data!;
-                                                  }
-                                                  return Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        "Monero Build Commit",
-                                                        style: STextStyles
-                                                            .desktopTextExtraExtraSmall(
-                                                          context,
-                                                        ).copyWith(
-                                                          color: Theme.of(
-                                                            context,
-                                                          )
-                                                              .extension<
-                                                                  StackColors>()!
-                                                              .textDark,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 2,
-                                                      ),
-                                                      SelectableText(
-                                                        GitStatus.moneroCommit,
-                                                        style: GitStatus
-                                                            .styleForStatus(
-                                                          stateOfCommit,
-                                                          context,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              ),
+                                            //     if (AppConfig.coins
+                                            //         .whereType<Monero>()
+                                            //         .isNotEmpty)
+                                            //       FutureBuilder(
+                                            //         future: GitStatus
+                                            //             .getMoneroCommitStatus(),
+                                            //         builder: (
+                                            //           context,
+                                            //           AsyncSnapshot<CommitStatus>
+                                            //               snapshot,
+                                            //         ) {
+                                            //           CommitStatus stateOfCommit =
+                                            //               CommitStatus.notLoaded;
+                                            //
+                                            //           if (snapshot.connectionState ==
+                                            //                   ConnectionState
+                                            //                       .done &&
+                                            //               snapshot.hasData) {
+                                            //             stateOfCommit =
+                                            //                 snapshot.data!;
+                                            //           }
+                                            //           return Column(
+                                            //             mainAxisSize:
+                                            //                 MainAxisSize.min,
+                                            //             crossAxisAlignment:
+                                            //                 CrossAxisAlignment
+                                            //                     .start,
+                                            //             children: [
+                                            //               Text(
+                                            //                 "Monero Build Commit",
+                                            //                 style: STextStyles
+                                            //                     .desktopTextExtraExtraSmall(
+                                            //                   context,
+                                            //                 ).copyWith(
+                                            //                   color: Theme.of(
+                                            //                     context,
+                                            //                   )
+                                            //                       .extension<
+                                            //                           StackColors>()!
+                                            //                       .textDark,
+                                            //                 ),
+                                            //               ),
+                                            //               const SizedBox(
+                                            //                 height: 2,
+                                            //               ),
+                                            //               SelectableText(
+                                            //                 GitStatus.moneroCommit,
+                                            //                 style: GitStatus
+                                            //                     .styleForStatus(
+                                            //                   stateOfCommit,
+                                            //                   context,
+                                            //                 ),
+                                            //               ),
+                                            //             ],
+                                            //           );
+                                            //         },
+                                            //       ),
                                           ],
                                         ),
                                         const SizedBox(height: 35),

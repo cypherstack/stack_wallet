@@ -37,17 +37,14 @@ dependencies:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
       ref: cc7b43b731e4a7906dd25d4364a08e34554cee19
 
-  flutter_libmonero:
-    path: ./crypto_plugins/flutter_libmonero
+  cs_monero:
+    path: ./crypto_plugins/cs_monero/cs_monero
 
-  cw_monero:
-    path: ./crypto_plugins/flutter_libmonero/cw_monero
+  compat:
+    path: ./crypto_plugins/cs_monero/compat
 
-  cw_wownero:
-    path: ./crypto_plugins/flutter_libmonero/cw_wownero
-
-  cw_core:
-    path: ./crypto_plugins/flutter_libmonero/cw_core
+  cs_monero_flutter_libs:
+    path: ./crypto_plugins/cs_monero/cs_monero_flutter_libs
 
   monero:
     git:
