@@ -46,11 +46,6 @@ dependencies:
   cs_monero_flutter_libs:
     path: ./crypto_plugins/cs_monero/cs_monero_flutter_libs
 
-  monero:
-    git:
-      url: https://github.com/mrcyjanek/monero.dart
-      ref: d46753eca865e9e56c2f0ef6fe485c42e11982c5
-
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
 
@@ -254,11 +249,6 @@ dependency_overrides:
       url: https://github.com/cypherstack/tor.git
       ref: 534ec251b339199446b723c01a25d324ae7bb974
 
-  monero:
-    git:
-      url: https://github.com/mrcyjanek/monero.dart
-      ref: d46753eca865e9e56c2f0ef6fe485c42e11982c5
-
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
@@ -270,12 +260,6 @@ dependency_overrides:
       url: https://github.com/diegotori/wakelock
       ref: 2a9bca63a540771f241d688562351482b2cf234c
       path: wakelock_windows
-
-  # required for libmonero - can remove once libmonero has been updated, PR has been merged in swb
-  stack_wallet_backup:
-    git:
-      url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: 5efe8f8f259317d32b6f037cf91f62e06125c040
 
   # required override for nanodart
   bip39:
