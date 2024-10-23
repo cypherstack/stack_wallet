@@ -18,7 +18,7 @@ rustup target add x86_64-apple-ios
 
 (cd ../../crypto_plugins/flutter_liblelantus/scripts/ios && ./build_all.sh )
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/ios && ./build_all.sh )
-(cd ../../crypto_plugins/cs_monero/tools/build_scripts && ./build_ios.sh )
+(cd ../../crypto_plugins/cs_monero/tools/build_scripts && ./build_ios.sh && ../copy_outputs_to_cs_monero_flutter_libs_package.sh  )
 set_rust_to_1720
 (cd ../../crypto_plugins/frostdart/scripts/ios && ./build_all.sh )
 
