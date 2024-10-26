@@ -46,10 +46,12 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
+import '../../../wallets/wallet/supporting/mimblewimblecoin_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -254,10 +256,27 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           height = 0;
         }
 
+        // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
+      if (widget.coin is Mimblewimblecoin) {
+        final int secondsSinceEpoch =
+            widget.restoreFromDate.millisecondsSinceEpoch ~/ 1000;
+        const int mimblewimblecoinFirstBlock = 1565370278;
+        const double overestimateSecondsPerBlock = 61;
+        final int chosenSeconds = secondsSinceEpoch - mimblewimblecoinFirstBlock;
+        final int approximateHeight =
+            chosenSeconds ~/ overestimateSecondsPerBlock;
+        //todo: check if print needed
+        // debugPrint(
+        //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+        height = approximateHeight;
+        if (height < 0) {
+          height = 0;
+        }
+
         otherDataJsonString = jsonEncode(
           {
-            WalletInfoKeys.epiccashData: jsonEncode(
-              ExtraEpiccashWalletInfo(
+            WalletInfoKeys.mimblewimblecoinData: jsonEncode(
+              ExtraMimblewimblecoinWalletInfo(
                 receivingIndex: 0,
                 changeIndex: 0,
                 slatesToAddresses: {},
@@ -354,6 +373,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           switch (wallet.runtimeType) {
             case const (EpiccashWallet):
               await (wallet as EpiccashWallet).init(isRestore: true);
+              break;
+            
+            case const (MimblewimblecoinWallet):
+              await (wallet as MimblewimblecoinWallet).init(isRestore: true);
               break;
 
             case const (MoneroWallet):

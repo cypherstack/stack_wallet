@@ -34,6 +34,7 @@ import 'impl/dash_wallet.dart';
 import 'impl/dogecoin_wallet.dart';
 import 'impl/ecash_wallet.dart';
 import 'impl/epiccash_wallet.dart';
+import 'impl/mimblewimblecoin_wallet.dart';
 import 'impl/ethereum_wallet.dart';
 import 'impl/firo_wallet.dart';
 import 'impl/litecoin_wallet.dart';
@@ -358,6 +359,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Epiccash):
         return EpiccashWallet(net);
+
+      case const (Mimblewimblecoin):
+        return Mimblewimblecoin(net);
 
       case const (Ethereum):
         return EthereumWallet(net);

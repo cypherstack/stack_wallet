@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libepiccash/git_versions.dart' as EPIC_VERSIONS;
 // import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
+import 'package:flutter_libmwc/git_versions.dart' as MIMBLEWIMBLECOIN_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lelantus/git_versions.dart' as FIRO_VERSIONS;
@@ -315,6 +316,9 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                         EPIC_VERSIONS.getPluginVersion();
                                     // final String moneroCommit =
                                     //     MONERO_VERSIONS.getPluginVersion();
+                                    final String mimblewimblecoinCommit =
+                                        MIMBLEWIMBLECOIN_VERSIONS
+                                            .getPluginVersion();
                                     final DeviceInfoPlugin deviceInfoPlugin =
                                         DeviceInfoPlugin();
                                     final deviceInfo =
@@ -348,6 +352,8 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                       "firoCommit": firoCommit,
                                       "epicCashCommit": epicCashCommit,
                                       // "moneroCommit": moneroCommit,
+                                      "mimblewimblecoinCommit":
+                                          mimblewimblecoinCommit,
                                       "deviceInfoMap": deviceInfoMap,
                                       "errorLogs": errorLogs,
                                     };

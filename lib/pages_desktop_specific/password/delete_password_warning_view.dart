@@ -63,6 +63,12 @@ class _ForgotPasswordDesktopViewState
           await epicDir.delete(recursive: true);
         }
 
+        final mimblewimblecoinDir =
+            Directory("${appRoot.path}/mimblewimblecoin");
+        if (mimblewimblecoinDir.existsSync()) {
+          await mimblewimblecoinDir.delete(recursive: true);
+        }
+
         await Isar.getInstance("desktopStore")?.close(deleteFromDisk: true);
 
         await (await StackFileSystem.applicationHiveDirectory())
@@ -79,6 +85,12 @@ class _ForgotPasswordDesktopViewState
         if (epicDir.existsSync()) {
           await epicDir.delete(recursive: true);
         }
+        final mimblewimblecoinDir =
+            Directory("${appRoot.path}/mimblewimblecoin");
+        if (mimblewimblecoinDir.existsSync()) {
+          await mimblewimblecoinDir.delete(recursive: true);
+        }
+
         await (await StackFileSystem.applicationHiveDirectory())
             .delete(recursive: true);
         await (await StackFileSystem.applicationIsarDirectory())

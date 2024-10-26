@@ -10,7 +10,7 @@
 #include <desktop_drop/desktop_drop_plugin.h>
 #include <devicelocale/devicelocale_plugin.h>
 #include <flutter_libepiccash/flutter_libepiccash_plugin.h>
-#include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
+#include <flutter_libmwc/flutter_libmwc_plugin.h>
 #include <isar_flutter_libs/isar_flutter_libs_plugin.h>
 #include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <stack_wallet_backup/stack_wallet_backup_plugin.h>
@@ -30,6 +30,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) flutter_libepiccash_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterLibepiccashPlugin");
   flutter_libepiccash_plugin_register_with_registrar(flutter_libepiccash_registrar);
+  g_autoptr(FlPluginRegistrar) flutter_libmwc_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterLibmwcPlugin");
+  flutter_libmwc_plugin_register_with_registrar(flutter_libmwc_registrar);
   g_autoptr(FlPluginRegistrar) flutter_secure_storage_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterSecureStorageLinuxPlugin");
   flutter_secure_storage_linux_plugin_register_with_registrar(flutter_secure_storage_linux_registrar);

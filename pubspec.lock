@@ -812,6 +812,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  flutter_libmwc:
+    dependency: "direct main"
+    description:
+      path: "crypto_plugins/flutter_libmwc"
+      relative: true
+    source: path
+    version: "0.0.1"
   flutter_libsparkmobile:
     dependency: "direct main"
     description:

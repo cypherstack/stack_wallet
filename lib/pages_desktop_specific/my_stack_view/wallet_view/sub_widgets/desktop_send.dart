@@ -488,6 +488,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               noteOnChain: _onChainNote ?? "",
             );
           }
+          if (coin is Mimblewimblecoin) {
+            txData = txData.copyWith(
+              noteOnChain: _onChainNote ?? "",
+            );
+          }
         }
         // pop building dialog
         Navigator.of(
@@ -790,6 +795,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           if (coin is Epiccash) {
             content = AddressUtils().formatAddress(content);
           }
+          if (coin is Mimblewimblecoin) {
+            content = AddressUtils().formatAddressMwc(content);
+          }
 
           sendToController.text = content;
           _address = content;
@@ -804,6 +812,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
           content = AddressUtils().formatAddress(content);
+        }
+        if (coin is Mimblewimblecoin) {
+          // strip http:// and https:// if content contains @
+          content = AddressUtils().formatAddressMwc(content);
         }
 
         sendToController.text = content;
@@ -1038,6 +1050,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           }
 
           sendToController.text = formatAddress(_address!);
+        }
+      });
+    }
+
+    if (coin is Mimblewimblecoin) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = formatAddressMwc(_address!);
         }
       });
     }
@@ -1715,7 +1742,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           const SizedBox(
             height: 20,
           ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
           ConditionalParent(
             condition: ref.watch(pWallets).getWallet(walletId)
                     is ElectrumXInterface &&
@@ -1771,11 +1801,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               textAlign: TextAlign.left,
             ),
           ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
           const SizedBox(
             height: 10,
           ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
           if (!isCustomFee)
             Padding(
               padding: const EdgeInsets.all(10),
@@ -1979,4 +2015,26 @@ String formatAddress(String epicAddress) {
     epicAddress = epicAddress.substring(0, epicAddress.length - 1);
   }
   return epicAddress;
+}
+
+String formatAddressMwc(String mimblewimblecoinAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an mwcmqs address)
+  if ((mimblewimblecoinAddress.startsWith("http://") ||
+          mimblewimblecoinAddress.startsWith("https://")) &&
+      mimblewimblecoinAddress.contains("@")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("http://", "");
+    mimblewimblecoinAddress =
+        mimblewimblecoinAddress.replaceAll("https://", "");
+  }
+  // strip mailto: prefix
+  if (mimblewimblecoinAddress.startsWith("mailto:")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
+  if (mimblewimblecoinAddress.endsWith("/") &&
+      mimblewimblecoinAddress.contains("@")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
+        0, mimblewimblecoinAddress.length - 1);
+  }
+  return mimblewimblecoinAddress;
 }

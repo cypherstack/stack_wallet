@@ -88,6 +88,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       ref.read(nodeFormDataProvider).host = data.host;
       ref.read(nodeFormDataProvider).port = data.port;
       ref.read(nodeFormDataProvider).useSSL = data.useSSL;
+    } else if (coin is Mimblewimblecoin) {
+      ref.read(nodeFormDataProvider).host = data.host;
+      ref.read(nodeFormDataProvider).port = data.port;
+      ref.read(nodeFormDataProvider).useSSL = data.useSSL;
+    } else if (coin is CryptonoteCurrency) {
+      ref.read(nodeFormDataProvider).host = data.host;
+    }
+    if (coin is Mimblewimblecoin) {
+      ref.read(nodeFormDataProvider).host = data.host;
+      ref.read(nodeFormDataProvider).port = data.port;
+      ref.read(nodeFormDataProvider).useSSL = data.useSSL;
     } else if (coin is CryptonoteCurrency) {
       ref.read(nodeFormDataProvider).host = data.host;
     }
@@ -917,6 +928,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
       if (widget.coin is Epiccash) {
         enableSSLCheckbox = !node.host.startsWith("http");
+      } else if (widget.coin is Mimblewimblecoin) {
+        enableSSLCheckbox = !node.host.startsWith("http");
       } else {
         enableSSLCheckbox = true;
       }
@@ -1050,6 +1063,25 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   enableSSLCheckbox = true;
                 }
               } else if (widget.coin is LibMoneroWallet) {
+                if (newValue.startsWith("https://")) {
+                  _useSSL = true;
+                } else if (newValue.startsWith("http://")) {
+                  _useSSL = false;
+                } else {
+                  _useSSL = true;
+                }
+              }
+              if (widget.coin is Mimblewimblecoin) {
+                if (newValue.startsWith("https://")) {
+                  _useSSL = true;
+                  enableSSLCheckbox = false;
+                } else if (newValue.startsWith("http://")) {
+                  _useSSL = false;
+                  enableSSLCheckbox = false;
+                } else {
+                  enableSSLCheckbox = true;
+                }
+              } else if (widget.coin is CwBasedInterface) {
                 if (newValue.startsWith("https://")) {
                   _useSSL = true;
                 } else if (newValue.startsWith("http://")) {
@@ -1317,11 +1349,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin is! CryptonoteCurrency && widget.coin is! Epiccash)
+        if (widget.coin is! CryptonoteCurrency &&
+            widget.coin is! Epiccash &&
+            widget.coin is! Mimblewimblecoin)
           const SizedBox(
             height: 8,
           ),
-        if (widget.coin is! CryptonoteCurrency && widget.coin is! Epiccash)
+        if (widget.coin is! CryptonoteCurrency &&
+            widget.coin is! Epiccash &&
+            widget.coin is! Mimblewimblecoin)
           Row(
             children: [
               GestureDetector(

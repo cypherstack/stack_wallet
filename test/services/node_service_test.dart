@@ -1,3 +1,5 @@
+// TODO MWC
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
@@ -159,6 +161,17 @@ void main() {
       isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
+    );
+    final nodeD = NodeModel(
+      host: "host3",
+      port: 423,
+      name: "btcnode",
+      id: "pnodeID3",
+      useSSL: true,
+      enabled: true,
+      coinName: "mimblewimblecoin",
+      isFailover: true,
+      isDown: false,
     );
 
     setUp(() async {

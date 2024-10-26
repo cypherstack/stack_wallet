@@ -11,6 +11,7 @@ import '../wallets/isar/models/token_wallet_info.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/isar/models/wallet_info_meta.dart';
 import '../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
+import '../wallets/wallet/supporting/mimblewimblecoin_wallet_info_extension.dart';
 import 'hive/db.dart';
 import 'isar/main_db.dart';
 
@@ -145,6 +146,21 @@ Future<void> migrateWalletsToIsar({
       });
       otherData[WalletInfoKeys.epiccashData] = jsonEncode(
         epicWalletInfo.toMap(),
+      );
+    } else if (old.coinIdentifier ==
+        Mimblewimblecoin(CryptoCurrencyNetwork.main)) {
+      final mimblewimblecoinWalletInfo =
+          ExtraMimblewimblecoinWalletInfo.fromMap({
+        "receivingIndex": walletBox.get("receivingIndex") as int? ?? 0,
+        "changeIndex": walletBox.get("changeIndex") as int? ?? 0,
+        "slatesToAddresses": walletBox.get("slate_to_address") as Map? ?? {},
+        "slatesToCommits": walletBox.get("slatesToCommits") as Map? ?? {},
+        "lastScannedBlock": walletBox.get("lastScannedBlock") as int? ?? 0,
+        "restoreHeight": walletBox.get("restoreHeight") as int? ?? 0,
+        "creationHeight": walletBox.get("creationHeight") as int? ?? 0,
+      });
+      otherData[WalletInfoKeys.mimblewimblecoinData] = jsonEncode(
+        mimblewimblecoinWalletInfo.toMap(),
       );
     } else if (old.coinIdentifier ==
             Firo(CryptoCurrencyNetwork.main).identifier ||

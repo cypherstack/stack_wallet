@@ -43,6 +43,7 @@ import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
@@ -225,6 +226,33 @@ class _TransactionV2DetailsViewState
     }
 
     if (_transaction.isEpiccashTransaction) {
+      switch (_transaction.type) {
+        case TransactionType.outgoing:
+        case TransactionType.unknown:
+          amount = _transaction.getAmountSentFromThisWallet(
+            fractionDigits: fractionDigits,
+          );
+          break;
+
+        case TransactionType.incoming:
+        case TransactionType.sentToSelf:
+          amount = _transaction.getAmountReceivedInThisWallet(
+            fractionDigits: fractionDigits,
+          );
+          break;
+      }
+      data = _transaction.outputs
+          .map(
+            (e) => (
+              addresses: e.addresses,
+              amount: Amount(
+                rawValue: e.value,
+                fractionDigits: coin.fractionDigits,
+              )
+            ),
+          )
+          .toList();
+    } else if (_transaction.isMimblewimblecoinTransaction) {
       switch (_transaction.type) {
         case TransactionType.outgoing:
         case TransactionType.unknown:
@@ -1069,13 +1097,13 @@ class _TransactionV2DetailsViewState
                                   ],
                                 ),
                               ),
-                            if (coin is Epiccash)
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(
                                       height: 12,
                                     ),
-                            if (coin is Epiccash)
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
                               RoundedWhiteContainer(
                                 padding: isDesktop
                                     ? const EdgeInsets.all(16)
@@ -1147,7 +1175,8 @@ class _TransactionV2DetailsViewState
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        (coin is Epiccash)
+                                        (coin is Epiccash ||
+                                                coin is Mimblewimblecoin)
                                             ? "Local Note"
                                             : "Note ",
                                         style: isDesktop
@@ -1218,7 +1247,9 @@ class _TransactionV2DetailsViewState
                                             .watch(
                                               pTransactionNote(
                                                 (
-                                                  txid: (coin is Epiccash)
+                                                  txid: (coin is Epiccash ||
+                                                          coin
+                                                              is Mimblewimblecoin)
                                                       ? _transaction.slateId
                                                           .toString()
                                                       : _transaction.txid,
@@ -1495,8 +1526,9 @@ class _TransactionV2DetailsViewState
                                       ? "${_transaction.height!}"
                                       : "Pending";
                                   confirmations = confirms.toString();
-                                } else if (widget.coin is Epiccash &&
-                                    _transaction.slateId == null) {
+                                } else if (widget.coin is Epiccash ||
+                                    coin is Mimblewimblecoin &&
+                                        _transaction.slateId == null) {
                                   confirmations = "Unknown";
                                   height = "Unknown";
                                 } else {
@@ -1504,7 +1536,9 @@ class _TransactionV2DetailsViewState
                                       currentHeight,
                                       minConfirms,
                                       coin.minCoinbaseConfirms);
-                                  if (widget.coin is! Epiccash && confirmed) {
+                                  if (widget.coin is! Epiccash &&
+                                      widget.coin is! Mimblewimblecoin &&
+                                      confirmed) {
                                     height =
                                         "${_transaction.height == 0 ? "Unknown" : _transaction.height}";
                                   } else {
@@ -1787,11 +1821,13 @@ class _TransactionV2DetailsViewState
                                                   context,
                                                 ),
                                         ),
-                                        if (coin is! Epiccash)
+                                        if (coin is! Epiccash &&
+                                            coin is! Mimblewimblecoin)
                                           const SizedBox(
                                             height: 8,
                                           ),
-                                        if (coin is! Epiccash)
+                                        if (coin is! Epiccash &&
+                                            coin is! Mimblewimblecoin)
                                           CustomTextButton(
                                             text: "Open in block explorer",
                                             onTap: () async {
@@ -1948,13 +1984,13 @@ class _TransactionV2DetailsViewState
                             //       ],
                             //     ),
                             //   ),
-                            if (coin is Epiccash)
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(
                                       height: 12,
                                     ),
-                            if (coin is Epiccash)
+                            if (coin is Epiccash || coin is Mimblewimblecoin)
                               RoundedWhiteContainer(
                                 padding: isDesktop
                                     ? const EdgeInsets.all(16)
@@ -2038,9 +2074,10 @@ class _TransactionV2DetailsViewState
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: (coin is Epiccash &&
-                _transaction.getConfirmations(currentHeight) < 1 &&
-                _transaction.isCancelled == false)
+        floatingActionButton: (coin is Epiccash ||
+                coin is Mimblewimblecoin &&
+                    _transaction.getConfirmations(currentHeight) < 1 &&
+                    _transaction.isCancelled == false)
             ? ConditionalParent(
                 condition: isDesktop,
                 builder: (child) => Padding(
@@ -2119,6 +2156,72 @@ class _TransactionV2DetailsViewState
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
                             message: "ERROR: Wallet type is not Epic Cash",
+                            context: context,
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (wallet is MimblewimblecoinWallet) {
+                        final String? id = _transaction.slateId;
+                        if (id == null) {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message:
+                                  "Could not find Mimblewimblecoin transaction ID",
+                              context: context,
+                            ),
+                          );
+                          return;
+                        }
+
+                        unawaited(
+                          showDialog<void>(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (_) =>
+                                const CancellingTransactionProgressDialog(),
+                          ),
+                        );
+
+                        final result =
+                            await wallet.cancelPendingTransactionAndPost(id);
+                        if (mounted) {
+                          // pop progress dialog
+                          Navigator.of(context).pop();
+
+                          if (result.isEmpty) {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Transaction cancelled",
+                                onOkPressed: (_) {
+                                  wallet.refresh();
+                                  Navigator.of(context).popUntil(
+                                    ModalRoute.withName(
+                                      WalletView.routeName,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            await showDialog<dynamic>(
+                              context: context,
+                              builder: (_) => StackOkDialog(
+                                title: "Failed to cancel transaction",
+                                message: result,
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message:
+                                "ERROR: Wallet type is not Mimblewimblecoin",
                             context: context,
                           ),
                         );

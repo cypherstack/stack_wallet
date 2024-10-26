@@ -873,6 +873,10 @@ class _DesktopTransactionCardRowState
       return "Restored Funds";
     }
 
+    if (coin is Mimblewimblecoin && _transaction.slateId == null) {
+      return "Restored Funds";
+    }
+
     if (_transaction.subType == TransactionSubType.mint) {
       if (_transaction.isConfirmed(height, minConfirms)) {
         return "Anonymized";
@@ -961,6 +965,19 @@ class _DesktopTransactionCardRowState
               showFloatingFlushBar(
                 context: context,
                 message: "Restored Epic funds from your Seed have no Data.",
+                type: FlushBarType.warning,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+            return;
+          }
+
+          if (coin is Mimblewimblecoin && _transaction.slateId == null) {
+            unawaited(
+              showFloatingFlushBar(
+                context: context,
+                message:
+                    "Restored Mimblewimblecoin funds from your Seed have no Data.",
                 type: FlushBarType.warning,
                 duration: const Duration(seconds: 5),
               ),
