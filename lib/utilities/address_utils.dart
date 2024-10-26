@@ -46,6 +46,8 @@ class AddressUtils {
   //       return Dogecoin(CryptoCurrencyNetwork.main).validateAddress(address);
   //     case Coin.epicCash:
   //       return Epiccash(CryptoCurrencyNetwork.main).validateAddress(address);
+  //     case Coin.mimblewimblecoin:
+  //       return Mimblewimblecoin(CryptoCurrencyNetwork.main).validateAddress(address);
   //     case Coin.ethereum:
   //       return Ethereum(CryptoCurrencyNetwork.main).validateAddress(address);
   //     case Coin.firo:
@@ -371,6 +373,31 @@ class AddressUtils {
       epicAddress = epicAddress.substring(0, epicAddress.length - 1);
     }
     return epicAddress;
+  }
+
+  /// Formats an address string to remove any unnecessary prefixes or suffixes.
+  String formatMimblewimblecoinAddress(String mimblewimblecoinAddress) {
+    // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an mwcmqs address)
+    if ((mimblewimblecoinAddress.startsWith("http://") ||
+            mimblewimblecoinAddress.startsWith("https://")) &&
+        mimblewimblecoinAddress.contains("@")) {
+      mimblewimblecoinAddress =
+          mimblewimblecoinAddress.replaceAll("http://", "");
+      mimblewimblecoinAddress =
+          mimblewimblecoinAddress.replaceAll("https://", "");
+    }
+    // strip mailto: prefix
+    if (mimblewimblecoinAddress.startsWith("mailto:")) {
+      mimblewimblecoinAddress =
+          mimblewimblecoinAddress.replaceAll("mailto:", "");
+    }
+    // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
+    if (mimblewimblecoinAddress.endsWith("/") &&
+        mimblewimblecoinAddress.contains("@")) {
+      mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
+          0, mimblewimblecoinAddress.length - 1);
+    }
+    return mimblewimblecoinAddress;
   }
 }
 

@@ -18,6 +18,7 @@ import 'package:tuple/tuple.dart';
 import '../../../db/hive/db.dart';
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/epicbox_config_model.dart';
+import '../../../models/mwcmqs_config_model.dart';
 import '../../../models/keys/key_data_interface.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/wallets_provider.dart';
@@ -37,6 +38,8 @@ import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -677,6 +680,106 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
                 await showFloatingFlushBar(
                   context: context,
                   message: "Failed to save epicbox info: $e",
+                  type: FlushBarType.warning,
+                );
+              }
+            },
+            child: Text(
+              "Save",
+              style: STextStyles.button(context).copyWith(
+                color:
+                    Theme.of(context).extension<StackColors>()!.accentColorDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MwcMqsInfoForm extends ConsumerStatefulWidget {
+  const MwcMqsInfoForm({
+    super.key,
+    required this.walletId,
+  });
+
+  final String walletId;
+
+  @override
+  ConsumerState<MwcMqsInfoForm> createState() => _MwcMqsInfoFormState();
+}
+
+class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {
+  final hostController = TextEditingController();
+  final portController = TextEditingController();
+
+  late MimblewimblecoinWallet wallet;
+
+  @override
+  void initState() {
+    wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as MimblewimblecoinWallet;
+
+    wallet.getMwcMqsConfig().then((MwcMqsConfigModel mwcmqsConfig) {
+      hostController.text = mwcmqsConfig.host;
+      portController.text = "${mwcmqsConfig.port ?? 443}";
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    hostController.dispose();
+    portController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RoundedWhiteContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            controller: hostController,
+            decoration: const InputDecoration(hintText: "Host"),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          TextField(
+            autocorrect: Util.isDesktop ? false : true,
+            enableSuggestions: Util.isDesktop ? false : true,
+            controller: portController,
+            decoration: const InputDecoration(hintText: "Port"),
+            keyboardType:
+                Util.isDesktop ? null : const TextInputType.numberWithOptions(),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                await wallet.updateMwcmqsConfig(
+                  hostController.text,
+                  int.parse(portController.text),
+                );
+                if (mounted) {
+                  await showFloatingFlushBar(
+                    context: context,
+                    message: "Mwcmqs info saved!",
+                    type: FlushBarType.success,
+                  );
+                }
+                unawaited(wallet.refresh());
+              } catch (e) {
+                await showFloatingFlushBar(
+                  context: context,
+                  message: "Failed to save mwcmqs info: $e",
                   type: FlushBarType.warning,
                 );
               }

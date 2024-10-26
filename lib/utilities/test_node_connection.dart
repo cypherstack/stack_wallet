@@ -45,7 +45,6 @@ Future<bool> _xmrHelper(
 
   final uriString = "${uri.scheme}://${uri.host}:${port ?? 0}$path";
 
-
   if (proxyInfo == null && uri.host.endsWith(".onion")) {
     return false;
   }

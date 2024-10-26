@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   cs_monero_flutter_libs_windows
   desktop_drop
   flutter_libepiccash
+  flutter_libmwc
   flutter_secure_storage_windows
   isar_flutter_libs
   local_auth_windows

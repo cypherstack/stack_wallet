@@ -1,3 +1,5 @@
+// TODO MWC
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
@@ -149,6 +151,17 @@ void main() {
       useSSL: true,
       enabled: true,
       coinName: "epicCash",
+      isFailover: true,
+      isDown: false,
+    );
+    final nodeD = NodeModel(
+      host: "host3",
+      port: 423,
+      name: "btcnode",
+      id: "pnodeID3",
+      useSSL: true,
+      enabled: true,
+      coinName: "mimblewimblecoin",
       isFailover: true,
       isDown: false,
     );

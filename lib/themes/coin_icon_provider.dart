@@ -28,6 +28,8 @@ final coinIconProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
         return assets.dogecoin;
       case const (Epiccash):
         return assets.epicCash;
+      case const (Mimblewimblecoin):
+        return assets.mimblewimblecoin;
       case const (Firo):
         return assets.firo;
       case const (Monero):
