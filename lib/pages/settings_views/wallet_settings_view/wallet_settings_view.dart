@@ -707,7 +707,7 @@ class MwcMqsInfoForm extends ConsumerStatefulWidget {
   final String walletId;
 
   @override
-  ConsumerState<MwcMqsInfoForm> createState() => _MwcMqsInfoFormState();
+  ConsumerState<MwcMqsInfoForm> createState() => _MwcmqsInfoFormState();
 }
 
 class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {

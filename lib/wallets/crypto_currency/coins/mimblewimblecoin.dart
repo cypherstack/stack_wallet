@@ -14,7 +14,7 @@ class Mimblewimblecoin extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         _id = _idMain;
-        _name = "Mimblewimblecoin";
+        _name = "MimbleWimbleCoin";
         _ticker = "MWC";
       default:
         throw Exception("Unsupported network: $network");
@@ -63,7 +63,7 @@ class Mimblewimblecoin extends Bip39Currency {
       }
     }
 
-    return mimblewimblecoin.LibMwc.validateSendAddress(address: address);
+    return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
   }
 
   @override
@@ -71,7 +71,7 @@ class Mimblewimblecoin extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "http://epiccash.stackwallet.com",
+          host: "http://mwc713.mwc.mw",
           port: 3413,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
