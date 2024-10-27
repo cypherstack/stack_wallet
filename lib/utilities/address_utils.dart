@@ -234,7 +234,7 @@ class AddressUtils {
   }
 
   /// Formats an address string to remove any unnecessary prefixes or suffixes.
-  String formatMimblewimblecoinAddress(String mimblewimblecoinAddress) {
+  String formatAddressMwc(String mimblewimblecoinAddress) {
     // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an mwcmqs address)
     if ((mimblewimblecoinAddress.startsWith("http://") ||
             mimblewimblecoinAddress.startsWith("https://")) &&

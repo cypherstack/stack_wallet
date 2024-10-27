@@ -361,7 +361,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         return EpiccashWallet(net);
 
       case const (Mimblewimblecoin):
-        return Mimblewimblecoin(net);
+        return MimblewimblecoinWallet(net);
 
       case const (Ethereum):
         return EthereumWallet(net);

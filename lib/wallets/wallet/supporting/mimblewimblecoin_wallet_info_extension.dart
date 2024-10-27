@@ -5,7 +5,7 @@ import '../../../utilities/logger.dart';
 import '../../isar/models/wallet_info.dart';
 
 extension MimblewimblecoinWalletInfoExtension on WalletInfo {
-  ExtraMimblewimblecoinWalletInfo? get epicData {
+  ExtraMimblewimblecoinWalletInfo? get mimblewimblecoinData {
     final String? data =
         otherData[WalletInfoKeys.mimblewimblecoinData] as String?;
     if (data == null) {
@@ -27,12 +27,12 @@ extension MimblewimblecoinWalletInfoExtension on WalletInfo {
   }
 
   Future<void> updateExtraMimblewimblecoinWalletInfo({
-    required ExtraMimblewimblecoinWalletInfo epicData,
+    required ExtraMimblewimblecoinWalletInfo mimblewimblecoinData,
     required Isar isar,
   }) async {
     await updateOtherData(
       newEntries: {
-        WalletInfoKeys.mimblewimblecoinData: jsonEncode(epicData.toMap()),
+        WalletInfoKeys.mimblewimblecoinData: jsonEncode(mimblewimblecoinData.toMap()),
       },
       isar: isar,
     );
