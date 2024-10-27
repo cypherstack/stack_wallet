@@ -17,7 +17,7 @@ abstract class DefaultMwcMqs {
   static List<String> get defaultIds => ['americas', 'asia', 'europe'];
 
   static MwcMqsServerModel get americas => MwcMqsServerModel(
-        host: 'MwcMqs.stackwallet.com',
+        host: 'mqs.mwc.mw',
         port: 443,
         name: 'Americas',
         id: 'americas',
@@ -28,7 +28,7 @@ abstract class DefaultMwcMqs {
       );
 
   static MwcMqsServerModel get asia => MwcMqsServerModel(
-        host: 'MwcMqs.hyperbig.com',
+        host: 'mqs.mwc.mw',
         port: 443,
         name: 'Asia',
         id: 'asia',
@@ -39,7 +39,7 @@ abstract class DefaultMwcMqs {
       );
 
   static MwcMqsServerModel get europe => MwcMqsServerModel(
-        host: 'MwcMqs.fastepic.eu',
+        host: 'mqs.mwc.mw',
         port: 443,
         name: 'Europe',
         id: 'europe',
