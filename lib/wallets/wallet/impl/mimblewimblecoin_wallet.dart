@@ -524,7 +524,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
 
         //Store MwcMqs address info
-        await _generateAndStoreReceivingAddressForIndex(0);
+        // await _generateAndStoreReceivingAddressForIndex(0);
 
         // subtract a couple days to ensure we have a buffer for SWB
         final bufferedCreateHeight = _calculateRestoreHeightFrom(
@@ -754,9 +754,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
             value: walletOpen,
           );
 
-          await _generateAndStoreReceivingAddressForIndex(
-            mimblewimblecoinData.receivingIndex,
-          );
+          // await _generateAndStoreReceivingAddressForIndex(
+          //   mimblewimblecoinData.receivingIndex,
+          // );
         }
       });
 
@@ -799,7 +799,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
       // this will always be zero????
       final int curAdd = await _getCurrentIndex();
-      await _generateAndStoreReceivingAddressForIndex(curAdd);
+      // await _generateAndStoreReceivingAddressForIndex(curAdd);
 
       await _startScans();
 
@@ -1087,22 +1087,23 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   @override
   Future<bool> pingCheck() async {
-    try {
-      final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency);
-
-      // force unwrap optional as we want connection test to fail if wallet
-      // wasn't initialized or mwcmqs node was set to null
-      return await testMwcNodeConnection(
-            NodeFormData()
-              ..host = node!.host
-              ..useSSL = node.useSSL
-              ..port = node.port,
-          ) !=
-          null;
-    } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Info);
-      return false;
-    }
+    return true;
+    //try {
+    //  final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency);
+//
+    //  // force unwrap optional as we want connection test to fail if wallet
+    //  // wasn't initialized or mwcmqs node was set to null
+    //  return await testMwcNodeConnection(
+    //        NodeFormData()
+    //          ..host = node!.host
+    //          ..useSSL = node.useSSL
+    //          ..port = node.port,
+    //      ) !=
+    //      null;
+    //} catch (e, s) {
+    //  Logging.instance.log("$e\n$s", level: LogLevel.Info);
+    //  return false;
+    //}
   }
 
   @override

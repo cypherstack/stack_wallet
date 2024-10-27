@@ -959,7 +959,7 @@ packages:
     source: hosted
     version: "2.4.4"
   frontend_server_client:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: frontend_server_client
       sha256: f64a0333a82f30b0cca061bc3d143813a486dc086b574bfb233b7c1372427694
