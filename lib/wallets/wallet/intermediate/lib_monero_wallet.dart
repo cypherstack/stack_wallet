@@ -139,16 +139,18 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   bool walletExists(String path);
 
   void _setListener() {
-    libMoneroWallet?.addListener(
-      lib_monero.WalletListener(
-        onSyncingUpdate: onSyncingUpdate,
-        onNewBlock: onNewBlock,
-        onBalancesChanged: onBalancesChanged,
-        onError: (e, s) {
-          Logging.instance.log("$e\n$s", level: LogLevel.Warning);
-        },
-      ),
-    );
+    if (libMoneroWallet != null && libMoneroWallet!.getListeners().isEmpty) {
+      libMoneroWallet?.addListener(
+        lib_monero.WalletListener(
+          onSyncingUpdate: onSyncingUpdate,
+          onNewBlock: onNewBlock,
+          onBalancesChanged: onBalancesChanged,
+          onError: (e, s) {
+            Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+          },
+        ),
+      );
+    }
   }
 
   Future<void> open() async {
@@ -175,9 +177,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
       _setListener();
 
-      // TODO watcher
-      // libMoneroWallet?.syncStatusChanged = syncStatusChanged;
-
       await updateNode();
     }
 
@@ -202,7 +201,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         // TODO log
       }
     }
-
+    _setListener();
     libMoneroWallet?.startListeners();
     libMoneroWallet?.startAutoSaving();
 
@@ -223,7 +222,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   }
 
   Future<void> save() async {
-    print("save is called");
     if (!Platform.isWindows) {
       final appRoot = await StackFileSystem.applicationRootDirectory();
       await lib_monero_compat.backupWalletFiles(
@@ -392,6 +390,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
         }
         await updateNode();
+        _setListener();
 
         // libMoneroWallet?.setRecoveringFromSeed(isRecovery: true);
         unawaited(libMoneroWallet?.rescanBlockchain());
@@ -470,6 +469,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     if (base == null) {
       return;
     }
+
+    // TODO: cs_monero: add flag to getTxs() to trigger refreshTransactions() optionally?
     await base.refreshTransactions();
     final transactions = base.getTxs();
 
@@ -984,13 +985,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     // Slight possibility of race but should be irrelevant
     await refreshMutex.acquire();
 
-    GlobalEventBus.instance.fire(
-      WalletSyncStatusChangedEvent(
-        WalletSyncStatus.syncing,
-        walletId,
-        info.coin,
-      ),
-    );
+    libMoneroWallet?.startSyncing();
+    _setSyncStatus(lib_monero_compat.StartingSyncStatus());
 
     await updateTransactions();
     await updateBalance();
@@ -999,15 +995,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       await checkReceivingAddressForTransactions();
     }
 
-    if (syncStatus is lib_monero_compat.SyncedSyncStatus) {
-      // refreshMutex.release();
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.synced,
-          walletId,
-          info.coin,
-        ),
-      );
+    if (refreshMutex.isLocked) {
+      refreshMutex.release();
+    }
+
+    final synced = await libMoneroWallet?.isSynced();
+
+    if (synced == true) {
+      _setSyncStatus(lib_monero_compat.SyncedSyncStatus());
     }
   }
 
