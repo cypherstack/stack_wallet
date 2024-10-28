@@ -470,9 +470,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       return;
     }
 
-    // TODO: cs_monero: add flag to getTxs() to trigger refreshTransactions() optionally?
-    await base.refreshTransactions();
-    final transactions = base.getTxs();
+    final transactions = await base.getTxs(refresh: true);
 
     // final cachedTransactions =
     // DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
@@ -512,12 +510,27 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       Address? address;
       TransactionType type;
       if (!tx.isSpend) {
-        final addressString = libMoneroWallet
-            ?.getAddress(
-              accountIndex: tx.accountIndex,
-              addressIndex: tx.addressIndex,
-            )
-            .value;
+        final String? addressString;
+        if (tx.addressIndexes.isEmpty) {
+          addressString = null;
+          Logging.instance.log(
+            "tx.addressIndexes.isEmpty for receive",
+            level: LogLevel.Warning,
+          );
+        } else {
+          if (tx.addressIndexes.length > 1) {
+            Logging.instance.log(
+              "tx.addressIndexes contains more than one in receive",
+              level: LogLevel.Warning,
+            );
+          }
+          addressString = libMoneroWallet
+              ?.getAddress(
+                accountIndex: tx.accountIndex,
+                addressIndex: tx.addressIndexes.first,
+              )
+              .value;
+        }
 
         if (addressString != null) {
           address = await mainDB
@@ -539,13 +552,13 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         timestamp: (tx.timeStamp.millisecondsSinceEpoch ~/ 1000),
         type: type,
         subType: TransactionSubType.none,
-        amount: tx.amount,
+        amount: tx.amount.toInt(),
         amountString: Amount(
-          rawValue: BigInt.from(tx.amount),
+          rawValue: tx.amount,
           fractionDigits: cryptoCurrency.fractionDigits,
         ).toJsonString(),
-        fee: tx.fee,
-        height: tx.blockheight,
+        fee: tx.fee.toInt(),
+        height: tx.blockHeight,
         isCancelled: false,
         isLelantus: false,
         slateId: null,
@@ -605,8 +618,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       } else {
-        final transactions = libMoneroWallet!.getTxs();
-        int transactionBalance = 0;
+        final transactions = await libMoneroWallet!.getTxs(refresh: true);
+        BigInt transactionBalance = BigInt.zero;
         for (final tx in transactions) {
           if (!tx.isSpend) {
             transactionBalance += tx.amount;
@@ -616,7 +629,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         }
 
         return Amount(
-          rawValue: BigInt.from(transactionBalance),
+          rawValue: transactionBalance,
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       }
@@ -702,7 +715,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   final _utxosUpdateLock = Mutex();
   Future<void> onUTXOsChanged(List<UTXO> utxos) async {
     await _utxosUpdateLock.protect(() async {
-      final cwUtxos = await libMoneroWallet?.getOutputs() ?? [];
+      final cwUtxos = await libMoneroWallet?.getOutputs(refresh: true) ?? [];
 
       // bool changed = false;
 
@@ -902,7 +915,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   @override
   Future<bool> updateUTXOs() async {
     final List<UTXO> outputArray = [];
-    final utxos = await libMoneroWallet?.getOutputs() ?? <lib_monero.Output>[];
+    final utxos = await libMoneroWallet?.getOutputs(refresh: true) ??
+        <lib_monero.Output>[];
     for (final rawUTXO in utxos) {
       if (!rawUTXO.spent) {
         final current = await mainDB.isar.utxos
@@ -930,7 +944,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           walletId: walletId,
           txid: rawUTXO.hash,
           vout: rawUTXO.vout,
-          value: rawUTXO.value,
+          value: rawUTXO.value.toInt(),
           name: current?.name ?? "",
           isBlocked: current?.isBlocked ?? rawUTXO.isFrozen,
           blockedReason: current?.blockedReason ?? "",
@@ -1045,11 +1059,13 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     try {
       int highestIndex = -1;
-      final entries = libMoneroWallet?.getTxs();
+      final entries = await libMoneroWallet?.getTxs(refresh: true);
       if (entries != null) {
         for (final element in entries) {
           if (!element.isSpend) {
-            final int curAddressIndex = element.addressIndex;
+            final int curAddressIndex = element.addressIndexes.isEmpty
+                ? 0
+                : element.addressIndexes.reduce(max);
             if (curAddressIndex > highestIndex) {
               highestIndex = curAddressIndex;
             }
@@ -1150,17 +1166,21 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         }
 
         try {
-          // TODO: ???
-          // check for send all
-          bool isSendAll = false;
+          final bool sweep;
 
-          final balance = await availableBalance;
-          if (txData.amount! == balance &&
-              txData.recipients!.first.amount == balance) {
-            isSendAll = true;
+          if (txData.utxos == null) {
+            final balance = await availableBalance;
+            sweep = txData.amount! == balance;
+          } else {
+            final totalInputsValue = txData.utxos!
+                .map((e) => e.value)
+                .fold(BigInt.zero, (p, e) => p + BigInt.from(e));
+            sweep = txData.amount!.raw == totalInputsValue;
           }
 
-          if (isSendAll && txData.recipients!.length > 1) {
+          // TODO: test this one day
+          // cs_monero may not support this yet properly
+          if (sweep && txData.recipients!.length > 1) {
             throw Exception("Send all not supported with multiple recipients");
           }
 
@@ -1168,7 +1188,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           for (final recipient in txData.recipients!) {
             final output = lib_monero.Recipient(
               address: recipient.address,
-              amount: recipient.amount.decimal.toString(),
+              amount: recipient.amount.raw,
             );
 
             outputs.add(output);
@@ -1185,7 +1205,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
                   address: e.address!,
                   hash: e.txid,
                   keyImage: e.keyImage!,
-                  value: e.value,
+                  value: BigInt.from(e.value),
                   isFrozen: e.isBlocked,
                   isUnlocked: e.blockHeight != null &&
                       (height - (e.blockHeight ?? 0)) >=
@@ -1193,6 +1213,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
                   height: e.blockHeight ?? 0,
                   vout: e.vout,
                   spent: e.used ?? false,
+                  spentHeight: null, // doesn't matter here
                   coinbase: e.isCoinbase,
                 ),
               )
@@ -1202,23 +1223,26 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             final lib_monero.PendingTransaction pendingTransaction;
             if (outputs.length == 1) {
               pendingTransaction = await libMoneroWallet!.createTx(
-                address: outputs.first.address,
+                output: outputs.first,
                 paymentId: "",
-                amount: isSendAll ? null : outputs.first.amount,
+                sweep: sweep,
                 priority: feePriority,
-                preferredInputs: inputs?.map((e) => e.keyImage).toList() ?? [],
+                preferredInputs: inputs,
+                accountIndex: 0, // sw only uses account 0 at this time
               );
             } else {
               pendingTransaction = await libMoneroWallet!.createTxMultiDest(
                 outputs: outputs,
                 paymentId: "",
                 priority: feePriority,
-                preferredInputs: inputs?.map((e) => e.keyImage).toList() ?? [],
+                preferredInputs: inputs,
+                sweep: sweep,
+                accountIndex: 0, // sw only uses account 0 at this time
               );
             }
 
             final realFee = Amount(
-              rawValue: BigInt.from(pendingTransaction.fee!),
+              rawValue: pendingTransaction.fee,
               fractionDigits: cryptoCurrency.fractionDigits,
             );
 

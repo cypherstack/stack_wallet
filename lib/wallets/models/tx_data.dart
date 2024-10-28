@@ -115,11 +115,27 @@ class TxData {
     this.ignoreCachedBalanceChecks = false,
   });
 
-  Amount? get amount => recipients != null && recipients!.isNotEmpty
-      ? recipients!
+  Amount? get amount {
+    if (recipients != null && recipients!.isNotEmpty) {
+      final sum = recipients!
           .map((e) => e.amount)
-          .reduce((total, amount) => total += amount)
-      : null;
+          .reduce((total, amount) => total += amount);
+
+      // special xmr/wow check
+      if (pendingTransaction?.amount != null && fee != null) {
+        if (pendingTransaction!.amount + fee!.raw == sum.raw) {
+          return Amount(
+            rawValue: pendingTransaction!.amount,
+            fractionDigits: recipients!.first.amount.fractionDigits,
+          );
+        }
+      }
+
+      return sum;
+    }
+
+    return null;
+  }
 
   Amount? get amountSpark =>
       sparkRecipients != null && sparkRecipients!.isNotEmpty
@@ -136,10 +152,22 @@ class TxData {
           fractionDigits: recipients!.first.amount.fractionDigits,
         );
       } else {
-        return recipients!
+        final sum = recipients!
             .where((e) => !e.isChange)
             .map((e) => e.amount)
             .reduce((total, amount) => total += amount);
+
+        // special xmr/wow check
+        if (pendingTransaction?.amount != null && fee != null) {
+          if (pendingTransaction!.amount + fee!.raw == sum.raw) {
+            return Amount(
+              rawValue: pendingTransaction!.amount,
+              fractionDigits: recipients!.first.amount.fractionDigits,
+            );
+          }
+        }
+
+        return sum;
       }
     } else {
       return null;
