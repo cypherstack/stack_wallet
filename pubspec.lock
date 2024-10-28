@@ -1286,8 +1286,8 @@ packages:
     dependency: transitive
     description:
       path: "impls/monero.dart"
-      ref: d04dcf67ec042fca76b48ffc09ea9d2ea4b5106e
-      resolved-ref: d04dcf67ec042fca76b48ffc09ea9d2ea4b5106e
+      ref: "614b5c731fb671d112f860fd57b5fd0c8c11e92c"
+      resolved-ref: "614b5c731fb671d112f860fd57b5fd0c8c11e92c"
       url: "https://github.com/cypherstack/monero_c"
     source: git
     version: "0.0.0"
