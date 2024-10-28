@@ -18,8 +18,6 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B49D91439948369648AB0603 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51604430FD0FD1FA5C4767A0 /* Pods_Runner.framework */; };
-		CEFE41202C20387E00086DB4 /* WowneroWallet.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4F88332C202CF4007A8C67 /* WowneroWallet.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CEFE41212C20387E00086DB4 /* MoneroWallet.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4F88302C202CEE007A8C67 /* MoneroWallet.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -32,17 +30,6 @@
 				7E569F9A2798D47F00056D51 /* mobileliblelantus.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE6B5DEA2BF26A3300CF1F44 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				CEFE41202C20387E00086DB4 /* WowneroWallet.framework in CopyFiles */,
-				CEFE41212C20387E00086DB4 /* MoneroWallet.framework in CopyFiles */,
-			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -192,9 +179,9 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
-				CE6B5DEA2BF26A3300CF1F44 /* CopyFiles */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				FD1CA371131604E6658D4146 /* [CP] Embed Pods Frameworks */,
+				4823D12ED8C268BC85F26ABD /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -271,6 +258,24 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n";
 		};
+		4823D12ED8C268BC85F26ABD /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh",
+				"${PODS_CONFIGURATION_BUILD_DIR}/permission_handler_apple/permission_handler_apple_privacy.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/permission_handler_apple_privacy.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -325,10 +330,12 @@
 				"${BUILT_PRODUCTS_DIR}/barcode_scan2/barcode_scan2.framework",
 				"${BUILT_PRODUCTS_DIR}/coinlib_flutter/secp256k1.framework",
 				"${BUILT_PRODUCTS_DIR}/connectivity_plus/connectivity_plus.framework",
+				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs/ios/Frameworks/MoneroWallet.framework",
+				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs/ios/Frameworks/WowneroWallet.framework",
+				"${BUILT_PRODUCTS_DIR}/cs_monero_flutter_libs/cs_monero_flutter_libs.framework",
 				"${BUILT_PRODUCTS_DIR}/device_info_plus/device_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/devicelocale/devicelocale.framework",
 				"${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework",
-				"${BUILT_PRODUCTS_DIR}/flutter_libmonero/flutter_libmonero.framework",
 				"${PODS_ROOT}/../.symlinks/plugins/flutter_libsparkmobile/ios/flutter_libsparkmobile.framework",
 				"${BUILT_PRODUCTS_DIR}/flutter_local_notifications/flutter_local_notifications.framework",
 				"${BUILT_PRODUCTS_DIR}/flutter_native_splash/flutter_native_splash.framework",
@@ -337,7 +344,7 @@
 				"${BUILT_PRODUCTS_DIR}/integration_test/integration_test.framework",
 				"${BUILT_PRODUCTS_DIR}/isar_flutter_libs/isar_flutter_libs.framework",
 				"${BUILT_PRODUCTS_DIR}/lelantus/lelantus.framework",
-				"${BUILT_PRODUCTS_DIR}/local_auth/local_auth.framework",
+				"${BUILT_PRODUCTS_DIR}/local_auth_darwin/local_auth_darwin.framework",
 				"${BUILT_PRODUCTS_DIR}/package_info_plus/package_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/path_provider_foundation/path_provider_foundation.framework",
 				"${BUILT_PRODUCTS_DIR}/share_plus/share_plus.framework",
@@ -346,7 +353,7 @@
 				"${BUILT_PRODUCTS_DIR}/stack_wallet_backup/stack_wallet_backup.framework",
 				"${BUILT_PRODUCTS_DIR}/tor_ffi_plugin/tor_ffi_plugin.framework",
 				"${BUILT_PRODUCTS_DIR}/url_launcher_ios/url_launcher_ios.framework",
-				"${BUILT_PRODUCTS_DIR}/wakelock/wakelock.framework",
+				"${BUILT_PRODUCTS_DIR}/wakelock_plus/wakelock_plus.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
@@ -360,10 +367,12 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/barcode_scan2.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/secp256k1.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/connectivity_plus.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MoneroWallet.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WowneroWallet.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_monero_flutter_libs.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/device_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/devicelocale.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/file_picker.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_libmonero.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_libsparkmobile.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_local_notifications.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_native_splash.framework",
@@ -372,7 +381,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/integration_test.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/isar_flutter_libs.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/lelantus.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/local_auth.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/local_auth_darwin.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/package_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/path_provider_foundation.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/share_plus.framework",
@@ -381,7 +390,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/stack_wallet_backup.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/tor_ffi_plugin.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/url_launcher_ios.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/wakelock.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/wakelock_plus.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -489,7 +498,6 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_liblelantus/scripts/ios/mobileliblelantus",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios",
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -501,8 +509,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/barcode_scan2/barcode_scan2.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity/connectivity.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/cryptography_flutter/cryptography_flutter.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero/cw_monero.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external/cw_shared_external.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale/devicelocale.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash/flutter_libepiccash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libmonero/flutter_libmonero.framework/Headers\"",
@@ -520,12 +526,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup/stack_wallet_backup.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_ios/url_launcher_ios.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock/wakelock.framework/Headers\"",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/External/ios/include/**",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/External/ios/include",
-					"${PODS_ROOT}/cw_shared_external/External/ios/include/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/include",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -537,7 +537,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
@@ -681,7 +680,6 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_liblelantus/scripts/ios/mobileliblelantus",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -693,8 +691,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/barcode_scan2/barcode_scan2.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity/connectivity.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/cryptography_flutter/cryptography_flutter.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero/cw_monero.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external/cw_shared_external.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale/devicelocale.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash/flutter_libepiccash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libmonero/flutter_libmonero.framework/Headers\"",
@@ -712,12 +708,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup/stack_wallet_backup.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_ios/url_launcher_ios.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock/wakelock.framework/Headers\"",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/External/ios/include/**",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/External/ios/include",
-					"${PODS_ROOT}/cw_shared_external/External/ios/include/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/include",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -729,7 +719,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
@@ -765,7 +754,6 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_liblelantus/scripts/ios/mobileliblelantus/**",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios",
 					"$(PROJECT_DIR)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -777,8 +765,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/barcode_scan2/barcode_scan2.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity/connectivity.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/cryptography_flutter/cryptography_flutter.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero/cw_monero.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external/cw_shared_external.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale/devicelocale.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash/flutter_libepiccash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libmonero/flutter_libmonero.framework/Headers\"",
@@ -796,12 +782,6 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/stack_wallet_backup/stack_wallet_backup.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/url_launcher_ios/url_launcher_ios.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/wakelock/wakelock.framework/Headers\"",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/External/ios/include/**",
-					"${PODS_ROOT}/cw_monero/Classes/*.h",
-					"${PODS_ROOT}/cw_monero/External/ios/include",
-					"${PODS_ROOT}/cw_shared_external/External/ios/include/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/include",
 				);
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -813,7 +793,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/../crypto_plugins/flutter_libmonero/cw_shared_external/ios/External/ios/**",
 					"$(PROJECT_DIR)/../crypto_plugins/flutter_libepiccash/ios/libs",
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
