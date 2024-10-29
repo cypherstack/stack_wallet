@@ -15,6 +15,7 @@ import 'dart:math';
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -89,13 +90,6 @@ void main(List<String> args) async {
     StackFileSystem.setDesktopOverrideDir(args.last);
   }
 
-  // no longer requried
-  // // Tell flutter_libmonero how to get access to the application dir
-  // FS.setApplicationRootDirectoryFunction(
-  //   StackFileSystem.applicationRootDirectory,
-  // );
-  // TODO set any other external libs file paths (bad external lib design workaround)
-
   final loadCoinlibFuture = loadCoinlib();
 
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -168,8 +162,6 @@ void main(List<String> args) async {
   // node model adapter
   DB.instance.hive.registerAdapter(NodeModelAdapter());
 
-  // DB.instance.hive.registerAdapter(NodeAdapter());
-
   if (!DB.instance.hive
       .isAdapterRegistered(lib_monero_compat.WalletInfoAdapter().typeId)) {
     DB.instance.hive.registerAdapter(lib_monero_compat.WalletInfoAdapter());
@@ -177,9 +169,7 @@ void main(List<String> args) async {
 
   DB.instance.hive.registerAdapter(lib_monero_compat.WalletTypeAdapter());
 
-  // DB.instance.hive.registerAdapter(UnspentCoinsInfoAdapter());
-
-  lib_monero.Logging.useLogger = true;
+  lib_monero.Logging.useLogger = kDebugMode;
 
   DB.instance.hive.init(
     (await StackFileSystem.applicationHiveDirectory()).path,
