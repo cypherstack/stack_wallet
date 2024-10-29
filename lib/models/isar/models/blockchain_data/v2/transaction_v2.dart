@@ -134,6 +134,14 @@ class TransactionV2 {
   }
 
   Amount getAmountReceivedInThisWallet({required int fractionDigits}) {
+    if (_isMonero()) {
+      if (type == TransactionType.incoming) {
+        return _getMoneroAmount()!;
+      } else {
+        return Amount.zeroWith(fractionDigits: fractionDigits);
+      }
+    }
+
     final outSum = outputs
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
@@ -151,6 +159,14 @@ class TransactionV2 {
   }
 
   Amount getAmountSentFromThisWallet({required int fractionDigits}) {
+    if (_isMonero()) {
+      if (type == TransactionType.outgoing) {
+        return _getMoneroAmount()!;
+      } else {
+        return Amount.zeroWith(fractionDigits: fractionDigits);
+      }
+    }
+
     final inSum = inputs
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
@@ -189,6 +205,21 @@ class TransactionV2 {
     } catch (_) {
       return null;
     }
+  }
+
+  Amount? _getMoneroAmount() {
+    try {
+      return Amount.fromSerializedJsonString(
+        _getFromOtherData(key: TxV2OdKeys.moneroAmount) as String,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _isMonero() {
+    final value = _getFromOtherData(key: TxV2OdKeys.isMoneroTransaction);
+    return value is bool ? value : false;
   }
 
   String statusLabel({
@@ -307,4 +338,7 @@ abstract final class TxV2OdKeys {
   static const contractAddress = "contractAddress";
   static const nonce = "nonce";
   static const overrideFee = "overrideFee";
+  static const moneroAmount = "moneroAmount";
+  static const moneroAccountIndex = "moneroAccountIndex";
+  static const isMoneroTransaction = "isMoneroTransaction";
 }
