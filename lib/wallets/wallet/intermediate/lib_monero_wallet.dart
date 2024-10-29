@@ -8,13 +8,15 @@ import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../db/hive/db.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/keys/cw_key_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
@@ -38,6 +40,9 @@ import 'cryptonote_wallet.dart';
 
 abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     extends CryptonoteWallet<T> implements MultiAddressInterface<T> {
+  @override
+  int get isarTransactionVersion => 2;
+
   LibMoneroWallet(super.currency, this.compatType) {
     final bus = GlobalEventBus.instance;
 
@@ -472,6 +477,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     final transactions = await base.getTxs(refresh: true);
 
+    final allOutputs = await base.getOutputs(includeSpent: true, refresh: true);
+
     // final cachedTransactions =
     // DB.instance.get<dynamic>(boxName: walletId, key: 'latest_tx_model')
     // as TransactionData?;
@@ -504,98 +511,75 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     //   }
     // }
 
-    final List<Tuple2<Transaction, Address?>> txnsData = [];
+    final List<TransactionV2> txns = [];
 
     for (final tx in transactions) {
-      Address? address;
+      final associatedOutputs = allOutputs.where((e) => e.hash == tx.hash);
+      final List<InputV2> inputs = [];
+      final List<OutputV2> outputs = [];
       TransactionType type;
       if (!tx.isSpend) {
-        final String? addressString;
-        if (tx.addressIndexes.isEmpty) {
-          addressString = null;
-          Logging.instance.log(
-            "tx.addressIndexes.isEmpty for receive",
-            level: LogLevel.Warning,
-          );
-        } else {
-          if (tx.addressIndexes.length > 1) {
-            Logging.instance.log(
-              "tx.addressIndexes contains more than one in receive",
-              level: LogLevel.Warning,
-            );
-          }
-          addressString = libMoneroWallet
-              ?.getAddress(
-                accountIndex: tx.accountIndex,
-                addressIndex: tx.addressIndexes.first,
-              )
-              .value;
-        }
-
-        if (addressString != null) {
-          address = await mainDB
-              .getAddresses(walletId)
-              .filter()
-              .valueEqualTo(addressString)
-              .findFirst();
-        }
-
         type = TransactionType.incoming;
+        for (final output in associatedOutputs) {
+          outputs.add(
+            OutputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptPubKeyHex: "",
+              valueStringSats: output.value.toString(),
+              addresses: [output.address],
+              walletOwns: true,
+            ),
+          );
+        }
       } else {
-        // txn.address = "";
         type = TransactionType.outgoing;
+        for (final output in associatedOutputs) {
+          inputs.add(
+            InputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptSigHex: null,
+              scriptSigAsm: null,
+              sequence: null,
+              outpoint: null,
+              addresses: [output.address],
+              valueStringSats: output.value.toString(),
+              witness: null,
+              innerRedeemScriptAsm: null,
+              coinbase: null,
+              walletOwns: true,
+            ),
+          );
+        }
       }
 
-      final txn = Transaction(
+      final txn = TransactionV2(
         walletId: walletId,
+        blockHash: null, // not exposed via current cs_monero
+        hash: tx.hash,
         txid: tx.hash,
         timestamp: (tx.timeStamp.millisecondsSinceEpoch ~/ 1000),
+        height: tx.blockHeight,
+        inputs: inputs,
+        outputs: outputs,
+        version: -1, // not exposed via current cs_monero
         type: type,
         subType: TransactionSubType.none,
-        amount: tx.amount.toInt(),
-        amountString: Amount(
-          rawValue: tx.amount,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ).toJsonString(),
-        fee: tx.fee.toInt(),
-        height: tx.blockHeight,
-        isCancelled: false,
-        isLelantus: false,
-        slateId: null,
-        otherData: null,
-        nonce: null,
-        inputs: [],
-        outputs: [],
-        numberOfMessages: null,
+        otherData: jsonEncode({
+          TxV2OdKeys.overrideFee: Amount(
+            rawValue: tx.fee,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
+          TxV2OdKeys.moneroAmount: Amount(
+            rawValue: tx.amount,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
+          TxV2OdKeys.moneroAccountIndex: tx.accountIndex,
+          TxV2OdKeys.isMoneroTransaction: true,
+        }),
       );
 
-      txnsData.add(Tuple2(txn, address));
+      txns.add(txn);
     }
-    await mainDB.isar.writeTxn(() async {
-      await mainDB.isar.transactions
-          .where()
-          .walletIdEqualTo(walletId)
-          .deleteAll();
-      for (final data in txnsData) {
-        final tx = data.item1;
 
-        // save transaction
-        await mainDB.isar.transactions.put(tx);
-
-        if (data.item2 != null) {
-          final address = await mainDB.getAddress(walletId, data.item2!.value);
-
-          // check if address exists in db and add if it does not
-          if (address == null) {
-            await mainDB.isar.addresses.put(data.item2!);
-          }
-
-          // link and save address
-          tx.address.value = address ?? data.item2!;
-          await tx.address.save();
-        }
-      }
-    });
+    await mainDB.updateOrPutTransactionV2s(txns);
   }
 
   Future<Amount> get availableBalance async {
@@ -927,7 +911,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             .and()
             .txidEqualTo(rawUTXO.hash)
             .findFirst();
-        final tx = await mainDB.isar.transactions
+        final tx = await mainDB.isar.transactionV2s
             .where()
             .walletIdEqualTo(walletId)
             .filter()
