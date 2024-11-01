@@ -7,6 +7,3 @@
 [submodule "crypto_plugins/frostdart"]
 	path = crypto_plugins/frostdart
 	url = https://github.com/cypherstack/frostdart
-[submodule "crypto_plugins/cs_monero"]
-	path = crypto_plugins/cs_monero
-	url = https://github.com/cypherstack/cs_monero

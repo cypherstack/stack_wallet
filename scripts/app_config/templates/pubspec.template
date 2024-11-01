@@ -13,8 +13,6 @@ description: PLACEHOLDER
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
-isar_version: &isar_version 3.1.8
-
 environment:
   sdk: ">=3.5.3 <4.0.0"
   flutter: ^3.24.3
@@ -37,14 +35,12 @@ dependencies:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
       ref: cc7b43b731e4a7906dd25d4364a08e34554cee19
 
-  cs_monero:
-    path: ./crypto_plugins/cs_monero/cs_monero
-
+  # cs_monero compat (unpublished)
   compat:
-    path: ./crypto_plugins/cs_monero/compat
-
-  cs_monero_flutter_libs:
-    path: ./crypto_plugins/cs_monero/cs_monero_flutter_libs
+    git:
+      url: https://github.com/cypherstack/cs_monero
+      path: compat
+      ref: 0e5ee14486c82e5e87dd5aa184f73374a03fa184
 
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
@@ -142,10 +138,10 @@ dependencies:
   file_picker: ^8.0.3
   connectivity_plus: ^4.0.1
   isar:
-    version: *isar_version
+    version: 3.1.8
     hosted: https://pub.isar-community.dev/
   isar_flutter_libs: # contains Isar Core
-    version: *isar_version
+    version: 3.1.8
     hosted: https://pub.isar-community.dev/
   dropdown_button2: ^2.1.3
   string_validator: ^0.3.0
@@ -199,6 +195,8 @@ dependencies:
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
+  cs_monero: 0.0.1-dev.0
+  cs_monero_flutter_libs: 0.0.1-dev.0
 
 dev_dependencies:
   flutter_test:
@@ -217,7 +215,7 @@ dev_dependencies:
   import_sorter: ^4.6.0
   flutter_lints: ^3.0.1
   isar_generator:
-    version: *isar_version
+    version: 3.1.8
     hosted: https://pub.isar-community.dev/
 
 flutter_native_splash:
@@ -324,30 +322,6 @@ flutter:
 
     # default themes_testing
     - assets/default_themes/
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/assets-and-images/#resolution-aware.
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/assets-and-images/#from-packages
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/custom-fonts/#from-packages
 
 import_sorter:
   comments: false # Optional, defaults to true

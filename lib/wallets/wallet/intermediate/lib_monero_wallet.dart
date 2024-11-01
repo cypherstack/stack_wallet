@@ -291,7 +291,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         );
         final wallet = await getCreatedWallet(path: path, password: password);
 
-        final height = wallet.getSyncFromBlockHeight();
+        final height = wallet.getRefreshFromBlockHeight();
 
         await info.updateRestoreHeight(
           newRestoreHeight: height,
@@ -585,7 +585,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<Amount> get availableBalance async {
     try {
       return Amount(
-        rawValue: BigInt.from(libMoneroWallet!.getUnlockedBalance()),
+        rawValue: libMoneroWallet!.getUnlockedBalance(),
         fractionDigits: cryptoCurrency.fractionDigits,
       );
     } catch (_) {
@@ -598,7 +598,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       final full = libMoneroWallet?.getBalance();
       if (full != null) {
         return Amount(
-          rawValue: BigInt.from(full),
+          rawValue: full,
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       } else {
@@ -686,8 +686,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   }
 
   void onBalancesChanged({
-    required int newBalance,
-    required int newUnlockedBalance,
+    required BigInt newBalance,
+    required BigInt newUnlockedBalance,
   }) {
     // do something?
   }
@@ -1249,8 +1249,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
       if (e.toString().contains("Incorrect unlocked balance")) {
         throw Exception("Insufficient balance!");
-      } else if (e is lib_monero.CreationTransactionException) {
-        throw Exception("Insufficient funds to pay for transaction fee!");
       } else {
         throw Exception("Transaction failed with error: $e");
       }
