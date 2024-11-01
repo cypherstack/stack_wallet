@@ -1,4 +1,5 @@
-import 'package:monero/wownero.dart' as wownero;
+import 'package:cs_monero/src/ffi_bindings/wownero_wallet_bindings.dart'
+    as wow_wallet_ffi;
 
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -48,7 +49,12 @@ class Wownero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
-    return wownero.Wallet_addressValid(address, 0);
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return wow_wallet_ffi.validateAddress(address, 0);
+      default:
+        throw Exception("Unsupported network: $network");
+    }
   }
 
   @override

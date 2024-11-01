@@ -8,7 +8,7 @@
 
 #include <camera_windows/camera_windows.h>
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
-#include <cs_monero_flutter_libs/cs_monero_flutter_libs_plugin_c_api.h>
+#include <cs_monero_flutter_libs_windows/cs_monero_flutter_libs_windows_plugin_c_api.h>
 #include <desktop_drop/desktop_drop_plugin.h>
 #include <flutter_libepiccash/flutter_libepiccash_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
@@ -26,8 +26,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("CameraWindows"));
   ConnectivityPlusWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
-  CsMoneroFlutterLibsPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("CsMoneroFlutterLibsPluginCApi"));
+  CsMoneroFlutterLibsWindowsPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("CsMoneroFlutterLibsWindowsPluginCApi"));
   DesktopDropPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DesktopDropPlugin"));
   FlutterLibepiccashPluginCApiRegisterWithRegistrar(

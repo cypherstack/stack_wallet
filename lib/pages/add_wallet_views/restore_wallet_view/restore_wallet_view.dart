@@ -16,8 +16,9 @@ import 'dart:math';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
-import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
+import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
+    as cs_monero_deprecated;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -221,12 +222,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       if (widget.restoreFromDate != null) {
         if (widget.coin is Monero) {
-          height = lib_monero_compat.getMoneroHeigthByDate(
+          height = cs_monero_deprecated.getMoneroHeightByDate(
             date: widget.restoreFromDate!,
           );
         }
         if (widget.coin is Wownero) {
-          height = lib_monero_compat.getWowneroHeightByDate(
+          height = cs_monero_deprecated.getWowneroHeightByDate(
             date: widget.restoreFromDate!,
           );
         }
