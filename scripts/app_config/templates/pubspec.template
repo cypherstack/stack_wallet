@@ -40,7 +40,7 @@ dependencies:
     git:
       url: https://github.com/cypherstack/cs_monero
       path: compat
-      ref: 0e5ee14486c82e5e87dd5aa184f73374a03fa184
+      ref: b2b12cfeaf15d057ea18b14c196e04f3002de2da
 
   flutter_libepiccash:
     path: ./crypto_plugins/flutter_libepiccash
@@ -195,8 +195,8 @@ dependencies:
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
-  cs_monero: 0.0.1-dev.0
-  cs_monero_flutter_libs: 0.0.1-dev.0
+  cs_monero: 1.0.0-pre
+  cs_monero_flutter_libs: 1.0.0-pre
 
 dev_dependencies:
   flutter_test:
