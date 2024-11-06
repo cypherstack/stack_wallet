@@ -370,8 +370,8 @@ packages:
     dependency: "direct main"
     description:
       path: compat
-      ref: "0e5ee14486c82e5e87dd5aa184f73374a03fa184"
-      resolved-ref: "0e5ee14486c82e5e87dd5aa184f73374a03fa184"
+      ref: b2b12cfeaf15d057ea18b14c196e04f3002de2da
+      resolved-ref: b2b12cfeaf15d057ea18b14c196e04f3002de2da
       url: "https://github.com/cypherstack/cs_monero"
     source: git
     version: "1.0.0"
@@ -435,90 +435,90 @@ packages:
     dependency: "direct main"
     description:
       name: cs_monero
-      sha256: "631b75cea84e6d3245341f66df1e7e0d88e6b668a9dc546b9ffa61944a95c644"
+      sha256: b9b9db6602361587b1ce512002f174fd833818ff2a63787c3058e0532fc0d9d8
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs:
     dependency: "direct main"
     description:
       name: cs_monero_flutter_libs
-      sha256: fc7b865dbccea175d8aab1799bd7f29d87b9bb2323bb9ef4e051ab08a8631f30
+      sha256: "9e0af89929aad370e0ea7c903b749fa58f4a5dc8ffa5bd8aaf6dea0c489796ff"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_android:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_android
-      sha256: "45166cdf24ff9cf48fd15ad7661971e17405a6bbd9f4805b3f56b8bf0ecc783b"
+      sha256: "8a03a93b84a091a6c09be2a3504002885af5e3e8e316b2776544271e9509d352"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_android_arm64_v8a:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_android_arm64_v8a
-      sha256: "52cdbdcec29360355a4360dabbd0d4e6a77a9cda3136af47dfe91811da22a640"
+      sha256: a412c30e8f72aefc2671f2ed76b50fdb70fc9eaa697f8c7050e0ede941f5863e
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_android_armeabi_v7a:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_android_armeabi_v7a
-      sha256: "8212c89cdcc6a72b6fa940527a0a1a6c745ad37f7306a4c1069e9baeec1bb94c"
+      sha256: "2177af9a62ca9c2997f88af09d54c784dc1ee49a3540abe73c0271d25eb8dadb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_android_x86_64:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_android_x86_64
-      sha256: "218c3f3e7f16d78aab1fd26beea2af6eb5ab8a308f7100fa9f463ba73d6c1d0a"
+      sha256: ac5e03624c86438bbe47c986dab5bfe1fb3060a0b4bdb5dd8eea09795a5fc2c8
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_ios:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_ios
-      sha256: "1655a11cb0d5935e31ea5ce3a053ace651f211469dad7899bd1627b10b7701ac"
+      sha256: "4438a323786dad2728168c3819c9f42471573484c946c91cf207b5395254ac7f"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_linux:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_linux
-      sha256: b9515686a00d9ca5c5c448a1fb0ae6f33bfc87a542b6a2f5a819336ffdbfc189
+      sha256: "65651535e028211d4c535dac53fdfec940935f1037f0a01bfdf4f6cf8b904362"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_macos:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_macos
-      sha256: "0828b27a0fe868002e20a314e042b2861f87489b68009deb5e9f750f9a349556"
+      sha256: "609586b4e4524452698b4877ff886ad9aafd721373cddebba45d9d8a63a8cfc9"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_platform_interface:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_platform_interface
-      sha256: fe9bf7e54a2c8eb4f92ef4511ed3abf16afa3b2480dc3f3eaa00673e85c9cddb
+      sha256: "9df4ced42f5746c85c008f504f70b39efd05aa409bb82eaf4b2058d8454e0bb7"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.1"
+    version: "1.0.0-pre"
   cs_monero_flutter_libs_windows:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_windows
-      sha256: "7797249ffe02086600758b12b4d01ca5537cf7e2c8b3946b734b55ad7feebc2f"
+      sha256: "4294f62e40ba2f155c52fccfdbb12029ed5c856ea8a546aebb3ebc94bc856e43"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1-dev.0"
+    version: "1.0.0-pre"
   csslib:
     dependency: transitive
     description:
