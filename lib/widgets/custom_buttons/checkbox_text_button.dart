@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
+
 import '../../utilities/text_styles.dart';
 
 class CheckboxTextButton extends StatefulWidget {
-  const CheckboxTextButton({super.key, required this.label, this.onChanged});
+  const CheckboxTextButton({
+    super.key,
+    required this.label,
+    this.onChanged,
+    this.initialValue = false,
+  });
 
   final String label;
   final void Function(bool)? onChanged;
+  final bool initialValue;
 
   @override
   State<CheckboxTextButton> createState() => _CheckboxTextButtonState();
 }
 
 class _CheckboxTextButtonState extends State<CheckboxTextButton> {
-  bool _value = false;
+  late bool _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initialValue;
+  }
 
   @override
   Widget build(BuildContext context) {

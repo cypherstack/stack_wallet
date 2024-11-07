@@ -52,6 +52,8 @@ import 'pages/buy_view/buy_quote_preview.dart';
 import 'pages/buy_view/buy_view.dart';
 import 'pages/cashfusion/cashfusion_view.dart';
 import 'pages/cashfusion/fusion_progress_view.dart';
+import 'pages/churning/churning_progress_view.dart';
+import 'pages/churning/churning_view.dart';
 import 'pages/coin_control/coin_control_view.dart';
 import 'pages/coin_control/utxo_details_view.dart';
 import 'pages/exchange_view/choose_from_stack_view.dart';
@@ -155,6 +157,7 @@ import 'pages/wallets_view/wallets_view.dart';
 import 'pages_desktop_specific/address_book_view/desktop_address_book.dart';
 import 'pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
 import 'pages_desktop_specific/cashfusion/desktop_cashfusion_view.dart';
+import 'pages_desktop_specific/churning/desktop_churning_view.dart';
 import 'pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
 // import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_buys_view.dart';
 import 'pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
@@ -779,11 +782,53 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case ChurningView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ChurningView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ChurningProgressView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ChurningProgressView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case DesktopCashFusionView.routeName:
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DesktopCashFusionView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DesktopChurningView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopChurningView(
               walletId: args,
             ),
             settings: RouteSettings(
