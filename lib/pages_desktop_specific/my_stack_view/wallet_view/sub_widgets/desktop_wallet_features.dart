@@ -45,6 +45,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 import '../../../cashfusion/desktop_cashfusion_view.dart';
+import '../../../churning/desktop_churning_view.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../desktop_menu.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
@@ -92,6 +93,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onOrdinalsPressed: _onOrdinalsPressed,
         onMonkeyPressed: _onMonkeyPressed,
         onFusionPressed: _onFusionPressed,
+        onChurnPressed: _onChurnPressed,
       ),
     );
   }
@@ -344,6 +346,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     Navigator.of(context).pushNamed(
       DesktopCashFusionView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
+  void _onChurnPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      DesktopChurningView.routeName,
       arguments: widget.walletId,
     );
   }

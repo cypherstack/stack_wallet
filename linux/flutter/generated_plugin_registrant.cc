@@ -6,7 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
-``#include <cs_monero_flutter_libs_linux/cs_monero_flutter_libs_linux_plugin.h>
+#include <cs_monero_flutter_libs_linux/cs_monero_flutter_libs_linux_plugin.h>
 #include <desktop_drop/desktop_drop_plugin.h>
 #include <devicelocale/devicelocale_plugin.h>
 #include <flutter_libepiccash/flutter_libepiccash_plugin.h>

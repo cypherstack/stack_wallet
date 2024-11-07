@@ -23,6 +23,7 @@ import '../../../../../utilities/text_styles.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
@@ -48,6 +49,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onOrdinalsPressed,
     required this.onMonkeyPressed,
     required this.onFusionPressed,
+    required this.onChurnPressed,
   });
 
   final String walletId;
@@ -58,6 +60,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   final VoidCallback? onOrdinalsPressed;
   final VoidCallback? onMonkeyPressed;
   final VoidCallback? onFusionPressed;
+  final VoidCallback? onChurnPressed;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -303,6 +306,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               detail: "Decentralized mixing protocol",
               iconAsset: Assets.svg.cashFusion,
               onPressed: () async => widget.onFusionPressed?.call(),
+            ),
+          if (wallet is LibMoneroWallet)
+            _MoreFeaturesItem(
+              label: "Churn",
+              detail: "Churning",
+              iconAsset: Assets.svg.churn,
+              onPressed: () async => widget.onChurnPressed?.call(),
             ),
           if (wallet is SparkInterface)
             _MoreFeaturesClearSparkCacheItem(

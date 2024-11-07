@@ -50,6 +50,7 @@ import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
@@ -66,6 +67,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/churn_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/frost_sign_nav_icon.dart';
@@ -78,6 +80,7 @@ import '../../widgets/wallet_navigation_bar/components/wallet_navigation_bar_ite
 import '../../widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
 import '../buy_view/buy_in_wallet_view.dart';
 import '../cashfusion/cashfusion_view.dart';
+import '../churning/churning_view.dart';
 import '../coin_control/coin_control_view.dart';
 import '../exchange_view/wallet_initiated_exchange_view.dart';
 import '../monkey/monkey_view.dart';
@@ -1222,6 +1225,22 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           CashFusionView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                    ),
+                  if (ref.watch(
+                    pWallets.select(
+                      (value) =>
+                          value.getWallet(widget.walletId) is LibMoneroWallet,
+                    ),
+                  ))
+                    WalletNavigationBarItemData(
+                      label: "Churn",
+                      icon: const ChurnNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          ChurningView.routeName,
                           arguments: walletId,
                         );
                       },
