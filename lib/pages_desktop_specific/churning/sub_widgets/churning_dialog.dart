@@ -236,8 +236,11 @@ class _ChurnDialogViewState extends ConsumerState<ChurnDialogView> {
                     height: 20,
                   ),
                   ProgressItem(
-                    iconAsset: Assets.svg.peers,
-                    label: "Waiting for balance to unlock",
+                    iconAsset: Assets.svg.alertCircle,
+                    label: "Waiting for balance to unlock ${ref.watch(
+                          pChurningService(widget.walletId)
+                              .select((s) => s.confirmsInfo),
+                        ) ?? ""}",
                     status: ref.watch(
                       pChurningService(widget.walletId)
                           .select((s) => s.waitingForUnlockedBalance),
@@ -247,7 +250,7 @@ class _ChurnDialogViewState extends ConsumerState<ChurnDialogView> {
                     height: 12,
                   ),
                   ProgressItem(
-                    iconAsset: Assets.svg.fusing,
+                    iconAsset: Assets.svg.churn,
                     label: "Creating churn transaction",
                     status: ref.watch(
                       pChurningService(widget.walletId)

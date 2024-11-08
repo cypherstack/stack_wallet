@@ -17,6 +17,7 @@ import '../../widgets/custom_buttons/checkbox_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import 'churning_progress_view.dart';
 import 'churning_rounds_selection_sheet.dart';
@@ -111,7 +112,23 @@ class _ChurnViewState extends ConsumerState<ChurningView> {
                         .topNavIconPrimary,
                   ),
                   onPressed: () async {
-                    //' TODO show about?
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => const StackOkDialog(
+                        title: "What is churning?",
+                        message: "Churning in a Monero wallet involves"
+                            " sending Monero to oneself in multiple"
+                            " transactions, which can enhance privacy"
+                            " by making it harder for observers to "
+                            "link your transactions. This process"
+                            " re-mixes the funds within the network,"
+                            " helping obscure transaction history. "
+                            "Churning is optional and mainly beneficial"
+                            " in scenarios where maximum privacy is"
+                            " desired or if you received the Monero from"
+                            " a source from which you'd like to disassociate.",
+                      ),
+                    );
                   },
                 ),
               ),
