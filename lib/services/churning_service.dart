@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cs_monero/cs_monero.dart';
 import 'package:flutter/cupertino.dart';
@@ -42,6 +43,56 @@ class ChurningService extends ChangeNotifier {
     }
   }
 
+  String? confirmsInfo;
+  Future<void> _updateConfirmsInfo() async {
+    final currentHeight = wallet.currentKnownChainHeight;
+    if (currentHeight < 1) {
+      return;
+    }
+
+    final outputs = await csWallet.getOutputs(refresh: true);
+    final required = wallet.cryptoCurrency.minConfirms;
+
+    int lowestNumberOfConfirms = required;
+
+    for (final output in outputs.where((e) => !e.isFrozen && !e.spent)) {
+      final confirms = currentHeight - output.height;
+
+      lowestNumberOfConfirms = min(lowestNumberOfConfirms, confirms);
+    }
+
+    final bool shouldNotify;
+    if (lowestNumberOfConfirms == required) {
+      shouldNotify = confirmsInfo != null;
+      confirmsInfo = null;
+    } else {
+      final prev = confirmsInfo;
+      confirmsInfo = "($lowestNumberOfConfirms/$required)";
+      shouldNotify = confirmsInfo != prev;
+    }
+
+    if (_running && _timerRunning && shouldNotify) {
+      notifyListeners();
+    }
+  }
+
+  Timer? _confirmsTimer;
+  bool _timerRunning = false;
+  void _stopConfirmsTimer() {
+    _timerRunning = false;
+    _confirmsTimer?.cancel();
+    confirmsInfo = null;
+    _confirmsTimer = null;
+  }
+
+  void _startConfirmsTimer() {
+    _confirmsTimer?.cancel();
+    _confirmsTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) => _updateConfirmsInfo(),
+    );
+  }
+
   final _pause = Mutex();
   bool get isPaused => _pause.isLocked;
   void unpause() {
@@ -75,6 +126,7 @@ class ChurningService extends ChangeNotifier {
         notifyListeners();
 
         try {
+          _stopConfirmsTimer();
           Logging.log?.i("Doing churn #${roundsCompleted + 1}");
           await _churnTxSimple();
           waitingForUnlockedBalance = ChurnStatus.success;
@@ -106,6 +158,7 @@ class ChurningService extends ChangeNotifier {
       }
 
       if (!complete() && _running) {
+        _startConfirmsTimer();
         waitingForUnlockedBalance = ChurnStatus.running;
         makingChurnTransaction = ChurnStatus.waiting;
         completedStatus = ChurnStatus.waiting;

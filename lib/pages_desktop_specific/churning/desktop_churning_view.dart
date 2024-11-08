@@ -134,6 +134,9 @@ class _DesktopChurning extends ConsumerState<DesktopChurningView> {
                       Assets.svg.churn,
                       width: 32,
                       height: 32,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
                     ),
                     const SizedBox(
                       width: 12,
@@ -206,7 +209,17 @@ class _DesktopChurning extends ConsumerState<DesktopChurningView> {
                                               height: 16,
                                             ),
                                             Text(
-                                              "Churning info text",
+                                              "Churning in a Monero wallet involves"
+                                              " sending Monero to oneself in multiple"
+                                              " transactions, which can enhance privacy"
+                                              " by making it harder for observers to "
+                                              "link your transactions. This process"
+                                              " re-mixes the funds within the network,"
+                                              " helping obscure transaction history. "
+                                              "Churning is optional and mainly beneficial"
+                                              " in scenarios where maximum privacy is"
+                                              " desired or if you received the Monero from"
+                                              " a source from which you'd like to disassociate.",
                                               style:
                                                   STextStyles.desktopTextMedium(
                                                 context,
