@@ -110,9 +110,15 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         address = await wallet.generateNextReceivingAddress(
           derivePathType: type,
         );
-        await ref.read(mainDBProvider).isar.writeTxn(() async {
-          await ref.read(mainDBProvider).isar.addresses.put(address!);
+        final isar = ref.read(mainDBProvider).isar;
+        await isar.writeTxn(() async {
+          await isar.addresses.put(address!);
         });
+        final info = ref.read(pWalletInfo(walletId));
+        await info.updateReceivingAddress(
+          newAddress: address.value,
+          isar: isar,
+        );
       } else {
         await wallet.generateNewReceivingAddress();
         address = null;
@@ -171,8 +177,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       }
     }
   }
-
-  StreamSubscription<Address?>? _streamSub;
 
   @override
   void initState() {
@@ -238,7 +242,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
   @override
   void dispose() {
-    _streamSub?.cancel();
+    for (final subscription in _addressSubMap.values) {
+      subscription.cancel();
+    }
     super.dispose();
   }
 

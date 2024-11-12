@@ -113,9 +113,15 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         address = await wallet.generateNextReceivingAddress(
           derivePathType: type,
         );
-        await ref.read(mainDBProvider).isar.writeTxn(() async {
-          await ref.read(mainDBProvider).isar.addresses.put(address!);
+        final isar = ref.read(mainDBProvider).isar;
+        await isar.writeTxn(() async {
+          await isar.addresses.put(address!);
         });
+        final info = ref.read(pWalletInfo(walletId));
+        await info.updateReceivingAddress(
+          newAddress: address.value,
+          isar: isar,
+        );
       } else {
         await wallet.generateNewReceivingAddress();
         address = null;
