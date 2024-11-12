@@ -38,6 +38,7 @@ import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../supporting/mimblewimblecoin_wallet_info_extension.dart';
 
+
 //
 // refactor of https://github.com/cypherstack/stack_wallet/blob/1d9fb4cd069f22492ece690ac788e05b8f8b1209/lib/services/coins/epiccash/epiccash_wallet.dart
 //
@@ -48,7 +49,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   final syncMutex = Mutex();
   NodeModel? _mimblewimblecoinNode;
   Timer? timer;
-
+  bool _logsInitialized = false;
+  
   double highestPercent = 0;
   Future<double> get getSyncPercent async {
     final int lastScannedBlock =
@@ -147,7 +149,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     final uri = Uri.parse(nodeAddress).replace(port: port);
 
     final String nodeApiAddress = uri.toString();
-
     final walletDir = await _currentWalletDirPath();
 
     final Map<String, dynamic> config = {};
@@ -174,7 +175,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     try {
       final available = info.cachedBalance.spendable.raw.toInt();
-
       final transactionFees = await mimblewimblecoin.Libmwc.getTransactionFees(
         wallet: wallet!,
         amount: satoshiAmount,
@@ -304,17 +304,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   ) async {
     Address? address = await getCurrentReceivingAddress();
 
-    if (address != null) {
-      final splitted = address.value.split('@');
-      //Check if the address is the same as the current mwcmqs domain
-      //Since we're only using one epicbpox now this doesn't apply but will be
-      // useful in the future
-      final mwcmqsConfig = await getMwcMqsConfig();
-      if (splitted[1] != mwcmqsConfig.host) {
-        //Update the address
-        address = await thisWalletAddress(index, mwcmqsConfig);
-      }
-    } else {
+    if (address == null) {
       final mwcmqsConfig = await getMwcMqsConfig();
       address = await thisWalletAddress(index, mwcmqsConfig);
     }
@@ -478,6 +468,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   @override
   Future<void> init({bool? isRestore}) async {
+    
     if (isRestore != true) {
       String? encodedWallet =
           await secureStorageInterface.read(key: "${walletId}_wallet");
@@ -490,7 +481,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         final String password = generatePassword();
         final String stringConfig = await _getConfig();
         final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
-
+        //if (!_logsInitialized) {
+        //    await mimblewimblecoin.Libmwc.initLogs(config: stringConfig);
+        //    _logsInitialized = true; // Set flag to true after initializing
+        //  }
         await secureStorageInterface.write(
           key: '${walletId}_config',
           value: stringConfig,
@@ -522,9 +516,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           key: '${walletId}_wallet',
           value: encodedWallet,
         );
-
         //Store MwcMqs address info
-        // await _generateAndStoreReceivingAddressForIndex(0);
+        await _generateAndStoreReceivingAddressForIndex(0);
 
         // subtract a couple days to ensure we have a buffer for SWB
         final bufferedCreateHeight = _calculateRestoreHeightFrom(
@@ -547,12 +540,11 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
       } else {
         try {
-          Logging.instance.log(
-            "initializeExisting() ${cryptoCurrency.prettyName} wallet",
-            level: LogLevel.Info,
-          );
-
           final config = await _getRealConfig();
+          //if (!_logsInitialized) {
+          //  await mimblewimblecoin.Libmwc.initLogs(config: config);
+          //  _logsInitialized = true; // Set flag to true after initializing
+          //}
           final password =
               await secureStorageInterface.read(key: '${walletId}_password');
 
@@ -590,21 +582,22 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
       final String receiverAddress = txData.recipients!.first.address;
 
-      if (!receiverAddress.startsWith("http://") ||
-          !receiverAddress.startsWith("https://")) {
-        final bool isMwcmqsConnected = await _testMwcmqsServer(
-          mwcmqsConfig,
-        );
-        if (!isMwcmqsConnected) {
-          throw Exception(
-              "Failed to send TX : Unable to reach mimblewimblecoin server");
-        }
-      }
+      //if (!receiverAddress.startsWith("http://") ||
+      //    !receiverAddress.startsWith("https://")) {
+      //  final bool isMwcmqsConnected = await _testMwcmqsServer(
+      //    mwcmqsConfig,
+      //  );
+      //  if (!isMwcmqsConnected) {
+      //    throw Exception(
+      //        "Failed to send TX : Unable to reach mimblewimblecoin server");
+      //  }
+      //}
 
       ({String commitId, String slateId}) transaction;
 
       if (receiverAddress.startsWith("http://") ||
-          receiverAddress.startsWith("https://")) {
+          receiverAddress.startsWith("https://") || 
+          receiverAddress.startsWith("mwcmqcs://")) {
         transaction = await mimblewimblecoin.Libmwc.txHttpSend(
           wallet: wallet!,
           selectionStrategyIsAll: 0,
@@ -753,10 +746,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
             key: '${walletId}_wallet',
             value: walletOpen,
           );
-
-          // await _generateAndStoreReceivingAddressForIndex(
-          //   mimblewimblecoinData.receivingIndex,
-          // );
+          
+          await _generateAndStoreReceivingAddressForIndex(
+            mimblewimblecoinData.receivingIndex,
+          );
         }
       });
 
@@ -799,7 +792,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
       // this will always be zero????
       final int curAdd = await _getCurrentIndex();
-      // await _generateAndStoreReceivingAddressForIndex(curAdd);
+      await _generateAndStoreReceivingAddressForIndex(curAdd);
 
       await _startScans();
 
@@ -1087,23 +1080,19 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   @override
   Future<bool> pingCheck() async {
-    return true;
-    //try {
-    //  final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency);
-//
-    //  // force unwrap optional as we want connection test to fail if wallet
-    //  // wasn't initialized or mwcmqs node was set to null
-    //  return await testMwcNodeConnection(
-    //        NodeFormData()
-    //          ..host = node!.host
-    //          ..useSSL = node.useSSL
-    //          ..port = node.port,
-    //      ) !=
-    //      null;
-    //} catch (e, s) {
-    //  Logging.instance.log("$e\n$s", level: LogLevel.Info);
-    //  return false;
-    //}
+    try {
+      final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency);
+      return await testMwcNodeConnection(
+            NodeFormData()
+              ..host = node!.host
+              ..useSSL = node.useSSL
+              ..port = node.port,
+          ) !=
+          null;
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Info);
+      return false;
+    }
   }
 
   @override

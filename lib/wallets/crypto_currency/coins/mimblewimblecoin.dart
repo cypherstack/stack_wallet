@@ -50,36 +50,33 @@ class Mimblewimblecoin extends Bip39Currency {
   // change this to change the number of confirms a tx needs in order to show as confirmed
   int get minConfirms => 3;
 
-  @override
-  bool validateAddress(String address) {
-    // Invalid address that contains HTTP and mwcmqs domain
-    if ((address.startsWith("http://") || address.startsWith("https://")) &&
-        address.contains("@")) {
-      return false;
-    }
-    if (address.startsWith("http://") || address.startsWith("https://")) {
-      if (Uri.tryParse(address) != null) {
-        return true;
-      }
-    }
-
-    return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
+ @override
+bool validateAddress(String address) {
+  Uri? uri = Uri.tryParse(address);
+  if (uri != null &&
+      (uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "mwcmqs") &&
+      uri.host.isNotEmpty &&
+      !uri.host.endsWith(".onion")) {
+    return true;
   }
+  return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
+}
+
 
   @override
   NodeModel get defaultNode {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "http://mwc713.mwc.mw",
-          port: 3413,
+          host: "https://mwc713.mwc.mw",
+          port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
-          useSSL: false,
+          useSSL: true,
           enabled: true,
           coinName: identifier,
           isFailover: true,
-          isDown: false,
+          isDown: false
         );
 
       default:
@@ -88,10 +85,10 @@ class Mimblewimblecoin extends Bip39Currency {
   }
 
   @override
-  int get defaultSeedPhraseLength => 24;
+  int get defaultSeedPhraseLength => 12;
 
   @override
-  int get fractionDigits => 8;
+  int get fractionDigits => 9;
 
   @override
   bool get hasBuySupport => false;
@@ -100,13 +97,13 @@ class Mimblewimblecoin extends Bip39Currency {
   bool get hasMnemonicPassphraseSupport => false;
 
   @override
-  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 12];
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
   AddressType get defaultAddressType => AddressType.mimbleWimble;
 
   @override
-  BigInt get satsPerCoin => BigInt.from(100000000);
+  BigInt get satsPerCoin => BigInt.from(1000000000);
 
   @override
   int get targetBlockTimeSeconds => 60;
