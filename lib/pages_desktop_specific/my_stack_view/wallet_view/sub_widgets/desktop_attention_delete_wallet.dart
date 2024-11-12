@@ -10,18 +10,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../app_config.dart';
-import 'delete_wallet_keys_popup.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_view_only_wallet_keys_view.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_container.dart';
-import 'package:tuple/tuple.dart';
+import 'delete_wallet_keys_popup.dart';
 
 class DesktopAttentionDeleteWallet extends ConsumerStatefulWidget {
   const DesktopAttentionDeleteWallet({
@@ -114,6 +117,58 @@ class _DesktopAttentionDeleteWallet
                       onPressed: () async {
                         final wallet =
                             ref.read(pWallets).getWallet(widget.walletId);
+
+                        if (wallet is ViewOnlyOptionInterface &&
+                            wallet.isViewOnly) {
+                          final data = await wallet.getViewOnlyWalletData();
+                          if (context.mounted) {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (builder) => DesktopDialog(
+                                  maxWidth: 614,
+                                  maxHeight: double.infinity,
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 32,
+                                            ),
+                                            child: Text(
+                                              "Wallet keys",
+                                              style: STextStyles.desktopH3(
+                                                context,
+                                              ),
+                                            ),
+                                          ),
+                                          DesktopDialogCloseButton(
+                                            onPressedOverride: () {
+                                              Navigator.of(
+                                                context,
+                                                rootNavigator: true,
+                                              ).pop();
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(32),
+                                        child: DeleteViewOnlyWalletKeysView(
+                                          walletId: widget.walletId,
+                                          data: data,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        } else
+
                         // TODO: [prio=med] handle other types wallet deletion
                         // All wallets currently are mnemonic based
                         if (wallet is MnemonicInterface) {

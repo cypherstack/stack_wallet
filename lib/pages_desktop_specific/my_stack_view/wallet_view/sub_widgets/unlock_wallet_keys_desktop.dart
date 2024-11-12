@@ -26,6 +26,7 @@ import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -100,7 +101,11 @@ class _UnlockWalletKeysDesktopState
           throw Exception("FIXME ~= see todo in code");
         }
       } else {
-        words = await wallet.getMnemonicAsWords();
+        if (wallet is ViewOnlyOptionInterface) {
+          // TODO: is something needed here?
+        } else {
+          words = await wallet.getMnemonicAsWords();
+        }
       }
 
       KeyDataInterface? keyData;
@@ -347,7 +352,11 @@ class _UnlockWalletKeysDesktopState
                                   throw Exception("FIXME ~= see todo in code");
                                 }
                               } else {
-                                words = await wallet.getMnemonicAsWords();
+                                if (wallet is ViewOnlyOptionInterface) {
+                                  // TODO: is something needed here?
+                                } else {
+                                  words = await wallet.getMnemonicAsWords();
+                                }
                               }
 
                               KeyDataInterface? keyData;

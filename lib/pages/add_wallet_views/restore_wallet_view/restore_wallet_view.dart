@@ -655,16 +655,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       const Duration(milliseconds: 100),
     );
 
-    await showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: true,
-      builder: (context) {
-        return ConfirmRecoveryDialog(
-          onConfirm: attemptRestore,
-        );
-      },
-    );
+    if (mounted) {
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return ConfirmRecoveryDialog(
+            onConfirm: attemptRestore,
+          );
+        },
+      );
+    }
   }
 
   @override

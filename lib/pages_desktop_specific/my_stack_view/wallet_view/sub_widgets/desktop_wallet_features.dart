@@ -39,6 +39,7 @@ import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -380,9 +381,12 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         wallet is OrdinalsInterface ||
         wallet is CashFusionInterface;
 
+    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+
     return Row(
       children: [
-        if (Constants.enableExchange &&
+        if (!isViewOnly &&
+            Constants.enableExchange &&
             AppConfig.hasFeature(AppFeature.swap) &&
             showExchange)
           SecondaryButton(

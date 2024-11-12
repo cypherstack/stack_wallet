@@ -56,6 +56,7 @@ import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -523,6 +524,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
     final prefs = ref.watch(prefsChangeNotifierProvider);
     final showExchange = prefs.enableExchange;
+
+    final wallet = ref.watch(pWallets).getWallet(walletId);
+
+    final viewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
     return ConditionalParent(
       condition: _rescanningOnOpen,
@@ -1026,38 +1031,39 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       icon: const FrostSignNavIcon(),
                       onTap: () => _onFrostSignPressed(context),
                     ),
-                  WalletNavigationBarItemData(
-                    label: "Send",
-                    icon: const SendNavIcon(),
-                    onTap: () {
-                      // not sure what this is supposed to accomplish?
-                      // switch (ref
-                      //     .read(walletBalanceToggleStateProvider.state)
-                      //     .state) {
-                      //   case WalletBalanceToggleState.full:
-                      //     ref
-                      //         .read(publicPrivateBalanceStateProvider.state)
-                      //         .state = "Public";
-                      //     break;
-                      //   case WalletBalanceToggleState.available:
-                      //     ref
-                      //         .read(publicPrivateBalanceStateProvider.state)
-                      //         .state = "Private";
-                      //     break;
-                      // }
-                      Navigator.of(context).pushNamed(
-                        ref.read(pWallets).getWallet(walletId)
-                                is BitcoinFrostWallet
-                            ? FrostSendView.routeName
-                            : SendView.routeName,
-                        arguments: (
-                          walletId: walletId,
-                          coin: coin,
-                        ),
-                      );
-                    },
-                  ),
-                  if (Constants.enableExchange &&
+                  if (!viewOnly)
+                    WalletNavigationBarItemData(
+                      label: "Send",
+                      icon: const SendNavIcon(),
+                      onTap: () {
+                        // not sure what this is supposed to accomplish?
+                        // switch (ref
+                        //     .read(walletBalanceToggleStateProvider.state)
+                        //     .state) {
+                        //   case WalletBalanceToggleState.full:
+                        //     ref
+                        //         .read(publicPrivateBalanceStateProvider.state)
+                        //         .state = "Public";
+                        //     break;
+                        //   case WalletBalanceToggleState.available:
+                        //     ref
+                        //         .read(publicPrivateBalanceStateProvider.state)
+                        //         .state = "Private";
+                        //     break;
+                        // }
+                        Navigator.of(context).pushNamed(
+                          wallet is BitcoinFrostWallet
+                              ? FrostSendView.routeName
+                              : SendView.routeName,
+                          arguments: (
+                            walletId: walletId,
+                            coin: coin,
+                          ),
+                        );
+                      },
+                    ),
+                  if (!viewOnly &&
+                      Constants.enableExchange &&
                       ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
                       AppConfig.hasFeature(AppFeature.swap) &&
                       showExchange)
@@ -1113,12 +1119,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(
-                        pWallets.select(
-                          (value) => value.getWallet(widget.walletId)
-                              is CoinControlInterface,
-                        ),
-                      ) &&
+                  if (wallet is CoinControlInterface &&
                       ref.watch(
                         prefsChangeNotifierProvider.select(
                           (value) => value.enableCoinControl,
@@ -1137,12 +1138,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(
-                    pWallets.select(
-                      (value) =>
-                          value.getWallet(widget.walletId) is PaynymInterface,
-                    ),
-                  ))
+                  if (wallet is PaynymInterface)
                     WalletNavigationBarItemData(
                       label: "PayNym",
                       icon: const PaynymNavIcon(),
@@ -1213,12 +1209,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(
-                    pWallets.select(
-                      (value) => value.getWallet(widget.walletId)
-                          is CashFusionInterface,
-                    ),
-                  ))
+                  if (wallet is CashFusionInterface && !viewOnly)
                     WalletNavigationBarItemData(
                       label: "Fusion",
                       icon: const FusionNavIcon(),
@@ -1229,12 +1220,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (ref.watch(
-                    pWallets.select(
-                      (value) =>
-                          value.getWallet(widget.walletId) is LibMoneroWallet,
-                    ),
-                  ))
+                  if (wallet is LibMoneroWallet && !viewOnly)
                     WalletNavigationBarItemData(
                       label: "Churn",
                       icon: const ChurnNavIcon(),

@@ -37,6 +37,7 @@ import 'pages/add_wallet_views/new_wallet_options/new_wallet_options_view.dart';
 import 'pages/add_wallet_views/new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import 'pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
+import 'pages/add_wallet_views/restore_wallet_view/restore_view_only_wallet_view.dart';
 import 'pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
 import 'pages/add_wallet_views/select_wallet_for_token_view.dart';
 import 'pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
@@ -130,6 +131,7 @@ import 'pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_bac
 import 'pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_view_only_wallet_keys_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/lelantus_settings_view.dart';
@@ -203,6 +205,7 @@ import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'wallets/models/tx_data.dart';
 import 'wallets/wallet/wallet.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import 'wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
 
@@ -1519,6 +1522,28 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case RestoreViewOnlyWalletView.routeName:
+        if (args is ({
+          String walletName,
+          CryptoCurrency coin,
+          DateTime? restoreFromDate,
+          bool enableLelantusScanning,
+        })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => RestoreViewOnlyWalletView(
+              walletName: args.walletName,
+              coin: args.coin,
+              restoreFromDate: args.restoreFromDate,
+              enableLelantusScanning: args.enableLelantusScanning,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case NewWalletRecoveryPhraseView.routeName:
         if (args is Tuple2<Wallet, List<String>>) {
           return getRoute(
@@ -1919,6 +1944,21 @@ class RouteGenerator {
               mnemonic: args.mnemonicWords,
               walletId: args.walletId,
               frostWalletData: args.frostWalletData,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case DeleteViewOnlyWalletKeysView.routeName:
+        if (args is ({String walletId, ViewOnlyWalletData data})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DeleteViewOnlyWalletKeysView(
+              data: args.data,
+              walletId: args.walletId,
             ),
             settings: RouteSettings(
               name: settings.name,

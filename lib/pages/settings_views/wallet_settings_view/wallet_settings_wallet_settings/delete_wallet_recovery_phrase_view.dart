@@ -14,11 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
-import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
-import '../../../home_view/home_view.dart';
-import '../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -35,6 +33,9 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
+import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import '../../../home_view/home_view.dart';
+import '../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({
@@ -69,7 +70,6 @@ class _DeleteWalletRecoveryPhraseViewState
   late ClipboardInterface _clipboardInterface;
 
   bool _lock = false;
-
   void _continuePressed() {
     if (_lock) {
       return;

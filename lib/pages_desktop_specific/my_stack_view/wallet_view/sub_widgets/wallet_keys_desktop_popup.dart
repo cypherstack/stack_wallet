@@ -182,17 +182,18 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
               : keyData != null
                   ? CustomTabView(
                       titles: [
-                        "Mnemonic",
+                        if (words.isNotEmpty) "Mnemonic",
                         if (keyData is XPrivData) "XPriv(s)",
                         if (keyData is CWKeyData) "Keys",
                       ],
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: _Mnemonic(
-                            words: words,
+                        if (words.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: _Mnemonic(
+                              words: words,
+                            ),
                           ),
-                        ),
                         if (keyData is XPrivData)
                           WalletXPrivs(
                             xprivData: keyData as XPrivData,

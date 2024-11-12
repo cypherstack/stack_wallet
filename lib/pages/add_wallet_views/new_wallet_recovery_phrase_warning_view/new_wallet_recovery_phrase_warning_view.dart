@@ -12,8 +12,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:blockchain_utils/bip/bip/bip39/bip39_mnemonic.dart';
-import 'package:blockchain_utils/bip/bip/bip39/bip39_mnemonic_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
