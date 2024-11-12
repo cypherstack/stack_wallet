@@ -135,8 +135,24 @@ class WowneroWallet extends LibMoneroWallet {
       );
 
   @override
+  Future<lib_monero.Wallet> getRestoredFromViewKeyWallet({
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
+    int height = 0,
+  }) async =>
+      lib_monero.WowneroWallet.createViewOnlyWallet(
+        path: path,
+        password: password,
+        address: address,
+        viewKey: privateViewKey,
+        restoreHeight: height,
+      );
+
+  @override
   void invalidSeedLengthCheck(int length) {
-    if (!(length == 14 || length == 25)) {
+    if (!(length == 14 || length == 16 || length == 25)) {
       throw Exception("Invalid wownero mnemonic length found: $length");
     }
   }
