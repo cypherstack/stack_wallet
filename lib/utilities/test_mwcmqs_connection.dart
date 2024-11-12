@@ -18,11 +18,21 @@ import 'prefs.dart';
 
 Future<bool> _testMwcMqsNodeConnection(Uri uri) async {
   final HTTP client = HTTP();
-  try {
+    try {
+      final headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (uri.toString() == 'https://mwc713.mwc.mw/v1/version') {
+      const username = 'mwcmain';
+      const password = '11ne3EAUtOXVKwhxm84U';
+      final credentials = base64Encode(utf8.encode('$username:$password'));
+      headers['Authorization'] = 'Basic $credentials';
+    }
     final response = await client
         .get(
           url: uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           proxyInfo: Prefs.instance.useTor
               ? TorService.sharedInstance.getProxyInfo()
               : null,
@@ -67,7 +77,7 @@ Future<NodeFormData?> testMwcNodeConnection(NodeFormData data) async {
   Uri uri = Uri.parse(data.host! + path_postfix);
 
   uri = uri.replace(port: data.port);
-
+  
   try {
     if (await _testMwcMqsNodeConnection(uri)) {
       return data;

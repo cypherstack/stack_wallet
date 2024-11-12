@@ -2112,18 +2112,7 @@ class _TransactionV2DetailsViewState
                             );
                           }
                         }
-                      } else {
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: "ERROR: Wallet type is not Epic Cash",
-                            context: context,
-                          ),
-                        );
-                        return;
-                      }
-
-                      if (wallet is MimblewimblecoinWallet) {
+                      } else if (wallet is MimblewimblecoinWallet) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(
@@ -2181,8 +2170,7 @@ class _TransactionV2DetailsViewState
                         unawaited(
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
-                            message:
-                                "ERROR: Wallet type is not Mimblewimblecoin",
+                            message: "ERROR: Wallet type is not Epic Cash or MimbleWimbleCoin",
                             context: context,
                           ),
                         );

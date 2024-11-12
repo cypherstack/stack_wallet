@@ -22,6 +22,7 @@ import '../wallets/wallet/impl/solana_wallet.dart';
 import 'connection_check/electrum_connection_check.dart';
 import 'logger.dart';
 import 'test_epic_box_connection.dart';
+import 'test_mwcmqs_connection.dart';
 import 'test_eth_node_connection.dart';
 import 'test_monero_node_connection.dart';
 import 'test_stellar_node_connection.dart';
@@ -98,6 +99,19 @@ Future<bool> testNodeConnection({
     case Epiccash():
       try {
         final data = await testEpicNodeConnection(formData);
+
+        if (data != null) {
+          testPassed = true;
+          onSuccess?.call(data);
+        }
+      } catch (e, s) {
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      }
+      break;
+
+    case Mimblewimblecoin():
+      try {
+        final data = await testMwcNodeConnection(formData);
 
         if (data != null) {
           testPassed = true;
