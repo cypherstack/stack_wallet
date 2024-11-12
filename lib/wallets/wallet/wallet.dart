@@ -54,6 +54,7 @@ import 'wallet_mixin_interfaces/multi_address_interface.dart';
 import 'wallet_mixin_interfaces/paynym_interface.dart';
 import 'wallet_mixin_interfaces/private_key_interface.dart';
 import 'wallet_mixin_interfaces/spark_interface.dart';
+import 'wallet_mixin_interfaces/view_only_option_interface.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
@@ -145,7 +146,13 @@ abstract class Wallet<T extends CryptoCurrency> {
     String? mnemonic,
     String? mnemonicPassphrase,
     String? privateKey,
+    ViewOnlyWalletData? viewOnlyData,
   }) async {
+    // TODO: rework soon?
+    if (walletInfo.isViewOnly && viewOnlyData == null) {
+      throw Exception("Missing view key while creating view only wallet!");
+    }
+
     final Wallet wallet = await _construct(
       walletInfo: walletInfo,
       mainDB: mainDB,
@@ -154,7 +161,12 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
-    if (wallet is MnemonicInterface) {
+    if (wallet is ViewOnlyOptionInterface) {
+      await secureStorageInterface.write(
+        key: getViewOnlyWalletDataSecStoreKey(walletId: walletInfo.walletId),
+        value: viewOnlyData!.toJsonEncodedString(),
+      );
+    } else if (wallet is MnemonicInterface) {
       if (wallet is CryptonoteWallet) {
         // currently a special case due to the xmr/wow libraries handling their
         // own mnemonic generation on new wallet creation
@@ -278,6 +290,12 @@ abstract class Wallet<T extends CryptoCurrency> {
     required String walletId,
   }) =>
       "${walletId}_privateKey";
+
+  // secure storage key
+  static String getViewOnlyWalletDataSecStoreKey({
+    required String walletId,
+  }) =>
+      "${walletId}_viewOnlyWalletData";
 
   //============================================================================
   // ========== Private ========================================================

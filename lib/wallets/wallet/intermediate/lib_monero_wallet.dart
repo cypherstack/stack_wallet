@@ -36,10 +36,12 @@ import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../wallet.dart';
 import '../wallet_mixin_interfaces/multi_address_interface.dart';
+import '../wallet_mixin_interfaces/view_only_option_interface.dart';
 import 'cryptonote_wallet.dart';
 
 abstract class LibMoneroWallet<T extends CryptonoteCurrency>
-    extends CryptonoteWallet<T> implements MultiAddressInterface<T> {
+    extends CryptonoteWallet<T>
+    implements MultiAddressInterface<T>, ViewOnlyOptionInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 
@@ -136,6 +138,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required String path,
     required String password,
     required String mnemonic,
+    int height = 0,
+  });
+
+  Future<lib_monero.Wallet> getRestoredFromViewKeyWallet({
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
     int height = 0,
   });
 
@@ -330,6 +340,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         // unawaited(save());
       });
       unawaited(refresh());
+      return;
+    }
+
+    if (isViewOnly) {
+      await recoverViewOnly();
       return;
     }
 
@@ -1282,6 +1297,102 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       );
       rethrow;
     }
+  }
+
+  // ============== View only ==================================================
+
+  @override
+  bool get isViewOnly => info.isViewOnly;
+
+  @override
+  Future<void> recoverViewOnly() async {
+    await refreshMutex.protect(() async {
+      final jsonEncodedString = await secureStorageInterface.read(
+        key: Wallet.getViewOnlyWalletDataSecStoreKey(
+          walletId: walletId,
+        ),
+      );
+
+      final data = ViewOnlyWalletData.fromJsonEncodedString(jsonEncodedString!);
+
+      try {
+        final height = max(info.restoreHeight, 0);
+
+        await info.updateRestoreHeight(
+          newRestoreHeight: height,
+          isar: mainDB.isar,
+        );
+
+        final String name = walletId;
+
+        final path = await pathForWallet(
+          name: name,
+          type: compatType,
+        );
+
+        final password = generatePassword();
+        await secureStorageInterface.write(
+          key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+          value: password,
+        );
+        final wallet = await getRestoredFromViewKeyWallet(
+          path: path,
+          password: password,
+          address: data.address!,
+          privateViewKey: data.privateViewKey!,
+          height: height,
+        );
+
+        if (libMoneroWallet != null) {
+          await exit();
+        }
+
+        libMoneroWallet = wallet;
+
+        _setListener();
+
+        final newReceivingAddress = await getCurrentReceivingAddress() ??
+            Address(
+              walletId: walletId,
+              derivationIndex: 0,
+              derivationPath: null,
+              value: wallet.getAddress().value,
+              publicKey: [],
+              type: AddressType.cryptonote,
+              subType: AddressSubType.receiving,
+            );
+
+        await mainDB.updateOrPutAddresses([newReceivingAddress]);
+        await info.updateReceivingAddress(
+          newAddress: newReceivingAddress.value,
+          isar: mainDB.isar,
+        );
+
+        await updateNode();
+        _setListener();
+
+        unawaited(libMoneroWallet?.rescanBlockchain());
+        libMoneroWallet?.startSyncing();
+
+        // await save();
+        libMoneroWallet?.startListeners();
+        libMoneroWallet?.startAutoSaving();
+      } catch (e, s) {
+        Logging.instance.log(
+          "Exception rethrown from recoverViewOnly(): $e\n$s",
+          level: LogLevel.Error,
+        );
+        rethrow;
+      }
+    });
+  }
+
+  @override
+  Future<ViewOnlyWalletData> getViewOnlyWalletData() async {
+    return ViewOnlyWalletData(
+      address: libMoneroWallet!.getAddress().value,
+      privateViewKey: libMoneroWallet!.getPrivateViewKey(),
+    );
   }
 
   // ============== Private ====================================================

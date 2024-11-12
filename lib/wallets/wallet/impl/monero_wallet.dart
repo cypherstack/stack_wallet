@@ -98,6 +98,22 @@ class MoneroWallet extends LibMoneroWallet {
       );
 
   @override
+  Future<lib_monero.Wallet> getRestoredFromViewKeyWallet({
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
+    int height = 0,
+  }) async =>
+      lib_monero.MoneroWallet.createViewOnlyWallet(
+        path: path,
+        password: password,
+        address: address,
+        viewKey: privateViewKey,
+        restoreHeight: height,
+      );
+
+  @override
   void invalidSeedLengthCheck(int length) {
     if (length != 25 && length != 16) {
       throw Exception("Invalid monero mnemonic length found: $length");

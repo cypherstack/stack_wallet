@@ -117,6 +117,10 @@ class WalletInfo implements IsarId {
       ? {}
       : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
 
+  @ignore
+  bool get isViewOnly =>
+      otherData[WalletInfoKeys.isViewOnlyKey] as bool? ?? false;
+
   Future<bool> isMnemonicVerified(Isar isar) async =>
       (await isar.walletInfoMeta.where().walletIdEqualTo(walletId).findFirst())
           ?.isMnemonicVerified ==
@@ -512,4 +516,5 @@ abstract class WalletInfoKeys {
       "firoSparkCacheSetTimestampCacheKey";
   static const String enableOptInRbf = "enableOptInRbfKey";
   static const String reuseAddress = "reuseAddressKey";
+  static const String isViewOnlyKey = "isViewOnlyKey";
 }
