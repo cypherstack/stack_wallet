@@ -31,6 +31,7 @@ import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -238,6 +239,8 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
       ),
     );
 
+    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+
     return DesktopDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -257,7 +260,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (wallet.info.coin is Firo)
+          if (!isViewOnly && wallet.info.coin is Firo)
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
@@ -300,14 +303,14 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.monkey,
               onPressed: () async => widget.onMonkeyPressed?.call(),
             ),
-          if (wallet is CashFusionInterface)
+          if (!isViewOnly && wallet is CashFusionInterface)
             _MoreFeaturesItem(
               label: "Fusion",
               detail: "Decentralized mixing protocol",
               iconAsset: Assets.svg.cashFusion,
               onPressed: () async => widget.onFusionPressed?.call(),
             ),
-          if (wallet is LibMoneroWallet)
+          if (!isViewOnly && wallet is LibMoneroWallet)
             _MoreFeaturesItem(
               label: "Churn",
               detail: "Churning",

@@ -39,6 +39,7 @@ import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
@@ -273,6 +274,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                             String keys
                                           })? prevGen,
                                         })? frostWalletData;
+                                        ViewOnlyWalletData? voData;
                                         if (wallet is BitcoinFrostWallet) {
                                           final futures = [
                                             wallet.getSerializedKeys(),
@@ -298,10 +300,17 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                                     ),
                                             );
                                           }
-                                        } else if (wallet
-                                            is MnemonicInterface) {
-                                          mnemonic =
-                                              await wallet.getMnemonicAsWords();
+                                        } else {
+                                          if (wallet
+                                                  is ViewOnlyOptionInterface &&
+                                              wallet.isViewOnly) {
+                                            voData = await wallet
+                                                .getViewOnlyWalletData();
+                                          } else if (wallet
+                                              is MnemonicInterface) {
+                                            mnemonic = await wallet
+                                                .getMnemonicAsWords();
+                                          }
                                         }
 
                                         KeyDataInterface? keyData;
@@ -312,36 +321,68 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                         }
 
                                         if (context.mounted) {
-                                          await Navigator.push(
-                                            context,
-                                            RouteGenerator.getRoute(
-                                              shouldUseMaterialRoute:
-                                                  RouteGenerator
-                                                      .useMaterialPageRoute,
-                                              builder: (_) => LockscreenView(
-                                                routeOnSuccessArguments: (
-                                                  walletId: walletId,
-                                                  mnemonic: mnemonic ?? [],
-                                                  frostWalletData:
-                                                      frostWalletData,
-                                                  keyData: keyData,
+                                          if (voData != null) {
+                                            await Navigator.push(
+                                              context,
+                                              RouteGenerator.getRoute(
+                                                shouldUseMaterialRoute:
+                                                    RouteGenerator
+                                                        .useMaterialPageRoute,
+                                                builder: (_) => LockscreenView(
+                                                  routeOnSuccessArguments: (
+                                                    walletId: walletId,
+                                                    keyData: keyData,
+                                                  ),
+                                                  showBackButton: true,
+                                                  routeOnSuccess:
+                                                      MobileKeyDataView
+                                                          .routeName,
+                                                  biometricsCancelButtonString:
+                                                      "CANCEL",
+                                                  biometricsLocalizedReason:
+                                                      "Authenticate to view recovery data",
+                                                  biometricsAuthenticationTitle:
+                                                      "View recovery data",
                                                 ),
-                                                showBackButton: true,
-                                                routeOnSuccess:
-                                                    WalletBackupView.routeName,
-                                                biometricsCancelButtonString:
-                                                    "CANCEL",
-                                                biometricsLocalizedReason:
-                                                    "Authenticate to view recovery phrase",
-                                                biometricsAuthenticationTitle:
-                                                    "View recovery phrase",
+                                                settings: const RouteSettings(
+                                                  name:
+                                                      "/viewRecoveryDataLockscreen",
+                                                ),
                                               ),
-                                              settings: const RouteSettings(
-                                                name:
-                                                    "/viewRecoverPhraseLockscreen",
+                                            );
+                                          } else {
+                                            await Navigator.push(
+                                              context,
+                                              RouteGenerator.getRoute(
+                                                shouldUseMaterialRoute:
+                                                    RouteGenerator
+                                                        .useMaterialPageRoute,
+                                                builder: (_) => LockscreenView(
+                                                  routeOnSuccessArguments: (
+                                                    walletId: walletId,
+                                                    mnemonic: mnemonic ?? [],
+                                                    frostWalletData:
+                                                        frostWalletData,
+                                                    keyData: keyData,
+                                                  ),
+                                                  showBackButton: true,
+                                                  routeOnSuccess:
+                                                      WalletBackupView
+                                                          .routeName,
+                                                  biometricsCancelButtonString:
+                                                      "CANCEL",
+                                                  biometricsLocalizedReason:
+                                                      "Authenticate to view recovery phrase",
+                                                  biometricsAuthenticationTitle:
+                                                      "View recovery phrase",
+                                                ),
+                                                settings: const RouteSettings(
+                                                  name:
+                                                      "/viewRecoverPhraseLockscreen",
+                                                ),
                                               ),
-                                            ),
-                                          );
+                                            );
+                                          }
                                         }
                                       },
                                     );

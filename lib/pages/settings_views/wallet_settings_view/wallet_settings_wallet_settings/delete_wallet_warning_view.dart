@@ -17,9 +17,11 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_container.dart';
+import 'delete_view_only_wallet_keys_view.dart';
 import 'delete_wallet_recovery_phrase_view.dart';
 
 class DeleteWalletWarningView extends ConsumerWidget {
@@ -118,6 +120,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     String keys,
                     ({String config, String keys})? prevGen,
                   })? frostWalletData;
+                  ViewOnlyWalletData? viewOnlyData;
 
                   if (wallet is BitcoinFrostWallet) {
                     final futures = [
@@ -142,18 +145,33 @@ class DeleteWalletWarningView extends ConsumerWidget {
                               ),
                       );
                     }
-                  } else if (wallet is MnemonicInterface) {
-                    mnemonic = await wallet.getMnemonicAsWords();
+                  } else {
+                    if (wallet is ViewOnlyOptionInterface &&
+                        wallet.isViewOnly) {
+                      viewOnlyData = await wallet.getViewOnlyWalletData();
+                    } else if (wallet is MnemonicInterface) {
+                      mnemonic = await wallet.getMnemonicAsWords();
+                    }
                   }
                   if (context.mounted) {
-                    await Navigator.of(context).pushNamed(
-                      DeleteWalletRecoveryPhraseView.routeName,
-                      arguments: (
-                        walletId: walletId,
-                        mnemonicWords: mnemonic ?? [],
-                        frostWalletData: frostWalletData,
-                      ),
-                    );
+                    if (viewOnlyData != null) {
+                      await Navigator.of(context).pushNamed(
+                        DeleteViewOnlyWalletKeysView.routeName,
+                        arguments: (
+                          walletId: walletId,
+                          data: viewOnlyData,
+                        ),
+                      );
+                    } else {
+                      await Navigator.of(context).pushNamed(
+                        DeleteWalletRecoveryPhraseView.routeName,
+                        arguments: (
+                          walletId: walletId,
+                          mnemonicWords: mnemonic ?? [],
+                          frostWalletData: frostWalletData,
+                        ),
+                      );
+                    }
                   }
                 },
                 child: Text(

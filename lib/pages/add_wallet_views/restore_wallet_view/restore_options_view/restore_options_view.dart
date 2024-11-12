@@ -23,6 +23,7 @@ import '../../../../utilities/format.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../wallets/crypto_currency/interfaces/view_only_option_currency_interface.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
@@ -32,7 +33,9 @@ import '../../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../../widgets/expandable.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_text_field.dart';
+import '../../../../widgets/toggle.dart';
 import '../../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
+import '../restore_view_only_wallet_view.dart';
 import '../restore_wallet_view.dart';
 import '../sub_widgets/mnemonic_word_count_select_sheet.dart';
 import 'sub_widgets/mobile_mnemonic_length_selector.dart';
@@ -69,7 +72,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   final bool _nextEnabled = true;
   DateTime? _restoreFromDate;
   bool hidePassword = true;
-  bool _expandedAdavnced = false;
 
   bool get supportsMnemonicPassphrase => coin.hasMnemonicPassphraseSupport;
 
@@ -99,27 +101,46 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     super.dispose();
   }
 
+  bool _nextLock = false;
   Future<void> nextPressed() async {
-    if (!isDesktop) {
-      // hide keyboard if has focus
-      if (FocusScope.of(context).hasFocus) {
-        FocusScope.of(context).unfocus();
-        await Future<void>.delayed(const Duration(milliseconds: 75));
+    if (_nextLock) return;
+    _nextLock = true;
+    try {
+      if (!isDesktop) {
+        // hide keyboard if has focus
+        if (FocusScope.of(context).hasFocus) {
+          FocusScope.of(context).unfocus();
+          await Future<void>.delayed(const Duration(milliseconds: 75));
+        }
       }
-    }
 
-    if (mounted) {
-      await Navigator.of(context).pushNamed(
-        RestoreWalletView.routeName,
-        arguments: Tuple6(
-          walletName,
-          coin,
-          ref.read(mnemonicWordCountStateProvider.state).state,
-          _restoreFromDate,
-          passwordController.text,
-          enableLelantusScanning,
-        ),
-      );
+      if (mounted) {
+        if (!_showViewOnlyOption) {
+          await Navigator.of(context).pushNamed(
+            RestoreWalletView.routeName,
+            arguments: Tuple6(
+              walletName,
+              coin,
+              ref.read(mnemonicWordCountStateProvider.state).state,
+              _restoreFromDate,
+              passwordController.text,
+              enableLelantusScanning,
+            ),
+          );
+        } else {
+          await Navigator.of(context).pushNamed(
+            RestoreViewOnlyWalletView.routeName,
+            arguments: (
+              walletName: walletName,
+              coin: coin,
+              restoreFromDate: _restoreFromDate,
+              enableLelantusScanning: enableLelantusScanning,
+            ),
+          );
+        }
+      }
+    } finally {
+      _nextLock = false;
     }
   }
 
@@ -164,16 +185,11 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     );
   }
 
+  bool _showViewOnlyOption = false;
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType with ${coin.identifier} $walletName");
-
-    final lengths = coin.possibleMnemonicLengths;
-
-    final isMoneroAnd25 = coin is Monero &&
-        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
-    final isWowneroAnd25 = coin is Wownero &&
-        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
 
     return MasterScaffold(
       isDesktop: isDesktop,
@@ -227,288 +243,57 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(
                 height: isDesktop ? 40 : 24,
               ),
-              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
-                Text(
-                  "Choose start date",
-                  style: isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark3,
-                        )
-                      : STextStyles.smallMed12(context),
-                  textAlign: TextAlign.left,
-                ),
-              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
+              if (coin is ViewOnlyOptionCurrencyInterface)
                 SizedBox(
-                  height: isDesktop ? 16 : 8,
-                ),
-              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
-                if (!isDesktop)
-                  RestoreFromDatePicker(
-                    onTap: chooseDate,
-                    controller: _dateController,
-                  ),
-              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
-                if (isDesktop)
-                  // TODO desktop date picker
-                  RestoreFromDatePicker(
-                    onTap: chooseDesktopDate,
-                    controller: _dateController,
-                  ),
-              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
-                const SizedBox(
-                  height: 8,
-                ),
-              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
-                RoundedWhiteContainer(
-                  child: Center(
-                    child: Text(
-                      "Choose the date you made the wallet (approximate is fine)",
-                      style: isDesktop
-                          ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
-                            )
-                          : STextStyles.smallMed12(context).copyWith(
-                              fontSize: 10,
-                            ),
-                    ),
-                  ),
-                ),
-              if (isMoneroAnd25 || coin is Epiccash || isWowneroAnd25)
-                SizedBox(
-                  height: isDesktop ? 24 : 16,
-                ),
-              Text(
-                "Choose recovery phrase length",
-                style: isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
-                      )
-                    : STextStyles.smallMed12(context),
-                textAlign: TextAlign.left,
-              ),
-              SizedBox(
-                height: isDesktop ? 16 : 8,
-              ),
-              if (isDesktop)
-                DropdownButtonHideUnderline(
-                  child: DropdownButton2<int>(
-                    value:
-                        ref.watch(mnemonicWordCountStateProvider.state).state,
-                    items: [
-                      ...lengths.map(
-                        (e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(
-                            "$e words",
-                            style: STextStyles.desktopTextMedium(context),
-                          ),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value is int) {
-                        ref.read(mnemonicWordCountStateProvider.state).state =
-                            value;
-                      }
+                  height: isDesktop ? 56 : 48,
+                  width: isDesktop ? 490 : null,
+                  child: Toggle(
+                    key: UniqueKey(),
+                    onText: "Seed",
+                    offText: "View Only",
+                    onColor:
+                        Theme.of(context).extension<StackColors>()!.popupBG,
+                    offColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    isOn: _showViewOnlyOption,
+                    onValueChanged: (value) {
+                      setState(() {
+                        _showViewOnlyOption = value;
+                      });
                     },
-                    isExpanded: true,
-                    iconStyleData: IconStyleData(
-                      icon: SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        width: 12,
-                        height: 6,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldActiveSearchIconRight,
-                      ),
-                    ),
-                    dropdownStyleData: DropdownStyleData(
-                      offset: const Offset(0, -10),
-                      elevation: 0,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                    ),
-                    menuItemStyleData: const MenuItemStyleData(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
                       ),
                     ),
                   ),
                 ),
-              if (!isDesktop)
-                MobileMnemonicLengthSelector(
-                  chooseMnemonicLength: chooseMnemonicLength,
-                ),
-              if (supportsMnemonicPassphrase)
+              if (coin is ViewOnlyOptionCurrencyInterface)
                 SizedBox(
-                  height: isDesktop ? 24 : 16,
+                  height: isDesktop ? 40 : 24,
                 ),
-              if (supportsMnemonicPassphrase)
-                Expandable(
-                  onExpandChanged: (state) {
-                    setState(() {
-                      _expandedAdavnced = state == ExpandableState.expanded;
-                    });
-                  },
-                  header: Container(
-                    color: Colors.transparent,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 8.0,
-                        bottom: 8.0,
-                        right: 10,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Advanced",
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark3,
-                                  )
-                                : STextStyles.smallMed12(context),
-                            textAlign: TextAlign.left,
-                          ),
-                          SvgPicture.asset(
-                            _expandedAdavnced
-                                ? Assets.svg.chevronUp
-                                : Assets.svg.chevronDown,
-                            width: 12,
-                            height: 6,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveSearchIconRight,
-                          ),
-                        ],
-                      ),
+              _showViewOnlyOption
+                  ? ViewOnlyRestoreOption(
+                      coin: coin,
+                      dateController: _dateController,
+                      dateChooserFunction:
+                          isDesktop ? chooseDesktopDate : chooseDate,
+                    )
+                  : SeedRestoreOption(
+                      coin: coin,
+                      dateController: _dateController,
+                      pwController: passwordController,
+                      pwFocusNode: passwordFocusNode,
+                      supportsMnemonicPassphrase: supportsMnemonicPassphrase,
+                      dateChooserFunction:
+                          isDesktop ? chooseDesktopDate : chooseDate,
+                      chooseMnemonicLength: chooseMnemonicLength,
+                      lelScanChanged: (value) {
+                        enableLelantusScanning = value;
+                      },
                     ),
-                  ),
-                  body: Container(
-                    color: Colors.transparent,
-                    child: Column(
-                      children: [
-                        if (coin is Firo)
-                          CheckboxTextButton(
-                            label: "Scan for Lelantus transactions",
-                            onChanged: (newValue) {
-                              setState(() {
-                                enableLelantusScanning = newValue ?? true;
-                              });
-                            },
-                          ),
-                        if (coin is Firo)
-                          const SizedBox(
-                            height: 8,
-                          ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                          child: TextField(
-                            key: const Key("mnemonicPassphraseFieldKey1"),
-                            focusNode: passwordFocusNode,
-                            controller: passwordController,
-                            style: isDesktop
-                                ? STextStyles.desktopTextMedium(context)
-                                    .copyWith(
-                                    height: 2,
-                                  )
-                                : STextStyles.field(context),
-                            obscureText: hidePassword,
-                            enableSuggestions: false,
-                            autocorrect: false,
-                            decoration: standardInputDecoration(
-                              "BIP39 passphrase",
-                              passwordFocusNode,
-                              context,
-                            ).copyWith(
-                              suffixIcon: UnconstrainedBox(
-                                child: ConditionalParent(
-                                  condition: isDesktop,
-                                  builder: (child) => SizedBox(
-                                    height: 70,
-                                    child: child,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: isDesktop ? 24 : 16,
-                                      ),
-                                      GestureDetector(
-                                        key: const Key(
-                                          "mnemonicPassphraseFieldShowPasswordButtonKey",
-                                        ),
-                                        onTap: () async {
-                                          setState(() {
-                                            hidePassword = !hidePassword;
-                                          });
-                                        },
-                                        child: SvgPicture.asset(
-                                          hidePassword
-                                              ? Assets.svg.eye
-                                              : Assets.svg.eyeSlash,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textDark3,
-                                          width: isDesktop ? 24 : 16,
-                                          height: isDesktop ? 24 : 16,
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        width: 12,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Center(
-                            child: Text(
-                              "If the recovery phrase you are about to restore "
-                              "was created with an optional BIP39 passphrase "
-                              "you can enter it here.",
-                              style: isDesktop
-                                  ? STextStyles.desktopTextExtraSmall(context)
-                                      .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textSubtitle1,
-                                    )
-                                  : STextStyles.itemSubtitle(context),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               if (!isDesktop)
                 const Spacer(
                   flex: 3,
@@ -529,6 +314,397 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class SeedRestoreOption extends ConsumerStatefulWidget {
+  const SeedRestoreOption({
+    super.key,
+    required this.coin,
+    required this.dateController,
+    required this.pwController,
+    required this.pwFocusNode,
+    required this.supportsMnemonicPassphrase,
+    required this.dateChooserFunction,
+    required this.chooseMnemonicLength,
+    required this.lelScanChanged,
+  });
+
+  final CryptoCurrency coin;
+  final TextEditingController dateController;
+  final TextEditingController pwController;
+  final FocusNode pwFocusNode;
+  final bool supportsMnemonicPassphrase;
+
+  final Future<void> Function() dateChooserFunction;
+  final Future<void> Function() chooseMnemonicLength;
+  final void Function(bool) lelScanChanged;
+
+  @override
+  ConsumerState<SeedRestoreOption> createState() => _SeedRestoreOptionState();
+}
+
+class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
+  bool _hidePassword = true;
+  bool _expandedAdvanced = false;
+  bool _enableLelantusScanning = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final lengths = widget.coin.possibleMnemonicLengths;
+
+    final isMoneroAnd25 = widget.coin is Monero &&
+        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
+    final isWowneroAnd25 = widget.coin is Wownero &&
+        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
+
+    return Column(
+      children: [
+        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+          Text(
+            "Choose start date",
+            style: Util.isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textDark3,
+                  )
+                : STextStyles.smallMed12(context),
+            textAlign: TextAlign.left,
+          ),
+        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+          SizedBox(
+            height: Util.isDesktop ? 16 : 8,
+          ),
+        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+          RestoreFromDatePicker(
+            onTap: widget.dateChooserFunction,
+            controller: widget.dateController,
+          ),
+        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+          const SizedBox(
+            height: 8,
+          ),
+        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+          RoundedWhiteContainer(
+            child: Center(
+              child: Text(
+                "Choose the date you made the wallet (approximate is fine)",
+                style: Util.isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
+                      )
+                    : STextStyles.smallMed12(context).copyWith(
+                        fontSize: 10,
+                      ),
+              ),
+            ),
+          ),
+        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+          SizedBox(
+            height: Util.isDesktop ? 24 : 16,
+          ),
+        Text(
+          "Choose recovery phrase length",
+          style: Util.isDesktop
+              ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                )
+              : STextStyles.smallMed12(context),
+          textAlign: TextAlign.left,
+        ),
+        SizedBox(
+          height: Util.isDesktop ? 16 : 8,
+        ),
+        if (Util.isDesktop)
+          DropdownButtonHideUnderline(
+            child: DropdownButton2<int>(
+              value: ref.watch(mnemonicWordCountStateProvider.state).state,
+              items: [
+                ...lengths.map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(
+                      "$e words",
+                      style: STextStyles.desktopTextMedium(context),
+                    ),
+                  ),
+                ),
+              ],
+              onChanged: (value) {
+                if (value is int) {
+                  ref.read(mnemonicWordCountStateProvider.state).state = value;
+                }
+              },
+              isExpanded: true,
+              iconStyleData: IconStyleData(
+                icon: SvgPicture.asset(
+                  Assets.svg.chevronDown,
+                  width: 12,
+                  height: 6,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveSearchIconRight,
+                ),
+              ),
+              dropdownStyleData: DropdownStyleData(
+                offset: const Offset(0, -10),
+                elevation: 0,
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                ),
+              ),
+              menuItemStyleData: const MenuItemStyleData(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+            ),
+          ),
+        if (!Util.isDesktop)
+          MobileMnemonicLengthSelector(
+            chooseMnemonicLength: widget.chooseMnemonicLength,
+          ),
+        if (widget.supportsMnemonicPassphrase)
+          SizedBox(
+            height: Util.isDesktop ? 24 : 16,
+          ),
+        if (widget.supportsMnemonicPassphrase)
+          Expandable(
+            onExpandChanged: (state) {
+              setState(() {
+                _expandedAdvanced = state == ExpandableState.expanded;
+              });
+            },
+            header: Container(
+              color: Colors.transparent,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: 8.0,
+                  bottom: 8.0,
+                  right: 10,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Advanced",
+                      style: Util.isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(
+                              context,
+                            ).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
+                            )
+                          : STextStyles.smallMed12(context),
+                      textAlign: TextAlign.left,
+                    ),
+                    SvgPicture.asset(
+                      _expandedAdvanced
+                          ? Assets.svg.chevronUp
+                          : Assets.svg.chevronDown,
+                      width: 12,
+                      height: 6,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveSearchIconRight,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            body: Container(
+              color: Colors.transparent,
+              child: Column(
+                children: [
+                  if (widget.coin is Firo)
+                    CheckboxTextButton(
+                      label: "Scan for Lelantus transactions",
+                      onChanged: (newValue) {
+                        setState(() {
+                          _enableLelantusScanning = newValue ?? true;
+                        });
+
+                        widget.lelScanChanged(_enableLelantusScanning);
+                      },
+                    ),
+                  if (widget.coin is Firo)
+                    const SizedBox(
+                      height: 8,
+                    ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: TextField(
+                      key: const Key("mnemonicPassphraseFieldKey1"),
+                      focusNode: widget.pwFocusNode,
+                      controller: widget.pwController,
+                      style: Util.isDesktop
+                          ? STextStyles.desktopTextMedium(context).copyWith(
+                              height: 2,
+                            )
+                          : STextStyles.field(context),
+                      obscureText: _hidePassword,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      decoration: standardInputDecoration(
+                        "BIP39 passphrase",
+                        widget.pwFocusNode,
+                        context,
+                      ).copyWith(
+                        suffixIcon: UnconstrainedBox(
+                          child: ConditionalParent(
+                            condition: Util.isDesktop,
+                            builder: (child) => SizedBox(
+                              height: 70,
+                              child: child,
+                            ),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: Util.isDesktop ? 24 : 16,
+                                ),
+                                GestureDetector(
+                                  key: const Key(
+                                    "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                  ),
+                                  onTap: () async {
+                                    setState(() {
+                                      _hidePassword = !_hidePassword;
+                                    });
+                                  },
+                                  child: SvgPicture.asset(
+                                    _hidePassword
+                                        ? Assets.svg.eye
+                                        : Assets.svg.eyeSlash,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
+                                    width: Util.isDesktop ? 24 : 16,
+                                    height: Util.isDesktop ? 24 : 16,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 12,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  RoundedWhiteContainer(
+                    child: Center(
+                      child: Text(
+                        "If the recovery phrase you are about to restore "
+                        "was created with an optional BIP39 passphrase "
+                        "you can enter it here.",
+                        style: Util.isDesktop
+                            ? STextStyles.desktopTextExtraSmall(context)
+                                .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              )
+                            : STextStyles.itemSubtitle(context),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class ViewOnlyRestoreOption extends StatefulWidget {
+  const ViewOnlyRestoreOption({
+    super.key,
+    required this.coin,
+    required this.dateController,
+    required this.dateChooserFunction,
+  });
+
+  final CryptoCurrency coin;
+  final TextEditingController dateController;
+
+  final Future<void> Function() dateChooserFunction;
+
+  @override
+  State<ViewOnlyRestoreOption> createState() => _ViewOnlyRestoreOptionState();
+}
+
+class _ViewOnlyRestoreOptionState extends State<ViewOnlyRestoreOption> {
+  @override
+  Widget build(BuildContext context) {
+    final showDateOption = widget.coin is ViewOnlyOptionCurrencyInterface;
+    return Column(
+      children: [
+        if (showDateOption)
+          Text(
+            "Choose start date",
+            style: Util.isDesktop
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.textDark3,
+                  )
+                : STextStyles.smallMed12(context),
+            textAlign: TextAlign.left,
+          ),
+        if (showDateOption)
+          SizedBox(
+            height: Util.isDesktop ? 16 : 8,
+          ),
+        if (showDateOption)
+          RestoreFromDatePicker(
+            onTap: widget.dateChooserFunction,
+            controller: widget.dateController,
+          ),
+        if (showDateOption)
+          const SizedBox(
+            height: 8,
+          ),
+        if (showDateOption)
+          RoundedWhiteContainer(
+            child: Center(
+              child: Text(
+                "Choose the date you made the wallet (approximate is fine)",
+                style: Util.isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
+                      )
+                    : STextStyles.smallMed12(context).copyWith(
+                        fontSize: 10,
+                      ),
+              ),
+            ),
+          ),
+        if (showDateOption)
+          SizedBox(
+            height: Util.isDesktop ? 24 : 16,
+          ),
+      ],
     );
   }
 }
