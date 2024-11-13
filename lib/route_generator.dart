@@ -23,6 +23,7 @@ import 'models/isar/models/contact_entry.dart';
 import 'models/isar/models/isar_models.dart';
 import 'models/isar/ordinal.dart';
 import 'models/keys/key_data_interface.dart';
+import 'models/keys/view_only_wallet_data.dart';
 import 'models/paynym/paynym_account_lite.dart';
 import 'models/send_view_auto_fill_data.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
@@ -205,7 +206,6 @@ import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'wallets/models/tx_data.dart';
 import 'wallets/wallet/wallet.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
-import 'wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import 'widgets/choose_coin_view.dart';
 import 'widgets/frost_scaffold.dart';
 

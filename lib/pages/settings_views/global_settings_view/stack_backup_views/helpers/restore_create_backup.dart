@@ -27,6 +27,7 @@ import '../../../../../models/exchange/change_now/exchange_transaction.dart';
 import '../../../../../models/exchange/response_objects/trade.dart';
 import '../../../../../models/isar/models/contact_entry.dart';
 import '../../../../../models/isar/models/transaction_note.dart';
+import '../../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../../models/node_model.dart';
 import '../../../../../models/stack_restoring_ui_state.dart';
 import '../../../../../models/trade_wallet_lookup.dart';
@@ -58,6 +59,7 @@ import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 
 class PreRestoreState {
   final Set<String> walletIds;
@@ -312,7 +314,10 @@ abstract class SWB {
         backupWallet['isFavorite'] = wallet.info.isFavourite;
         backupWallet['otherDataJsonString'] = wallet.info.otherDataJsonString;
 
-        if (wallet is MnemonicInterface) {
+        if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+          backupWallet['viewOnlyWalletDataKey'] =
+              (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
+        } else if (wallet is MnemonicInterface) {
           backupWallet['mnemonic'] = await wallet.getMnemonic();
           backupWallet['mnemonicPassphrase'] =
               await wallet.getMnemonicPassphrase();
@@ -419,7 +424,16 @@ abstract class SWB {
 
     String? mnemonic, mnemonicPassphrase, privateKey;
 
-    if (walletbackup['mnemonic'] == null) {
+    ViewOnlyWalletData? viewOnlyData;
+    if (info.isViewOnly) {
+      final viewOnlyDataEncoded =
+          walletbackup['viewOnlyWalletDataKey'] as String;
+
+      viewOnlyData = ViewOnlyWalletData.fromJsonEncodedString(
+        viewOnlyDataEncoded,
+        walletId: info.walletId,
+      );
+    } else if (walletbackup['mnemonic'] == null) {
       // probably private key based
       if (walletbackup['privateKey'] != null) {
         privateKey = walletbackup['privateKey'] as String;
@@ -486,6 +500,7 @@ abstract class SWB {
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
         privateKey: privateKey,
+        viewOnlyData: viewOnlyData,
       );
 
       if (wallet is MoneroWallet /*|| wallet is WowneroWallet doesn't work.*/) {

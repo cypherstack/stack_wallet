@@ -92,7 +92,7 @@ class Wownero extends CryptonoteCurrency {
   bool get hasMnemonicPassphraseSupport => false;
 
   @override
-  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 25];
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 16, 25];
 
   @override
   BigInt get satsPerCoin => BigInt.from(100000000000);

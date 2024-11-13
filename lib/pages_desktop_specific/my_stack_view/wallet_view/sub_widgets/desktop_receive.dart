@@ -19,6 +19,7 @@ import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../../models/isar/models/isar_models.dart';
+import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import '../../../../providers/db/main_db_provider.dart';
@@ -40,6 +41,7 @@ import '../../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_loading_overlay.dart';
@@ -185,10 +187,15 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     clipboard = widget.clipboard;
     final wallet = ref.read(pWallets).getWallet(walletId);
     supportsSpark = ref.read(pWallets).getWallet(walletId) is SparkInterface;
-    showMultiType = supportsSpark ||
-        (wallet is! BCashInterface &&
-            wallet is Bip39HDWallet &&
-            wallet.supportedAddressTypes.length > 1);
+
+    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+      showMultiType = false;
+    } else {
+      showMultiType = supportsSpark ||
+          (wallet is! BCashInterface &&
+              wallet is Bip39HDWallet &&
+              wallet.supportedAddressTypes.length > 1);
+    }
 
     _walletAddressTypes.add(wallet.info.mainAddressType);
 
@@ -257,6 +264,18 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       address = _addressMap[_walletAddressTypes[_currentIndex]]!;
     } else {
       address = ref.watch(pWalletReceivingAddress(walletId));
+    }
+
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
+
+    final bool canGen;
+    if (wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
+      canGen = false;
+    } else {
+      canGen = (wallet is MultiAddressInterface || supportsSpark);
     }
 
     return Column(
@@ -430,16 +449,12 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           ),
         ),
 
-        if (ref.watch(pWallets.select((value) => value.getWallet(walletId)))
-                is MultiAddressInterface ||
-            supportsSpark)
+        if (canGen)
           const SizedBox(
             height: 20,
           ),
 
-        if (ref.watch(pWallets.select((value) => value.getWallet(walletId)))
-                is MultiAddressInterface ||
-            supportsSpark)
+        if (canGen)
           SecondaryButton(
             buttonHeight: ButtonHeight.l,
             onPressed: supportsSpark &&

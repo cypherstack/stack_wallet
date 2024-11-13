@@ -24,6 +24,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/interfaces/view_only_option_currency_interface.dart';
+import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
@@ -656,7 +657,7 @@ class ViewOnlyRestoreOption extends StatefulWidget {
 class _ViewOnlyRestoreOptionState extends State<ViewOnlyRestoreOption> {
   @override
   Widget build(BuildContext context) {
-    final showDateOption = widget.coin is ViewOnlyOptionCurrencyInterface;
+    final showDateOption = widget.coin is CryptonoteCurrency;
     return Column(
       children: [
         if (showDateOption)

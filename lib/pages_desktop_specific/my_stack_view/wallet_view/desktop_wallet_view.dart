@@ -21,6 +21,7 @@ import 'package:isar/isar.dart';
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import '../../../pages/token_view/my_tokens_view.dart';
 import '../../../pages/wallet_view/sub_widgets/transactions_list.dart';
@@ -44,6 +45,7 @@ import '../../../utilities/wallet_tools.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -168,6 +170,11 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 
     final monke = wallet is BananoWallet ? wallet.getMonkeyImageBytes() : null;
 
+    // if the view only wallet watches a single address there are no keys of any kind
+    final showKeysButton = !(wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly);
+
     return DesktopScaffold(
       appBar: DesktopAppBar(
         background: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -216,6 +223,19 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   ),
                 ),
               ),
+              if (ref.watch(pWalletInfo(widget.walletId)).isViewOnly)
+                const SizedBox(
+                  width: 20,
+                ),
+              if (ref.watch(pWalletInfo(widget.walletId)).isViewOnly)
+                Text(
+                  "(View only)",
+                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldActiveSearchIconLeft,
+                  ),
+                ),
               if (kDebugMode) const Spacer(),
               if (kDebugMode)
                 Column(
@@ -312,12 +332,14 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     walletId: widget.walletId,
                     eventBus: eventBus,
                   ),
-                  const SizedBox(
-                    width: 2,
-                  ),
-                  WalletKeysButton(
-                    walletId: widget.walletId,
-                  ),
+                  if (showKeysButton)
+                    const SizedBox(
+                      width: 2,
+                    ),
+                  if (showKeysButton)
+                    WalletKeysButton(
+                      walletId: widget.walletId,
+                    ),
                   const SizedBox(
                     width: 2,
                   ),

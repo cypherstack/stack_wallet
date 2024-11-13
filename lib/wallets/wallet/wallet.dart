@@ -7,6 +7,7 @@ import 'package:mutex/mutex.dart';
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/keys/view_only_wallet_data.dart';
 import '../../models/node_model.dart';
 import '../../models/paymint/fee_object_model.dart';
 import '../../services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -161,7 +162,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
-    if (wallet is ViewOnlyOptionInterface) {
+    if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
       await secureStorageInterface.write(
         key: getViewOnlyWalletDataSecStoreKey(walletId: walletInfo.walletId),
         value: viewOnlyData!.toJsonEncodedString(),
@@ -583,6 +584,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       if (!tAlive) throw Exception("refresh alive ping failure");
     }
 
+    final viewOnly = this is ViewOnlyOptionInterface &&
+        (this as ViewOnlyOptionInterface).isViewOnly;
+
     try {
       // this acquire should be almost instant due to above check.
       // Slight possibility of race but should be irrelevant
@@ -607,7 +611,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
       _checkAlive();
-      if (this is PaynymInterface) {
+      if (this is PaynymInterface && !viewOnly) {
         // isSegwit does not matter here at all
         final myCode =
             await (this as PaynymInterface).getPaymentCode(isSegwit: false);
@@ -654,8 +658,10 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
-        await (this as MultiAddressInterface)
-            .checkChangeAddressForTransactions();
+        if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+          await (this as MultiAddressInterface)
+              .checkChangeAddressForTransactions();
+        }
       }
       _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
@@ -681,7 +687,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       await fetchFuture;
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (this is PaynymInterface && codesToCheck.isNotEmpty) {
+      if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
         _checkAlive();
         await (this as PaynymInterface)
             .checkForNotificationTransactionsTo(codesToCheck);

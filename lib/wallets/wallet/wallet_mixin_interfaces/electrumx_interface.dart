@@ -13,6 +13,7 @@ import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../models/signing_data.dart';
 import '../../../utilities/amount/amount.dart';
@@ -32,9 +33,10 @@ import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
 import 'paynym_interface.dart';
 import 'rbf_interface.dart';
+import 'view_only_option_interface.dart';
 
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
-    on Bip39HDWallet<T> {
+    on Bip39HDWallet<T> implements ViewOnlyOptionInterface<T> {
   late ElectrumXClient electrumXClient;
   late CachedElectrumXClient electrumXCachedClient;
 
@@ -137,7 +139,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               (e.used != true) &&
               (canCPFP ||
                   e.isConfirmed(
-                      currentChainHeight, cryptoCurrency.minConfirms)),
+                    currentChainHeight,
+                    cryptoCurrency.minConfirms,
+                  )),
         )
         .toList();
     final spendableSatoshiValue =
@@ -944,7 +948,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   Future<({List<Address> addresses, int index})> checkGapsBatched(
     int txCountBatchSize,
-    coinlib.HDPrivateKey root,
+    coinlib.HDKey node,
     DerivePathType type,
     int chain,
   ) async {
@@ -969,7 +973,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           index: index + j,
         );
 
-        final keys = root.derivePath(derivePath);
+        final coinlib.HDKey keys;
+        if (isViewOnly) {
+          final idx = derivePath.lastIndexOf("'/");
+          final path = derivePath.substring(idx + 2);
+          keys = node.derivePath(path);
+        } else {
+          keys = node.derivePath(derivePath);
+        }
 
         final addressData = cryptoCurrency.getAddressForPublicKey(
           publicKey: keys.publicKey,
@@ -986,7 +997,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           publicKey: keys.publicKey.data,
           type: addressData.addressType,
           derivationIndex: index + j,
-          derivationPath: DerivationPath()..value = derivePath,
+          derivationPath:
+              isViewOnly ? null : (DerivationPath()..value = derivePath),
           subType:
               chain == 0 ? AddressSubType.receiving : AddressSubType.change,
         );
@@ -1025,13 +1037,14 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<({List<Address> addresses, int index})> checkGapsLinearly(
-    coinlib.HDPrivateKey root,
+    coinlib.HDKey node,
     DerivePathType type,
     int chain,
   ) async {
     final List<Address> addressArray = [];
     int gapCounter = 0;
     int index = 0;
+
     for (; gapCounter < cryptoCurrency.maxUnusedAddressGap; index++) {
       Logging.instance.log(
         "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
@@ -1043,7 +1056,16 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         chain: chain,
         index: index,
       );
-      final keys = root.derivePath(derivePath);
+
+      final coinlib.HDKey keys;
+      if (isViewOnly) {
+        final idx = derivePath.lastIndexOf("'/");
+        final path = derivePath.substring(idx + 2);
+        keys = node.derivePath(path);
+      } else {
+        keys = node.derivePath(derivePath);
+      }
+
       final addressData = cryptoCurrency.getAddressForPublicKey(
         publicKey: keys.publicKey,
         derivePathType: type,
@@ -1059,7 +1081,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         publicKey: keys.publicKey.data,
         type: addressData.addressType,
         derivationIndex: index,
-        derivationPath: DerivationPath()..value = derivePath,
+        derivationPath:
+            isViewOnly ? null : (DerivationPath()..value = derivePath),
         subType: chain == 0 ? AddressSubType.receiving : AddressSubType.change,
       );
 
@@ -1331,6 +1354,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> checkReceivingAddressForTransactions() async {
+    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) {
+      return;
+    }
+
     if (info.otherData[WalletInfoKeys.reuseAddress] == true) {
       try {
         throw Exception();
@@ -1382,6 +1409,21 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> checkChangeAddressForTransactions() async {
+    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) {
+      return;
+    }
+
+    if (info.otherData[WalletInfoKeys.reuseAddress] == true) {
+      try {
+        throw Exception();
+      } catch (_, s) {
+        Logging.instance.log(
+          "checkChangeAddressForTransactions called but reuse address flag set: $s",
+          level: LogLevel.Error,
+        );
+      }
+    }
+
     try {
       final currentChange = await getCurrentChangeAddress();
 
@@ -1419,6 +1461,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> recover({required bool isRescan}) async {
+    if (isViewOnly) {
+      await recoverViewOnly(isRescan: isRescan);
+      return;
+    }
+
     final root = await getRootHDNode();
 
     final List<Future<({int index, List<Address> addresses})>> receiveFutures =
@@ -1916,6 +1963,220 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   // lolcashaddrs
   String normalizeAddress(String address) {
     return address;
+  }
+
+  // ============== View only ==================================================
+
+  @override
+  Future<void> recoverViewOnly({bool isRescan = false}) async {
+    final data = await getViewOnlyWalletData();
+
+    final coinlib.HDKey? root;
+    if (data is AddressViewOnlyWalletData) {
+      root = null;
+    } else {
+      if ((data as ExtendedKeysViewOnlyWalletData).xPubs.length != 1) {
+        throw Exception(
+          "Only single xpub view only wallets are currently supported",
+        );
+      }
+
+      root = coinlib.HDPublicKey.decode(data.xPubs.first.encoded);
+    }
+
+    final List<Future<({int index, List<Address> addresses})>> receiveFutures =
+        [];
+    final List<Future<({int index, List<Address> addresses})>> changeFutures =
+        [];
+
+    const receiveChain = 0;
+    const changeChain = 1;
+
+    const txCountBatchSize = 12;
+
+    try {
+      await refreshMutex.protect(() async {
+        if (isRescan) {
+          // clear cache
+          await electrumXCachedClient.clearSharedTransactionCache(
+            cryptoCurrency: info.coin,
+          );
+          // clear blockchain info
+          await mainDB.deleteWalletBlockchainData(walletId);
+        }
+
+        final List<Address> addressesToStore = [];
+
+        if (root != null) {
+          // receiving addresses
+          Logging.instance.log(
+            "checking receiving addresses...",
+            level: LogLevel.Info,
+          );
+
+          final canBatch = await serverCanBatch;
+
+          for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+            final path = cryptoCurrency.constructDerivePath(
+              derivePathType: type,
+              chain: 0,
+              index: 0,
+            );
+            if (path.startsWith(
+              (data as ExtendedKeysViewOnlyWalletData).xPubs.first.path,
+            )) {
+              receiveFutures.add(
+                canBatch
+                    ? checkGapsBatched(
+                        txCountBatchSize,
+                        root,
+                        type,
+                        receiveChain,
+                      )
+                    : checkGapsLinearly(
+                        root,
+                        type,
+                        receiveChain,
+                      ),
+              );
+            }
+          }
+
+          // change addresses
+          Logging.instance.log(
+            "checking change addresses...",
+            level: LogLevel.Info,
+          );
+          for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+            final path = cryptoCurrency.constructDerivePath(
+              derivePathType: type,
+              chain: 0,
+              index: 0,
+            );
+            if (path.startsWith(
+              (data as ExtendedKeysViewOnlyWalletData).xPubs.first.path,
+            )) {
+              changeFutures.add(
+                canBatch
+                    ? checkGapsBatched(
+                        txCountBatchSize,
+                        root,
+                        type,
+                        changeChain,
+                      )
+                    : checkGapsLinearly(
+                        root,
+                        type,
+                        changeChain,
+                      ),
+              );
+            }
+          }
+
+          // io limitations may require running these linearly instead
+          final futuresResult = await Future.wait([
+            Future.wait(receiveFutures),
+            Future.wait(changeFutures),
+          ]);
+
+          final receiveResults = futuresResult[0];
+          final changeResults = futuresResult[1];
+
+          int highestReceivingIndexWithHistory = 0;
+
+          for (final tuple in receiveResults) {
+            if (tuple.addresses.isEmpty) {
+              await checkReceivingAddressForTransactions();
+            } else {
+              highestReceivingIndexWithHistory = max(
+                tuple.index,
+                highestReceivingIndexWithHistory,
+              );
+              addressesToStore.addAll(tuple.addresses);
+            }
+          }
+
+          int highestChangeIndexWithHistory = 0;
+          // If restoring a wallet that never sent any funds with change, then set changeArray
+          // manually. If we didn't do this, it'd store an empty array.
+          for (final tuple in changeResults) {
+            if (tuple.addresses.isEmpty) {
+              await checkChangeAddressForTransactions();
+            } else {
+              highestChangeIndexWithHistory = max(
+                tuple.index,
+                highestChangeIndexWithHistory,
+              );
+              addressesToStore.addAll(tuple.addresses);
+            }
+          }
+
+          // remove extra addresses to help minimize risk of creating a large gap
+          addressesToStore.removeWhere(
+            (e) =>
+                e.subType == AddressSubType.change &&
+                e.derivationIndex > highestChangeIndexWithHistory,
+          );
+          addressesToStore.removeWhere(
+            (e) =>
+                e.subType == AddressSubType.receiving &&
+                e.derivationIndex > highestReceivingIndexWithHistory,
+          );
+        } else {
+          final clAddress = coinlib.Address.fromString(
+            (data as AddressViewOnlyWalletData).address,
+            cryptoCurrency.networkParams,
+          );
+
+          final AddressType addressType;
+          switch (clAddress.runtimeType) {
+            case const (coinlib.P2PKHAddress):
+              addressType = AddressType.p2pkh;
+              break;
+
+            case const (coinlib.P2SHAddress):
+              addressType = AddressType.p2sh;
+              break;
+
+            case const (coinlib.P2WPKHAddress):
+              addressType = AddressType.p2wpkh;
+              break;
+
+            case const (coinlib.P2TRAddress):
+              addressType = AddressType.p2tr;
+              break;
+
+            default:
+              throw Exception(
+                "Unsupported address type: ${clAddress.runtimeType}",
+              );
+          }
+
+          addressesToStore.add(
+            Address(
+              walletId: walletId,
+              value: clAddress.toString(),
+              publicKey: [],
+              derivationIndex: -1,
+              derivationPath: null,
+              type: addressType,
+              subType: AddressSubType.receiving,
+            ),
+          );
+        }
+
+        await mainDB.updateOrPutAddresses(addressesToStore);
+      });
+
+      unawaited(refresh());
+    } catch (e, s) {
+      Logging.instance.log(
+        "Exception rethrown from electrumx_mixin recoverViewOnly(): $e\n$s",
+        level: LogLevel.Info,
+      );
+
+      rethrow;
+    }
   }
 
   // ===========================================================================

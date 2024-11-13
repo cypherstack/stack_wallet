@@ -14,6 +14,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../app_config.dart';
 import '../../../../../db/sqlite/firo_cache.dart';
+import '../../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/wallets_provider.dart';
@@ -240,6 +241,9 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     );
 
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+    final isViewOnlyNoAddressGen = wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
 
     return DesktopDialog(
       child: Column(
@@ -386,40 +390,41 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               ),
             ),
           // reuseAddress preference.
-          _MoreFeaturesItemBase(
-            onPressed: _switchReuseAddressToggled,
-            child: Row(
-              children: [
-                const SizedBox(width: 3),
-                SizedBox(
-                  height: 20,
-                  width: 40,
-                  child: IgnorePointer(
-                    child: DraggableSwitchButton(
-                      isOn: ref.watch(
-                            pWalletInfo(widget.walletId)
-                                .select((value) => value.otherData),
-                          )[WalletInfoKeys.reuseAddress] as bool? ??
-                          false,
-                      controller: _switchController,
+          if (!isViewOnlyNoAddressGen)
+            _MoreFeaturesItemBase(
+              onPressed: _switchReuseAddressToggled,
+              child: Row(
+                children: [
+                  const SizedBox(width: 3),
+                  SizedBox(
+                    height: 20,
+                    width: 40,
+                    child: IgnorePointer(
+                      child: DraggableSwitchButton(
+                        isOn: ref.watch(
+                              pWalletInfo(widget.walletId)
+                                  .select((value) => value.otherData),
+                            )[WalletInfoKeys.reuseAddress] as bool? ??
+                            false,
+                        controller: _switchController,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Reuse receiving address",
-                      style: STextStyles.w600_20(context),
-                    ),
-                  ],
-                ),
-              ],
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Reuse receiving address",
+                        style: STextStyles.w600_20(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(
             height: 28,
           ),

@@ -4,32 +4,41 @@ import 'dart:io';
 
 import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
     as cs_monero_deprecated;
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
 import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
+import '../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/toggle.dart';
 import '../../home_view/home_view.dart';
 import 'confirm_recovery_dialog.dart';
 import 'sub_widgets/restore_failed_dialog.dart';
@@ -66,7 +75,10 @@ class _RestoreViewOnlyWalletViewState
   late final TextEditingController addressController;
   late final TextEditingController viewKeyController;
 
+  late String _currentDropDownValue;
+
   bool _enableRestoreButton = false;
+  bool _addressOnly = false;
 
   bool _buttonLock = false;
 
@@ -106,30 +118,43 @@ class _RestoreViewOnlyWalletViewState
       WalletInfoKeys.isViewOnlyKey: true,
     };
 
-    if (widget.restoreFromDate != null) {
-      if (widget.coin is Monero) {
-        height = cs_monero_deprecated.getMoneroHeightByDate(
-          date: widget.restoreFromDate!,
+    final ViewOnlyWalletType viewOnlyWalletType;
+    if (widget.coin is Bip39HDCurrency) {
+      if (widget.coin is Firo) {
+        otherDataJson.addAll(
+          {
+            WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
+            WalletInfoKeys.enableLelantusScanning:
+                widget.enableLelantusScanning,
+          },
         );
       }
-      if (widget.coin is Wownero) {
-        height = cs_monero_deprecated.getWowneroHeightByDate(
-          date: widget.restoreFromDate!,
-        );
+      viewOnlyWalletType = _addressOnly
+          ? ViewOnlyWalletType.addressOnly
+          : ViewOnlyWalletType.xPub;
+    } else if (widget.coin is CryptonoteCurrency) {
+      if (widget.restoreFromDate != null) {
+        if (widget.coin is Monero) {
+          height = cs_monero_deprecated.getMoneroHeightByDate(
+            date: widget.restoreFromDate!,
+          );
+        }
+        if (widget.coin is Wownero) {
+          height = cs_monero_deprecated.getWowneroHeightByDate(
+            date: widget.restoreFromDate!,
+          );
+        }
+        if (height < 0) height = 0;
       }
-      if (height < 0) {
-        height = 0;
-      }
-    }
 
-    if (widget.coin is Firo) {
-      otherDataJson.addAll(
-        {
-          WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
-          WalletInfoKeys.enableLelantusScanning: widget.enableLelantusScanning,
-        },
+      viewOnlyWalletType = ViewOnlyWalletType.cryptonote;
+    } else {
+      throw Exception(
+        "Unsupported view only wallet currency type found: ${widget.coin.runtimeType}",
       );
     }
+    otherDataJson[WalletInfoKeys.viewOnlyTypeIndexKey] =
+        viewOnlyWalletType.index;
 
     if (!Platform.isLinux && !Util.isDesktop) await WakelockPlus.enable();
 
@@ -166,6 +191,43 @@ class _RestoreViewOnlyWalletViewState
         );
       }
 
+      final ViewOnlyWalletData viewOnlyData;
+      switch (viewOnlyWalletType) {
+        case ViewOnlyWalletType.cryptonote:
+          if (addressController.text.isEmpty ||
+              viewKeyController.text.isEmpty) {
+            throw Exception("Missing address and/or private view key fields");
+          }
+          viewOnlyData = CryptonoteViewOnlyWalletData(
+            walletId: info.walletId,
+            address: addressController.text,
+            privateViewKey: viewKeyController.text,
+          );
+          break;
+
+        case ViewOnlyWalletType.addressOnly:
+          if (addressController.text.isEmpty) {
+            throw Exception("Address is empty");
+          }
+          viewOnlyData = AddressViewOnlyWalletData(
+            walletId: info.walletId,
+            address: addressController.text,
+          );
+          break;
+
+        case ViewOnlyWalletType.xPub:
+          viewOnlyData = ExtendedKeysViewOnlyWalletData(
+            walletId: info.walletId,
+            xPubs: [
+              XPub(
+                path: _currentDropDownValue,
+                encoded: viewKeyController.text,
+              ),
+            ],
+          );
+          break;
+      }
+
       var node = ref
           .read(nodeServiceChangeNotifierProvider)
           .getPrimaryNodeFor(currency: widget.coin);
@@ -185,10 +247,7 @@ class _RestoreViewOnlyWalletViewState
           secureStorageInterface: ref.read(secureStoreProvider),
           nodeService: ref.read(nodeServiceChangeNotifierProvider),
           prefs: ref.read(prefsChangeNotifierProvider),
-          viewOnlyData: ViewOnlyWalletData(
-            address: addressController.text,
-            privateViewKey: viewKeyController.text,
-          ),
+          viewOnlyData: viewOnlyData,
         );
 
         // TODO: extract interface with isRestore param
@@ -278,11 +337,27 @@ class _RestoreViewOnlyWalletViewState
     super.initState();
     addressController = TextEditingController();
     viewKeyController = TextEditingController();
+
+    if (widget.coin is Bip39HDCurrency) {
+      _currentDropDownValue = (widget.coin as Bip39HDCurrency)
+          .supportedHardenedDerivationPaths
+          .last;
+    }
+  }
+
+  @override
+  void dispose() {
+    addressController.dispose();
+    viewKeyController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
+
+    final isElectrumX = widget.coin is ElectrumXCurrencyInterface;
+
     return MasterScaffold(
       isDesktop: isDesktop,
       appBar: isDesktop
@@ -339,32 +414,156 @@ class _RestoreViewOnlyWalletViewState
                               ? STextStyles.desktopH2(context)
                               : STextStyles.pageTitleH1(context),
                         ),
+                        if (isElectrumX)
+                          SizedBox(
+                            height: isDesktop ? 24 : 16,
+                          ),
+                        if (isElectrumX)
+                          SizedBox(
+                            height: isDesktop ? 56 : 48,
+                            width: isDesktop ? 490 : null,
+                            child: Toggle(
+                              key: UniqueKey(),
+                              onText: "Extended pub key",
+                              offText: "Single address",
+                              onColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
+                              offColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultBG,
+                              isOn: _addressOnly,
+                              onValueChanged: (value) {
+                                setState(() {
+                                  _addressOnly = value;
+                                });
+                              },
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                              ),
+                            ),
+                          ),
                         SizedBox(
                           height: isDesktop ? 24 : 16,
                         ),
-                        FullTextField(
-                          label: "Address",
-                          controller: addressController,
-                          onChanged: (newValue) {
-                            setState(() {
-                              _enableRestoreButton = newValue.isNotEmpty &&
-                                  viewKeyController.text.isNotEmpty;
-                            });
-                          },
-                        ),
-                        SizedBox(
-                          height: isDesktop ? 16 : 12,
-                        ),
-                        FullTextField(
-                          label: "View Key",
-                          controller: viewKeyController,
-                          onChanged: (value) {
-                            setState(() {
-                              _enableRestoreButton = value.isNotEmpty &&
-                                  addressController.text.isNotEmpty;
-                            });
-                          },
-                        ),
+                        if (!isElectrumX || _addressOnly)
+                          FullTextField(
+                            key: const Key("viewOnlyAddressRestoreFieldKey"),
+                            label: "Address",
+                            controller: addressController,
+                            onChanged: (newValue) {
+                              if (isElectrumX) {
+                                viewKeyController.text = "";
+                                setState(() {
+                                  _enableRestoreButton = newValue.isNotEmpty;
+                                });
+                              } else {
+                                setState(() {
+                                  _enableRestoreButton = newValue.isNotEmpty &&
+                                      viewKeyController.text.isNotEmpty;
+                                });
+                              }
+                            },
+                          ),
+                        if (!isElectrumX)
+                          SizedBox(
+                            height: isDesktop ? 16 : 12,
+                          ),
+                        if (isElectrumX && !_addressOnly)
+                          DropdownButtonHideUnderline(
+                            child: DropdownButton2<String>(
+                              value: _currentDropDownValue,
+                              items: [
+                                ...(widget.coin as Bip39HDCurrency)
+                                    .supportedHardenedDerivationPaths
+                                    .map(
+                                      (e) => DropdownMenuItem(
+                                        value: e,
+                                        child: Text(
+                                          e,
+                                          style: STextStyles.w500_14(context),
+                                        ),
+                                      ),
+                                    ),
+                              ],
+                              onChanged: (value) {
+                                if (value is String) {
+                                  setState(() {
+                                    _currentDropDownValue = value;
+                                  });
+                                }
+                              },
+                              isExpanded: true,
+                              buttonStyleData: ButtonStyleData(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
+                                ),
+                              ),
+                              iconStyleData: IconStyleData(
+                                icon: Padding(
+                                  padding: const EdgeInsets.only(right: 10),
+                                  child: SvgPicture.asset(
+                                    Assets.svg.chevronDown,
+                                    width: 12,
+                                    height: 6,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveSearchIconRight,
+                                  ),
+                                ),
+                              ),
+                              dropdownStyleData: DropdownStyleData(
+                                offset: const Offset(0, -10),
+                                elevation: 0,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
+                                  borderRadius: BorderRadius.circular(
+                                    Constants.size.circularBorderRadius,
+                                  ),
+                                ),
+                              ),
+                              menuItemStyleData: const MenuItemStyleData(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (isElectrumX && !_addressOnly)
+                          SizedBox(
+                            height: isDesktop ? 16 : 12,
+                          ),
+                        if (!isElectrumX || !_addressOnly)
+                          FullTextField(
+                            key: const Key("viewOnlyKeyRestoreFieldKey"),
+                            label:
+                                "${isElectrumX ? "Extended" : "Private View"} Key",
+                            controller: viewKeyController,
+                            onChanged: (value) {
+                              if (isElectrumX) {
+                                addressController.text = "";
+                                setState(() {
+                                  _enableRestoreButton = value.isNotEmpty;
+                                });
+                              } else {
+                                setState(() {
+                                  _enableRestoreButton = value.isNotEmpty &&
+                                      addressController.text.isNotEmpty;
+                                });
+                              }
+                            },
+                          ),
                         if (!isDesktop) const Spacer(),
                         SizedBox(
                           height: isDesktop ? 24 : 16,

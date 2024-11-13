@@ -186,6 +186,21 @@ class WalletSummaryInfo extends ConsumerWidget {
                   ),
                 ),
                 const Spacer(),
+                if (ref.watch(pWalletInfo(walletId)).isViewOnly)
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: SelectableText(
+                      "(View only)",
+                      style: STextStyles.pageTitleH1(context).copyWith(
+                        fontSize: 18,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFavoriteCard
+                            .withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                const Spacer(),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: SelectableText(

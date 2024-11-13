@@ -18,6 +18,7 @@ import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/keys/cw_key_data.dart';
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
@@ -41,7 +42,8 @@ import 'cryptonote_wallet.dart';
 
 abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     extends CryptonoteWallet<T>
-    implements MultiAddressInterface<T>, ViewOnlyOptionInterface<T> {
+    with ViewOnlyOptionInterface<T>
+    implements MultiAddressInterface<T> {
   @override
   int get isarTransactionVersion => 2;
 
@@ -91,8 +93,16 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           .walletIdEqualTo(walletId)
           .watch(fireImmediately: true)
           .listen((utxos) async {
-        await onUTXOsChanged(utxos);
-        await updateBalance(shouldUpdateUtxos: false);
+        try {
+          await onUTXOsChanged(utxos);
+          await updateBalance(shouldUpdateUtxos: false);
+        } catch (e, s) {
+          lib_monero.Logging.log?.i(
+            "_startInit",
+            error: e,
+            stackTrace: s,
+          );
+        }
       });
     });
   }
@@ -284,6 +294,22 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       publicSpendKey: base.getPublicSpendKey(),
       privateSpendKey: base.getPrivateSpendKey(),
     );
+  }
+
+  Future<(String, String)>
+      hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing() async {
+    final path = await pathForWallet(name: walletId, type: compatType);
+    final String password;
+    try {
+      password = (await secureStorageInterface.read(
+        key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+      ))!;
+    } catch (e, s) {
+      throw Exception("Password not found $e, $s");
+    }
+    loadWallet(path: path, password: password);
+    final wallet = libMoneroWallet!;
+    return (wallet.getAddress().value, wallet.getPrivateViewKey());
   }
 
   @override
@@ -1302,18 +1328,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   // ============== View only ==================================================
 
   @override
-  bool get isViewOnly => info.isViewOnly;
-
-  @override
   Future<void> recoverViewOnly() async {
     await refreshMutex.protect(() async {
-      final jsonEncodedString = await secureStorageInterface.read(
-        key: Wallet.getViewOnlyWalletDataSecStoreKey(
-          walletId: walletId,
-        ),
-      );
-
-      final data = ViewOnlyWalletData.fromJsonEncodedString(jsonEncodedString!);
+      final data =
+          await getViewOnlyWalletData() as CryptonoteViewOnlyWalletData;
 
       try {
         final height = max(info.restoreHeight, 0);
@@ -1338,8 +1356,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         final wallet = await getRestoredFromViewKeyWallet(
           path: path,
           password: password,
-          address: data.address!,
-          privateViewKey: data.privateViewKey!,
+          address: data.address,
+          privateViewKey: data.privateViewKey,
           height: height,
         );
 
@@ -1385,14 +1403,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         rethrow;
       }
     });
-  }
-
-  @override
-  Future<ViewOnlyWalletData> getViewOnlyWalletData() async {
-    return ViewOnlyWalletData(
-      address: libMoneroWallet!.getAddress().value,
-      privateViewKey: libMoneroWallet!.getPrivateViewKey(),
-    );
   }
 
   // ============== Private ====================================================
