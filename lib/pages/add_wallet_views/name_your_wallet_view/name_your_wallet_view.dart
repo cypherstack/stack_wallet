@@ -25,6 +25,7 @@ import '../../../utilities/name_generator.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/crypto_currency/interfaces/view_only_option_currency_interface.dart';
 import '../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../widgets/background.dart';
@@ -104,7 +105,9 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           case AddWalletType.New:
             unawaited(
               Navigator.of(context).pushNamed(
-                coin.hasMnemonicPassphraseSupport
+                coin.possibleMnemonicLengths.length > 1 ||
+                        coin.hasMnemonicPassphraseSupport ||
+                        coin is ViewOnlyOptionCurrencyInterface
                     ? NewWalletOptionsView.routeName
                     : NewWalletRecoveryPhraseWarningView.routeName,
                 arguments: Tuple2(

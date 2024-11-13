@@ -582,7 +582,12 @@ class _NewWalletRecoveryPhraseWarningViewState
                                                       )
                                                       .state!
                                                       .mnemonicPassphrase;
-                                                } else {}
+                                                } else {
+                                                  // this may not be epiccash specific?
+                                                  if (coin is Epiccash) {
+                                                    mnemonicPassphrase = "";
+                                                  }
+                                                }
 
                                                 wordCount = ref
                                                     .read(

@@ -83,7 +83,9 @@ class _UnlockWalletKeysDesktopState
         .verifyPassphrase(passwordController.text);
 
     if (verified) {
-      Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
 
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
       ({String keys, String config})? frostData;
@@ -101,7 +103,8 @@ class _UnlockWalletKeysDesktopState
           throw Exception("FIXME ~= see todo in code");
         }
       } else {
-        if (wallet is ViewOnlyOptionInterface) {
+        if (wallet is ViewOnlyOptionInterface &&
+            (wallet as ViewOnlyOptionInterface).isViewOnly) {
           // TODO: is something needed here?
         } else {
           words = await wallet.getMnemonicAsWords();
@@ -109,7 +112,9 @@ class _UnlockWalletKeysDesktopState
       }
 
       KeyDataInterface? keyData;
-      if (wallet is ExtendedKeysInterface) {
+      if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+        keyData = await wallet.getViewOnlyWalletData();
+      } else if (wallet is ExtendedKeysInterface) {
         keyData = await wallet.getXPrivs();
       } else if (wallet is LibMoneroWallet) {
         keyData = await wallet.getKeys();
@@ -127,17 +132,20 @@ class _UnlockWalletKeysDesktopState
         );
       }
     } else {
-      Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
 
       await Future<void>.delayed(const Duration(milliseconds: 300));
-
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Invalid passphrase!",
-          context: context,
-        ),
-      );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Invalid passphrase!",
+            context: context,
+          ),
+        );
+      }
     }
   }
 
@@ -332,7 +340,10 @@ class _UnlockWalletKeysDesktopState
                                 .verifyPassphrase(passwordController.text);
 
                             if (verified) {
-                              Navigator.of(context, rootNavigator: true).pop();
+                              if (context.mounted) {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+                              }
 
                               ({String keys, String config})? frostData;
                               List<String>? words;
@@ -352,7 +363,9 @@ class _UnlockWalletKeysDesktopState
                                   throw Exception("FIXME ~= see todo in code");
                                 }
                               } else {
-                                if (wallet is ViewOnlyOptionInterface) {
+                                if (wallet is ViewOnlyOptionInterface &&
+                                    (wallet as ViewOnlyOptionInterface)
+                                        .isViewOnly) {
                                   // TODO: is something needed here?
                                 } else {
                                   words = await wallet.getMnemonicAsWords();
@@ -360,7 +373,10 @@ class _UnlockWalletKeysDesktopState
                               }
 
                               KeyDataInterface? keyData;
-                              if (wallet is ExtendedKeysInterface) {
+                              if (wallet is ViewOnlyOptionInterface &&
+                                  wallet.isViewOnly) {
+                                keyData = await wallet.getViewOnlyWalletData();
+                              } else if (wallet is ExtendedKeysInterface) {
                                 keyData = await wallet.getXPrivs();
                               } else if (wallet is LibMoneroWallet) {
                                 keyData = await wallet.getKeys();
@@ -379,19 +395,23 @@ class _UnlockWalletKeysDesktopState
                                 );
                               }
                             } else {
-                              Navigator.of(context, rootNavigator: true).pop();
+                              if (context.mounted) {
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop();
+                              }
 
                               await Future<void>.delayed(
                                 const Duration(milliseconds: 300),
                               );
-
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: "Invalid passphrase!",
-                                  context: context,
-                                ),
-                              );
+                              if (context.mounted) {
+                                unawaited(
+                                  showFloatingFlushBar(
+                                    type: FlushBarType.warning,
+                                    message: "Invalid passphrase!",
+                                    context: context,
+                                  ),
+                                );
+                              }
                             }
                           }
                         : null,

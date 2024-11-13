@@ -84,6 +84,9 @@ class Wallets {
       key: Wallet.mnemonicPassphraseKey(walletId: walletId),
     );
     await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
+    await secureStorage.delete(
+      key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
+    );
 
     if (info.coin is Wownero) {
       await lib_monero_compat.deleteWalletFiles(

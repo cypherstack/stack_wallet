@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
@@ -23,6 +24,7 @@ import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.da
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
@@ -133,6 +135,12 @@ class _WalletSettingsWalletSettingsViewState
 
   @override
   Widget build(BuildContext context) {
+    final wallet = ref.watch(pWallets).getWallet(widget.walletId);
+
+    final isViewOnlyNoAddressGen = wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -189,13 +197,11 @@ class _WalletSettingsWalletSettingsViewState
                     ),
                   ),
                 ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is RbfInterface)
+                if (wallet is RbfInterface)
                   const SizedBox(
                     height: 8,
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is RbfInterface)
+                if (wallet is RbfInterface)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
@@ -227,13 +233,11 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is MultiAddressInterface)
+                if (wallet is MultiAddressInterface && !isViewOnlyNoAddressGen)
                   const SizedBox(
                     height: 8,
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is MultiAddressInterface)
+                if (wallet is MultiAddressInterface && !isViewOnlyNoAddressGen)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
@@ -278,13 +282,11 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is LelantusInterface)
+                if (wallet is LelantusInterface)
                   const SizedBox(
                     height: 8,
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is LelantusInterface)
+                if (wallet is LelantusInterface)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
@@ -316,13 +318,11 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is SparkInterface)
+                if (wallet is SparkInterface)
                   const SizedBox(
                     height: 8,
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is SparkInterface)
+                if (wallet is SparkInterface)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(

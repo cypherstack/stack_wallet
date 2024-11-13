@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+
 import '../isar_id_interface.dart';
 
 part 'wallet_info_meta.g.dart';

@@ -1,34 +1,27 @@
-import 'dart:convert';
-
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../crypto_currency/interfaces/view_only_option_currency_interface.dart';
 import '../wallet.dart';
 
-class ViewOnlyWalletData {
-  final String? address;
-  final String? privateViewKey;
-
-  ViewOnlyWalletData({required this.address, required this.privateViewKey});
-
-  factory ViewOnlyWalletData.fromJsonEncodedString(String jsonEncodedString) {
-    final map = jsonDecode(jsonEncodedString) as Map;
-    final json = Map<String, dynamic>.from(map);
-    return ViewOnlyWalletData(
-      address: json["address"] as String?,
-      privateViewKey: json["privateViewKey"] as String?,
-    );
-  }
-
-  String toJsonEncodedString() => jsonEncode({
-        "address": address,
-        "privateViewKey": privateViewKey,
-      });
-}
-
 mixin ViewOnlyOptionInterface<T extends ViewOnlyOptionCurrencyInterface>
     on Wallet<T> {
-  bool get isViewOnly;
+  ViewOnlyWalletType get viewOnlyType => info.viewOnlyWalletType!;
+
+  bool get isViewOnly => info.isViewOnly;
 
   Future<void> recoverViewOnly();
 
-  Future<ViewOnlyWalletData> getViewOnlyWalletData();
+  Future<ViewOnlyWalletData> getViewOnlyWalletData() async {
+    if (!isViewOnly) {
+      throw Exception("This is not a view only wallet");
+    }
+
+    final encoded = await secureStorageInterface.read(
+      key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
+    );
+
+    return ViewOnlyWalletData.fromJsonEncodedString(
+      encoded!,
+      walletId: walletId,
+    );
+  }
 }

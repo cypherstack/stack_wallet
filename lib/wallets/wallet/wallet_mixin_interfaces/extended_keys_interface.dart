@@ -2,35 +2,35 @@ import '../../../models/keys/xpriv_data.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'electrumx_interface.dart';
 
-typedef XPub = ({String path, String xpub});
-typedef XPriv = ({String path, String xpriv});
+abstract class XKey {
+  XKey({required this.path});
+  final String path;
+}
+
+class XPub extends XKey {
+  XPub({required super.path, required this.encoded});
+  final String encoded;
+}
+
+class XPriv extends XKey {
+  XPriv({required super.path, required this.encoded});
+  final String encoded;
+}
 
 mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
     on ElectrumXInterface<T> {
   Future<({List<XPub> xpubs, String fingerprint})> getXPubs() async {
-    final paths = cryptoCurrency.supportedDerivationPathTypes.map(
-      (e) => (
-        path: e,
-        addressType: e.getAddressType(),
-      ),
-    );
+    final paths = cryptoCurrency.supportedHardenedDerivationPaths;
 
     final master = await getRootHDNode();
     final fingerprint = master.fingerprint.toRadixString(16);
 
-    final futures = paths.map((e) async {
-      String path = cryptoCurrency.constructDerivePath(
-        derivePathType: e.path,
-        chain: 0,
-        index: 0,
-      );
-      // trim chain and address index
-      path = path.substring(0, path.lastIndexOf("'") + 1);
+    final futures = paths.map((path) async {
       final node = master.derivePath(path);
 
-      return (
+      return XPub(
         path: path,
-        xpub: node.hdPublicKey.encode(
+        encoded: node.hdPublicKey.encode(
           cryptoCurrency.networkParams.pubHDPrefix,
           // 0x04b24746,
         ),
@@ -44,29 +44,17 @@ mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<XPrivData> getXPrivs() async {
-    final paths = cryptoCurrency.supportedDerivationPathTypes.map(
-      (e) => (
-        path: e,
-        addressType: e.getAddressType(),
-      ),
-    );
+    final paths = cryptoCurrency.supportedHardenedDerivationPaths;
 
     final master = await getRootHDNode();
     final fingerprint = master.fingerprint.toRadixString(16);
 
-    final futures = paths.map((e) async {
-      String path = cryptoCurrency.constructDerivePath(
-        derivePathType: e.path,
-        chain: 0,
-        index: 0,
-      );
-      // trim chain and address index
-      path = path.substring(0, path.lastIndexOf("'") + 1);
+    final futures = paths.map((path) async {
       final node = master.derivePath(path);
 
-      return (
+      return XPriv(
         path: path,
-        xpriv: node.encode(
+        encoded: node.encode(
           cryptoCurrency.networkParams.privHDPrefix,
         ),
       );
@@ -76,9 +64,9 @@ mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
       walletId: walletId,
       fingerprint: fingerprint,
       xprivs: [
-        (
+        XPriv(
           path: "Master",
-          xpriv: master.encode(
+          encoded: master.encode(
             cryptoCurrency.networkParams.privHDPrefix,
           ),
         ),
