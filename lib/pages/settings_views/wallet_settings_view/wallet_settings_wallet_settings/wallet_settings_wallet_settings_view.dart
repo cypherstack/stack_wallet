@@ -282,11 +282,11 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (wallet is LelantusInterface)
+                if (wallet is LelantusInterface && !wallet.isViewOnly)
                   const SizedBox(
                     height: 8,
                   ),
-                if (wallet is LelantusInterface)
+                if (wallet is LelantusInterface && !wallet.isViewOnly)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
@@ -318,11 +318,11 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (wallet is SparkInterface)
+                if (wallet is SparkInterface && !wallet.isViewOnly)
                   const SizedBox(
                     height: 8,
                   ),
-                if (wallet is SparkInterface)
+                if (wallet is SparkInterface && !wallet.isViewOnly)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
@@ -369,7 +369,7 @@ class _WalletSettingsWalletSettingsViewState
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     padding: const EdgeInsets.all(0),
                     onPressed: () {
-                      showDialog(
+                      showDialog<void>(
                         barrierDismissible: true,
                         context: context,
                         builder: (_) => StackDialog(

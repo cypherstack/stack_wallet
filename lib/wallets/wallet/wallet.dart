@@ -665,7 +665,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       }
       _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
-      if (this is SparkInterface) {
+      if (this is SparkInterface && !viewOnly) {
         // this should be called before updateTransactions()
         await (this as SparkInterface).refreshSparkData();
       }
@@ -702,7 +702,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (this is LelantusInterface) {
+      if (this is LelantusInterface && !viewOnly) {
         if (info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
             false) {
           await (this as LelantusInterface).refreshLelantusData();

@@ -207,7 +207,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       // await firoWallet.anonymizeAllLelantus();
       await firoWallet.anonymizeAllSpark();
       shouldPop = true;
-      if (context.mounted) {
+      if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).popUntil(
           ModalRoute.withName(DesktopWalletView.routeName),
@@ -222,7 +222,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       }
     } catch (e) {
       shouldPop = true;
-      if (context.mounted) {
+      if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).popUntil(
           ModalRoute.withName(DesktopWalletView.routeName),
