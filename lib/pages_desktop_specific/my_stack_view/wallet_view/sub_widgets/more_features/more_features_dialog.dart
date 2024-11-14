@@ -321,11 +321,11 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.churn,
               onPressed: () async => widget.onChurnPressed?.call(),
             ),
-          if (wallet is SparkInterface)
+          if (wallet is SparkInterface && !isViewOnly)
             _MoreFeaturesClearSparkCacheItem(
               cryptoCurrency: wallet.cryptoCurrency,
             ),
-          if (wallet is LelantusInterface)
+          if (wallet is LelantusInterface && !isViewOnly)
             _MoreFeaturesItemBase(
               child: Row(
                 children: [

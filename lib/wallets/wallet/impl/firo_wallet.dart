@@ -659,6 +659,11 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   Future<void> recover({required bool isRescan}) async {
+    if (isViewOnly) {
+      await recoverViewOnly(isRescan: isRescan);
+      return;
+    }
+
     // reset last checked values
     await info.updateOtherData(
       newEntries: {

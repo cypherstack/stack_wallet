@@ -294,13 +294,14 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(pWalletCoin(walletId));
 
-    final firoDebug = kDebugMode && (coin is Firo);
+    bool firoDebug = kDebugMode && (coin is Firo);
 
     final wallet = ref.watch(pWallets).getWallet(walletId);
     bool xpubEnabled = wallet is ExtendedKeysInterface;
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       xpubEnabled = false;
+      firoDebug = false;
     }
 
     final bool canChangeRep = coin is NanoCurrency;
