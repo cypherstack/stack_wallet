@@ -13,10 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../models/paynym/paynym_account.dart';
-import 'dialogs/claiming_paynym_dialog.dart';
-import 'paynym_home_view.dart';
-import '../wallet_view/wallet_view.dart';
 import '../../providers/global/paynym_api_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../providers/wallet/my_paynym_account_state_provider.dart';
@@ -30,6 +28,9 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../wallet_view/wallet_view.dart';
+import 'dialogs/claiming_paynym_dialog.dart';
+import 'paynym_home_view.dart';
 
 class PaynymClaimView extends ConsumerStatefulWidget {
   const PaynymClaimView({
@@ -197,7 +198,7 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
 
                   if (shouldCancel) return;
 
-                  // attempt to create new entry in paynym.is db
+                  // attempt to create new entry in [PaynymIsApi.baseURL] db
                   final created = await ref
                       .read(paynymAPIProvider)
                       .create(pCode.toString());

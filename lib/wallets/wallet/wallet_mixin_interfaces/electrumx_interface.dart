@@ -1622,7 +1622,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             );
           } catch (e, s) {
             Logging.instance.log(
-              "Failed to check paynym.is followers/following for history during "
+              "Failed to check ${PaynymIsApi.baseURL} followers/following for history during "
               "bitcoin wallet ($walletId ${info.name}) "
               "_recoverWalletFromBIP32SeedPhrase: $e/n$s",
               level: LogLevel.Error,
