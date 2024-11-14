@@ -286,7 +286,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.coinControl.gamePad,
               onPressed: () async => widget.onCoinControlPressed?.call(),
             ),
-          if (wallet is PaynymInterface)
+          if (!isViewOnly && wallet is PaynymInterface)
             _MoreFeaturesItem(
               label: "PayNym",
               detail: "Increased address privacy using BIP47",

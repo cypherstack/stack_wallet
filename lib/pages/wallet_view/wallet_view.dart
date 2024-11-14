@@ -1138,7 +1138,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (wallet is PaynymInterface)
+                  if (!viewOnly && wallet is PaynymInterface)
                     WalletNavigationBarItemData(
                       label: "PayNym",
                       icon: const PaynymNavIcon(),
