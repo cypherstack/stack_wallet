@@ -201,11 +201,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               wallet.supportedAddressTypes.length > 1);
     }
 
-    _showMultiType = _supportsSpark ||
-        (wallet is! BCashInterface &&
-            wallet is Bip39HDWallet &&
-            wallet.supportedAddressTypes.length > 1);
-
     _walletAddressTypes.add(wallet.info.mainAddressType);
 
     if (_showMultiType) {
