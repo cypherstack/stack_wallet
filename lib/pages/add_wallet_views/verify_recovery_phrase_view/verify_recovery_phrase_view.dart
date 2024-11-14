@@ -188,6 +188,8 @@ class _VerifyRecoveryPhraseViewState
       final address = info.$1;
       final privateViewKey = info.$2;
 
+      await w.exit();
+
       viewOnlyData = CryptonoteViewOnlyWalletData(
         walletId: voInfo.walletId,
         address: address,
@@ -235,6 +237,8 @@ class _VerifyRecoveryPhraseViewState
       );
 
       ref.read(pWallets).addWallet(voWallet);
+
+      await voWallet.exit();
 
       await ref.read(pWallets).deleteWallet(
             widget.wallet.info,
