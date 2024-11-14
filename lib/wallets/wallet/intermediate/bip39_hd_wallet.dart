@@ -85,10 +85,17 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final index = current == null ? 0 : current.derivationIndex + 1;
     const chain = 0; // receiving address
 
+    final DerivePathType type;
+    if (isViewOnly) {
+      type = await _viewOnlyPathHelper();
+    } else {
+      type = _fromAddressType(info.mainAddressType);
+    }
+
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: _fromAddressType(info.mainAddressType),
+      derivePathType: type,
     );
 
     await mainDB.updateOrPutAddresses([address]);
@@ -107,10 +114,17 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     final index = current == null ? 0 : current.derivationIndex + 1;
     const chain = 1; // change address
 
+    final DerivePathType type;
+    if (isViewOnly) {
+      type = await _viewOnlyPathHelper();
+    } else {
+      type = _fromAddressType(info.mainAddressType);
+    }
+
     final address = await _generateAddress(
       chain: chain,
       index: index,
-      derivePathType: _fromAddressType(info.mainAddressType),
+      derivePathType: type,
     );
 
     await mainDB.updateOrPutAddresses([address]);
@@ -122,10 +136,17 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
 
     final current = await getCurrentReceivingAddress();
     if (current == null) {
+      final DerivePathType type;
+      if (isViewOnly) {
+        type = await _viewOnlyPathHelper();
+      } else {
+        type = _fromAddressType(info.mainAddressType);
+      }
+
       final address = await _generateAddress(
         chain: 0, // receiving
         index: 0, // initial index
-        derivePathType: _fromAddressType(info.mainAddressType),
+        derivePathType: type,
       );
 
       await mainDB.updateOrPutAddresses([address]);
@@ -141,6 +162,25 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
   }
 
   // ========== Private ========================================================
+
+  Future<DerivePathType> _viewOnlyPathHelper() async {
+    final voData =
+        await getViewOnlyWalletData() as ExtendedKeysViewOnlyWalletData;
+    for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+      final testPath = cryptoCurrency.constructDerivePath(
+        derivePathType: type,
+        chain: 0,
+        index: 0,
+      );
+      if (testPath.startsWith(voData.xPubs.first.path)) {
+        return type;
+      }
+    }
+
+    throw Exception(
+      "_viewOnlyPathHelper viewOnly failed to match paths",
+    );
+  }
 
   DerivePathType _fromAddressType(AddressType addressType) {
     switch (addressType) {
