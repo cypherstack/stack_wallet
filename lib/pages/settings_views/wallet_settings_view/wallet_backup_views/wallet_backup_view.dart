@@ -89,9 +89,10 @@ class WalletBackupView extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: CustomTextButton(
-                  text: switch (keyData.runtimeType) {
-                    const (XPrivData) => "xpriv(s)",
-                    const (CWKeyData) => "keys",
+                  text: switch (keyData) {
+                    final XPrivData _ => "xpriv(s)",
+                    final CWKeyData _ => "keys",
+                    final ViewOnlyWalletData _ => "keys",
                     _ => throw UnimplementedError(
                         "Don't forget to add your KeyDataInterface here! ${keyData.runtimeType}",
                       ),
@@ -454,10 +455,10 @@ class MobileKeyDataView extends ConsumerWidget {
             },
           ),
           title: Text(
-            "Wallet ${switch (keyData.runtimeType) {
-              const (XPrivData) => "xpriv(s)",
-              const (CWKeyData) => "keys",
-              const (ViewOnlyWalletData) => "keys",
+            "Wallet ${switch (keyData) {
+              final XPrivData _ => "xpriv(s)",
+              final CWKeyData _ => "keys",
+              final ViewOnlyWalletData _ => "keys",
               _ => throw UnimplementedError(
                   "Don't forget to add your KeyDataInterface here!",
                 ),
@@ -477,18 +478,18 @@ class MobileKeyDataView extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Expanded(
-                          child: switch (keyData.runtimeType) {
-                            const (XPrivData) => WalletXPrivs(
+                          child: switch (keyData) {
+                            final XPrivData e => WalletXPrivs(
                                 walletId: walletId,
-                                xprivData: keyData as XPrivData,
+                                xprivData: e,
                               ),
-                            const (CWKeyData) => CNWalletKeys(
+                            final CWKeyData e => CNWalletKeys(
                                 walletId: walletId,
-                                cwKeyData: keyData as CWKeyData,
+                                cwKeyData: e,
                               ),
-                            const (ViewOnlyWalletData) =>
+                            final ViewOnlyWalletData e =>
                               ViewOnlyWalletDataWidget(
-                                data: keyData as ViewOnlyWalletData,
+                                data: e,
                               ),
                             _ => throw UnimplementedError(
                                 "Don't forget to add your KeyDataInterface here!",

@@ -342,7 +342,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                           if (context.mounted) {
                                             if (keyData != null &&
                                                 wallet
-                                                    is ViewOnlyOptionInterface) {
+                                                    is ViewOnlyOptionInterface &&
+                                                wallet.isViewOnly) {
                                               await Navigator.push(
                                                 context,
                                                 RouteGenerator.getRoute(
