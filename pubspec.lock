@@ -443,10 +443,10 @@ packages:
     dependency: "direct main"
     description:
       name: cs_monero_flutter_libs
-      sha256: "9e0af89929aad370e0ea7c903b749fa58f4a5dc8ffa5bd8aaf6dea0c489796ff"
+      sha256: ccfd2c80e3f283f447602ecc548c9922b526002928a0fa1d34f1d6d74f73952e
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0-pre"
+    version: "1.0.0-pre.0"
   cs_monero_flutter_libs_android:
     dependency: transitive
     description:
@@ -483,10 +483,10 @@ packages:
     dependency: transitive
     description:
       name: cs_monero_flutter_libs_ios
-      sha256: "4438a323786dad2728168c3819c9f42471573484c946c91cf207b5395254ac7f"
+      sha256: ec2e5b9b3ae3100f390deeff6114ffe3259a0701fafdc0f1028996e0da78b17b
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0-pre"
+    version: "1.0.0-pre.0"
   cs_monero_flutter_libs_linux:
     dependency: transitive
     description:
