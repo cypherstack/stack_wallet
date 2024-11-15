@@ -196,7 +196,7 @@ dependencies:
   on_chain: ^4.0.1
   cbor: ^6.3.3
   cs_monero: 1.0.0-pre
-  cs_monero_flutter_libs: 1.0.0-pre
+  cs_monero_flutter_libs: 1.0.0-pre.0
 
 dev_dependencies:
   flutter_test:
