@@ -182,8 +182,8 @@ dependencies:
       ref: 706be5f166d31736c443cca4cd311b7fcfc2a9bf
       path: packages/solana
   calendar_date_picker2: ^1.0.2
-  sqlite3: ^2.4.3
-  sqlite3_flutter_libs: ^0.5.22
+  sqlite3: 2.4.3
+  sqlite3_flutter_libs: 0.5.22
   camera_linux: ^0.0.8
   zxing2: ^0.2.3
   camera_windows:
