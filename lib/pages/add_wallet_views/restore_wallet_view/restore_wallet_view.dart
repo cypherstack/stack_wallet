@@ -271,7 +271,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           },
         );
       } else if (widget.coin is Mimblewimblecoin) {
-        final int secondsSinceEpoch = widget.restoreFromDate.millisecondsSinceEpoch ~/ 1000;
+        final int secondsSinceEpoch = widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
         const int mimblewimblecoinFirstBlock = 1573462801;
         const double overestimateSecondsPerBlock = 61;
         final int chosenSeconds = secondsSinceEpoch - mimblewimblecoinFirstBlock;

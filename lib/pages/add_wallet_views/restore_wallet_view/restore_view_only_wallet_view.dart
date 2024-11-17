@@ -29,6 +29,7 @@ import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
@@ -254,6 +255,10 @@ class _RestoreViewOnlyWalletViewState
         switch (wallet.runtimeType) {
           case const (EpiccashWallet):
             await (wallet as EpiccashWallet).init(isRestore: true);
+            break;
+          
+          case const (MimblewimblecoinWallet):
+            await (wallet as MimblewimblecoinWallet).init(isRestore: true);
             break;
 
           case const (MoneroWallet):
