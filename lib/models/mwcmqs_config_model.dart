@@ -22,30 +22,19 @@ class MwcMqsConfigModel {
   final String host;
   @HiveField(2)
   final int? port;
-  @HiveField(3)
-  final bool? protocolInsecure;
-  @HiveField(4)
-  final int? addressIndex;
 
   MwcMqsConfigModel({
     required this.host,
-    this.port,
-    this.protocolInsecure,
-    this.addressIndex,
+    this.port
   });
 
   MwcMqsConfigModel copyWith({
     int? port,
     bool? protocolInsecure,
-    int? addressIndex,
-    String? id,
-    String? name,
   }) {
     return MwcMqsConfigModel(
       host: host,
       port: this.port ?? 443,
-      protocolInsecure: this.protocolInsecure ?? false,
-      addressIndex: this.addressIndex ?? 0,
     );
   }
 
@@ -53,8 +42,6 @@ class MwcMqsConfigModel {
     final Map<String, dynamic> map = {};
     map['mwcmqs_domain'] = host;
     map['mwcmqs_port'] = port;
-    map['mwcmqs_protocol_insecure'] = protocolInsecure;
-    map['mwcmqs_address_index'] = addressIndex;
     return map;
   }
 
@@ -62,8 +49,6 @@ class MwcMqsConfigModel {
     return {
       'mwcmqs_domain': host,
       'mwcmqs_port': port,
-      'mwcmqs_protocol_insecure': protocolInsecure,
-      'mwcmqs_address_index': addressIndex,
     };
   }
 
@@ -83,23 +68,11 @@ class MwcMqsConfigModel {
     if (oldPort != "empty") {
       _mwcmqs['mwcmqs_port'] = _mwcmqs['port'];
     }
-    final oldProtocolInsecure = _mwcmqs["protocol_insecure"] ?? "empty";
-    if (oldProtocolInsecure != "empty") {
-      _mwcmqs['mwcmqs_protocol_insecure'] = _mwcmqs['protocol_insecure'];
-    }
-    final oldAddressIndex = _mwcmqs["address_index"] ?? "empty";
-    if (oldAddressIndex != "empty") {
-      _mwcmqs['mwcmqs_address_index'] = _mwcmqs['address_index'];
-    }
 
-    _mwcmqs['mwcmqs_protocol_insecure'] ??= false;
-    _mwcmqs['mwcmqs_address_index'] ??= 0;
 
     return MwcMqsConfigModel(
       host: _mwcmqs['mwcmqs_domain'] as String,
-      port: _mwcmqs['mwcmqs_port'] as int,
-      protocolInsecure: _mwcmqs['mwcmqs_protocol_insecure'] as bool,
-      addressIndex: _mwcmqs['mwcmqs_address_index'] as int,
+      port: _mwcmqs['mwcmqs_port'] as int
     );
   }
 
@@ -110,9 +83,7 @@ class MwcMqsConfigModel {
   }) {
     return MwcMqsConfigModel(
       host: server.host,
-      port: server.port ?? 443,
-      protocolInsecure: protocolInsecure ?? false,
-      addressIndex: addressIndex ?? 0,
+      port: server.port ?? 443
     );
   }
 }

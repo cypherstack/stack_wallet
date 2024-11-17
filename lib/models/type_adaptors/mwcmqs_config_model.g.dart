@@ -19,23 +19,17 @@ class MwcMqsConfigModelAdapter extends TypeAdapter<MwcMqsConfigModel> {
     return MwcMqsConfigModel(
       host: fields[1] as String,
       port: fields[2] as int?,
-      protocolInsecure: fields[3] as bool?,
-      addressIndex: fields[4] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MwcMqsConfigModel obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(2)
       ..writeByte(1)
       ..write(obj.host)
       ..writeByte(2)
-      ..write(obj.port)
-      ..writeByte(3)
-      ..write(obj.protocolInsecure)
-      ..writeByte(4)
-      ..write(obj.addressIndex);
+      ..write(obj.port);
   }
 
   @override

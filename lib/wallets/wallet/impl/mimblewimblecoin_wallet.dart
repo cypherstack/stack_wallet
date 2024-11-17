@@ -39,9 +39,6 @@ import '../intermediate/bip39_wallet.dart';
 import '../supporting/mimblewimblecoin_wallet_info_extension.dart';
 
 
-//
-// refactor of https://github.com/cypherstack/stack_wallet/blob/1d9fb4cd069f22492ece690ac788e05b8f8b1209/lib/services/coins/epiccash/epiccash_wallet.dart
-//
 class MimblewimblecoinWallet extends Bip39Wallet {
   MimblewimblecoinWallet(CryptoCurrencyNetwork network)
       : super(Mimblewimblecoin(network));
@@ -73,9 +70,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   Future<void> updateMwcmqsConfig(String host, int port) async {
     final String stringConfig = jsonEncode({
       "mwcmqs_domain": host,
-      "mwcmqs_port": port,
-      "mwcmqs_protocol_unsecure": false,
-      "mwcmqs_address_index": 0,
+      "mwcmqs_port": port
     });
     await secureStorageInterface.write(
       key: '${walletId}_mwcmqsConfig',
@@ -434,7 +429,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     return config!;
   }
 
-  // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
   int _calculateRestoreHeightFrom({required DateTime date}) {
     final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
     const int mimblewimblecoinFirstBlock = 1565370278;
@@ -596,8 +590,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       ({String commitId, String slateId}) transaction;
 
       if (receiverAddress.startsWith("http://") ||
-          receiverAddress.startsWith("https://") || 
-          receiverAddress.startsWith("mwcmqcs://")) {
+          receiverAddress.startsWith("https://")) {
         transaction = await mimblewimblecoin.Libmwc.txHttpSend(
           wallet: wallet!,
           selectionStrategyIsAll: 0,
@@ -606,7 +599,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           amount: txData.recipients!.first.amount.raw.toInt(),
           address: txData.recipients!.first.address,
         );
-      } else {
+      } else if (receiverAddress.startsWith("mwcmqs://")) {
         transaction = await mimblewimblecoin.Libmwc.createTransaction(
           wallet: wallet!,
           amount: txData.recipients!.first.amount.raw.toInt(),
@@ -616,6 +609,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           minimumConfirmations: cryptoCurrency.minConfirms,
           note: txData.noteOnChain!,
         );
+        
+      } else {
+        throw Exception(
+          "Unsupported address format: $receiverAddress. Please use a valid address.",
+        );
+        
       }
 
       final Map<String, String> txAddressInfo = {};

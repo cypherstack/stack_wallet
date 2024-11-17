@@ -869,14 +869,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 } else {
                   enableSSLCheckbox = true;
                 }
-              } else if (widget.coin is CwBasedInterface) {
-                if (newValue.startsWith("https://")) {
-                  _useSSL = true;
-                } else if (newValue.startsWith("http://")) {
-                  _useSSL = false;
-                } else {
-                  _useSSL = true;
-                }
               }
               _updateState();
               setState(() {});

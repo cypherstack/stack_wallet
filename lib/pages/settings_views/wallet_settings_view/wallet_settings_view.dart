@@ -39,7 +39,6 @@ import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
