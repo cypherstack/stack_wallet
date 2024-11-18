@@ -144,7 +144,18 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     final amountString = amountController.text;
     final noteString = noteController.text;
 
-    if (amountString.isNotEmpty && Decimal.tryParse(amountString) == null) {
+    // try "."
+    Decimal? amount = Decimal.tryParse(amountString);
+    if (amount == null) {
+      // try single instance of ","
+      final first = amountString.indexOf(",");
+      final last = amountString.lastIndexOf(",");
+      if (first == last) {
+        amount = Decimal.tryParse(amountString.replaceFirst(",", "."));
+      }
+    }
+
+    if (amountString.isNotEmpty && amount == null) {
       showFloatingFlushBar(
         type: FlushBarType.warning,
         message: "Invalid amount",
