@@ -713,6 +713,60 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     }
   }
 
+  void _onQrTapped() async {
+    try {
+      if (FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+        await Future<void>.delayed(
+          const Duration(milliseconds: 75),
+        );
+      }
+
+      final qrResult = await scanner.scan();
+
+      Logging.instance.log(
+        "qrResult content: ${qrResult.rawContent}",
+        level: LogLevel.Info,
+      );
+
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
+
+      Logging.instance.log(
+        "qrResult parsed: $paymentData",
+        level: LogLevel.Info,
+      );
+
+      if (paymentData != null) {
+        // auto fill address
+        _address = paymentData.address;
+        _receiveAddressController.text = _address!;
+
+        setState(() {
+          _addressToggleFlag = _receiveAddressController.text.isNotEmpty;
+        });
+
+        // now check for non standard encoded basic address
+      } else {
+        _address = qrResult.rawContent;
+        _receiveAddressController.text = _address ?? "";
+
+        setState(() {
+          _addressToggleFlag = _receiveAddressController.text.isNotEmpty;
+        });
+      }
+    } on PlatformException catch (e, s) {
+      // here we ignore the exception caused by not giving permission
+      // to use the camera to scan a qr code
+      Logging.instance.log(
+        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
   @override
   void initState() {
     _receiveAddressController = TextEditingController();
@@ -1375,63 +1429,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               !isDesktop)
                             TextFieldIconButton(
                               key: const Key("buyViewScanQrButtonKey"),
-                              onTap: () async {
-                                try {
-                                  if (FocusScope.of(context).hasFocus) {
-                                    FocusScope.of(context).unfocus();
-                                    await Future<void>.delayed(
-                                      const Duration(milliseconds: 75),
-                                    );
-                                  }
-
-                                  final qrResult = await scanner.scan();
-
-                                  Logging.instance.log(
-                                    "qrResult content: ${qrResult.rawContent}",
-                                    level: LogLevel.Info,
-                                  );
-
-                                  final results = AddressUtils.parseUri(
-                                    qrResult.rawContent,
-                                  );
-
-                                  Logging.instance.log(
-                                    "qrResult parsed: $results",
-                                    level: LogLevel.Info,
-                                  );
-
-                                  if (results.isNotEmpty) {
-                                    // auto fill address
-                                    _address = results["address"] ?? "";
-                                    _receiveAddressController.text = _address!;
-
-                                    setState(() {
-                                      _addressToggleFlag =
-                                          _receiveAddressController
-                                              .text.isNotEmpty;
-                                    });
-
-                                    // now check for non standard encoded basic address
-                                  } else {
-                                    _address = qrResult.rawContent;
-                                    _receiveAddressController.text =
-                                        _address ?? "";
-
-                                    setState(() {
-                                      _addressToggleFlag =
-                                          _receiveAddressController
-                                              .text.isNotEmpty;
-                                    });
-                                  }
-                                } on PlatformException catch (e, s) {
-                                  // here we ignore the exception caused by not giving permission
-                                  // to use the camera to scan a qr code
-                                  Logging.instance.log(
-                                    "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                    level: LogLevel.Warning,
-                                  );
-                                }
-                              },
+                              onTap: _onQrTapped,
                               child: const QrCodeIcon(),
                             ),
                         ],

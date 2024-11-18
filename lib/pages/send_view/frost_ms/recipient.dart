@@ -120,6 +120,69 @@ class _RecipientState extends ConsumerState<Recipient> {
     }
   }
 
+  void _onQrTapped() async {
+    try {
+      if (FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+        await Future<void>.delayed(
+          const Duration(
+            milliseconds: 75,
+          ),
+        );
+      }
+
+      final qrResult = await ref.read(pBarcodeScanner).scan();
+
+      Logging.instance.log(
+        "qrResult content: ${qrResult.rawContent}",
+        level: LogLevel.Info,
+      );
+
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
+
+      Logging.instance.log(
+        "qrResult parsed: $paymentData",
+        level: LogLevel.Info,
+      );
+
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == widget.coin.uriScheme) {
+        // auto fill address
+
+        addressController.text = paymentData.address.trim();
+
+        // autofill amount field
+        if (paymentData.amount != null) {
+          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
+            fractionDigits: widget.coin.fractionDigits,
+          );
+          amountController.text =
+              ref.read(pAmountFormatter(widget.coin)).format(
+                    amount,
+                    withUnitName: false,
+                  );
+        }
+      } else {
+        addressController.text = qrResult.rawContent.trim();
+      }
+
+      setState(() {
+        _addressIsEmpty = addressController.text.isEmpty;
+      });
+
+      _updateRecipientData();
+    } on PlatformException catch (e, s) {
+      Logging.instance.log(
+        "Failed to get camera permissions while "
+        "trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
   @override
   void initState() {
     addressController = TextEditingController();
@@ -289,76 +352,7 @@ class _RecipientState extends ConsumerState<Recipient> {
                             key: const Key(
                               "sendViewScanQrButtonKey",
                             ),
-                            onTap: () async {
-                              try {
-                                if (FocusScope.of(context).hasFocus) {
-                                  FocusScope.of(context).unfocus();
-                                  await Future<void>.delayed(
-                                    const Duration(
-                                      milliseconds: 75,
-                                    ),
-                                  );
-                                }
-
-                                final qrResult =
-                                    await ref.read(pBarcodeScanner).scan();
-
-                                Logging.instance.log(
-                                  "qrResult content: ${qrResult.rawContent}",
-                                  level: LogLevel.Info,
-                                );
-
-                                /// TODO: deal with address utils
-                                final results =
-                                    AddressUtils.parseUri(qrResult.rawContent);
-
-                                Logging.instance.log(
-                                  "qrResult parsed: $results",
-                                  level: LogLevel.Info,
-                                );
-
-                                if (results.isNotEmpty &&
-                                    results["scheme"] ==
-                                        widget.coin.uriScheme) {
-                                  // auto fill address
-
-                                  addressController.text =
-                                      (results["address"] ?? "").trim();
-
-                                  // autofill amount field
-                                  if (results["amount"] != null) {
-                                    final Amount amount =
-                                        Decimal.parse(results["amount"]!)
-                                            .toAmount(
-                                      fractionDigits:
-                                          widget.coin.fractionDigits,
-                                    );
-                                    amountController.text = ref
-                                        .read(pAmountFormatter(widget.coin))
-                                        .format(
-                                          amount,
-                                          withUnitName: false,
-                                        );
-                                  }
-                                } else {
-                                  addressController.text =
-                                      qrResult.rawContent.trim();
-                                }
-
-                                setState(() {
-                                  _addressIsEmpty =
-                                      addressController.text.isEmpty;
-                                });
-
-                                _updateRecipientData();
-                              } on PlatformException catch (e, s) {
-                                Logging.instance.log(
-                                  "Failed to get camera permissions while "
-                                  "trying to scan qr code in SendView: $e\n$s",
-                                  level: LogLevel.Warning,
-                                );
-                              }
-                            },
+                            onTap: _onQrTapped,
                             child: const QrCodeIcon(),
                           ),
                       ],

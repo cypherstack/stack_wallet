@@ -97,7 +97,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             initialDirectory: dir.path,
           );
 
-          if (path != null) {
+          if (path != null && mounted) {
             final file = File(path);
             if (file.existsSync()) {
               unawaited(
@@ -109,13 +109,15 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
               );
             } else {
               await file.writeAsBytes(pngBytes);
-              unawaited(
-                showFloatingFlushBar(
-                  type: FlushBarType.success,
-                  message: "$path saved!",
-                  context: context,
-                ),
-              );
+              if (mounted) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.success,
+                    message: "$path saved!",
+                    context: context,
+                  ),
+                );
+              }
             }
           }
         } else {
@@ -167,7 +169,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     final Map<String, String> queryParams = {};
 
     if (amountString.isNotEmpty) {
-      queryParams["amount"] = amountString;
+      queryParams["amount"] = amount.toString();
     }
     if (noteString.isNotEmpty) {
       queryParams["message"] = noteString;
@@ -311,7 +313,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                   FocusScope.of(context).unfocus();
                   await Future<void>.delayed(const Duration(milliseconds: 70));
                 }
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(context).pop();
                 }
               },
