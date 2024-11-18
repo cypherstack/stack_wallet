@@ -163,25 +163,30 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         level: LogLevel.Info,
       );
 
-      final results = AddressUtils.parseUri(qrResult.rawContent);
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
 
-      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
+      Logging.instance
+          .log("qrResult parsed: $paymentData", level: LogLevel.Info);
 
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == coin.uriScheme) {
         // auto fill address
-        _address = (results["address"] ?? "").trim();
+        _address = paymentData.address.trim();
         sendToController.text = _address!;
 
         // autofill notes field
-        if (results["message"] != null) {
-          noteController.text = results["message"]!;
-        } else if (results["label"] != null) {
-          noteController.text = results["label"]!;
+        if (paymentData.message != null) {
+          noteController.text = paymentData.message!;
+        } else if (paymentData.label != null) {
+          noteController.text = paymentData.label!;
         }
 
         // autofill amount field
-        if (results["amount"] != null) {
-          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
+        if (paymentData.amount != null) {
+          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
             fractionDigits: tokenContract.decimals,
           );
           cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -198,12 +203,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         });
 
         // now check for non standard encoded basic address
-      } else if (ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(qrResult.rawContent)) {
-        _address = qrResult.rawContent.trim();
+      } else {
+        _address = qrResult.rawContent.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
         _updatePreviewButtonState(_address, _amountToSend);

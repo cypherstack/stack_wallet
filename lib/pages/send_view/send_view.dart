@@ -11,10 +11,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
@@ -163,9 +163,13 @@ class _SendViewState extends ConsumerState<SendView> {
         level: LogLevel.Info,
       );
 
-      final paymentData = AddressUtils.parsePaymentUri(qrResult.rawContent);
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
 
-      if (paymentData.coin.uriScheme == coin.uriScheme) {
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == coin.uriScheme) {
         // auto fill address
         _address = paymentData.address.trim();
         sendToController.text = _address!;
@@ -195,12 +199,8 @@ class _SendViewState extends ConsumerState<SendView> {
         });
 
         // now check for non standard encoded basic address
-      } else if (ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(qrResult.rawContent)) {
-        _address = qrResult.rawContent.trim();
+      } else {
+        _address = qrResult.rawContent.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
         _setValidAddressProviders(_address);

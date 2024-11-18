@@ -10,11 +10,11 @@
 
 import 'dart:async';
 
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -145,7 +145,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   Future<void> scanWebcam() async {
     try {
-      await showDialog(
+      await showDialog<void>(
         context: context,
         builder: (context) {
           return QrCodeScannerDialog(
@@ -153,16 +153,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               try {
                 _processQrCodeData(qrCodeData);
               } catch (e, s) {
-                Logging.instance.log("Error processing QR code data: $e\n$s",
-                    level: LogLevel.Error);
+                Logging.instance.log(
+                  "Error processing QR code data: $e\n$s",
+                  level: LogLevel.Error,
+                );
               }
             },
           );
         },
       );
     } catch (e, s) {
-      Logging.instance.log("Error opening QR code scanner dialog: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance.log(
+        "Error opening QR code scanner dialog: $e\n$s",
+        level: LogLevel.Error,
+      );
     }
   }
 
@@ -655,84 +659,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   //   return null;
   // }
 
-  Future<void> scanQr() async {
-    try {
-      if (FocusScope.of(context).hasFocus) {
-        FocusScope.of(context).unfocus();
-        await Future<void>.delayed(const Duration(milliseconds: 75));
-      }
-
-      final qrResult = await scanner.scan();
-
-      Logging.instance.log(
-        "qrResult content: ${qrResult.rawContent}",
-        level: LogLevel.Info,
-      );
-
-      final results = AddressUtils.parseUri(qrResult.rawContent);
-
-      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
-
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
-        // auto fill address
-        _address = results["address"] ?? "";
-        sendToController.text = _address!;
-
-        // autofill notes field
-        if (results["message"] != null) {
-          _note = results["message"]!;
-        } else if (results["label"] != null) {
-          _note = results["label"]!;
-        }
-
-        // autofill amount field
-        if (results["amount"] != null) {
-          final amount = Decimal.parse(results["amount"]!).toAmount(
-            fractionDigits: coin.fractionDigits,
-          );
-          cryptoAmountController.text = ref
-              .read(pAmountFormatter(coin))
-              .format(amount, withUnitName: false);
-          ref.read(pSendAmount.notifier).state = amount;
-        }
-
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
-
-        // now check for non standard encoded basic address
-      } else if (ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(qrResult.rawContent)) {
-        _address = qrResult.rawContent;
-        sendToController.text = _address ?? "";
-
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
-      }
-    } on PlatformException catch (e, s) {
-      // here we ignore the exception caused by not giving permission
-      // to use the camera to scan a qr code
-      Logging.instance.log(
-        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
-      );
-    } catch (e, s) {
-      Logging.instance.log(
-        "Failed to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
-      );
-    }
-  }
-
   void _processQrCodeData(String qrCodeData) {
     try {
-      final paymentData = AddressUtils.parsePaymentUri(qrCodeData);
-      if (paymentData.coin.uriScheme == coin.uriScheme) {
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrCodeData,
+        logging: Logging.instance,
+      );
+
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == coin.uriScheme) {
         // Auto fill address.
         _address = paymentData.address.trim();
         sendToController.text = _address!;
@@ -755,6 +690,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         } else if (paymentData.label != null) {
           _note = paymentData.label;
         }
+
+        _setValidAddressProviders(_address);
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
+      } else {
+        _address = qrCodeData.split("\n").first.trim();
+        sendToController.text = _address ?? "";
 
         _setValidAddressProviders(_address);
         setState(() {
@@ -807,8 +750,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
 
       try {
-        final paymentData = AddressUtils.parsePaymentUri(content);
-        if (paymentData.coin.uriScheme == coin.uriScheme) {
+        final paymentData = AddressUtils.parsePaymentUri(
+          content,
+          logging: Logging.instance,
+        );
+        if (paymentData != null &&
+            paymentData.coin?.uriScheme == coin.uriScheme) {
           // auto fill address
           _address = paymentData.address;
           sendToController.text = _address!;
@@ -837,6 +784,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             _addressToggleFlag = sendToController.text.isNotEmpty;
           });
         } else {
+          content = content.split("\n").first.trim();
           if (coin is Epiccash) {
             content = AddressUtils().formatAddress(content);
           }
