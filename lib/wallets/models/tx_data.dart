@@ -1,5 +1,4 @@
-import 'package:cw_monero/pending_monero_transaction.dart';
-import 'package:cw_wownero/pending_wownero_transaction.dart';
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -49,11 +48,8 @@ class TxData {
   final BigInt? chainId;
   final BigInt? feeInWei;
 
-  // wownero specific
-  final PendingWowneroTransaction? pendingWowneroTransaction;
-
-  // monero specific
-  final PendingMoneroTransaction? pendingMoneroTransaction;
+  // wownero and monero specific
+  final lib_monero.PendingTransaction? pendingTransaction;
 
   // firo lelantus specific
   final int? jMintValue;
@@ -104,8 +100,7 @@ class TxData {
     this.nonce,
     this.chainId,
     this.feeInWei,
-    this.pendingWowneroTransaction,
-    this.pendingMoneroTransaction,
+    this.pendingTransaction,
     this.jMintValue,
     this.spendCoinIndexes,
     this.height,
@@ -120,11 +115,27 @@ class TxData {
     this.ignoreCachedBalanceChecks = false,
   });
 
-  Amount? get amount => recipients != null && recipients!.isNotEmpty
-      ? recipients!
+  Amount? get amount {
+    if (recipients != null && recipients!.isNotEmpty) {
+      final sum = recipients!
           .map((e) => e.amount)
-          .reduce((total, amount) => total += amount)
-      : null;
+          .reduce((total, amount) => total += amount);
+
+      // special xmr/wow check
+      if (pendingTransaction?.amount != null && fee != null) {
+        if (pendingTransaction!.amount + fee!.raw == sum.raw) {
+          return Amount(
+            rawValue: pendingTransaction!.amount,
+            fractionDigits: recipients!.first.amount.fractionDigits,
+          );
+        }
+      }
+
+      return sum;
+    }
+
+    return null;
+  }
 
   Amount? get amountSpark =>
       sparkRecipients != null && sparkRecipients!.isNotEmpty
@@ -141,10 +152,22 @@ class TxData {
           fractionDigits: recipients!.first.amount.fractionDigits,
         );
       } else {
-        return recipients!
+        final sum = recipients!
             .where((e) => !e.isChange)
             .map((e) => e.amount)
             .reduce((total, amount) => total += amount);
+
+        // special xmr/wow check
+        if (pendingTransaction?.amount != null && fee != null) {
+          if (pendingTransaction!.amount + fee!.raw == sum.raw) {
+            return Amount(
+              rawValue: pendingTransaction!.amount,
+              fractionDigits: recipients!.first.amount.fractionDigits,
+            );
+          }
+        }
+
+        return sum;
       }
     } else {
       return null;
@@ -196,8 +219,7 @@ class TxData {
     int? nonce,
     BigInt? chainId,
     BigInt? feeInWei,
-    PendingWowneroTransaction? pendingWowneroTransaction,
-    PendingMoneroTransaction? pendingMoneroTransaction,
+    lib_monero.PendingTransaction? pendingTransaction,
     int? jMintValue,
     List<int>? spendCoinIndexes,
     int? height,
@@ -241,10 +263,7 @@ class TxData {
       nonce: nonce ?? this.nonce,
       chainId: chainId ?? this.chainId,
       feeInWei: feeInWei ?? this.feeInWei,
-      pendingWowneroTransaction:
-          pendingWowneroTransaction ?? this.pendingWowneroTransaction,
-      pendingMoneroTransaction:
-          pendingMoneroTransaction ?? this.pendingMoneroTransaction,
+      pendingTransaction: pendingTransaction ?? this.pendingTransaction,
       jMintValue: jMintValue ?? this.jMintValue,
       spendCoinIndexes: spendCoinIndexes ?? this.spendCoinIndexes,
       height: height ?? this.height,
@@ -284,8 +303,7 @@ class TxData {
       'nonce: $nonce, '
       'chainId: $chainId, '
       'feeInWei: $feeInWei, '
-      'pendingWowneroTransaction: $pendingWowneroTransaction, '
-      'pendingMoneroTransaction: $pendingMoneroTransaction, '
+      'pendingTransaction: $pendingTransaction, '
       'jMintValue: $jMintValue, '
       'spendCoinIndexes: $spendCoinIndexes, '
       'height: $height, '

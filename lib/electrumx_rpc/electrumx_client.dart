@@ -490,7 +490,15 @@ class ElectrumXClient {
         command: 'server.ping',
         requestTimeout: const Duration(seconds: 2),
         retries: retryCount,
-      ).timeout(const Duration(seconds: 2)) as bool;
+      ).timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {
+          Logging.instance.log(
+            "ElectrumxClient.ping timed out with retryCount=$retryCount, host=$_host",
+            level: LogLevel.Debug,
+          );
+        },
+      ) as bool;
     } catch (e) {
       rethrow;
     }

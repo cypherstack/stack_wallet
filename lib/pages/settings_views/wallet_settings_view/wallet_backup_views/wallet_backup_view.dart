@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app_config.dart';
 import '../../../../models/keys/cw_key_data.dart';
 import '../../../../models/keys/key_data_interface.dart';
+import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../models/keys/xpriv_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../themes/stack_colors.dart';
@@ -39,6 +40,7 @@ import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../../sub_widgets/view_only_wallet_data_widget.dart';
 import 'cn_wallet_keys.dart';
 import 'wallet_xprivs.dart';
 
@@ -87,9 +89,10 @@ class WalletBackupView extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: CustomTextButton(
-                  text: switch (keyData.runtimeType) {
-                    const (XPrivData) => "xpriv(s)",
-                    const (CWKeyData) => "keys",
+                  text: switch (keyData) {
+                    final XPrivData _ => "xpriv(s)",
+                    final CWKeyData _ => "keys",
+                    final ViewOnlyWalletData _ => "keys",
                     _ => throw UnimplementedError(
                         "Don't forget to add your KeyDataInterface here! ${keyData.runtimeType}",
                       ),
@@ -426,7 +429,7 @@ class _FrostKeys extends StatelessWidget {
   }
 }
 
-class MobileKeyDataView extends StatelessWidget {
+class MobileKeyDataView extends ConsumerWidget {
   const MobileKeyDataView({
     super.key,
     required this.walletId,
@@ -441,7 +444,7 @@ class MobileKeyDataView extends StatelessWidget {
   final KeyDataInterface keyData;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -452,9 +455,10 @@ class MobileKeyDataView extends StatelessWidget {
             },
           ),
           title: Text(
-            "Wallet ${switch (keyData.runtimeType) {
-              const (XPrivData) => "xpriv(s)",
-              const (CWKeyData) => "keys",
+            "Wallet ${switch (keyData) {
+              final XPrivData _ => "xpriv(s)",
+              final CWKeyData _ => "keys",
+              final ViewOnlyWalletData _ => "keys",
               _ => throw UnimplementedError(
                   "Don't forget to add your KeyDataInterface here!",
                 ),
@@ -474,14 +478,18 @@ class MobileKeyDataView extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Expanded(
-                          child: switch (keyData.runtimeType) {
-                            const (XPrivData) => WalletXPrivs(
+                          child: switch (keyData) {
+                            final XPrivData e => WalletXPrivs(
                                 walletId: walletId,
-                                xprivData: keyData as XPrivData,
+                                xprivData: e,
                               ),
-                            const (CWKeyData) => CNWalletKeys(
+                            final CWKeyData e => CNWalletKeys(
                                 walletId: walletId,
-                                cwKeyData: keyData as CWKeyData,
+                                cwKeyData: e,
+                              ),
+                            final ViewOnlyWalletData e =>
+                              ViewOnlyWalletDataWidget(
+                                data: e,
                               ),
                             _ => throw UnimplementedError(
                                 "Don't forget to add your KeyDataInterface here!",

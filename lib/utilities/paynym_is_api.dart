@@ -25,7 +25,7 @@ import 'prefs.dart';
 // todo: better error message parsing (from response itself?)
 
 class PaynymIsApi {
-  static const String baseURL = "https://paynym.is/api";
+  static const String baseURL = "https://paynym.rs";
   static const String version = "/v1";
 
   HTTP client = HTTP();
@@ -35,9 +35,8 @@ class PaynymIsApi {
     Map<String, dynamic> body, [
     Map<String, String> additionalHeaders = const {},
   ]) async {
-    final String url = baseURL +
-        version +
-        (endpoint.startsWith("/") ? endpoint : "/$endpoint");
+    final String url =
+        "$baseURL/api$version${endpoint.startsWith("/") ? endpoint : "/$endpoint"}";
     final uri = Uri.parse(url);
 
     // Calculate the body length.

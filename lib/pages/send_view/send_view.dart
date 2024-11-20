@@ -11,7 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cw_core/monero_transaction_priority.dart';
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -163,9 +163,13 @@ class _SendViewState extends ConsumerState<SendView> {
         level: LogLevel.Info,
       );
 
-      final paymentData = AddressUtils.parsePaymentUri(qrResult.rawContent);
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
 
-      if (paymentData.coin.uriScheme == coin.uriScheme) {
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == coin.uriScheme) {
         // auto fill address
         _address = paymentData.address.trim();
         sendToController.text = _address!;
@@ -195,12 +199,8 @@ class _SendViewState extends ConsumerState<SendView> {
         });
 
         // now check for non standard encoded basic address
-      } else if (ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(qrResult.rawContent)) {
-        _address = qrResult.rawContent.trim();
+      } else {
+        _address = qrResult.rawContent.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
         _setValidAddressProviders(_address);
@@ -470,22 +470,22 @@ class _SendViewState extends ConsumerState<SendView> {
 
     Amount fee;
     if (coin is Monero) {
-      MoneroTransactionPriority specialMoneroId;
+      lib_monero.TransactionPriority specialMoneroId;
       switch (ref.read(feeRateTypeStateProvider.state).state) {
         case FeeRateType.fast:
-          specialMoneroId = MoneroTransactionPriority.fast;
+          specialMoneroId = lib_monero.TransactionPriority.high;
           break;
         case FeeRateType.average:
-          specialMoneroId = MoneroTransactionPriority.regular;
+          specialMoneroId = lib_monero.TransactionPriority.medium;
           break;
         case FeeRateType.slow:
-          specialMoneroId = MoneroTransactionPriority.slow;
+          specialMoneroId = lib_monero.TransactionPriority.normal;
           break;
         default:
           throw ArgumentError("custom fee not available for monero");
       }
 
-      fee = await wallet.estimateFeeFor(amount, specialMoneroId.raw!);
+      fee = await wallet.estimateFeeFor(amount, specialMoneroId.value);
       cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
             fee,
             withUnitName: true,

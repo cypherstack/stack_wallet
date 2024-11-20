@@ -70,6 +70,78 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   bool enableNext = false;
 
+  void _onRefundQrTapped() async {
+    try {
+      final qrResult = await scanner.scan();
+
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
+
+      if (paymentData != null) {
+        // auto fill address
+        _refundController.text = paymentData.address;
+        model.refundAddress = _refundController.text;
+
+        setState(() {
+          enableNext = _toController.text.isNotEmpty &&
+              _refundController.text.isNotEmpty;
+        });
+      } else {
+        _refundController.text = qrResult.rawContent;
+        model.refundAddress = _refundController.text;
+
+        setState(() {
+          enableNext = _toController.text.isNotEmpty &&
+              _refundController.text.isNotEmpty;
+        });
+      }
+    } on PlatformException catch (e, s) {
+      Logging.instance.log(
+        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
+  void _onToQrTapped() async {
+    try {
+      final qrResult = await scanner.scan();
+
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
+
+      if (paymentData != null) {
+        // auto fill address
+        _toController.text = paymentData.address;
+        model.recipientAddress = _toController.text;
+
+        setState(() {
+          enableNext = _toController.text.isNotEmpty &&
+              (_refundController.text.isNotEmpty ||
+                  !ref.read(efExchangeProvider).supportsRefundAddress);
+        });
+      } else {
+        _toController.text = qrResult.rawContent;
+        model.recipientAddress = _toController.text;
+
+        setState(() {
+          enableNext = _toController.text.isNotEmpty &&
+              (_refundController.text.isNotEmpty ||
+                  !!ref.read(efExchangeProvider).supportsRefundAddress);
+        });
+      }
+    } on PlatformException catch (e, s) {
+      Logging.instance.log(
+        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
   @override
   void initState() {
     model = widget.model;
@@ -137,7 +209,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                 FocusScope.of(context).unfocus();
                 await Future<void>.delayed(const Duration(milliseconds: 75));
               }
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop();
               }
             },
@@ -405,50 +477,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                             key: const Key(
                                               "sendViewScanQrButtonKey",
                                             ),
-                                            onTap: () async {
-                                              try {
-                                                final qrResult =
-                                                    await scanner.scan();
-
-                                                final results =
-                                                    AddressUtils.parseUri(
-                                                  qrResult.rawContent,
-                                                );
-                                                if (results.isNotEmpty) {
-                                                  // auto fill address
-                                                  _toController.text =
-                                                      results["address"] ?? "";
-                                                  model.recipientAddress =
-                                                      _toController.text;
-
-                                                  setState(() {
-                                                    enableNext = _toController
-                                                            .text.isNotEmpty &&
-                                                        (_refundController.text
-                                                                .isNotEmpty ||
-                                                            !supportsRefund);
-                                                  });
-                                                } else {
-                                                  _toController.text =
-                                                      qrResult.rawContent;
-                                                  model.recipientAddress =
-                                                      _toController.text;
-
-                                                  setState(() {
-                                                    enableNext = _toController
-                                                            .text.isNotEmpty &&
-                                                        (_refundController.text
-                                                                .isNotEmpty ||
-                                                            !supportsRefund);
-                                                  });
-                                                }
-                                              } on PlatformException catch (e, s) {
-                                                Logging.instance.log(
-                                                  "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                                  level: LogLevel.Warning,
-                                                );
-                                              }
-                                            },
+                                            onTap: _onToQrTapped,
                                             child: const QrCodeIcon(),
                                           ),
                                       ],
@@ -685,51 +714,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                               key: const Key(
                                                 "sendViewScanQrButtonKey",
                                               ),
-                                              onTap: () async {
-                                                try {
-                                                  final qrResult =
-                                                      await scanner.scan();
-
-                                                  final results =
-                                                      AddressUtils.parseUri(
-                                                    qrResult.rawContent,
-                                                  );
-                                                  if (results.isNotEmpty) {
-                                                    // auto fill address
-                                                    _refundController.text =
-                                                        results["address"] ??
-                                                            "";
-                                                    model.refundAddress =
-                                                        _refundController.text;
-
-                                                    setState(() {
-                                                      enableNext = _toController
-                                                              .text
-                                                              .isNotEmpty &&
-                                                          _refundController
-                                                              .text.isNotEmpty;
-                                                    });
-                                                  } else {
-                                                    _refundController.text =
-                                                        qrResult.rawContent;
-                                                    model.refundAddress =
-                                                        _refundController.text;
-
-                                                    setState(() {
-                                                      enableNext = _toController
-                                                              .text
-                                                              .isNotEmpty &&
-                                                          _refundController
-                                                              .text.isNotEmpty;
-                                                    });
-                                                  }
-                                                } on PlatformException catch (e, s) {
-                                                  Logging.instance.log(
-                                                    "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-                                                    level: LogLevel.Warning,
-                                                  );
-                                                }
-                                              },
+                                              onTap: _onRefundQrTapped,
                                               child: const QrCodeIcon(),
                                             ),
                                         ],

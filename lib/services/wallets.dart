@@ -10,8 +10,7 @@
 
 import 'dart:async';
 
-import 'package:flutter_libmonero/monero/monero.dart' as monero;
-import 'package:flutter_libmonero/wownero/wownero.dart' as wownero;
+import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:isar/isar.dart';
 
 import '../app_config.dart';
@@ -21,11 +20,12 @@ import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/stack_file_system.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
+import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../wallets/wallet/wallet.dart';
-import '../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import 'event_bus/events/wallet_added_event.dart';
 import 'event_bus/global_event_bus.dart';
 import 'node_service.dart';
@@ -84,17 +84,24 @@ class Wallets {
       key: Wallet.mnemonicPassphraseKey(walletId: walletId),
     );
     await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
+    await secureStorage.delete(
+      key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
+    );
 
     if (info.coin is Wownero) {
-      final wowService = wownero.wownero
-          .createWowneroWalletService(DB.instance.moneroWalletInfoBox);
-      await wowService.remove(walletId);
+      await lib_monero_compat.deleteWalletFiles(
+        name: walletId,
+        type: lib_monero_compat.WalletType.wownero,
+        appRoot: await StackFileSystem.applicationRootDirectory(),
+      );
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (info.coin is Monero) {
-      final xmrService = monero.monero
-          .createMoneroWalletService(DB.instance.moneroWalletInfoBox);
-      await xmrService.remove(walletId);
+      await lib_monero_compat.deleteWalletFiles(
+        name: walletId,
+        type: lib_monero_compat.WalletType.monero,
+        appRoot: await StackFileSystem.applicationRootDirectory(),
+      );
       Logging.instance
           .log("monero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (info.coin is Epiccash) {
@@ -220,7 +227,7 @@ class Wallets {
           final shouldSetAutoSync = shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(walletInfo.walletId);
 
-          if (wallet is CwBasedInterface) {
+          if (wallet is LibMoneroWallet) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(
@@ -327,7 +334,7 @@ class Wallets {
             nodeService: nodeService,
             prefs: prefs,
           ).then((wallet) {
-            if (wallet is CwBasedInterface) {
+            if (wallet is LibMoneroWallet) {
               // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
 
               walletIdCompleter.complete("dummy_ignore");
@@ -457,7 +464,7 @@ class Wallets {
             nodeService: nodeService,
             prefs: prefs,
           ).then((wallet) {
-            if (wallet is CwBasedInterface) {
+            if (wallet is LibMoneroWallet) {
               // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
 
               walletIdCompleter.complete("dummy_ignore");
@@ -577,7 +584,7 @@ class Wallets {
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 
         if (isDesktop) {
-          if (wallet is CwBasedInterface) {
+          if (wallet is LibMoneroWallet) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(

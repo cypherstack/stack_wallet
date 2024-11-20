@@ -18,6 +18,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 
 import '../../models/isar/models/isar_models.dart';
+import '../../models/keys/view_only_wallet_data.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
@@ -36,6 +37,7 @@ import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -113,9 +115,15 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         address = await wallet.generateNextReceivingAddress(
           derivePathType: type,
         );
-        await ref.read(mainDBProvider).isar.writeTxn(() async {
-          await ref.read(mainDBProvider).isar.addresses.put(address!);
+        final isar = ref.read(mainDBProvider).isar;
+        await isar.writeTxn(() async {
+          await isar.addresses.put(address!);
         });
+        final info = ref.read(pWalletInfo(walletId));
+        await info.updateReceivingAddress(
+          newAddress: address.value,
+          isar: isar,
+        );
       } else {
         await wallet.generateNewReceivingAddress();
         address = null;
@@ -183,10 +191,15 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     clipboard = widget.clipboard;
     final wallet = ref.read(pWallets).getWallet(walletId);
     _supportsSpark = wallet is SparkInterface;
-    _showMultiType = _supportsSpark ||
-        (wallet is! BCashInterface &&
-            wallet is Bip39HDWallet &&
-            wallet.supportedAddressTypes.length > 1);
+
+    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+      _showMultiType = false;
+    } else {
+      _showMultiType = _supportsSpark ||
+          (wallet is! BCashInterface &&
+              wallet is Bip39HDWallet &&
+              wallet.supportedAddressTypes.length > 1);
+    }
 
     _walletAddressTypes.add(wallet.info.mainAddressType);
 
@@ -257,6 +270,18 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       address = _addressMap[_walletAddressTypes[_currentIndex]]!;
     } else {
       address = ref.watch(pWalletReceivingAddress(walletId));
+    }
+
+    final wallet =
+        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
+
+    final bool canGen;
+    if (wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
+      canGen = false;
+    } else {
+      canGen = (wallet is MultiAddressInterface || _supportsSpark);
     }
 
     return Background(
@@ -547,17 +572,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       );
                     },
                   ),
-                  if (ref.watch(
-                        pWallets.select((value) => value.getWallet(walletId)),
-                      ) is MultiAddressInterface ||
-                      _supportsSpark)
+                  if (canGen)
                     const SizedBox(
                       height: 12,
                     ),
-                  if (ref.watch(
-                        pWallets.select((value) => value.getWallet(walletId)),
-                      ) is MultiAddressInterface ||
-                      _supportsSpark)
+                  if (canGen)
                     SecondaryButton(
                       label: "Generate new address",
                       onPressed: _supportsSpark &&

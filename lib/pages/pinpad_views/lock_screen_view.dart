@@ -26,7 +26,7 @@ import '../../utilities/biometrics.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
@@ -102,7 +102,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
         final wallet = ref.read(pWallets).getWallet(walletId);
         final Future<void> loadFuture;
-        if (wallet is CwBasedInterface) {
+        if (wallet is LibMoneroWallet) {
           loadFuture =
               wallet.init().then((value) async => await (wallet).open());
         } else {

@@ -67,6 +67,19 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
           .and()
           .not()
           .typeEqualTo(AddressType.nonWallet)
+          .and()
+          .group(
+            (q) => q
+                .group(
+                  (q2) => q2
+                      .typeEqualTo(AddressType.frostMS)
+                      .and()
+                      .zSafeFrostEqualTo(true),
+                )
+                .or()
+                .not()
+                .typeEqualTo(AddressType.frostMS),
+          )
           .sortByDerivationIndex()
           .idProperty()
           .findAll();
@@ -114,6 +127,19 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
         .and()
         .not()
         .typeEqualTo(AddressType.nonWallet)
+        .and()
+        .group(
+          (q) => q
+              .group(
+                (q2) => q2
+                    .typeEqualTo(AddressType.frostMS)
+                    .and()
+                    .zSafeFrostEqualTo(true),
+              )
+              .or()
+              .not()
+              .typeEqualTo(AddressType.frostMS),
+        )
         .sortByDerivationIndex()
         .idProperty()
         .findAll();

@@ -94,7 +94,7 @@ class StackDialog extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
-                child: Text(
+                child: SelectableText(
                   title,
                   style: STextStyles.pageTitleH2(context),
                 ),
@@ -110,7 +110,7 @@ class StackDialog extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                SelectableText(
                   message!,
                   style: STextStyles.smallMed14(context),
                 ),

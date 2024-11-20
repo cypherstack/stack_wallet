@@ -1,6 +1,7 @@
-import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:flutter/material.dart';
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/models.dart';
 import '../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
@@ -61,7 +62,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                MoneroTransactionPriority.fast.raw!,
+                lib_monero.TransactionPriority.high.value,
               );
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else if (coin is Firo) {
@@ -111,7 +112,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                MoneroTransactionPriority.regular.raw!,
+                lib_monero.TransactionPriority.medium.value,
               );
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else if (coin is Firo) {
@@ -161,7 +162,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                MoneroTransactionPriority.slow.raw!,
+                lib_monero.TransactionPriority.normal.value,
               );
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else if (coin is Firo) {

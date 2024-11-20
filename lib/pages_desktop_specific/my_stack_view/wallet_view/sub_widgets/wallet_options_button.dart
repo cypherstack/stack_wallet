@@ -31,6 +31,7 @@ import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
 import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
@@ -293,10 +294,15 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(pWalletCoin(walletId));
 
-    final firoDebug = kDebugMode && (coin is Firo);
+    bool firoDebug = kDebugMode && (coin is Firo);
 
-    final bool xpubEnabled =
-        ref.watch(pWallets).getWallet(walletId) is ExtendedKeysInterface;
+    final wallet = ref.watch(pWallets).getWallet(walletId);
+    bool xpubEnabled = wallet is ExtendedKeysInterface;
+
+    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+      xpubEnabled = false;
+      firoDebug = false;
+    }
 
     final bool canChangeRep = coin is NanoCurrency;
 

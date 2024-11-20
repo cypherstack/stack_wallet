@@ -14,6 +14,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../app_config.dart';
 import '../../../../../db/sqlite/firo_cache.dart';
+import '../../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/wallets_provider.dart';
@@ -23,6 +24,7 @@ import '../../../../../utilities/text_styles.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
@@ -30,6 +32,7 @@ import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -48,6 +51,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onOrdinalsPressed,
     required this.onMonkeyPressed,
     required this.onFusionPressed,
+    required this.onChurnPressed,
   });
 
   final String walletId;
@@ -58,6 +62,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   final VoidCallback? onOrdinalsPressed;
   final VoidCallback? onMonkeyPressed;
   final VoidCallback? onFusionPressed;
+  final VoidCallback? onChurnPressed;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -235,6 +240,11 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
       ),
     );
 
+    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+    final isViewOnlyNoAddressGen = wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
+
     return DesktopDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -254,7 +264,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (wallet.info.coin is Firo)
+          if (!isViewOnly && wallet.info.coin is Firo)
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
@@ -276,7 +286,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.coinControl.gamePad,
               onPressed: () async => widget.onCoinControlPressed?.call(),
             ),
-          if (wallet is PaynymInterface)
+          if (!isViewOnly && wallet is PaynymInterface)
             _MoreFeaturesItem(
               label: "PayNym",
               detail: "Increased address privacy using BIP47",
@@ -297,18 +307,25 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.monkey,
               onPressed: () async => widget.onMonkeyPressed?.call(),
             ),
-          if (wallet is CashFusionInterface)
+          if (!isViewOnly && wallet is CashFusionInterface)
             _MoreFeaturesItem(
               label: "Fusion",
               detail: "Decentralized mixing protocol",
               iconAsset: Assets.svg.cashFusion,
               onPressed: () async => widget.onFusionPressed?.call(),
             ),
-          if (wallet is SparkInterface)
+          if (!isViewOnly && wallet is LibMoneroWallet)
+            _MoreFeaturesItem(
+              label: "Churn",
+              detail: "Churning",
+              iconAsset: Assets.svg.churn,
+              onPressed: () async => widget.onChurnPressed?.call(),
+            ),
+          if (wallet is SparkInterface && !isViewOnly)
             _MoreFeaturesClearSparkCacheItem(
               cryptoCurrency: wallet.cryptoCurrency,
             ),
-          if (wallet is LelantusInterface)
+          if (wallet is LelantusInterface && !isViewOnly)
             _MoreFeaturesItemBase(
               child: Row(
                 children: [
@@ -373,40 +390,41 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               ),
             ),
           // reuseAddress preference.
-          _MoreFeaturesItemBase(
-            onPressed: _switchReuseAddressToggled,
-            child: Row(
-              children: [
-                const SizedBox(width: 3),
-                SizedBox(
-                  height: 20,
-                  width: 40,
-                  child: IgnorePointer(
-                    child: DraggableSwitchButton(
-                      isOn: ref.watch(
-                            pWalletInfo(widget.walletId)
-                                .select((value) => value.otherData),
-                          )[WalletInfoKeys.reuseAddress] as bool? ??
-                          false,
-                      controller: _switchController,
+          if (!isViewOnlyNoAddressGen)
+            _MoreFeaturesItemBase(
+              onPressed: _switchReuseAddressToggled,
+              child: Row(
+                children: [
+                  const SizedBox(width: 3),
+                  SizedBox(
+                    height: 20,
+                    width: 40,
+                    child: IgnorePointer(
+                      child: DraggableSwitchButton(
+                        isOn: ref.watch(
+                              pWalletInfo(widget.walletId)
+                                  .select((value) => value.otherData),
+                            )[WalletInfoKeys.reuseAddress] as bool? ??
+                            false,
+                        controller: _switchController,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Reuse receiving address",
-                      style: STextStyles.w600_20(context),
-                    ),
-                  ],
-                ),
-              ],
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Reuse receiving address",
+                        style: STextStyles.w600_20(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(
             height: 28,
           ),

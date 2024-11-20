@@ -88,11 +88,13 @@ class MockAddressBookService extends _i1.Mock
         Invocation.getter(#contacts),
         returnValue: <_i3.ContactEntry>[],
       ) as List<_i3.ContactEntry>);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   _i3.ContactEntry getContactById(String? id) => (super.noSuchMethod(
         Invocation.method(
@@ -107,6 +109,7 @@ class MockAddressBookService extends _i1.Mock
           ),
         ),
       ) as _i3.ContactEntry);
+
   @override
   _i5.Future<List<_i3.ContactEntry>> search(String? text) =>
       (super.noSuchMethod(
@@ -117,6 +120,7 @@ class MockAddressBookService extends _i1.Mock
         returnValue:
             _i5.Future<List<_i3.ContactEntry>>.value(<_i3.ContactEntry>[]),
       ) as _i5.Future<List<_i3.ContactEntry>>);
+
   @override
   bool matches(
     String? term,
@@ -132,6 +136,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValue: false,
       ) as bool);
+
   @override
   _i5.Future<bool> addContact(_i3.ContactEntry? contact) => (super.noSuchMethod(
         Invocation.method(
@@ -140,6 +145,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
+
   @override
   _i5.Future<bool> editContact(_i3.ContactEntry? editedContact) =>
       (super.noSuchMethod(
@@ -149,6 +155,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValue: _i5.Future<bool>.value(false),
       ) as _i5.Future<bool>);
+
   @override
   _i5.Future<void> removeContact(String? id) => (super.noSuchMethod(
         Invocation.method(
@@ -158,6 +165,7 @@ class MockAddressBookService extends _i1.Mock
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+
   @override
   void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -166,6 +174,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i7.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -174,6 +183,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -182,6 +192,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(

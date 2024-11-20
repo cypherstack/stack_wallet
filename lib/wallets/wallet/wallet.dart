@@ -7,6 +7,7 @@ import 'package:mutex/mutex.dart';
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/keys/view_only_wallet_data.dart';
 import '../../models/node_model.dart';
 import '../../models/paymint/fee_object_model.dart';
 import '../../services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -28,6 +29,7 @@ import 'impl/banano_wallet.dart';
 import 'impl/bitcoin_frost_wallet.dart';
 import 'impl/bitcoin_wallet.dart';
 import 'impl/bitcoincash_wallet.dart';
+import 'impl/cardano_wallet.dart';
 import 'impl/dash_wallet.dart';
 import 'impl/dogecoin_wallet.dart';
 import 'impl/ecash_wallet.dart';
@@ -53,6 +55,7 @@ import 'wallet_mixin_interfaces/multi_address_interface.dart';
 import 'wallet_mixin_interfaces/paynym_interface.dart';
 import 'wallet_mixin_interfaces/private_key_interface.dart';
 import 'wallet_mixin_interfaces/spark_interface.dart';
+import 'wallet_mixin_interfaces/view_only_option_interface.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
@@ -144,7 +147,13 @@ abstract class Wallet<T extends CryptoCurrency> {
     String? mnemonic,
     String? mnemonicPassphrase,
     String? privateKey,
+    ViewOnlyWalletData? viewOnlyData,
   }) async {
+    // TODO: rework soon?
+    if (walletInfo.isViewOnly && viewOnlyData == null) {
+      throw Exception("Missing view key while creating view only wallet!");
+    }
+
     final Wallet wallet = await _construct(
       walletInfo: walletInfo,
       mainDB: mainDB,
@@ -153,7 +162,12 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
-    if (wallet is MnemonicInterface) {
+    if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
+      await secureStorageInterface.write(
+        key: getViewOnlyWalletDataSecStoreKey(walletId: walletInfo.walletId),
+        value: viewOnlyData!.toJsonEncodedString(),
+      );
+    } else if (wallet is MnemonicInterface) {
       if (wallet is CryptonoteWallet) {
         // currently a special case due to the xmr/wow libraries handling their
         // own mnemonic generation on new wallet creation
@@ -278,6 +292,12 @@ abstract class Wallet<T extends CryptoCurrency> {
   }) =>
       "${walletId}_privateKey";
 
+  // secure storage key
+  static String getViewOnlyWalletDataSecStoreKey({
+    required String walletId,
+  }) =>
+      "${walletId}_viewOnlyWalletData";
+
   //============================================================================
   // ========== Private ========================================================
 
@@ -323,6 +343,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Bitcoincash):
         return BitcoincashWallet(net);
+
+      case const (Cardano):
+        return CardanoWallet(net);
 
       case const (Dash):
         return DashWallet(net);
@@ -407,6 +430,17 @@ abstract class Wallet<T extends CryptoCurrency> {
       );
 
       _isConnected = hasNetwork;
+
+      if (status == NodeConnectionStatus.disconnected) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.unableToSync,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+      }
+
       if (hasNetwork) {
         unawaited(refresh());
       }
@@ -472,12 +506,86 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // Should fire events
   Future<void> refresh() async {
+    final refreshCompleter = Completer<void>();
+    final future = refreshCompleter.future.then(
+      (_) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.synced,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+
+        if (shouldAutoSync) {
+          _periodicRefreshTimer ??=
+              Timer.periodic(const Duration(seconds: 150), (timer) async {
+            // chain height check currently broken
+            // if ((await chainHeight) != (await storedChainHeight)) {
+
+            // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
+            // if (await refreshIfThereIsNewData()) {
+            unawaited(refresh());
+
+            // }
+            // }
+          });
+        }
+      },
+      onError: (Object error, StackTrace strace) {
+        GlobalEventBus.instance.fire(
+          NodeConnectionStatusChangedEvent(
+            NodeConnectionStatus.disconnected,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.unableToSync,
+            walletId,
+            cryptoCurrency,
+          ),
+        );
+        Logging.instance.log(
+          "Caught exception in refreshWalletData(): $error\n$strace",
+          level: LogLevel.Error,
+        );
+      },
+    );
+
+    unawaited(_refresh(refreshCompleter));
+
+    return future;
+  }
+
+  // Should fire events
+  Future<void> _refresh(Completer<void> completer) async {
     // Awaiting this lock could be dangerous.
     // Since refresh is periodic (generally)
     if (refreshMutex.isLocked) {
       return;
     }
     final start = DateTime.now();
+
+    bool tAlive = true;
+    final t = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (tAlive) {
+        final pingSuccess = await pingCheck();
+        if (!pingSuccess) {
+          tAlive = false;
+        }
+      } else {
+        timer.cancel();
+      }
+    });
+
+    void _checkAlive() {
+      if (!tAlive) throw Exception("refresh alive ping failure");
+    }
+
+    final viewOnly = this is ViewOnlyOptionInterface &&
+        (this as ViewOnlyOptionInterface).isViewOnly;
 
     try {
       // this acquire should be almost instant due to above check.
@@ -492,136 +600,137 @@ abstract class Wallet<T extends CryptoCurrency> {
         ),
       );
 
+      _checkAlive();
+
       // add some small buffer before making calls.
       // this can probably be removed in the future but was added as a
       // debugging feature
       await Future<void>.delayed(const Duration(milliseconds: 300));
+      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
-      if (this is PaynymInterface) {
+      _checkAlive();
+      if (this is PaynymInterface && !viewOnly) {
         // isSegwit does not matter here at all
         final myCode =
             await (this as PaynymInterface).getPaymentCode(isSegwit: false);
+        _checkAlive();
 
         final nym = await PaynymIsApi().nym(myCode.toString());
+        _checkAlive();
         if (nym.value != null) {
           for (final follower in nym.value!.followers) {
             codesToCheck.add(follower.code);
           }
+          _checkAlive();
           for (final following in nym.value!.following) {
             codesToCheck.add(following.code);
           }
         }
+        _checkAlive();
       }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
+      _checkAlive();
       await updateChainHeight();
 
+      _checkAlive();
       if (this is BitcoinFrostWallet) {
         await (this as BitcoinFrostWallet).lookAhead();
       }
+      _checkAlive();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
+      _checkAlive();
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
           await (this as MultiAddressInterface)
               .checkReceivingAddressForTransactions();
         }
+        _checkAlive();
       }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
+      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
-        await (this as MultiAddressInterface)
-            .checkChangeAddressForTransactions();
+        if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+          await (this as MultiAddressInterface)
+              .checkChangeAddressForTransactions();
+        }
       }
+      _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
-      if (this is SparkInterface) {
+      if (this is SparkInterface && !viewOnly) {
         // this should be called before updateTransactions()
         await (this as SparkInterface).refreshSparkData();
       }
+      _checkAlive();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
+      _checkAlive();
       final fetchFuture = updateTransactions();
+      _checkAlive();
       final utxosRefreshFuture = updateUTXOs();
       // if (currentHeight != storedHeight) {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
 
+      _checkAlive();
       await utxosRefreshFuture;
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
 
+      _checkAlive();
       await fetchFuture;
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (this is PaynymInterface && codesToCheck.isNotEmpty) {
+      if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
+        _checkAlive();
         await (this as PaynymInterface)
             .checkForNotificationTransactionsTo(codesToCheck);
         // check utxos again for notification outputs
+        _checkAlive();
         await updateUTXOs();
       }
+      _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
       // await getAllTxsToWatch();
+      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (this is LelantusInterface) {
+      if (this is LelantusInterface && !viewOnly) {
         if (info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
             false) {
           await (this as LelantusInterface).refreshLelantusData();
+          _checkAlive();
         }
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 
+      _checkAlive();
       await updateBalance();
 
+      _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.synced,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
 
-      if (shouldAutoSync) {
-        _periodicRefreshTimer ??=
-            Timer.periodic(const Duration(seconds: 150), (timer) async {
-          // chain height check currently broken
-          // if ((await chainHeight) != (await storedChainHeight)) {
+      tAlive = false; // interrupt timer as its not needed anymore
 
-          // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
-          // if (await refreshIfThereIsNewData()) {
-          unawaited(refresh());
-
-          // }
-          // }
-        });
-      }
+      completer.complete();
     } catch (error, strace) {
-      GlobalEventBus.instance.fire(
-        NodeConnectionStatusChangedEvent(
-          NodeConnectionStatus.disconnected,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.unableToSync,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
-      Logging.instance.log(
-        "Caught exception in refreshWalletData(): $error\n$strace",
-        level: LogLevel.Error,
-      );
+      completer.completeError(error, strace);
     } finally {
+      t.cancel();
       refreshMutex.release();
+      if (!completer.isCompleted) {
+        completer.completeError(
+          "finally block hit before completer completed",
+          StackTrace.current,
+        );
+      }
 
       Logging.instance.log(
         "Refresh for "

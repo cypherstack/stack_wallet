@@ -69,6 +69,19 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
           .and()
           .not()
           .typeEqualTo(AddressType.nonWallet)
+          .and()
+          .group(
+            (q) => q
+                .group(
+                  (q2) => q2
+                      .typeEqualTo(AddressType.frostMS)
+                      .and()
+                      .zSafeFrostEqualTo(true),
+                )
+                .or()
+                .not()
+                .typeEqualTo(AddressType.frostMS),
+          )
           .sortByDerivationIndex()
           .idProperty()
           .findAllSync();
@@ -118,6 +131,19 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
         .and()
         .not()
         .typeEqualTo(AddressType.nonWallet)
+        .and()
+        .group(
+          (q) => q
+              .group(
+                (q2) => q2
+                    .typeEqualTo(AddressType.frostMS)
+                    .and()
+                    .zSafeFrostEqualTo(true),
+              )
+              .or()
+              .not()
+              .typeEqualTo(AddressType.frostMS),
+        )
         .sortByDerivationIndex()
         .idProperty()
         .findAllSync();

@@ -8,6 +8,7 @@
  *
  */
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
@@ -147,6 +148,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(widget.walletId));
+    final wallet = ref.watch(pWallets).getWallet(widget.walletId);
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -372,13 +374,21 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   detail: address.subType.prettyName,
                   button: Container(),
                 ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is Bip39HDWallet)
+                if (kDebugMode)
                   const _Div(
                     height: 12,
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is Bip39HDWallet)
+                if (kDebugMode)
+                  DetailItem(
+                    title: "frost secure (kDebugMode)",
+                    detail: address.zSafeFrost.toString(),
+                    button: Container(),
+                  ),
+                if (wallet is Bip39HDWallet && !wallet.isViewOnly)
+                  const _Div(
+                    height: 12,
+                  ),
+                if (wallet is Bip39HDWallet && !wallet.isViewOnly)
                   AddressPrivateKey(
                     walletId: widget.walletId,
                     address: address,

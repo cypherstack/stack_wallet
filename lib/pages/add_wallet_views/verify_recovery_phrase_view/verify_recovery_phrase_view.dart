@@ -9,13 +9,17 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
+    as cs_monero_deprecated;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -25,14 +29,25 @@ import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
+import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../wallets/wallet/impl/monero_wallet.dart';
+import '../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../widgets/stack_dialog.dart';
 import '../../home_view/home_view.dart';
 import '../add_token_view/edit_wallet_tokens_view.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
@@ -64,45 +79,24 @@ class _VerifyRecoveryPhraseViewState
     extends ConsumerState<VerifyRecoveryPhraseView>
 // with WidgetsBindingObserver
 {
-  late Wallet _wallet;
+  late String _walletId;
+  late CryptoCurrency _coin;
   late List<String> _mnemonic;
   late final bool isDesktop;
 
   @override
   void initState() {
-    _wallet = widget.wallet;
+    _walletId = widget.wallet.walletId;
+    _coin = widget.wallet.cryptoCurrency;
     _mnemonic = widget.mnemonic;
     isDesktop = Util.isDesktop;
-    // WidgetsBinding.instance?.addObserver(this);
     super.initState();
   }
 
   @override
   dispose() {
-    // WidgetsBinding.instance?.removeObserver(this);
     super.dispose();
   }
-
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   switch (state) {
-  //     case AppLifecycleState.inactive:
-  //       debugPrint(
-  //           "VerifyRecoveryPhraseView ========================= Inactive");
-  //       break;
-  //     case AppLifecycleState.paused:
-  //       debugPrint("VerifyRecoveryPhraseView ========================= Paused");
-  //       break;
-  //     case AppLifecycleState.resumed:
-  //       debugPrint(
-  //           "VerifyRecoveryPhraseView ========================= Resumed");
-  //       break;
-  //     case AppLifecycleState.detached:
-  //       debugPrint(
-  //           "VerifyRecoveryPhraseView ========================= Detached");
-  //       break;
-  //   }
-  // }
 
   Future<bool> _verifyMnemonicPassphrase() async {
     final result = await showDialog<String?>(
@@ -111,6 +105,157 @@ class _VerifyRecoveryPhraseViewState
     );
 
     return result == "verified";
+  }
+
+  Future<void> _convertToViewOnly() async {
+    int height = 0;
+    final Map<String, dynamic> otherDataJson = {
+      WalletInfoKeys.isViewOnlyKey: true,
+    };
+
+    final ViewOnlyWalletType viewOnlyWalletType;
+    if (widget.wallet is ExtendedKeysInterface) {
+      if (widget.wallet.cryptoCurrency is Firo) {
+        otherDataJson.addAll(
+          {
+            WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
+            WalletInfoKeys.enableLelantusScanning: false,
+          },
+        );
+      }
+      viewOnlyWalletType = ViewOnlyWalletType.xPub;
+    } else if (widget.wallet is LibMoneroWallet) {
+      if (widget.wallet.cryptoCurrency is Monero) {
+        height = cs_monero_deprecated.getMoneroHeightByDate(
+          date: DateTime.now().subtract(const Duration(days: 7)),
+        );
+      }
+      if (widget.wallet.cryptoCurrency is Wownero) {
+        height = cs_monero_deprecated.getWowneroHeightByDate(
+          date: DateTime.now().subtract(const Duration(days: 7)),
+        );
+      }
+      if (height < 0) height = 0;
+
+      viewOnlyWalletType = ViewOnlyWalletType.cryptonote;
+    } else {
+      throw Exception(
+        "Unsupported view only wallet type found: ${widget.wallet.runtimeType}",
+      );
+    }
+
+    otherDataJson[WalletInfoKeys.viewOnlyTypeIndexKey] =
+        viewOnlyWalletType.index;
+
+    final voInfo = WalletInfo.createNew(
+      coin: _coin,
+      name: widget.wallet.info.name,
+      restoreHeight: height,
+      otherDataJsonString: jsonEncode(otherDataJson),
+    );
+
+    final ViewOnlyWalletData viewOnlyData;
+    if (widget.wallet is ExtendedKeysInterface) {
+      final extendedKeyInfo =
+          await (widget.wallet as ExtendedKeysInterface).getXPubs();
+      final testPath = (_coin as Bip39HDCurrency).constructDerivePath(
+        derivePathType: (_coin as Bip39HDCurrency).defaultDerivePathType,
+        chain: 0,
+        index: 0,
+      );
+
+      XPub? xPub;
+      for (final pub in extendedKeyInfo.xpubs) {
+        if (testPath.startsWith(pub.path)) {
+          xPub = pub;
+          break;
+        }
+      }
+
+      if (xPub == null) {
+        throw Exception("Default derivation path not matched in xPubs");
+      }
+
+      viewOnlyData = ExtendedKeysViewOnlyWalletData(
+        walletId: voInfo.walletId,
+        xPubs: [xPub],
+      );
+    } else if (widget.wallet is LibMoneroWallet) {
+      final w = widget.wallet as LibMoneroWallet;
+
+      final info = await w
+          .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
+      final address = info.$1;
+      final privateViewKey = info.$2;
+
+      await w.exit();
+
+      viewOnlyData = CryptonoteViewOnlyWalletData(
+        walletId: voInfo.walletId,
+        address: address,
+        privateViewKey: privateViewKey,
+      );
+    } else {
+      throw Exception(
+        "Unsupported view only wallet type found: ${widget.wallet.runtimeType}",
+      );
+    }
+
+    final voWallet = await Wallet.create(
+      walletInfo: voInfo,
+      mainDB: ref.read(mainDBProvider),
+      secureStorageInterface: ref.read(secureStoreProvider),
+      nodeService: ref.read(nodeServiceChangeNotifierProvider),
+      prefs: ref.read(prefsChangeNotifierProvider),
+      viewOnlyData: viewOnlyData,
+    );
+
+    try {
+      // TODO: extract interface with isRestore param
+      switch (voWallet.runtimeType) {
+        case const (EpiccashWallet):
+          await (voWallet as EpiccashWallet).init(isRestore: true);
+          break;
+
+        case const (MoneroWallet):
+          await (voWallet as MoneroWallet).init(isRestore: true);
+          break;
+
+        case const (WowneroWallet):
+          await (voWallet as WowneroWallet).init(isRestore: true);
+          break;
+
+        default:
+          await voWallet.init();
+      }
+
+      await voWallet.recover(isRescan: false);
+
+      // don't remove this setMnemonicVerified thing
+      await voWallet.info.setMnemonicVerified(
+        isar: ref.read(mainDBProvider).isar,
+      );
+
+      ref.read(pWallets).addWallet(voWallet);
+
+      await voWallet.exit();
+
+      await ref.read(pWallets).deleteWallet(
+            widget.wallet.info,
+            ref.read(secureStoreProvider),
+          );
+    } catch (e) {
+      await ref.read(pWallets).deleteWallet(
+            widget.wallet.info,
+            ref.read(secureStoreProvider),
+          );
+      await ref.read(pWallets).deleteWallet(
+            voWallet.info,
+            ref.read(secureStoreProvider),
+          );
+
+      rethrow;
+    }
   }
 
   Future<void> _continue(bool isMatch) async {
@@ -124,11 +269,11 @@ class _VerifyRecoveryPhraseViewState
         }
       }
 
-      await ref.read(pWalletInfo(_wallet.walletId)).setMnemonicVerified(
+      await ref.read(pWalletInfo(widget.wallet.walletId)).setMnemonicVerified(
             isar: ref.read(mainDBProvider).isar,
           );
 
-      ref.read(pWallets).addWallet(_wallet);
+      ref.read(pWallets).addWallet(widget.wallet);
 
       final isCreateSpecialEthWallet =
           ref.read(createSpecialEthWalletRoutingFlag);
@@ -140,6 +285,51 @@ class _VerifyRecoveryPhraseViewState
             !ref
                 .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
                 .state;
+      }
+
+      if (mounted &&
+          ref.read(pNewWalletOptions)?.convertToViewOnly == true &&
+          widget.wallet is ViewOnlyOptionInterface) {
+        try {
+          Exception? ex;
+          await showLoading(
+            whileFuture: _convertToViewOnly(),
+            context: context,
+            message: "Converting to view only wallet",
+            rootNavigator: Util.isDesktop,
+            onException: (e) {
+              ex = e;
+            },
+          );
+
+          if (ex != null) {
+            throw ex!;
+          }
+        } catch (e, s) {
+          Logging.instance.log(
+            "$e\n$s",
+            level: LogLevel.Fatal,
+          );
+
+          if (mounted) {
+            await showDialog<void>(
+              context: context,
+              builder: (_) => StackOkDialog(
+                title: e.toString(),
+                desktopPopRootNavigator: Util.isDesktop,
+              ),
+            );
+          }
+
+          if (mounted) {
+            Navigator.of(context).popUntil(
+              ModalRoute.withName(
+                NewWalletRecoveryPhraseView.routeName,
+              ),
+            );
+          }
+          return;
+        }
       }
 
       if (mounted) {
@@ -156,7 +346,7 @@ class _VerifyRecoveryPhraseViewState
                 DesktopHomeView.routeName,
               ),
             );
-            if (widget.wallet.info.coin is Ethereum) {
+            if (_coin is Ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
@@ -179,7 +369,7 @@ class _VerifyRecoveryPhraseViewState
                 (route) => false,
               ),
             );
-            if (widget.wallet.info.coin is Ethereum) {
+            if (_coin is Ethereum) {
               unawaited(
                 Navigator.of(context).pushNamed(
                   EditWalletTokensView.routeName,
@@ -269,7 +459,7 @@ class _VerifyRecoveryPhraseViewState
 
   Future<void> delete() async {
     await ref.read(pWallets).deleteWallet(
-          _wallet.info,
+          widget.wallet.info,
           ref.read(secureStoreProvider),
         );
   }
@@ -299,7 +489,7 @@ class _VerifyRecoveryPhraseViewState
                 trailing: ExitToMyStackButton(
                   onPressed: () async {
                     await delete();
-                    if (mounted) {
+                    if (context.mounted) {
                       Navigator.of(context).popUntil(
                         ModalRoute.withName(DesktopHomeView.routeName),
                       );

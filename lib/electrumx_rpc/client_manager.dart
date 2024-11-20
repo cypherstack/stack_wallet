@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:electrum_adapter/electrum_adapter.dart';
+
+import '../utilities/logger.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 class ClientManager {
@@ -37,13 +39,19 @@ class ClientManager {
     }
 
     _heightCompleters[key] = Completer<int>();
-    _subscriptions[key] = client.subscribeHeaders().listen((event) {
-      _heights[key] = event.height;
+    _subscriptions[key] = client.subscribeHeaders().listen(
+      (event) {
+        _heights[key] = event.height;
 
-      if (!_heightCompleters[key]!.isCompleted) {
-        _heightCompleters[key]!.complete(event.height);
-      }
-    });
+        if (!_heightCompleters[key]!.isCompleted) {
+          _heightCompleters[key]!.complete(event.height);
+        }
+      },
+      onError: (Object err, StackTrace s) => Logging.instance.log(
+        "ClientManager listen: $err\n$s",
+        level: LogLevel.Error,
+      ),
+    );
   }
 
   Future<int> getChainHeightFor(CryptoCurrency cryptoCurrency) async {

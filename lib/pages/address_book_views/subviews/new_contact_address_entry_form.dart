@@ -66,6 +66,62 @@ class _NewContactAddressEntryFormState
 
   List<CryptoCurrency> coins = [];
 
+  void _onQrTapped() async {
+    try {
+      // ref
+      //     .read(shouldShowLockscreenOnResumeStateProvider
+      //         .state)
+      //     .state = false;
+      final qrResult = await widget.barcodeScanner.scan();
+
+      // Future<void>.delayed(
+      //   const Duration(seconds: 2),
+      //   () => ref
+      //       .read(
+      //           shouldShowLockscreenOnResumeStateProvider
+      //               .state)
+      //       .state = true,
+      // );
+
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
+
+      if (paymentData != null) {
+        addressController.text = paymentData.address;
+        ref.read(addressEntryDataProvider(widget.id)).address =
+            addressController.text.isEmpty ? null : addressController.text;
+
+        addressLabelController.text =
+            paymentData.label ?? addressLabelController.text;
+        ref.read(addressEntryDataProvider(widget.id)).addressLabel =
+            addressLabelController.text.isEmpty
+                ? null
+                : addressLabelController.text;
+
+        // now check for non standard encoded basic address
+      } else if (ref.read(addressEntryDataProvider(widget.id)).coin != null) {
+        if (ref.read(addressEntryDataProvider(widget.id)).coin!.validateAddress(
+              qrResult.rawContent,
+            )) {
+          addressController.text = qrResult.rawContent;
+          ref.read(addressEntryDataProvider(widget.id)).address =
+              qrResult.rawContent;
+        }
+      }
+    } on PlatformException catch (e, s) {
+      // ref
+      //     .read(shouldShowLockscreenOnResumeStateProvider
+      //         .state)
+      //     .state = true;
+      Logging.instance.log(
+        "Failed to get camera permissions to scan address qr code: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
   @override
   void initState() {
     addressLabelController = TextEditingController()
@@ -404,71 +460,7 @@ class _NewContactAddressEntryFormState
                             null)
                       TextFieldIconButton(
                         key: const Key("addAddressBookEntryScanQrButtonKey"),
-                        onTap: () async {
-                          try {
-                            // ref
-                            //     .read(shouldShowLockscreenOnResumeStateProvider
-                            //         .state)
-                            //     .state = false;
-                            final qrResult = await widget.barcodeScanner.scan();
-
-                            // Future<void>.delayed(
-                            //   const Duration(seconds: 2),
-                            //   () => ref
-                            //       .read(
-                            //           shouldShowLockscreenOnResumeStateProvider
-                            //               .state)
-                            //       .state = true,
-                            // );
-
-                            final results =
-                                AddressUtils.parseUri(qrResult.rawContent);
-                            if (results.isNotEmpty) {
-                              addressController.text = results["address"] ?? "";
-                              ref
-                                      .read(addressEntryDataProvider(widget.id))
-                                      .address =
-                                  addressController.text.isEmpty
-                                      ? null
-                                      : addressController.text;
-
-                              addressLabelController.text = results["label"] ??
-                                  addressLabelController.text;
-                              ref
-                                      .read(addressEntryDataProvider(widget.id))
-                                      .addressLabel =
-                                  addressLabelController.text.isEmpty
-                                      ? null
-                                      : addressLabelController.text;
-
-                              // now check for non standard encoded basic address
-                            } else if (ref
-                                    .read(addressEntryDataProvider(widget.id))
-                                    .coin !=
-                                null) {
-                              if (ref
-                                  .read(addressEntryDataProvider(widget.id))
-                                  .coin!
-                                  .validateAddress(
-                                    qrResult.rawContent,
-                                  )) {
-                                addressController.text = qrResult.rawContent;
-                                ref
-                                    .read(addressEntryDataProvider(widget.id))
-                                    .address = qrResult.rawContent;
-                              }
-                            }
-                          } on PlatformException catch (e, s) {
-                            // ref
-                            //     .read(shouldShowLockscreenOnResumeStateProvider
-                            //         .state)
-                            //     .state = true;
-                            Logging.instance.log(
-                              "Failed to get camera permissions to scan address qr code: $e\n$s",
-                              level: LogLevel.Warning,
-                            );
-                          }
-                        },
+                        onTap: _onQrTapped,
                         child: const QrCodeIcon(),
                       ),
                     const SizedBox(
