@@ -28,6 +28,7 @@ import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
+import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
@@ -394,19 +395,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        _amountToSend = cryptoAmount.contains(",")
-            ? Decimal.parse(cryptoAmount.replaceFirst(",", ".")).toAmount(
-                fractionDigits:
-                    ref.read(pCurrentTokenWallet)!.tokenContract.decimals,
-              )
-            : Decimal.parse(cryptoAmount).toAmount(
-                fractionDigits:
-                    ref.read(pCurrentTokenWallet)!.tokenContract.decimals,
-              );
+      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+            cryptoAmountController.text,
+            ethContract: ref.read(pCurrentTokenWallet)!.tokenContract,
+          );
+
+      if (cryptoAmount != null) {
+        _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -805,7 +800,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
-                  tokenContract.symbol,
+                  ref.watch(pAmountUnit(coin)).unitForContract(tokenContract),
                   style: STextStyles.smallMed14(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

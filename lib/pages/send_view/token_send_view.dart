@@ -27,6 +27,7 @@ import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
+import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
@@ -1033,7 +1034,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Text(
-                                    tokenContract.symbol,
+                                    ref
+                                        .watch(pAmountUnit(coin))
+                                        .unitForContract(tokenContract),
                                     style: STextStyles.smallMed14(context)
                                         .copyWith(
                                       color: Theme.of(context)
