@@ -1190,6 +1190,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       cryptoCurrency: cryptoCurrency,
     );
 
+    final inputs = txn["vin"] as List? ?? [];
+    final isCoinbase = inputs.any((e) => (e as Map?)?["coinbase"] != null);
+
     final vout = jsonUTXO["tx_pos"] as int;
 
     final outputs = txn["vout"] as List;
@@ -1221,7 +1224,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       name: checkBlockResult.utxoLabel ?? "",
       isBlocked: checkBlockResult.blocked,
       blockedReason: checkBlockResult.blockedReason,
-      isCoinbase: txn["is_coinbase"] as bool? ?? false,
+      isCoinbase: txn["is_coinbase"] as bool? ??
+          txn["is-coinbase"] as bool? ??
+          txn["iscoinbase"] as bool? ??
+          isCoinbase,
       blockHash: txn["blockhash"] as String?,
       blockHeight: jsonUTXO["height"] as int?,
       blockTime: txn["blocktime"] as int?,
