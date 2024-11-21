@@ -141,6 +141,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
                   e.isConfirmed(
                     currentChainHeight,
                     cryptoCurrency.minConfirms,
+                    cryptoCurrency.minCoinbaseConfirms,
                   )),
         )
         .toList();
@@ -1920,6 +1921,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               e.isConfirmed(
                 info.cachedChainHeight,
                 cryptoCurrency.minConfirms,
+                cryptoCurrency.minCoinbaseConfirms,
               ),
         )
         .toList();

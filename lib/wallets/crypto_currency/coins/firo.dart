@@ -55,6 +55,9 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get minConfirms => 1;
 
   @override
+  int get minCoinbaseConfirms => 100;
+
+  @override
   bool get torSupport => true;
 
   @override

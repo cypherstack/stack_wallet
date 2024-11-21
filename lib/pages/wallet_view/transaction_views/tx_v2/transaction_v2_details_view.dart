@@ -373,6 +373,11 @@ class _TransactionV2DetailsViewState
   String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
         currentChainHeight: height,
         minConfirms: minConfirms,
+        minCoinbaseConfirms: ref
+            .read(pWallets)
+            .getWallet(walletId)
+            .cryptoCurrency
+            .minCoinbaseConfirms,
       );
 
   Future<String> fetchContactNameFor(String address) async {
@@ -567,6 +572,7 @@ class _TransactionV2DetailsViewState
     final confirmedTxn = _transaction.isConfirmed(
       currentHeight,
       coin.minConfirms,
+      coin.minCoinbaseConfirms,
     );
 
     return ConditionalParent(
@@ -1367,6 +1373,7 @@ class _TransactionV2DetailsViewState
                                         ? _transaction.isConfirmed(
                                             currentHeight,
                                             minConfirms,
+                                            coin.minCoinbaseConfirms,
                                           )
                                             ? ref
                                                 .watch(pAmountFormatter(coin))
@@ -1484,9 +1491,9 @@ class _TransactionV2DetailsViewState
                                   height = "Unknown";
                                 } else {
                                   final confirmed = _transaction.isConfirmed(
-                                    currentHeight,
-                                    minConfirms,
-                                  );
+                                      currentHeight,
+                                      minConfirms,
+                                      coin.minCoinbaseConfirms);
                                   if (widget.coin is! Epiccash && confirmed) {
                                     height =
                                         "${_transaction.height == 0 ? "Unknown" : _transaction.height}";

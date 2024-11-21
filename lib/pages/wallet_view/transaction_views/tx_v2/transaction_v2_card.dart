@@ -60,6 +60,11 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                   .getWallet(walletId)
                   .cryptoCurrency
                   .minConfirms,
+              minCoinbaseConfirms: ref
+                  .read(pWallets)
+                  .getWallet(walletId)
+                  .cryptoCurrency
+                  .minCoinbaseConfirms,
             );
 
   @override

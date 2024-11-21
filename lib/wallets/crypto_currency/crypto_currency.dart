@@ -60,6 +60,7 @@ abstract class CryptoCurrency {
   bool get torSupport => false;
 
   int get minConfirms;
+  int get minCoinbaseConfirms => minConfirms;
 
   // TODO: [prio=low] could be handled differently as (at least) epiccash does not use this
   String get genesisHash;

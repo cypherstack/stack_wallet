@@ -925,6 +925,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       if (availableOutputs[i].isConfirmed(
                 currentChainHeight,
                 cryptoCurrency.minConfirms,
+                cryptoCurrency.minCoinbaseConfirms,
               ) ==
               true &&
           !(availableOutputs[i].isCoinbase &&

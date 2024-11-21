@@ -1750,6 +1750,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         (e) => !e.isConfirmed(
           currentHeight,
           cryptoCurrency.minConfirms,
+          cryptoCurrency.minCoinbaseConfirms,
         ),
       );
 
@@ -1845,7 +1846,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           .where(
             (e) =>
                 canCPFP ||
-                e.isConfirmed(currentHeight, cryptoCurrency.minConfirms),
+                e.isConfirmed(
+                  currentHeight,
+                  cryptoCurrency.minConfirms,
+                  cryptoCurrency.minCoinbaseConfirms,
+                ),
           )
           .toList();
 

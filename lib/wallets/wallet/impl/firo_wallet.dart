@@ -592,7 +592,11 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       );
 
       if (_unconfirmedTxids.contains(tx.txid)) {
-        if (tx.isConfirmed(await chainHeight, cryptoCurrency.minConfirms)) {
+        if (tx.isConfirmed(
+          await chainHeight,
+          cryptoCurrency.minConfirms,
+          cryptoCurrency.minCoinbaseConfirms,
+        )) {
           txns.add(tx);
           _unconfirmedTxids.removeWhere((e) => e == tx.txid);
         } else {
