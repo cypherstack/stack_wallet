@@ -129,6 +129,10 @@ class TransactionV2 {
       return fee;
     }
 
+    if (isCoinbase()) {
+      return Amount.zeroWith(fractionDigits: fractionDigits);
+    }
+
     final inSum =
         inputs.map((e) => e.value).reduce((value, element) => value += element);
     final outSum = outputs
