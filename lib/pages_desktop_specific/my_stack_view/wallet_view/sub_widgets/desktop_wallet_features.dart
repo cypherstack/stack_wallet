@@ -119,7 +119,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       barrierDismissible: false,
       builder: (context) => DesktopDialog(
         maxWidth: 500,
-        maxHeight: 210,
+        maxHeight: double.infinity,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
           child: Column(

@@ -246,6 +246,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
 
     return DesktopDialog(
+      maxHeight: double.infinity,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
