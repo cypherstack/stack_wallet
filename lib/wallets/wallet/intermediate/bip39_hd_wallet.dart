@@ -76,6 +76,34 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     return address;
   }
 
+  @override
+  List<FilterOperation> get standardReceivingAddressFilters => [
+        // view only only have a single derivation path currently
+        if (!isViewOnly)
+          FilterCondition.equalTo(
+            property: r"type",
+            value: info.mainAddressType,
+          ),
+        const FilterCondition.equalTo(
+          property: r"subType",
+          value: AddressSubType.receiving,
+        ),
+      ];
+
+  @override
+  List<FilterOperation> get standardChangeAddressFilters => [
+        // view only only have a single derivation path currently
+        if (!isViewOnly)
+          FilterCondition.equalTo(
+            property: r"type",
+            value: info.mainAddressType,
+          ),
+        const FilterCondition.equalTo(
+          property: r"subType",
+          value: AddressSubType.change,
+        ),
+      ];
+
   /// Generates a receiving address. If none
   /// are in the current wallet db it will generate at index 0, otherwise the
   /// highest index found in the current wallet db.

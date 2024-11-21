@@ -5,16 +5,25 @@ import 'electrumx_interface.dart';
 abstract class XKey {
   XKey({required this.path});
   final String path;
+
+  @override
+  String toString() => "Path: $path";
 }
 
 class XPub extends XKey {
   XPub({required super.path, required this.encoded});
   final String encoded;
+
+  @override
+  String toString() => "XPub { path: $path, encoded: $encoded }";
 }
 
 class XPriv extends XKey {
   XPriv({required super.path, required this.encoded});
   final String encoded;
+
+  @override
+  String toString() => "XPriv { path: $path, encoded: $encoded }";
 }
 
 mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
