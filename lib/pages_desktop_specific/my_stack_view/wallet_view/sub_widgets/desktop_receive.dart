@@ -39,6 +39,7 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -106,11 +107,28 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
       final Address? address;
       if (wallet is Bip39HDWallet && wallet is! BCashInterface) {
-        final type = DerivePathType.values.firstWhere(
-          (e) => e.getAddressType() == _walletAddressTypes[_currentIndex],
-        );
+        DerivePathType? type;
+        if (wallet.isViewOnly && wallet is ExtendedKeysInterface) {
+          final voData = await wallet.getViewOnlyWalletData()
+              as ExtendedKeysViewOnlyWalletData;
+          for (final t in wallet.cryptoCurrency.supportedDerivationPathTypes) {
+            final testPath = wallet.cryptoCurrency.constructDerivePath(
+              derivePathType: t,
+              chain: 0,
+              index: 0,
+            );
+            if (testPath.startsWith(voData.xPubs.first.path)) {
+              type = t;
+              break;
+            }
+          }
+        } else {
+          type = DerivePathType.values.firstWhere(
+            (e) => e.getAddressType() == _walletAddressTypes[_currentIndex],
+          );
+        }
         address = await wallet.generateNextReceivingAddress(
-          derivePathType: type,
+          derivePathType: type!,
         );
         final isar = ref.read(mainDBProvider).isar;
         await isar.writeTxn(() async {
