@@ -98,6 +98,11 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
     final confirmed = utxo!.isConfirmed(
       currentHeight,
       ref.watch(pWallets).getWallet(widget.walletId).cryptoCurrency.minConfirms,
+      ref
+          .watch(pWallets)
+          .getWallet(widget.walletId)
+          .cryptoCurrency
+          .minCoinbaseConfirms,
     );
 
     return ConditionalParent(

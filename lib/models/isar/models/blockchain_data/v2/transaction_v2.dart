@@ -112,9 +112,14 @@ class TransactionV2 {
     return max(0, currentChainHeight - (height! - 1));
   }
 
-  bool isConfirmed(int currentChainHeight, int minimumConfirms) {
+  bool isConfirmed(
+    int currentChainHeight,
+    int minimumConfirms,
+    int minimumCoinbaseConfirms,
+  ) {
     final confirmations = getConfirmations(currentChainHeight);
-    return confirmations >= minimumConfirms;
+    return confirmations >=
+        (isCoinbase() ? minimumCoinbaseConfirms : minimumConfirms);
   }
 
   Amount getFee({required int fractionDigits}) {
@@ -225,6 +230,7 @@ class TransactionV2 {
   String statusLabel({
     required int currentChainHeight,
     required int minConfirms,
+    required int minCoinbaseConfirms,
   }) {
     String prettyConfirms() =>
         "(${getConfirmations(currentChainHeight)}/$minConfirms)";
@@ -233,7 +239,7 @@ class TransactionV2 {
         subType == TransactionSubType.mint ||
         (subType == TransactionSubType.sparkMint &&
             type == TransactionType.sentToSelf)) {
-      if (isConfirmed(currentChainHeight, minConfirms)) {
+      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
         return "Anonymized";
       } else {
         return "Anonymizing ${prettyConfirms()}";
@@ -248,7 +254,7 @@ class TransactionV2 {
       if (isCancelled) {
         return "Cancelled";
       } else if (type == TransactionType.incoming) {
-        if (isConfirmed(currentChainHeight, minConfirms)) {
+        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Received";
         } else {
           if (numberOfMessages == 1) {
@@ -260,7 +266,7 @@ class TransactionV2 {
           }
         }
       } else if (type == TransactionType.outgoing) {
-        if (isConfirmed(currentChainHeight, minConfirms)) {
+        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Sent (confirmed)";
         } else {
           if (numberOfMessages == 1) {
@@ -278,19 +284,19 @@ class TransactionV2 {
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
-      if (isConfirmed(currentChainHeight, minConfirms)) {
+      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
         return "Received";
       } else {
         return "Receiving ${prettyConfirms()}";
       }
     } else if (type == TransactionType.outgoing) {
-      if (isConfirmed(currentChainHeight, minConfirms)) {
+      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
         return "Sent";
       } else {
         return "Sending ${prettyConfirms()}";
       }
     } else if (type == TransactionType.sentToSelf) {
-      if (isConfirmed(currentChainHeight, minConfirms)) {
+      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
         return "Sent to self";
       } else {
         return "Sent to self ${prettyConfirms()}";
@@ -307,6 +313,9 @@ class TransactionV2 {
     final map = jsonDecode(otherData!);
     return map[key];
   }
+
+  bool isCoinbase() =>
+      type == TransactionType.incoming && inputs.any((e) => e.coinbase != null);
 
   @override
   String toString() {

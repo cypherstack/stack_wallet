@@ -15,14 +15,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/transaction_filter.dart';
-import '../../sub_widgets/tx_icon.dart';
-import '../transaction_search_filter_view.dart';
-import 'transaction_v2_card.dart';
-import 'transaction_v2_details_view.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
@@ -49,6 +46,10 @@ import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
+import '../../sub_widgets/tx_icon.dart';
+import '../transaction_search_filter_view.dart';
+import 'transaction_v2_card.dart';
+import 'transaction_v2_details_view.dart';
 
 typedef _GroupedTransactions = ({
   String label,
@@ -866,6 +867,11 @@ class _DesktopTransactionCardRowState
   String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
         currentChainHeight: height,
         minConfirms: minConfirms,
+        minCoinbaseConfirms: ref
+            .read(pWallets)
+            .getWallet(widget.walletId)
+            .cryptoCurrency
+            .minCoinbaseConfirms,
       );
 
   @override

@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/isar/stack_theme.dart';
@@ -106,6 +107,11 @@ class TxIcon extends ConsumerWidget {
         !tx.isConfirmed(
           currentHeight,
           ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
+          ref
+              .watch(pWallets)
+              .getWallet(tx.walletId)
+              .cryptoCurrency
+              .minCoinbaseConfirms,
         ),
         tx.subType,
         tx.type,

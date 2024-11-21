@@ -80,9 +80,14 @@ class UTXO {
     return max(0, currentChainHeight - (blockHeight! - 1));
   }
 
-  bool isConfirmed(int currentChainHeight, int minimumConfirms) {
+  bool isConfirmed(
+    int currentChainHeight,
+    int minimumConfirms,
+    int minimumCoinbaseConfirms,
+  ) {
     final confirmations = getConfirmations(currentChainHeight);
-    return confirmations >= minimumConfirms;
+    return confirmations >=
+        (isCoinbase ? minimumCoinbaseConfirms : minimumConfirms);
   }
 
   @ignore

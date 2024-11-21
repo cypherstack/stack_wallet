@@ -309,6 +309,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
         if (utxo.isConfirmed(
           currentChainHeight,
           cryptoCurrency.minConfirms,
+          cryptoCurrency.minCoinbaseConfirms,
         )) {
           satoshiBalanceSpendable += utxoAmount;
         } else {

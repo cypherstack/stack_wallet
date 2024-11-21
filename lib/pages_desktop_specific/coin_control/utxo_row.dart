@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../pages/coin_control/utxo_details_view.dart';
@@ -141,6 +142,11 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                       .getWallet(widget.walletId)
                       .cryptoCurrency
                       .minConfirms,
+                  ref
+                      .watch(pWallets)
+                      .getWallet(widget.walletId)
+                      .cryptoCurrency
+                      .minCoinbaseConfirms,
                 )
                     ? UTXOStatusIconStatus.confirmed
                     : UTXOStatusIconStatus.unconfirmed,

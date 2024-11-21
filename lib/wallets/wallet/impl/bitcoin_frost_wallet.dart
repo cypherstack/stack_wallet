@@ -129,6 +129,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           (e) => !e.isConfirmed(
             currentHeight,
             cryptoCurrency.minConfirms,
+            cryptoCurrency.minCoinbaseConfirms,
           ),
         );
         if (utxos.isEmpty) {
@@ -330,7 +331,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     final height = await chainHeight;
     for (final output in (await mainDB.getUTXOs(walletId).findAll())) {
       if (!output.isBlocked &&
-          output.isConfirmed(height, cryptoCurrency.minConfirms)) {
+          output.isConfirmed(
+            height,
+            cryptoCurrency.minConfirms,
+            cryptoCurrency.minCoinbaseConfirms,
+          )) {
         available += output.value;
         inputCount++;
       }
@@ -448,7 +453,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           .findFirst();
 
       if (storedTx == null ||
-          !storedTx.isConfirmed(currentHeight, cryptoCurrency.minConfirms)) {
+          !storedTx.isConfirmed(
+            currentHeight,
+            cryptoCurrency.minConfirms,
+            cryptoCurrency.minCoinbaseConfirms,
+          )) {
         final tx = await electrumXCachedClient.getTransaction(
           txHash: txHash["tx_hash"] as String,
           verbose: true,
@@ -1060,6 +1069,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         if (utxo.isConfirmed(
           currentChainHeight,
           cryptoCurrency.minConfirms,
+          cryptoCurrency.minCoinbaseConfirms,
         )) {
           satoshiBalanceSpendable += utxoAmount;
         } else {

@@ -350,6 +350,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           utxo.isConfirmed(
                                             currentHeight,
                                             minConfirms,
+                                            coin.minCoinbaseConfirms,
                                           )),
                                   initialSelectedState: isSelected,
                                   onSelectedChanged: (value) {
@@ -414,6 +415,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                 utxo.isConfirmed(
                                                   currentHeight,
                                                   minConfirms,
+                                                  coin.minCoinbaseConfirms,
                                                 )),
                                         initialSelectedState: isSelected,
                                         onSelectedChanged: (value) {
@@ -558,6 +560,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                       utxo.isConfirmed(
                                                         currentHeight,
                                                         minConfirms,
+                                                        coin.minCoinbaseConfirms,
                                                       )),
                                               initialSelectedState: isSelected,
                                               onSelectedChanged: (value) {
