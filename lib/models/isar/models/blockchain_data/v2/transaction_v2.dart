@@ -232,8 +232,11 @@ class TransactionV2 {
     required int minConfirms,
     required int minCoinbaseConfirms,
   }) {
-    String prettyConfirms() =>
-        "(${getConfirmations(currentChainHeight)}/$minConfirms)";
+    String prettyConfirms() => "("
+        "${getConfirmations(currentChainHeight)}"
+        "/"
+        "${(isCoinbase() ? minCoinbaseConfirms : minConfirms)}"
+        ")";
 
     if (subType == TransactionSubType.cashFusion ||
         subType == TransactionSubType.mint ||
