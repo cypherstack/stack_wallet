@@ -242,6 +242,19 @@ class EthTokenWallet extends Wallet {
     final amount = txData.recipients!.first.amount;
     final address = txData.recipients!.first.address;
 
+    await updateBalance();
+    final info = await mainDB.isar.tokenWalletInfo
+        .where()
+        .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
+        .findFirst();
+    final availableBalance = info?.getCachedBalance().spendable ??
+        Amount.zeroWith(
+          fractionDigits: tokenContract.decimals,
+        );
+    if (amount > availableBalance) {
+      throw Exception("Insufficient balance");
+    }
+
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
       function: _sendFunction,
