@@ -279,4 +279,5 @@ class _GIF {
   const _GIF();
 
   String get stacyOnion => "assets/gif/stacy_onion.gif";
+  String get moneroChanDance => "assets/gif/monero-chan-dance.gif";
 }

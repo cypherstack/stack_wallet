@@ -13,6 +13,7 @@ import '../../widgets/churning/churn_progress_item.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/monero_chan_dance.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/stack_dialog.dart';
 import 'churn_error_dialog.dart';
@@ -182,6 +183,10 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
                                   textAlign: TextAlign.center,
                                 ),
                               ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            const MoneroChanDance(),
                             const SizedBox(
                               height: 20,
                             ),

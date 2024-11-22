@@ -15,6 +15,7 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/monero_chan_dance.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 
@@ -232,6 +233,10 @@ class _ChurnDialogViewState extends ConsumerState<ChurnDialogView> {
                             textAlign: TextAlign.center,
                           ),
                         ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  const MoneroChanDance(),
                   const SizedBox(
                     height: 20,
                   ),

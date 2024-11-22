@@ -48,6 +48,7 @@ import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -1722,16 +1723,27 @@ class _TransactionV2DetailsViewState
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          "Transaction ID",
-                                          style: isDesktop
-                                              ? STextStyles
-                                                  .desktopTextExtraExtraSmall(
-                                                  context,
-                                                )
-                                              : STextStyles.itemSubtitle(
-                                                  context,
-                                                ),
+                                        ConditionalParent(
+                                          condition: !isDesktop,
+                                          builder: (child) => Row(
+                                            children: [
+                                              Expanded(child: child),
+                                              SimpleCopyButton(
+                                                data: _transaction.txid,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Text(
+                                            "Transaction ID",
+                                            style: isDesktop
+                                                ? STextStyles
+                                                    .desktopTextExtraExtraSmall(
+                                                    context,
+                                                  )
+                                                : STextStyles.itemSubtitle(
+                                                    context,
+                                                  ),
+                                          ),
                                         ),
                                         const SizedBox(
                                           height: 8,

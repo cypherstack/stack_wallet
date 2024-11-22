@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -131,11 +130,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   void initState() {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
-    // _coinsTestnet.remove(Coin.firoTestNet);
-
-    if (Util.isDesktop && !kDebugMode) {
-      _coins.removeWhere((e) => e is BitcoinFrost);
-    }
 
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));
 

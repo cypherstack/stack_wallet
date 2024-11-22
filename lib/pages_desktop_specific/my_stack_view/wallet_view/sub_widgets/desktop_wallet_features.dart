@@ -302,13 +302,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       level: LogLevel.Info,
     );
 
-    if (context.mounted) {
+    if (mounted) {
       Navigator.of(context, rootNavigator: true).pop();
 
       // check if account exists and for matching code to see if claimed
-      if (account.value != null &&
-          account.value!.nonSegwitPaymentCode.claimed &&
-          account.value!.segwit) {
+      if (account.value != null && account.value!.nonSegwitPaymentCode.claimed
+          // &&
+          // account.value!.segwit
+          ) {
         ref.read(myPaynymAccountStateProvider.state).state = account.value!;
 
         await Navigator.of(context).pushNamed(

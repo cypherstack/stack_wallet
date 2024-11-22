@@ -9,12 +9,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'paynym_bot.dart';
+
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/format.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/custom_buttons/paynym_follow_toggle_button.dart';
+import 'paynym_bot.dart';
 
 class PaynymCard extends StatefulWidget {
   const PaynymCard({
@@ -84,10 +85,11 @@ class _PaynymCardState extends State<PaynymCard> {
               ],
             ),
           ),
-          PaynymFollowToggleButton(
-            walletId: widget.walletId,
-            paymentCodeStringToFollow: widget.paymentCodeString,
-          ),
+          if (!kDisableFollowing)
+            PaynymFollowToggleButton(
+              walletId: widget.walletId,
+              paymentCodeStringToFollow: widget.paymentCodeString,
+            ),
         ],
       ),
     );

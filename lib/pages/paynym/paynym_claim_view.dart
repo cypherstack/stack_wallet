@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../models/paynym/paynym_account.dart';
 import '../../providers/global/paynym_api_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../providers/wallet/my_paynym_account_state_provider.dart';
@@ -47,25 +46,25 @@ class PaynymClaimView extends ConsumerStatefulWidget {
 }
 
 class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
-  Future<bool> _addSegwitCode(PaynymAccount myAccount) async {
-    final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
-
-    final token = await ref
-        .read(paynymAPIProvider)
-        .token(myAccount.nonSegwitPaymentCode.code);
-    final signature = await wallet.signStringWithNotificationKey(token.value!);
-
-    final pCodeSegwit = await wallet.getPaymentCode(isSegwit: true);
-    final addResult = await ref.read(paynymAPIProvider).add(
-          token.value!,
-          signature,
-          myAccount.nymID,
-          pCodeSegwit.toString(),
-        );
-
-    return addResult.value ?? false;
-  }
+  // Future<bool> _addSegwitCode(PaynymAccount myAccount) async {
+  //   final wallet =
+  //       ref.read(pWallets).getWallet(widget.walletId) as PaynymInterface;
+  //
+  //   final token = await ref
+  //       .read(paynymAPIProvider)
+  //       .token(myAccount.nonSegwitPaymentCode.code);
+  //   final signature = await wallet.signStringWithNotificationKey(token.value!);
+  //
+  //   final pCodeSegwit = await wallet.getPaymentCode(isSegwit: true);
+  //   final addResult = await ref.read(paynymAPIProvider).add(
+  //         token.value!,
+  //         signature,
+  //         myAccount.nymID,
+  //         pCodeSegwit.toString(),
+  //       );
+  //
+  //   return addResult.value ?? false;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -210,16 +209,16 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                     // payment code already claimed
                     debugPrint("pcode already claimed!!");
 
-                    final account =
-                        await ref.read(paynymAPIProvider).nym(pCode.toString());
-                    if (!account.value!.segwit) {
-                      for (int i = 0; i < 100; i++) {
-                        final result = await _addSegwitCode(account.value!);
-                        if (result == true) {
-                          break;
-                        }
-                      }
-                    }
+                    // final account =
+                    //     await ref.read(paynymAPIProvider).nym(pCode.toString());
+                    // if (!account.value!.segwit) {
+                    //   for (int i = 0; i < 100; i++) {
+                    //     final result = await _addSegwitCode(account.value!);
+                    //     if (result == true) {
+                    //       break;
+                    //     }
+                    //   }
+                    // }
 
                     if (mounted) {
                       if (isDesktop) {
@@ -259,14 +258,14 @@ class _PaynymClaimViewState extends ConsumerState<PaynymClaimView> {
                   if (claim.value?.claimed == pCode.toString()) {
                     final account =
                         await ref.read(paynymAPIProvider).nym(pCode.toString());
-                    if (!account.value!.segwit) {
-                      for (int i = 0; i < 100; i++) {
-                        final result = await _addSegwitCode(account.value!);
-                        if (result == true) {
-                          break;
-                        }
-                      }
-                    }
+                    // if (!account.value!.segwit) {
+                    //   for (int i = 0; i < 100; i++) {
+                    //     final result = await _addSegwitCode(account.value!);
+                    //     if (result == true) {
+                    //       break;
+                    //     }
+                    //   }
+                    // }
 
                     ref.read(myPaynymAccountStateProvider.state).state =
                         account.value!;
