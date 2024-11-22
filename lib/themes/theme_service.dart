@@ -33,7 +33,7 @@ final pThemeService = Provider<ThemeService>((ref) {
 class ThemeService {
   // dumb quick conditional based on name. Should really be done better
   static const _currentDefaultThemeVersion =
-      AppConfig.appName == "Campfire" ? 17 : 15;
+      AppConfig.appName == "Campfire" ? 17 : 16;
   ThemeService._();
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
@@ -120,68 +120,40 @@ class ThemeService {
   Future<void> checkDefaultThemesOnStartup() async {
     // install default themes
     if (!(await ThemeService.instance.verifyInstalled(themeId: "light"))) {
-      Logging.instance.log(
-        "Installing default light theme...",
-        level: LogLevel.Info,
-      );
-      final lightZip = await rootBundle.load("assets/default_themes/light.zip");
-      await ThemeService.instance
-          .install(themeArchiveData: lightZip.buffer.asUint8List());
-      Logging.instance.log(
-        "Installing default light theme... finished",
-        level: LogLevel.Info,
-      );
+      await _updateDefaultTheme("light");
     } else {
       // check installed version
       final theme = ThemeService.instance.getTheme(themeId: "light");
       if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
-        Logging.instance.log(
-          "Updating default light theme...",
-          level: LogLevel.Info,
-        );
-        final lightZip =
-            await rootBundle.load("assets/default_themes/light.zip");
-        await ThemeService.instance
-            .install(themeArchiveData: lightZip.buffer.asUint8List());
-        Logging.instance.log(
-          "Updating default light theme... finished",
-          level: LogLevel.Info,
-        );
+        await _updateDefaultTheme("light");
       }
     }
     if (AppConfig.hasFeature(AppFeature.themeSelection)) {
       if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
-        Logging.instance.log(
-          "Installing default dark theme... ",
-          level: LogLevel.Info,
-        );
-        final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-        await ThemeService.instance
-            .install(themeArchiveData: darkZip.buffer.asUint8List());
-        Logging.instance.log(
-          "Installing default dark theme... finished",
-          level: LogLevel.Info,
-        );
+        await _updateDefaultTheme("dark");
       } else {
         // check installed version
-        // final theme = ThemeService.instance.getTheme(themeId: "dark");
-        // Force update theme to add missing icons for now
-        // TODO: uncomment if statement in future when themes are version 4 or above
-        // if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
-        Logging.instance.log(
-          "Updating default dark theme...",
-          level: LogLevel.Info,
-        );
-        final darkZip = await rootBundle.load("assets/default_themes/dark.zip");
-        await ThemeService.instance
-            .install(themeArchiveData: darkZip.buffer.asUint8List());
-        Logging.instance.log(
-          "Updating default dark theme... finished",
-          level: LogLevel.Info,
-        );
-        // }
+        final theme = ThemeService.instance.getTheme(themeId: "dark");
+        if ((theme?.version ?? 1) < _currentDefaultThemeVersion) {
+          await _updateDefaultTheme("dark");
+        }
       }
     }
+  }
+
+  Future<void> _updateDefaultTheme(String name) async {
+    Logging.instance.log(
+      "Updating default $name theme...",
+      level: LogLevel.Info,
+    );
+    final zip = await rootBundle.load("assets/default_themes/$name.zip");
+    await ThemeService.instance.install(
+      themeArchiveData: zip.buffer.asUint8List(),
+    );
+    Logging.instance.log(
+      "Updating default $name theme... finished",
+      level: LogLevel.Info,
+    );
   }
 
   // TODO more thorough check/verification of theme
