@@ -1175,8 +1175,10 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
                           // check if account exists and for matching code to see if claimed
                           if (account.value != null &&
-                              account.value!.nonSegwitPaymentCode.claimed &&
-                              account.value!.segwit) {
+                                  account.value!.nonSegwitPaymentCode.claimed
+                              // &&
+                              // account.value!.segwit
+                              ) {
                             ref.read(myPaynymAccountStateProvider.state).state =
                                 account.value!;
 
