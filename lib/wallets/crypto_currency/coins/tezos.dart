@@ -118,6 +118,8 @@ class Tezos extends Bip39Currency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       default:

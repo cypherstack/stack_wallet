@@ -77,6 +77,8 @@ class Cardano extends Bip39Currency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       default:
@@ -91,7 +93,8 @@ class Cardano extends Bip39Currency {
   int get fractionDigits => 6;
 
   @override
-  String get genesisHash => "f0f7892b5c333cffc4b3c4344de48af4cc63f55e44936196f365a9ef2244134f";
+  String get genesisHash =>
+      "f0f7892b5c333cffc4b3c4344de48af4cc63f55e44936196f365a9ef2244134f";
 
   @override
   bool get hasBuySupport => false;

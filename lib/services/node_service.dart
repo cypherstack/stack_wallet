@@ -12,6 +12,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+
 import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../models/node_model.dart';
@@ -253,7 +254,9 @@ class NodeService extends ChangeNotifier {
             enabled: true,
             coinName: coin.identifier,
             isFailover: true,
+            torEnabled: nodeMap["torEnabled"] == "true",
             isDown: nodeMap["isDown"] == "true",
+            plainEnabled: nodeMap["plainEnabled"] == "true",
           );
           final currentNode = getNodeById(id: nodeMap["id"] as String);
           if (currentNode != null) {

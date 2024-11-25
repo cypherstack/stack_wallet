@@ -239,6 +239,8 @@ class Bitcoin extends Bip39HDCurrency
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -252,6 +254,8 @@ class Bitcoin extends Bip39HDCurrency
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test4:
@@ -265,6 +269,8 @@ class Bitcoin extends Bip39HDCurrency
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       default:

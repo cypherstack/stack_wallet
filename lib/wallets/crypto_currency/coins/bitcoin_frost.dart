@@ -73,6 +73,8 @@ class BitcoinFrost extends FrostCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -86,6 +88,8 @@ class BitcoinFrost extends FrostCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test4:
@@ -99,6 +103,8 @@ class BitcoinFrost extends FrostCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       default:

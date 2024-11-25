@@ -1272,6 +1272,8 @@ abstract class SWB {
             loginName: node['loginName'] as String?,
             isFailover: node['isFailover'] as bool,
             isDown: node['isDown'] as bool,
+            torEnabled: node['torEnabled'] as bool? ?? true,
+            plainEnabled: node['plainEnabled'] as bool? ?? true,
           ),
           node["password"] as String?,
           true,

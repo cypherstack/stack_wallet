@@ -289,6 +289,8 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          plainEnabled: true,
         );
 
       default:
