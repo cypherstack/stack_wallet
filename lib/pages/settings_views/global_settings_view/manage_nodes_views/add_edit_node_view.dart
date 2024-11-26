@@ -1228,69 +1228,75 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        const SizedBox(
-          height: 16,
-        ),
-        Row(
-          children: [
-            RadioTextButton(
-              label: "Only TOR traffic",
-              enabled: !widget.readOnly,
-              value: TorPlainNetworkOption.tor,
-              groupValue: netOption,
-              onChanged: (value) {
-                if (!widget.readOnly) {
-                  setState(
-                    () => netOption = TorPlainNetworkOption.tor,
-                  );
-                  _updateState();
-                }
-              },
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        Row(
-          children: [
-            RadioTextButton(
-              label: "Only non-TOR traffic",
-              enabled: !widget.readOnly,
-              value: TorPlainNetworkOption.clear,
-              groupValue: netOption,
-              onChanged: (value) {
-                if (!widget.readOnly) {
-                  setState(
-                    () => netOption = TorPlainNetworkOption.clear,
-                  );
-                  _updateState();
-                }
-              },
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        Row(
-          children: [
-            RadioTextButton(
-              label: "Allow both",
-              enabled: !widget.readOnly,
-              value: TorPlainNetworkOption.both,
-              groupValue: netOption,
-              onChanged: (value) {
-                if (!widget.readOnly) {
-                  setState(
-                    () => netOption = TorPlainNetworkOption.both,
-                  );
-                  _updateState();
-                }
-              },
-            ),
-          ],
-        ),
+        if (widget.coin is! Ethereum)
+          const SizedBox(
+            height: 16,
+          ),
+        if (widget.coin is! Ethereum)
+          Row(
+            children: [
+              RadioTextButton(
+                label: "Only TOR traffic",
+                enabled: !widget.readOnly,
+                value: TorPlainNetworkOption.tor,
+                groupValue: netOption,
+                onChanged: (value) {
+                  if (!widget.readOnly) {
+                    setState(
+                      () => netOption = TorPlainNetworkOption.tor,
+                    );
+                    _updateState();
+                  }
+                },
+              ),
+            ],
+          ),
+        if (widget.coin is! Ethereum)
+          const SizedBox(
+            height: 8,
+          ),
+        if (widget.coin is! Ethereum)
+          Row(
+            children: [
+              RadioTextButton(
+                label: "Only non-TOR traffic",
+                enabled: !widget.readOnly,
+                value: TorPlainNetworkOption.clear,
+                groupValue: netOption,
+                onChanged: (value) {
+                  if (!widget.readOnly) {
+                    setState(
+                      () => netOption = TorPlainNetworkOption.clear,
+                    );
+                    _updateState();
+                  }
+                },
+              ),
+            ],
+          ),
+        if (widget.coin is! Ethereum)
+          const SizedBox(
+            height: 8,
+          ),
+        if (widget.coin is! Ethereum)
+          Row(
+            children: [
+              RadioTextButton(
+                label: "Allow both",
+                enabled: !widget.readOnly,
+                value: TorPlainNetworkOption.both,
+                groupValue: netOption,
+                onChanged: (value) {
+                  if (!widget.readOnly) {
+                    setState(
+                      () => netOption = TorPlainNetworkOption.both,
+                    );
+                    _updateState();
+                  }
+                },
+              ),
+            ],
+          ),
       ],
     );
   }
