@@ -60,7 +60,7 @@ class NodeService extends ChangeNotifier {
             isFailover: savedNode.isFailover,
             trusted: savedNode.trusted,
             torEnabled: savedNode.torEnabled,
-            plainEnabled: savedNode.plainEnabled,
+            clearnetEnabled: savedNode.clearnetEnabled,
           ),
         );
       }
@@ -78,7 +78,7 @@ class NodeService extends ChangeNotifier {
             isFailover: primaryNode.isFailover,
             trusted: primaryNode.trusted,
             torEnabled: primaryNode.torEnabled,
-            plainEnabled: primaryNode.plainEnabled,
+            clearnetEnabled: primaryNode.clearnetEnabled,
           ),
         );
       }
@@ -260,7 +260,7 @@ class NodeService extends ChangeNotifier {
             isFailover: true,
             torEnabled: nodeMap["torEnabled"] == "true",
             isDown: nodeMap["isDown"] == "true",
-            plainEnabled: nodeMap["plainEnabled"] == "true",
+            clearnetEnabled: nodeMap["plainEnabled"] == "true",
           );
           final currentNode = getNodeById(id: nodeMap["id"] as String);
           if (currentNode != null) {

@@ -1339,7 +1339,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       useSSL: node.useSSL,
       id: node.id,
       torEnabled: node.torEnabled,
-      clearEnabled: node.plainEnabled,
+      clearnetEnabled: node.clearnetEnabled,
     );
   }
 
@@ -1355,7 +1355,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
             id: e.id,
             useSSL: e.useSSL,
             torEnabled: e.torEnabled,
-            clearEnabled: e.plainEnabled,
+            clearnetEnabled: e.clearnetEnabled,
           ),
         )
         .toList();

@@ -907,7 +907,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       useSSL: node.useSSL,
       id: node.id,
       torEnabled: node.torEnabled,
-      clearEnabled: node.plainEnabled,
+      clearnetEnabled: node.clearnetEnabled,
     );
   }
 
@@ -922,7 +922,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             id: e.id,
             useSSL: e.useSSL,
             torEnabled: e.torEnabled,
-            clearEnabled: e.plainEnabled,
+            clearnetEnabled: e.clearnetEnabled,
           ),
         )
         .toList();

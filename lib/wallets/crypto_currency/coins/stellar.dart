@@ -69,7 +69,7 @@ class Stellar extends Bip39Currency {
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -84,7 +84,7 @@ class Stellar extends Bip39Currency {
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

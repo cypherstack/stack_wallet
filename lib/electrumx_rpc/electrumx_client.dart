@@ -55,7 +55,7 @@ class ElectrumXNode {
     required this.id,
     required this.useSSL,
     required this.torEnabled,
-    required this.clearEnabled,
+    required this.clearnetEnabled,
   });
   final String address;
   final int port;
@@ -63,7 +63,7 @@ class ElectrumXNode {
   final String id;
   final bool useSSL;
   final bool torEnabled;
-  final bool clearEnabled;
+  final bool clearnetEnabled;
 
   factory ElectrumXNode.from(ElectrumXNode node) {
     return ElectrumXNode(
@@ -73,7 +73,7 @@ class ElectrumXNode {
       id: node.id,
       useSSL: node.useSSL,
       torEnabled: node.torEnabled,
-      clearEnabled: node.clearEnabled,
+      clearnetEnabled: node.clearnetEnabled,
     );
   }
 
@@ -210,7 +210,7 @@ class ElectrumXClient {
       cryptoCurrency: cryptoCurrency,
       netType: TorPlainNetworkOption.fromNodeData(
         node.torEnabled,
-        node.clearEnabled,
+        node.clearnetEnabled,
       ),
     );
   }

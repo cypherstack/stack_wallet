@@ -252,7 +252,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           trusted: formData.trusted!,
           isDown: false,
           torEnabled: torEnabled,
-          plainEnabled: plainEnabled,
+          clearnetEnabled: plainEnabled,
         );
 
         await ref.read(nodeServiceChangeNotifierProvider).add(
@@ -280,7 +280,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           trusted: formData.trusted!,
           isDown: false,
           torEnabled: torEnabled,
-          plainEnabled: plainEnabled,
+          clearnetEnabled: plainEnabled,
         );
 
         await ref.read(nodeServiceChangeNotifierProvider).add(
@@ -755,9 +755,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _isFailover = node.isFailover;
       _trusted = node.trusted ?? false;
 
-      if (node.torEnabled && !node.plainEnabled) {
+      if (node.torEnabled && !node.clearnetEnabled) {
         netOption = TorPlainNetworkOption.tor;
-      } else if (node.plainEnabled && !node.torEnabled) {
+      } else if (node.clearnetEnabled && !node.torEnabled) {
         netOption = TorPlainNetworkOption.clear;
       } else {
         netOption = TorPlainNetworkOption.both;

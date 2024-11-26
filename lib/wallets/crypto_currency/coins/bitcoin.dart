@@ -240,7 +240,7 @@ class Bitcoin extends Bip39HDCurrency
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -255,7 +255,7 @@ class Bitcoin extends Bip39HDCurrency
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test4:
@@ -270,7 +270,7 @@ class Bitcoin extends Bip39HDCurrency
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

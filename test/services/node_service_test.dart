@@ -49,7 +49,7 @@ void main() {
         isFailover: true,
         isDown: false,
         torEnabled: true,
-        plainEnabled: true,
+        clearnetEnabled: true,
       );
       await service.setPrimaryNodeFor(
         coin: Bitcoin(CryptoCurrencyNetwork.main),
@@ -132,7 +132,7 @@ void main() {
       isFailover: true,
       isDown: false,
       torEnabled: true,
-      plainEnabled: true,
+      clearnetEnabled: true,
     );
     final nodeB = NodeModel(
       host: "host2",
@@ -145,7 +145,7 @@ void main() {
       isFailover: true,
       isDown: false,
       torEnabled: true,
-      plainEnabled: true,
+      clearnetEnabled: true,
     );
     final nodeC = NodeModel(
       host: "host3",
@@ -158,7 +158,7 @@ void main() {
       isFailover: true,
       isDown: false,
       torEnabled: true,
-      plainEnabled: true,
+      clearnetEnabled: true,
     );
 
     setUp(() async {

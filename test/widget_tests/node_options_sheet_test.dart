@@ -37,7 +37,7 @@ void main() {
               isFailover: false,
               isDown: false,
               torEnabled: true,
-              plainEnabled: true,
+              clearnetEnabled: true,
             ));
 
     when(mockNodeService.getPrimaryNodeFor(
@@ -52,7 +52,7 @@ void main() {
             coinName: "Bitcoin",
             isFailover: false,
             torEnabled: true,
-            plainEnabled: true,
+            clearnetEnabled: true,
             isDown: false));
 
     await tester.pumpWidget(
@@ -115,7 +115,7 @@ void main() {
         isFailover: false,
         isDown: false,
         torEnabled: true,
-        plainEnabled: true,
+        clearnetEnabled: true,
       ),
     );
 
@@ -133,7 +133,7 @@ void main() {
         isFailover: false,
         isDown: false,
         torEnabled: true,
-        plainEnabled: true,
+        clearnetEnabled: true,
       ),
     );
 
@@ -196,7 +196,7 @@ void main() {
         isFailover: false,
         isDown: false,
         torEnabled: true,
-        plainEnabled: true,
+        clearnetEnabled: true,
       ),
     );
 
@@ -214,7 +214,7 @@ void main() {
         isFailover: false,
         isDown: false,
         torEnabled: true,
-        plainEnabled: true,
+        clearnetEnabled: true,
       ),
     );
 

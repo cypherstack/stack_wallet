@@ -168,9 +168,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       enabled: _status == "Disconnected",
                       onTap: () async {
                         final TorPlainNetworkOption netOption;
-                        if (_node.torEnabled && !_node.plainEnabled) {
+                        if (_node.torEnabled && !_node.clearnetEnabled) {
                           netOption = TorPlainNetworkOption.tor;
-                        } else if (_node.plainEnabled && !_node.torEnabled) {
+                        } else if (_node.clearnetEnabled && !_node.torEnabled) {
                           netOption = TorPlainNetworkOption.clear;
                         } else {
                           netOption = TorPlainNetworkOption.both;

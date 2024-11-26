@@ -169,7 +169,7 @@ void main() {
       id: "some ID",
       useSSL: true,
       torEnabled: true,
-      clearEnabled: true,
+      clearnetEnabled: true,
     );
 
     final client =

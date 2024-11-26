@@ -58,7 +58,7 @@ class Ethereum extends Bip39Currency {
         isFailover: true,
         isDown: false,
         torEnabled: true,
-        plainEnabled: true,
+        clearnetEnabled: true,
       );
 
   @override

@@ -258,9 +258,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                                 );
                                 if (context.mounted) {
                                   final TorPlainNetworkOption netOption;
-                                  if (node.torEnabled && !node.plainEnabled) {
+                                  if (node.torEnabled &&
+                                      !node.clearnetEnabled) {
                                     netOption = TorPlainNetworkOption.tor;
-                                  } else if (node.plainEnabled &&
+                                  } else if (node.clearnetEnabled &&
                                       !node.torEnabled) {
                                     netOption = TorPlainNetworkOption.clear;
                                   } else {

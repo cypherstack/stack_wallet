@@ -78,7 +78,7 @@ class Nano extends NanoCurrency {
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

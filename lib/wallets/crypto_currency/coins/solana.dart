@@ -56,7 +56,7 @@ class Solana extends Bip39Currency {
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
       default:
         throw Exception("Unsupported network: $network");

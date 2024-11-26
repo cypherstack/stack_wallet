@@ -467,7 +467,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     final host = Uri.parse(node.host).host;
     ({InternetAddress host, int port})? proxy;
     if (prefs.useTor) {
-      if (node.plainEnabled && !node.torEnabled) {
+      if (node.clearnetEnabled && !node.torEnabled) {
         libMoneroWallet?.stopAutoSaving();
         libMoneroWallet?.stopListeners();
         libMoneroWallet?.stopSyncing();
@@ -476,7 +476,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       }
       proxy = TorService.sharedInstance.getProxyInfo();
     } else {
-      if (!node.plainEnabled && node.torEnabled) {
+      if (!node.clearnetEnabled && node.torEnabled) {
         libMoneroWallet?.stopAutoSaving();
         libMoneroWallet?.stopListeners();
         libMoneroWallet?.stopSyncing();
@@ -1041,7 +1041,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     final node = getCurrentNode();
 
     if (prefs.useTor) {
-      if (node.plainEnabled && !node.torEnabled) {
+      if (node.clearnetEnabled && !node.torEnabled) {
         libMoneroWallet?.stopAutoSaving();
         libMoneroWallet?.stopListeners();
         libMoneroWallet?.stopSyncing();
@@ -1049,7 +1049,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         throw Exception("TOR - clearnet mismatch");
       }
     } else {
-      if (!node.plainEnabled && node.torEnabled) {
+      if (!node.clearnetEnabled && node.torEnabled) {
         libMoneroWallet?.stopAutoSaving();
         libMoneroWallet?.stopListeners();
         libMoneroWallet?.stopSyncing();

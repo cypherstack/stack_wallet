@@ -73,7 +73,7 @@ class Wownero extends CryptonoteCurrency {
           isDown: false,
           trusted: true,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

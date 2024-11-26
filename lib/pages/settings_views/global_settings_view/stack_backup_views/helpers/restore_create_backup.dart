@@ -1273,7 +1273,7 @@ abstract class SWB {
             isFailover: node['isFailover'] as bool,
             isDown: node['isDown'] as bool,
             torEnabled: node['torEnabled'] as bool? ?? true,
-            plainEnabled: node['plainEnabled'] as bool? ?? true,
+            clearnetEnabled: node['plainEnabled'] as bool? ?? true,
           ),
           node["password"] as String?,
           true,

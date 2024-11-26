@@ -73,7 +73,7 @@ class Monero extends CryptonoteCurrency {
           isDown: false,
           trusted: true,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

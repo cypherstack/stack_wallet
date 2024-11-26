@@ -29,7 +29,7 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       isDown: fields[9] as bool,
       trusted: fields[10] as bool?,
       torEnabled: fields[11] as bool? ?? true,
-      plainEnabled: fields[12] as bool? ?? true,
+      clearnetEnabled: fields[12] as bool? ?? true,
     );
   }
 
@@ -62,7 +62,7 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       ..writeByte(11)
       ..write(obj.torEnabled)
       ..writeByte(12)
-      ..write(obj.plainEnabled);
+      ..write(obj.clearnetEnabled);
   }
 
   @override

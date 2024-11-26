@@ -308,7 +308,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                       } else {
                         netOption = TorPlainNetworkOption.fromNodeData(
                           node.torEnabled,
-                          node.plainEnabled,
+                          node.clearnetEnabled,
                         );
                       }
 
@@ -391,7 +391,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                                         TorPlainNetworkOption.tor ||
                                     ref.read(nodeFormDataProvider).netOption ==
                                         TorPlainNetworkOption.both,
-                            plainEnabled:
+                            clearnetEnabled:
                                 ref.read(nodeFormDataProvider).netOption ==
                                         TorPlainNetworkOption.clear ||
                                     ref.read(nodeFormDataProvider).netOption ==

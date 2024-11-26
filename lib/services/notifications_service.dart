@@ -137,12 +137,12 @@ class NotificationsService extends ChangeNotifier {
         if (node != null) {
           if (wallet is ElectrumXInterface) {
             if (prefs.useTor) {
-              if (node.plainEnabled && !node.torEnabled) {
+              if (node.clearnetEnabled && !node.torEnabled) {
                 // just ignore I guess??
                 return;
               }
             } else {
-              if (node.torEnabled && !node.plainEnabled) {
+              if (node.torEnabled && !node.clearnetEnabled) {
                 // just ignore I guess??
                 return;
               }
@@ -155,7 +155,7 @@ class NotificationsService extends ChangeNotifier {
               id: node.id,
               useSSL: node.useSSL,
               torEnabled: node.torEnabled,
-              clearEnabled: node.plainEnabled,
+              clearnetEnabled: node.clearnetEnabled,
             );
             final failovers = nodeService
                 .failoverNodesFor(currency: coin)
@@ -167,7 +167,7 @@ class NotificationsService extends ChangeNotifier {
                     id: e.id,
                     useSSL: e.useSSL,
                     torEnabled: node.torEnabled,
-                    clearEnabled: node.plainEnabled,
+                    clearnetEnabled: node.clearnetEnabled,
                   ),
                 )
                 .toList();

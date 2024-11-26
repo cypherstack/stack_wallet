@@ -104,7 +104,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -119,7 +119,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isFailover: true,
           isDown: false,
           torEnabled: true,
-          plainEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:
