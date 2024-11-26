@@ -469,7 +469,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         condition: isDesktop,
         builder: (child) => DesktopDialog(
           maxWidth: 580,
-          maxHeight: 500,
+          maxHeight: double.infinity,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
