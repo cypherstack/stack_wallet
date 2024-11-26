@@ -9,6 +9,7 @@ import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart' as isar;
 import '../../../models/isar/models/isar_models.dart';
@@ -19,6 +20,7 @@ import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/prefs.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
@@ -60,6 +62,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   Future<int?> _getEstimatedNetworkFee(Amount transferAmount) async {
+    _checkClient();
     final latestBlockhash = await _rpcClient?.getLatestBlockhash();
     final pubKey = (await _getKeyPair()).publicKey;
 
@@ -254,7 +257,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       return health != null;
     } catch (e, s) {
       Logging.instance.log(
-        "$runtimeType Solana pingCheck failed \"health=$health\": $e\n$s",
+        "$runtimeType Solana pingCheck failed \"health response=$health\": $e\n$s",
         level: LogLevel.Error,
       );
       return Future.value(false);
@@ -289,9 +292,9 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<void> updateBalance() async {
+    _checkClient();
     try {
       final address = await getCurrentReceivingAddress();
-      _checkClient();
 
       final balance = await _rpcClient?.getBalance(address!.value);
 
@@ -448,6 +451,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         txsList.add(Tuple2(transaction, txAddress));
       }
       await mainDB.addNewTransactionData(txsList, walletId);
+    } on NodeTorMismatchConfigException {
+      rethrow;
     } catch (e, s) {
       Logging.instance.log(
         "Error occurred in solana_wallet.dart while getting"
@@ -467,6 +472,28 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   ///
   void _checkClient() {
     final node = getCurrentNode();
+
+    final netOption = TorPlainNetworkOption.fromNodeData(
+      node.torEnabled,
+      node.clearnetEnabled,
+    );
+
+    if (prefs.useTor) {
+      if (netOption == TorPlainNetworkOption.clear) {
+        _rpcClient = null;
+        throw NodeTorMismatchConfigException(
+          message: "TOR enabled but node set to clearnet only",
+        );
+      }
+    } else {
+      if (netOption == TorPlainNetworkOption.tor) {
+        _rpcClient = null;
+        throw NodeTorMismatchConfigException(
+          message: "TOR off but node set to TOR only",
+        );
+      }
+    }
+
     _rpcClient = createRpcClient(
       node.host,
       node.port,
