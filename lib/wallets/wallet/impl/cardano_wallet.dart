@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:blockchain_utils/bip/bip/bip44/base/bip44_base.dart';
@@ -7,19 +6,21 @@ import 'package:blockchain_utils/bip/cardano/cip1852/cip1852.dart';
 import 'package:blockchain_utils/bip/cardano/cip1852/conf/cip1852_coins.dart';
 import 'package:blockchain_utils/bip/cardano/mnemonic/cardano_icarus_seed_generator.dart';
 import 'package:blockchain_utils/bip/cardano/shelley/cardano_shelley.dart';
+import 'package:isar/isar.dart';
 import 'package:on_chain/ada/ada.dart';
 import 'package:socks5_proxy/socks.dart';
+import 'package:tuple/tuple.dart';
+
+import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
-import 'package:tuple/tuple.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart' as isar;
 import '../../../models/paymint/fee_object_model.dart';
-import '../../../networking/http.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
-import 'package:isar/isar.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/prefs.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../api/cardano/blockfrost_http_provider.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
@@ -30,7 +31,6 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
   // Source: https://cips.cardano.org/cip/CIP-1852
   static const String _addressDerivationPath = "m/1852'/1815'/0'/0/0";
-  static final HTTP _httpClient = HTTP();
 
   BlockforestProvider? blockfrostProvider;
 
@@ -138,12 +138,12 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       final fee = params.calculateFee(284).toInt();
 
       return FeeObject(
-          numberOfBlocksFast: 2,
-          numberOfBlocksAverage: 2,
-          numberOfBlocksSlow: 2,
-          fast: fee,
-          medium: fee,
-          slow: fee,
+        numberOfBlocksFast: 2,
+        numberOfBlocksAverage: 2,
+        numberOfBlocksSlow: 2,
+        fast: fee,
+        medium: fee,
+        slow: fee,
       );
     } catch (e, s) {
       Logging.instance.log(
@@ -184,41 +184,59 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         totalBalance += BigInt.parse(utxo.amount.first.quantity);
       }
 
-      if (leftAmountForUtxos > BigInt.parse("0") || totalBalance < txData.amount!.raw) {
+      if (leftAmountForUtxos > BigInt.parse("0") ||
+          totalBalance < txData.amount!.raw) {
         throw Exception("Insufficient balance");
       }
 
-      final bip32 = CardanoIcarusBip32.fromSeed(CardanoIcarusSeedGenerator(await getMnemonic()).generate());
+      final bip32 = CardanoIcarusBip32.fromSeed(
+          CardanoIcarusSeedGenerator(await getMnemonic()).generate());
       final spend = bip32.derivePath("1852'/1815'/0'/0/0");
       final privateKey = AdaPrivateKey.fromBytes(spend.privateKey.raw);
 
       // Calculate fees with example tx
       final exampleFee = ADAHelper.toLovelaces("0.10");
-      final change = TransactionOutput(address: ADABaseAddress((await getCurrentReceivingAddress())!.value), amount: Value(coin: totalBalance - (txData.amount!.raw)));
+      final change = TransactionOutput(
+          address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
+          amount: Value(coin: totalBalance - (txData.amount!.raw)));
       final body = TransactionBody(
-        inputs: listOfUtxosToBeUsed.map((e) => TransactionInput(transactionId: TransactionHash.fromHex(e.txHash), index: e.outputIndex)).toList(),
-        outputs: [change, TransactionOutput(address: ADABaseAddress(txData.recipients!.first.address), amount: Value(coin: txData.amount!.raw - exampleFee))],
+        inputs: listOfUtxosToBeUsed
+            .map((e) => TransactionInput(
+                transactionId: TransactionHash.fromHex(e.txHash),
+                index: e.outputIndex))
+            .toList(),
+        outputs: [
+          change,
+          TransactionOutput(
+              address: ADABaseAddress(txData.recipients!.first.address),
+              amount: Value(coin: txData.amount!.raw - exampleFee))
+        ],
         fee: exampleFee,
       );
       final exampleTx = ADATransaction(
-          body: body,
-          witnessSet: TransactionWitnessSet(vKeys: [
+        body: body,
+        witnessSet: TransactionWitnessSet(
+          vKeys: [
             privateKey.createSignatureWitness(body.toHash().data),
-          ],)
-        ,);
-      final params = await blockfrostProvider!.request(BlockfrostRequestLatestEpochProtocolParameters());
+          ],
+        ),
+      );
+      final params = await blockfrostProvider!
+          .request(BlockfrostRequestLatestEpochProtocolParameters());
       final fee = params.calculateFee(exampleTx.size);
 
       // Check if we are sending all balance, which means no change and only one output for recipient.
       if (totalBalance == txData.amount!.raw) {
-        final List<TxRecipient> newRecipients = [(
-        address: txData.recipients!.first.address,
-        amount: Amount(
-          rawValue: txData.amount!.raw - fee,
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ),
-        isChange: txData.recipients!.first.isChange,
-        ),];
+        final List<TxRecipient> newRecipients = [
+          (
+            address: txData.recipients!.first.address,
+            amount: Amount(
+              rawValue: txData.amount!.raw - fee,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            isChange: txData.recipients!.first.isChange,
+          ),
+        ];
         return txData.copyWith(
           fee: Amount(
             rawValue: fee,
@@ -232,8 +250,10 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         }
 
         // Minimum change in Cardano is 1 ADA and we need to have enough balance for that
-        if (totalBalance - (txData.amount!.raw + fee) < ADAHelper.toLovelaces("1")) {
-          throw Exception("Not enough balance for change. By network rules, please either send all balance or leave at least 1 ADA change.");
+        if (totalBalance - (txData.amount!.raw + fee) <
+            ADAHelper.toLovelaces("1")) {
+          throw Exception(
+              "Not enough balance for change. By network rules, please either send all balance or leave at least 1 ADA change.");
         }
 
         return txData.copyWith(
@@ -266,7 +286,6 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         ),
       );
 
-
       var leftAmountForUtxos = txData.amount!.raw + txData.fee!.raw;
       final listOfUtxosToBeUsed = <ADAAccountUTXOResponse>[];
       var totalBalance = BigInt.zero;
@@ -285,31 +304,53 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         totalUtxoAmount += BigInt.parse(utxo.amount.first.quantity);
       }
 
-      final bip32 = CardanoIcarusBip32.fromSeed(CardanoIcarusSeedGenerator(await getMnemonic()).generate());
+      final bip32 = CardanoIcarusBip32.fromSeed(
+          CardanoIcarusSeedGenerator(await getMnemonic()).generate());
       final spend = bip32.derivePath("1852'/1815'/0'/0/0");
       final privateKey = AdaPrivateKey.fromBytes(spend.privateKey.raw);
 
-      final change = TransactionOutput(address: ADABaseAddress((await getCurrentReceivingAddress())!.value), amount: Value(coin: totalUtxoAmount - (txData.amount!.raw + txData.fee!.raw)));
+      final change = TransactionOutput(
+          address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
+          amount: Value(
+              coin: totalUtxoAmount - (txData.amount!.raw + txData.fee!.raw)));
       List<TransactionOutput> outputs = [];
       if (totalBalance == (txData.amount!.raw + txData.fee!.raw)) {
-        outputs = [TransactionOutput(address: ADABaseAddress(txData.recipients!.first.address), amount: Value(coin: txData.amount!.raw))];
+        outputs = [
+          TransactionOutput(
+              address: ADABaseAddress(txData.recipients!.first.address),
+              amount: Value(coin: txData.amount!.raw))
+        ];
       } else {
-        outputs = [change, TransactionOutput(address: ADABaseAddress(txData.recipients!.first.address), amount: Value(coin: txData.amount!.raw))];
+        outputs = [
+          change,
+          TransactionOutput(
+              address: ADABaseAddress(txData.recipients!.first.address),
+              amount: Value(coin: txData.amount!.raw))
+        ];
       }
       final body = TransactionBody(
-        inputs: listOfUtxosToBeUsed.map((e) => TransactionInput(transactionId: TransactionHash.fromHex(e.txHash), index: e.outputIndex)).toList(),
+        inputs: listOfUtxosToBeUsed
+            .map((e) => TransactionInput(
+                transactionId: TransactionHash.fromHex(e.txHash),
+                index: e.outputIndex))
+            .toList(),
         outputs: outputs,
         fee: txData.fee!.raw,
       );
       final tx = ADATransaction(
-          body: body,
-          witnessSet: TransactionWitnessSet(vKeys: [
+        body: body,
+        witnessSet: TransactionWitnessSet(
+          vKeys: [
             privateKey.createSignatureWitness(body.toHash().data),
-          ],)
-        ,);
+          ],
+        ),
+      );
 
-      final sentTx = await blockfrostProvider!.request(BlockfrostRequestSubmitTransaction(
-          transactionCborBytes: tx.serialize(),),);
+      final sentTx = await blockfrostProvider!.request(
+        BlockfrostRequestSubmitTransaction(
+          transactionCborBytes: tx.serialize(),
+        ),
+      );
       return txData.copyWith(
         txid: sentTx,
       );
@@ -365,11 +406,13 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       final balance = Balance(
         total: Amount(
-            rawValue: totalBalanceInLovelace,
-            fractionDigits: cryptoCurrency.fractionDigits,),
+          rawValue: totalBalanceInLovelace,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
         spendable: Amount(
-            rawValue: totalBalanceInLovelace,
-            fractionDigits: cryptoCurrency.fractionDigits,),
+          rawValue: totalBalanceInLovelace,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
         blockedTotal: Amount(
           rawValue: BigInt.zero,
           fractionDigits: cryptoCurrency.fractionDigits,
@@ -399,8 +442,9 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       );
 
       await info.updateCachedChainHeight(
-          newHeight: latestBlock.height == null ? 0 : latestBlock.height!,
-          isar: mainDB.isar,);
+        newHeight: latestBlock.height == null ? 0 : latestBlock.height!,
+        isar: mainDB.isar,
+      );
     } catch (e, s) {
       Logging.instance.log(
         "Error updating transactions in cardano_wallet.dart: $e\n$s",
@@ -473,13 +517,15 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         if (txType == isar.TransactionType.incoming) {
           receiverAddr = currentAddr;
           for (final output in utxoInfo.outputs) {
-            if (output.address == currentAddr && output.amount.first.unit == "lovelace") {
+            if (output.address == currentAddr &&
+                output.amount.first.unit == "lovelace") {
               amount += int.parse(output.amount.first.quantity);
             }
           }
         } else if (txType == isar.TransactionType.outgoing) {
           for (final output in utxoInfo.outputs) {
-            if (output.address != currentAddr && output.amount.first.unit == "lovelace") {
+            if (output.address != currentAddr &&
+                output.amount.first.unit == "lovelace") {
               receiverAddr = output.address;
               amount += int.parse(output.amount.first.quantity);
             }
@@ -532,6 +578,8 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       }
 
       await mainDB.addNewTransactionData(parsedTxsList, walletId);
+    } on NodeTorMismatchConfigException {
+      rethrow;
     } catch (e, s) {
       Logging.instance.log(
         "Error updating transactions in cardano_wallet.dart: $e\n$s",
@@ -548,6 +596,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
   Future<void> updateProvider() async {
     final currentNode = getCurrentNode();
+
     final client = HttpClient();
     if (prefs.useTor) {
       final proxyInfo = TorService.sharedInstance.getProxyInfo();
@@ -557,11 +606,45 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       );
       SocksTCPClient.assignToHttpClient(client, [proxySettings]);
     }
-    blockfrostProvider = BlockforestProvider(
+    blockfrostProvider = CustomBlockForestProvider(
       BlockfrostHttpProvider(
         url: "${currentNode.host}:${currentNode.port}/",
         client: client,
       ),
+      prefs,
+      TorPlainNetworkOption.fromNodeData(
+        currentNode.torEnabled,
+        currentNode.clearnetEnabled,
+      ),
     );
+  }
+}
+
+class CustomBlockForestProvider extends BlockforestProvider {
+  CustomBlockForestProvider(super.rpc, this.prefs, this.netOption);
+
+  final Prefs prefs;
+  final TorPlainNetworkOption netOption;
+
+  @override
+  Future<T> request<T, E>(
+    BlockforestRequestParam<T, E> request, [
+    Duration? timeout,
+  ]) async {
+    if (prefs.useTor) {
+      if (netOption == TorPlainNetworkOption.clear) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR enabled but node set to clearnet only",
+        );
+      }
+    } else {
+      if (netOption == TorPlainNetworkOption.tor) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR off but node set to TOR only",
+        );
+      }
+    }
+
+    return super.request(request, timeout);
   }
 }
