@@ -15,6 +15,7 @@ import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit
 import '../services/tor_service.dart';
 import 'logger.dart';
 import 'prefs.dart';
+import 'tor_plain_net_option_enum.dart';
 
 Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
   final HTTP client = HTTP();
@@ -50,6 +51,17 @@ Future<NodeFormData?> testEpicNodeConnection(NodeFormData data) async {
   if (data.host == null || data.port == null || data.useSSL == null) {
     return null;
   }
+
+  if (Prefs.instance.useTor) {
+    if (data.netOption == TorPlainNetworkOption.clear) {
+      return null;
+    }
+  } else {
+    if (data.netOption == TorPlainNetworkOption.tor) {
+      return null;
+    }
+  }
+
   const String path_postfix = "/v1/version";
 
   if (data.host!.startsWith("https://")) {
