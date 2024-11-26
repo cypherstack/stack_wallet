@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_test/hive_test.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
@@ -48,6 +48,8 @@ void main() {
         coinName: "bitcoin",
         isFailover: true,
         isDown: false,
+        torEnabled: true,
+        clearnetEnabled: true,
       );
       await service.setPrimaryNodeFor(
         coin: Bitcoin(CryptoCurrencyNetwork.main),
@@ -129,6 +131,8 @@ void main() {
       coinName: "bitcoin",
       isFailover: true,
       isDown: false,
+      torEnabled: true,
+      clearnetEnabled: true,
     );
     final nodeB = NodeModel(
       host: "host2",
@@ -140,6 +144,8 @@ void main() {
       coinName: "monero",
       isFailover: true,
       isDown: false,
+      torEnabled: true,
+      clearnetEnabled: true,
     );
     final nodeC = NodeModel(
       host: "host3",
@@ -151,6 +157,8 @@ void main() {
       coinName: "epicCash",
       isFailover: true,
       isDown: false,
+      torEnabled: true,
+      clearnetEnabled: true,
     );
 
     setUp(() async {

@@ -16,6 +16,7 @@ import 'package:mutex/mutex.dart';
 
 import '../../notifications/show_flush_bar.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
+import '../../providers/global/node_service_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -25,7 +26,9 @@ import '../../utilities/assets.dart';
 import '../../utilities/biometrics.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/show_loading.dart';
+import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -101,6 +104,20 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         final walletId = widget.routeOnSuccessArguments as String;
 
         final wallet = ref.read(pWallets).getWallet(walletId);
+
+        final canContinue = await checkShowNodeTorSettingsMismatch(
+          context: context,
+          currency: wallet.cryptoCurrency,
+          prefs: ref.read(prefsChangeNotifierProvider),
+          nodeService: ref.read(nodeServiceChangeNotifierProvider),
+          allowCancel: false,
+          rootNavigator: Util.isDesktop,
+        );
+
+        if (!canContinue) {
+          return;
+        }
+
         final Future<void> loadFuture;
         if (wallet is LibMoneroWallet) {
           loadFuture =

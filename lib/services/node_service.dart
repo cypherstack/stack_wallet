@@ -12,6 +12,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+
 import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../models/node_model.dart';
@@ -58,6 +59,8 @@ class NodeService extends ChangeNotifier {
             enabled: savedNode.enabled,
             isFailover: savedNode.isFailover,
             trusted: savedNode.trusted,
+            torEnabled: savedNode.torEnabled,
+            clearnetEnabled: savedNode.clearnetEnabled,
           ),
         );
       }
@@ -74,6 +77,8 @@ class NodeService extends ChangeNotifier {
             enabled: primaryNode.enabled,
             isFailover: primaryNode.isFailover,
             trusted: primaryNode.trusted,
+            torEnabled: primaryNode.torEnabled,
+            clearnetEnabled: primaryNode.clearnetEnabled,
           ),
         );
       }
@@ -253,7 +258,9 @@ class NodeService extends ChangeNotifier {
             enabled: true,
             coinName: coin.identifier,
             isFailover: true,
+            torEnabled: nodeMap["torEnabled"] == "true",
             isDown: nodeMap["isDown"] == "true",
+            clearnetEnabled: nodeMap["plainEnabled"] == "true",
           );
           final currentNode = getNodeById(id: nodeMap["id"] as String);
           if (currentNode != null) {

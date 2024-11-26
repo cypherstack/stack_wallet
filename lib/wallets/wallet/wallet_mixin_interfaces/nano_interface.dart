@@ -5,6 +5,7 @@ import 'package:isar/isar.dart';
 import 'package:nanodart/nanodart.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../external_api_keys.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -18,6 +19,7 @@ import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/impl/string.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../crypto_currency/intermediate/nano_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
@@ -47,6 +49,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   final _httpClient = HTTP();
 
   Future<String?> _requestWork(String hash) async {
+    _hackedCheckTorNodePrefs();
     return _httpClient
         .post(
       url: Uri.parse(_kWorkServer), // this should be a
@@ -104,6 +107,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     String amountRaw,
     String publicAddress,
   ) async {
+    _hackedCheckTorNodePrefs();
     // TODO: the opening block of an account is a special case
     bool openBlock = false;
 
@@ -223,6 +227,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   }
 
   Future<void> _confirmAllReceivable(String accountAddress) async {
+    _hackedCheckTorNodePrefs();
     final node = getCurrentNode();
     final receivableResponse = await _httpClient.post(
       url: Uri.parse(node.host),
@@ -254,6 +259,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   //========= public ===========================================================
 
   Future<String> getCurrentRepresentative() async {
+    _hackedCheckTorNodePrefs();
     final serverURI = Uri.parse(getCurrentNode().host);
     final address =
         (_cachedAddress ?? await getCurrentReceivingAddress())!.value;
@@ -272,6 +278,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   Future<bool> changeRepresentative(String newRepresentative) async {
     try {
+      _hackedCheckTorNodePrefs();
       final node = getCurrentNode();
       final serverURI = Uri.parse(node.host);
       await updateBalance();
@@ -347,6 +354,11 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   @override
   Future<bool> pingCheck() async {
+    try {
+      _hackedCheckTorNodePrefs();
+    } catch (_) {
+      return false;
+    }
     final node = getCurrentNode();
     final uri = Uri.parse(node.host);
     final response = await _httpClient.post(
@@ -365,6 +377,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
+    _hackedCheckTorNodePrefs();
     if (txData.recipients!.length != 1) {
       throw ArgumentError(
         "${cryptoCurrency.runtimeType} currently only "
@@ -383,6 +396,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
+      _hackedCheckTorNodePrefs();
       // our address:
       final String publicAddress =
           (_cachedAddress ?? await getCurrentReceivingAddress())!.value;
@@ -483,6 +497,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   @override
   Future<void> recover({required bool isRescan}) async {
     try {
+      _hackedCheckTorNodePrefs();
       await refreshMutex.protect(() async {
         if (isRescan) {
           await mainDB.deleteWalletBlockchainData(walletId);
@@ -505,6 +520,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     String? previous,
     Map<String, dynamic>? data,
   ) async {
+    _hackedCheckTorNodePrefs();
     final node = getCurrentNode();
     final body = {
       "action": "account_history",
@@ -543,6 +559,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   @override
   Future<void> updateTransactions() async {
+    _hackedCheckTorNodePrefs();
     await updateChainHeight();
     final receivingAddress =
         (_cachedAddress ?? await getCurrentReceivingAddress())!;
@@ -613,6 +630,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   @override
   Future<void> updateBalance() async {
     try {
+      _hackedCheckTorNodePrefs();
       final addressString =
           (_cachedAddress ??= (await getCurrentReceivingAddress())!).value;
       final body = jsonEncode({
@@ -661,6 +679,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   @override
   Future<void> updateChainHeight() async {
     try {
+      _hackedCheckTorNodePrefs();
       final String publicAddress =
           (_cachedAddress ??= (await getCurrentReceivingAddress())!).value;
 
@@ -724,4 +743,26 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
         medium: 0,
         slow: 0,
       );
+
+  void _hackedCheckTorNodePrefs() {
+    final node = getCurrentNode();
+    final netOption = TorPlainNetworkOption.fromNodeData(
+      node.torEnabled,
+      node.clearnetEnabled,
+    );
+
+    if (prefs.useTor) {
+      if (netOption == TorPlainNetworkOption.clear) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR enabled but node set to clearnet only",
+        );
+      }
+    } else {
+      if (netOption == TorPlainNetworkOption.tor) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR off but node set to TOR only",
+        );
+      }
+    }
+  }
 }

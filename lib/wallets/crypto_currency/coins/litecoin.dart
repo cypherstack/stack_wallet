@@ -220,6 +220,8 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -233,6 +235,8 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

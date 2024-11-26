@@ -9,6 +9,7 @@
  */
 
 import 'package:hive/hive.dart';
+
 import '../utilities/default_nodes.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 
@@ -38,6 +39,10 @@ class NodeModel {
   final bool isDown;
   // @HiveField(10)
   final bool? trusted;
+  // @HiveField(11)
+  final bool torEnabled;
+  // @HiveField(12)
+  final bool clearnetEnabled;
 
   NodeModel({
     required this.host,
@@ -49,6 +54,8 @@ class NodeModel {
     required this.coinName,
     required this.isFailover,
     required this.isDown,
+    required this.torEnabled,
+    required this.clearnetEnabled,
     this.loginName,
     this.trusted,
   });
@@ -64,6 +71,8 @@ class NodeModel {
     bool? isFailover,
     bool? isDown,
     bool? trusted,
+    bool? torEnabled,
+    bool? clearnetEnabled,
   }) {
     return NodeModel(
       host: host ?? this.host,
@@ -77,6 +86,8 @@ class NodeModel {
       isFailover: isFailover ?? this.isFailover,
       isDown: isDown ?? this.isDown,
       trusted: trusted ?? this.trusted,
+      torEnabled: torEnabled ?? this.torEnabled,
+      clearnetEnabled: clearnetEnabled ?? this.clearnetEnabled,
     );
   }
 
@@ -98,6 +109,8 @@ class NodeModel {
     map['isFailover'] = isFailover;
     map['isDown'] = isDown;
     map['trusted'] = trusted;
+    map['torEnabled'] = torEnabled;
+    map['clearEnabled'] = clearnetEnabled;
     return map;
   }
 

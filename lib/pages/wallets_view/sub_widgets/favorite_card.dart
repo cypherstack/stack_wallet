@@ -22,6 +22,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/show_loading.dart';
+import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/coins/firo.dart';
@@ -116,6 +117,19 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
       child: GestureDetector(
         onTap: () async {
           final wallet = ref.read(pWallets).getWallet(walletId);
+
+          final canContinue = await checkShowNodeTorSettingsMismatch(
+            context: context,
+            currency: coin,
+            prefs: ref.read(prefsChangeNotifierProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            allowCancel: true,
+            rootNavigator: Util.isDesktop,
+          );
+
+          if (!canContinue) {
+            return;
+          }
 
           final Future<void> loadFuture;
           if (wallet is LibMoneroWallet) {

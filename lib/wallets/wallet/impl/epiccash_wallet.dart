@@ -11,6 +11,7 @@ import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/epicbox_config_model.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -32,6 +33,7 @@ import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../../utilities/test_epic_box_connection.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
@@ -82,6 +84,7 @@ class EpiccashWallet extends Bip39Wallet {
   /// returns an empty String on success, error message on failure
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
     try {
+      _hackedCheckTorNodePrefs();
       final String wallet = (await secureStorageInterface.read(
         key: '${walletId}_wallet',
       ))!;
@@ -173,6 +176,7 @@ class EpiccashWallet extends Bip39Wallet {
   }) async {
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     try {
+      _hackedCheckTorNodePrefs();
       final available = info.cachedBalance.spendable.raw.toInt();
 
       final transactionFees = await epiccash.LibEpiccash.getTransactionFees(
@@ -198,6 +202,7 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   Future<void> _startSync() async {
+    _hackedCheckTorNodePrefs();
     Logging.instance.log("request start sync", level: LogLevel.Info);
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     const int refreshFromNode = 1;
@@ -222,6 +227,7 @@ class EpiccashWallet extends Bip39Wallet {
         double spendable,
         double total
       })> _allWalletBalances() async {
+    _hackedCheckTorNodePrefs();
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     const refreshFromNode = 0;
     return await epiccash.LibEpiccash.getWalletBalances(
@@ -232,6 +238,7 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   Future<bool> _testEpicboxServer(EpicBoxConfigModel epicboxConfig) async {
+    _hackedCheckTorNodePrefs();
     final host = epicboxConfig.host;
     final port = epicboxConfig.port ?? 443;
     WebSocketChannel? channel;
@@ -576,6 +583,7 @@ class EpiccashWallet extends Bip39Wallet {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
+      _hackedCheckTorNodePrefs();
       final wallet =
           await secureStorageInterface.read(key: '${walletId}_wallet');
       final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
@@ -638,6 +646,7 @@ class EpiccashWallet extends Bip39Wallet {
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
+      _hackedCheckTorNodePrefs();
       if (txData.recipients?.length != 1) {
         throw Exception("Epic cash prepare send requires a single recipient!");
       }
@@ -679,6 +688,7 @@ class EpiccashWallet extends Bip39Wallet {
   @override
   Future<void> recover({required bool isRescan}) async {
     try {
+      _hackedCheckTorNodePrefs();
       await refreshMutex.protect(() async {
         if (isRescan) {
           // clear blockchain info
@@ -782,6 +792,7 @@ class EpiccashWallet extends Bip39Wallet {
           cryptoCurrency,
         ),
       );
+      _hackedCheckTorNodePrefs();
 
       // if (info.epicData?.creationHeight == null) {
       //   await info.updateExtraEpiccashWalletInfo(epicData: inf, isar: isar)
@@ -880,6 +891,7 @@ class EpiccashWallet extends Bip39Wallet {
   @override
   Future<void> updateBalance() async {
     try {
+      _hackedCheckTorNodePrefs();
       final balances = await _allWalletBalances();
       final balance = Balance(
         total: Amount.fromDecimal(
@@ -915,6 +927,7 @@ class EpiccashWallet extends Bip39Wallet {
   @override
   Future<void> updateTransactions() async {
     try {
+      _hackedCheckTorNodePrefs();
       final wallet =
           await secureStorageInterface.read(key: '${walletId}_wallet');
       const refreshFromNode = 1;
@@ -1083,7 +1096,11 @@ class EpiccashWallet extends Bip39Wallet {
             NodeFormData()
               ..host = node!.host
               ..useSSL = node.useSSL
-              ..port = node.port,
+              ..port = node.port
+              ..netOption = TorPlainNetworkOption.fromNodeData(
+                node.torEnabled,
+                node.clearnetEnabled,
+              ),
           ) !=
           null;
     } catch (e, s) {
@@ -1094,6 +1111,7 @@ class EpiccashWallet extends Bip39Wallet {
 
   @override
   Future<void> updateChainHeight() async {
+    _hackedCheckTorNodePrefs();
     final config = await _getRealConfig();
     final latestHeight =
         await epiccash.LibEpiccash.getChainHeight(config: config);
@@ -1105,6 +1123,7 @@ class EpiccashWallet extends Bip39Wallet {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+    _hackedCheckTorNodePrefs();
     // setting ifErrorEstimateFee doesn't do anything as its not used in the nativeFee function?????
     final int currentFee = await _nativeFee(
       amount.raw.toInt(),
@@ -1142,6 +1161,28 @@ class EpiccashWallet extends Bip39Wallet {
     timer = null;
     await super.exit();
     Logging.instance.log("EpicCash_wallet exit finished", level: LogLevel.Info);
+  }
+
+  void _hackedCheckTorNodePrefs() {
+    final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency)!;
+    final netOption = TorPlainNetworkOption.fromNodeData(
+      node.torEnabled,
+      node.clearnetEnabled,
+    );
+
+    if (prefs.useTor) {
+      if (netOption == TorPlainNetworkOption.clear) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR enabled but node set to clearnet only",
+        );
+      }
+    } else {
+      if (netOption == TorPlainNetworkOption.tor) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR off but node set to TOR only",
+        );
+      }
+    }
   }
 }
 

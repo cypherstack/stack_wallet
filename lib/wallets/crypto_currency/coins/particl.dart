@@ -97,6 +97,8 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
       // case CryptoCurrencyNetwork.test:
       // TODO: [prio=low] Add testnet.

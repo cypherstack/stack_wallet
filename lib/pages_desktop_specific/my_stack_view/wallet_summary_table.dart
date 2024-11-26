@@ -20,6 +20,7 @@ import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/show_loading.dart';
+import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -122,6 +123,19 @@ class _DesktopWalletSummaryRowState
       if (mounted) {
         final wallet = ref.read(pWallets).wallets.firstWhere(
             (e) => e.cryptoCurrency.identifier == widget.coin.identifier);
+
+        final canContinue = await checkShowNodeTorSettingsMismatch(
+          context: context,
+          currency: wallet.cryptoCurrency,
+          prefs: ref.read(prefsChangeNotifierProvider),
+          nodeService: ref.read(nodeServiceChangeNotifierProvider),
+          allowCancel: true,
+          rootNavigator: Util.isDesktop,
+        );
+
+        if (!canContinue) {
+          return;
+        }
 
         final Future<void> loadFuture;
         if (wallet is LibMoneroWallet) {
