@@ -23,6 +23,7 @@ import '../providers/providers.dart';
 import '../utilities/constants.dart';
 import '../utilities/logger.dart';
 import '../utilities/show_loading.dart';
+import '../utilities/show_node_tor_settings_mismatch.dart';
 import '../utilities/util.dart';
 import '../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../wallets/wallet/impl/ethereum_wallet.dart';
@@ -94,6 +95,19 @@ class SimpleWalletCard extends ConsumerWidget {
     final nav = Navigator.of(context);
 
     final wallet = ref.read(pWallets).getWallet(walletId);
+
+    final canContinue = await checkShowNodeTorSettingsMismatch(
+      context: context,
+      currency: wallet.cryptoCurrency,
+      prefs: ref.read(prefsChangeNotifierProvider),
+      nodeService: ref.read(nodeServiceChangeNotifierProvider),
+      allowCancel: true,
+      rootNavigator: Util.isDesktop,
+    );
+
+    if (!canContinue) {
+      return;
+    }
 
     if (context.mounted) {
       final Future<void> loadFuture;

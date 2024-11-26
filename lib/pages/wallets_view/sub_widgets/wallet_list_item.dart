@@ -21,6 +21,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/show_loading.dart';
+import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
@@ -83,6 +84,20 @@ class WalletListItem extends ConsumerWidget {
                 .read(pWallets)
                 .wallets
                 .firstWhere((e) => e.info.coin == coin);
+
+            final canContinue = await checkShowNodeTorSettingsMismatch(
+              context: context,
+              currency: coin,
+              prefs: ref.read(prefsChangeNotifierProvider),
+              nodeService: ref.read(nodeServiceChangeNotifierProvider),
+              allowCancel: true,
+              rootNavigator: Util.isDesktop,
+            );
+
+            if (!canContinue) {
+              return;
+            }
+
             final Future<void> loadFuture;
             if (wallet is LibMoneroWallet) {
               loadFuture =

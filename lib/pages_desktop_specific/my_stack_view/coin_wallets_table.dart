@@ -12,10 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/global/active_wallet_provider.dart';
+import '../../providers/global/node_service_provider.dart';
+import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/show_loading.dart';
+import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
@@ -81,6 +84,22 @@ class CoinWalletsTable extends ConsumerWidget {
 
                             final wallet =
                                 ref.read(pWallets).getWallet(walletIds[i]);
+
+                            final canContinue =
+                                await checkShowNodeTorSettingsMismatch(
+                              context: context,
+                              currency: coin,
+                              prefs: ref.read(prefsChangeNotifierProvider),
+                              nodeService:
+                                  ref.read(nodeServiceChangeNotifierProvider),
+                              allowCancel: true,
+                              rootNavigator: Util.isDesktop,
+                            );
+
+                            if (!canContinue) {
+                              return;
+                            }
+
                             final Future<void> loadFuture;
                             if (wallet is LibMoneroWallet) {
                               loadFuture = wallet
