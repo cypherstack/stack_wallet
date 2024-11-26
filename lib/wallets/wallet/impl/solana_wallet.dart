@@ -132,11 +132,14 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
       // Rent exemption of Solana
       final accInfo = await _rpcClient?.getAccountInfo(address!.value);
+      if (accInfo!.value == null) {
+        throw Exception("Account does not appear to exist");
+      }
+
       final int minimumRent =
-          await _rpcClient?.getMinimumBalanceForRentExemption(
-                accInfo!.value!.data.toString().length,
-              ) ??
-              0; // TODO revisit null condition.
+          await _rpcClient!.getMinimumBalanceForRentExemption(
+        accInfo.value!.data.toString().length,
+      );
       if (minimumRent >
           ((await _getCurrentBalanceInLamports()) -
               txData.amount!.raw.toInt() -
@@ -300,13 +303,14 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
       // Rent exemption of Solana
       final accInfo = await _rpcClient?.getAccountInfo(address!.value);
-      // TODO [prio=low]: handle null account info.
+      if (accInfo!.value == null) {
+        throw Exception("Account does not appear to exist");
+      }
+
       final int minimumRent =
-          await _rpcClient?.getMinimumBalanceForRentExemption(
-                accInfo!.value!.data.toString().length,
-              ) ??
-              0;
-      // TODO [prio=low]: revisit null condition.
+          await _rpcClient!.getMinimumBalanceForRentExemption(
+        accInfo.value!.data.toString().length,
+      );
       final spendableBalance = balance!.value - minimumRent;
 
       final newBalance = Balance(
