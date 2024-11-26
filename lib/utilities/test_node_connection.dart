@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_chain/ada/ada.dart';
-import 'package:on_chain/ada/src/provider/provider/provider.dart';
 import 'package:socks5_proxy/socks.dart';
 
 import '../networking/http.dart';
@@ -25,6 +24,7 @@ import 'test_epic_box_connection.dart';
 import 'test_eth_node_connection.dart';
 import 'test_monero_node_connection.dart';
 import 'test_stellar_node_connection.dart';
+import 'tor_plain_net_option_enum.dart';
 
 Future<bool> _xmrHelper(
   NodeFormData nodeFormData,
@@ -44,7 +44,6 @@ Future<bool> _xmrHelper(
   final String path = uri.path.isEmpty ? "/json_rpc" : uri.path;
 
   final uriString = "${uri.scheme}://${uri.host}:${port ?? 0}$path";
-
 
   if (proxyInfo == null && uri.host.endsWith(".onion")) {
     return false;
@@ -93,6 +92,24 @@ Future<bool> testNodeConnection({
 }) async {
   final formData = nodeFormData;
 
+  if (ref.read(prefsChangeNotifierProvider).useTor) {
+    if (formData.netOption! == TorPlainNetworkOption.clear) {
+      Logging.instance.log(
+        "This node is configured for non-TOR only but TOR is enabled",
+        level: LogLevel.Warning,
+      );
+      return false;
+    }
+  } else {
+    if (formData.netOption! == TorPlainNetworkOption.tor) {
+      Logging.instance.log(
+        "This node is configured for TOR only but TOR is disabled",
+        level: LogLevel.Warning,
+      );
+      return false;
+    }
+  }
+
   bool testPassed = false;
 
   switch (cryptoCurrency) {
@@ -111,9 +128,7 @@ Future<bool> testNodeConnection({
 
     case CryptonoteCurrency():
       try {
-        final proxyInfo = ref
-            .read(prefsChangeNotifierProvider)
-            .useTor
+        final proxyInfo = ref.read(prefsChangeNotifierProvider).useTor
             ? ref.read(pTorService).getProxyInfo()
             : null;
 
@@ -186,7 +201,7 @@ Future<bool> testNodeConnection({
     case Stellar():
       try {
         testPassed =
-        await testStellarNodeConnection(formData.host!, formData.port!);
+            await testStellarNodeConnection(formData.host!, formData.port!);
       } catch (_) {}
       break;
 
@@ -202,9 +217,7 @@ Future<bool> testNodeConnection({
               "action": "version",
             },
           ),
-          proxyInfo: ref
-              .read(prefsChangeNotifierProvider)
-              .useTor
+          proxyInfo: ref.read(prefsChangeNotifierProvider).useTor
               ? ref.read(pTorService).getProxyInfo()
               : null,
         );
@@ -245,9 +258,7 @@ Future<bool> testNodeConnection({
     case Cardano():
       try {
         final client = HttpClient();
-        if (ref
-            .read(prefsChangeNotifierProvider)
-            .useTor) {
+        if (ref.read(prefsChangeNotifierProvider).useTor) {
           final proxyInfo = TorService.sharedInstance.getProxyInfo();
           final proxySettings = ProxySettings(
             proxyInfo.host,

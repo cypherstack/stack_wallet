@@ -59,6 +59,8 @@ class NodeService extends ChangeNotifier {
             enabled: savedNode.enabled,
             isFailover: savedNode.isFailover,
             trusted: savedNode.trusted,
+            torEnabled: savedNode.torEnabled,
+            plainEnabled: savedNode.plainEnabled,
           ),
         );
       }
@@ -75,6 +77,8 @@ class NodeService extends ChangeNotifier {
             enabled: primaryNode.enabled,
             isFailover: primaryNode.isFailover,
             trusted: primaryNode.trusted,
+            torEnabled: primaryNode.torEnabled,
+            plainEnabled: primaryNode.plainEnabled,
           ),
         );
       }

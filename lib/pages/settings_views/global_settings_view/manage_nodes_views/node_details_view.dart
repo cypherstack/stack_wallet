@@ -13,15 +13,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../../../notifications/show_flush_bar.dart';
-import 'add_edit_node_view.dart';
+import '../../../../providers/global/active_wallet_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/tor_plain_net_option_enum.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../widgets/background.dart';
@@ -31,7 +35,7 @@ import '../../../../widgets/desktop/delete_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
-import 'package:tuple/tuple.dart';
+import 'add_edit_node_view.dart';
 
 class NodeDetailsView extends ConsumerStatefulWidget {
   const NodeDetailsView({
@@ -58,6 +62,39 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
   late final String popRouteName;
 
   bool _desktopReadOnly = true;
+
+  Future<void> _notifyWalletsOfUpdatedNode() async {
+    final wallets =
+        ref.read(pWallets).wallets.where((e) => e.info.coin == widget.coin);
+    final prefs = ref.read(prefsChangeNotifierProvider);
+
+    switch (prefs.syncType) {
+      case SyncingType.currentWalletOnly:
+        for (final wallet in wallets) {
+          if (ref.read(currentWalletIdProvider) == wallet.walletId) {
+            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
+          } else {
+            unawaited(wallet.updateNode());
+          }
+        }
+        break;
+      case SyncingType.selectedWalletsAtStartup:
+        final List<String> walletIdsToSync = prefs.walletIdsSyncOnStartup;
+        for (final wallet in wallets) {
+          if (walletIdsToSync.contains(wallet.walletId)) {
+            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
+          } else {
+            unawaited(wallet.updateNode());
+          }
+        }
+        break;
+      case SyncingType.allWalletsOnStartup:
+        for (final wallet in wallets) {
+          unawaited(wallet.updateNode().then((value) => wallet.refresh()));
+        }
+        break;
+    }
+  }
 
   @override
   initState() {
@@ -265,6 +302,16 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                           .read(nodeServiceChangeNotifierProvider)
                           .getNodeById(id: nodeId)!;
 
+                      final TorPlainNetworkOption netOption;
+                      if (ref.read(nodeFormDataProvider).netOption != null) {
+                        netOption = ref.read(nodeFormDataProvider).netOption!;
+                      } else {
+                        netOption = TorPlainNetworkOption.fromNodeData(
+                          node.torEnabled,
+                          node.plainEnabled,
+                        );
+                      }
+
                       final nodeFormData = NodeFormData()
                         ..useSSL = node.useSSL
                         ..trusted = node.trusted
@@ -272,7 +319,8 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         ..host = node.host
                         ..login = node.loginName
                         ..port = node.port
-                        ..isFailover = node.isFailover;
+                        ..isFailover = node.isFailover
+                        ..netOption = netOption;
                       nodeFormData.password = await node.getPassword(
                         ref.read(secureStoreProvider),
                       );
@@ -338,6 +386,16 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                             loginName: ref.read(nodeFormDataProvider).login,
                             isFailover:
                                 ref.read(nodeFormDataProvider).isFailover,
+                            torEnabled:
+                                ref.read(nodeFormDataProvider).netOption ==
+                                        TorPlainNetworkOption.tor ||
+                                    ref.read(nodeFormDataProvider).netOption ==
+                                        TorPlainNetworkOption.both,
+                            plainEnabled:
+                                ref.read(nodeFormDataProvider).netOption ==
+                                        TorPlainNetworkOption.clear ||
+                                    ref.read(nodeFormDataProvider).netOption ==
+                                        TorPlainNetworkOption.both,
                           );
 
                           await ref
@@ -347,6 +405,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                                 ref.read(nodeFormDataProvider).password,
                                 true,
                               );
+                          await _notifyWalletsOfUpdatedNode();
                         }
                       },
                     )

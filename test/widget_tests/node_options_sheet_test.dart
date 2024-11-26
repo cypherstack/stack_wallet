@@ -25,17 +25,20 @@ void main() {
     final mockPrefs = MockPrefs();
     final mockNodeService = MockNodeService();
 
-    when(mockNodeService.getNodeById(id: "node id")).thenAnswer(
-        (realInvocation) => NodeModel(
-            host: "127.0.0.1",
-            port: 2000,
-            name: "Some other name",
-            id: "node id",
-            useSSL: true,
-            enabled: true,
-            coinName: "Bitcoin",
-            isFailover: false,
-            isDown: false));
+    when(mockNodeService.getNodeById(id: "node id"))
+        .thenAnswer((realInvocation) => NodeModel(
+              host: "127.0.0.1",
+              port: 2000,
+              name: "Some other name",
+              id: "node id",
+              useSSL: true,
+              enabled: true,
+              coinName: "Bitcoin",
+              isFailover: false,
+              isDown: false,
+              torEnabled: true,
+              plainEnabled: true,
+            ));
 
     when(mockNodeService.getPrimaryNodeFor(
             currency: Bitcoin(CryptoCurrencyNetwork.main)))
@@ -48,6 +51,8 @@ void main() {
             enabled: true,
             coinName: "Bitcoin",
             isFailover: false,
+            torEnabled: true,
+            plainEnabled: true,
             isDown: false));
 
     await tester.pumpWidget(
@@ -109,6 +114,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
@@ -125,6 +132,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
@@ -186,6 +195,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
@@ -202,6 +213,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 

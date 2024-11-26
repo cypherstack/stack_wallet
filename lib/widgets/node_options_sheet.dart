@@ -27,6 +27,7 @@ import '../utilities/default_nodes.dart';
 import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/test_node_connection.dart';
 import '../utilities/text_styles.dart';
+import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'rounded_white_container.dart';
 
@@ -256,6 +257,15 @@ class NodeOptionsSheet extends ConsumerWidget {
                                   ref.read(secureStoreProvider),
                                 );
                                 if (context.mounted) {
+                                  final TorPlainNetworkOption netOption;
+                                  if (node.torEnabled && !node.plainEnabled) {
+                                    netOption = TorPlainNetworkOption.tor;
+                                  } else if (node.plainEnabled &&
+                                      !node.torEnabled) {
+                                    netOption = TorPlainNetworkOption.clear;
+                                  } else {
+                                    netOption = TorPlainNetworkOption.both;
+                                  }
                                   final canConnect = await testNodeConnection(
                                     context: context,
                                     nodeFormData: NodeFormData()
@@ -266,6 +276,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                                       ..port = node.port
                                       ..useSSL = node.useSSL
                                       ..isFailover = node.isFailover
+                                      ..netOption = netOption
                                       ..trusted = node.trusted,
                                     cryptoCurrency: coin,
                                     ref: ref,

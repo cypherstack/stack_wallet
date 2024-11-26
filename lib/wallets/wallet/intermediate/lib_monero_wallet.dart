@@ -467,7 +467,22 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     final host = Uri.parse(node.host).host;
     ({InternetAddress host, int port})? proxy;
     if (prefs.useTor) {
+      if (node.plainEnabled && !node.torEnabled) {
+        libMoneroWallet?.stopAutoSaving();
+        libMoneroWallet?.stopListeners();
+        libMoneroWallet?.stopSyncing();
+        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        throw Exception("TOR - clearnet mismatch");
+      }
       proxy = TorService.sharedInstance.getProxyInfo();
+    } else {
+      if (!node.plainEnabled && node.torEnabled) {
+        libMoneroWallet?.stopAutoSaving();
+        libMoneroWallet?.stopListeners();
+        libMoneroWallet?.stopSyncing();
+        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        throw Exception("TOR - clearnet mismatch");
+      }
     }
 
     _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
@@ -495,6 +510,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
               proxy == null ? null : "${proxy.host.address}:${proxy.port}",
         );
       }
+      libMoneroWallet?.startSyncing();
+      libMoneroWallet?.startListeners();
+      libMoneroWallet?.startAutoSaving();
 
       _setSyncStatus(lib_monero_compat.ConnectedSyncStatus());
     } catch (e, s) {
@@ -1018,6 +1036,26 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     // Since refresh is periodic (generally)
     if (refreshMutex.isLocked) {
       return;
+    }
+
+    final node = getCurrentNode();
+
+    if (prefs.useTor) {
+      if (node.plainEnabled && !node.torEnabled) {
+        libMoneroWallet?.stopAutoSaving();
+        libMoneroWallet?.stopListeners();
+        libMoneroWallet?.stopSyncing();
+        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        throw Exception("TOR - clearnet mismatch");
+      }
+    } else {
+      if (!node.plainEnabled && node.torEnabled) {
+        libMoneroWallet?.stopAutoSaving();
+        libMoneroWallet?.stopListeners();
+        libMoneroWallet?.stopSyncing();
+        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        throw Exception("TOR - clearnet mismatch");
+      }
     }
 
     // this acquire should be almost instant due to above check.

@@ -11,23 +11,23 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+
 import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../electrumx_rpc/electrumx_client.dart';
 import '../exceptions/electrumx/no_such_transaction.dart';
 import '../models/exchange/response_objects/trade.dart';
 import '../models/notification_model.dart';
+import '../utilities/logger.dart';
+import '../utilities/prefs.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import 'exchange/exchange.dart';
 import 'exchange/exchange_response.dart';
 import 'node_service.dart';
 import 'notifications_api.dart';
 import 'trade_service.dart';
 import 'wallets.dart';
-import '../utilities/logger.dart';
-import '../utilities/prefs.dart';
-import '../wallets/crypto_currency/crypto_currency.dart';
-import '../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
-
-import 'exchange/exchange.dart';
 
 class NotificationsService extends ChangeNotifier {
   late NodeService nodeService;
@@ -136,12 +136,26 @@ class NotificationsService extends ChangeNotifier {
         final node = nodeService.getPrimaryNodeFor(currency: coin);
         if (node != null) {
           if (wallet is ElectrumXInterface) {
+            if (prefs.useTor) {
+              if (node.plainEnabled && !node.torEnabled) {
+                // just ignore I guess??
+                return;
+              }
+            } else {
+              if (node.torEnabled && !node.plainEnabled) {
+                // just ignore I guess??
+                return;
+              }
+            }
+
             final eNode = ElectrumXNode(
               address: node.host,
               port: node.port,
               name: node.name,
               id: node.id,
               useSSL: node.useSSL,
+              torEnabled: node.torEnabled,
+              clearEnabled: node.plainEnabled,
             );
             final failovers = nodeService
                 .failoverNodesFor(currency: coin)
@@ -152,6 +166,8 @@ class NotificationsService extends ChangeNotifier {
                     name: e.name,
                     id: e.id,
                     useSSL: e.useSSL,
+                    torEnabled: node.torEnabled,
+                    clearEnabled: node.plainEnabled,
                   ),
                 )
                 .toList();

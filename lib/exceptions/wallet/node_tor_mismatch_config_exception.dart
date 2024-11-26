@@ -1,0 +1,1 @@
+class NodeTorMismatchConfigException implements Exception {}

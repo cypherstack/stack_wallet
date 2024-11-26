@@ -168,6 +168,8 @@ void main() {
       name: "some name",
       id: "some ID",
       useSSL: true,
+      torEnabled: true,
+      clearEnabled: true,
     );
 
     final client =

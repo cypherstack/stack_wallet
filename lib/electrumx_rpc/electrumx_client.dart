@@ -29,6 +29,7 @@ import '../utilities/amount/amount.dart';
 import '../utilities/extensions/impl/string.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'client_manager.dart';
@@ -42,6 +43,10 @@ typedef SparkMempoolData = ({
 
 class WifiOnlyException implements Exception {}
 
+class TorOnlyException implements Exception {}
+
+class ClearnetOnlyException implements Exception {}
+
 class ElectrumXNode {
   ElectrumXNode({
     required this.address,
@@ -49,12 +54,16 @@ class ElectrumXNode {
     required this.name,
     required this.id,
     required this.useSSL,
+    required this.torEnabled,
+    required this.clearEnabled,
   });
   final String address;
   final int port;
   final String name;
   final String id;
   final bool useSSL;
+  final bool torEnabled;
+  final bool clearEnabled;
 
   factory ElectrumXNode.from(ElectrumXNode node) {
     return ElectrumXNode(
@@ -63,6 +72,8 @@ class ElectrumXNode {
       name: node.name,
       id: node.id,
       useSSL: node.useSSL,
+      torEnabled: node.torEnabled,
+      clearEnabled: node.clearEnabled,
     );
   }
 
@@ -74,6 +85,7 @@ class ElectrumXNode {
 
 class ElectrumXClient {
   final CryptoCurrency cryptoCurrency;
+  final TorPlainNetworkOption netType;
 
   String get host => _host;
   late String _host;
@@ -90,6 +102,7 @@ class ElectrumXClient {
   ElectrumClient? getElectrumAdapter() =>
       ClientManager.sharedInstance.getClient(
         cryptoCurrency: cryptoCurrency,
+        netType: netType,
       );
 
   late Prefs _prefs;
@@ -119,6 +132,7 @@ class ElectrumXClient {
     required int port,
     required bool useSSL,
     required Prefs prefs,
+    required this.netType,
     required List<ElectrumXNode> failovers,
     required this.cryptoCurrency,
     this.connectionTimeoutForSpecialCaseJsonRPCClients =
@@ -168,6 +182,7 @@ class ElectrumXClient {
         _electrumAdapterChannel = null;
         await (await ClientManager.sharedInstance
                 .remove(cryptoCurrency: cryptoCurrency))
+            .$1
             ?.close();
 
         // Also close any chain height services that are currently open.
@@ -193,6 +208,10 @@ class ElectrumXClient {
       failovers: failovers,
       globalEventBusForTesting: globalEventBusForTesting,
       cryptoCurrency: cryptoCurrency,
+      netType: TorPlainNetworkOption.fromNodeData(
+        node.torEnabled,
+        node.clearEnabled,
+      ),
     );
   }
 
@@ -235,6 +254,18 @@ class ElectrumXClient {
       } else {
         // Get the proxy info from the TorService.
         proxyInfo = _torService.getProxyInfo();
+      }
+
+      if (netType == TorPlainNetworkOption.clear) {
+        _electrumAdapterChannel = null;
+        await ClientManager.sharedInstance
+            .remove(cryptoCurrency: cryptoCurrency);
+      }
+    } else {
+      if (netType == TorPlainNetworkOption.tor) {
+        _electrumAdapterChannel = null;
+        await ClientManager.sharedInstance
+            .remove(cryptoCurrency: cryptoCurrency);
       }
     }
 
@@ -288,9 +319,10 @@ class ElectrumXClient {
         );
       }
 
-      ClientManager.sharedInstance.addClient(
+      await ClientManager.sharedInstance.addClient(
         newClient,
         cryptoCurrency: cryptoCurrency,
+        netType: netType,
       );
     }
 
@@ -351,6 +383,10 @@ class ElectrumXClient {
 
       return response;
     } on WifiOnlyException {
+      rethrow;
+    } on ClearnetOnlyException {
+      rethrow;
+    } on TorOnlyException {
       rethrow;
     } on SocketException {
       // likely timed out so then retry
@@ -442,6 +478,10 @@ class ElectrumXClient {
       return response;
     } on WifiOnlyException {
       rethrow;
+    } on ClearnetOnlyException {
+      rethrow;
+    } on TorOnlyException {
+      rethrow;
     } on SocketException {
       // likely timed out so then retry
       if (retries > 0) {
@@ -488,10 +528,10 @@ class ElectrumXClient {
       return await request(
         requestID: requestID,
         command: 'server.ping',
-        requestTimeout: const Duration(seconds: 2),
+        requestTimeout: const Duration(seconds: 3),
         retries: retryCount,
       ).timeout(
-        const Duration(seconds: 2),
+        const Duration(seconds: 3),
         onTimeout: () {
           Logging.instance.log(
             "ElectrumxClient.ping timed out with retryCount=$retryCount, host=$_host",

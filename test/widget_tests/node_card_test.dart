@@ -37,6 +37,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
@@ -51,6 +53,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
@@ -112,6 +116,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
@@ -126,6 +132,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
@@ -188,6 +196,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
@@ -202,6 +212,8 @@ void main() {
         coinName: "Bitcoin",
         isFailover: false,
         isDown: false,
+        torEnabled: true,
+        plainEnabled: true,
       ),
     );
 
