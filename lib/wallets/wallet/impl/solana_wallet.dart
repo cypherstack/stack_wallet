@@ -357,16 +357,19 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<void> updateNode() async {
-    _solNode = getCurrentNode();
+    _solNode = NodeService(secureStorageInterface: secureStorageInterface)
+            .getPrimaryNodeFor(currency: info.coin) ??
+        info.coin.defaultNode;
     await refresh();
   }
 
   @override
   NodeModel getCurrentNode() {
-    return _solNode ??
-        NodeService(secureStorageInterface: secureStorageInterface)
+    _solNode ??= NodeService(secureStorageInterface: secureStorageInterface)
             .getPrimaryNodeFor(currency: info.coin) ??
         info.coin.defaultNode;
+
+    return _solNode!;
   }
 
   @override
