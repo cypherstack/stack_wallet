@@ -503,31 +503,41 @@ abstract class SWB {
         viewOnlyData: viewOnlyData,
       );
 
-      if (wallet is MoneroWallet /*|| wallet is WowneroWallet doesn't work.*/) {
-        await wallet.init(isRestore: true);
-      } else if (wallet is WowneroWallet) {
-        await wallet.init(isRestore: true);
-      } else {
-        await wallet.init();
+      switch (wallet.runtimeType) {
+        case const (EpiccashWallet):
+          await (wallet as EpiccashWallet).init(isRestore: true);
+          break;
+
+        case const (MoneroWallet):
+          await (wallet as MoneroWallet).init(isRestore: true);
+          break;
+
+        case const (WowneroWallet):
+          await (wallet as WowneroWallet).init(isRestore: true);
+          break;
+
+        default:
+          await wallet.init();
       }
 
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
-        restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;
+        if (wallet is EpiccashWallet || wallet is LibMoneroWallet) {
+          restoreHeight = 0;
+        } else {
+          restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;
+        }
       }
 
-      Future<void>? restoringFuture;
-
-      if (!(wallet is LibMoneroWallet || wallet is EpiccashWallet)) {
-        if (wallet is BitcoinFrostWallet) {
-          restoringFuture = wallet.recover(
-            isRescan: false,
-            multisigConfig: multisigConfig!,
-            serializedKeys: serializedKeys!,
-          );
-        } else {
-          restoringFuture = wallet.recover(isRescan: false);
-        }
+      final Future<void>? restoringFuture;
+      if (wallet is BitcoinFrostWallet) {
+        restoringFuture = wallet.recover(
+          isRescan: false,
+          multisigConfig: multisigConfig!,
+          serializedKeys: serializedKeys!,
+        );
+      } else {
+        restoringFuture = wallet.recover(isRescan: false);
       }
 
       uiState?.update(
