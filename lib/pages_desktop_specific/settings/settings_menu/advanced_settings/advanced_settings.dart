@@ -17,6 +17,7 @@ import '../../../../pages/settings_views/global_settings_view/advanced_views/man
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -163,46 +164,49 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                         ),
                       ),
                       // showExchange pref.
-                      const Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: Divider(
-                          thickness: 0.5,
+                      if (Constants.enableExchange)
+                        const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Divider(
+                            thickness: 0.5,
+                          ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Enable exchange features",
-                              style: STextStyles.desktopTextExtraSmall(context)
-                                  .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
-                              textAlign: TextAlign.left,
-                            ),
-                            SizedBox(
-                              height: 20,
-                              width: 40,
-                              child: DraggableSwitchButton(
-                                isOn: ref.watch(
-                                  prefsChangeNotifierProvider.select(
-                                    (value) => value.enableExchange,
-                                  ),
+                      if (Constants.enableExchange)
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Enable exchange features",
+                                style:
+                                    STextStyles.desktopTextExtraSmall(context)
+                                        .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
                                 ),
-                                onValueChanged: (newValue) {
-                                  ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .enableExchange = newValue;
-                                },
+                                textAlign: TextAlign.left,
                               ),
-                            ),
-                          ],
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.enableExchange,
+                                    ),
+                                  ),
+                                  onValueChanged: (newValue) {
+                                    ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .enableExchange = newValue;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
                       const Padding(
                         padding: EdgeInsets.all(10.0),
                         child: Divider(
