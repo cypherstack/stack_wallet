@@ -142,6 +142,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<lib_monero.Wallet> getCreatedWallet({
     required String path,
     required String password,
+    required int wordCount,
   });
 
   Future<lib_monero.Wallet> getRestoredWallet({
@@ -313,19 +314,26 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<void> init({bool? isRestore}) async {
+  Future<void> init({bool? isRestore, int? wordCount}) async {
     final path = await pathForWallet(
       name: walletId,
       type: compatType,
     );
     if (!(walletExists(path)) && isRestore != true) {
+      if (wordCount == null) {
+        throw Exception("Missing word count for new xmr/wow wallet!");
+      }
       try {
         final password = generatePassword();
         await secureStorageInterface.write(
           key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
           value: password,
         );
-        final wallet = await getCreatedWallet(path: path, password: password);
+        final wallet = await getCreatedWallet(
+          path: path,
+          password: password,
+          wordCount: wordCount,
+        );
 
         final height = wallet.getRefreshFromBlockHeight();
 

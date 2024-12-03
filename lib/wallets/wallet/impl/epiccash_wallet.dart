@@ -701,7 +701,7 @@ class EpiccashWallet extends Bip39Wallet {
             isar: mainDB.isar,
           );
 
-          unawaited(_startScans());
+          unawaited(refresh(doScan: true));
         } else {
           await updateNode();
           final String password = generatePassword();
@@ -759,9 +759,8 @@ class EpiccashWallet extends Bip39Wallet {
             epicData.receivingIndex,
           );
         }
+        unawaited(refresh(doScan: false));
       });
-
-      unawaited(refresh());
     } catch (e, s) {
       Logging.instance.log(
         "Exception rethrown from electrumx_mixin recover(): $e\n$s",
@@ -773,7 +772,7 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   @override
-  Future<void> refresh() async {
+  Future<void> refresh({bool doScan = true}) async {
     // Awaiting this lock could be dangerous.
     // Since refresh is periodic (generally)
     if (refreshMutex.isLocked) {
@@ -803,9 +802,11 @@ class EpiccashWallet extends Bip39Wallet {
       final int curAdd = await _getCurrentIndex();
       await _generateAndStoreReceivingAddressForIndex(curAdd);
 
-      await _startScans();
+      if (doScan) {
+        await _startScans();
 
-      unawaited(_startSync());
+        unawaited(_startSync());
+      }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
       await updateChainHeight();
@@ -1157,6 +1158,7 @@ class EpiccashWallet extends Bip39Wallet {
 
   @override
   Future<void> exit() async {
+    epiccash.LibEpiccash.stopEpicboxListener();
     timer?.cancel();
     timer = null;
     await super.exit();

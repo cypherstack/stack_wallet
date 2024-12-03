@@ -85,12 +85,26 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         await mainDB.isar.frostWalletInfo.put(frostWalletInfo);
       });
 
-      final address = await _generateAddress(
-        change: 0,
-        index: kFrostSecureStartingIndex,
-        serializedKeys: serializedKeys,
-        secure: true,
-      );
+      Address? address;
+      int index = kFrostSecureStartingIndex;
+      while (address == null) {
+        try {
+          address = await _generateAddress(
+            change: 0,
+            index: index,
+            serializedKeys: serializedKeys,
+            secure: true,
+          );
+        } on FrostdartException catch (e) {
+          if (e.errorCode == 72) {
+            // rust doesn't like the addressDerivationData
+            index++;
+            continue;
+          } else {
+            rethrow;
+          }
+        }
+      }
 
       await mainDB.putAddresses([address]);
     } catch (e, s) {

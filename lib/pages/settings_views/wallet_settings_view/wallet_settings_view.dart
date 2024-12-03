@@ -316,9 +316,10 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                             if (wallet is MnemonicInterface) {
                                               if (wallet
                                                       is ViewOnlyOptionInterface &&
-                                                  !(wallet
-                                                          as ViewOnlyOptionInterface)
+                                                  (wallet as ViewOnlyOptionInterface)
                                                       .isViewOnly) {
+                                                // TODO: is something needed here?
+                                              } else {
                                                 mnemonic = await wallet
                                                     .getMnemonicAsWords();
                                               }

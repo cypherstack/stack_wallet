@@ -111,14 +111,33 @@ class WowneroWallet extends LibMoneroWallet {
   Future<lib_monero.Wallet> getCreatedWallet({
     required String path,
     required String password,
-  }) async =>
-      await lib_monero.WowneroWallet.create(
-        path: path,
-        password: password,
-        seedType: lib_monero.WowneroSeedType
-            .fourteen, // TODO: check we want to actually use 14 here
-        overrideDeprecated14WordSeedException: true,
-      );
+    required int wordCount,
+  }) async {
+    final lib_monero.WowneroSeedType type;
+    switch (wordCount) {
+      case 14:
+        type = lib_monero.WowneroSeedType.fourteen;
+        break;
+
+      case 16:
+        type = lib_monero.WowneroSeedType.sixteen;
+        break;
+
+      case 25:
+        type = lib_monero.WowneroSeedType.twentyFive;
+        break;
+
+      default:
+        throw Exception("Invalid mnemonic word count: $wordCount");
+    }
+
+    return await lib_monero.WowneroWallet.create(
+      path: path,
+      password: password,
+      seedType: type,
+      overrideDeprecated14WordSeedException: true,
+    );
+  }
 
   @override
   Future<lib_monero.Wallet> getRestoredWallet({
