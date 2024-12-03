@@ -458,7 +458,7 @@ abstract class SWB {
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,
     );
-
+    Wallet? wallet;
     try {
       String? serializedKeys;
       String? multisigConfig;
@@ -491,7 +491,7 @@ abstract class SWB {
         });
       }
 
-      final wallet = await Wallet.create(
+      wallet = await Wallet.create(
         walletInfo: info,
         mainDB: MainDB.instance,
         secureStorageInterface: secureStorageInterface,
@@ -614,6 +614,8 @@ abstract class SWB {
         mnemonicPassphrase: mnemonicPassphrase,
       );
       return false;
+    } finally {
+      await wallet?.exit();
     }
     return true;
   }
