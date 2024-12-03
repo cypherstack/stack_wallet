@@ -134,12 +134,6 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libmonero/scripts/monero_c/release/monero/x86_64-linux-gnu_libwallet2_api_c.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" RENAME "monero_libwallet2_api_c.so"
-  COMPONENT Runtime)
-
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libmonero/scripts/monero_c/release/wownero/x86_64-linux-gnu_libwallet2_api_c.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" RENAME "wownero_libwallet2_api_c.so"
-  COMPONENT Runtime)
-
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libepiccash/scripts/linux/build/rust/target/x86_64-unknown-linux-gnu/release/libepic_cash_wallet.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 

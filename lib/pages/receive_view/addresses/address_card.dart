@@ -304,7 +304,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                       key: _qrKey,
                                       child: QR(
                                         data: AddressUtils.buildUriString(
-                                          widget.coin,
+                                          widget.coin.uriScheme,
                                           address.value,
                                           {},
                                         ),

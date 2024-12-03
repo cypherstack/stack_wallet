@@ -357,6 +357,8 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             focusNode: _toFocusNode,
             style: STextStyles.field(context),
             onChanged: (value) {
+              ref.read(desktopExchangeModelProvider)!.recipientAddress =
+                  _toController.text;
               widget.enableNextChanged.call(
                 _next(),
               );
@@ -504,6 +506,8 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
               focusNode: _refundFocusNode,
               style: STextStyles.field(context),
               onChanged: (value) {
+                ref.read(desktopExchangeModelProvider)!.refundAddress =
+                    _refundController.text;
                 widget.enableNextChanged.call(
                   _next(),
                 );

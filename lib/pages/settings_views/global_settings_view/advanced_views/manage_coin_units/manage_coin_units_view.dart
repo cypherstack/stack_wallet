@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'edit_coin_units_view.dart';
-import '../../../../../providers/global/prefs_provider.dart';
+
 import '../../../../../app_config.dart';
+import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../themes/coin_icon_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
@@ -18,6 +18,7 @@ import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/rounded_white_container.dart';
+import 'edit_coin_units_view.dart';
 
 class ManageCoinUnitsView extends ConsumerWidget {
   const ManageCoinUnitsView({super.key});
@@ -44,13 +45,9 @@ class ManageCoinUnitsView extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final _coins = AppConfig.coins
-        .where((e) => e is! Firo && e.network != CryptoCurrencyNetwork.test)
-        .toList();
-
     final coins = showTestNet
-        ? _coins
-        : _coins.where((e) => e.network != CryptoCurrencyNetwork.test).toList();
+        ? AppConfig.coins
+        : AppConfig.coins.where((e) => !e.network.isTestNet).toList();
 
     return ConditionalParent(
       condition: Util.isDesktop,

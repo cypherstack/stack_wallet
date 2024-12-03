@@ -13,7 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../wallet_view/wallet_view.dart';
+
 import '../../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -22,13 +22,15 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/show_loading.dart';
+import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../widgets/coin_card.dart';
 import '../../../widgets/conditional_parent.dart';
+import '../../wallet_view/wallet_view.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
   const FavoriteCard({
@@ -116,8 +118,21 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
         onTap: () async {
           final wallet = ref.read(pWallets).getWallet(walletId);
 
+          final canContinue = await checkShowNodeTorSettingsMismatch(
+            context: context,
+            currency: coin,
+            prefs: ref.read(prefsChangeNotifierProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            allowCancel: true,
+            rootNavigator: Util.isDesktop,
+          );
+
+          if (!canContinue) {
+            return;
+          }
+
           final Future<void> loadFuture;
-          if (wallet is CwBasedInterface) {
+          if (wallet is LibMoneroWallet) {
             loadFuture =
                 wallet.init().then((value) async => await (wallet).open());
           } else {

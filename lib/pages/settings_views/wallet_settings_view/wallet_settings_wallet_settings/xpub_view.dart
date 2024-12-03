@@ -57,7 +57,7 @@ class XPubViewState extends ConsumerState<XPubView> {
   late String _currentDropDownValue;
 
   String _current(String key) =>
-      widget.xpubData.xpubs.firstWhere((e) => e.path == key).xpub;
+      widget.xpubData.xpubs.firstWhere((e) => e.path == key).encoded;
 
   Future<void> _copy() async {
     await widget.clipboardInterface.setData(

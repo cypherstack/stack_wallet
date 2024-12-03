@@ -39,11 +39,13 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         returnValue: _i3.Future<Map<String, _i2.WalletInfo>>.value(
             <String, _i2.WalletInfo>{}),
       ) as _i3.Future<Map<String, _i2.WalletInfo>>);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   void addListener(_i4.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -52,6 +54,7 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i4.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -60,6 +63,7 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -68,6 +72,7 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(
@@ -94,11 +99,13 @@ class MockLocaleService extends _i1.Mock implements _i5.LocaleService {
           Invocation.getter(#locale),
         ),
       ) as String);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   _i3.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
         Invocation.method(
@@ -109,6 +116,7 @@ class MockLocaleService extends _i1.Mock implements _i5.LocaleService {
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
+
   @override
   void addListener(_i4.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -117,6 +125,7 @@ class MockLocaleService extends _i1.Mock implements _i5.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i4.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -125,6 +134,7 @@ class MockLocaleService extends _i1.Mock implements _i5.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -133,6 +143,7 @@ class MockLocaleService extends _i1.Mock implements _i5.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(

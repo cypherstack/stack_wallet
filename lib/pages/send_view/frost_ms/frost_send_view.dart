@@ -92,7 +92,6 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
     final txData = await wallet.frostCreateSignConfig(
       txData: TxData(recipients: recipients),
-      changeAddress: (await wallet.getCurrentReceivingAddress())!.value,
       feePerWeight: customFeeRate,
     );
 

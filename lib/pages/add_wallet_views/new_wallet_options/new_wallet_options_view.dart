@@ -12,9 +12,11 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/crypto_currency/interfaces/view_only_option_currency_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/checkbox_text_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
@@ -25,8 +27,12 @@ import '../new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_wa
 import '../restore_wallet_view/restore_options_view/sub_widgets/mobile_mnemonic_length_selector.dart';
 import '../restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
 
-final pNewWalletOptions =
-    StateProvider<({String mnemonicPassphrase, int mnemonicWordsCount})?>(
+final pNewWalletOptions = StateProvider<
+    ({
+      String mnemonicPassphrase,
+      int mnemonicWordsCount,
+      bool convertToViewOnly,
+    })?>(
   (ref) => null,
 );
 
@@ -58,6 +64,8 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
 
   bool hidePassword = true;
   NewWalletOptions _selectedOptions = NewWalletOptions.Default;
+
+  bool _convertToViewOnly = false;
 
   @override
   void initState() {
@@ -210,7 +218,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
             if (_selectedOptions == NewWalletOptions.Advanced)
               Column(
                 children: [
-                  if (Util.isDesktop)
+                  if (Util.isDesktop && lengths.length > 1)
                     DropdownButtonHideUnderline(
                       child: DropdownButton2<int>(
                         value: ref
@@ -265,7 +273,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                         ),
                       ),
                     ),
-                  if (!Util.isDesktop)
+                  if (!Util.isDesktop && lengths.length > 1)
                     MobileMnemonicLengthSelector(
                       chooseMnemonicLength: () {
                         showModalBottomSheet<dynamic>(
@@ -284,91 +292,109 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                         );
                       },
                     ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  RoundedWhiteContainer(
-                    child: Center(
-                      child: Text(
-                        "You may add a BIP39 passphrase. This is optional. "
-                        "You will need BOTH your seed and your passphrase to recover the wallet.",
-                        style: Util.isDesktop
-                            ? STextStyles.desktopTextExtraSmall(context)
-                                .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
-                              )
-                            : STextStyles.itemSubtitle(context),
+                  if (widget.coin.hasMnemonicPassphraseSupport)
+                    const SizedBox(
+                      height: 24,
+                    ),
+                  if (widget.coin.hasMnemonicPassphraseSupport)
+                    RoundedWhiteContainer(
+                      child: Center(
+                        child: Text(
+                          "You may add a BIP39 passphrase. This is optional. "
+                          "You will need BOTH your seed and your passphrase to recover the wallet.",
+                          style: Util.isDesktop
+                              ? STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
+                                )
+                              : STextStyles.itemSubtitle(context),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
+                  if (widget.coin.hasMnemonicPassphraseSupport)
+                    const SizedBox(
+                      height: 8,
                     ),
-                    child: TextField(
-                      key: const Key("mnemonicPassphraseFieldKey1"),
-                      focusNode: passwordFocusNode,
-                      controller: passwordController,
-                      style: Util.isDesktop
-                          ? STextStyles.desktopTextMedium(context).copyWith(
-                              height: 2,
-                            )
-                          : STextStyles.field(context),
-                      obscureText: hidePassword,
-                      enableSuggestions: false,
-                      autocorrect: false,
-                      decoration: standardInputDecoration(
-                        "BIP39 passphrase",
-                        passwordFocusNode,
-                        context,
-                      ).copyWith(
-                        suffixIcon: UnconstrainedBox(
-                          child: ConditionalParent(
-                            condition: Util.isDesktop,
-                            builder: (child) => SizedBox(
-                              height: 70,
-                              child: child,
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: Util.isDesktop ? 24 : 16,
-                                ),
-                                GestureDetector(
-                                  key: const Key(
-                                    "mnemonicPassphraseFieldShowPasswordButtonKey",
-                                  ),
-                                  onTap: () async {
-                                    setState(() {
-                                      hidePassword = !hidePassword;
-                                    });
-                                  },
-                                  child: SvgPicture.asset(
-                                    hidePassword
-                                        ? Assets.svg.eye
-                                        : Assets.svg.eyeSlash,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark3,
+                  if (widget.coin.hasMnemonicPassphraseSupport)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                      child: TextField(
+                        key: const Key("mnemonicPassphraseFieldKey1"),
+                        focusNode: passwordFocusNode,
+                        controller: passwordController,
+                        style: Util.isDesktop
+                            ? STextStyles.desktopTextMedium(context).copyWith(
+                                height: 2,
+                              )
+                            : STextStyles.field(context),
+                        obscureText: hidePassword,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        decoration: standardInputDecoration(
+                          "BIP39 passphrase",
+                          passwordFocusNode,
+                          context,
+                        ).copyWith(
+                          suffixIcon: UnconstrainedBox(
+                            child: ConditionalParent(
+                              condition: Util.isDesktop,
+                              builder: (child) => SizedBox(
+                                height: 70,
+                                child: child,
+                              ),
+                              child: Row(
+                                children: [
+                                  SizedBox(
                                     width: Util.isDesktop ? 24 : 16,
-                                    height: Util.isDesktop ? 24 : 16,
                                   ),
-                                ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
-                              ],
+                                  GestureDetector(
+                                    key: const Key(
+                                      "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                    ),
+                                    onTap: () async {
+                                      setState(() {
+                                        hidePassword = !hidePassword;
+                                      });
+                                    },
+                                    child: SvgPicture.asset(
+                                      hidePassword
+                                          ? Assets.svg.eye
+                                          : Assets.svg.eyeSlash,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
+                                      width: Util.isDesktop ? 24 : 16,
+                                      height: Util.isDesktop ? 24 : 16,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 12,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                  if (widget.coin is ViewOnlyOptionCurrencyInterface)
+                    const SizedBox(
+                      height: 24,
+                    ),
+                  if (widget.coin is ViewOnlyOptionCurrencyInterface)
+                    CheckboxTextButton(
+                      label: "Convert to view only wallet. "
+                          "You will only be shown the seed phrase once. "
+                          "Save it somewhere. "
+                          "If you lose it you will lose access to any funds in this wallet.",
+                      onChanged: (value) {
+                        _convertToViewOnly = value;
+                      },
+                    ),
                 ],
               ),
             if (!Util.isDesktop) const Spacer(),
@@ -383,6 +409,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                     mnemonicWordsCount:
                         ref.read(mnemonicWordCountStateProvider.state).state,
                     mnemonicPassphrase: passwordController.text,
+                    convertToViewOnly: _convertToViewOnly,
                   );
                 } else {
                   ref.read(pNewWalletOptions.notifier).state = null;

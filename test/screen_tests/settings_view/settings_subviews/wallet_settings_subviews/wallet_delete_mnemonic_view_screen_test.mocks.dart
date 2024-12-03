@@ -37,11 +37,13 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         returnValue: _i3.Future<Map<String, _i2.WalletInfo>>.value(
             <String, _i2.WalletInfo>{}),
       ) as _i3.Future<Map<String, _i2.WalletInfo>>);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   void addListener(_i4.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -50,6 +52,7 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i4.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -58,6 +61,7 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -66,6 +70,7 @@ class MockWalletsService extends _i1.Mock implements _i2.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(

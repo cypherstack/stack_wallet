@@ -8,6 +8,7 @@
  *
  */
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
@@ -22,6 +23,7 @@ import '../../../utilities/address_utils.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../widgets/address_private_key.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
@@ -96,7 +98,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QR(
                         data: AddressUtils.buildUriString(
-                          ref.watch(pWalletCoin(widget.walletId)),
+                          ref.watch(pWalletCoin(widget.walletId)).uriScheme,
                           address.value,
                           {},
                         ),
@@ -146,6 +148,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(widget.walletId));
+    final wallet = ref.watch(pWallets).getWallet(widget.walletId);
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -288,7 +291,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       key: _qrKey,
                       child: QR(
                         data: AddressUtils.buildUriString(
-                          coin,
+                          coin.uriScheme,
                           address.value,
                           {},
                         ),
@@ -371,13 +374,25 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   detail: address.subType.prettyName,
                   button: Container(),
                 ),
-                const _Div(
-                  height: 12,
-                ),
-                AddressPrivateKey(
-                  walletId: widget.walletId,
-                  address: address,
-                ),
+                if (kDebugMode)
+                  const _Div(
+                    height: 12,
+                  ),
+                if (kDebugMode)
+                  DetailItem(
+                    title: "frost secure (kDebugMode)",
+                    detail: address.zSafeFrost.toString(),
+                    button: Container(),
+                  ),
+                if (wallet is Bip39HDWallet && !wallet.isViewOnly)
+                  const _Div(
+                    height: 12,
+                  ),
+                if (wallet is Bip39HDWallet && !wallet.isViewOnly)
+                  AddressPrivateKey(
+                    walletId: widget.walletId,
+                    address: address,
+                  ),
                 if (!isDesktop)
                   const SizedBox(
                     height: 20,

@@ -560,6 +560,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                             wordCount = info
                                                 .coin.defaultSeedPhraseLength;
 
+                                            // TODO: Refactor these to generate each coin in their respective classes
+                                            // This code should not be in a random view page file
                                             if (coin is Monero ||
                                                 coin is Wownero) {
                                               // currently a special case due to the
@@ -580,7 +582,12 @@ class _NewWalletRecoveryPhraseWarningViewState
                                                       )
                                                       .state!
                                                       .mnemonicPassphrase;
-                                                } else {}
+                                                } else {
+                                                  // this may not be epiccash specific?
+                                                  if (coin is Epiccash) {
+                                                    mnemonicPassphrase = "";
+                                                  }
+                                                }
 
                                                 wordCount = ref
                                                     .read(

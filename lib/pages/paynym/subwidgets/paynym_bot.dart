@@ -11,8 +11,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+
 import '../../../networking/http.dart';
 import '../../../services/tor_service.dart';
+import '../../../utilities/paynym_is_api.dart';
 import '../../../utilities/prefs.dart';
 
 class PayNymBot extends StatelessWidget {
@@ -50,7 +52,8 @@ class PayNymBot extends StatelessWidget {
 
   Future<Uint8List> _fetchImage() async {
     final HTTP client = HTTP();
-    final Uri uri = Uri.parse("https://paynym.is/$paymentCodeString/avatar");
+    final Uri uri =
+        Uri.parse("${PaynymIsApi.baseURL}/$paymentCodeString/avatar");
 
     final response = await client.get(
       url: uri,

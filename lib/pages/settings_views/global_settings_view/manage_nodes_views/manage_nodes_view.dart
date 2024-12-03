@@ -62,7 +62,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
 
     final coins = showTestNet
         ? _coins
-        : _coins.where((e) => e.network != CryptoCurrencyNetwork.test).toList();
+        : _coins.where((e) => !e.network.isTestNet).toList();
 
     return Background(
       child: Scaffold(

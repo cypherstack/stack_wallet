@@ -4,11 +4,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:on_chain/ada/ada.dart';
+import 'package:socks5_proxy/socks.dart';
 
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../providers/global/prefs_provider.dart';
 import '../services/tor_service.dart';
+import '../wallets/api/cardano/blockfrost_http_provider.dart';
 import '../wallets/api/tezos/tezos_rpc_api.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
@@ -21,6 +24,7 @@ import 'test_epic_box_connection.dart';
 import 'test_eth_node_connection.dart';
 import 'test_monero_node_connection.dart';
 import 'test_stellar_node_connection.dart';
+import 'tor_plain_net_option_enum.dart';
 
 Future<bool> _xmrHelper(
   NodeFormData nodeFormData,
@@ -41,11 +45,15 @@ Future<bool> _xmrHelper(
 
   final uriString = "${uri.scheme}://${uri.host}:${port ?? 0}$path";
 
+  if (proxyInfo == null && uri.host.endsWith(".onion")) {
+    return false;
+  }
+
   final response = await testMoneroNodeConnection(
     Uri.parse(uriString),
     false,
     proxyInfo: proxyInfo,
-  );
+  ).timeout(Duration(seconds: proxyInfo != null ? 30 : 10));
 
   if (response.cert != null) {
     if (context.mounted) {
@@ -84,6 +92,24 @@ Future<bool> testNodeConnection({
 }) async {
   final formData = nodeFormData;
 
+  if (ref.read(prefsChangeNotifierProvider).useTor) {
+    if (formData.netOption! == TorPlainNetworkOption.clear) {
+      Logging.instance.log(
+        "This node is configured for non-TOR only but TOR is enabled",
+        level: LogLevel.Warning,
+      );
+      return false;
+    }
+  } else {
+    if (formData.netOption! == TorPlainNetworkOption.tor) {
+      Logging.instance.log(
+        "This node is configured for TOR only but TOR is disabled",
+        level: LogLevel.Warning,
+      );
+      return false;
+    }
+  }
+
   bool testPassed = false;
 
   switch (cryptoCurrency) {
@@ -109,7 +135,7 @@ Future<bool> testNodeConnection({
         final url = formData.host!;
         final uri = Uri.tryParse(url);
         if (uri != null) {
-          if (!uri.hasScheme) {
+          if (!uri.hasScheme && !uri.host.endsWith(".onion")) {
             // try https first
             testPassed = await _xmrHelper(
               formData
@@ -224,6 +250,39 @@ Future<bool> testNodeConnection({
           level: LogLevel.Info,
         );
         return true;
+      } catch (_) {
+        testPassed = false;
+      }
+      break;
+
+    case Cardano():
+      try {
+        final client = HttpClient();
+        if (ref.read(prefsChangeNotifierProvider).useTor) {
+          final proxyInfo = TorService.sharedInstance.getProxyInfo();
+          final proxySettings = ProxySettings(
+            proxyInfo.host,
+            proxyInfo.port,
+          );
+          SocksTCPClient.assignToHttpClient(client, [proxySettings]);
+        }
+        final blockfrostProvider = BlockforestProvider(
+          BlockfrostHttpProvider(
+            url: "${formData.host!}:${formData.port!}/api/v0",
+            client: client,
+          ),
+        );
+
+        final health = await blockfrostProvider.request(
+          BlockfrostRequestBackendHealthStatus(),
+        );
+
+        Logging.instance.log(
+          "Cardano testNodeConnection \"health=$health\"",
+          level: LogLevel.Info,
+        );
+
+        return health;
       } catch (_) {
         testPassed = false;
       }

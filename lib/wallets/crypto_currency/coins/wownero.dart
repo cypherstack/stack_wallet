@@ -1,4 +1,5 @@
-import 'package:cw_wownero/api/wallet.dart' as wownero_wallet;
+import 'package:cs_monero/src/ffi_bindings/wownero_wallet_bindings.dart'
+    as wow_wallet_ffi;
 
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -48,7 +49,12 @@ class Wownero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
-    return wownero_wallet.addressValid(address);
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return wow_wallet_ffi.validateAddress(address, 0);
+      default:
+        throw Exception("Unsupported network: $network");
+    }
   }
 
   @override
@@ -66,6 +72,8 @@ class Wownero extends CryptonoteCurrency {
           isFailover: true,
           isDown: false,
           trusted: true,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:
@@ -86,7 +94,7 @@ class Wownero extends CryptonoteCurrency {
   bool get hasMnemonicPassphraseSupport => false;
 
   @override
-  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 25];
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 16, 25];
 
   @override
   BigInt get satsPerCoin => BigInt.from(100000000000);

@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
@@ -60,6 +59,8 @@ class WalletsOverview extends ConsumerStatefulWidget {
   ConsumerState<WalletsOverview> createState() => _EthWalletsOverviewState();
 }
 
+typedef WalletListItemData = ({Wallet wallet, List<EthContract> contracts});
+
 class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   final isDesktop = Util.isDesktop;
 
@@ -68,28 +69,39 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
   String _searchString = "";
 
-  final List<Tuple2<Wallet, List<EthContract>>> wallets = [];
+  final Map<String, WalletListItemData> wallets = {};
 
-  List<Tuple2<Wallet, List<EthContract>>> _filter(String searchTerm) {
+  List<WalletListItemData> _filter(String searchTerm) {
+    // clean out deleted wallets
+    final existingWalletIds = ref
+        .read(mainDBProvider)
+        .isar
+        .walletInfo
+        .where()
+        .walletIdProperty()
+        .findAllSync();
+    wallets.removeWhere((k, v) => !existingWalletIds.contains(k));
+
     if (searchTerm.isEmpty) {
-      return wallets;
+      return wallets.values.toList()
+        ..sort((a, b) => a.wallet.info.name.compareTo(b.wallet.info.name));
     }
 
-    final List<Tuple2<Wallet, List<EthContract>>> results = [];
+    final Map<String, WalletListItemData> results = {};
     final term = searchTerm.toLowerCase();
 
-    for (final tuple in wallets) {
+    for (final entry in wallets.entries) {
       bool includeManager = false;
       // search wallet name and total balance
-      includeManager |= _elementContains(tuple.item1.info.name, term);
+      includeManager |= _elementContains(entry.value.wallet.info.name, term);
       includeManager |= _elementContains(
-        tuple.item1.info.cachedBalance.total.decimal.toString(),
+        entry.value.wallet.info.cachedBalance.total.decimal.toString(),
         term,
       );
 
       final List<EthContract> contracts = [];
 
-      for (final contract in tuple.item2) {
+      for (final contract in entry.value.contracts) {
         if (_elementContains(contract.name, term)) {
           contracts.add(contract);
         } else if (_elementContains(contract.symbol, term)) {
@@ -102,11 +114,12 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
       }
 
       if (includeManager || contracts.isNotEmpty) {
-        results.add(Tuple2(tuple.item1, contracts));
+        results.addEntries([entry]);
       }
     }
 
-    return results;
+    return results.values.toList()
+      ..sort((a, b) => a.wallet.info.name.compareTo(b.wallet.info.name));
   }
 
   bool _elementContains(String element, String term) {
@@ -141,13 +154,11 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         }
 
         // add tuple to list
-        wallets.add(
-          Tuple2(
-            ref.read(pWallets).getWallet(
-                  data.walletId,
-                ),
-            contracts,
-          ),
+        wallets[data.walletId] = (
+          wallet: ref.read(pWallets).getWallet(
+                data.walletId,
+              ),
+          contracts: contracts,
         );
       }
     } else {
@@ -155,13 +166,11 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
       for (final data in walletsData) {
         // desktop single coin apps may cause issues so lets just ignore the error and move on
         try {
-          wallets.add(
-            Tuple2(
-              ref.read(pWallets).getWallet(
-                    data.walletId,
-                  ),
-              [],
-            ),
+          wallets[data.walletId] = (
+            wallet: ref.read(pWallets).getWallet(
+                  data.walletId,
+                ),
+            contracts: [],
           );
         } catch (_) {
           // lol bandaid for single coin based apps
@@ -315,24 +324,27 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                 final data = _filter(_searchString);
                 return ListView.separated(
                   itemBuilder: (_, index) {
-                    final element = data[index];
+                    final entry = data[index];
+                    final wallet = entry.wallet;
 
-                    if (element.item1.cryptoCurrency.hasTokenSupport) {
+                    if (wallet.cryptoCurrency.hasTokenSupport) {
                       if (isDesktop) {
                         return DesktopExpandingWalletCard(
                           key: Key(
-                            "${element.item1.info.name}_${element.item2.map((e) => e.address).join()}",
+                            "${wallet.walletId}_${entry.contracts.map((e) => e.address).join()}",
                           ),
-                          data: element,
+                          data: entry,
                           navigatorState: widget.navigatorState!,
                         );
                       } else {
                         return MasterWalletCard(
-                          walletId: element.item1.walletId,
+                          key: Key(wallet.walletId),
+                          walletId: wallet.walletId,
                         );
                       }
                     } else {
                       return ConditionalParent(
+                        key: Key(wallet.walletId),
                         condition: isDesktop,
                         builder: (child) => RoundedWhiteContainer(
                           padding: const EdgeInsets.symmetric(
@@ -345,7 +357,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                           child: child,
                         ),
                         child: SimpleWalletCard(
-                          walletId: element.item1.walletId,
+                          walletId: wallet.walletId,
                           popPrevious: widget
                                       .overrideSimpleWalletCardPopPreviousValueWith ==
                                   null

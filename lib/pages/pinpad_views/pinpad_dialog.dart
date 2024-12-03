@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mutex/mutex.dart';
 
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/prefs_provider.dart';
@@ -38,6 +39,8 @@ class PinpadDialog extends ConsumerStatefulWidget {
 class _PinpadDialogState extends ConsumerState<PinpadDialog> {
   late final ShakeController _shakeController;
 
+  late final bool _autoPin;
+
   late int _attempts;
   bool _attemptLock = false;
   late Duration _timeout;
@@ -63,16 +66,24 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
     );
   }
 
-  Future<void> _onPinChanged() async {
-    final enteredPin = _pinTextController.text;
-    final storedPin = await _secureStore.read(key: 'stack_pin');
-    final autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
+  final Mutex _autoPinCheckLock = Mutex();
+  void _onPinChangedAutologinCheck() async {
+    if (mounted) {
+      await _autoPinCheckLock.acquire();
+    }
 
-    if (enteredPin.length >= 4 && autoPin && enteredPin == storedPin) {
-      await Future<void>.delayed(
-        const Duration(milliseconds: 200),
-      );
-      unawaited(_onUnlock());
+    try {
+      if (_autoPin && _pinTextController.text.length >= 4) {
+        final storedPin = await _secureStore.read(key: 'stack_pin');
+        if (_pinTextController.text == storedPin) {
+          await Future<void>.delayed(
+            const Duration(milliseconds: 200),
+          );
+          unawaited(_onUnlock());
+        }
+      }
+    } finally {
+      _autoPinCheckLock.release();
     }
   }
 
@@ -215,16 +226,19 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
     biometrics = widget.biometrics;
     _attempts = 0;
     _timeout = Duration.zero;
+    _autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
+    if (_autoPin) {
+      _pinTextController.addListener(_onPinChangedAutologinCheck);
+    }
 
     _checkUseBiometrics();
-    _pinTextController.addListener(_onPinChanged);
     super.initState();
   }
 
   @override
   dispose() {
     // _shakeController.dispose();
-    _pinTextController.removeListener(_onPinChanged);
+    _pinTextController.removeListener(_onPinChangedAutologinCheck);
     super.dispose();
   }
 
@@ -276,7 +290,11 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
                     submittedFieldDecoration: _pinPutDecoration,
                     isRandom:
                         ref.read(prefsChangeNotifierProvider).randomizePIN,
-                    onSubmit: _onSubmit,
+                    onSubmit: (pin) {
+                      if (!_autoPinCheckLock.isLocked) {
+                        _onSubmit(pin);
+                      }
+                    },
                   ),
                   const SizedBox(
                     height: 32,

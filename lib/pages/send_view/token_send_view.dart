@@ -15,12 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
-import '../address_book_views/address_book_view.dart';
-import 'confirm_transaction_view.dart';
-import 'sub_widgets/building_transaction_dialog.dart';
-import 'sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
@@ -30,6 +27,7 @@ import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
+import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
@@ -55,6 +53,11 @@ import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../address_book_views/address_book_view.dart';
+import '../token_view/token_view.dart';
+import 'confirm_transaction_view.dart';
+import 'sub_widgets/building_transaction_dialog.dart';
+import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class TokenSendView extends ConsumerStatefulWidget {
   const TokenSendView({
@@ -161,25 +164,30 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         level: LogLevel.Info,
       );
 
-      final results = AddressUtils.parseUri(qrResult.rawContent);
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
 
-      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
+      Logging.instance
+          .log("qrResult parsed: $paymentData", level: LogLevel.Info);
 
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == coin.uriScheme) {
         // auto fill address
-        _address = (results["address"] ?? "").trim();
+        _address = paymentData.address.trim();
         sendToController.text = _address!;
 
         // autofill notes field
-        if (results["message"] != null) {
-          noteController.text = results["message"]!;
-        } else if (results["label"] != null) {
-          noteController.text = results["label"]!;
+        if (paymentData.message != null) {
+          noteController.text = paymentData.message!;
+        } else if (paymentData.label != null) {
+          noteController.text = paymentData.label!;
         }
 
         // autofill amount field
-        if (results["amount"] != null) {
-          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
+        if (paymentData.amount != null) {
+          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
             fractionDigits: tokenContract.decimals,
           );
           cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -196,12 +204,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         });
 
         // now check for non standard encoded basic address
-      } else if (ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(qrResult.rawContent)) {
-        _address = qrResult.rawContent.trim();
+      } else {
+        _address = qrResult.rawContent.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
         _updatePreviewButtonState(_address, _amountToSend);
@@ -521,6 +525,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                 walletId: walletId,
                 isTokenTx: true,
                 onSuccess: clearSendForm,
+                routeOnSuccessName: TokenView.routeName,
               ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
@@ -529,7 +534,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();
@@ -1028,7 +1034,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Text(
-                                    tokenContract.symbol,
+                                    ref
+                                        .watch(pAmountUnit(coin))
+                                        .unitForContract(tokenContract),
                                     style: STextStyles.smallMed14(context)
                                         .copyWith(
                                       color: Theme.of(context)

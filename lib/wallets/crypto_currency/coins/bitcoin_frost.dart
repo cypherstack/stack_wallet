@@ -73,6 +73,8 @@ class BitcoinFrost extends FrostCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -86,6 +88,8 @@ class BitcoinFrost extends FrostCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test4:
@@ -99,6 +103,8 @@ class BitcoinFrost extends FrostCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:
@@ -127,9 +133,21 @@ class BitcoinFrost extends FrostCurrency {
       );
 
   @override
-  String pubKeyToScriptHash({required Uint8List pubKey}) {
+  Uint8List addressToPubkey({required String address}) {
     try {
-      return Bip39HDCurrency.convertBytesToScriptHash(pubKey);
+      final addr = coinlib.Address.fromString(address, networkParams);
+      return addr.program.script.compiled;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  String addressToScriptHash({required String address}) {
+    try {
+      return Bip39HDCurrency.convertBytesToScriptHash(
+        addressToPubkey(address: address),
+      );
     } catch (e) {
       rethrow;
     }

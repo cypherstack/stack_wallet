@@ -612,9 +612,21 @@ abstract class EthereumAPI {
     );
   }
 
+  static Future<void> _addContractInfoToServer(String contractAddress) async {
+    await client.get(
+      url: Uri.parse(
+        "$stackBaseServer/names?terms=$contractAddress&autoname=$contractAddress&all",
+      ),
+      proxyInfo: Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
+    );
+  }
+
   static Future<EthereumResponse<EthContract>> getTokenContractInfoByAddress(
-    String contractAddress,
-  ) async {
+    String contractAddress, {
+    bool autoNameOnEmpty = true,
+  }) async {
     try {
       final response = await client.get(
         url: Uri.parse(
@@ -630,7 +642,28 @@ abstract class EthereumAPI {
         final json = jsonDecode(response.body) as Map;
         if (json["data"] is List) {
           if ((json["data"] as List).isEmpty) {
-            throw EthApiException("Unknown token");
+            if (autoNameOnEmpty) {
+              Logging.instance.log(
+                "getTokenByContractAddress(): Adding token data to server",
+                level: LogLevel.Debug,
+              );
+              // this will add the missing data to server
+              await _addContractInfoToServer(contractAddress);
+
+              Logging.instance.log(
+                "getTokenByContractAddress(): Adding to server threw so now"
+                "we try a normal fetch again",
+                level: LogLevel.Debug,
+              );
+
+              // now try again
+              return await getTokenContractInfoByAddress(
+                contractAddress,
+                autoNameOnEmpty: false, // prevent possible infinite loop
+              );
+            } else {
+              throw EthApiException("Unknown token");
+            }
           }
 
           final map = Map<String, dynamic>.from(json["data"].first as Map);
@@ -653,7 +686,7 @@ abstract class EthereumAPI {
             );
           } else {
             throw EthApiException(
-              "Unsupported token type found: ${map["type"]}",
+              "Unsupported token type found: ${map["type"]} in $map",
             );
           }
 

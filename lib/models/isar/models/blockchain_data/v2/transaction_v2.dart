@@ -87,7 +87,10 @@ class TransactionV2 {
     );
   }
 
+  @ignore
   int? get size => _getFromOtherData(key: TxV2OdKeys.size) as int?;
+
+  @ignore
   int? get vSize => _getFromOtherData(key: TxV2OdKeys.vSize) as int?;
 
   bool get isEpiccashTransaction =>
@@ -109,9 +112,14 @@ class TransactionV2 {
     return max(0, currentChainHeight - (height! - 1));
   }
 
-  bool isConfirmed(int currentChainHeight, int minimumConfirms) {
+  bool isConfirmed(
+    int currentChainHeight,
+    int minimumConfirms,
+    int minimumCoinbaseConfirms,
+  ) {
     final confirmations = getConfirmations(currentChainHeight);
-    return confirmations >= minimumConfirms;
+    return confirmations >=
+        (isCoinbase() ? minimumCoinbaseConfirms : minimumConfirms);
   }
 
   Amount getFee({required int fractionDigits}) {
@@ -119,6 +127,10 @@ class TransactionV2 {
     final fee = _getOverrideFee();
     if (fee != null) {
       return fee;
+    }
+
+    if (isCoinbase()) {
+      return Amount.zeroWith(fractionDigits: fractionDigits);
     }
 
     final inSum =
@@ -131,6 +143,14 @@ class TransactionV2 {
   }
 
   Amount getAmountReceivedInThisWallet({required int fractionDigits}) {
+    if (_isMonero()) {
+      if (type == TransactionType.incoming) {
+        return _getMoneroAmount()!;
+      } else {
+        return Amount.zeroWith(fractionDigits: fractionDigits);
+      }
+    }
+
     final outSum = outputs
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
@@ -148,6 +168,14 @@ class TransactionV2 {
   }
 
   Amount getAmountSentFromThisWallet({required int fractionDigits}) {
+    if (_isMonero()) {
+      if (type == TransactionType.outgoing) {
+        return _getMoneroAmount()!;
+      } else {
+        return Amount.zeroWith(fractionDigits: fractionDigits);
+      }
+    }
+
     final inSum = inputs
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
@@ -188,18 +216,40 @@ class TransactionV2 {
     }
   }
 
+  Amount? _getMoneroAmount() {
+    try {
+      return Amount.fromSerializedJsonString(
+        _getFromOtherData(key: TxV2OdKeys.moneroAmount) as String,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _isMonero() {
+    final value = _getFromOtherData(key: TxV2OdKeys.isMoneroTransaction);
+    return value is bool ? value : false;
+  }
+
   String statusLabel({
     required int currentChainHeight,
     required int minConfirms,
+    required int minCoinbaseConfirms,
   }) {
+    String prettyConfirms() => "("
+        "${getConfirmations(currentChainHeight)}"
+        "/"
+        "${(isCoinbase() ? minCoinbaseConfirms : minConfirms)}"
+        ")";
+
     if (subType == TransactionSubType.cashFusion ||
         subType == TransactionSubType.mint ||
         (subType == TransactionSubType.sparkMint &&
             type == TransactionType.sentToSelf)) {
-      if (isConfirmed(currentChainHeight, minConfirms)) {
+      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
         return "Anonymized";
       } else {
-        return "Anonymizing";
+        return "Anonymizing ${prettyConfirms()}";
       }
     }
 
@@ -211,7 +261,7 @@ class TransactionV2 {
       if (isCancelled) {
         return "Cancelled";
       } else if (type == TransactionType.incoming) {
-        if (isConfirmed(currentChainHeight, minConfirms)) {
+        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Received";
         } else {
           if (numberOfMessages == 1) {
@@ -219,11 +269,11 @@ class TransactionV2 {
           } else if ((numberOfMessages ?? 0) > 1) {
             return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
           } else {
-            return "Receiving";
+            return "Receiving ${prettyConfirms()}";
           }
         }
       } else if (type == TransactionType.outgoing) {
-        if (isConfirmed(currentChainHeight, minConfirms)) {
+        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Sent (confirmed)";
         } else {
           if (numberOfMessages == 1) {
@@ -231,7 +281,7 @@ class TransactionV2 {
           } else if ((numberOfMessages ?? 0) > 1) {
             return "Sending (waiting for confirmations)";
           } else {
-            return "Sending";
+            return "Sending ${prettyConfirms()}";
           }
         }
       }
@@ -241,19 +291,23 @@ class TransactionV2 {
       // if (_transaction.isMinting) {
       //   return "Minting";
       // } else
-      if (isConfirmed(currentChainHeight, minConfirms)) {
+      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
         return "Received";
       } else {
-        return "Receiving";
+        return "Receiving ${prettyConfirms()}";
       }
     } else if (type == TransactionType.outgoing) {
-      if (isConfirmed(currentChainHeight, minConfirms)) {
+      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
         return "Sent";
       } else {
-        return "Sending";
+        return "Sending ${prettyConfirms()}";
       }
     } else if (type == TransactionType.sentToSelf) {
-      return "Sent to self";
+      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
+        return "Sent to self";
+      } else {
+        return "Sent to self ${prettyConfirms()}";
+      }
     } else {
       return type.name;
     }
@@ -266,6 +320,9 @@ class TransactionV2 {
     final map = jsonDecode(otherData!);
     return map[key];
   }
+
+  bool isCoinbase() =>
+      type == TransactionType.incoming && inputs.any((e) => e.coinbase != null);
 
   @override
   String toString() {
@@ -297,4 +354,7 @@ abstract final class TxV2OdKeys {
   static const contractAddress = "contractAddress";
   static const nonce = "nonce";
   static const overrideFee = "overrideFee";
+  static const moneroAmount = "moneroAmount";
+  static const moneroAccountIndex = "moneroAccountIndex";
+  static const isMoneroTransaction = "isMoneroTransaction";
 }

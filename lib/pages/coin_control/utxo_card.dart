@@ -117,6 +117,11 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                           .getWallet(widget.walletId)
                           .cryptoCurrency
                           .minConfirms,
+                      ref
+                          .watch(pWallets)
+                          .getWallet(widget.walletId)
+                          .cryptoCurrency
+                          .minCoinbaseConfirms,
                     )
                         ? UTXOStatusIconStatus.confirmed
                         : UTXOStatusIconStatus.unconfirmed,

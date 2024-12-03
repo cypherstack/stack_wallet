@@ -55,6 +55,9 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get minConfirms => 1;
 
   @override
+  int get minCoinbaseConfirms => 100;
+
+  @override
   bool get torSupport => true;
 
   @override
@@ -228,6 +231,8 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -254,6 +259,8 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

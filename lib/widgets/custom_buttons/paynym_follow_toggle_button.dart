@@ -34,6 +34,8 @@ enum PaynymFollowToggleButtonStyle {
   detailsDesktop,
 }
 
+const kDisableFollowing = true;
+
 class PaynymFollowToggleButton extends ConsumerStatefulWidget {
   const PaynymFollowToggleButton({
     super.key,
@@ -55,7 +57,7 @@ class _PaynymFollowToggleButtonState
     extends ConsumerState<PaynymFollowToggleButton> {
   final isDesktop = Util.isDesktop;
 
-  Future<bool> follow() async {
+  Future<bool> _follow() async {
     bool loadingPopped = false;
     unawaited(
       showDialog<void>(
@@ -160,7 +162,7 @@ class _PaynymFollowToggleButtonState
     }
   }
 
-  Future<bool> unfollow() async {
+  Future<bool> _unfollow() async {
     bool loadingPopped = false;
     unawaited(
       showDialog<void>(
@@ -264,9 +266,9 @@ class _PaynymFollowToggleButtonState
     if (!_lock) {
       _lock = true;
       if (isFollowing) {
-        await unfollow();
+        await _unfollow();
       } else {
-        await follow();
+        await _follow();
       }
       _lock = false;
     }
@@ -291,7 +293,7 @@ class _PaynymFollowToggleButtonState
           width: isDesktop ? 120 : 100,
           buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.xl,
           label: isFollowing ? "Unfollow" : "Follow",
-          onPressed: _onPressed,
+          onPressed: kDisableFollowing ? null : _onPressed,
         );
 
       case PaynymFollowToggleButtonStyle.detailsPopup:
@@ -306,7 +308,7 @@ class _PaynymFollowToggleButtonState
             color:
                 Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
           ),
-          onPressed: _onPressed,
+          onPressed: kDisableFollowing ? null : _onPressed,
         );
 
       case PaynymFollowToggleButtonStyle.detailsDesktop:
@@ -321,7 +323,7 @@ class _PaynymFollowToggleButtonState
                 Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
           ),
           iconSpacing: 6,
-          onPressed: _onPressed,
+          onPressed: kDisableFollowing ? null : _onPressed,
         );
     }
   }

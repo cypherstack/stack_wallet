@@ -4,16 +4,18 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
-import 'dart:ui' as _i11;
+import 'dart:ui' as _i13;
 
-import 'package:local_auth/auth_strings.dart' as _i8;
 import 'package:local_auth/local_auth.dart' as _i7;
+import 'package:local_auth_android/local_auth_android.dart' as _i8;
+import 'package:local_auth_darwin/local_auth_darwin.dart' as _i9;
+import 'package:local_auth_windows/local_auth_windows.dart' as _i10;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i6;
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart' as _i3;
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i2;
-import 'package:stackwallet/services/wallets_service.dart' as _i10;
-import 'package:stackwallet/utilities/biometrics.dart' as _i9;
+import 'package:stackwallet/services/wallets_service.dart' as _i12;
+import 'package:stackwallet/utilities/biometrics.dart' as _i11;
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
     as _i5;
 
@@ -58,6 +60,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           Invocation.getter(#electrumXClient),
         ),
       ) as _i2.ElectrumXClient);
+
   @override
   _i4.Future<Map<String, dynamic>> getAnonymitySet({
     required String? groupId,
@@ -77,6 +80,7 @@ class MockCachedElectrumXClient extends _i1.Mock
         returnValue:
             _i4.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i4.Future<Map<String, dynamic>>);
+
   @override
   String base64ToHex(String? source) => (super.noSuchMethod(
         Invocation.method(
@@ -91,6 +95,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           ),
         ),
       ) as String);
+
   @override
   String base64ToReverseHex(String? source) => (super.noSuchMethod(
         Invocation.method(
@@ -105,6 +110,7 @@ class MockCachedElectrumXClient extends _i1.Mock
           ),
         ),
       ) as String);
+
   @override
   _i4.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
@@ -124,6 +130,7 @@ class MockCachedElectrumXClient extends _i1.Mock
         returnValue:
             _i4.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i4.Future<Map<String, dynamic>>);
+
   @override
   _i4.Future<List<String>> getUsedCoinSerials({
     required _i5.CryptoCurrency? cryptoCurrency,
@@ -140,6 +147,7 @@ class MockCachedElectrumXClient extends _i1.Mock
         ),
         returnValue: _i4.Future<List<String>>.value(<String>[]),
       ) as _i4.Future<List<String>>);
+
   @override
   _i4.Future<void> clearSharedTransactionCache(
           {required _i5.CryptoCurrency? cryptoCurrency}) =>
@@ -168,41 +176,16 @@ class MockLocalAuthentication extends _i1.Mock
         Invocation.getter(#canCheckBiometrics),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
-  @override
-  _i4.Future<bool> authenticateWithBiometrics({
-    required String? localizedReason,
-    bool? useErrorDialogs = true,
-    bool? stickyAuth = false,
-    _i8.AndroidAuthMessages? androidAuthStrings =
-        const _i8.AndroidAuthMessages(),
-    _i8.IOSAuthMessages? iOSAuthStrings = const _i8.IOSAuthMessages(),
-    bool? sensitiveTransaction = true,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #authenticateWithBiometrics,
-          [],
-          {
-            #localizedReason: localizedReason,
-            #useErrorDialogs: useErrorDialogs,
-            #stickyAuth: stickyAuth,
-            #androidAuthStrings: androidAuthStrings,
-            #iOSAuthStrings: iOSAuthStrings,
-            #sensitiveTransaction: sensitiveTransaction,
-          },
-        ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+
   @override
   _i4.Future<bool> authenticate({
     required String? localizedReason,
-    bool? useErrorDialogs = true,
-    bool? stickyAuth = false,
-    _i8.AndroidAuthMessages? androidAuthStrings =
-        const _i8.AndroidAuthMessages(),
-    _i8.IOSAuthMessages? iOSAuthStrings = const _i8.IOSAuthMessages(),
-    bool? sensitiveTransaction = true,
-    bool? biometricOnly = false,
+    Iterable<_i8.AuthMessages>? authMessages = const [
+      _i9.IOSAuthMessages(),
+      _i8.AndroidAuthMessages(),
+      _i10.WindowsAuthMessages(),
+    ],
+    _i8.AuthenticationOptions? options = const _i8.AuthenticationOptions(),
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -210,16 +193,13 @@ class MockLocalAuthentication extends _i1.Mock
           [],
           {
             #localizedReason: localizedReason,
-            #useErrorDialogs: useErrorDialogs,
-            #stickyAuth: stickyAuth,
-            #androidAuthStrings: androidAuthStrings,
-            #iOSAuthStrings: iOSAuthStrings,
-            #sensitiveTransaction: sensitiveTransaction,
-            #biometricOnly: biometricOnly,
+            #authMessages: authMessages,
+            #options: options,
           },
         ),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
+
   @override
   _i4.Future<bool> stopAuthentication() => (super.noSuchMethod(
         Invocation.method(
@@ -228,6 +208,7 @@ class MockLocalAuthentication extends _i1.Mock
         ),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
+
   @override
   _i4.Future<bool> isDeviceSupported() => (super.noSuchMethod(
         Invocation.method(
@@ -236,22 +217,23 @@ class MockLocalAuthentication extends _i1.Mock
         ),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
+
   @override
-  _i4.Future<List<_i7.BiometricType>> getAvailableBiometrics() =>
+  _i4.Future<List<_i8.BiometricType>> getAvailableBiometrics() =>
       (super.noSuchMethod(
         Invocation.method(
           #getAvailableBiometrics,
           [],
         ),
         returnValue:
-            _i4.Future<List<_i7.BiometricType>>.value(<_i7.BiometricType>[]),
-      ) as _i4.Future<List<_i7.BiometricType>>);
+            _i4.Future<List<_i8.BiometricType>>.value(<_i8.BiometricType>[]),
+      ) as _i4.Future<List<_i8.BiometricType>>);
 }
 
 /// A class which mocks [Biometrics].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBiometrics extends _i1.Mock implements _i9.Biometrics {
+class MockBiometrics extends _i1.Mock implements _i11.Biometrics {
   MockBiometrics() {
     _i1.throwOnMissingStub(this);
   }
@@ -279,39 +261,43 @@ class MockBiometrics extends _i1.Mock implements _i9.Biometrics {
 /// A class which mocks [WalletsService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockWalletsService extends _i1.Mock implements _i10.WalletsService {
+class MockWalletsService extends _i1.Mock implements _i12.WalletsService {
   MockWalletsService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<Map<String, _i10.WalletInfo>> get walletNames =>
+  _i4.Future<Map<String, _i12.WalletInfo>> get walletNames =>
       (super.noSuchMethod(
         Invocation.getter(#walletNames),
-        returnValue: _i4.Future<Map<String, _i10.WalletInfo>>.value(
-            <String, _i10.WalletInfo>{}),
-      ) as _i4.Future<Map<String, _i10.WalletInfo>>);
+        returnValue: _i4.Future<Map<String, _i12.WalletInfo>>.value(
+            <String, _i12.WalletInfo>{}),
+      ) as _i4.Future<Map<String, _i12.WalletInfo>>);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
-  void addListener(_i11.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i13.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
         ),
         returnValueForMissingStub: null,
       );
+
   @override
-  void removeListener(_i11.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i13.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -320,6 +306,7 @@ class MockWalletsService extends _i1.Mock implements _i10.WalletsService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(

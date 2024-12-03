@@ -80,6 +80,8 @@ class Epiccash extends Bip39Currency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

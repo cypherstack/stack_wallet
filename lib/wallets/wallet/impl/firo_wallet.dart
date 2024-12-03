@@ -592,7 +592,11 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       );
 
       if (_unconfirmedTxids.contains(tx.txid)) {
-        if (tx.isConfirmed(await chainHeight, cryptoCurrency.minConfirms)) {
+        if (tx.isConfirmed(
+          await chainHeight,
+          cryptoCurrency.minConfirms,
+          cryptoCurrency.minCoinbaseConfirms,
+        )) {
           txns.add(tx);
           _unconfirmedTxids.removeWhere((e) => e == tx.txid);
         } else {
@@ -659,6 +663,11 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
   @override
   Future<void> recover({required bool isRescan}) async {
+    if (isViewOnly) {
+      await recoverViewOnly(isRescan: isRescan);
+      return;
+    }
+
     // reset last checked values
     await info.updateOtherData(
       newEntries: {

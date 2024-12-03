@@ -8,6 +8,7 @@
  *
  */
 
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar/isar.dart';
@@ -79,9 +80,28 @@ class UTXO {
     return max(0, currentChainHeight - (blockHeight! - 1));
   }
 
-  bool isConfirmed(int currentChainHeight, int minimumConfirms) {
+  bool isConfirmed(
+    int currentChainHeight,
+    int minimumConfirms,
+    int minimumCoinbaseConfirms,
+  ) {
     final confirmations = getConfirmations(currentChainHeight);
-    return confirmations >= minimumConfirms;
+    return confirmations >=
+        (isCoinbase ? minimumCoinbaseConfirms : minimumConfirms);
+  }
+
+  @ignore
+  String? get keyImage {
+    if (otherData == null) {
+      return null;
+    }
+
+    try {
+      final map = jsonDecode(otherData!) as Map;
+      return map["keyImage"] as String;
+    } catch (_) {
+      return null;
+    }
   }
 
   UTXO copyWith({

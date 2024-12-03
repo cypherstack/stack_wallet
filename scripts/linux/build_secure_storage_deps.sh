@@ -32,7 +32,7 @@ if ! [ -x "$(command -v meson)" ]; then
   echo 'Error: meson is not installed.' >&2
   exit 1
 fi
-meson _build
+meson _build -Dmanpage=false -Dgtk_doc=false
 if ! [ -x "$(command -v ninja)" ]; then
   echo 'Error: ninja is not installed.' >&2
   exit 1

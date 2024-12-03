@@ -10,202 +10,180 @@
 
 import 'dart:convert';
 
-import 'logger.dart';
+import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import 'logger.dart';
 
 class AddressUtils {
+  static final Set<String> recognizedParams = {
+    'amount',
+    'label',
+    'message',
+    'tx_amount', // For Monero/Wownero.
+    'tx_payment_id',
+    'recipient_name',
+    'tx_description',
+    // TODO [prio=med]: Add more recognized params for other coins.
+  };
+
   static String condenseAddress(String address) {
     return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
   }
 
-  // static bool validateAddress(String address, Coin coin) {
-  //   //This calls the validate address for each crypto coin, validateAddress is
-  //   //only used in 2 places, so I just replaced the old functionality here
-  //   switch (coin) {
-  //     case Coin.bitcoin:
-  //       return Bitcoin(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.bitcoinFrost:
-  //       return BitcoinFrost(CryptoCurrencyNetwork.main)
-  //           .validateAddress(address);
-  //     case Coin.litecoin:
-  //       return Litecoin(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.bitcoincash:
-  //       return Bitcoincash(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.dogecoin:
-  //       return Dogecoin(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.epicCash:
-  //       return Epiccash(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.ethereum:
-  //       return Ethereum(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.firo:
-  //       return Firo(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.eCash:
-  //       return Ecash(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.monero:
-  //       return Monero(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.wownero:
-  //       return Wownero(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.namecoin:
-  //       return Namecoin(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.particl:
-  //       return Particl(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.peercoin:
-  //       return Peercoin(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.solana:
-  //       return Solana(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.stellar:
-  //       return Stellar(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.nano:
-  //       return Nano(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.banano:
-  //       return Banano(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.tezos:
-  //       return Tezos(CryptoCurrencyNetwork.main).validateAddress(address);
-  //     case Coin.bitcoinTestNet:
-  //       return Bitcoin(CryptoCurrencyNetwork.test).validateAddress(address);
-  //     case Coin.bitcoinFrostTestNet:
-  //       return BitcoinFrost(CryptoCurrencyNetwork.test)
-  //           .validateAddress(address);
-  //     case Coin.litecoinTestNet:
-  //       return Litecoin(CryptoCurrencyNetwork.test).validateAddress(address);
-  //     case Coin.bitcoincashTestnet:
-  //       return Bitcoincash(CryptoCurrencyNetwork.test).validateAddress(address);
-  //     case Coin.firoTestNet:
-  //       return Firo(CryptoCurrencyNetwork.test).validateAddress(address);
-  //     case Coin.dogecoinTestNet:
-  //       return Dogecoin(CryptoCurrencyNetwork.test).validateAddress(address);
-  //     case Coin.peercoinTestNet:
-  //       return Peercoin(CryptoCurrencyNetwork.test).validateAddress(address);
-  //     case Coin.stellarTestnet:
-  //       return Stellar(CryptoCurrencyNetwork.test).validateAddress(address);
-  //   }
-  //   // throw Exception("moved");
-  //   // switch (coin) {
-  //   //   case Coin.bitcoin:
-  //   //     return Address.validateAddress(address, bitcoin);
-  //   //   case Coin.litecoin:
-  //   //     return Address.validateAddress(address, litecoin);
-  //   //   case Coin.bitcoincash:
-  //   //     try {
-  //   //       // 0 for bitcoincash: address scheme, 1 for legacy address
-  //   //       final format = bitbox.Address.detectFormat(address);
-  //   //
-  //   //       if (coin == Coin.bitcoincashTestnet) {
-  //   //         return true;
-  //   //       }
-  //   //
-  //   //       if (format == bitbox.Address.formatCashAddr) {
-  //   //         String addr = address;
-  //   //         if (addr.contains(":")) {
-  //   //           addr = addr.split(":").last;
-  //   //         }
-  //   //
-  //   //         return addr.startsWith("q");
-  //   //       } else {
-  //   //         return address.startsWith("1");
-  //   //       }
-  //   //     } catch (e) {
-  //   //       return false;
-  //   //     }
-  //   //   case Coin.dogecoin:
-  //   //     return Address.validateAddress(address, dogecoin);
-  //   //   case Coin.epicCash:
-  //   //     return validateSendAddress(address) == "1";
-  //   //   case Coin.ethereum:
-  //   //     return true; //TODO - validate ETH address
-  //   //   case Coin.firo:
-  //   //     return Address.validateAddress(address, firoNetwork);
-  //   //   case Coin.eCash:
-  //   //     return Address.validateAddress(address, eCashNetwork);
-  //   //   case Coin.monero:
-  //   //     return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
-  //   //         RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
-  //   //   case Coin.wownero:
-  //   //     return RegExp("[a-zA-Z0-9]{95}").hasMatch(address) ||
-  //   //         RegExp("[a-zA-Z0-9]{106}").hasMatch(address);
-  //   //   case Coin.namecoin:
-  //   //     return Address.validateAddress(address, namecoin, namecoin.bech32!);
-  //   //   case Coin.particl:
-  //   //     return Address.validateAddress(address, particl);
-  //   //   case Coin.stellar:
-  //   //     return RegExp(r"^[G][A-Z0-9]{55}$").hasMatch(address);
-  //   //   case Coin.nano:
-  //   //     return NanoAccounts.isValid(NanoAccountType.NANO, address);
-  //   //   case Coin.banano:
-  //   //     return NanoAccounts.isValid(NanoAccountType.BANANO, address);
-  //   //   case Coin.tezos:
-  //   //     return RegExp(r"^tz[1-9A-HJ-NP-Za-km-z]{34}$").hasMatch(address);
-  //   //   case Coin.bitcoinTestNet:
-  //   //     return Address.validateAddress(address, testnet);
-  //   //   case Coin.litecoinTestNet:
-  //   //     return Address.validateAddress(address, litecointestnet);
-  //   //   case Coin.bitcoincashTestnet:
-  //   //     try {
-  //   //       // 0 for bitcoincash: address scheme, 1 for legacy address
-  //   //       final format = bitbox.Address.detectFormat(address);
-  //   //
-  //   //       if (coin == Coin.bitcoincashTestnet) {
-  //   //         return true;
-  //   //       }
-  //   //
-  //   //       if (format == bitbox.Address.formatCashAddr) {
-  //   //         String addr = address;
-  //   //         if (addr.contains(":")) {
-  //   //           addr = addr.split(":").last;
-  //   //         }
-  //   //
-  //   //         return addr.startsWith("q");
-  //   //       } else {
-  //   //         return address.startsWith("1");
-  //   //       }
-  //   //     } catch (e) {
-  //   //       return false;
-  //   //     }
-  //   //   case Coin.firoTestNet:
-  //   //     return Address.validateAddress(address, firoTestNetwork);
-  //   //   case Coin.dogecoinTestNet:
-  //   //     return Address.validateAddress(address, dogecointestnet);
-  //   //   case Coin.stellarTestnet:
-  //   //     return RegExp(r"^[G][A-Z0-9]{55}$").hasMatch(address);
-  //   // }
-  // }
+  /// Return only recognized parameters.
+  static Map<String, String> _filterParams(Map<String, String> params) {
+    return Map.fromEntries(
+      params.entries
+          .where((entry) => recognizedParams.contains(entry.key.toLowerCase())),
+    );
+  }
 
-  /// parse an address uri
-  /// returns an empty map if the input string does not begin with "firo:"
-  static Map<String, String> parseUri(String uri) {
+  /// Parses a URI string and returns a map with parsed components.
+  static Map<String, String> _parseUri(String uri) {
     final Map<String, String> result = {};
     try {
       final u = Uri.parse(uri);
       if (u.hasScheme) {
         result["scheme"] = u.scheme.toLowerCase();
-        result["address"] = u.path;
-        result.addAll(u.queryParameters);
+
+        // Handle different URI formats.
+        if (result["scheme"] == "bitcoin" ||
+            result["scheme"] == "bitcoincash") {
+          result["address"] = u.path;
+        } else if (result["scheme"] == "monero") {
+          // Monero addresses can contain '?' which Uri.parse interprets as query start.
+          final addressEnd =
+              uri.indexOf('?', 7); // 7 is the length of "monero:".
+          if (addressEnd != -1) {
+            result["address"] = uri.substring(7, addressEnd);
+          } else {
+            result["address"] = uri.substring(7);
+          }
+        } else {
+          // Default case, treat path as address.
+          result["address"] = u.path;
+        }
+
+        // Parse query parameters.
+        result.addAll(_parseQueryParameters(u.queryParameters));
+
+        // Handle Monero-specific fragment (tx_description).
+        if (u.fragment.isNotEmpty && result["scheme"] == "monero") {
+          result["tx_description"] = Uri.decodeComponent(u.fragment);
+        }
       }
     } catch (e) {
-      Logging.instance
-          .log("Exception caught in parseUri($uri): $e", level: LogLevel.Error);
+      print("Exception caught in parseUri($uri): $e");
     }
     return result;
   }
 
-  /// builds a uri string with the given address and query parameters if any
+  /// Helper method to parse and normalize query parameters.
+  static Map<String, String> _parseQueryParameters(Map<String, String> params) {
+    final Map<String, String> result = {};
+    params.forEach((key, value) {
+      final lowerKey = key.toLowerCase();
+      if (recognizedParams.contains(lowerKey)) {
+        switch (lowerKey) {
+          case 'amount':
+          case 'tx_amount':
+            result['amount'] = _normalizeAmount(value);
+            break;
+          case 'label':
+          case 'recipient_name':
+            result['label'] = Uri.decodeComponent(value);
+            break;
+          case 'message':
+          case 'tx_description':
+            result['message'] = Uri.decodeComponent(value);
+            break;
+          case 'tx_payment_id':
+            result['tx_payment_id'] = Uri.decodeComponent(value);
+            break;
+          default:
+            result[lowerKey] = Uri.decodeComponent(value);
+        }
+      } else {
+        // Include unrecognized parameters as-is.
+        result[key] = Uri.decodeComponent(value);
+      }
+    });
+    return result;
+  }
+
+  /// Normalizes amount value to a standard format.
+  static String _normalizeAmount(String amount) {
+    // Remove any non-numeric characters except for '.'
+    final sanitized = amount.replaceAll(RegExp(r'[^\d.]'), '');
+    // Ensure only one decimal point
+    final parts = sanitized.split('.');
+    if (parts.length > 2) {
+      return '${parts[0]}.${parts.sublist(1).join()}';
+    }
+    return sanitized;
+  }
+
+  /// Centralized method to handle various cryptocurrency URIs and return a common object.
+  ///
+  /// Returns null on failure to parse
+  static PaymentUriData? parsePaymentUri(
+    String uri, {
+    Logging? logging,
+  }) {
+    try {
+      final Map<String, String> parsedData = _parseUri(uri);
+
+      // Normalize the URI scheme.
+      final String scheme = parsedData['scheme'] ?? '';
+      parsedData.remove('scheme');
+
+      // Filter out unrecognized parameters.
+      final filteredParams = _filterParams(parsedData);
+
+      return PaymentUriData(
+        scheme: scheme,
+        address: parsedData['address']!.trim(),
+        amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
+        label: filteredParams['label'] ?? filteredParams['recipient_name'],
+        message: filteredParams['message'] ?? filteredParams['tx_description'],
+        paymentId: filteredParams['tx_payment_id'],
+        // Specific to Monero
+        additionalParams: filteredParams,
+      );
+    } catch (e, s) {
+      logging?.log("$e\n$s", level: LogLevel.Error);
+      return null;
+    }
+  }
+
+  /// Builds a uri string with the given address and query parameters (if any)
   static String buildUriString(
-    CryptoCurrency coin,
+    String scheme,
     String address,
     Map<String, String> params,
   ) {
-    // TODO: other sanitation as well ?
-    String sanitizedAddress = address;
-    if (coin is Bitcoincash || coin is Ecash) {
-      final prefix = "${coin.uriScheme}:";
-      if (address.startsWith(prefix)) {
-        sanitizedAddress = address.replaceFirst(prefix, "");
+    // Filter unrecognized parameters.
+    final filteredParams = _filterParams(params);
+    String uriString = "$scheme:$address";
+
+    if (scheme.toLowerCase() == "monero") {
+      // Handle Monero-specific formatting.
+      if (filteredParams.containsKey("tx_description")) {
+        final description = filteredParams.remove("tx_description")!;
+        if (filteredParams.isNotEmpty) {
+          uriString += Uri(queryParameters: filteredParams).toString();
+        }
+        uriString += "#${Uri.encodeComponent(description)}";
+      } else if (filteredParams.isNotEmpty) {
+        uriString += Uri(queryParameters: filteredParams).toString();
+      }
+    } else {
+      // General case for other cryptocurrencies.
+      if (filteredParams.isNotEmpty) {
+        uriString += Uri(queryParameters: filteredParams).toString();
       }
     }
-    String uriString = "${coin.uriScheme}:$sanitizedAddress";
-    if (params.isNotEmpty) {
-      uriString += Uri(queryParameters: params).toString();
-    }
+
     return uriString;
   }
 
@@ -215,10 +193,7 @@ class AddressUtils {
     try {
       result = Map<String, dynamic>.from(jsonDecode(data) as Map);
     } catch (e) {
-      Logging.instance.log(
-        "Exception caught in parseQRSeedData($data): $e",
-        level: LogLevel.Error,
-      );
+      print("Exception caught in parseQRSeedData($data): $e");
     }
     return result;
   }
@@ -227,4 +202,70 @@ class AddressUtils {
   static String encodeQRSeedData(List<String> words) {
     return jsonEncode({"mnemonic": words});
   }
+
+  /// Method to get CryptoCurrency based on URI scheme.
+  static CryptoCurrency? _getCryptoCurrencyByScheme(String scheme) {
+    if (AppConfig.coins.map((e) => e.uriScheme).toSet().contains(scheme)) {
+      return AppConfig.coins.firstWhere((e) => e.uriScheme == scheme);
+    } else {
+      return null;
+      // throw UnsupportedError('Unsupported URI scheme: $scheme');
+    }
+  }
+
+  /// Formats an address string to remove any unnecessary prefixes or suffixes.
+  String formatAddress(String epicAddress) {
+    // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
+    if ((epicAddress.startsWith("http://") ||
+            epicAddress.startsWith("https://")) &&
+        epicAddress.contains("@")) {
+      epicAddress = epicAddress.replaceAll("http://", "");
+      epicAddress = epicAddress.replaceAll("https://", "");
+    }
+    // strip mailto: prefix
+    if (epicAddress.startsWith("mailto:")) {
+      epicAddress = epicAddress.replaceAll("mailto:", "");
+    }
+    // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
+    if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
+      epicAddress = epicAddress.substring(0, epicAddress.length - 1);
+    }
+    return epicAddress;
+  }
+}
+
+class PaymentUriData {
+  final String address;
+  final String? scheme;
+  final String? amount;
+  final String? label;
+  final String? message;
+  final String? paymentId; // Specific to Monero.
+  final Map<String, String> additionalParams;
+
+  CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
+        scheme ?? "", // empty will just return null
+      );
+
+  PaymentUriData({
+    required this.address,
+    this.scheme,
+    this.amount,
+    this.label,
+    this.message,
+    this.paymentId,
+    required this.additionalParams,
+  });
+
+  @override
+  String toString() => "PaymentUriData { "
+      "coin: $coin, "
+      "address: $address, "
+      "amount: $amount, "
+      "scheme: $scheme, "
+      "label: $label, "
+      "message: $message, "
+      "paymentId: $paymentId, "
+      "additionalParams: $additionalParams"
+      " }";
 }

@@ -11,7 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cw_core/monero_transaction_priority.dart';
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -163,25 +163,27 @@ class _SendViewState extends ConsumerState<SendView> {
         level: LogLevel.Info,
       );
 
-      final results = AddressUtils.parseUri(qrResult.rawContent);
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
 
-      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
-
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == coin.uriScheme) {
         // auto fill address
-        _address = (results["address"] ?? "").trim();
+        _address = paymentData.address.trim();
         sendToController.text = _address!;
 
         // autofill notes field
-        if (results["message"] != null) {
-          noteController.text = results["message"]!;
-        } else if (results["label"] != null) {
-          noteController.text = results["label"]!;
+        if (paymentData.message != null) {
+          noteController.text = paymentData.message!;
+        } else if (paymentData.label != null) {
+          noteController.text = paymentData.label!;
         }
 
         // autofill amount field
-        if (results["amount"] != null) {
-          final Amount amount = Decimal.parse(results["amount"]!).toAmount(
+        if (paymentData.amount != null) {
+          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
             fractionDigits: coin.fractionDigits,
           );
           cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -197,12 +199,8 @@ class _SendViewState extends ConsumerState<SendView> {
         });
 
         // now check for non standard encoded basic address
-      } else if (ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(qrResult.rawContent)) {
-        _address = qrResult.rawContent.trim();
+      } else {
+        _address = qrResult.rawContent.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
         _setValidAddressProviders(_address);
@@ -472,22 +470,22 @@ class _SendViewState extends ConsumerState<SendView> {
 
     Amount fee;
     if (coin is Monero) {
-      MoneroTransactionPriority specialMoneroId;
+      lib_monero.TransactionPriority specialMoneroId;
       switch (ref.read(feeRateTypeStateProvider.state).state) {
         case FeeRateType.fast:
-          specialMoneroId = MoneroTransactionPriority.fast;
+          specialMoneroId = lib_monero.TransactionPriority.high;
           break;
         case FeeRateType.average:
-          specialMoneroId = MoneroTransactionPriority.regular;
+          specialMoneroId = lib_monero.TransactionPriority.medium;
           break;
         case FeeRateType.slow:
-          specialMoneroId = MoneroTransactionPriority.slow;
+          specialMoneroId = lib_monero.TransactionPriority.normal;
           break;
         default:
           throw ArgumentError("custom fee not available for monero");
       }
 
-      fee = await wallet.estimateFeeFor(amount, specialMoneroId.raw!);
+      fee = await wallet.estimateFeeFor(amount, specialMoneroId.value);
       cachedFees[amount] = ref.read(pAmountFormatter(coin)).format(
             fee,
             withUnitName: true,
@@ -829,7 +827,8 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();
@@ -880,6 +879,48 @@ class _SendViewState extends ConsumerState<SendView> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  String _getSendAllTitle(bool showCoinControl, Set<UTXO> selectedUTXOs) {
+    if (showCoinControl && selectedUTXOs.isNotEmpty) {
+      return "Send all selected";
+    }
+
+    return "Send all ${coin.ticker}";
+  }
+
+  Amount _selectedUtxosAmount(Set<UTXO> utxos) => Amount(
+        rawValue:
+            utxos.map((e) => BigInt.from(e.value)).reduce((v, e) => v += e),
+        fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
+      );
+
+  Future<void> _sendAllTapped(bool showCoinControl) async {
+    final Amount amount;
+
+    if (showCoinControl && selectedUTXOs.isNotEmpty) {
+      amount = _selectedUtxosAmount(selectedUTXOs);
+    } else if (isFiro) {
+      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+        case FiroType.public:
+          amount = ref.read(pWalletBalance(walletId)).spendable;
+          break;
+        case FiroType.lelantus:
+          amount = ref.read(pWalletBalanceSecondary(walletId)).spendable;
+          break;
+        case FiroType.spark:
+          amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
+          break;
+      }
+    } else {
+      amount = ref.read(pWalletBalance(walletId)).spendable;
+    }
+
+    cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+          amount,
+          withUnitName: false,
+        );
+    _cryptoAmountChanged();
   }
 
   bool get isPaynymSend => widget.accountLite != null;
@@ -942,6 +983,9 @@ class _SendViewState extends ConsumerState<SendView> {
     if (isPaynymSend) {
       sendToController.text = widget.accountLite!.nymName;
       noteController.text = "PayNym send";
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _setValidAddressProviders(sendToController.text),
+      );
     }
 
     // if (coin is! Epiccash) {
@@ -1067,7 +1111,7 @@ class _SendViewState extends ConsumerState<SendView> {
             _address = _address!.substring(0, _address!.indexOf("\n"));
           }
 
-          sendToController.text = formatAddress(_address!);
+          sendToController.text = AddressUtils().formatAddress(_address!);
         }
       });
     }
@@ -1398,7 +1442,8 @@ class _SendViewState extends ConsumerState<SendView> {
 
                                                       if (coin is Epiccash) {
                                                         // strip http:// and https:// if content contains @
-                                                        content = formatAddress(
+                                                        content = AddressUtils()
+                                                            .formatAddress(
                                                           content,
                                                         );
                                                       }
@@ -1769,59 +1814,9 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                               if (coin is! Ethereum && coin is! Tezos)
                                 CustomTextButton(
-                                  text: "Send all ${coin.ticker}",
-                                  onTap: () async {
-                                    if (isFiro) {
-                                      final Amount amount;
-                                      switch (ref
-                                          .read(
-                                            publicPrivateBalanceStateProvider
-                                                .state,
-                                          )
-                                          .state) {
-                                        case FiroType.public:
-                                          amount = ref
-                                              .read(pWalletBalance(walletId))
-                                              .spendable;
-                                          break;
-                                        case FiroType.lelantus:
-                                          amount = ref
-                                              .read(
-                                                pWalletBalanceSecondary(
-                                                  walletId,
-                                                ),
-                                              )
-                                              .spendable;
-                                          break;
-                                        case FiroType.spark:
-                                          amount = ref
-                                              .read(
-                                                pWalletBalanceTertiary(
-                                                  walletId,
-                                                ),
-                                              )
-                                              .spendable;
-                                          break;
-                                      }
-
-                                      cryptoAmountController.text = ref
-                                          .read(pAmountFormatter(coin))
-                                          .format(
-                                            amount,
-                                            withUnitName: false,
-                                          );
-                                    } else {
-                                      cryptoAmountController.text = ref
-                                          .read(pAmountFormatter(coin))
-                                          .format(
-                                            ref
-                                                .read(pWalletBalance(walletId))
-                                                .spendable,
-                                            withUnitName: false,
-                                          );
-                                    }
-                                    _cryptoAmountChanged();
-                                  },
+                                  text: _getSendAllTitle(
+                                      showCoinControl, selectedUTXOs),
+                                  onTap: () => _sendAllTapped(showCoinControl),
                                 ),
                             ],
                           ),
@@ -2416,23 +2411,4 @@ class _SendViewState extends ConsumerState<SendView> {
       ),
     );
   }
-}
-
-String formatAddress(String epicAddress) {
-  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
-  if ((epicAddress.startsWith("http://") ||
-          epicAddress.startsWith("https://")) &&
-      epicAddress.contains("@")) {
-    epicAddress = epicAddress.replaceAll("http://", "");
-    epicAddress = epicAddress.replaceAll("https://", "");
-  }
-  // strip mailto: prefix
-  if (epicAddress.startsWith("mailto:")) {
-    epicAddress = epicAddress.replaceAll("mailto:", "");
-  }
-  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
-  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
-    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
-  }
-  return epicAddress;
 }

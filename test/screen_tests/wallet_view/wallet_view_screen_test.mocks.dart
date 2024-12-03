@@ -39,11 +39,13 @@ class MockLocaleService extends _i1.Mock implements _i2.LocaleService {
           Invocation.getter(#locale),
         ),
       ) as String);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   _i4.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
         Invocation.method(
@@ -54,6 +56,7 @@ class MockLocaleService extends _i1.Mock implements _i2.LocaleService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   void addListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -62,6 +65,7 @@ class MockLocaleService extends _i1.Mock implements _i2.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -70,6 +74,7 @@ class MockLocaleService extends _i1.Mock implements _i2.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -78,6 +83,7 @@ class MockLocaleService extends _i1.Mock implements _i2.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(

@@ -81,14 +81,16 @@ class WalletSummaryInfo extends ConsumerWidget {
       priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin)),
     );
 
-    final _showAvailable =
-        ref.watch(walletBalanceToggleStateProvider.state).state ==
-            WalletBalanceToggleState.available;
+    final _showAvailable = ref.watch(walletBalanceToggleStateProvider) ==
+        WalletBalanceToggleState.available;
 
     final Amount balanceToShow;
     final String title;
 
+    final bool toggleBalance;
+
     if (coin is Firo) {
+      toggleBalance = false;
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
@@ -109,6 +111,7 @@ class WalletSummaryInfo extends ConsumerWidget {
           break;
       }
     } else {
+      toggleBalance = true;
       balanceToShow = _showAvailable ? balance.spendable : balance.total;
       title = _showAvailable ? "Available balance" : "Full balance";
     }
@@ -141,7 +144,20 @@ class WalletSummaryInfo extends ConsumerWidget {
               children: [
                 GestureDetector(
                   onTap: () {
-                    showSheet(context);
+                    if (toggleBalance) {
+                      if (ref.read(walletBalanceToggleStateProvider) ==
+                          WalletBalanceToggleState.available) {
+                        ref
+                            .read(walletBalanceToggleStateProvider.notifier)
+                            .state = WalletBalanceToggleState.full;
+                      } else {
+                        ref
+                            .read(walletBalanceToggleStateProvider.notifier)
+                            .state = WalletBalanceToggleState.available;
+                      }
+                    } else {
+                      showSheet(context);
+                    }
                   },
                   child: Row(
                     children: [
@@ -153,20 +169,37 @@ class WalletSummaryInfo extends ConsumerWidget {
                               .textFavoriteCard,
                         ),
                       ),
-                      const SizedBox(
-                        width: 4,
-                      ),
-                      SvgPicture.asset(
-                        Assets.svg.chevronDown,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFavoriteCard,
-                        width: 8,
-                        height: 4,
-                      ),
+                      if (!toggleBalance) ...[
+                        const SizedBox(
+                          width: 4,
+                        ),
+                        SvgPicture.asset(
+                          Assets.svg.chevronDown,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFavoriteCard,
+                          width: 8,
+                          height: 4,
+                        ),
+                      ],
                     ],
                   ),
                 ),
+                const Spacer(),
+                if (ref.watch(pWalletInfo(walletId)).isViewOnly)
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: SelectableText(
+                      "(View only)",
+                      style: STextStyles.pageTitleH1(context).copyWith(
+                        fontSize: 18,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFavoriteCard
+                            .withOpacity(0.7),
+                      ),
+                    ),
+                  ),
                 const Spacer(),
                 FittedBox(
                   fit: BoxFit.scaleDown,

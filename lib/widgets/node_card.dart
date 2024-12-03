@@ -13,6 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
+
 import '../notifications/show_flush_bar.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
@@ -26,6 +28,7 @@ import '../utilities/default_nodes.dart';
 import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/test_node_connection.dart';
 import '../utilities/text_styles.dart';
+import '../utilities/tor_plain_net_option_enum.dart';
 import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'conditional_parent.dart';
@@ -33,7 +36,6 @@ import 'custom_buttons/blue_text_button.dart';
 import 'expandable.dart';
 import 'node_options_sheet.dart';
 import 'rounded_white_container.dart';
-import 'package:tuple/tuple.dart';
 
 class NodeCard extends ConsumerStatefulWidget {
   const NodeCard({
@@ -165,6 +167,15 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
+                        final TorPlainNetworkOption netOption;
+                        if (_node.torEnabled && !_node.clearnetEnabled) {
+                          netOption = TorPlainNetworkOption.tor;
+                        } else if (_node.clearnetEnabled && !_node.torEnabled) {
+                          netOption = TorPlainNetworkOption.clear;
+                        } else {
+                          netOption = TorPlainNetworkOption.both;
+                        }
+
                         final nodeFormData = NodeFormData()
                           ..useSSL = _node.useSSL
                           ..trusted = _node.trusted
@@ -172,6 +183,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                           ..host = _node.host
                           ..login = _node.loginName
                           ..port = _node.port
+                          ..netOption = netOption
                           ..isFailover = _node.isFailover;
                         nodeFormData.password = await _node.getPassword(
                           ref.read(secureStoreProvider),

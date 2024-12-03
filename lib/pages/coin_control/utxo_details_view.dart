@@ -13,9 +13,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
-import '../wallet_view/transaction_views/transaction_details_view.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -33,6 +33,7 @@ import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_widgets/utxo_status_icon.dart';
 import '../../widgets/rounded_container.dart';
+import '../wallet_view/transaction_views/transaction_details_view.dart';
 
 class UtxoDetailsView extends ConsumerStatefulWidget {
   const UtxoDetailsView({
@@ -97,6 +98,11 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
     final confirmed = utxo!.isConfirmed(
       currentHeight,
       ref.watch(pWallets).getWallet(widget.walletId).cryptoCurrency.minConfirms,
+      ref
+          .watch(pWallets)
+          .getWallet(widget.walletId)
+          .cryptoCurrency
+          .minCoinbaseConfirms,
     );
 
     return ConditionalParent(

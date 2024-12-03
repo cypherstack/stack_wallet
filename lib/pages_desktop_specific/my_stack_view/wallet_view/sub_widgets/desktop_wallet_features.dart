@@ -39,12 +39,14 @@ import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 import '../../../cashfusion/desktop_cashfusion_view.dart';
+import '../../../churning/desktop_churning_view.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../desktop_menu.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
@@ -92,6 +94,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onOrdinalsPressed: _onOrdinalsPressed,
         onMonkeyPressed: _onMonkeyPressed,
         onFusionPressed: _onFusionPressed,
+        onChurnPressed: _onChurnPressed,
       ),
     );
   }
@@ -116,7 +119,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       barrierDismissible: false,
       builder: (context) => DesktopDialog(
         maxWidth: 500,
-        maxHeight: 210,
+        maxHeight: double.infinity,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
           child: Column(
@@ -204,7 +207,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       // await firoWallet.anonymizeAllLelantus();
       await firoWallet.anonymizeAllSpark();
       shouldPop = true;
-      if (context.mounted) {
+      if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).popUntil(
           ModalRoute.withName(DesktopWalletView.routeName),
@@ -219,7 +222,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       }
     } catch (e) {
       shouldPop = true;
-      if (context.mounted) {
+      if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).popUntil(
           ModalRoute.withName(DesktopWalletView.routeName),
@@ -299,13 +302,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       level: LogLevel.Info,
     );
 
-    if (context.mounted) {
+    if (mounted) {
       Navigator.of(context, rootNavigator: true).pop();
 
       // check if account exists and for matching code to see if claimed
-      if (account.value != null &&
-          account.value!.nonSegwitPaymentCode.claimed &&
-          account.value!.segwit) {
+      if (account.value != null && account.value!.nonSegwitPaymentCode.claimed
+          // &&
+          // account.value!.segwit
+          ) {
         ref.read(myPaynymAccountStateProvider.state).state = account.value!;
 
         await Navigator.of(context).pushNamed(
@@ -348,10 +352,22 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     );
   }
 
+  void _onChurnPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      DesktopChurningView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final wallet = ref.watch(pWallets).getWallet(widget.walletId);
     final coin = wallet.info.coin;
+
+    final prefs = ref.watch(prefsChangeNotifierProvider);
+    final showExchange = prefs.enableExchange;
 
     final showMore = wallet is PaynymInterface ||
         (wallet is CoinControlInterface &&
@@ -366,9 +382,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         wallet is OrdinalsInterface ||
         wallet is CashFusionInterface;
 
+    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+
     return Row(
       children: [
-        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.swap))
+        if (!isViewOnly &&
+            Constants.enableExchange &&
+            AppConfig.hasFeature(AppFeature.swap) &&
+            showExchange)
           SecondaryButton(
             label: "Swap",
             width: buttonWidth,
@@ -383,11 +404,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             ),
             onPressed: () => _onSwapPressed(),
           ),
-        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
+        if (Constants.enableExchange &&
+            AppConfig.hasFeature(AppFeature.buy) &&
+            showExchange)
           const SizedBox(
             width: 16,
           ),
-        if (Constants.enableExchange && AppConfig.hasFeature(AppFeature.buy))
+        if (Constants.enableExchange &&
+            AppConfig.hasFeature(AppFeature.buy) &&
+            showExchange)
           SecondaryButton(
             label: "Buy",
             width: buttonWidth,

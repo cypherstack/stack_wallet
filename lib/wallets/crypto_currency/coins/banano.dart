@@ -77,6 +77,8 @@ class Banano extends NanoCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

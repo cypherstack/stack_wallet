@@ -14,14 +14,12 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import '../../../desktop_home_view.dart';
-import 'address_book_address_chooser/address_book_address_chooser.dart';
-import 'desktop_fee_dropdown.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
@@ -30,6 +28,7 @@ import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
+import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
@@ -51,6 +50,9 @@ import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
+import '../../../desktop_home_view.dart';
+import 'address_book_address_chooser/address_book_address_chooser.dart';
+import 'desktop_fee_dropdown.dart';
 
 // const _kCryptoAmountRegex = r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
 
@@ -393,19 +395,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final String cryptoAmount = cryptoAmountController.text;
-      if (cryptoAmount.isNotEmpty &&
-          cryptoAmount != "." &&
-          cryptoAmount != ",") {
-        _amountToSend = cryptoAmount.contains(",")
-            ? Decimal.parse(cryptoAmount.replaceFirst(",", ".")).toAmount(
-                fractionDigits:
-                    ref.read(pCurrentTokenWallet)!.tokenContract.decimals,
-              )
-            : Decimal.parse(cryptoAmount).toAmount(
-                fractionDigits:
-                    ref.read(pCurrentTokenWallet)!.tokenContract.decimals,
-              );
+      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+            cryptoAmountController.text,
+            ethContract: ref.read(pCurrentTokenWallet)!.tokenContract,
+          );
+
+      if (cryptoAmount != null) {
+        _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
             _cachedAmountToSend == _amountToSend) {
           return;
@@ -480,25 +476,30 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         level: LogLevel.Info,
       );
 
-      final results = AddressUtils.parseUri(qrResult.rawContent);
+      final paymentData = AddressUtils.parsePaymentUri(
+        qrResult.rawContent,
+        logging: Logging.instance,
+      );
 
-      Logging.instance.log("qrResult parsed: $results", level: LogLevel.Info);
+      Logging.instance
+          .log("qrResult parsed: $paymentData", level: LogLevel.Info);
 
-      if (results.isNotEmpty && results["scheme"] == coin.uriScheme) {
+      if (paymentData != null &&
+          paymentData.coin?.uriScheme == coin.uriScheme) {
         // auto fill address
-        _address = results["address"] ?? "";
+        _address = paymentData.address.trim();
         sendToController.text = _address!;
 
         // autofill notes field
-        if (results["message"] != null) {
-          _note = results["message"]!;
-        } else if (results["label"] != null) {
-          _note = results["label"]!;
+        if (paymentData.message != null) {
+          _note = paymentData.message!;
+        } else if (paymentData.label != null) {
+          _note = paymentData.label!;
         }
 
         // autofill amount field
-        if (results["amount"] != null) {
-          final amount = Decimal.parse(results["amount"]!).toAmount(
+        if (paymentData.amount != null) {
+          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
             fractionDigits:
                 ref.read(pCurrentTokenWallet)!.tokenContract.decimals,
           );
@@ -516,12 +517,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         });
 
         // now check for non standard encoded basic address
-      } else if (ref
-          .read(pWallets)
-          .getWallet(walletId)
-          .cryptoCurrency
-          .validateAddress(qrResult.rawContent)) {
-        _address = qrResult.rawContent;
+      } else {
+        _address = qrResult.rawContent.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
         _updatePreviewButtonState(_address, _amountToSend);
@@ -803,7 +800,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
-                  tokenContract.symbol,
+                  ref.watch(pAmountUnit(coin)).unitForContract(tokenContract),
                   style: STextStyles.smallMed14(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

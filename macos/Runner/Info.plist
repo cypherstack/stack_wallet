@@ -28,5 +28,11 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>QR Code scanning</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>QR Code Scanning.  A temporary requirement due to limitations in the camera_macos package that are being worked on to remove the need for this permission.</string>
+	<key>NSCameraUseContinuityCameraDeviceType</key>
+    <true/>
 </dict>
 </plist>

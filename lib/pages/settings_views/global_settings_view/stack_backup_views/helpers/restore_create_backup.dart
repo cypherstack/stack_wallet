@@ -18,7 +18,7 @@ import 'package:isar/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:tuple/tuple.dart';
 import 'package:uuid/uuid.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../../app_config.dart';
 import '../../../../../db/hive/db.dart';
@@ -27,6 +27,7 @@ import '../../../../../models/exchange/change_now/exchange_transaction.dart';
 import '../../../../../models/exchange/response_objects/trade.dart';
 import '../../../../../models/isar/models/contact_entry.dart';
 import '../../../../../models/isar/models/transaction_note.dart';
+import '../../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../../models/node_model.dart';
 import '../../../../../models/stack_restoring_ui_state.dart';
 import '../../../../../models/trade_wallet_lookup.dart';
@@ -52,10 +53,13 @@ import '../../../../../wallets/isar/models/frost_wallet_info.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../../wallets/wallet/impl/monero_wallet.dart';
+import '../../../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 
 class PreRestoreState {
   final Set<String> walletIds;
@@ -310,7 +314,10 @@ abstract class SWB {
         backupWallet['isFavorite'] = wallet.info.isFavourite;
         backupWallet['otherDataJsonString'] = wallet.info.otherDataJsonString;
 
-        if (wallet is MnemonicInterface) {
+        if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+          backupWallet['viewOnlyWalletDataKey'] =
+              (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
+        } else if (wallet is MnemonicInterface) {
           backupWallet['mnemonic'] = await wallet.getMnemonic();
           backupWallet['mnemonicPassphrase'] =
               await wallet.getMnemonicPassphrase();
@@ -417,7 +424,16 @@ abstract class SWB {
 
     String? mnemonic, mnemonicPassphrase, privateKey;
 
-    if (walletbackup['mnemonic'] == null) {
+    ViewOnlyWalletData? viewOnlyData;
+    if (info.isViewOnly) {
+      final viewOnlyDataEncoded =
+          walletbackup['viewOnlyWalletDataKey'] as String;
+
+      viewOnlyData = ViewOnlyWalletData.fromJsonEncodedString(
+        viewOnlyDataEncoded,
+        walletId: info.walletId,
+      );
+    } else if (walletbackup['mnemonic'] == null) {
       // probably private key based
       if (walletbackup['privateKey'] != null) {
         privateKey = walletbackup['privateKey'] as String;
@@ -484,27 +500,44 @@ abstract class SWB {
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
         privateKey: privateKey,
+        viewOnlyData: viewOnlyData,
       );
 
-      await wallet.init();
+      switch (wallet.runtimeType) {
+        case const (EpiccashWallet):
+          await (wallet as EpiccashWallet).init(isRestore: true);
+          break;
+
+        case const (MoneroWallet):
+          await (wallet as MoneroWallet).init(isRestore: true);
+          break;
+
+        case const (WowneroWallet):
+          await (wallet as WowneroWallet).init(isRestore: true);
+          break;
+
+        default:
+          await wallet.init();
+      }
 
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
-        restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;
+        if (wallet is EpiccashWallet || wallet is LibMoneroWallet) {
+          restoreHeight = 0;
+        } else {
+          restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;
+        }
       }
 
-      Future<void>? restoringFuture;
-
-      if (!(wallet is CwBasedInterface || wallet is EpiccashWallet)) {
-        if (wallet is BitcoinFrostWallet) {
-          restoringFuture = wallet.recover(
-            isRescan: false,
-            multisigConfig: multisigConfig!,
-            serializedKeys: serializedKeys!,
-          );
-        } else {
-          restoringFuture = wallet.recover(isRescan: false);
-        }
+      final Future<void>? restoringFuture;
+      if (wallet is BitcoinFrostWallet) {
+        restoringFuture = wallet.recover(
+          isRescan: false,
+          multisigConfig: multisigConfig!,
+          serializedKeys: serializedKeys!,
+        );
+      } else {
+        restoringFuture = wallet.recover(isRescan: false);
       }
 
       uiState?.update(
@@ -692,7 +725,7 @@ abstract class SWB {
     StackRestoringUIState? uiState,
     SecureStorageInterface secureStorageInterface,
   ) async {
-    if (!Platform.isLinux) await Wakelock.enable();
+    if (!Platform.isLinux) await WakelockPlus.enable();
 
     Logging.instance.log(
       "SWB creating temp backup",
@@ -906,7 +939,7 @@ abstract class SWB {
       await status;
     }
 
-    if (!Platform.isLinux) await Wakelock.disable();
+    if (!Platform.isLinux) await WakelockPlus.disable();
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(
       preRestoreState,
@@ -1249,6 +1282,8 @@ abstract class SWB {
             loginName: node['loginName'] as String?,
             isFailover: node['isFailover'] as bool,
             isDown: node['isDown'] as bool,
+            torEnabled: node['torEnabled'] as bool? ?? true,
+            clearnetEnabled: node['plainEnabled'] as bool? ?? true,
           ),
           node["password"] as String?,
           true,

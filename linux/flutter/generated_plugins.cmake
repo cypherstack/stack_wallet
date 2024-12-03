@@ -3,10 +3,10 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  cs_monero_flutter_libs_linux
   desktop_drop
   devicelocale
   flutter_libepiccash
-  flutter_libmonero
   flutter_secure_storage_linux
   isar_flutter_libs
   sqlite3_flutter_libs
@@ -16,6 +16,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  camera_linux
   coinlib_flutter
   flutter_libsparkmobile
   frostdart

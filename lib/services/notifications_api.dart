@@ -8,13 +8,16 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../models/notification_model.dart';
 import '../utilities/prefs.dart';
 import 'notifications_service.dart';
 
-class NotificationApi {
+abstract final class NotificationApi {
+  static Completer<void>? _initCalledCompleter;
   static final _notifications = FlutterLocalNotificationsPlugin();
   // static final onNotifications = BehaviorSubject<String?>();
 
@@ -33,6 +36,16 @@ class NotificationApi {
   }
 
   static Future<void> init({bool initScheduled = false}) async {
+    if (_initCalledCompleter == null) {
+      _initCalledCompleter = Completer<void>();
+    } else {
+      if (_initCalledCompleter!.isCompleted) {
+        return;
+      } else {
+        return await _initCalledCompleter!.future;
+      }
+    }
+
     const android = AndroidInitializationSettings('app_icon_alpha');
     const iOS = DarwinInitializationSettings();
     const linux = LinuxInitializationSettings(
@@ -54,12 +67,18 @@ class NotificationApi {
       //   onNotifications.add(payload.payload);
       // },
     );
+    _initCalledCompleter!.complete();
   }
 
-  static Future<void> clearNotifications() async => _notifications.cancelAll();
+  static Future<void> clearNotifications() async {
+    await init();
+    await _notifications.cancelAll();
+  }
 
-  static Future<void> clearNotification(int id) async =>
-      _notifications.cancel(id);
+  static Future<void> clearNotification(int id) async {
+    await init();
+    await _notifications.cancel(id);
+  }
 
   //===================================
   static late Prefs prefs;
@@ -79,6 +98,7 @@ class NotificationApi {
     String? changeNowId,
     String? payload,
   }) async {
+    await init();
     await prefs.incrementCurrentNotificationIndex();
     final id = prefs.currentNotificationId;
 
