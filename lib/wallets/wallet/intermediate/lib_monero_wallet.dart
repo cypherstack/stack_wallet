@@ -164,6 +164,13 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   bool walletExists(String path);
 
+  String getTxKeyFor({required String txid}) {
+    if (libMoneroWallet == null) {
+      throw Exception("Cannot get tx key in uninitialized libMoneroWallet");
+    }
+    return libMoneroWallet!.getTxKey(txid);
+  }
+
   void _setListener() {
     if (libMoneroWallet != null && libMoneroWallet!.getListeners().isEmpty) {
       libMoneroWallet?.addListener(
