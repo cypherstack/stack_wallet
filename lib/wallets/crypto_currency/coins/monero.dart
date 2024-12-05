@@ -49,6 +49,9 @@ class Monero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
+    if (address.contains("111")) {
+      return false;
+    }
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return xmr_wallet_ffi.validateAddress(address, 0);

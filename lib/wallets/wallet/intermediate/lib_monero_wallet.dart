@@ -272,6 +272,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       addressIndex: index,
     );
 
+    if (address.value.contains("111")) {
+      throw Exception("111 address found!");
+    }
+
     final newReceivingAddress = Address(
       walletId: walletId,
       derivationIndex: index,
