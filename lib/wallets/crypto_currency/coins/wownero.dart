@@ -82,7 +82,7 @@ class Wownero extends CryptonoteCurrency {
   }
 
   @override
-  int get defaultSeedPhraseLength => 14;
+  int get defaultSeedPhraseLength => 16; //14;
 
   @override
   int get fractionDigits => 11;
@@ -94,7 +94,7 @@ class Wownero extends CryptonoteCurrency {
   bool get hasMnemonicPassphraseSupport => false;
 
   @override
-  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 16, 25];
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 25];
 
   @override
   BigInt get satsPerCoin => BigInt.from(100000000000);

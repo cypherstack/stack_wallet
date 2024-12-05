@@ -48,6 +48,7 @@ import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -368,6 +369,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           }
 
           await wallet.recover(isRescan: false);
+
+          if (wallet is LibMoneroWallet) {
+            await wallet.exit();
+          }
 
           // check if state is still active before continuing
           if (mounted) {

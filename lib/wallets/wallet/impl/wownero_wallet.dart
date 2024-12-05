@@ -115,10 +115,6 @@ class WowneroWallet extends LibMoneroWallet {
   }) async {
     final lib_monero.WowneroSeedType type;
     switch (wordCount) {
-      case 14:
-        type = lib_monero.WowneroSeedType.fourteen;
-        break;
-
       case 16:
         type = lib_monero.WowneroSeedType.sixteen;
         break;
@@ -171,7 +167,7 @@ class WowneroWallet extends LibMoneroWallet {
 
   @override
   void invalidSeedLengthCheck(int length) {
-    if (!(length == 14 || length == 16 || length == 25)) {
+    if (!(length == 16 || length == 25)) {
       throw Exception("Invalid wownero mnemonic length found: $length");
     }
   }
