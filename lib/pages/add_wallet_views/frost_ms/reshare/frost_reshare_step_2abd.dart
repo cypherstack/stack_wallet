@@ -208,7 +208,7 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
             label: "Continue",
             enabled: _userVerifyContinue &&
                 (amOutgoingParticipant ||
-                    !fieldIsEmptyFlags.reduce((v, e) => v |= e)),
+                    !fieldIsEmptyFlags.fold(false, (v, e) => v || e)),
             onPressed: _onPressed,
           ),
         ],
