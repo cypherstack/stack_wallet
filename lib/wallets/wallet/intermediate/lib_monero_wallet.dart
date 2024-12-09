@@ -453,6 +453,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           );
         } catch (e, s) {
           Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
+          rethrow;
         }
         await updateNode();
         _setListener();
