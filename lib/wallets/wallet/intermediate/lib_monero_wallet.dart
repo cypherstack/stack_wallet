@@ -484,7 +484,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<void> updateNode() async {
     final node = getCurrentNode();
 
-    final host = Uri.parse(node.host).host;
+    final host =
+        node.host.endsWith(".onion") ? node.host : Uri.parse(node.host).host;
     ({InternetAddress host, int port})? proxy;
     if (prefs.useTor) {
       if (node.clearnetEnabled && !node.torEnabled) {
