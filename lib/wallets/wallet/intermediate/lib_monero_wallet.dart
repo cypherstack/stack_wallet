@@ -767,8 +767,16 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   void onBalancesChanged({
     required BigInt newBalance,
     required BigInt newUnlockedBalance,
-  }) {
-    // do something?
+  }) async {
+    try {
+      await updateBalance();
+      await updateTransactions();
+    } catch (e, s) {
+      Logging.instance.log(
+        "onBalancesChanged(): $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
   }
 
   void onNewBlock(int nodeHeight) {
