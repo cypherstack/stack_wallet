@@ -238,7 +238,7 @@ class _FrostReshareStep4State extends ConsumerState<FrostReshareStep4> {
             label: amOutgoingParticipant ? "Done" : "Complete",
             enabled: (amNewParticipant || _userVerifyContinue) &&
                 (amOutgoingParticipant ||
-                    !fieldIsEmptyFlags.reduce((v, e) => v |= e)),
+                    !fieldIsEmptyFlags.fold(false, (v, e) => v || e)),
             onPressed: _onPressed,
           ),
         ],
