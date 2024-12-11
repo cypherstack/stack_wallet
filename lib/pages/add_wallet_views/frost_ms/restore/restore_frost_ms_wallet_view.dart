@@ -228,26 +228,24 @@ class _RestoreFrostMsWalletViewState
         });
       } else {
         // Platform.isLinux, Platform.isWindows, or Platform.isMacOS.
-        await showDialog(
+        final qrResult = await showDialog<String>(
           context: context,
-          builder: (context) {
-            return QrCodeScannerDialog(
-              onQrCodeDetected: (qrCodeData) {
-                try {
-                  // TODO [prio=low]: Validate QR code data.
-                  configFieldController.text = qrCodeData;
-
-                  setState(() {
-                    _configEmpty = configFieldController.text.isEmpty;
-                  });
-                } catch (e, s) {
-                  Logging.instance.log("Error processing QR code data: $e\n$s",
-                      level: LogLevel.Error);
-                }
-              },
-            );
-          },
+          builder: (context) => const QrCodeScannerDialog(),
         );
+
+        if (qrResult == null) {
+          Logging.instance.log(
+            "Qr scanning cancelled",
+            level: LogLevel.Info,
+          );
+        } else {
+          // TODO [prio=low]: Validate QR code data.
+          configFieldController.text = qrResult;
+
+          setState(() {
+            _configEmpty = configFieldController.text.isEmpty;
+          });
+        }
       }
     } on PlatformException catch (e, s) {
       Logging.instance.log(

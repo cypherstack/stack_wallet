@@ -337,42 +337,53 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     }
   }
 
+  bool _scanLock = false;
+
   void _scanQr() async {
-    if (Util.isDesktop) {
-      try {
-        await showDialog<void>(
-          context: context,
-          builder: (context) {
-            return QrCodeScannerDialog(
-              onQrCodeDetected: (qrCodeData) {
-                try {
-                  _processQrData(qrCodeData);
-                } catch (e, s) {
-                  Logging.instance.log(
-                    "Error processing QR code data: $e\n$s",
-                    level: LogLevel.Error,
-                  );
-                }
-              },
+    if (_scanLock) return;
+    _scanLock = true;
+    try {
+      if (Util.isDesktop) {
+        try {
+          final qrResult = await showDialog<String>(
+            context: context,
+            builder: (context) => const QrCodeScannerDialog(),
+          );
+
+          if (qrResult == null) {
+            Logging.instance.log(
+              "Qr scanning cancelled",
+              level: LogLevel.Info,
             );
-          },
-        );
-      } catch (e, s) {
-        Logging.instance.log(
-          "Error opening QR code scanner dialog: $e\n$s",
-          level: LogLevel.Error,
-        );
+          } else {
+            try {
+              await _processQrData(qrResult);
+            } catch (e, s) {
+              Logging.instance.log(
+                "Error processing QR code data: $e\n$s",
+                level: LogLevel.Error,
+              );
+            }
+          }
+        } catch (e, s) {
+          Logging.instance.log(
+            "Error opening QR code scanner dialog: $e\n$s",
+            level: LogLevel.Error,
+          );
+        }
+      } else {
+        try {
+          final result = await BarcodeScanner.scan();
+          await _processQrData(result.rawContent);
+        } catch (e, s) {
+          Logging.instance.log(
+            "$e\n$s",
+            level: LogLevel.Warning,
+          );
+        }
       }
-    } else {
-      try {
-        final result = await BarcodeScanner.scan();
-        await _processQrData(result.rawContent);
-      } catch (e, s) {
-        Logging.instance.log(
-          "$e\n$s",
-          level: LogLevel.Warning,
-        );
-      }
+    } finally {
+      _scanLock = false;
     }
   }
 

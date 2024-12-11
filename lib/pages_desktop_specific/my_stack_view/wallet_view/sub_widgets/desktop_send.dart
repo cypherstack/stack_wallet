@@ -145,23 +145,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   Future<void> scanWebcam() async {
     try {
-      await showDialog<void>(
+      final qrResult = await showDialog<String>(
         context: context,
-        builder: (context) {
-          return QrCodeScannerDialog(
-            onQrCodeDetected: (qrCodeData) {
-              try {
-                _processQrCodeData(qrCodeData);
-              } catch (e, s) {
-                Logging.instance.log(
-                  "Error processing QR code data: $e\n$s",
-                  level: LogLevel.Error,
-                );
-              }
-            },
-          );
-        },
+        builder: (context) => const QrCodeScannerDialog(),
       );
+      if (qrResult == null) {
+        Logging.instance.log(
+          "Qr scanning cancelled",
+          level: LogLevel.Info,
+        );
+      } else {
+        try {
+          _processQrCodeData(qrResult);
+        } catch (e, s) {
+          Logging.instance.log(
+            "Error processing QR code data: $e\n$s",
+            level: LogLevel.Error,
+          );
+        }
+      }
     } catch (e, s) {
       Logging.instance.log(
         "Error opening QR code scanner dialog: $e\n$s",
