@@ -23,14 +23,15 @@ import 'primary_button.dart';
 import 'secondary_button.dart';
 
 class QrCodeScannerDialog extends StatefulWidget {
-  final Function(String) onQrCodeDetected;
+  final void Function(String) onQrCodeDetected;
 
-  QrCodeScannerDialog({
+  const QrCodeScannerDialog({
+    super.key,
     required this.onQrCodeDetected,
   });
 
   @override
-  _QrCodeScannerDialogState createState() => _QrCodeScannerDialogState();
+  State<QrCodeScannerDialog> createState() => _QrCodeScannerDialogState();
 }
 
 class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
@@ -66,16 +67,16 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       });
 
       if (Platform.isLinux && _cameraLinuxPlugin != null) {
-        await _cameraLinuxPlugin!.initializeCamera();
+        await _cameraLinuxPlugin.initializeCamera();
         Logging.instance.log("Linux Camera initialized", level: LogLevel.Info);
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         final List<CameraDescription> cameras =
-            await _cameraWindowsPlugin!.availableCameras();
+            await _cameraWindowsPlugin.availableCameras();
         if (cameras.isEmpty) {
           throw CameraException('No cameras available', 'No cameras found.');
         }
         final CameraDescription camera = cameras[0]; // Could be user-selected.
-        _cameraId = await _cameraWindowsPlugin!.createCameraWithSettings(
+        _cameraId = await _cameraWindowsPlugin.createCameraWithSettings(
           camera,
           const MediaSettings(
             resolutionPreset: ResolutionPreset.low,
@@ -84,11 +85,13 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             enableAudio: false,
           ),
         );
-        await _cameraWindowsPlugin!.initializeCamera(_cameraId);
+        await _cameraWindowsPlugin.initializeCamera(_cameraId);
         // await _cameraWindowsPlugin!.onCameraInitialized(_cameraId).first;
         // TODO [prio=low]: Make this work. ^^^
-        Logging.instance.log("Windows Camera initialized with ID: $_cameraId",
-            level: LogLevel.Info);
+        Logging.instance.log(
+          "Windows Camera initialized with ID: $_cameraId",
+          level: LogLevel.Info,
+        );
       } else if (Platform.isMacOS) {
         final List<CameraMacOSDevice> videoDevices = await CameraMacOS.instance
             .listDevices(deviceType: CameraMacOSDeviceType.video);
@@ -104,8 +107,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         });
 
         Logging.instance.log(
-            "macOS Camera initialized with ID: $_macOSDeviceId",
-            level: LogLevel.Info);
+          "macOS Camera initialized with ID: $_macOSDeviceId",
+          level: LogLevel.Info,
+        );
       }
       if (mounted) {
         setState(() {
@@ -129,13 +133,15 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   Future<void> _stopCamera() async {
     try {
       if (Platform.isLinux && _cameraLinuxPlugin != null) {
-        _cameraLinuxPlugin!.stopCamera();
+        _cameraLinuxPlugin.stopCamera();
         Logging.instance.log("Linux Camera stopped", level: LogLevel.Info);
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         // if (_cameraId >= 0) {
-        await _cameraWindowsPlugin!.dispose(_cameraId);
-        Logging.instance.log("Windows Camera stopped with ID: $_cameraId",
-            level: LogLevel.Info);
+        await _cameraWindowsPlugin.dispose(_cameraId);
+        Logging.instance.log(
+          "Windows Camera stopped with ID: $_cameraId",
+          level: LogLevel.Info,
+        );
         // } else {
         //   Logging.instance.log("Windows Camera ID is null. Cannot dispose.",
         //       level: LogLevel.Error);
@@ -143,8 +149,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       } else if (Platform.isMacOS) {
         // if (_macOSDeviceId != null) {
         await CameraMacOS.instance.stopImageStream();
-        Logging.instance.log("macOS Camera stopped with ID: $_macOSDeviceId",
-            level: LogLevel.Info);
+        Logging.instance.log(
+          "macOS Camera stopped with ID: $_macOSDeviceId",
+          level: LogLevel.Info,
+        );
         // } else {
         //   Logging.instance.log("macOS Camera ID is null. Cannot stop.",
         //       level: LogLevel.Error);
@@ -168,7 +176,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       try {
         String? base64Image;
         if (Platform.isLinux && _cameraLinuxPlugin != null) {
-          base64Image = await _cameraLinuxPlugin!.captureImage();
+          base64Image = await _cameraLinuxPlugin.captureImage();
         } else if (Platform.isWindows) {
           final XFile xfile =
               await _cameraWindowsPlugin!.takePicture(_cameraId);
@@ -180,14 +188,14 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           if (macOSimg == null) {
             Logging.instance
                 .log("Failed to capture image", level: LogLevel.Error);
-            await Future.delayed(Duration(milliseconds: _imageDelayInMs));
+            await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
             continue;
           }
           final img.Image? image = img.decodeImage(macOSimg.bytes!);
           if (image == null) {
             Logging.instance
                 .log("Failed to capture image", level: LogLevel.Error);
-            await Future.delayed(Duration(milliseconds: _imageDelayInMs));
+            await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
             continue;
           }
           base64Image = base64Encode(img.encodePng(image));
@@ -196,7 +204,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           // Logging.instance
           //     .log("Failed to capture image", level: LogLevel.Error);
           // Spammy.
-          await Future.delayed(Duration(milliseconds: _imageDelayInMs));
+          await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
           continue;
         }
         final img.Image? image = img.decodeImage(base64Decode(base64Image));
@@ -205,7 +213,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // > decoders, it is much slower than using an explicit decoder
         if (image == null) {
           Logging.instance.log("Failed to decode image", level: LogLevel.Error);
-          await Future.delayed(Duration(milliseconds: _imageDelayInMs));
+          await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
           continue;
         }
 
@@ -233,8 +241,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           // Spammy.
         }
 
-        await Future.delayed(Duration(milliseconds: _imageDelayInMs));
-      } catch (e, s) {
+        await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
+      } catch (e) {
         // Logging.instance.log("Failed to capture and scan image: $e\n$s", level: LogLevel.Error);
         // Spammy.
 
@@ -266,7 +274,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         return null;
       }
       return qrDecode.text;
-    } catch (e, s) {
+    } catch (e) {
       // Logging.instance.log("Failed to decode QR code: $e\n$s", level: LogLevel.Error);
       // Spammy.
       return null;
@@ -322,61 +330,70 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                       allowedExtensions: ["png", "jpg", "jpeg"],
                     );
 
-                    if (result == null || result.files.single.path == null) {
-                      await showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "No file selected",
-                        iconAsset: Assets.svg.file,
-                        context: context,
-                      );
-                      return;
-                    }
-
-                    final filePath = result?.files.single.path!;
-                    if (filePath == null) {
-                      await showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "Error selecting file.",
-                        iconAsset: Assets.svg.file,
-                        context: context,
-                      );
-                      return;
-                    }
-                    try {
-                      final img.Image? image =
-                          img.decodeImage(File(filePath!).readAsBytesSync());
-                      if (image == null) {
+                    if (context.mounted) {
+                      if (result == null || result.files.single.path == null) {
                         await showFloatingFlushBar(
                           type: FlushBarType.info,
-                          message: "Failed to decode image.",
+                          message: "No file selected",
                           iconAsset: Assets.svg.file,
                           context: context,
                         );
                         return;
                       }
 
-                      final String? scanResult = await _scanImage(image);
-                      if (scanResult != null && scanResult.isNotEmpty) {
-                        widget.onQrCodeDetected(scanResult);
-                        Navigator.of(context).pop();
-                      } else {
+                      final filePath = result.files.single.path;
+                      if (filePath == null) {
                         await showFloatingFlushBar(
                           type: FlushBarType.info,
-                          message: "No QR code found in the image.",
+                          message: "Error selecting file.",
                           iconAsset: Assets.svg.file,
                           context: context,
                         );
+                        return;
                       }
-                    } catch (e, s) {
-                      Logging.instance.log("Failed to decode image: $e\n$s",
-                          level: LogLevel.Error);
-                      await showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message:
-                            "Error processing the image. Please try again.",
-                        iconAsset: Assets.svg.file,
-                        context: context,
-                      );
+
+                      try {
+                        final img.Image? image =
+                            img.decodeImage(File(filePath).readAsBytesSync());
+                        if (image == null) {
+                          await showFloatingFlushBar(
+                            type: FlushBarType.info,
+                            message: "Failed to decode image.",
+                            iconAsset: Assets.svg.file,
+                            context: context,
+                          );
+                          return;
+                        }
+
+                        final String? scanResult = await _scanImage(image);
+                        if (context.mounted) {
+                          if (scanResult != null && scanResult.isNotEmpty) {
+                            widget.onQrCodeDetected(scanResult);
+                            Navigator.of(context).pop();
+                          } else {
+                            await showFloatingFlushBar(
+                              type: FlushBarType.info,
+                              message: "No QR code found in the image.",
+                              iconAsset: Assets.svg.file,
+                              context: context,
+                            );
+                          }
+                        }
+                      } catch (e, s) {
+                        Logging.instance.log(
+                          "Failed to decode image: $e\n$s",
+                          level: LogLevel.Error,
+                        );
+                        if (context.mounted) {
+                          await showFloatingFlushBar(
+                            type: FlushBarType.info,
+                            message:
+                                "Error processing the image. Please try again.",
+                            iconAsset: Assets.svg.file,
+                            context: context,
+                          );
+                        }
+                      }
                     }
                   },
                 ),
