@@ -123,7 +123,10 @@ dependencies:
   barcode_scan2: ^4.3.3
   wakelock_plus: ^1.2.8
   intl: ^0.17.0
-  devicelocale: ^0.7.1
+  devicelocale:
+    git:
+      url: https://github.com/cypherstack/flutter-devicelocale
+      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
   device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
