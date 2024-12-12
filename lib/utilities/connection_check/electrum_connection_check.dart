@@ -61,7 +61,8 @@ Future<bool> checkElectrumServer({
         .timeout(Duration(seconds: (proxyInfo == null ? 5 : 30)));
 
     return true;
-  } catch (_) {
+  } catch (e, s) {
+    Logging.instance.log("$e\n$s", level: LogLevel.Debug);
     return false;
   }
 }
