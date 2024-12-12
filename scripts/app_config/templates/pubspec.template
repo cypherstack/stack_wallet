@@ -231,6 +231,8 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+  # required to make devicelocale work
+  web: ^0.5.0
 
   # needed for dart 3.5+ (at least for now)
   win32: ^5.5.4
