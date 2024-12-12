@@ -184,7 +184,11 @@ dependencies:
   calendar_date_picker2: ^1.0.2
   sqlite3: 2.4.3
   sqlite3_flutter_libs: 0.5.22
-  camera_linux: ^0.0.8
+#  camera_linux: ^0.0.8
+  camera_linux:
+    git:
+      url: https://github.com/cypherstack/camera-linux
+      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
   zxing2: ^0.2.3
   camera_windows:
     git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.

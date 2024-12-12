@@ -254,10 +254,11 @@ packages:
   camera_linux:
     dependency: "direct main"
     description:
-      name: camera_linux
-      sha256: "6ea08c23f643364e650e8fad73653747c049cbd00803a7c317132379ee3653ac"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      resolved-ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      url: "https://github.com/cypherstack/camera-linux"
+    source: git
     version: "0.0.8"
   camera_macos:
     dependency: "direct main"
