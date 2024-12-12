@@ -298,14 +298,24 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     if (base == null || (oldInfo != null && oldInfo.name != walletId)) {
       return null;
     }
-
-    return CWKeyData(
-      walletId: walletId,
-      publicViewKey: base.getPublicViewKey(),
-      privateViewKey: base.getPrivateViewKey(),
-      publicSpendKey: base.getPublicSpendKey(),
-      privateSpendKey: base.getPrivateSpendKey(),
-    );
+    try {
+      return CWKeyData(
+        walletId: walletId,
+        publicViewKey: base.getPublicViewKey(),
+        privateViewKey: base.getPrivateViewKey(),
+        publicSpendKey: base.getPublicSpendKey(),
+        privateSpendKey: base.getPrivateSpendKey(),
+      );
+    } catch (e, s) {
+      Logging.instance.log("getKeys failed: $e\n$s", level: LogLevel.Fatal);
+      return CWKeyData(
+        walletId: walletId,
+        publicViewKey: "ERROR",
+        privateViewKey: "ERROR",
+        publicSpendKey: "ERROR",
+        privateSpendKey: "ERROR",
+      );
+    }
   }
 
   Future<(String, String)>
