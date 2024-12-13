@@ -254,10 +254,11 @@ packages:
   camera_linux:
     dependency: "direct main"
     description:
-      name: camera_linux
-      sha256: "6ea08c23f643364e650e8fad73653747c049cbd00803a7c317132379ee3653ac"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      resolved-ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      url: "https://github.com/cypherstack/camera-linux"
+    source: git
     version: "0.0.8"
   camera_macos:
     dependency: "direct main"
@@ -626,11 +627,12 @@ packages:
   devicelocale:
     dependency: "direct main"
     description:
-      name: devicelocale
-      sha256: "0812b66f9eac57bc55c6ed4c178e0779440aa4e4e7c7e32fe1db02a758501d0e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.1"
+      path: "."
+      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
+      resolved-ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
+      url: "https://github.com/cypherstack/flutter-devicelocale"
+    source: git
+    version: "0.8.1"
   dio:
     dependency: transitive
     description:
@@ -683,8 +685,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6bf385b2e1e18c8aa23783cb8afeabace299cf68"
-      resolved-ref: "6bf385b2e1e18c8aa23783cb8afeabace299cf68"
+      ref: f0b1300140d45c13e7722f8f8d20308efeba8449
+      resolved-ref: f0b1300140d45c13e7722f8f8d20308efeba8449
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
     version: "3.0.0"
@@ -1979,8 +1981,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "534ec251b339199446b723c01a25d324ae7bb974"
-      resolved-ref: "534ec251b339199446b723c01a25d324ae7bb974"
+      ref: "752f054b65c500adb9cad578bf183a978e012502"
+      resolved-ref: "752f054b65c500adb9cad578bf183a978e012502"
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"
@@ -2186,7 +2188,7 @@ packages:
     source: hosted
     version: "1.1.0"
   web:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: web
       sha256: "97da13628db363c635202ad97068d47c5b8aa555808e7a9411963c533b449b27"

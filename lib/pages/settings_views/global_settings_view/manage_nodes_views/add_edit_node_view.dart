@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +27,8 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/node_uri_util.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
@@ -38,7 +41,9 @@ import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
@@ -72,6 +77,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late final CryptoCurrency coin;
   late final String? nodeId;
   late final bool isDesktop;
+
+  (NodeModel, String)? _scannedResult;
 
   late bool saveEnabled;
   late bool testConnectionEnabled;
@@ -330,6 +337,88 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     }
   }
 
+  bool _scanLock = false;
+
+  void _scanQr() async {
+    if (_scanLock) return;
+    _scanLock = true;
+    try {
+      if (Util.isDesktop) {
+        try {
+          final qrResult = await showDialog<String>(
+            context: context,
+            builder: (context) => const QrCodeScannerDialog(),
+          );
+
+          if (qrResult == null) {
+            Logging.instance.log(
+              "Qr scanning cancelled",
+              level: LogLevel.Info,
+            );
+          } else {
+            try {
+              await _processQrData(qrResult);
+            } catch (e, s) {
+              Logging.instance.log(
+                "Error processing QR code data: $e\n$s",
+                level: LogLevel.Error,
+              );
+            }
+          }
+        } catch (e, s) {
+          Logging.instance.log(
+            "Error opening QR code scanner dialog: $e\n$s",
+            level: LogLevel.Error,
+          );
+        }
+      } else {
+        try {
+          final result = await BarcodeScanner.scan();
+          await _processQrData(result.rawContent);
+        } catch (e, s) {
+          Logging.instance.log(
+            "$e\n$s",
+            level: LogLevel.Warning,
+          );
+        }
+      }
+    } finally {
+      _scanLock = false;
+    }
+  }
+
+  Future<void> _processQrData(String data) async {
+    try {
+      final nodeQrData = NodeQrUtil.decodeUri(data);
+      if (mounted) {
+        setState(() {
+          _scannedResult = (
+            NodeModel(
+              host: nodeQrData.host,
+              port: nodeQrData.port,
+              name: nodeQrData.label ?? "",
+              id: const Uuid().v1(),
+              useSSL: nodeQrData.scheme == "https",
+              enabled: true,
+              coinName: coin.identifier,
+              isFailover: true,
+              isDown: false,
+              torEnabled: true,
+              clearnetEnabled: !nodeQrData.host.endsWith(".onion"),
+              loginName: (nodeQrData as LibMoneroNodeQrData?)?.user,
+            ),
+            (nodeQrData as LibMoneroNodeQrData?)?.password ?? ""
+          );
+        });
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "$e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
   @override
   void initState() {
     isDesktop = Util.isDesktop;
@@ -390,6 +479,35 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               style: STextStyles.navBarTitle(context),
             ),
             actions: [
+              if (viewType == AddEditNodeViewType.add &&
+                  coin
+                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("qrNodeAppBarButtonKey"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: QrCodeIcon(
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
+                      onPressed: _scanQr,
+                    ),
+                  ),
+                ),
               if (viewType == AddEditNodeViewType.edit &&
                   ref
                           .watch(
@@ -473,19 +591,47 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(
+                height: 8,
+              ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(
-                    width: 8,
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      const AppBarBackButton(
+                        iconSize: 24,
+                        size: 40,
+                      ),
+                      Text(
+                        "Add new node",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ],
                   ),
-                  const AppBarBackButton(
-                    iconSize: 24,
-                    size: 40,
-                  ),
-                  Text(
-                    "Add new node",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  if (coin
+                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
+                    Padding(
+                      padding: const EdgeInsets.only(right: 32),
+                      child: AppBarIconButton(
+                        size: 40,
+                        color: isDesktop
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .background,
+                        icon: const QrCodeIcon(
+                          width: 21,
+                          height: 21,
+                        ),
+                        onPressed: _scanQr,
+                      ),
+                    ),
                 ],
               ),
               Padding(
@@ -504,7 +650,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             NodeForm(
-              node: node,
+              key: Key((node ?? _scannedResult?.$1)?.id ?? "none"),
+              node: node ?? _scannedResult?.$1,
+              scannedPw: _scannedResult?.$2,
               secureStore: ref.read(secureStoreProvider),
               readOnly: false,
               coin: widget.coin,
@@ -629,6 +777,7 @@ class NodeForm extends ConsumerStatefulWidget {
   const NodeForm({
     super.key,
     this.node,
+    this.scannedPw,
     required this.secureStore,
     required this.readOnly,
     required this.coin,
@@ -636,6 +785,7 @@ class NodeForm extends ConsumerStatefulWidget {
   });
 
   final NodeModel? node;
+  final String? scannedPw;
   final SecureStorageInterface secureStore;
   final bool readOnly;
   final CryptoCurrency coin;
@@ -738,13 +888,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     if (widget.node != null) {
       final node = widget.node!;
       if (enableAuthFields) {
-        node.getPassword(widget.secureStore).then((value) {
-          if (value is String) {
-            _passwordController.text = value;
-          }
-        });
-
-        _usernameController.text = node.loginName ?? "";
+        if (widget.scannedPw == null) {
+          node.getPassword(widget.secureStore).then((value) {
+            if (value is String) {
+              _passwordController.text = value;
+            }
+          });
+        } else {
+          _passwordController.text = widget.scannedPw!;
+        }
       }
 
       _nameController.text = node.name;

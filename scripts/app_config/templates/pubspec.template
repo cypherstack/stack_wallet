@@ -63,7 +63,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 647cadc3c82c276dc07915b02d24538fd610f220
+      ref: 752f054b65c500adb9cad578bf183a978e012502
 
   fusiondart:
     git:
@@ -123,7 +123,10 @@ dependencies:
   barcode_scan2: ^4.3.3
   wakelock_plus: ^1.2.8
   intl: ^0.17.0
-  devicelocale: ^0.7.1
+  devicelocale:
+    git:
+      url: https://github.com/cypherstack/flutter-devicelocale
+      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
   device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
@@ -174,7 +177,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: 6bf385b2e1e18c8aa23783cb8afeabace299cf68
+      ref: f0b1300140d45c13e7722f8f8d20308efeba8449
   stream_channel: ^2.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
@@ -184,7 +187,11 @@ dependencies:
   calendar_date_picker2: ^1.0.2
   sqlite3: 2.4.3
   sqlite3_flutter_libs: 0.5.22
-  camera_linux: ^0.0.8
+#  camera_linux: ^0.0.8
+  camera_linux:
+    git:
+      url: https://github.com/cypherstack/camera-linux
+      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
   zxing2: ^0.2.3
   camera_windows:
     git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
@@ -224,6 +231,8 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+  # required to make devicelocale work
+  web: ^0.5.0
 
   # needed for dart 3.5+ (at least for now)
   win32: ^5.5.4
@@ -240,12 +249,6 @@ dependency_overrides:
       url: https://github.com/julian-CStack/coinlib.git
       ref: 0acacfd17eacf72135c693a7b862bd9b7cc56739
       path: coinlib_flutter
-
-  # adding here due to pure laziness
-  tor_ffi_plugin:
-    git:
-      url: https://github.com/cypherstack/tor.git
-      ref: 534ec251b339199446b723c01a25d324ae7bb974
 
   bip47:
     git:
