@@ -3,6 +3,7 @@ part of 'firo_cache.dart';
 enum FCFuncName {
   _updateSparkAnonSetCoinsWith,
   _updateSparkUsedTagsWith,
+  _updateSparkAnonSetMetaWith,
 }
 
 class FCTask {
@@ -29,6 +30,8 @@ class _FiroCacheWorker {
     final dir = await StackFileSystem.applicationFiroCacheSQLiteDirectory();
     final setCacheFilePath =
         "${dir.path}/${_FiroCache.sparkSetCacheFileName(network)}";
+    final setMetaCacheFilePath =
+        "${dir.path}/${_FiroCache.sparkSetMetaCacheFileName(network)}";
     final usedTagsCacheFilePath =
         "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName(network)}";
 
@@ -48,7 +51,12 @@ class _FiroCacheWorker {
     try {
       await Isolate.spawn(
         _startWorkerIsolate,
-        (initPort.sendPort, setCacheFilePath, usedTagsCacheFilePath),
+        (
+          initPort.sendPort,
+          setCacheFilePath,
+          setMetaCacheFilePath,
+          usedTagsCacheFilePath,
+        ),
       );
     } catch (_) {
       initPort.close();
@@ -79,6 +87,7 @@ class _FiroCacheWorker {
     ReceivePort receivePort,
     SendPort sendPort,
     Database setCacheDb,
+    Database setMetaCacheDb,
     Database usedTagsCacheDb,
     Mutex mutex,
   ) {
@@ -104,6 +113,13 @@ class _FiroCacheWorker {
                 task.data as List<List<dynamic>>,
               );
               break;
+
+            case FCFuncName._updateSparkAnonSetMetaWith:
+              result = _updateSparkAnonSetMetaWith(
+                setMetaCacheDb,
+                task.data as SparkAnonymitySetMeta,
+              );
+              break;
           }
 
           if (result.success) {
@@ -118,7 +134,7 @@ class _FiroCacheWorker {
     });
   }
 
-  static void _startWorkerIsolate((SendPort, String, String) args) {
+  static void _startWorkerIsolate((SendPort, String, String, String) args) {
     final receivePort = ReceivePort();
     args.$1.send(receivePort.sendPort);
     final mutex = Mutex();
@@ -126,14 +142,19 @@ class _FiroCacheWorker {
       args.$2,
       mode: OpenMode.readWrite,
     );
-    final usedTagsCacheDb = sqlite3.open(
+    final setMetaCacheDb = sqlite3.open(
       args.$3,
+      mode: OpenMode.readWrite,
+    );
+    final usedTagsCacheDb = sqlite3.open(
+      args.$4,
       mode: OpenMode.readWrite,
     );
     _handleCommandsToIsolate(
       receivePort,
       args.$1,
       setCacheDb,
+      setMetaCacheDb,
       usedTagsCacheDb,
       mutex,
     );

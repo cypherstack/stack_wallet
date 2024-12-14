@@ -725,6 +725,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
               i,
               electrumXClient,
               cryptoCurrency.network,
+              null,
             ),
           );
         }

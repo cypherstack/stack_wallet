@@ -57,6 +57,21 @@ abstract class _Reader {
   }
 
   // ===========================================================================
+  // =============== Spark anonymity set meta queries ==========================
+  static Future<ResultSet> _getSizeForGroupId(
+    int groupId, {
+    required Database db,
+  }) async {
+    final query = """
+      SELECT ss.size
+      FROM PreviousMetaFetchResult ss
+      WHERE ss.groupId = $groupId;
+    """;
+
+    return db.select("$query;");
+  }
+
+  // ===========================================================================
   // =============== Spark used coin tags queries ==============================
 
   static Future<ResultSet> _getSparkUsedCoinTags(

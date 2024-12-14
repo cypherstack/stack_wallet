@@ -795,7 +795,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<void> refreshSparkData() async {
+  Future<void> refreshSparkData(
+    void Function(int countFetched, int totalCount)? progressUpdated,
+  ) async {
     final start = DateTime.now();
     try {
       // start by checking if any previous sets are missing from db and add the
@@ -823,6 +825,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           e,
           electrumXClient,
           cryptoCurrency.network,
+          null,
         ),
       );
 
@@ -1086,7 +1089,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
 
     try {
-      await refreshSparkData();
+      await refreshSparkData(null);
     } catch (e, s) {
       Logging.instance.log(
         "$runtimeType $walletId ${info.name}: $e\n$s",

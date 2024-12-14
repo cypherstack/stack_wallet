@@ -670,7 +670,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
       if (this is SparkInterface && !viewOnly) {
         // this should be called before updateTransactions()
-        await (this as SparkInterface).refreshSparkData();
+        await (this as SparkInterface).refreshSparkData(null);
       }
       _checkAlive();
 

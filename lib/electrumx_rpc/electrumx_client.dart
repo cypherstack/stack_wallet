@@ -21,6 +21,7 @@ import 'package:mutex/mutex.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import '../exceptions/electrumx/no_such_transaction.dart';
+import '../models/electrumx_response/spark_models.dart';
 import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
@@ -33,13 +34,6 @@ import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'client_manager.dart';
-
-typedef SparkMempoolData = ({
-  String txid,
-  List<String> serialContext,
-  List<String> lTags,
-  List<String> coins,
-});
 
 class WifiOnlyException implements Exception {}
 
@@ -1037,29 +1031,30 @@ class ElectrumXClient {
   ///       "b476ed2b374bb081ea51d111f68f0136252521214e213d119b8dc67b92f5a390",
   ///   ]
   /// }
-  Future<List<Map<String, dynamic>>> getSparkMintMetaData({
-    String? requestID,
-    required List<String> sparkCoinHashes,
-  }) async {
-    try {
-      Logging.instance.log(
-        "attempting to fetch spark.getsparkmintmetadata...",
-        level: LogLevel.Info,
-      );
-      await checkElectrumAdapter();
-      final List<dynamic> response =
-          await (getElectrumAdapter() as FiroElectrumClient)
-              .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
-      Logging.instance.log(
-        "Fetching spark.getsparkmintmetadata finished",
-        level: LogLevel.Info,
-      );
-      return List<Map<String, dynamic>>.from(response);
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
-      rethrow;
-    }
-  }
+  /// NOT USED?
+  // Future<List<Map<String, dynamic>>> getSparkMintMetaData({
+  //   String? requestID,
+  //   required List<String> sparkCoinHashes,
+  // }) async {
+  //   try {
+  //     Logging.instance.log(
+  //       "attempting to fetch spark.getsparkmintmetadata...",
+  //       level: LogLevel.Info,
+  //     );
+  //     await checkElectrumAdapter();
+  //     final List<dynamic> response =
+  //         await (getElectrumAdapter() as FiroElectrumClient)
+  //             .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
+  //     Logging.instance.log(
+  //       "Fetching spark.getsparkmintmetadata finished",
+  //       level: LogLevel.Info,
+  //     );
+  //     return List<Map<String, dynamic>>.from(response);
+  //   } catch (e) {
+  //     Logging.instance.log(e, level: LogLevel.Error);
+  //     rethrow;
+  //   }
+  // }
 
   /// Returns the latest Spark set id
   ///
@@ -1135,7 +1130,7 @@ class ElectrumXClient {
       final List<SparkMempoolData> result = [];
       for (final entry in map.entries) {
         result.add(
-          (
+          SparkMempoolData(
             txid: entry.key,
             serialContext:
                 List<String>.from(entry.value["serial_context"] as List),
@@ -1191,6 +1186,94 @@ class ElectrumXClient {
       rethrow;
     }
   }
+  // ======== New Paginated Endpoints ==========================================
+
+  Future<SparkAnonymitySetMeta> getSparkAnonymitySetMeta({
+    String? requestID,
+    required int coinGroupId,
+  }) async {
+    try {
+      const command =
+          "spark.getsparkanonyumitysetmeta"; // TODO verify this will be correct
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: command,
+        args: [
+          "$coinGroupId",
+        ],
+      );
+
+      final map = Map<String, dynamic>.from(response as Map);
+
+      final result = SparkAnonymitySetMeta(
+        coinGroupId: coinGroupId,
+        blockHash: map["blockHash"] as String,
+        setHash: map["setHash"] as String,
+        size: map["size"] as int,
+      );
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getSparkAnonymitySetMeta("
+        "requestID=$requestID, "
+        "coinGroupId=$coinGroupId"
+        "). Set meta=$result, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Debug,
+      );
+
+      return result;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Future<List<dynamic>> getSparkAnonymitySetBySector({
+    String? requestID,
+    required int coinGroupId,
+    required String latestBlock,
+    required int startIndex, // inclusive
+    required int endIndex, // exclusive
+  }) async {
+    try {
+      const command =
+          "spark.getsparkanonyumitysetsector"; // TODO verify this will be correct
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: command,
+        args: [
+          "$coinGroupId",
+          latestBlock,
+          "$startIndex",
+          "$endIndex",
+        ],
+      );
+
+      final map = Map<String, dynamic>.from(response as Map);
+
+      final result = map["coins"] as List;
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getSparkAnonymitySetBySector("
+        "requestID=$requestID, "
+        "coinGroupId=$coinGroupId, "
+        "latestBlock=$latestBlock, "
+        "startIndex=$startIndex, "
+        "endIndex=$endIndex"
+        "). # of coins=${result.length}, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Debug,
+      );
+
+      return result;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
   // ===========================================================================
 
   Future<bool> isMasterNodeCollateral({
