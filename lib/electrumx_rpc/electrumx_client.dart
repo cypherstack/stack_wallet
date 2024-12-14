@@ -108,7 +108,7 @@ class ElectrumXClient {
   late Prefs _prefs;
   late TorService _torService;
 
-  List<ElectrumXNode>? failovers;
+  late final List<ElectrumXNode> _failovers;
   int currentFailoverIndex = -1;
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
@@ -145,6 +145,7 @@ class ElectrumXClient {
     _host = host;
     _port = port;
     _useSSL = useSSL;
+    _failovers = failovers;
 
     final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
 
@@ -284,9 +285,11 @@ class ElectrumXClient {
       usePort = port;
       useUseSSL = useSSL;
     } else {
-      useHost = failovers![currentFailoverIndex].address;
-      usePort = failovers![currentFailoverIndex].port;
-      useUseSSL = failovers![currentFailoverIndex].useSSL;
+      _electrumAdapterChannel = null;
+      await ClientManager.sharedInstance.remove(cryptoCurrency: cryptoCurrency);
+      useHost = _failovers[currentFailoverIndex].address;
+      usePort = _failovers[currentFailoverIndex].port;
+      useUseSSL = _failovers[currentFailoverIndex].useSSL;
     }
 
     _electrumAdapterChannel ??= await electrum_adapter.connect(
@@ -402,7 +405,7 @@ class ElectrumXClient {
         rethrow;
       }
     } catch (e) {
-      if (failovers != null && currentFailoverIndex < failovers!.length - 1) {
+      if (currentFailoverIndex < _failovers.length - 1) {
         currentFailoverIndex++;
         return request(
           command: command,
@@ -495,7 +498,7 @@ class ElectrumXClient {
         rethrow;
       }
     } catch (e) {
-      if (failovers != null && currentFailoverIndex < failovers!.length - 1) {
+      if (currentFailoverIndex < _failovers.length - 1) {
         currentFailoverIndex++;
         return batchRequest(
           command: command,

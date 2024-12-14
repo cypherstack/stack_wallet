@@ -32,6 +32,49 @@ class NodeService extends ChangeNotifier {
   });
 
   Future<void> updateDefaults() async {
+    // hack
+    if (AppConfig.coins.where((e) => e.identifier == "firo").isNotEmpty) {
+      final others = [
+        "electrumx01.firo.org",
+        "electrumx02.firo.org",
+        "electrumx03.firo.org",
+        "electrumx.firo.org",
+      ];
+      const port = 50002;
+      const idPrefix = "not_a_real_default_but_temp";
+
+      for (final host in others) {
+        final _id = "${idPrefix}_$host";
+
+        NodeModel? node = DB.instance.get<NodeModel>(
+          boxName: DB.boxNameNodeModels,
+          key: _id,
+        );
+
+        if (node == null) {
+          node = NodeModel(
+            host: host,
+            port: port,
+            name: host,
+            id: _id,
+            useSSL: true,
+            enabled: true,
+            coinName: "firo",
+            isFailover: true,
+            isDown: false,
+            torEnabled: true,
+            clearnetEnabled: true,
+          );
+
+          await DB.instance.put<NodeModel>(
+            boxName: DB.boxNameNodeModels,
+            key: _id,
+            value: node,
+          );
+        }
+      }
+    }
+
     for (final defaultNode in AppConfig.coins.map(
       (e) => e.defaultNode,
     )) {

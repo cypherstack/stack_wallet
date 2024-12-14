@@ -569,16 +569,19 @@ abstract class Wallet<T extends CryptoCurrency> {
     final start = DateTime.now();
 
     bool tAlive = true;
-    final t = Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (tAlive) {
-        final pingSuccess = await pingCheck();
-        if (!pingSuccess) {
-          tAlive = false;
+    Timer? t;
+    if (this is! SparkInterface) {
+      t = Timer.periodic(const Duration(seconds: 1), (timer) async {
+        if (tAlive) {
+          final pingSuccess = await pingCheck();
+          if (!pingSuccess) {
+            tAlive = false;
+          }
+        } else {
+          timer.cancel();
         }
-      } else {
-        timer.cancel();
-      }
-    });
+      });
+    }
 
     void _checkAlive() {
       if (!tAlive) throw Exception("refresh alive ping failure");
@@ -717,13 +720,15 @@ abstract class Wallet<T extends CryptoCurrency> {
       _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
 
-      tAlive = false; // interrupt timer as its not needed anymore
+      if (this is! SparkInterface) {
+        tAlive = false; // interrupt timer as its not needed anymore
+      }
 
       completer.complete();
     } catch (error, strace) {
       completer.completeError(error, strace);
     } finally {
-      t.cancel();
+      t?.cancel();
       refreshMutex.release();
       if (!completer.isCompleted) {
         completer.completeError(
