@@ -49,6 +49,31 @@ FCResult _updateSparkUsedTagsWith(
 }
 
 // ===========================================================================
+// ================== write to spark anon set Meta cache ==========================
+FCResult _updateSparkAnonSetMetaWith(
+  Database db,
+  SparkAnonymitySetMeta meta,
+) {
+  db.execute("BEGIN;");
+  try {
+    db.execute(
+      """
+        INSERT OR REPLACE INTO PreviousMetaFetchResult (coinGroupId, blockHash, setHash, size)
+        VALUES (?, ?, ?, ?);
+      """,
+      [meta.coinGroupId, meta.blockHash, meta.setHash, meta.size],
+    );
+
+    db.execute("COMMIT;");
+
+    return FCResult(success: true);
+  } catch (e) {
+    db.execute("ROLLBACK;");
+    return FCResult(success: false, error: e);
+  }
+}
+
+// ===========================================================================
 // ================== write to spark anon set cache ==========================
 
 /// update the sqlite cache
