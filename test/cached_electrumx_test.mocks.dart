@@ -91,15 +91,6 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
       ) as _i2.CryptoCurrency);
 
   @override
-  set failovers(List<_i5.ElectrumXNode>? _failovers) => super.noSuchMethod(
-        Invocation.setter(
-          #failovers,
-          _failovers,
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
   int get currentFailoverIndex => (super.noSuchMethod(
         Invocation.getter(#currentFailoverIndex),
         returnValue: 0,
