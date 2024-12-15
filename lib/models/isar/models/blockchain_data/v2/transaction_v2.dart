@@ -323,6 +323,40 @@ class TransactionV2 {
       }
     }
 
+    if (isMimblewimblecoinTransaction) {
+      if (slateId == null) {
+        return "Restored Funds";
+      }
+
+      if (isCancelled) {
+        return "Cancelled";
+      } else if (type == TransactionType.incoming) {
+        if (isConfirmed(currentChainHeight, minConfirms)) {
+          return "Received";
+        } else {
+          if (numberOfMessages == 1) {
+            return "Receiving (waiting for sender)";
+          } else if ((numberOfMessages ?? 0) > 1) {
+            return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
+          } else {
+            return "Receiving ${prettyConfirms()}";
+          }
+        }
+      } else if (type == TransactionType.outgoing) {
+        if (isConfirmed(currentChainHeight, minConfirms)) {
+          return "Sent (confirmed)";
+        } else {
+          if (numberOfMessages == 1) {
+            return "Sending (waiting for receiver)";
+          } else if ((numberOfMessages ?? 0) > 1) {
+            return "Sending (waiting for confirmations)";
+          } else {
+            return "Sending ${prettyConfirms()}";
+          }
+        }
+      }
+    }
+
     if (type == TransactionType.incoming) {
       // if (_transaction.isMinting) {
       //   return "Minting";
