@@ -76,7 +76,9 @@ bool validateAddress(String address) {
           enabled: true,
           coinName: identifier,
           isFailover: true,
-          isDown: false
+          isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

@@ -11,6 +11,7 @@
 #include <devicelocale/devicelocale_plugin.h>
 #include <flutter_libepiccash/flutter_libepiccash_plugin.h>
 #include <flutter_libmwc/flutter_libmwc_plugin.h>
+#include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
 #include <isar_flutter_libs/isar_flutter_libs_plugin.h>
 #include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <stack_wallet_backup/stack_wallet_backup_plugin.h>

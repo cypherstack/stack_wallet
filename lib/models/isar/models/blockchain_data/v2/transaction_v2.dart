@@ -297,7 +297,7 @@ class TransactionV2 {
       if (isCancelled) {
         return "Cancelled";
       } else if (type == TransactionType.incoming) {
-        if (isConfirmed(currentChainHeight, minConfirms)) {
+        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Received";
         } else {
           if (numberOfMessages == 1) {
@@ -309,7 +309,7 @@ class TransactionV2 {
           }
         }
       } else if (type == TransactionType.outgoing) {
-        if (isConfirmed(currentChainHeight, minConfirms)) {
+        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Sent (confirmed)";
         } else {
           if (numberOfMessages == 1) {
@@ -331,7 +331,7 @@ class TransactionV2 {
       if (isCancelled) {
         return "Cancelled";
       } else if (type == TransactionType.incoming) {
-        if (isConfirmed(currentChainHeight, minConfirms)) {
+        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Received";
         } else {
           if (numberOfMessages == 1) {
@@ -343,7 +343,7 @@ class TransactionV2 {
           }
         }
       } else if (type == TransactionType.outgoing) {
-        if (isConfirmed(currentChainHeight, minConfirms)) {
+        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Sent (confirmed)";
         } else {
           if (numberOfMessages == 1) {
