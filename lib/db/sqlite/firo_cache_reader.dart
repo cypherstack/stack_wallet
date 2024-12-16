@@ -63,9 +63,9 @@ abstract class _Reader {
     required Database db,
   }) async {
     final query = """
-      SELECT ss.size
-      FROM PreviousMetaFetchResult ss
-      WHERE ss.groupId = $groupId;
+      SELECT size
+      FROM PreviousMetaFetchResult
+      WHERE coinGroupId = $groupId;
     """;
 
     return db.select("$query;");

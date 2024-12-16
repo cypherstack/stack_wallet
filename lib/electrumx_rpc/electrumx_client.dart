@@ -1193,8 +1193,12 @@ class ElectrumXClient {
     required int coinGroupId,
   }) async {
     try {
-      const command =
-          "spark.getsparkanonyumitysetmeta"; // TODO verify this will be correct
+      const command = "spark.getsparkanonymitysetmeta";
+      Logging.instance.log(
+        "[${getElectrumAdapter()?.host}] => attempting to fetch $command...",
+        level: LogLevel.Info,
+      );
+
       final start = DateTime.now();
       final response = await request(
         requestID: requestID,
@@ -1238,7 +1242,7 @@ class ElectrumXClient {
   }) async {
     try {
       const command =
-          "spark.getsparkanonyumitysetsector"; // TODO verify this will be correct
+          "spark.getsparkanonymitysetsector"; // TODO verify this will be correct
       final start = DateTime.now();
       final response = await request(
         requestID: requestID,
