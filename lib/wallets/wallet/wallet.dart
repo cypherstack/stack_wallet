@@ -564,6 +564,11 @@ abstract class Wallet<T extends CryptoCurrency> {
     return future;
   }
 
+  void _fireRefreshPercentChange(double percent) {
+    (this as ElectrumXInterface?)?.refreshingPercent = percent;
+    GlobalEventBus.instance.fire(RefreshPercentChangedEvent(percent, walletId));
+  }
+
   // Should fire events
   Future<void> _refresh(Completer<void> completer) async {
     // Awaiting this lock could be dangerous.
@@ -612,15 +617,14 @@ abstract class Wallet<T extends CryptoCurrency> {
         }
       }
 
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
-      _checkAlive();
+      _fireRefreshPercentChange(0);
       await updateChainHeight();
 
       if (this is BitcoinFrostWallet) {
         await (this as BitcoinFrostWallet).lookAhead();
       }
 
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
+      _fireRefreshPercentChange(0.1);
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
@@ -630,8 +634,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         }
       }
 
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
-      _checkAlive();
+      _fireRefreshPercentChange(0.2);
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
@@ -640,21 +643,21 @@ abstract class Wallet<T extends CryptoCurrency> {
               .checkChangeAddressForTransactions();
         }
       }
-      _checkAlive();
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
+      _fireRefreshPercentChange(0.3);
       if (this is SparkInterface && !viewOnly) {
         // this should be called before updateTransactions()
-        await (this as SparkInterface).refreshSparkData(null);
+        await (this as SparkInterface).refreshSparkData((0.3, 0.6));
       }
 
       final fetchFuture = updateTransactions();
-      _checkAlive();
+
+      _fireRefreshPercentChange(0.6);
       final utxosRefreshFuture = updateUTXOs();
       // if (currentHeight != storedHeight) {
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
+      _fireRefreshPercentChange(0.65);
 
       await utxosRefreshFuture;
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
+      _fireRefreshPercentChange(0.70);
 
       await fetchFuture;
 
@@ -665,8 +668,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         // check utxos again for notification outputs
         await updateUTXOs();
       }
-      _checkAlive();
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
+      _fireRefreshPercentChange(0.80);
 
       // await getAllTxsToWatch();
 
@@ -677,16 +679,11 @@ abstract class Wallet<T extends CryptoCurrency> {
           await (this as LelantusInterface).refreshLelantusData();
         }
       }
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
+      _fireRefreshPercentChange(0.90);
 
       await updateBalance();
 
-      _checkAlive();
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
-
-      if (this is! SparkInterface) {
-        tAlive = false; // interrupt timer as its not needed anymore
-      }
+      _fireRefreshPercentChange(1.0);
 
       completer.complete();
     } catch (error, strace) {

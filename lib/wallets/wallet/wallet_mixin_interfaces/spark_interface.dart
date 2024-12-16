@@ -14,6 +14,8 @@ import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/signing_data.dart';
+import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
@@ -795,8 +797,24 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  // returns next percent
+  double _triggerEventHelper(double current, double increment) {
+    refreshingPercent = current;
+    GlobalEventBus.instance.fire(
+      RefreshPercentChangedEvent(
+        current,
+        walletId,
+      ),
+    );
+    return current + increment;
+  }
+
+  // Linearly make calls so there is less chance of timing out or otherwise breaking
   Future<void> refreshSparkData(
-    void Function(int countFetched, int totalCount)? progressUpdated,
+    (
+      double startingPercent,
+      double endingPercent,
+    )? refreshProgressRange,
   ) async {
     final start = DateTime.now();
     try {
@@ -818,25 +836,55 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
       groupIds.add(latestGroupId);
 
-      // start fetch and update process for each set groupId as required
-      final possibleFutures = groupIds.map(
-        (e) =>
-            FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
-          e,
+      final steps = groupIds.length +
+          1 // get used tags step
+          +
+          1 // check updated cache step
+          +
+          1 // identify coins step
+          +
+          1 // cross ref coins and txns
+          +
+          1; // update balance
+
+      final percentIncrement = refreshProgressRange == null
+          ? null
+          : (refreshProgressRange.$2 - refreshProgressRange.$1) / steps;
+      double currentPercent = refreshProgressRange?.$1 ?? 0;
+
+      //   fetch and update process for each set groupId as required
+      for (final gId in groupIds) {
+        await FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
+          gId,
           electrumXClient,
           cryptoCurrency.network,
-          null,
-        ),
+          // null,
+          (a, b) {
+            if (percentIncrement != null) {
+              _triggerEventHelper(
+                currentPercent + (percentIncrement * (a / b)),
+                0,
+              );
+            }
+          },
+        );
+        if (percentIncrement != null) {
+          currentPercent += percentIncrement;
+        }
+      }
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
+
+      await FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
+        electrumXClient,
+        cryptoCurrency.network,
       );
 
-      // wait for each fetch and update to complete
-      await Future.wait([
-        ...possibleFutures,
-        FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
-          electrumXClient,
-          cryptoCurrency.network,
-        ),
-      ]);
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
 
       // Get cached timestamps per groupId. These timestamps are used to check
       // and try to id coins that were added to the spark anon set cache
@@ -881,6 +929,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           lastCheckedTimeStampUTC,
           info?.timestampUTC ?? lastCheckedTimeStampUTC,
         );
+      }
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
       }
 
       // get address(es) to get the private key hex strings required for
@@ -929,6 +981,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         },
         isar: mainDB.isar,
       );
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
 
       // check for spark coins in mempool
       final mempoolMyCoins = await _refreshSparkCoinsMempoolCheck(
@@ -989,6 +1045,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         await mainDB.isar.writeTxn(() async {
           await mainDB.isar.sparkCoins.putAll(updatedCoins);
         });
+      }
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
       }
 
       // used to check if balance is spendable or total
