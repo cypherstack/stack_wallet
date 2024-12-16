@@ -42,6 +42,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   int? get maximumFeerate => null;
 
+  double? refreshingPercent;
+
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
   Future<bool> get serverCanBatch async {
