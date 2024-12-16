@@ -415,6 +415,11 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   void _periodicPingCheck() async {
+    if (refreshMutex.isLocked) {
+      // should be active calls happening so no need to make extra work
+      return;
+    }
+
     final bool hasNetwork = await pingCheck();
 
     if (_isConnected != hasNetwork) {
@@ -568,25 +573,6 @@ abstract class Wallet<T extends CryptoCurrency> {
     }
     final start = DateTime.now();
 
-    bool tAlive = true;
-    Timer? t;
-    if (this is! SparkInterface) {
-      t = Timer.periodic(const Duration(seconds: 1), (timer) async {
-        if (tAlive) {
-          final pingSuccess = await pingCheck();
-          if (!pingSuccess) {
-            tAlive = false;
-          }
-        } else {
-          timer.cancel();
-        }
-      });
-    }
-
-    void _checkAlive() {
-      if (!tAlive) throw Exception("refresh alive ping failure");
-    }
-
     final viewOnly = this is ViewOnlyOptionInterface &&
         (this as ViewOnlyOptionInterface).isViewOnly;
 
@@ -603,57 +589,45 @@ abstract class Wallet<T extends CryptoCurrency> {
         ),
       );
 
-      _checkAlive();
-
       // add some small buffer before making calls.
       // this can probably be removed in the future but was added as a
       // debugging feature
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
-      _checkAlive();
       if (this is PaynymInterface && !viewOnly) {
         // isSegwit does not matter here at all
         final myCode =
             await (this as PaynymInterface).getPaymentCode(isSegwit: false);
-        _checkAlive();
 
         final nym = await PaynymIsApi().nym(myCode.toString());
-        _checkAlive();
         if (nym.value != null) {
           for (final follower in nym.value!.followers) {
             codesToCheck.add(follower.code);
           }
-          _checkAlive();
           for (final following in nym.value!.following) {
             codesToCheck.add(following.code);
           }
         }
-        _checkAlive();
       }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
       _checkAlive();
       await updateChainHeight();
 
-      _checkAlive();
       if (this is BitcoinFrostWallet) {
         await (this as BitcoinFrostWallet).lookAhead();
       }
-      _checkAlive();
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
 
-      _checkAlive();
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
           await (this as MultiAddressInterface)
               .checkReceivingAddressForTransactions();
         }
-        _checkAlive();
       }
 
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
@@ -672,49 +646,39 @@ abstract class Wallet<T extends CryptoCurrency> {
         // this should be called before updateTransactions()
         await (this as SparkInterface).refreshSparkData(null);
       }
-      _checkAlive();
 
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
-      _checkAlive();
       final fetchFuture = updateTransactions();
       _checkAlive();
       final utxosRefreshFuture = updateUTXOs();
       // if (currentHeight != storedHeight) {
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
 
-      _checkAlive();
       await utxosRefreshFuture;
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
 
-      _checkAlive();
       await fetchFuture;
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
-        _checkAlive();
         await (this as PaynymInterface)
             .checkForNotificationTransactionsTo(codesToCheck);
         // check utxos again for notification outputs
-        _checkAlive();
         await updateUTXOs();
       }
       _checkAlive();
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
 
       // await getAllTxsToWatch();
-      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is LelantusInterface && !viewOnly) {
         if (info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
             false) {
           await (this as LelantusInterface).refreshLelantusData();
-          _checkAlive();
         }
       }
       GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
 
-      _checkAlive();
       await updateBalance();
 
       _checkAlive();
@@ -728,7 +692,6 @@ abstract class Wallet<T extends CryptoCurrency> {
     } catch (error, strace) {
       completer.completeError(error, strace);
     } finally {
-      t?.cancel();
       refreshMutex.release();
       if (!completer.isCompleted) {
         completer.completeError(
