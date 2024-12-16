@@ -47,9 +47,18 @@ abstract class FiroCacheCoordinator {
     final setMetaSize =
         (await setMetaCacheFile.exists()) ? await setMetaCacheFile.length() : 0;
 
-    print("TAG SIZE: $tagsSize");
-    print("SET SIZE: $setSize");
-    print("SET META SIZE: $setMetaSize");
+    Logging.instance.log(
+      "Spark cache used tags size: $tagsSize",
+      level: LogLevel.Debug,
+    );
+    Logging.instance.log(
+      "Spark cache anon set size: $setSize",
+      level: LogLevel.Debug,
+    );
+    Logging.instance.log(
+      "Spark cache set meta size: $setMetaSize",
+      level: LogLevel.Debug,
+    );
 
     final int bytes = tagsSize + setSize + setMetaSize;
 
@@ -112,7 +121,7 @@ abstract class FiroCacheCoordinator {
           startBlockHash: blockHash.toHexReversedFromBase64,
         );
       } else {
-        const sectorSize = 100; // TODO adjust this?
+        const sectorSize = 2000; // TODO adjust this?
         final prevMetaSize =
             await FiroCacheCoordinator.getSparkMetaSetSizeForGroupId(
           groupId,
@@ -139,10 +148,11 @@ abstract class FiroCacheCoordinator {
           final start = (i * sectorSize) + prevSize;
           final data = await client.getSparkAnonymitySetBySector(
             coinGroupId: groupId,
-            latestBlock: meta.blockHash,
+            latestBlock: meta.blockHash.toHexReversedFromBase64,
             startIndex: start,
             endIndex: start + sectorSize,
           );
+          progressUpdated.call(start + sectorSize, meta.size);
 
           coins.addAll(data);
         }
@@ -150,10 +160,11 @@ abstract class FiroCacheCoordinator {
         if (remainder > 0) {
           final data = await client.getSparkAnonymitySetBySector(
             coinGroupId: groupId,
-            latestBlock: meta.blockHash,
+            latestBlock: meta.blockHash.toHexReversedFromBase64,
             startIndex: meta.size - remainder,
             endIndex: meta.size,
           );
+          progressUpdated.call(meta.size, meta.size);
 
           coins.addAll(data);
         }
