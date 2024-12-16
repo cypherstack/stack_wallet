@@ -399,6 +399,7 @@ class ElectrumXClient {
         rethrow;
       }
     } catch (e) {
+      Logging.instance.log("$host $e", level: LogLevel.Debug);
       if (currentFailoverIndex < _failovers.length - 1) {
         currentFailoverIndex++;
         return request(
@@ -525,10 +526,10 @@ class ElectrumXClient {
       return await request(
         requestID: requestID,
         command: 'server.ping',
-        requestTimeout: const Duration(seconds: 3),
+        requestTimeout: const Duration(seconds: 30),
         retries: retryCount,
       ).timeout(
-        const Duration(seconds: 3),
+        const Duration(seconds: 30),
         onTimeout: () {
           Logging.instance.log(
             "ElectrumxClient.ping timed out with retryCount=$retryCount, host=$_host",
