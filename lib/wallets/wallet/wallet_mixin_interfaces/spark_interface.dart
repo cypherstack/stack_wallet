@@ -1103,7 +1103,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<Set<LTagPair>> getMissingSparkSpendTransactionIds() async {
+  Future<Set<LTagPair>> getSparkSpendTransactionIds() async {
     final tags = await mainDB.isar.sparkCoins
         .where()
         .walletIdEqualToAnyLTagHash(walletId)
@@ -1112,20 +1112,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .lTagHashProperty()
         .findAll();
 
-    final usedCoinTxidsFoundLocally = await mainDB.isar.transactionV2s
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .subTypeEqualTo(TransactionSubType.sparkSpend)
-        .txidProperty()
-        .findAll();
-
     final pairs = await FiroCacheCoordinator.getUsedCoinTxidsFor(
       tags: tags,
       network: cryptoCurrency.network,
     );
-
-    pairs.removeWhere((e) => usedCoinTxidsFoundLocally.contains(e.txid));
 
     return pairs.toSet();
   }

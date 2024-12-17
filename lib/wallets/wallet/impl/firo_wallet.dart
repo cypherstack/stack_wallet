@@ -93,33 +93,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         .walletIdEqualToAnyLTagHash(walletId)
         .findAll();
 
-    final Set<String> sparkTxids = {};
-
-    for (final coin in sparkCoins) {
-      sparkTxids.add(coin.txHash);
-      // check for duplicates before adding to list
-      if (allTxHashes.indexWhere((e) => e["tx_hash"] == coin.txHash) == -1) {
-        final info = {
-          "tx_hash": coin.txHash,
-          "height": coin.height,
-        };
-        allTxHashes.add(info);
-      }
-    }
-
-    final missing = await getMissingSparkSpendTransactionIds();
-    for (final txid in missing.map((e) => e.txid).toSet()) {
-      allTxHashes.add({
-        "tx_hash": txid,
-      });
-    }
-
     final List<Map<String, dynamic>> allTransactions = [];
 
     // some lelantus transactions aren't fetched via wallet addresses so they
     // will never show as confirmed in the gui.
-    final unconfirmedTransactions = await mainDB
-        .getTransactions(walletId)
+    final unconfirmedTransactions = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
         .filter()
         .heightIsNull()
         .findAll();
@@ -137,21 +117,54 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         final info = {
           "tx_hash": tx.txid,
           "height": height,
-          "address": tx.address.value?.value,
         };
         allTxHashes.add(info);
       }
     }
 
-    for (final txHash in allTxHashes) {
-      // final storedTx = await db
-      //     .getTransactions(walletId)
-      //     .filter()
-      //     .txidEqualTo(txHash["tx_hash"] as String)
-      //     .findFirst();
+    final Set<String> sparkTxids = {};
+    for (final coin in sparkCoins) {
+      sparkTxids.add(coin.txHash);
+      // check for duplicates before adding to list
+      if (allTxHashes.indexWhere((e) => e["tx_hash"] == coin.txHash) == -1) {
+        final info = {
+          "tx_hash": coin.txHash,
+          "height": coin.height,
+        };
+        allTxHashes.add(info);
+      }
+    }
 
-      // if (storedTx == null ||
-      //     !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+    final missing = await getSparkSpendTransactionIds();
+    for (final txid in missing.map((e) => e.txid).toSet()) {
+      // check for duplicates before adding to list
+      if (allTxHashes.indexWhere((e) => e["tx_hash"] == txid) == -1) {
+        final info = {
+          "tx_hash": txid,
+        };
+        allTxHashes.add(info);
+      }
+    }
+
+    final currentHeight = await chainHeight;
+
+    for (final txHash in allTxHashes) {
+      final storedTx = await mainDB.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .txidEqualTo(txHash["tx_hash"] as String)
+          .findFirst();
+
+      if (storedTx?.isConfirmed(
+            currentHeight,
+            cryptoCurrency.minConfirms,
+            cryptoCurrency.minCoinbaseConfirms,
+          ) ==
+          true) {
+        // tx already confirmed, no need to process it again
+        continue;
+      }
 
       // firod/electrumx seem to take forever to process spark txns so we'll
       // just ignore null errors and check again on next refresh.
@@ -174,7 +187,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         tx["height"] ??= txHash["height"];
         allTransactions.add(tx);
       }
-      // }
     }
 
     final List<TransactionV2> txns = [];
@@ -193,7 +205,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       bool isMint = false;
       bool isJMint = false;
       bool isSparkMint = false;
-      final bool isMasterNodePayment = false;
       final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
       final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
       final bool isMySpentSpark =
