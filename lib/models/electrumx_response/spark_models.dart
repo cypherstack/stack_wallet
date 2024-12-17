@@ -45,3 +45,54 @@ class SparkAnonymitySetMeta {
         "}";
   }
 }
+
+class RawSparkCoin {
+  final String serialized;
+  final String txHash;
+  final String context;
+  final int groupId;
+
+  RawSparkCoin({
+    required this.serialized,
+    required this.txHash,
+    required this.context,
+    required this.groupId,
+  });
+
+  static RawSparkCoin fromRPCResponse(List<dynamic> data, int groupId) {
+    try {
+      if (data.length != 3) throw Exception();
+      return RawSparkCoin(
+        serialized: data[0] as String,
+        txHash: data[1] as String,
+        context: data[2] as String,
+        groupId: groupId,
+      );
+    } catch (_) {
+      throw Exception("Invalid coin data: $data");
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RawSparkCoin) return false;
+    return serialized == other.serialized &&
+        txHash == other.txHash &&
+        groupId == other.groupId &&
+        context == other.context;
+  }
+
+  @override
+  int get hashCode => Object.hash(serialized, txHash, context);
+
+  @override
+  String toString() {
+    return "SparkAnonymitySetMeta{"
+        "serialized: $serialized, "
+        "txHash: $txHash, "
+        "context: $context, "
+        "groupId: $groupId"
+        "}";
+  }
+}

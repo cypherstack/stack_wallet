@@ -49,57 +49,16 @@ FCResult _updateSparkUsedTagsWith(
 }
 
 // ===========================================================================
-// ================== write to spark anon set Meta cache ==========================
-FCResult _updateSparkAnonSetMetaWith(
-  Database db,
-  SparkAnonymitySetMeta meta,
-) {
-  db.execute("BEGIN;");
-  try {
-    db.execute(
-      """
-        INSERT OR REPLACE INTO PreviousMetaFetchResult (coinGroupId, blockHash, setHash, size)
-        VALUES (?, ?, ?, ?);
-      """,
-      [meta.coinGroupId, meta.blockHash, meta.setHash, meta.size],
-    );
-
-    db.execute("COMMIT;");
-
-    return FCResult(success: true);
-  } catch (e) {
-    db.execute("ROLLBACK;");
-    return FCResult(success: false, error: e);
-  }
-}
-
-// ===========================================================================
 // ================== write to spark anon set cache ==========================
 
 /// update the sqlite cache
-/// Expected json format:
-///    {
-///         "blockHash": "someBlockHash",
-///         "setHash": "someSetHash",
-///         "coins": [
-///           ["serliazed1", "hash1", "context1"],
-///           ["serliazed2", "hash2", "context2"],
-///           ...
-///           ["serliazed3", "hash3", "context3"],
-///           ["serliazed4", "hash4", "context4"],
-///         ],
-///     }
 ///
 /// returns true if successful, otherwise false
 FCResult _updateSparkAnonSetCoinsWith(
   Database db,
-  Map<String, dynamic> json,
-  int groupId,
+  final List<RawSparkCoin> coinsRaw,
+  SparkAnonymitySetMeta meta,
 ) {
-  final blockHash = json["blockHash"] as String;
-  final setHash = json["setHash"] as String;
-  final coinsRaw = json["coins"] as List;
-
   if (coinsRaw.isEmpty) {
     // no coins to actually insert
     return FCResult(success: true);
@@ -112,9 +71,9 @@ FCResult _updateSparkAnonSetCoinsWith(
       WHERE blockHash = ? AND setHash = ? AND groupId = ?;
     """,
     [
-      blockHash,
-      setHash,
-      groupId,
+      meta.blockHash,
+      meta.setHash,
+      meta.coinGroupId,
     ],
   );
 
@@ -123,59 +82,28 @@ FCResult _updateSparkAnonSetCoinsWith(
     return FCResult(success: true);
   }
 
-  final coins = coinsRaw
-      .map(
-        (e) => [
-          e[0] as String,
-          e[1] as String,
-          e[2] as String,
-        ],
-      )
-      .toList()
-      .reversed;
-
-  final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+  final coins = coinsRaw.reversed;
 
   db.execute("BEGIN;");
   try {
     db.execute(
       """
-        INSERT INTO SparkSet (blockHash, setHash, groupId, timestampUTC)
+        INSERT INTO SparkSet (blockHash, setHash, groupId, size)
         VALUES (?, ?, ?, ?);
       """,
-      [blockHash, setHash, groupId, timestamp],
+      [meta.blockHash, meta.setHash, meta.coinGroupId, meta.size],
     );
     final setId = db.lastInsertRowId;
 
     for (final coin in coins) {
-      int coinId;
-      try {
-        // try to insert and get row id
-        db.execute(
-          """
-            INSERT INTO SparkCoin (serialized, txHash, context)
-            VALUES (?, ?, ?);
+      db.execute(
+        """
+            INSERT INTO SparkCoin (serialized, txHash, context, groupId)
+            VALUES (?, ?, ?, ?);
           """,
-          coin,
-        );
-        coinId = db.lastInsertRowId;
-      } on SqliteException catch (e) {
-        // if there already is a matching coin in the db
-        // just grab its row id
-        if (e.extendedResultCode == 2067) {
-          final result = db.select(
-            """
-              SELECT id
-              FROM SparkCoin
-              WHERE serialized = ? AND txHash = ? AND context = ?;
-            """,
-            coin,
-          );
-          coinId = result.first["id"] as int;
-        } else {
-          rethrow;
-        }
-      }
+        [coin.serialized, coin.txHash, coin.context, coin.groupId],
+      );
+      final coinId = db.lastInsertRowId;
 
       // finally add the row id to the newly added set
       db.execute(

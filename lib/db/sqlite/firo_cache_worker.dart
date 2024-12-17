@@ -3,7 +3,6 @@ part of 'firo_cache.dart';
 enum FCFuncName {
   _updateSparkAnonSetCoinsWith,
   _updateSparkUsedTagsWith,
-  _updateSparkAnonSetMetaWith,
 }
 
 class FCTask {
@@ -30,8 +29,6 @@ class _FiroCacheWorker {
     final dir = await StackFileSystem.applicationFiroCacheSQLiteDirectory();
     final setCacheFilePath =
         "${dir.path}/${_FiroCache.sparkSetCacheFileName(network)}";
-    final setMetaCacheFilePath =
-        "${dir.path}/${_FiroCache.sparkSetMetaCacheFileName(network)}";
     final usedTagsCacheFilePath =
         "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName(network)}";
 
@@ -54,7 +51,6 @@ class _FiroCacheWorker {
         (
           initPort.sendPort,
           setCacheFilePath,
-          setMetaCacheFilePath,
           usedTagsCacheFilePath,
         ),
       );
@@ -87,7 +83,6 @@ class _FiroCacheWorker {
     ReceivePort receivePort,
     SendPort sendPort,
     Database setCacheDb,
-    Database setMetaCacheDb,
     Database usedTagsCacheDb,
     Mutex mutex,
   ) {
@@ -99,7 +94,8 @@ class _FiroCacheWorker {
           final FCResult result;
           switch (task.func) {
             case FCFuncName._updateSparkAnonSetCoinsWith:
-              final data = task.data as (int, Map<String, dynamic>);
+              final data =
+                  task.data as (SparkAnonymitySetMeta, List<RawSparkCoin>);
               result = _updateSparkAnonSetCoinsWith(
                 setCacheDb,
                 data.$2,
@@ -111,13 +107,6 @@ class _FiroCacheWorker {
               result = _updateSparkUsedTagsWith(
                 usedTagsCacheDb,
                 task.data as List<List<dynamic>>,
-              );
-              break;
-
-            case FCFuncName._updateSparkAnonSetMetaWith:
-              result = _updateSparkAnonSetMetaWith(
-                setMetaCacheDb,
-                task.data as SparkAnonymitySetMeta,
               );
               break;
           }
@@ -134,7 +123,7 @@ class _FiroCacheWorker {
     });
   }
 
-  static void _startWorkerIsolate((SendPort, String, String, String) args) {
+  static void _startWorkerIsolate((SendPort, String, String) args) {
     final receivePort = ReceivePort();
     args.$1.send(receivePort.sendPort);
     final mutex = Mutex();
@@ -142,19 +131,14 @@ class _FiroCacheWorker {
       args.$2,
       mode: OpenMode.readWrite,
     );
-    final setMetaCacheDb = sqlite3.open(
-      args.$3,
-      mode: OpenMode.readWrite,
-    );
     final usedTagsCacheDb = sqlite3.open(
-      args.$4,
+      args.$3,
       mode: OpenMode.readWrite,
     );
     _handleCommandsToIsolate(
       receivePort,
       args.$1,
       setCacheDb,
-      setMetaCacheDb,
       usedTagsCacheDb,
       mutex,
     );

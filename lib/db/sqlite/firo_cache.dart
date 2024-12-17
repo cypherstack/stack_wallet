@@ -31,7 +31,7 @@ void _debugLog(Object? object) {
 }
 
 abstract class _FiroCache {
-  static const int _setCacheVersion = 1;
+  static const int _setCacheVersion = 2;
   static const int _tagsCacheVersion = 2;
 
   static final networks = [
@@ -43,17 +43,12 @@ abstract class _FiroCache {
       network == CryptoCurrencyNetwork.main
           ? "spark_set_v$_setCacheVersion.sqlite3"
           : "spark_set_v${_setCacheVersion}_${network.name}.sqlite3";
-  static String sparkSetMetaCacheFileName(CryptoCurrencyNetwork network) =>
-      network == CryptoCurrencyNetwork.main
-          ? "spark_set_meta_v$_setCacheVersion.sqlite3"
-          : "spark_set_meta_v${_setCacheVersion}_${network.name}.sqlite3";
   static String sparkUsedTagsCacheFileName(CryptoCurrencyNetwork network) =>
       network == CryptoCurrencyNetwork.main
           ? "spark_tags_v$_tagsCacheVersion.sqlite3"
           : "spark_tags_v${_tagsCacheVersion}_${network.name}.sqlite3";
 
   static final Map<CryptoCurrencyNetwork, Database> _setCacheDB = {};
-  static final Map<CryptoCurrencyNetwork, Database> _setMetaCacheDB = {};
   static final Map<CryptoCurrencyNetwork, Database> _usedTagsCacheDB = {};
   static Database setCacheDB(CryptoCurrencyNetwork network) {
     if (_setCacheDB[network] == null) {
@@ -62,15 +57,6 @@ abstract class _FiroCache {
       );
     }
     return _setCacheDB[network]!;
-  }
-
-  static Database setMetaCacheDB(CryptoCurrencyNetwork network) {
-    if (_setMetaCacheDB[network] == null) {
-      throw Exception(
-        "FiroCache.init() must be called before accessing FiroCache.db!",
-      );
-    }
-    return _setMetaCacheDB[network]!;
   }
 
   static Database usedTagsCacheDB(CryptoCurrencyNetwork network) {
@@ -93,17 +79,11 @@ abstract class _FiroCache {
       final sparkSetCacheFile =
           File("${sqliteDir.path}/${sparkSetCacheFileName(network)}");
 
-      final sparkSetMetaCacheFile =
-          File("${sqliteDir.path}/${sparkSetMetaCacheFileName(network)}");
-
       final sparkUsedTagsCacheFile =
           File("${sqliteDir.path}/${sparkUsedTagsCacheFileName(network)}");
 
       if (!(await sparkSetCacheFile.exists())) {
         await _createSparkSetCacheDb(sparkSetCacheFile.path);
-      }
-      if (!(await sparkSetMetaCacheFile.exists())) {
-        await _createSparkSetMetaCacheDb(sparkSetMetaCacheFile.path);
       }
       if (!(await sparkUsedTagsCacheFile.exists())) {
         await _createSparkUsedTagsCacheDb(sparkUsedTagsCacheFile.path);
@@ -111,10 +91,6 @@ abstract class _FiroCache {
 
       _setCacheDB[network] = sqlite3.open(
         sparkSetCacheFile.path,
-        mode: OpenMode.readWrite,
-      );
-      _setMetaCacheDB[network] = sqlite3.open(
-        sparkSetMetaCacheFile.path,
         mode: OpenMode.readWrite,
       );
       _usedTagsCacheDB[network] = sqlite3.open(
@@ -131,12 +107,6 @@ abstract class _FiroCache {
         DELETE FROM SparkSet;
         DELETE FROM SparkCoin;
         DELETE FROM SparkSetCoins;
-        VACUUM;
-      """,
-    );
-    setMetaCacheDB(network).execute(
-      """
-        DELETE FROM PreviousMetaFetchResult;
         VACUUM;
       """,
     );
@@ -165,7 +135,7 @@ abstract class _FiroCache {
           blockHash TEXT NOT NULL,
           setHash TEXT NOT NULL,
           groupId INTEGER NOT NULL,
-          timestampUTC INTEGER NOT NULL,
+          size INTEGER NOT NULL,
           UNIQUE (blockHash, setHash, groupId)
         );
         
@@ -174,7 +144,8 @@ abstract class _FiroCache {
           serialized TEXT NOT NULL,
           txHash TEXT NOT NULL,
           context TEXT NOT NULL,
-          UNIQUE(serialized, txHash, context)
+          groupId INTEGER NOT NULL,
+          UNIQUE(serialized, txHash, context, groupId)
         );
         
         CREATE TABLE SparkSetCoins (
@@ -183,27 +154,6 @@ abstract class _FiroCache {
           coinId INTEGER NOT NULL,
           FOREIGN KEY (setId) REFERENCES SparkSet(id),
           FOREIGN KEY (coinId) REFERENCES SparkCoin(id)
-        );
-      """,
-    );
-
-    db.dispose();
-  }
-
-  static Future<void> _createSparkSetMetaCacheDb(String file) async {
-    final db = sqlite3.open(
-      file,
-      mode: OpenMode.readWriteCreate,
-    );
-
-    db.execute(
-      """
-        CREATE TABLE PreviousMetaFetchResult (
-          id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-          coinGroupId INTEGER NOT NULL UNIQUE,
-          blockHash TEXT NOT NULL,
-          setHash TEXT NOT NULL,
-          size INTEGER NOT NULL
         );
       """,
     );

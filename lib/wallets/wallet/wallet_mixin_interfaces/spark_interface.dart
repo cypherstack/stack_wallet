@@ -886,11 +886,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
       }
 
-      // Get cached timestamps per groupId. These timestamps are used to check
+      // Get cached block hashes per groupId. These hashes are used to check
       // and try to id coins that were added to the spark anon set cache
-      // after that timestamp.
-      final groupIdTimestampUTCMap =
-          info.otherData[WalletInfoKeys.firoSparkCacheSetTimestampCache]
+      // after that block.
+      final groupIdBlockHashMap =
+          info.otherData[WalletInfoKeys.firoSparkCacheSetBlockHashCache]
                   as Map? ??
               {};
 
@@ -898,8 +898,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // processed by this wallet yet
       final Map<int, List<List<String>>> rawCoinsBySetId = {};
       for (int i = 1; i <= latestGroupId; i++) {
-        final lastCheckedTimeStampUTC =
-            groupIdTimestampUTCMap[i.toString()] as int? ?? 0;
+        final lastCheckedHash = groupIdBlockHashMap[i.toString()] as String?;
         final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
           i,
           cryptoCurrency.network,
@@ -907,7 +906,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         final anonymitySetResult =
             await FiroCacheCoordinator.getSetCoinsForGroupId(
           i,
-          newerThanTimeStamp: lastCheckedTimeStampUTC,
+          afterBlockHash: lastCheckedHash,
           network: cryptoCurrency.network,
         );
         final coinsRaw = anonymitySetResult
@@ -924,11 +923,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           rawCoinsBySetId[i] = coinsRaw;
         }
 
-        // update last checked timestamp data
-        groupIdTimestampUTCMap[i.toString()] = max(
-          lastCheckedTimeStampUTC,
-          info?.timestampUTC ?? lastCheckedTimeStampUTC,
-        );
+        // update last checked
+        groupIdBlockHashMap[i.toString()] = info?.blockHash;
       }
 
       if (percentIncrement != null) {
@@ -973,11 +969,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         });
       }
 
-      // finally update the cached timestamps in the database
+      // finally update the cached block hashes in the database
       await info.updateOtherData(
         newEntries: {
-          WalletInfoKeys.firoSparkCacheSetTimestampCache:
-              groupIdTimestampUTCMap,
+          WalletInfoKeys.firoSparkCacheSetBlockHashCache: groupIdBlockHashMap,
         },
         isar: mainDB.isar,
       );
