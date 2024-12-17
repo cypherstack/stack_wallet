@@ -95,7 +95,8 @@ abstract class FiroCacheCoordinator {
     void Function(int countFetched, int totalCount)? progressUpdated,
   ) async {
     await _setLocks[network]!.protect(() async {
-      const sectorSize = 12000; // TODO adjust this?
+      const sectorSize =
+          1500; // chosen as a somewhat decent value. Could be changed in the future if wanted/needed
       final prevMeta = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
         groupId,
         network,
@@ -128,7 +129,7 @@ abstract class FiroCacheCoordinator {
         final start = (i * sectorSize);
         final data = await client.getSparkAnonymitySetBySector(
           coinGroupId: groupId,
-          latestBlock: meta.blockHash.toHexReversedFromBase64,
+          latestBlock: meta.blockHash,
           startIndex: start,
           endIndex: start + sectorSize,
         );
@@ -140,7 +141,7 @@ abstract class FiroCacheCoordinator {
       if (remainder > 0) {
         final data = await client.getSparkAnonymitySetBySector(
           coinGroupId: groupId,
-          latestBlock: meta.blockHash.toHexReversedFromBase64,
+          latestBlock: meta.blockHash,
           startIndex: numberOfCoinsToFetch - remainder,
           endIndex: numberOfCoinsToFetch,
         );
