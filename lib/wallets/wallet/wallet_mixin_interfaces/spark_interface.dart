@@ -1071,9 +1071,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       final spendable = Amount(
         rawValue: unusedCoins
             .where(
-              (e) =>
-                  e.height != null &&
-                  e.height! + cryptoCurrency.minConfirms <= currentHeight,
+              (e) => e.isConfirmed(currentHeight, cryptoCurrency.minConfirms),
             )
             .map((e) => e.value)
             .fold(BigInt.zero, (prev, e) => prev + e),
