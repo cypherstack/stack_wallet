@@ -671,7 +671,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     // reset last checked values
     await info.updateOtherData(
       newEntries: {
-        WalletInfoKeys.firoSparkCacheSetTimestampCache: <String, int>{},
+        WalletInfoKeys.firoSparkCacheSetBlockHashCache: <String, String>{},
       },
       isar: mainDB.isar,
     );

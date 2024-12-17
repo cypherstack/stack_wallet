@@ -399,7 +399,11 @@ class ElectrumXClient {
         rethrow;
       }
     } catch (e) {
+      final errorMessage = e.toString();
       Logging.instance.log("$host $e", level: LogLevel.Debug);
+      if (errorMessage.contains("JSON-RPC error")) {
+        currentFailoverIndex = _failovers.length;
+      }
       if (currentFailoverIndex < _failovers.length - 1) {
         currentFailoverIndex++;
         return request(

@@ -32,9 +32,6 @@ abstract class FiroCacheCoordinator {
     final setCacheFile = File(
       "${dir.path}/${_FiroCache.sparkSetCacheFileName(network)}",
     );
-    final setMetaCacheFile = File(
-      "${dir.path}/${_FiroCache.sparkSetMetaCacheFileName(network)}",
-    );
     final usedTagsCacheFile = File(
       "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName(network)}",
     );
@@ -44,8 +41,6 @@ abstract class FiroCacheCoordinator {
     final tagsSize = (await usedTagsCacheFile.exists())
         ? await usedTagsCacheFile.length()
         : 0;
-    final setMetaSize =
-        (await setMetaCacheFile.exists()) ? await setMetaCacheFile.length() : 0;
 
     Logging.instance.log(
       "Spark cache used tags size: $tagsSize",
@@ -55,12 +50,8 @@ abstract class FiroCacheCoordinator {
       "Spark cache anon set size: $setSize",
       level: LogLevel.Debug,
     );
-    Logging.instance.log(
-      "Spark cache set meta size: $setMetaSize",
-      level: LogLevel.Debug,
-    );
 
-    final int bytes = tagsSize + setSize + setMetaSize;
+    final int bytes = tagsSize + setSize;
 
     if (bytes < 1024) {
       return '$bytes B';
@@ -104,93 +95,70 @@ abstract class FiroCacheCoordinator {
     void Function(int countFetched, int totalCount)? progressUpdated,
   ) async {
     await _setLocks[network]!.protect(() async {
-      Map<String, dynamic> json;
-      SparkAnonymitySetMeta? meta;
+      const sectorSize = 12000; // TODO adjust this?
+      final prevMeta = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
+        groupId,
+        network,
+      );
 
-      if (progressUpdated == null) {
-        // Legacy
-        final blockhashResult =
-            await FiroCacheCoordinator.getLatestSetInfoForGroupId(
-          groupId,
-          network,
+      final prevSize = prevMeta?.size ?? 0;
+
+      final meta = await client.getSparkAnonymitySetMeta(
+        coinGroupId: groupId,
+      );
+
+      progressUpdated?.call(prevSize, meta.size);
+
+      if (prevMeta?.blockHash == meta.blockHash) {
+        Logging.instance.log(
+          "prevMeta?.blockHash == meta.blockHash",
+          level: LogLevel.Debug,
         );
-        final blockHash = blockhashResult?.blockHash ?? "";
-
-        json = await client.getSparkAnonymitySet(
-          coinGroupId: groupId.toString(),
-          startBlockHash: blockHash.toHexReversedFromBase64,
-        );
-      } else {
-        const sectorSize = 2000; // TODO adjust this?
-        final prevMetaSize =
-            await FiroCacheCoordinator.getSparkMetaSetSizeForGroupId(
-          groupId,
-          network,
-        );
-        final prevSize = prevMetaSize ?? 0;
-
-        meta = await client.getSparkAnonymitySetMeta(
-          coinGroupId: groupId,
-        );
-
-        progressUpdated.call(prevSize, meta.size);
-
-        /// Returns blockHash (last block hash),
-        /// setHash (hash of current set)
-        /// and coins (the list of pairs serialized coin and tx hash)
-
-        final fullSectorCount = (meta.size - prevSize) ~/ sectorSize;
-        final remainder = (meta.size - prevSize) % sectorSize;
-
-        final List<dynamic> coins = [];
-
-        for (int i = 0; i < fullSectorCount; i++) {
-          final start = (i * sectorSize) + prevSize;
-          final data = await client.getSparkAnonymitySetBySector(
-            coinGroupId: groupId,
-            latestBlock: meta.blockHash.toHexReversedFromBase64,
-            startIndex: start,
-            endIndex: start + sectorSize,
-          );
-          progressUpdated.call(start + sectorSize, meta.size);
-
-          coins.addAll(data);
-        }
-
-        if (remainder > 0) {
-          final data = await client.getSparkAnonymitySetBySector(
-            coinGroupId: groupId,
-            latestBlock: meta.blockHash.toHexReversedFromBase64,
-            startIndex: meta.size - remainder,
-            endIndex: meta.size,
-          );
-          progressUpdated.call(meta.size, meta.size);
-
-          coins.addAll(data);
-        }
-
-        json = {
-          "blockHash": meta.blockHash,
-          "setHash": meta.setHash,
-          "coins": coins,
-        };
+        return;
       }
+
+      final numberOfCoinsToFetch = meta.size - prevSize;
+
+      final fullSectorCount = numberOfCoinsToFetch ~/ sectorSize;
+      final remainder = numberOfCoinsToFetch % sectorSize;
+
+      final List<dynamic> coins = [];
+
+      for (int i = 0; i < fullSectorCount; i++) {
+        final start = (i * sectorSize);
+        final data = await client.getSparkAnonymitySetBySector(
+          coinGroupId: groupId,
+          latestBlock: meta.blockHash.toHexReversedFromBase64,
+          startIndex: start,
+          endIndex: start + sectorSize,
+        );
+        progressUpdated?.call(start + sectorSize, numberOfCoinsToFetch);
+
+        coins.addAll(data);
+      }
+
+      if (remainder > 0) {
+        final data = await client.getSparkAnonymitySetBySector(
+          coinGroupId: groupId,
+          latestBlock: meta.blockHash.toHexReversedFromBase64,
+          startIndex: numberOfCoinsToFetch - remainder,
+          endIndex: numberOfCoinsToFetch,
+        );
+        progressUpdated?.call(numberOfCoinsToFetch, numberOfCoinsToFetch);
+
+        coins.addAll(data);
+      }
+
+      final result = coins
+          .map((e) => RawSparkCoin.fromRPCResponse(e as List, groupId))
+          .toList();
 
       await _workers[network]!.runTask(
         FCTask(
           func: FCFuncName._updateSparkAnonSetCoinsWith,
-          data: (groupId, json),
+          data: (meta, result),
         ),
       );
-
-      if (meta != null) {
-        await _workers[network]!.runTask(
-          FCTask(
-            func: FCFuncName._updateSparkAnonSetMetaWith,
-            data: meta,
-          ),
-        );
-      }
     });
   }
 
@@ -265,28 +233,29 @@ abstract class FiroCacheCoordinator {
     );
   }
 
-  static Future<
-      List<
-          ({
-            String serialized,
-            String txHash,
-            String context,
-          })>> getSetCoinsForGroupId(
+  static Future<List<RawSparkCoin>> getSetCoinsForGroupId(
     int groupId, {
-    int? newerThanTimeStamp,
+    String? afterBlockHash,
     required CryptoCurrencyNetwork network,
   }) async {
-    final resultSet = await _Reader._getSetCoinsForGroupId(
-      groupId,
-      db: _FiroCache.setCacheDB(network),
-      newerThanTimeStamp: newerThanTimeStamp,
-    );
+    final resultSet = afterBlockHash == null
+        ? await _Reader._getSetCoinsForGroupId(
+            groupId,
+            db: _FiroCache.setCacheDB(network),
+          )
+        : await _Reader._getSetCoinsForGroupIdAndBlockHash(
+            groupId,
+            afterBlockHash,
+            db: _FiroCache.setCacheDB(network),
+          );
+
     return resultSet
         .map(
-          (row) => (
+          (row) => RawSparkCoin(
             serialized: row["serialized"] as String,
             txHash: row["txHash"] as String,
             context: row["context"] as String,
+            groupId: groupId,
           ),
         )
         .toList()
@@ -294,12 +263,7 @@ abstract class FiroCacheCoordinator {
         .toList();
   }
 
-  static Future<
-      ({
-        String blockHash,
-        String setHash,
-        int timestampUTC,
-      })?> getLatestSetInfoForGroupId(
+  static Future<SparkAnonymitySetMeta?> getLatestSetInfoForGroupId(
     int groupId,
     CryptoCurrencyNetwork network,
   ) async {
@@ -312,10 +276,11 @@ abstract class FiroCacheCoordinator {
       return null;
     }
 
-    return (
+    return SparkAnonymitySetMeta(
+      coinGroupId: groupId,
       blockHash: result.first["blockHash"] as String,
       setHash: result.first["setHash"] as String,
-      timestampUTC: result.first["timestampUTC"] as int,
+      size: result.first["size"] as int,
     );
   }
 
@@ -327,20 +292,5 @@ abstract class FiroCacheCoordinator {
       groupId,
       db: _FiroCache.setCacheDB(network),
     );
-  }
-
-  static Future<int?> getSparkMetaSetSizeForGroupId(
-    int groupId,
-    CryptoCurrencyNetwork network,
-  ) async {
-    final result = await _Reader._getSizeForGroupId(
-      groupId,
-      db: _FiroCache.setMetaCacheDB(network),
-    );
-    if (result.isEmpty) {
-      return null;
-    }
-
-    return result.first["size"] as int;
   }
 }

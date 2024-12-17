@@ -8,20 +8,14 @@ abstract class _Reader {
   static Future<ResultSet> _getSetCoinsForGroupId(
     int groupId, {
     required Database db,
-    int? newerThanTimeStamp,
   }) async {
-    String query = """
-      SELECT sc.serialized, sc.txHash, sc.context
+    final query = """
+      SELECT sc.serialized, sc.txHash, sc.context, sc.groupId
       FROM SparkSet AS ss
       JOIN SparkSetCoins AS ssc ON ss.id = ssc.setId
       JOIN SparkCoin AS sc ON ssc.coinId = sc.id
-      WHERE ss.groupId = $groupId
+      WHERE ss.groupId = $groupId;
     """;
-
-    if (newerThanTimeStamp != null) {
-      query += " AND ss.timestampUTC"
-          " > $newerThanTimeStamp";
-    }
 
     return db.select("$query;");
   }
@@ -31,14 +25,43 @@ abstract class _Reader {
     required Database db,
   }) async {
     final query = """
-      SELECT ss.blockHash, ss.setHash, ss.timestampUTC
+      SELECT ss.blockHash, ss.setHash, ss.size
       FROM SparkSet ss
       WHERE ss.groupId = $groupId
-      ORDER BY ss.timestampUTC DESC
+      ORDER BY ss.size DESC
       LIMIT 1;
     """;
 
     return db.select("$query;");
+  }
+
+  static Future<ResultSet> _getSetCoinsForGroupIdAndBlockHash(
+    int groupId,
+    String blockHash, {
+    required Database db,
+  }) async {
+    const query = """
+        WITH TargetBlock AS (
+          SELECT id
+          FROM SparkSet
+          WHERE blockHash = ?
+        ),
+        TargetSets AS (
+          SELECT id AS setId
+          FROM SparkSet
+          WHERE groupId = ? AND id > (SELECT id FROM TargetBlock)
+        )
+        SELECT 
+          SparkCoin.serialized,
+          SparkCoin.txHash,
+          SparkCoin.context,
+          SparkCoin.groupId
+        FROM SparkSetCoins
+        JOIN SparkCoin ON SparkSetCoins.coinId = SparkCoin.id
+        WHERE SparkSetCoins.setId IN (SELECT setId FROM TargetSets);
+    """;
+
+    return db.select("$query;", [blockHash, groupId]);
   }
 
   static Future<bool> _checkSetInfoForGroupIdExists(
@@ -54,21 +77,6 @@ abstract class _Reader {
     """;
 
     return db.select("$query;").first["setExists"] == 1;
-  }
-
-  // ===========================================================================
-  // =============== Spark anonymity set meta queries ==========================
-  static Future<ResultSet> _getSizeForGroupId(
-    int groupId, {
-    required Database db,
-  }) async {
-    final query = """
-      SELECT size
-      FROM PreviousMetaFetchResult
-      WHERE coinGroupId = $groupId;
-    """;
-
-    return db.select("$query;");
   }
 
   // ===========================================================================
