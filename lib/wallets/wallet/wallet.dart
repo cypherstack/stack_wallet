@@ -565,7 +565,9 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   void _fireRefreshPercentChange(double percent) {
-    (this as ElectrumXInterface?)?.refreshingPercent = percent;
+    if (this is ElectrumXInterface) {
+      (this as ElectrumXInterface?)?.refreshingPercent = percent;
+    }
     GlobalEventBus.instance.fire(RefreshPercentChangedEvent(percent, walletId));
   }
 

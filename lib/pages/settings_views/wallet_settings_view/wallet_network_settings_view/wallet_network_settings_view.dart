@@ -234,10 +234,12 @@ class _WalletNetworkSettingsViewState
       _percent = 1;
       _blocksRemaining = 0;
     } else {
-      _percent =
-          (ref.read(pWallets).getWallet(widget.walletId) as ElectrumXInterface?)
-                  ?.refreshingPercent ??
-              0;
+      final wallet = ref.read(pWallets).getWallet(widget.walletId);
+      if (wallet is ElectrumXInterface) {
+        _percent = wallet.refreshingPercent ?? 0;
+      } else {
+        _percent = 0;
+      }
       _blocksRemaining = -1;
     }
 
