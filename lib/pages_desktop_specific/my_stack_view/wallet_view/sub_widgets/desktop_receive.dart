@@ -377,6 +377,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+       const SizedBox(
+         height: 4,
+       ),
        if (isMimblewimblecoin)
         Padding(
           padding: const EdgeInsets.all(0),

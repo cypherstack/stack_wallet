@@ -40,6 +40,7 @@ import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/enums/txs_method_mwc_enum.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
@@ -75,6 +76,7 @@ import '../../../coin_control/desktop_coin_control_use_dialog.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
 import 'desktop_fee_dropdown.dart';
+import 'desktop_mwc_txs_method_toggle.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -108,6 +110,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   // late TextEditingController feeController;
   late TextEditingController memoController;
 
+
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
@@ -116,7 +119,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _memoFocus = FocusNode();
 
   late final bool isStellar;
+  late final bool isMimblewimblecoin;
 
+  String? _selectedMethodMwc; 
   String? _note;
   String? _onChainNote;
 
@@ -963,6 +968,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     clipboard = widget.clipboard;
     scanner = widget.barcodeScanner;
     isStellar = coin is Stellar;
+    isMimblewimblecoin = coin is Mimblewimblecoin;
+    if (isMimblewimblecoin) {
+      _selectedMethodMwc = "Slatepack";
+    }
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1101,6 +1110,32 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         const SizedBox(
           height: 4,
         ),
+        if (isMimblewimblecoin)
+          Padding(
+            padding: const EdgeInsets.all(0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).extension<StackColors>()?.textFieldDefaultBG ?? Colors.white, // Fallback color
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).extension<StackColors>()?.backgroundAppBar ?? Colors.grey, // Fallback color
+                  width: 1,
+                ),
+              ),
+              child: SizedBox(
+                height: 50, // Provide an explicit height to avoid infinite constraints
+                child: MwcTxsMethodToggle(
+                  onChanged: (TxsMethodMwcType type) {
+                    setState(() {
+                      _selectedMethodMwc = type == TxsMethodMwcType.automatic ? 'Slatepack' : 'Automatic';
+                    });
+                  },
+                ),
+              ),
+            ),
+          ),
+        if (isMimblewimblecoin)
+
         if (coin is Firo)
           Text(
             "Send from",
@@ -1225,7 +1260,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-        if (coin is Firo)
+        if (coin is Firo || isMimblewimblecoin)
           const SizedBox(
             height: 20,
           ),
