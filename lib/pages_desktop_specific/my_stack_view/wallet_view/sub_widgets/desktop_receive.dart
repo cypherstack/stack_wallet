@@ -379,7 +379,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       children: [
        if (isMimblewimblecoin)
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(0),
           child: Container(
             decoration: BoxDecoration(
               color: Theme.of(context).extension<StackColors>()?.textFieldDefaultBG ?? Colors.white, // Fallback color
@@ -401,7 +401,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             ),
           ),
         ),
-
+        const SizedBox(
+          height: 20,
+        ),
         ConditionalParent(
           condition: showMultiType,
           builder: (child) => Column(
@@ -585,7 +587,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             label: "Generate new address",
           ),
         const SizedBox(
-          height: 32,
+          height: 20,
         ),
         if (isMimblewimblecoin && _selectedMethodMwc == 'Slatepack')
           Column(
@@ -593,7 +595,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             children: [
               // Label Text
               Text(
-                "Send to",
+                "Receive Slatepack",
                 style: STextStyles.desktopTextExtraSmall(context).copyWith(
                   color: Theme.of(context)
                       .extension<StackColors>()!
@@ -728,7 +730,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: PrimaryButton(
               buttonHeight: ButtonHeight.l,
-              label: "Submit",
+              label: "Preview Receive Slatepack",
               enabled: true,
               onPressed: () {
                 debugPrint('Submit button pressed for Mimblewimblecoin Slatepack');
