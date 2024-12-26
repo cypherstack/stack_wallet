@@ -860,13 +860,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     onChanged?.call(canSave, canTestConnection);
     ref.read(nodeFormDataProvider).name = _nameController.text;
     ref.read(nodeFormDataProvider).host = _hostController.text;
-
-    ref.read(nodeFormDataProvider).login =
-        _usernameController.text.isEmpty ? null : _usernameController.text;
-
-    ref.read(nodeFormDataProvider).password =
-        _passwordController.text.isEmpty ? null : _passwordController.text;
-
+    ref.read(nodeFormDataProvider).login = _usernameController.text;
+    ref.read(nodeFormDataProvider).password = _passwordController.text;
     ref.read(nodeFormDataProvider).port = port;
     ref.read(nodeFormDataProvider).useSSL = _useSSL;
     ref.read(nodeFormDataProvider).isFailover = _isFailover;
