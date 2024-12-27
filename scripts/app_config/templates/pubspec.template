@@ -204,10 +204,7 @@ dependencies:
   cbor: ^6.3.3
   cs_monero: 1.0.0-pre.1
   cs_monero_flutter_libs: 1.0.0-pre.0
-  monero_rpc:
-    git:
-      url: https://github.com/cypherstack/monero_rpc
-      ref: 57b12e59dfba46b1b2da35f7ba97628fd7528c99
+  monero_rpc: ^2.0.0
   digest_auth: ^1.0.1
 
 dev_dependencies:
