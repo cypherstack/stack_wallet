@@ -46,6 +46,7 @@ import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/crypto_currency/interfaces/bip48_currency_interface.dart';
 import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
@@ -1236,7 +1237,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       },
                     ),
                   if (wallet.info.coin
-                      is Bitcoin) // TODO [prio=low]: test if !isViewOnly is necessary... I think not, we should be able to make view-only shared multisig wallets.
+                      is BIP48CurrencyInterface) // TODO [prio=low]: test if !isViewOnly is necessary... I think not, we should be able to make view-only shared multisig wallets.
                     WalletNavigationBarItemData(
                       label: "Make multisignature account",
                       icon: const MultisigSetupNavIcon(),
