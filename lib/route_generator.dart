@@ -11,6 +11,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:stackwallet/pages/wallet_view/multisig_setup_view/multisig_setup_view.dart';
 import 'package:tuple/tuple.dart';
 
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
@@ -2153,6 +2154,16 @@ class RouteGenerator {
             ),
           );
         }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case MultisigSetupView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const MultisigSetupView(),
+          settings: RouteSettings(
+            name: settings.name,
+          ),
+        );
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       // == Desktop specific routes ============================================

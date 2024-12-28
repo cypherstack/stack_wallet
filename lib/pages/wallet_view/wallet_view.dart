@@ -73,6 +73,7 @@ import '../../widgets/wallet_navigation_bar/components/icons/coin_control_nav_ic
 import '../../widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/frost_sign_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
+import '../../widgets/wallet_navigation_bar/components/icons/multisig_setup_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
@@ -96,6 +97,7 @@ import '../settings_views/wallet_settings_view/wallet_network_settings_view/wall
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
 import '../special/firo_rescan_recovery_error_dialog.dart';
 import '../token_view/my_tokens_view.dart';
+import 'multisig_setup_view/multisig_setup_view.dart';
 import 'sub_widgets/transactions_list.dart';
 import 'sub_widgets/wallet_summary.dart';
 import 'transaction_views/all_transactions_view.dart';
@@ -1229,6 +1231,18 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           ChurningView.routeName,
+                          arguments: walletId,
+                        );
+                      },
+                    ),
+                  if (wallet.info.coin
+                      is Bitcoin) // TODO [prio=low]: test if !isViewOnly is necessary... I think not, we should be able to make view-only shared multisig wallets.
+                    WalletNavigationBarItemData(
+                      label: "Make multisignature account",
+                      icon: const MultisigSetupNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          MultisigSetupView.routeName,
                           arguments: walletId,
                         );
                       },

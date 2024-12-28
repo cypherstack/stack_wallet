@@ -121,6 +121,14 @@ packages:
       url: "https://github.com/cypherstack/bip47.git"
     source: git
     version: "2.0.0"
+  bip48:
+    dependency: "direct main"
+    description:
+      name: bip48
+      sha256: c31fa9a3fc1d755048c49317aa33b4cc8a396af387ffa1561010a981e4c9e8ca
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   bitbox:
     dependency: "direct main"
     description:
@@ -1376,6 +1384,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  nfc_manager:
+    dependency: "direct main"
+    description:
+      name: nfc_manager
+      sha256: f5be75e90f8f2bff3ee49fbd7ef65bdd4a86ee679c2412e71ab2846a8cff8c59
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.0"
   nm:
     dependency: transitive
     description:

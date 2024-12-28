@@ -426,6 +426,14 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                 ],
               ),
             ),
+          // TODO [prio=low]: Implement BIP48 accounts on desktop using copy/paste and/or webcam scanning.
+          // if (wallet.info.coin is Bitcoin) // TODO [prio=low]: test if !isViewOnly is necessary... I think not, we should be able to make view-only shared multisig wallets.
+          //   _MoreFeaturesItem(
+          //     label: "Make multisignature account",
+          //     detail: "Share an account with other wallets",
+          //     iconAsset: Assets.svg.peers, // I just picked a suitable icon, maybe another is more appropriate.
+          //     onPressed: () async => widget.onBIP48Pressed?.call(),
+          //   ),
           const SizedBox(
             height: 28,
           ),
