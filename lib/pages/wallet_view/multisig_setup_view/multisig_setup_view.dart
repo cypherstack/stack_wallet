@@ -1,18 +1,19 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data' show Uint8List;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:nfc_manager/nfc_manager.dart';
 
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/background.dart';
-import '../../../../widgets/custom_buttons/app_bar_icondart';
+import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/dialogs/simple_mobile_dialog.dart';
 import '../../../widgets/stack_dialog.dart';
 
 final multisigSetupStateProvider =
@@ -118,81 +119,81 @@ class MultisigSetupView extends ConsumerStatefulWidget {
 }
 
 class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
-  bool _isNfcAvailable = false;
-  String _nfcStatus = 'Checking NFC availability...';
+  // bool _isNfcAvailable = false;
+  // String _nfcStatus = 'Checking NFC availability...';
 
   @override
   void initState() {
     super.initState();
-    _checkNfcAvailability();
+    // _checkNfcAvailability();
   }
 
-  Future<void> _checkNfcAvailability() async {
-    try {
-      final availability = await NfcManager.instance.isAvailable();
-      setState(() {
-        _isNfcAvailable = availability;
-        _nfcStatus = _isNfcAvailable
-            ? 'NFC is available'
-            : 'NFC is not available on this device';
-      });
-    } catch (e) {
-      setState(() {
-        _nfcStatus = 'Error checking NFC: $e';
-        _isNfcAvailable = false;
-      });
-    }
-  }
-
-  Future<void> _startNfcSession() async {
-    if (!_isNfcAvailable) return;
-
-    setState(() => _nfcStatus = 'Ready to exchange information...');
-
-    try {
-      await NfcManager.instance.startSession(
-        onDiscovered: (tag) async {
-          try {
-            final ndef = Ndef.from(tag);
-
-            if (ndef == null) {
-              setState(() => _nfcStatus = 'Tag is not NDEF compatible');
-              return;
-            }
-
-            final setupData = ref.watch(multisigSetupStateProvider);
-
-            if (ndef.isWritable) {
-              final message = NdefMessage([
-                NdefRecord.createMime(
-                  'application/x-multisig-setup',
-                  Uint8List.fromList(
-                      utf8.encode(jsonEncode(setupData.toJson()))),
-                ),
-              ]);
-
-              try {
-                await ndef.write(message);
-                setState(
-                    () => _nfcStatus = 'Configuration shared successfully');
-              } catch (e) {
-                setState(
-                    () => _nfcStatus = 'Failed to share configuration: $e');
-              }
-            }
-
-            await NfcManager.instance.stopSession();
-          } catch (e) {
-            setState(() => _nfcStatus = 'Error during NFC exchange: $e');
-            await NfcManager.instance.stopSession();
-          }
-        },
-      );
-    } catch (e) {
-      setState(() => _nfcStatus = 'Error: $e');
-      await NfcManager.instance.stopSession();
-    }
-  }
+  // Future<void> _checkNfcAvailability() async {
+  //   try {
+  //     final availability = await NfcManager.instance.isAvailable();
+  //     setState(() {
+  //       _isNfcAvailable = availability;
+  //       _nfcStatus = _isNfcAvailable
+  //           ? 'NFC is available'
+  //           : 'NFC is not available on this device';
+  //     });
+  //   } catch (e) {
+  //     setState(() {
+  //       _nfcStatus = 'Error checking NFC: $e';
+  //       _isNfcAvailable = false;
+  //     });
+  //   }
+  // }
+  //
+  // Future<void> _startNfcSession() async {
+  //   if (!_isNfcAvailable) return;
+  //
+  //   setState(() => _nfcStatus = 'Ready to exchange information...');
+  //
+  //   try {
+  //     await NfcManager.instance.startSession(
+  //       onDiscovered: (tag) async {
+  //         try {
+  //           final ndef = Ndef.from(tag);
+  //
+  //           if (ndef == null) {
+  //             setState(() => _nfcStatus = 'Tag is not NDEF compatible');
+  //             return;
+  //           }
+  //
+  //           final setupData = ref.watch(multisigSetupStateProvider);
+  //
+  //           if (ndef.isWritable) {
+  //             final message = NdefMessage([
+  //               NdefRecord.createMime(
+  //                 'application/x-multisig-setup',
+  //                 Uint8List.fromList(
+  //                     utf8.encode(jsonEncode(setupData.toJson()))),
+  //               ),
+  //             ]);
+  //
+  //             try {
+  //               await ndef.write(message);
+  //               setState(
+  //                   () => _nfcStatus = 'Configuration shared successfully');
+  //             } catch (e) {
+  //               setState(
+  //                   () => _nfcStatus = 'Failed to share configuration: $e');
+  //             }
+  //           }
+  //
+  //           await NfcManager.instance.stopSession();
+  //         } catch (e) {
+  //           setState(() => _nfcStatus = 'Error during NFC exchange: $e');
+  //           await NfcManager.instance.stopSession();
+  //         }
+  //       },
+  //     );
+  //   } catch (e) {
+  //     setState(() => _nfcStatus = 'Error: $e');
+  //     await NfcManager.instance.stopSession();
+  //   }
+  // }
 
   /// Displays a short explanation dialog about musig.
   Future<void> _showMultisigInfoDialog() async {
@@ -214,15 +215,180 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
     );
   }
 
+  void _showScriptTypeDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => SimpleMobileDialog(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "What is a script type?",
+              style: STextStyles.w600_20(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "The script type you choose determines the type of wallet "
+              "addresses and the size and structure of transactions.",
+              style: STextStyles.w400_16(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "Legacy (P2SH):",
+              style: STextStyles.w600_18(context),
+            ),
+            Text(
+              "The original multisig format. Compatible with all wallets but has "
+              "higher transaction fees.  P2SH addresses begin with 3.",
+              style: STextStyles.w400_16(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "Nested SegWit (P2SH-P2WSH):",
+              style: STextStyles.w600_18(context),
+            ),
+            Text(
+              "A newer format that reduces transaction fees while maintaining "
+              "broad compatibility.  P2SH-P2WSH addresses begin with 3.",
+              style: STextStyles.w400_16(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "Native SegWit (P2WSH):",
+              style: STextStyles.w600_18(context),
+            ),
+            Text(
+              "The lowest transaction fees, but may not be compatible with older "
+              "wallets.  P2WSH addresses begin with bc1.",
+              style: STextStyles.w400_16(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  final _thresholdController = TextEditingController();
+  final _participantsController = TextEditingController();
+
+  final List<TextEditingController> controllers = [];
+
+  int _participantsCount = 0;
+
+  String _validateInputData() {
+    final threshold = int.tryParse(_thresholdController.text);
+    if (threshold == null) {
+      return "Choose a threshold";
+    }
+
+    final partsCount = int.tryParse(_participantsController.text);
+    if (partsCount == null) {
+      return "Choose total number of participants";
+    }
+
+    if (threshold > partsCount) {
+      return "Threshold cannot be greater than the number of participants";
+    }
+
+    if (partsCount < 2) {
+      return "At least two participants required";
+    }
+
+    if (controllers.length != partsCount) {
+      return "Participants count error";
+    }
+
+    return "valid";
+  }
+
+  void _participantsCountChanged(String newValue) {
+    final count = int.tryParse(newValue);
+    if (count != null) {
+      if (count > _participantsCount) {
+        for (int i = _participantsCount; i < count; i++) {
+          controllers.add(TextEditingController());
+        }
+
+        _participantsCount = count;
+        setState(() {});
+      } else if (count < _participantsCount) {
+        for (int i = _participantsCount; i > count; i--) {
+          final last = controllers.removeLast();
+          last.dispose();
+        }
+
+        _participantsCount = count;
+        setState(() {});
+      }
+    }
+  }
+
+  void _showWhatIsThresholdDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => SimpleMobileDialog(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "What is a threshold?",
+              style: STextStyles.w600_20(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "A threshold is the amount of people required to perform an "
+              "action. This does not have to be the same number as the "
+              "total number in the group.",
+              style: STextStyles.w400_16(context),
+            ),
+            const SizedBox(
+              height: 6,
+            ),
+            Text(
+              "For example, if you have 3 people in the group, but a threshold "
+              "of 2, then you only need 2 out of the 3 people to sign for an "
+              "action to take place.",
+              style: STextStyles.w400_16(context),
+            ),
+            const SizedBox(
+              height: 6,
+            ),
+            Text(
+              "Conversely if you have a group of 3 AND a threshold of 3, you "
+              "will need all 3 people in the group to sign to approve any "
+              "action.",
+              style: STextStyles.w400_16(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _thresholdController.dispose();
+    _participantsController.dispose();
+    for (final controller in controllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bool isDesktop = Util.isDesktop;
     final setupData = ref.watch(multisigSetupStateProvider);
-
-    // Required signatures<= total cosigners.
-    final clampedThreshold = (setupData.threshold > setupData.totalCosigners)
-        ? setupData.totalCosigners
-        : setupData.threshold;
+    final bool isDesktop = Util.isDesktop;
 
     return Background(
       child: SafeArea(
@@ -265,227 +431,182 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
               ),
             ],
           ),
-          body: LayoutBuilder(
-            builder: (builderContext, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // We'll add a method to share the config w/ cosigners
-                          // so there's not much need to remind them here.
-                          // RoundedWhiteContainer(
-                          //   child: Text(
-                          //     "Make sure all cosigners use the same "
-                          //     "configuration when creating the shared account.",
-                          //     style: STextStyles.w500_12(context).copyWith(
-                          //       color: Theme.of(context)
-                          //           .extension<StackColors>()!
-                          //           .textSubtitle1,
-                          //     ),
-                          //   ),
-                          // ),
-                          // const SizedBox(height: 16),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Configuration",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+                const SizedBox(height: 16),
 
-                          Text(
-                            "Configuration",
-                            style: STextStyles.itemSubtitle(context),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Script Type Selection
-                          RoundedContainer(
-                            padding: const EdgeInsets.all(16),
+                // Script type.
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Script type",
+                          style: STextStyles.w500_14(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
-                                .popupBG,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Script Type",
-                                  style: STextStyles.titleBold12(context),
-                                ),
-                                const SizedBox(height: 8),
-                                DropdownButtonFormField<MultisigScriptType>(
-                                  value: setupData.scriptType,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                  ),
-                                  items: MultisigScriptType.values.map((type) {
-                                    String label;
-                                    switch (type) {
-                                      case MultisigScriptType.legacy:
-                                        label = "Legacy (P2SH)";
-                                        break;
-                                      case MultisigScriptType.segwit:
-                                        label = "Nested SegWit (P2SH-P2WSH)";
-                                        break;
-                                      case MultisigScriptType.nativeSegwit:
-                                        label = "Native SegWit (P2WSH)";
-                                        break;
-                                    }
-                                    return DropdownMenuItem(
-                                      value: type,
-                                      child: Text(label),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      ref
-                                          .read(
-                                            multisigSetupStateProvider.notifier,
-                                          )
-                                          .updateScriptType(value);
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
+                                .textDark3,
                           ),
+                        ),
+                        CustomTextButton(
+                          text: "What is a script type?",
+                          onTap: _showScriptTypeDialog,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<MultisigScriptType>(
+                      value: setupData.scriptType,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      items: MultisigScriptType.values.map((type) {
+                        String label;
+                        switch (type) {
+                          case MultisigScriptType.legacy:
+                            label = "Legacy (P2SH)";
+                            break;
+                          case MultisigScriptType.segwit:
+                            label = "Nested SegWit (P2SH-P2WSH)";
+                            break;
+                          case MultisigScriptType.nativeSegwit:
+                            label = "Native SegWit (P2WSH)";
+                            break;
+                        }
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Text(label),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          ref
+                              .read(multisigSetupStateProvider.notifier)
+                              .updateScriptType(value);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
 
-                          const SizedBox(height: 16),
-
-                          // Multisig params setup
-
-                          RoundedContainer(
-                            padding: const EdgeInsets.all(16),
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .popupBG,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Total cosigners: ${setupData.totalCosigners}",
-                                  style: STextStyles.titleBold12(context),
-                                ),
-                                Slider(
-                                  value: setupData.totalCosigners.toDouble(),
-                                  min: 2,
-                                  max: 7, // There's not actually a max.
-                                  divisions: 7, // Match the above or look off.
-                                  label:
-                                      "${setupData.totalCosigners} cosigners",
-                                  onChanged: (value) {
-                                    ref
-                                        .read(
-                                            multisigSetupStateProvider.notifier)
-                                        .updateTotalCosigners(value.toInt());
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  "Required Signatures: $clampedThreshold of ${setupData.totalCosigners}",
-                                  style: STextStyles.titleBold12(context),
-                                ),
-                                Slider(
-                                  value: clampedThreshold.toDouble(),
-                                  min: 1,
-                                  max: setupData.totalCosigners.toDouble(),
-                                  divisions: setupData.totalCosigners - 1,
-                                  label:
-                                      "$clampedThreshold of ${setupData.totalCosigners}",
-                                  onChanged: (value) {
-                                    ref
-                                        .read(
-                                            multisigSetupStateProvider.notifier)
-                                        .updateThreshold(value.toInt());
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // We'll make a FROST-like progress indicator in a
-                          // dialog to show the progress of the setup process.
-                          // This simpler example will be removed soon.
-                          // Text(
-                          //   "Exchange Method",
-                          //   style: STextStyles.itemSubtitle(context),
-                          // ),
-                          // const SizedBox(height: 16),
-                          //
-                          // // NFC exchange.
-                          // RoundedContainer(
-                          //   padding: const EdgeInsets.all(16),
-                          //   color: Theme.of(context)
-                          //       .extension<StackColors>()!
-                          //       .popupBG,
-                          //   child: Column(
-                          //     crossAxisAlignment: CrossAxisAlignment.start,
-                          //     children: [
-                          //       Row(
-                          //         children: [
-                          //           Icon(
-                          //             _isNfcAvailable
-                          //                 ? Icons.nfc
-                          //                 : Icons.nfc_outlined,
-                          //             color: _isNfcAvailable
-                          //                 ? Theme.of(context)
-                          //                     .extension<StackColors>()!
-                          //                     .accentColorGreen
-                          //                 : Theme.of(context)
-                          //                     .extension<StackColors>()!
-                          //                     .textDark3,
-                          //           ),
-                          //           const SizedBox(width: 8),
-                          //           Text(
-                          //             "NFC Exchange",
-                          //             style: STextStyles.titleBold12(context),
-                          //           ),
-                          //         ],
-                          //       ),
-                          //       const SizedBox(height: 16),
-                          //       Text(
-                          //         _nfcStatus,
-                          //         style: STextStyles.baseXS(context),
-                          //       ),
-                          //       if (_isNfcAvailable) ...[
-                          //         const SizedBox(height: 16),
-                          //         SizedBox(
-                          //           width: double.infinity,
-                          //           child: !isDesktop
-                          //               ? TextButton(
-                          //                   onPressed: _startNfcSession,
-                          //                   style: Theme.of(context)
-                          //                       .extension<StackColors>()!
-                          //                       .getPrimaryEnabledButtonStyle(
-                          //                           context),
-                          //                   child: Text(
-                          //                     "Tap to Exchange Information",
-                          //                     style:
-                          //                         STextStyles.button(context),
-                          //                   ),
-                          //                 )
-                          //               : PrimaryButton(
-                          //                   label:
-                          //                       "Tap to Exchange Information",
-                          //                   onPressed: _startNfcSession,
-                          //                   enabled: true,
-                          //                 ),
-                          //         ),
-                          //       ],
-                          //     ],
-                          //   ),
-                          // ),
-
-                          const Spacer(),
-                        ],
+                // Threshold and Participants.
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Number of participants",
+                      style: STextStyles.w500_14(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      controller: _participantsController,
+                      onChanged: _participantsCountChanged,
+                      decoration: InputDecoration(
+                        hintText: "Enter number of participants",
+                        hintStyle: STextStyles.fieldLabel(context),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Threshold",
+                          style: STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
+                          ),
+                        ),
+                        CustomTextButton(
+                          text: "What is a threshold?",
+                          onTap: _showWhatIsThresholdDialog,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      controller: _thresholdController,
+                      decoration: InputDecoration(
+                        hintText: "Enter number of signatures",
+                        hintStyle: STextStyles.fieldLabel(context),
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
+                const SizedBox(height: 24),
+
+                // TODO: Push button to bottom of page.
+                PrimaryButton(
+                  label: "Create multisignature account",
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                    }
+
+                    final validationMessage = _validateInputData();
+
+                    if (validationMessage != "valid") {
+                      return await showDialog<void>(
+                        context: context,
+                        builder: (_) => StackOkDialog(
+                          title: validationMessage,
+                          desktopPopRootNavigator: Util.isDesktop,
+                        ),
+                      );
+                    }
+
+                    // TODO: Adapt the FROST config steps UI.
+                    // final config = Frost.createMultisigConfig(
+                    //   name: controllers.first.text.trim(),
+                    //   threshold: int.parse(_thresholdController.text),
+                    //   participants:
+                    //       controllers.map((e) => e.text.trim()).toList(),
+                    // );
+                    //
+                    // ref.read(pFrostMyName.notifier).state =
+                    //     controllers.first.text.trim();
+                    // ref.read(pFrostMultisigConfig.notifier).state = config;
+                    //
+                    // ref.read(pFrostScaffoldArgs.state).state = (
+                    //   info: (
+                    //     walletName: widget.walletName,
+                    //     frostCurrency: widget.frostCurrency,
+                    //   ),
+                    //   walletId: null,
+                    //   stepRoutes: FrostRouteGenerator.createNewConfigStepRoutes,
+                    //   frostInterruptionDialogType:
+                    //       FrostInterruptionDialogType.walletCreation,
+                    //   parentNav: Navigator.of(context),
+                    //   callerRouteName: CreateNewFrostMsWalletView.routeName,
+                    // );
+                    //
+                    // await Navigator.of(context).pushNamed(
+                    //   FrostStepScaffold.routeName,
+                    // );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
