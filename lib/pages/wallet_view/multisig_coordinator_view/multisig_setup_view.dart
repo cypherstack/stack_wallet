@@ -15,6 +15,7 @@ import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/simple_mobile_dialog.dart';
 import '../../../widgets/stack_dialog.dart';
+import 'multisig_coordinator_view.dart';
 
 final multisigSetupStateProvider =
     StateNotifierProvider<MultisigSetupState, MultisigSetupData>((ref) {
@@ -110,7 +111,12 @@ class MultisigSetupState extends StateNotifier<MultisigSetupData> {
 class MultisigSetupView extends ConsumerStatefulWidget {
   const MultisigSetupView({
     super.key,
+    this.totalCosigners,
+    this.threshold,
   });
+
+  final int? totalCosigners;
+  final int? threshold;
 
   static const String routeName = "/multisigSetup";
 
@@ -119,81 +125,25 @@ class MultisigSetupView extends ConsumerStatefulWidget {
 }
 
 class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
-  // bool _isNfcAvailable = false;
-  // String _nfcStatus = 'Checking NFC availability...';
-
   @override
   void initState() {
     super.initState();
-    // _checkNfcAvailability();
-  }
 
-  // Future<void> _checkNfcAvailability() async {
-  //   try {
-  //     final availability = await NfcManager.instance.isAvailable();
-  //     setState(() {
-  //       _isNfcAvailable = availability;
-  //       _nfcStatus = _isNfcAvailable
-  //           ? 'NFC is available'
-  //           : 'NFC is not available on this device';
-  //     });
-  //   } catch (e) {
-  //     setState(() {
-  //       _nfcStatus = 'Error checking NFC: $e';
-  //       _isNfcAvailable = false;
-  //     });
-  //   }
-  // }
-  //
-  // Future<void> _startNfcSession() async {
-  //   if (!_isNfcAvailable) return;
-  //
-  //   setState(() => _nfcStatus = 'Ready to exchange information...');
-  //
-  //   try {
-  //     await NfcManager.instance.startSession(
-  //       onDiscovered: (tag) async {
-  //         try {
-  //           final ndef = Ndef.from(tag);
-  //
-  //           if (ndef == null) {
-  //             setState(() => _nfcStatus = 'Tag is not NDEF compatible');
-  //             return;
-  //           }
-  //
-  //           final setupData = ref.watch(multisigSetupStateProvider);
-  //
-  //           if (ndef.isWritable) {
-  //             final message = NdefMessage([
-  //               NdefRecord.createMime(
-  //                 'application/x-multisig-setup',
-  //                 Uint8List.fromList(
-  //                     utf8.encode(jsonEncode(setupData.toJson()))),
-  //               ),
-  //             ]);
-  //
-  //             try {
-  //               await ndef.write(message);
-  //               setState(
-  //                   () => _nfcStatus = 'Configuration shared successfully');
-  //             } catch (e) {
-  //               setState(
-  //                   () => _nfcStatus = 'Failed to share configuration: $e');
-  //             }
-  //           }
-  //
-  //           await NfcManager.instance.stopSession();
-  //         } catch (e) {
-  //           setState(() => _nfcStatus = 'Error during NFC exchange: $e');
-  //           await NfcManager.instance.stopSession();
-  //         }
-  //       },
-  //     );
-  //   } catch (e) {
-  //     setState(() => _nfcStatus = 'Error: $e');
-  //     await NfcManager.instance.stopSession();
-  //   }
-  // }
+    // Initialize participants count if provided.
+    if (widget.totalCosigners != null) {
+      _participantsCount = widget.totalCosigners!;
+      _participantsController.text = widget.totalCosigners!.toString();
+      // Initialize the controllers list.
+      for (int i = 0; i < widget.totalCosigners!; i++) {
+        controllers.add(TextEditingController());
+      }
+    }
+
+    // Initialize threshold if provided.
+    if (widget.threshold != null) {
+      _thresholdController.text = widget.threshold!.toString();
+    }
+  }
 
   /// Displays a short explanation dialog about musig.
   Future<void> _showMultisigInfoDialog() async {
@@ -557,7 +507,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
 
                 // TODO: Push button to bottom of page.
                 PrimaryButton(
-                  label: "Create multisignature account",
+                  label: "Continue",
                   onPressed: () async {
                     if (FocusScope.of(context).hasFocus) {
                       FocusScope.of(context).unfocus();
@@ -575,34 +525,15 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
                       );
                     }
 
-                    // TODO: Adapt the FROST config steps UI.
-                    // final config = Frost.createMultisigConfig(
-                    //   name: controllers.first.text.trim(),
-                    //   threshold: int.parse(_thresholdController.text),
-                    //   participants:
-                    //       controllers.map((e) => e.text.trim()).toList(),
-                    // );
-                    //
-                    // ref.read(pFrostMyName.notifier).state =
-                    //     controllers.first.text.trim();
-                    // ref.read(pFrostMultisigConfig.notifier).state = config;
-                    //
-                    // ref.read(pFrostScaffoldArgs.state).state = (
-                    //   info: (
-                    //     walletName: widget.walletName,
-                    //     frostCurrency: widget.frostCurrency,
-                    //   ),
-                    //   walletId: null,
-                    //   stepRoutes: FrostRouteGenerator.createNewConfigStepRoutes,
-                    //   frostInterruptionDialogType:
-                    //       FrostInterruptionDialogType.walletCreation,
-                    //   parentNav: Navigator.of(context),
-                    //   callerRouteName: CreateNewFrostMsWalletView.routeName,
-                    // );
-                    //
-                    // await Navigator.of(context).pushNamed(
-                    //   FrostStepScaffold.routeName,
-                    // );
+                    await Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) => MultisigCoordinatorView(
+                          totalCosigners:
+                              int.parse(_participantsController.text),
+                          threshold: int.parse(_thresholdController.text),
+                        ),
+                      ),
+                    );
                   },
                 ),
               ],

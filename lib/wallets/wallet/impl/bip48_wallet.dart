@@ -273,6 +273,8 @@ class BIP48Wallet<T extends Bip39HDCurrency> extends Wallet<T>
 
       TransactionType type;
       TransactionSubType subType = TransactionSubType.none;
+      // Will BIP48 wallets enjoy BIP47 compatibility?  We should add vectors
+      // for this if so--do any wallets implement such functionality?
       if (outputs.length > 1 && inputs.isNotEmpty) {
         for (int i = 0; i < outputs.length; i++) {
           final List<String>? scriptChunks =
@@ -465,14 +467,13 @@ class BIP48Wallet<T extends Bip39HDCurrency> extends Wallet<T>
 
   @override
   Future<TxData> prepareSend({required TxData txData}) {
-    // TODO: implement prepareSendpu
+    // TODO: implement prepareSend
     throw UnimplementedError();
   }
 
   @override
   Future<void> recover({
     required bool isRescan,
-    String? serializedKeys,
     String? multisigConfig,
   }) async {
     // TODO.

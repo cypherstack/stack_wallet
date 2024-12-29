@@ -6,12 +6,16 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../crypto_currency.dart';
+import '../interfaces/bip48_currency_interface.dart';
 import '../interfaces/electrumx_currency_interface.dart';
 import '../interfaces/paynym_currency_interface.dart';
 import '../intermediate/bip39_hd_currency.dart';
 
 class Bitcoin extends Bip39HDCurrency
-    with ElectrumXCurrencyInterface, PaynymCurrencyInterface {
+    with
+        ElectrumXCurrencyInterface,
+        PaynymCurrencyInterface,
+        BIP48CurrencyInterface {
   Bitcoin(super.network) {
     _idMain = "bitcoin";
     _uriScheme = "bitcoin";

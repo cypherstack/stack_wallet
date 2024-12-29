@@ -98,7 +98,7 @@ import '../settings_views/wallet_settings_view/wallet_network_settings_view/wall
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
 import '../special/firo_rescan_recovery_error_dialog.dart';
 import '../token_view/my_tokens_view.dart';
-import 'multisig_setup_view/multisig_setup_view.dart';
+import 'multisig_coordinator_view/multisig_setup_view.dart';
 import 'sub_widgets/transactions_list.dart';
 import 'sub_widgets/wallet_summary.dart';
 import 'transaction_views/all_transactions_view.dart';
