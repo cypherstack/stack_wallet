@@ -108,10 +108,12 @@ class MultisigCoordinatorState extends StateNotifier<MultisigCoordinatorData> {
 class MultisigCoordinatorView extends ConsumerStatefulWidget {
   const MultisigCoordinatorView({
     super.key,
+    required this.walletId,
     required this.totalCosigners,
     required this.threshold,
   });
 
+  final String walletId;
   final int totalCosigners;
   final int threshold;
 
@@ -254,13 +256,100 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Enter the extended public key (xpub) for each cosigner. "
+                            "This is your extended public key (xpub) for each cosigner.  "
+                            "Share it with each participant.",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
+                          const SizedBox(height: 24),
+
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Your xpub",
+                                  style: STextStyles.w500_14(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: xpubControllers[0],
+                                        enabled:
+                                            false, // Make field non-interactive
+                                        decoration: InputDecoration(
+                                          hintText: "xpub...",
+                                          hintStyle:
+                                              STextStyles.fieldLabel(context),
+                                          filled:
+                                              true, // Add background to show disabled state
+                                          fillColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textFieldDefaultBG,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    SecondaryButton(
+                                      width: 44,
+                                      buttonHeight: ButtonHeight.xl,
+                                      icon: QrCodeIcon(
+                                        width: 20,
+                                        height: 20,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .buttonTextSecondary,
+                                      ),
+                                      onPressed: () {
+                                        // TODO: Implement QR code scanning
+                                      },
+                                    ),
+                                    const SizedBox(width: 8),
+                                    SecondaryButton(
+                                      width: 44,
+                                      buttonHeight: ButtonHeight.xl,
+                                      icon: CopyIcon(
+                                        width: 20,
+                                        height: 20,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .buttonTextSecondary,
+                                      ),
+                                      onPressed: () async {
+                                        final data = await Clipboard.getData(
+                                            'text/plain');
+                                        if (data?.text != null) {
+                                          xpubControllers[0].text = data!.text!;
+                                          ref
+                                              .read(
+                                                  multisigCoordinatorStateProvider
+                                                      .notifier)
+                                              .addCosignerXpub(data.text!);
+                                          setState(
+                                              () {}); // Trigger rebuild to update button state.
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          Text(
+                            "Enter the extended public key (xpub) for each cosigner.  "
                             "These can be obtained from each participant's wallet.",
                             style: STextStyles.itemSubtitle(context),
                           ),
                           const SizedBox(height: 24),
 
-                          // Generate input fields for each cosigner
+                          // Generate input fields for each cosigner.
                           for (int i = 0; i < widget.totalCosigners; i++)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 16),

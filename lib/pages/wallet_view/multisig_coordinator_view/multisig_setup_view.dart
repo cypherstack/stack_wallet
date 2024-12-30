@@ -111,10 +111,12 @@ class MultisigSetupState extends StateNotifier<MultisigSetupData> {
 class MultisigSetupView extends ConsumerStatefulWidget {
   const MultisigSetupView({
     super.key,
+    required this.walletId,
     this.totalCosigners,
     this.threshold,
   });
 
+  final String walletId;
   final int? totalCosigners;
   final int? threshold;
 
@@ -528,6 +530,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
                     await Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (context) => MultisigCoordinatorView(
+                          walletId: widget.walletId,
                           totalCosigners:
                               int.parse(_participantsController.text),
                           threshold: int.parse(_thresholdController.text),
