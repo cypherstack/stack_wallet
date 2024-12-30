@@ -6,7 +6,9 @@ import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:bip48/bip48.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_nfc_hce/flutter_nfc_hce.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../themes/stack_colors.dart';
@@ -31,8 +33,10 @@ import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../widgets/icon_widgets/copy_icon.dart';
 import '../../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../../widgets/icon_widgets/share_icon.dart';
 import '../../add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
 import '../../add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import '../../add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
@@ -98,8 +102,9 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
   String _myXpub = "";
   late final bool isDesktop;
 
-  // bool _isNfcAvailable = false;
-  // String _nfcStatus = 'Checking NFC availability...';
+  final _flutterNfcHcePlugin = FlutterNfcHce();
+  bool _isNfcAvailable = false;
+  String _nfcStatus = 'Checking NFC availability...';
 
   @override
   void initState() {
@@ -146,7 +151,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
       }
     });
 
-    // _checkNfcAvailability();
+    _checkNfcAvailability();
   }
 
   @override
@@ -156,73 +161,6 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     }
     super.dispose();
   }
-
-  // Future<void> _checkNfcAvailability() async {
-  //   try {
-  //     final availability = await NfcManager.instance.isAvailable();
-  //     setState(() {
-  //       _isNfcAvailable = availability;
-  //       _nfcStatus = _isNfcAvailable
-  //           ? 'NFC is available'
-  //           : 'NFC is not available on this device';
-  //     });
-  //   } catch (e) {
-  //     setState(() {
-  //       _nfcStatus = 'Error checking NFC: $e';
-  //       _isNfcAvailable = false;
-  //     });
-  //   }
-  // }
-  //
-  // Future<void> _startNfcSession() async {
-  //   if (!_isNfcAvailable) return;
-  //
-  //   setState(() => _nfcStatus = 'Ready to exchange information...');
-  //
-  //   try {
-  //     await NfcManager.instance.startSession(
-  //       onDiscovered: (tag) async {
-  //         try {
-  //           final ndef = Ndef.from(tag);
-  //
-  //           if (ndef == null) {
-  //             setState(() => _nfcStatus = 'Tag is not NDEF compatible');
-  //             return;
-  //           }
-  //
-  //           final setupData = ref.watch(multisigSetupStateProvider);
-  //
-  //           if (ndef.isWritable) {
-  //             final message = NdefMessage([
-  //               NdefRecord.createMime(
-  //                 'application/x-multisig-setup',
-  //                 Uint8List.fromList(
-  //                     utf8.encode(jsonEncode(setupData.toJson()))),
-  //               ),
-  //             ]);
-  //
-  //             try {
-  //               await ndef.write(message);
-  //               setState(
-  //                   () => _nfcStatus = 'Configuration shared successfully');
-  //             } catch (e) {
-  //               setState(
-  //                   () => _nfcStatus = 'Failed to share configuration: $e');
-  //             }
-  //           }
-  //
-  //           await NfcManager.instance.stopSession();
-  //         } catch (e) {
-  //           setState(() => _nfcStatus = 'Error during NFC exchange: $e');
-  //           await NfcManager.instance.stopSession();
-  //         }
-  //       },
-  //     );
-  //   } catch (e) {
-  //     setState(() => _nfcStatus = 'Error: $e');
-  //     await NfcManager.instance.stopSession();
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -302,6 +240,30 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                         ),
                                       ),
                                     ),
+                                    if (Platform.isAndroid)
+                                      const SizedBox(width: 8),
+                                    if (Platform.isAndroid)
+                                      SecondaryButton(
+                                        width: 44,
+                                        buttonHeight: ButtonHeight.xl,
+                                        icon: ShareIcon(
+                                          // TODO: Replace with NFC icon.
+                                          width: 20,
+                                          height: 20,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .buttonTextSecondary,
+                                        ),
+                                        onPressed: () async {
+                                          await _showNfcDialog(
+                                            title: 'Tap to share xPub',
+                                            onStartNfc: () =>
+                                                _startNfcSessionShareXpub(
+                                                    _myXpub),
+                                            isWriting: true,
+                                          );
+                                        },
+                                      ),
                                     const SizedBox(width: 8),
                                     SecondaryButton(
                                       width: 44,
@@ -391,6 +353,29 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                           },
                                         ),
                                       ),
+                                      if (Platform.isAndroid)
+                                        const SizedBox(width: 8),
+                                      if (Platform.isAndroid)
+                                        SecondaryButton(
+                                          width: 44,
+                                          buttonHeight: ButtonHeight.xl,
+                                          icon: ShareIcon(
+                                            // TODO: Replace with NFC icon.
+                                            width: 20,
+                                            height: 20,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonTextSecondary,
+                                          ),
+                                          onPressed: () async {
+                                            await _showNfcDialog(
+                                              title: 'Tap to scan xPub',
+                                              onStartNfc: () =>
+                                                  _startNfcSessionScanXpub(
+                                                      i - 1),
+                                            );
+                                          },
+                                        ),
                                       const SizedBox(width: 8),
                                       SecondaryButton(
                                         width: 44,
@@ -408,7 +393,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                       SecondaryButton(
                                         width: 44,
                                         buttonHeight: ButtonHeight.xl,
-                                        icon: CopyIcon(
+                                        icon: ClipboardIcon(
                                           width: 20,
                                           height: 20,
                                           color: Theme.of(context)
@@ -505,7 +490,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     });
 
     final info = WalletInfo.createNew(
-      coin: parentWallet.cryptoCurrency,
+      coin: BIP48Bitcoin(parentWallet.cryptoCurrency.network),
       name:
           'widget.walletName', // TODO [prio=high]: Add wallet name input field to multisig setup view and pass it to the coordinator view here.
       restoreHeight: await parentWallet.chainHeight,
@@ -637,6 +622,174 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     }
   }
 
+  Future<void> _checkNfcAvailability() async {
+    try {
+      final isSupported = await _flutterNfcHcePlugin.isNfcHceSupported();
+      setState(() {
+        _isNfcAvailable = isSupported;
+        _nfcStatus = _isNfcAvailable
+            ? 'NFC HCE is available'
+            : 'NFC HCE is not available on this device';
+      });
+    } catch (e) {
+      setState(() {
+        _nfcStatus = 'Error checking NFC HCE: $e';
+        _isNfcAvailable = false;
+      });
+    }
+  }
+
+  Future<void> _startNfcSessionShareXpub(String xpub) async {
+    if (!_isNfcAvailable) {
+      setState(() => _nfcStatus = 'NFC is not available on this device');
+      return;
+    }
+
+    try {
+      final isEnabled = await _flutterNfcHcePlugin.isNfcEnabled();
+      if (!isEnabled) {
+        setState(() => _nfcStatus = 'Please enable NFC on your device');
+        return;
+      }
+
+      setState(() => _nfcStatus = 'Starting NFC sharing...');
+
+      final result = await _flutterNfcHcePlugin.startNfcHce(
+        xpub,
+        mimeType: 'text/plain',
+        persistMessage: false,
+      );
+
+      if (result == 'success') {
+        setState(() => _nfcStatus = 'Sharing xPub: hold devices together');
+      } else {
+        setState(() => _nfcStatus = 'Failed to start NFC sharing');
+      }
+    } catch (e) {
+      setState(() => _nfcStatus = 'Error: ${e.toString()}');
+      await _stopNfcSession();
+    }
+  }
+
+  Future<void> _startNfcSessionScanXpub(int cosignerIndex) async {
+    if (!_isNfcAvailable) {
+      setState(() => _nfcStatus = 'NFC is not available');
+      return;
+    }
+
+    try {
+      setState(() => _nfcStatus = 'Ready to scan xPub...');
+
+      await NfcManager.instance.startSession(
+        onDiscovered: (NfcTag tag) async {
+          try {
+            final ndef = Ndef.from(tag);
+            if (ndef == null) {
+              setState(() => _nfcStatus = 'Invalid NFC tag format');
+              return;
+            }
+
+            final message = await ndef.read();
+            if (message.records.isEmpty) {
+              setState(() => _nfcStatus = 'No data found on tag');
+              return;
+            }
+
+            final record = message.records.first;
+            String xpub;
+
+            if (record.typeNameFormat == NdefTypeNameFormat.nfcWellknown &&
+                record.type.length == 1 &&
+                record.type[0] == 'T'.codeUnitAt(0)) {
+              final payload = record.payload;
+              final languageCodeLength = payload[0] & 0x3F;
+              xpub = utf8.decode(payload.sublist(1 + languageCodeLength));
+            } else {
+              xpub = utf8.decode(record.payload);
+            }
+
+            if (!xpub.startsWith('xpub') && !xpub.startsWith('tpub')) {
+              setState(() => _nfcStatus = 'Invalid xPub format: $xpub');
+              return;
+            }
+
+            setState(() {
+              xpubControllers[cosignerIndex].text = xpub;
+              _nfcStatus = 'Successfully read xPub';
+            });
+
+            ref
+                .read(multisigCoordinatorStateProvider.notifier)
+                .addCosignerXpub(xpub);
+
+            await NfcManager.instance.stopSession();
+
+            // Delay to show success message before dismissing.
+            await Future.delayed(const Duration(milliseconds: 500));
+
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+          } catch (e) {
+            setState(() => _nfcStatus = 'Error reading tag: ${e.toString()}');
+            await NfcManager.instance.stopSession();
+          }
+        },
+      );
+    } catch (e) {
+      setState(() => _nfcStatus = 'Error: ${e.toString()}');
+    }
+  }
+
+  Future<void> _stopNfcSession() async {
+    await _flutterNfcHcePlugin.stopNfcHce();
+  }
+
+  Future<void> _showNfcDialog({
+    required String title,
+    required Future<void> Function() onStartNfc,
+    bool isWriting = false,
+  }) async {
+    setState(() => _nfcStatus = 'Initializing NFC...');
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => onStartNfc());
+
+        return AlertDialog(
+          title: Text(title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_nfcStatus),
+              const SizedBox(height: 16),
+              if (!_nfcStatus.contains('Error') &&
+                  !_nfcStatus.contains('Success'))
+                const CircularProgressIndicator(),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (_isNfcAvailable) {
+                  if (isWriting) {
+                    await _flutterNfcHcePlugin.stopNfcHce();
+                  } else {
+                    await NfcManager.instance.stopSession();
+                  }
+                }
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> scanQr(int cosignerIndex) async {
     try {
       if (Platform.isAndroid || Platform.isIOS) {
@@ -655,7 +808,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
             .read(multisigCoordinatorStateProvider.notifier)
             .addCosignerXpub(qrResult.rawContent);
 
-        setState(() {}); // Trigger rebuild to update button state.
+        setState(() {});
       } else {
         // Platform.isLinux, Platform.isWindows, or Platform.isMacOS.
         final qrResult = await showDialog<String>(

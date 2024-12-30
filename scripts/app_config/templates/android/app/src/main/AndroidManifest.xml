@@ -17,6 +17,10 @@
         android:name="android.permission.READ_INTERNAL_STORAGE"/>
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.nfc" android:required="true" />
+    <uses-feature android:name="android.hardware.nfc.hce" android:required="true" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:name="${applicationName}"
         android:label="PlaceHolderName"
@@ -72,6 +76,17 @@
         <!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
         <!--                android:resource="@xml/provider_paths" />-->
         <!--        </provider>-->
+        <service android:name="com.novice.flutter_nfc_hce.KHostApduService"
+            android:exported="true"
+            android:enabled="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <meta-data android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice"/>
+        </service>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

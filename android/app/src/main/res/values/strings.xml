@@ -1,0 +1,4 @@
+<resources>
+    <string name="servicedesc">Flutter NFC HCE Service</string>
+    <string name="aiddescription">NFC Host Card Emulation AID</string>
+</resources>
