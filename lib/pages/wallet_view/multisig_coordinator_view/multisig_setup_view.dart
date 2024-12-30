@@ -78,12 +78,6 @@ class MultisigSetupData {
   }
 }
 
-enum MultisigScriptType {
-  legacy, // P2SH.
-  segwit, // P2SH-P2WSH.
-  nativeSegwit, // P2WSH.
-}
-
 class MultisigSetupState extends StateNotifier<MultisigSetupData> {
   MultisigSetupState() : super(const MultisigSetupData());
 
@@ -112,11 +106,13 @@ class MultisigSetupView extends ConsumerStatefulWidget {
   const MultisigSetupView({
     super.key,
     required this.walletId,
+    this.scriptType,
     this.totalCosigners,
     this.threshold,
   });
 
   final String walletId;
+  final MultisigScriptType? scriptType;
   final int? totalCosigners;
   final int? threshold;
 
@@ -340,7 +336,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
   @override
   Widget build(BuildContext context) {
     final setupData = ref.watch(multisigSetupStateProvider);
-    final bool isDesktop = Util.isDesktop;
+    // final bool isDesktop = Util.isDesktop;
 
     return Background(
       child: SafeArea(
@@ -425,9 +421,10 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
                       items: MultisigScriptType.values.map((type) {
                         String label;
                         switch (type) {
-                          case MultisigScriptType.legacy:
-                            label = "Legacy (P2SH)";
-                            break;
+                          // case MultisigScriptType.legacy:
+                          //   label = "Legacy (P2SH)";
+                          //   break;
+                          // BIP48 does not cover legacy P2SH script types.
                           case MultisigScriptType.segwit:
                             label = "Nested SegWit (P2SH-P2WSH)";
                             break;
@@ -531,6 +528,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
                       MaterialPageRoute<void>(
                         builder: (context) => MultisigCoordinatorView(
                           walletId: widget.walletId,
+                          scriptType: setupData.scriptType, // TODO,
                           totalCosigners:
                               int.parse(_participantsController.text),
                           threshold: int.parse(_thresholdController.text),

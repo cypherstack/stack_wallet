@@ -2184,13 +2184,14 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case MultisigCoordinatorView.routeName:
-        if (args is Tuple3<String, int, int>) {
+        if (args is Tuple4<String, MultisigScriptType, int, int>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MultisigCoordinatorView(
               walletId: args.item1,
-              totalCosigners: args.item2,
-              threshold: args.item3,
+              scriptType: args.item2,
+              totalCosigners: args.item3,
+              threshold: args.item4,
             ),
             settings: RouteSettings(
               name: settings.name,

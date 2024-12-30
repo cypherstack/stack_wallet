@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
@@ -18,68 +20,6 @@ final multisigCoordinatorStateProvider =
         (ref) {
   return MultisigCoordinatorState();
 });
-
-class MultisigCoordinatorData {
-  const MultisigCoordinatorData({
-    this.threshold = 2,
-    this.totalCosigners = 3,
-    this.coinType = 0, // Bitcoin mainnet.
-    this.accountIndex = 0,
-    this.scriptType = MultisigScriptType.nativeSegwit,
-    this.cosignerXpubs = const [],
-  });
-
-  final int threshold;
-  final int totalCosigners;
-  final int coinType;
-  final int accountIndex;
-  final MultisigScriptType scriptType;
-  final List<String> cosignerXpubs;
-
-  MultisigCoordinatorData copyWith({
-    int? threshold,
-    int? totalCosigners,
-    int? coinType,
-    int? accountIndex,
-    MultisigScriptType? scriptType,
-    List<String>? cosignerXpubs,
-  }) {
-    return MultisigCoordinatorData(
-      threshold: threshold ?? this.threshold,
-      totalCosigners: totalCosigners ?? this.totalCosigners,
-      coinType: coinType ?? this.coinType,
-      accountIndex: accountIndex ?? this.accountIndex,
-      scriptType: scriptType ?? this.scriptType,
-      cosignerXpubs: cosignerXpubs ?? this.cosignerXpubs,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'threshold': threshold,
-        'totalCosigners': totalCosigners,
-        'coinType': coinType,
-        'accountIndex': accountIndex,
-        'scriptType': scriptType.index,
-        'cosignerXpubs': cosignerXpubs,
-      };
-
-  factory MultisigCoordinatorData.fromJson(Map<String, dynamic> json) {
-    return MultisigCoordinatorData(
-      threshold: json['threshold'] as int,
-      totalCosigners: json['totalCosigners'] as int,
-      coinType: json['coinType'] as int,
-      accountIndex: json['accountIndex'] as int,
-      scriptType: MultisigScriptType.values[json['scriptType'] as int],
-      cosignerXpubs: (json['cosignerXpubs'] as List).cast<String>(),
-    );
-  }
-}
-
-enum MultisigScriptType {
-  legacy, // P2SH.
-  segwit, // P2SH-P2WSH.
-  nativeSegwit, // P2WSH.
-}
 
 class MultisigCoordinatorState extends StateNotifier<MultisigCoordinatorData> {
   MultisigCoordinatorState() : super(const MultisigCoordinatorData());
@@ -109,11 +49,13 @@ class MultisigCoordinatorView extends ConsumerStatefulWidget {
   const MultisigCoordinatorView({
     super.key,
     required this.walletId,
+    required this.scriptType,
     required this.totalCosigners,
     required this.threshold,
   });
 
   final String walletId;
+  final MultisigScriptType scriptType;
   final int totalCosigners;
   final int threshold;
 
@@ -126,6 +68,7 @@ class MultisigCoordinatorView extends ConsumerStatefulWidget {
 
 class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
   final List<TextEditingController> xpubControllers = [];
+  String _myXpub = "";
   // bool _isNfcAvailable = false;
   // String _nfcStatus = 'Checking NFC availability...';
 
@@ -134,9 +77,27 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     super.initState();
 
     // Initialize controllers.
-    for (int i = 0; i < widget.totalCosigners; i++) {
+    for (int i = 0; i < widget.totalCosigners - 1; i++) {
       xpubControllers.add(TextEditingController());
     }
+
+    // Get and set my xpub.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final targetPath = _getTargetPathForScriptType(widget.scriptType);
+      final xpubData = await (ref.read(pWallets).getWallet(widget.walletId)
+              as ExtendedKeysInterface)
+          .getXPubs(bip48: true);
+      print(xpubData);
+
+      final matchingPub = xpubData.xpubs.firstWhere(
+        (pub) => pub.path == targetPath,
+        orElse: () => XPub(path: "", encoded: "xPub not found!"),
+      );
+
+      if (matchingPub.path.isNotEmpty && mounted) {
+        setState(() => _myXpub = matchingPub.encoded);
+      }
+    });
 
     // _checkNfcAvailability();
   }
@@ -237,7 +198,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
               },
             ),
             title: Text(
-              "Enter cosigner xpubs",
+              "Enter cosigner xPubs",
               style: STextStyles.navBarTitle(context),
             ),
             titleSpacing: 0,
@@ -256,7 +217,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "This is your extended public key (xpub) for each cosigner.  "
+                            "This is your extended public key (xPub) for each cosigner.  "
                             "Share it with each participant.",
                             style: STextStyles.itemSubtitle(context),
                           ),
@@ -268,7 +229,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Your xpub",
+                                  "Your xPub",
                                   style: STextStyles.w500_14(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
@@ -280,15 +241,14 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                   children: [
                                     Expanded(
                                       child: TextField(
-                                        controller: xpubControllers[0],
-                                        enabled:
-                                            false, // Make field non-interactive
+                                        controller: TextEditingController(
+                                            text: _myXpub),
+                                        enabled: false,
                                         decoration: InputDecoration(
-                                          hintText: "xpub...",
+                                          hintText: "xPub...",
                                           hintStyle:
                                               STextStyles.fieldLabel(context),
-                                          filled:
-                                              true, // Add background to show disabled state
+                                          filled: true,
                                           fillColor: Theme.of(context)
                                               .extension<StackColors>()!
                                               .textFieldDefaultBG,
@@ -322,18 +282,8 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                             .buttonTextSecondary,
                                       ),
                                       onPressed: () async {
-                                        final data = await Clipboard.getData(
-                                            'text/plain');
-                                        if (data?.text != null) {
-                                          xpubControllers[0].text = data!.text!;
-                                          ref
-                                              .read(
-                                                  multisigCoordinatorStateProvider
-                                                      .notifier)
-                                              .addCosignerXpub(data.text!);
-                                          setState(
-                                              () {}); // Trigger rebuild to update button state.
-                                        }
+                                        await Clipboard.setData(
+                                            ClipboardData(text: _myXpub));
                                       },
                                     ),
                                   ],
@@ -350,14 +300,14 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                           const SizedBox(height: 24),
 
                           // Generate input fields for each cosigner.
-                          for (int i = 0; i < widget.totalCosigners; i++)
+                          for (int i = 1; i < widget.totalCosigners; i++)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Cosigner ${i + 1} xpub",
+                                    "Cosigner $i xPub",
                                     style:
                                         STextStyles.w500_14(context).copyWith(
                                       color: Theme.of(context)
@@ -370,9 +320,9 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                     children: [
                                       Expanded(
                                         child: TextField(
-                                          controller: xpubControllers[i],
+                                          controller: xpubControllers[i - 1],
                                           decoration: InputDecoration(
-                                            hintText: "Enter xpub",
+                                            hintText: "Enter cosigner $i xPub",
                                             hintStyle:
                                                 STextStyles.fieldLabel(context),
                                           ),
@@ -419,7 +369,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                           final data = await Clipboard.getData(
                                               'text/plain');
                                           if (data?.text != null) {
-                                            xpubControllers[i].text =
+                                            xpubControllers[i - 1].text =
                                                 data!.text!;
                                             ref
                                                 .read(
@@ -459,4 +409,77 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
       ),
     );
   }
+
+  String _getTargetPathForScriptType(MultisigScriptType scriptType) {
+    const pathMap = {
+      MultisigScriptType.segwit: "m/48'/0'/0'/1'",
+      MultisigScriptType.nativeSegwit: "m/48'/0'/0'/2'",
+    };
+    return pathMap[scriptType] ?? '';
+  }
+}
+
+class MultisigCoordinatorData {
+  const MultisigCoordinatorData({
+    this.threshold = 2,
+    this.totalCosigners = 3,
+    this.coinType = 0, // Bitcoin mainnet.
+    this.accountIndex = 0,
+    this.scriptType = MultisigScriptType.nativeSegwit,
+    this.cosignerXpubs = const [],
+  });
+
+  final int threshold;
+  final int totalCosigners;
+  final int coinType;
+  final int accountIndex;
+  final MultisigScriptType scriptType;
+  final List<String> cosignerXpubs;
+
+  MultisigCoordinatorData copyWith({
+    int? threshold,
+    int? totalCosigners,
+    int? coinType,
+    int? accountIndex,
+    MultisigScriptType? scriptType,
+    List<String>? cosignerXpubs,
+  }) {
+    return MultisigCoordinatorData(
+      threshold: threshold ?? this.threshold,
+      totalCosigners: totalCosigners ?? this.totalCosigners,
+      coinType: coinType ?? this.coinType,
+      accountIndex: accountIndex ?? this.accountIndex,
+      scriptType: scriptType ?? this.scriptType,
+      cosignerXpubs: cosignerXpubs ?? this.cosignerXpubs,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'threshold': threshold,
+        'totalCosigners': totalCosigners,
+        'coinType': coinType,
+        'accountIndex': accountIndex,
+        'scriptType': scriptType.index,
+        'cosignerXpubs': cosignerXpubs,
+      };
+
+  factory MultisigCoordinatorData.fromJson(Map<String, dynamic> json) {
+    return MultisigCoordinatorData(
+      threshold: json['threshold'] as int,
+      totalCosigners: json['totalCosigners'] as int,
+      coinType: json['coinType'] as int,
+      accountIndex: json['accountIndex'] as int,
+      scriptType: MultisigScriptType.values[json['scriptType'] as int],
+      cosignerXpubs: (json['cosignerXpubs'] as List).cast<String>(),
+    );
+  }
+}
+
+enum MultisigScriptType {
+  // legacy,
+  // P2SH.
+  // "the only script types covered by this BIP are Native Segwit (p2wsh) and
+  // Nested Segwit (p2sh-p2wsh)." (BIP48).
+  segwit, // P2SH-P2WSH.
+  nativeSegwit, // P2WSH.
 }

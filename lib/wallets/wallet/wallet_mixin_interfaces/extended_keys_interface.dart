@@ -28,8 +28,17 @@ class XPriv extends XKey {
 
 mixin ExtendedKeysInterface<T extends ElectrumXCurrencyInterface>
     on ElectrumXInterface<T> {
-  Future<({List<XPub> xpubs, String fingerprint})> getXPubs() async {
+  Future<({List<XPub> xpubs, String fingerprint})> getXPubs(
+      {bool bip48 = false}) async {
     final paths = cryptoCurrency.supportedHardenedDerivationPaths;
+
+    if (bip48) {
+      // This hack was used because I was not able to correctly cast an existing
+      // Bitcoin wallet as a BIP48Bitcoin wallet in order to use its
+      // supportedDerivationPathTypes override.
+      paths.add("m/48'/0'/0'/1'");
+      paths.add("m/48'/0'/0'/2'");
+    }
 
     final master = await getRootHDNode();
     final fingerprint = master.fingerprint.toRadixString(16);
