@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bip48/bip48.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,10 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../providers/global/wallets_provider.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../wallets/crypto_currency/coins/bip48_bitcoin.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
@@ -70,6 +74,7 @@ class MultisigCoordinatorView extends ConsumerStatefulWidget {
 
 class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
   final List<TextEditingController> xpubControllers = [];
+  late Bip48Wallet _multisigWallet;
   String _myXpub = "";
   // bool _isNfcAvailable = false;
   // String _nfcStatus = 'Checking NFC availability...';
@@ -83,21 +88,38 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
       xpubControllers.add(TextEditingController());
     }
 
-    // Get and set my xpub.
+    // Initialize wallet and set xpub.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final targetPath = _getTargetPathForScriptType(widget.scriptType);
-      final xpubData = await (ref.read(pWallets).getWallet(widget.walletId)
-              as ExtendedKeysInterface)
-          .getXPubs(bip48: true, account: widget.account);
-      print(xpubData);
+      final wallet = await (ref.read(pWallets).getWallet(widget.walletId)
+          as Bip39HDWallet);
+      final master = await wallet.getRootHDNode();
 
-      final matchingPub = xpubData.xpubs.firstWhere(
-        (pub) => pub.path == targetPath,
-        orElse: () => XPub(path: "", encoded: "xPub not found!"),
+      final node = master.derivePath(BIP48Bitcoin(wallet.cryptoCurrency.network)
+          .constructDerivePath(
+              derivePathType: widget.scriptType == MultisigScriptType.segwit
+                  ? DerivePathType.bip48p2shp2wsh
+                  : DerivePathType.bip48p2wsh,
+              chain: wallet.cryptoCurrency.network == CryptoCurrencyNetwork.main
+                  ? 0
+                  : 1, // TODO: Support coins other than Bitcoin.
+              index: widget.scriptType == MultisigScriptType.segwit ? 1 : 2));
+
+      _multisigWallet = Bip48Wallet(
+        accountXpub: node.hdPublicKey.encode(
+          wallet.cryptoCurrency.networkParams.pubHDPrefix,
+        ),
+        coinType: wallet.cryptoCurrency.network == CryptoCurrencyNetwork.main
+            ? 0
+            : 1, // TODO: Support coins other than Bitcoin.
+        account: widget.account,
+        scriptType: Bip48ScriptType.p2shMultisig,
+        threshold: widget.threshold,
+        totalKeys: widget.participants,
+        network: wallet.cryptoCurrency.networkParams,
       );
 
-      if (matchingPub.path.isNotEmpty && mounted) {
-        setState(() => _myXpub = matchingPub.encoded);
+      if (mounted) {
+        setState(() => _myXpub = _multisigWallet.accountXpub);
       }
     });
 
@@ -247,7 +269,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                             text: _myXpub),
                                         enabled: false,
                                         decoration: InputDecoration(
-                                          hintText: "xPub...",
+                                          hintText: "Loading xPub...",
                                           hintStyle:
                                               STextStyles.fieldLabel(context),
                                           filled: true,
@@ -395,15 +417,25 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                             label: "Create multisignature account",
                             enabled: xpubControllers.every(
                                 (controller) => controller.text.isNotEmpty),
-                            onPressed: () {
-                              // final privWallet = Bip48Wallet(
-                              //   masterKey: masterKey,
-                              //   coinType: 0,
-                              //   account: 0,
-                              //   scriptType: Bip48ScriptType.p2shMultisig,
-                              //   threshold: 2,
-                              //   totalKeys: 3,
-                              // );
+                            onPressed: () async {
+                              final _newWallet = _multisigWallet;
+
+                              // Add cosigners.
+                              for (final controller in xpubControllers) {
+                                _newWallet.addCosignerXpub(controller.text);
+                                // TODO: handle error on InvalidBase58Checksum.
+                              }
+
+                              print(
+                                  'First receiving address: ${_newWallet.deriveMultisigAddress(0, isChange: false)}');
+                              print(
+                                  'First change address: ${_newWallet.deriveMultisigAddress(0, isChange: true)}');
+
+                              // TODO: Show multisig params (script type,
+                              // threshold, participants, account index) for
+                              // backup then create new wallet which is a copy
+                              // of the current one with the additional multisig
+                              // params as a BIP48BitcoinWallet.
                             },
                           ),
                         ],
@@ -432,7 +464,7 @@ class MultisigCoordinatorData {
   const MultisigCoordinatorData({
     this.threshold = 2,
     this.participants = 3,
-    this.coinType = 0, // Bitcoin mainnet.
+    this.coinType = 0, // Bitcoin mainnet by default, can be overridden.
     this.account = 0,
     this.scriptType = MultisigScriptType.nativeSegwit,
     this.cosignerXpubs = const [],

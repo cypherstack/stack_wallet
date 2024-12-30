@@ -23,6 +23,7 @@ final multisigSetupStateProvider =
 });
 
 class MultisigSetupData {
+  // These default values are overridden by the inputs' onChanged methods.
   const MultisigSetupData({
     this.threshold = 2,
     this.participants = 3,
@@ -594,7 +595,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
                       MaterialPageRoute<void>(
                         builder: (context) => MultisigCoordinatorView(
                           walletId: widget.walletId,
-                          scriptType: setupData.scriptType, // TODO,
+                          scriptType: setupData.scriptType,
                           participants: int.parse(_participantsController.text),
                           threshold: int.parse(_thresholdController.text),
                           account: int.parse(_accountController.text),

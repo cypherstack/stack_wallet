@@ -205,7 +205,7 @@ dependencies:
   cs_monero: 1.0.0-pre.1
   cs_monero_flutter_libs: 1.0.0-pre.0
   nfc_manager: ^3.5.0
-  bip48: ^0.0.3
+  bip48: ^0.0.4
 
 dev_dependencies:
   flutter_test:
