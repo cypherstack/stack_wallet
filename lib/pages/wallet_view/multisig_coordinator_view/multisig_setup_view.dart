@@ -157,7 +157,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
               "Multisignature accounts, also called shared accounts, require "
               "multiple signatures to authorize a transaction.  This can "
               "increase security by preventing a single point of failure or "
-              "allow multiple parties to jointly control funds."
+              "allow multiple parties to jointly control funds.  "
               "For example, in a 2-of-3 multisig account, two of the three "
               "cosigners are required in order to sign a transaction and spend "
               "funds.",

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:bip48/bip48.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +20,7 @@ import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../services/transaction_notification_tracker.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/logger.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/coins/bip48_bitcoin.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
@@ -27,6 +29,7 @@ import '../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/icon_widgets/copy_icon.dart';
 import '../../../widgets/icon_widgets/qrcode_icon.dart';
@@ -34,6 +37,7 @@ import '../../add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_di
 import '../../add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
 import '../../add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
 import '../../home_view/home_view.dart';
+import 'xpub_qr_popup.dart';
 
 final multisigCoordinatorStateProvider =
     StateNotifierProvider<MultisigCoordinatorState, MultisigCoordinatorData>(
@@ -310,7 +314,12 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                             .buttonTextSecondary,
                                       ),
                                       onPressed: () {
-                                        // TODO: Implement QR code scanning
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => XpubQrPopup(
+                                            xpub: _myXpub,
+                                          ),
+                                        );
                                       },
                                     ),
                                     const SizedBox(width: 8),
@@ -393,9 +402,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                               .extension<StackColors>()!
                                               .buttonTextSecondary,
                                         ),
-                                        onPressed: () {
-                                          // TODO: Implement QR code scanning
-                                        },
+                                        onPressed: () => {scanQr(i - 1)},
                                       ),
                                       const SizedBox(width: 8),
                                       SecondaryButton(
@@ -627,6 +634,55 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
 
     if (!Platform.isLinux && !isDesktop) {
       await WakelockPlus.disable();
+    }
+  }
+
+  Future<void> scanQr(int cosignerIndex) async {
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        if (FocusScope.of(context).hasFocus) {
+          FocusScope.of(context).unfocus();
+          await Future<void>.delayed(
+            const Duration(milliseconds: 75),
+          );
+        }
+
+        final qrResult = await BarcodeScanner.scan();
+
+        xpubControllers[cosignerIndex].text = qrResult.rawContent;
+
+        ref
+            .read(multisigCoordinatorStateProvider.notifier)
+            .addCosignerXpub(qrResult.rawContent);
+
+        setState(() {}); // Trigger rebuild to update button state.
+      } else {
+        // Platform.isLinux, Platform.isWindows, or Platform.isMacOS.
+        final qrResult = await showDialog<String>(
+          context: context,
+          builder: (context) => const QrCodeScannerDialog(),
+        );
+
+        if (qrResult == null) {
+          Logging.instance.log(
+            "QR scanning cancelled",
+            level: LogLevel.Info,
+          );
+        } else {
+          xpubControllers[cosignerIndex].text = qrResult;
+
+          ref
+              .read(multisigCoordinatorStateProvider.notifier)
+              .addCosignerXpub(qrResult);
+
+          setState(() {}); // Trigger rebuild to update button state.
+        }
+      }
+    } on PlatformException catch (e, s) {
+      Logging.instance.log(
+        "Failed to get camera permissions while trying to scan qr code: $e\n$s",
+        level: LogLevel.Warning,
+      );
     }
   }
 }
