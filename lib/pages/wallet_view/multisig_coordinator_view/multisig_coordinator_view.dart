@@ -1,23 +1,38 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bip48/bip48.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
+import '../../../pages_desktop_specific/desktop_home_view.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/node_service_provider.dart';
+import '../../../providers/global/prefs_provider.dart';
+import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
+import '../../../services/transaction_notification_tracker.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/coins/bip48_bitcoin.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/icon_widgets/copy_icon.dart';
 import '../../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../add_wallet_views/restore_wallet_view/sub_widgets/restore_failed_dialog.dart';
+import '../../add_wallet_views/restore_wallet_view/sub_widgets/restore_succeeded_dialog.dart';
+import '../../add_wallet_views/restore_wallet_view/sub_widgets/restoring_dialog.dart';
+import '../../home_view/home_view.dart';
 
 final multisigCoordinatorStateProvider =
     StateNotifierProvider<MultisigCoordinatorState, MultisigCoordinatorData>(
@@ -76,12 +91,15 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
   final List<TextEditingController> xpubControllers = [];
   late Bip48Wallet _multisigWallet;
   String _myXpub = "";
+  late final bool isDesktop;
+
   // bool _isNfcAvailable = false;
   // String _nfcStatus = 'Checking NFC availability...';
 
   @override
   void initState() {
     super.initState();
+    isDesktop = Util.isDesktop;
 
     // Initialize controllers.
     for (int i = 0; i < widget.participants - 1; i++) {
@@ -431,11 +449,11 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                               print(
                                   'First change address: ${_newWallet.deriveMultisigAddress(0, isChange: true)}');
 
-                              // TODO: Show multisig params (script type,
-                              // threshold, participants, account index) for
-                              // backup then create new wallet which is a copy
-                              // of the current one with the additional multisig
-                              // params as a BIP48BitcoinWallet.
+                              // TODO: Use attemptCreation to create new wallet
+                              // with the additional multisig params as a
+                              // BIP48BitcoinWallet.  If successful, show
+                              // multisig params (script type, threshold,
+                              // participants, account index) for backup.
                             },
                           ),
                         ],
@@ -451,12 +469,146 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     );
   }
 
-  String _getTargetPathForScriptType(MultisigScriptType scriptType) {
-    const pathMap = {
-      MultisigScriptType.segwit: "m/48'/0'/0'/1'",
-      MultisigScriptType.nativeSegwit: "m/48'/0'/0'/2'",
-    };
-    return pathMap[scriptType] ?? '';
+  Future<void> attemptCreation() async {
+    // if (!Platform.isLinux) await WakelockPlus.enable();
+
+    final parentWallet =
+        await (ref.read(pWallets).getWallet(widget.walletId) as Bip39HDWallet);
+
+    String? otherDataJsonString;
+    // TODO [prio=high]: Save MultisigCoordinatorData in otherDataJsonString.
+
+    final info = WalletInfo.createNew(
+      coin: parentWallet.cryptoCurrency,
+      name:
+          'widget.walletName', // TODO [prio=high]: Add wallet name input field to multisig setup view and pass it to the coordinator view here.
+      restoreHeight: await parentWallet.chainHeight,
+      otherDataJsonString: otherDataJsonString,
+    );
+
+    bool isRestoring = true;
+    // show restoring in progress
+
+    if (mounted) {
+      unawaited(
+        showDialog<dynamic>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: false,
+          builder: (context) {
+            return RestoringDialog(
+              // Replace with a bespoke dialog?
+              onCancel: () async {
+                isRestoring = false;
+
+                await ref.read(pWallets).deleteWallet(
+                      info,
+                      ref.read(secureStoreProvider),
+                    );
+              },
+            );
+          },
+        ),
+      );
+    }
+
+    var node = ref
+        .read(nodeServiceChangeNotifierProvider)
+        .getPrimaryNodeFor(currency: parentWallet.cryptoCurrency);
+
+    if (node == null) {
+      node = parentWallet.cryptoCurrency.defaultNode;
+      await ref.read(nodeServiceChangeNotifierProvider).setPrimaryNodeFor(
+            coin: parentWallet.cryptoCurrency,
+            node: node,
+          );
+    }
+
+    final txTracker = TransactionNotificationTracker(walletId: info.walletId);
+
+    try {
+      final wallet = await Wallet.create(
+        walletInfo: info,
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonicPassphrase: await parentWallet.getMnemonicPassphrase(),
+        mnemonic: await parentWallet.getMnemonic(),
+      );
+
+      await wallet.init();
+
+      await wallet.recover(isRescan: false);
+
+      // check if state is still active before continuing
+      if (mounted) {
+        await wallet.info.setMnemonicVerified(
+          isar: ref.read(mainDBProvider).isar,
+        );
+
+        ref.read(pWallets).addWallet(wallet);
+
+        if (mounted) {
+          if (isDesktop) {
+            Navigator.of(context).popUntil(
+              ModalRoute.withName(
+                DesktopHomeView.routeName,
+              ),
+            );
+          } else {
+            unawaited(
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                HomeView.routeName,
+                (route) => false,
+              ),
+            );
+          }
+
+          await showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) {
+              return const RestoreSucceededDialog(); // Replace with bespoke dialog?
+            },
+          );
+        }
+
+        if (!Platform.isLinux && !isDesktop) {
+          await WakelockPlus.disable();
+        }
+      }
+    } catch (e) {
+      if (!Platform.isLinux && !isDesktop) {
+        await WakelockPlus.disable();
+      }
+
+      // check if state is still active and restore wasn't cancelled
+      // before continuing
+      if (mounted && isRestoring) {
+        // pop waiting dialog
+        Navigator.pop(context);
+
+        // show restoring wallet failed dialog
+        await showDialog<dynamic>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            return RestoreFailedDialog(
+              errorMessage: e.toString(),
+              walletId: info.walletId,
+              walletName: info.name,
+            ); // Replace with bespoke dialog?
+          },
+        );
+      }
+    }
+
+    if (!Platform.isLinux && !isDesktop) {
+      await WakelockPlus.disable();
+    }
   }
 }
 
