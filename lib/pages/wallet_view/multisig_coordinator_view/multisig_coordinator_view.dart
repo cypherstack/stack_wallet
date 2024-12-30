@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bip48/bip48.dart';
@@ -454,6 +455,12 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                               // BIP48BitcoinWallet.  If successful, show
                               // multisig params (script type, threshold,
                               // participants, account index) for backup.
+                              try {
+                                await attemptCreation();
+                              } catch (e, s) {
+                                print('Error creating multisig wallet: $e');
+                                print(s);
+                              }
                             },
                           ),
                         ],
@@ -470,13 +477,25 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
   }
 
   Future<void> attemptCreation() async {
-    // if (!Platform.isLinux) await WakelockPlus.enable();
+    if (!Platform.isLinux) await WakelockPlus.enable();
 
+    // We need to copy this wallet as a BIP48BitcoinWallet and add the
+    // additional multisig parameters.
     final parentWallet =
         await (ref.read(pWallets).getWallet(widget.walletId) as Bip39HDWallet);
 
     String? otherDataJsonString;
-    // TODO [prio=high]: Save MultisigCoordinatorData in otherDataJsonString.
+    otherDataJsonString = jsonEncode({
+      'threshold': widget.threshold,
+      'participants': widget.participants,
+      'coinType':
+          parentWallet.cryptoCurrency.network == CryptoCurrencyNetwork.main
+              ? 0
+              : 1, // TODO: Support coins other than Bitcoin.
+      'accountIndex': widget.account,
+      'scriptType': widget.scriptType.index,
+      'cosignerXpubs': xpubControllers.map((e) => e.text).toList(),
+    });
 
     final info = WalletInfo.createNew(
       coin: parentWallet.cryptoCurrency,
