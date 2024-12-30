@@ -28,8 +28,8 @@ class MultisigCoordinatorState extends StateNotifier<MultisigCoordinatorData> {
     state = state.copyWith(threshold: threshold);
   }
 
-  void updateTotalCosigners(int total) {
-    state = state.copyWith(totalCosigners: total);
+  void updateParticipants(int total) {
+    state = state.copyWith(participants: total);
   }
 
   void updateScriptType(MultisigScriptType type) {
@@ -37,7 +37,7 @@ class MultisigCoordinatorState extends StateNotifier<MultisigCoordinatorData> {
   }
 
   void addCosignerXpub(String xpub) {
-    if (state.cosignerXpubs.length < state.totalCosigners) {
+    if (state.cosignerXpubs.length < state.participants) {
       state = state.copyWith(
         cosignerXpubs: [...state.cosignerXpubs, xpub],
       );
@@ -50,14 +50,16 @@ class MultisigCoordinatorView extends ConsumerStatefulWidget {
     super.key,
     required this.walletId,
     required this.scriptType,
-    required this.totalCosigners,
+    required this.participants,
     required this.threshold,
+    required this.account,
   });
 
   final String walletId;
   final MultisigScriptType scriptType;
-  final int totalCosigners;
+  final int participants;
   final int threshold;
+  final int account;
 
   static const String routeName = "/multisigCoordinator";
 
@@ -77,7 +79,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     super.initState();
 
     // Initialize controllers.
-    for (int i = 0; i < widget.totalCosigners - 1; i++) {
+    for (int i = 0; i < widget.participants - 1; i++) {
       xpubControllers.add(TextEditingController());
     }
 
@@ -86,7 +88,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
       final targetPath = _getTargetPathForScriptType(widget.scriptType);
       final xpubData = await (ref.read(pWallets).getWallet(widget.walletId)
               as ExtendedKeysInterface)
-          .getXPubs(bip48: true);
+          .getXPubs(bip48: true, account: widget.account);
       print(xpubData);
 
       final matchingPub = xpubData.xpubs.firstWhere(
@@ -300,7 +302,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                           const SizedBox(height: 24),
 
                           // Generate input fields for each cosigner.
-                          for (int i = 1; i < widget.totalCosigners; i++)
+                          for (int i = 1; i < widget.participants; i++)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Column(
@@ -394,7 +396,14 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                             enabled: xpubControllers.every(
                                 (controller) => controller.text.isNotEmpty),
                             onPressed: () {
-                              // TODO.
+                              // final privWallet = Bip48Wallet(
+                              //   masterKey: masterKey,
+                              //   coinType: 0,
+                              //   account: 0,
+                              //   scriptType: Bip48ScriptType.p2shMultisig,
+                              //   threshold: 2,
+                              //   totalKeys: 3,
+                              // );
                             },
                           ),
                         ],
@@ -422,33 +431,33 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
 class MultisigCoordinatorData {
   const MultisigCoordinatorData({
     this.threshold = 2,
-    this.totalCosigners = 3,
+    this.participants = 3,
     this.coinType = 0, // Bitcoin mainnet.
-    this.accountIndex = 0,
+    this.account = 0,
     this.scriptType = MultisigScriptType.nativeSegwit,
     this.cosignerXpubs = const [],
   });
 
   final int threshold;
-  final int totalCosigners;
+  final int participants;
   final int coinType;
-  final int accountIndex;
+  final int account;
   final MultisigScriptType scriptType;
   final List<String> cosignerXpubs;
 
   MultisigCoordinatorData copyWith({
     int? threshold,
-    int? totalCosigners,
+    int? participants,
     int? coinType,
-    int? accountIndex,
+    int? account,
     MultisigScriptType? scriptType,
     List<String>? cosignerXpubs,
   }) {
     return MultisigCoordinatorData(
       threshold: threshold ?? this.threshold,
-      totalCosigners: totalCosigners ?? this.totalCosigners,
+      participants: participants ?? this.participants,
       coinType: coinType ?? this.coinType,
-      accountIndex: accountIndex ?? this.accountIndex,
+      account: account ?? this.account,
       scriptType: scriptType ?? this.scriptType,
       cosignerXpubs: cosignerXpubs ?? this.cosignerXpubs,
     );
@@ -456,9 +465,9 @@ class MultisigCoordinatorData {
 
   Map<String, dynamic> toJson() => {
         'threshold': threshold,
-        'totalCosigners': totalCosigners,
+        'participants': participants,
         'coinType': coinType,
-        'accountIndex': accountIndex,
+        'accountIndex': account,
         'scriptType': scriptType.index,
         'cosignerXpubs': cosignerXpubs,
       };
@@ -466,9 +475,9 @@ class MultisigCoordinatorData {
   factory MultisigCoordinatorData.fromJson(Map<String, dynamic> json) {
     return MultisigCoordinatorData(
       threshold: json['threshold'] as int,
-      totalCosigners: json['totalCosigners'] as int,
+      participants: json['participants'] as int,
       coinType: json['coinType'] as int,
-      accountIndex: json['accountIndex'] as int,
+      account: json['accountIndex'] as int,
       scriptType: MultisigScriptType.values[json['scriptType'] as int],
       cosignerXpubs: (json['cosignerXpubs'] as List).cast<String>(),
     );

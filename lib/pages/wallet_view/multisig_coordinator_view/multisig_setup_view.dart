@@ -25,33 +25,33 @@ final multisigSetupStateProvider =
 class MultisigSetupData {
   const MultisigSetupData({
     this.threshold = 2,
-    this.totalCosigners = 3,
+    this.participants = 3,
     this.coinType = 0, // Bitcoin mainnet.
-    this.accountIndex = 0,
+    this.account = 0,
     this.scriptType = MultisigScriptType.nativeSegwit,
     this.cosignerXpubs = const [],
   });
 
   final int threshold;
-  final int totalCosigners;
+  final int participants;
   final int coinType;
-  final int accountIndex;
+  final int account;
   final MultisigScriptType scriptType;
   final List<String> cosignerXpubs;
 
   MultisigSetupData copyWith({
     int? threshold,
-    int? totalCosigners,
+    int? participants,
     int? coinType,
-    int? accountIndex,
+    int? account,
     MultisigScriptType? scriptType,
     List<String>? cosignerXpubs,
   }) {
     return MultisigSetupData(
       threshold: threshold ?? this.threshold,
-      totalCosigners: totalCosigners ?? this.totalCosigners,
+      participants: participants ?? this.participants,
       coinType: coinType ?? this.coinType,
-      accountIndex: accountIndex ?? this.accountIndex,
+      account: account ?? this.account,
       scriptType: scriptType ?? this.scriptType,
       cosignerXpubs: cosignerXpubs ?? this.cosignerXpubs,
     );
@@ -59,9 +59,9 @@ class MultisigSetupData {
 
   Map<String, dynamic> toJson() => {
         'threshold': threshold,
-        'totalCosigners': totalCosigners,
+        'participants': participants,
         'coinType': coinType,
-        'accountIndex': accountIndex,
+        'account': account,
         'scriptType': scriptType.index,
         'cosignerXpubs': cosignerXpubs,
       };
@@ -69,9 +69,9 @@ class MultisigSetupData {
   factory MultisigSetupData.fromJson(Map<String, dynamic> json) {
     return MultisigSetupData(
       threshold: json['threshold'] as int,
-      totalCosigners: json['totalCosigners'] as int,
+      participants: json['participants'] as int,
       coinType: json['coinType'] as int,
-      accountIndex: json['accountIndex'] as int,
+      account: json['account'] as int,
       scriptType: MultisigScriptType.values[json['scriptType'] as int],
       cosignerXpubs: (json['cosignerXpubs'] as List).cast<String>(),
     );
@@ -85,8 +85,8 @@ class MultisigSetupState extends StateNotifier<MultisigSetupData> {
     state = state.copyWith(threshold: threshold);
   }
 
-  void updateTotalCosigners(int total) {
-    state = state.copyWith(totalCosigners: total);
+  void updateParticipants(int total) {
+    state = state.copyWith(participants: total);
   }
 
   void updateScriptType(MultisigScriptType type) {
@@ -94,7 +94,7 @@ class MultisigSetupState extends StateNotifier<MultisigSetupData> {
   }
 
   void addCosignerXpub(String xpub) {
-    if (state.cosignerXpubs.length < state.totalCosigners) {
+    if (state.cosignerXpubs.length < state.participants) {
       state = state.copyWith(
         cosignerXpubs: [...state.cosignerXpubs, xpub],
       );
@@ -107,14 +107,16 @@ class MultisigSetupView extends ConsumerStatefulWidget {
     super.key,
     required this.walletId,
     this.scriptType,
-    this.totalCosigners,
+    this.participants,
     this.threshold,
+    this.account,
   });
 
   final String walletId;
   final MultisigScriptType? scriptType;
-  final int? totalCosigners;
+  final int? participants;
   final int? threshold;
+  final int? account;
 
   static const String routeName = "/multisigSetup";
 
@@ -128,11 +130,11 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
     super.initState();
 
     // Initialize participants count if provided.
-    if (widget.totalCosigners != null) {
-      _participantsCount = widget.totalCosigners!;
-      _participantsController.text = widget.totalCosigners!.toString();
+    if (widget.participants != null) {
+      _participantsCount = widget.participants!;
+      _participantsController.text = widget.participants!.toString();
       // Initialize the controllers list.
-      for (int i = 0; i < widget.totalCosigners!; i++) {
+      for (int i = 0; i < widget.participants!; i++) {
         controllers.add(TextEditingController());
       }
     }
@@ -226,6 +228,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
 
   final _thresholdController = TextEditingController();
   final _participantsController = TextEditingController();
+  final _accountController = TextEditingController();
 
   final List<TextEditingController> controllers = [];
 
@@ -252,6 +255,10 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
 
     if (controllers.length != partsCount) {
       return "Participants count error";
+    }
+
+    if (_accountController.text.isEmpty) {
+      return "Choose an account (0 is OK)";
     }
 
     return "valid";
@@ -323,10 +330,41 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
     );
   }
 
+  void _showWhatIsAccountDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => SimpleMobileDialog(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "What is an account?",
+              style: STextStyles.w600_20(context),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Text(
+              "The account number you choose will determine which extended "
+              "public key (xPub) you share with all participants.  If you use "
+              "the same xPub across multiple multisignature accounts, a shared "
+              "cosigner in any of them will be able to recognize your "
+              "participation in them and so your privacy could be degraded.  "
+              "For maximum privacy, use a distinct account number for each "
+              "multisignature account.",
+              style: STextStyles.w400_16(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _thresholdController.dispose();
     _participantsController.dispose();
+    _accountController.dispose();
     for (final controller in controllers) {
       controller.dispose();
     }
@@ -449,7 +487,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
                 ),
                 const SizedBox(height: 16),
 
-                // Threshold and Participants.
+                // Threshold, Participants, and Account.
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -500,6 +538,34 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
                         hintStyle: STextStyles.fieldLabel(context),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Account",
+                          style: STextStyles.w500_14(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
+                          ),
+                        ),
+                        CustomTextButton(
+                          text: "What is an account?",
+                          onTap: _showWhatIsAccountDialog,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      controller: _accountController,
+                      decoration: InputDecoration(
+                        hintText: "Enter account number",
+                        hintStyle: STextStyles.fieldLabel(context),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -529,9 +595,9 @@ class _MultisigSetupViewState extends ConsumerState<MultisigSetupView> {
                         builder: (context) => MultisigCoordinatorView(
                           walletId: widget.walletId,
                           scriptType: setupData.scriptType, // TODO,
-                          totalCosigners:
-                              int.parse(_participantsController.text),
+                          participants: int.parse(_participantsController.text),
                           threshold: int.parse(_thresholdController.text),
+                          account: int.parse(_accountController.text),
                         ),
                       ),
                     );

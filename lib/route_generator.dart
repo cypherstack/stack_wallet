@@ -2158,13 +2158,15 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case MultisigSetupView.routeName:
-        if (args is Tuple3<String, int?, int?>) {
+        if (args is Tuple5<String, MultisigScriptType?, int?, int?, int?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MultisigSetupView(
               walletId: args.item1,
-              totalCosigners: args.item2,
-              threshold: args.item3,
+              scriptType: args.item2,
+              participants: args.item3,
+              threshold: args.item4,
+              account: args.item5,
             ),
             settings: RouteSettings(
               name: settings.name,
@@ -2184,14 +2186,15 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case MultisigCoordinatorView.routeName:
-        if (args is Tuple4<String, MultisigScriptType, int, int>) {
+        if (args is Tuple5<String, MultisigScriptType, int, int, int>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MultisigCoordinatorView(
               walletId: args.item1,
               scriptType: args.item2,
-              totalCosigners: args.item3,
+              participants: args.item3,
               threshold: args.item4,
+              account: args.item5,
             ),
             settings: RouteSettings(
               name: settings.name,
