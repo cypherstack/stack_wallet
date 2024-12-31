@@ -3,6 +3,7 @@ import '../../models/node_model.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
 
 export 'coins/banano.dart';
+export 'coins/bip48_bitcoin.dart';
 export 'coins/bitcoin.dart';
 export 'coins/bitcoin_frost.dart';
 export 'coins/bitcoincash.dart';
