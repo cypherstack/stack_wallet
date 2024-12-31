@@ -227,7 +227,8 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                     Expanded(
                                       child: TextField(
                                         controller: TextEditingController(
-                                            text: _myXpub),
+                                          text: _myXpub,
+                                        ),
                                         enabled: false,
                                         decoration: InputDecoration(
                                           hintText: "Loading xPub...",
@@ -240,30 +241,27 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                         ),
                                       ),
                                     ),
-                                    if (Platform.isAndroid)
+                                    if (Platform.isAndroid) ...[
                                       const SizedBox(width: 8),
-                                    if (Platform.isAndroid)
                                       SecondaryButton(
                                         width: 44,
                                         buttonHeight: ButtonHeight.xl,
                                         icon: ShareIcon(
-                                          // TODO: Replace with NFC icon.
                                           width: 20,
                                           height: 20,
                                           color: Theme.of(context)
                                               .extension<StackColors>()!
                                               .buttonTextSecondary,
                                         ),
-                                        onPressed: () async {
-                                          await _showNfcDialog(
-                                            title: 'Tap to share xPub',
-                                            onStartNfc: () =>
-                                                _startNfcSessionShareXpub(
-                                                    _myXpub),
-                                            isWriting: true,
-                                          );
-                                        },
+                                        onPressed: () => _showNfcDialog(
+                                          title: 'Tap to share xPub',
+                                          onStartNfc: () =>
+                                              _startNfcSessionShareXpub(
+                                                  _myXpub),
+                                          isWriting: true,
+                                        ),
                                       ),
+                                    ],
                                     const SizedBox(width: 8),
                                     SecondaryButton(
                                       width: 44,
@@ -344,18 +342,17 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                             if (value.isNotEmpty) {
                                               ref
                                                   .read(
-                                                      multisigCoordinatorStateProvider
-                                                          .notifier)
+                                                    multisigCoordinatorStateProvider
+                                                        .notifier,
+                                                  )
                                                   .addCosignerXpub(value);
                                             }
-                                            setState(
-                                                () {}); // Trigger rebuild to update button state.
+                                            setState(() {});
                                           },
                                         ),
                                       ),
-                                      if (Platform.isAndroid)
+                                      if (Platform.isAndroid) ...[
                                         const SizedBox(width: 8),
-                                      if (Platform.isAndroid)
                                         SecondaryButton(
                                           width: 44,
                                           buttonHeight: ButtonHeight.xl,
@@ -367,15 +364,13 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                                 .extension<StackColors>()!
                                                 .buttonTextSecondary,
                                           ),
-                                          onPressed: () async {
-                                            await _showNfcDialog(
-                                              title: 'Tap to scan xPub',
-                                              onStartNfc: () =>
-                                                  _startNfcSessionScanXpub(
-                                                      i - 1),
-                                            );
-                                          },
+                                          onPressed: () => _showNfcDialog(
+                                            title: 'Tap to scan xPub',
+                                            onStartNfc: () =>
+                                                _startNfcSessionScanXpub(i - 1),
+                                          ),
                                         ),
+                                      ],
                                       const SizedBox(width: 8),
                                       SecondaryButton(
                                         width: 44,
@@ -387,7 +382,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                               .extension<StackColors>()!
                                               .buttonTextSecondary,
                                         ),
-                                        onPressed: () => {scanQr(i - 1)},
+                                        onPressed: () => scanQr(i - 1),
                                       ),
                                       const SizedBox(width: 8),
                                       SecondaryButton(
@@ -402,17 +397,18 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                                         ),
                                         onPressed: () async {
                                           final data = await Clipboard.getData(
-                                              'text/plain');
+                                            'text/plain',
+                                          );
                                           if (data?.text != null) {
                                             xpubControllers[i - 1].text =
                                                 data!.text!;
                                             ref
                                                 .read(
-                                                    multisigCoordinatorStateProvider
-                                                        .notifier)
+                                                  multisigCoordinatorStateProvider
+                                                      .notifier,
+                                                )
                                                 .addCosignerXpub(data.text!);
-                                            setState(
-                                                () {}); // Trigger rebuild to update button state.
+                                            setState(() {});
                                           }
                                         },
                                       ),
@@ -423,11 +419,11 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
                             ),
 
                           const Spacer(),
-
                           PrimaryButton(
                             label: "Create multisignature account",
                             enabled: xpubControllers.every(
-                                (controller) => controller.text.isNotEmpty),
+                              (controller) => controller.text.isNotEmpty,
+                            ),
                             onPressed: () async {
                               final _newWallet = _multisigWallet;
 
@@ -476,8 +472,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     final parentWallet =
         await (ref.read(pWallets).getWallet(widget.walletId) as Bip39HDWallet);
 
-    String? otherDataJsonString;
-    otherDataJsonString = jsonEncode({
+    final otherDataJsonString = jsonEncode({
       'threshold': widget.threshold,
       'participants': widget.participants,
       'coinType':
@@ -526,14 +521,10 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     var node = ref
         .read(nodeServiceChangeNotifierProvider)
         .getPrimaryNodeFor(currency: parentWallet.cryptoCurrency);
-
-    if (node == null) {
-      node = parentWallet.cryptoCurrency.defaultNode;
-      await ref.read(nodeServiceChangeNotifierProvider).setPrimaryNodeFor(
-            coin: parentWallet.cryptoCurrency,
-            node: node,
-          );
-    }
+    node ??= parentWallet.cryptoCurrency.defaultNode;
+    await ref
+        .read(nodeServiceChangeNotifierProvider)
+        .setPrimaryNodeFor(coin: parentWallet.cryptoCurrency, node: node);
 
     final txTracker = TransactionNotificationTracker(walletId: info.walletId);
 
@@ -563,9 +554,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
         if (mounted) {
           if (isDesktop) {
             Navigator.of(context).popUntil(
-              ModalRoute.withName(
-                DesktopHomeView.routeName,
-              ),
+              ModalRoute.withName(DesktopHomeView.routeName),
             );
           } else {
             unawaited(
@@ -640,104 +629,107 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
   }
 
   Future<void> _startNfcSessionShareXpub(String xpub) async {
+    setState(() => _nfcStatus = 'Starting NFC sharing...');
+
     if (!_isNfcAvailable) {
-      setState(() => _nfcStatus = 'NFC is not available on this device');
+      setState(() => _nfcStatus = 'NFC not available on this device.');
       return;
     }
 
     try {
       final isEnabled = await _flutterNfcHcePlugin.isNfcEnabled();
       if (!isEnabled) {
-        setState(() => _nfcStatus = 'Please enable NFC on your device');
+        setState(
+            () => _nfcStatus = 'Please enable NFC in your device settings.');
         return;
       }
 
-      setState(() => _nfcStatus = 'Starting NFC sharing...');
-
       final result = await _flutterNfcHcePlugin.startNfcHce(
         xpub,
-        mimeType: 'text/plain',
+        mimeType: 'text/plain', // We want text record
         persistMessage: false,
       );
 
       if (result == 'success') {
-        setState(() => _nfcStatus = 'Sharing xPub: hold devices together');
+        setState(() => _nfcStatus = 'Sharing xPub!  Hold devices together.');
       } else {
-        setState(() => _nfcStatus = 'Failed to start NFC sharing');
+        setState(() => _nfcStatus = 'Failed to start NFC sharing.');
       }
     } catch (e) {
-      setState(() => _nfcStatus = 'Error: ${e.toString()}');
+      setState(() => _nfcStatus = 'Error: $e');
       await _stopNfcSession();
     }
   }
 
   Future<void> _startNfcSessionScanXpub(int cosignerIndex) async {
+    setState(() => _nfcStatus = 'Starting NFC reading...');
+
     if (!_isNfcAvailable) {
-      setState(() => _nfcStatus = 'NFC is not available');
+      setState(() => _nfcStatus = 'NFC not available.');
       return;
     }
 
     try {
-      setState(() => _nfcStatus = 'Ready to scan xPub...');
-
       await NfcManager.instance.startSession(
         onDiscovered: (NfcTag tag) async {
           try {
             final ndef = Ndef.from(tag);
             if (ndef == null) {
-              setState(() => _nfcStatus = 'Invalid NFC tag format');
+              setState(() => _nfcStatus = 'Invalid tag format.');
               return;
             }
 
             final message = await ndef.read();
             if (message.records.isEmpty) {
-              setState(() => _nfcStatus = 'No data found on tag');
+              setState(() => _nfcStatus = 'No data on tag.');
               return;
             }
 
+            // Parse xPub from the first record.
             final record = message.records.first;
             String xpub;
-
             if (record.typeNameFormat == NdefTypeNameFormat.nfcWellknown &&
                 record.type.length == 1 &&
                 record.type[0] == 'T'.codeUnitAt(0)) {
               final payload = record.payload;
-              final languageCodeLength = payload[0] & 0x3F;
-              xpub = utf8.decode(payload.sublist(1 + languageCodeLength));
+              final langLen = payload[0] & 0x3F;
+              xpub = utf8.decode(payload.sublist(1 + langLen));
             } else {
               xpub = utf8.decode(record.payload);
             }
 
-            if (!xpub.startsWith('xpub') && !xpub.startsWith('tpub')) {
-              setState(() => _nfcStatus = 'Invalid xPub format: $xpub');
+            if (!xpub.startsWith(
+                'xpub') /* && !xpub.startsWith('tpub') and so on. */) {
+              setState(() => _nfcStatus = 'Invalid xPub: $xpub');
               return;
             }
 
+            // Success: fill field, show success text.
             setState(() {
               xpubControllers[cosignerIndex].text = xpub;
               _nfcStatus = 'Successfully read xPub';
             });
 
-            ref
-                .read(multisigCoordinatorStateProvider.notifier)
-                .addCosignerXpub(xpub);
+            ref.read(multisigCoordinatorStateProvider.notifier).addCosignerXpub(
+                  xpub,
+                );
 
             await NfcManager.instance.stopSession();
 
-            // Delay to show success message before dismissing.
+            // Delay just to show message.
             await Future.delayed(const Duration(milliseconds: 500));
 
             if (context.mounted) {
               Navigator.of(context).pop();
             }
           } catch (e) {
-            setState(() => _nfcStatus = 'Error reading tag: ${e.toString()}');
+            setState(() => _nfcStatus = 'Error reading tag: $e');
             await NfcManager.instance.stopSession();
           }
         },
       );
     } catch (e) {
-      setState(() => _nfcStatus = 'Error: ${e.toString()}');
+      setState(() => _nfcStatus = 'Error: $e');
     }
   }
 
@@ -766,7 +758,8 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
               Text(_nfcStatus),
               const SizedBox(height: 16),
               if (!_nfcStatus.contains('Error') &&
-                  !_nfcStatus.contains('Success'))
+                  !_nfcStatus.contains('Success') &&
+                  !_nfcStatus.contains('hold devices together'))
                 const CircularProgressIndicator(),
             ],
           ),
@@ -795,19 +788,14 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
       if (Platform.isAndroid || Platform.isIOS) {
         if (FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
-          await Future<void>.delayed(
-            const Duration(milliseconds: 75),
-          );
+          await Future<void>.delayed(const Duration(milliseconds: 75));
         }
 
         final qrResult = await BarcodeScanner.scan();
-
         xpubControllers[cosignerIndex].text = qrResult.rawContent;
-
-        ref
-            .read(multisigCoordinatorStateProvider.notifier)
-            .addCosignerXpub(qrResult.rawContent);
-
+        ref.read(multisigCoordinatorStateProvider.notifier).addCosignerXpub(
+              qrResult.rawContent,
+            );
         setState(() {});
       } else {
         // Platform.isLinux, Platform.isWindows, or Platform.isMacOS.
@@ -815,25 +803,19 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
           context: context,
           builder: (context) => const QrCodeScannerDialog(),
         );
-
         if (qrResult == null) {
-          Logging.instance.log(
-            "QR scanning cancelled",
-            level: LogLevel.Info,
-          );
+          Logging.instance.log("QR scanning cancelled", level: LogLevel.Info);
         } else {
           xpubControllers[cosignerIndex].text = qrResult;
-
           ref
               .read(multisigCoordinatorStateProvider.notifier)
               .addCosignerXpub(qrResult);
-
-          setState(() {}); // Trigger rebuild to update button state.
+          setState(() {});
         }
       }
     } on PlatformException catch (e, s) {
       Logging.instance.log(
-        "Failed to get camera permissions while trying to scan qr code: $e\n$s",
+        "Failed to get camera permissions while scanning QR: $e\n$s",
         level: LogLevel.Warning,
       );
     }
