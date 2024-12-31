@@ -45,10 +45,12 @@ import '../../utilities/enums/sync_type_enum.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/coins/bip48_bitcoin.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/crypto_currency/interfaces/bip48_currency_interface.dart';
 import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/impl/bip48_bitcoin_wallet.dart';
 import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
@@ -93,6 +95,7 @@ import '../paynym/paynym_claim_view.dart';
 import '../paynym/paynym_home_view.dart';
 import '../receive_view/receive_view.dart';
 import '../send_view/frost_ms/frost_send_view.dart';
+import '../send_view/multisig/multisig_send_view.dart';
 import '../send_view/send_view.dart';
 import '../settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
@@ -1057,7 +1060,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         Navigator.of(context).pushNamed(
                           wallet is BitcoinFrostWallet
                               ? FrostSendView.routeName
-                              : SendView.routeName,
+                              : wallet is BIP48BitcoinWallet
+                                  ? MultisigSendView.routeName
+                                  : SendView.routeName,
                           arguments: (
                             walletId: walletId,
                             coin: coin,

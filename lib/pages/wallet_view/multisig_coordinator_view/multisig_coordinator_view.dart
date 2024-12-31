@@ -484,8 +484,10 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
       'cosignerXpubs': xpubControllers.map((e) => e.text).toList(),
     });
 
+    final newCoin = BIP48Bitcoin(parentWallet.cryptoCurrency.network);
+
     final info = WalletInfo.createNew(
-      coin: BIP48Bitcoin(parentWallet.cryptoCurrency.network),
+      coin: newCoin,
       name:
           'widget.walletName', // TODO [prio=high]: Add wallet name input field to multisig setup view and pass it to the coordinator view here.
       restoreHeight: await parentWallet.chainHeight,
@@ -524,7 +526,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
     node ??= parentWallet.cryptoCurrency.defaultNode;
     await ref
         .read(nodeServiceChangeNotifierProvider)
-        .setPrimaryNodeFor(coin: parentWallet.cryptoCurrency, node: node);
+        .setPrimaryNodeFor(coin: newCoin, node: node);
 
     final txTracker = TransactionNotificationTracker(walletId: info.walletId);
 

@@ -22,10 +22,12 @@ import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/paynym_is_api.dart';
 import '../../utilities/prefs.dart';
+import '../crypto_currency/coins/bip48_bitcoin.dart';
 import '../crypto_currency/crypto_currency.dart';
 import '../isar/models/wallet_info.dart';
 import '../models/tx_data.dart';
 import 'impl/banano_wallet.dart';
+import 'impl/bip48_bitcoin_wallet.dart';
 import 'impl/bitcoin_frost_wallet.dart';
 import 'impl/bitcoin_wallet.dart';
 import 'impl/bitcoincash_wallet.dart';
@@ -334,6 +336,9 @@ abstract class Wallet<T extends CryptoCurrency> {
     switch (walletInfo.coin.runtimeType) {
       case const (Banano):
         return BananoWallet(net);
+
+      case const (BIP48Bitcoin):
+        return BIP48BitcoinWallet(net);
 
       case const (Bitcoin):
         return BitcoinWallet(net);
