@@ -698,8 +698,7 @@ class _MultisigSetupViewState extends ConsumerState<MultisigCoordinatorView> {
               xpub = utf8.decode(record.payload);
             }
 
-            if (!xpub.startsWith(
-                'xpub') /* && !xpub.startsWith('tpub') and so on. */) {
+            if (!xpub.startsWith('xpub') && !xpub.startsWith('tpub')) {
               setState(() => _nfcStatus = 'Invalid xPub: $xpub');
               return;
             }
