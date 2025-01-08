@@ -754,44 +754,41 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           content,
           logging: Logging.instance,
         );
-        if (paymentData != null &&
-            paymentData.coin?.uriScheme == coin.uriScheme) {
-          // auto fill address
-          _address = paymentData.address;
+
+        if (paymentData != null && (paymentData.coin?.uriScheme == coin.uriScheme)) {
+          // Auto fill address
+          _address = paymentData.address.trim();
           sendToController.text = _address!;
 
-          // autofill notes field.
-          if (paymentData.message != null) {
-            _note = paymentData.message;
-          } else if (paymentData.label != null) {
-            _note = paymentData.label;
-          }
-
-          // autofill amoutn field
+          // Amount
           if (paymentData.amount != null) {
-            final amount = Decimal.parse(paymentData.amount!).toAmount(
+            final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
               fractionDigits: coin.fractionDigits,
             );
-            cryptoAmountController.text = ref
-                .read(pAmountFormatter(coin))
-                .format(amount, withUnitName: false);
+            cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+              amount,
+              withUnitName: false,
+            );
             ref.read(pSendAmount.notifier).state = amount;
           }
 
-          // Trigger validation after pasting.
+          // Change focus to amount field if it's empty
+          if (cryptoAmountController.text.isEmpty) {
+            FocusScope.of(context).requestFocus(_cryptoFocus);
+          } else {
+            // Otherwise, focus on the send button
+            FocusScope.of(context).requestFocus(FocusNode());
+          }
+
+          // Trigger validation after pasting
           _setValidAddressProviders(_address);
           setState(() {
             _addressToggleFlag = sendToController.text.isNotEmpty;
           });
         } else {
-          content = content.split("\n").first.trim();
-          if (coin is Epiccash) {
-            content = AddressUtils().formatAddress(content);
-          }
-
+          // Handle as a plain address if parsing fails
           sendToController.text = content;
           _address = content;
-
           _setValidAddressProviders(_address);
           setState(() {
             _addressToggleFlag = sendToController.text.isNotEmpty;
@@ -799,15 +796,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       } catch (e) {
         // If parsing fails, treat it as a plain address.
-        if (coin is Epiccash) {
-          // strip http:// and https:// if content contains @
-          content = AddressUtils().formatAddress(content);
-        }
-
         sendToController.text = content;
         _address = content;
-
-        // Trigger validation after pasting.
         _setValidAddressProviders(_address);
         setState(() {
           _addressToggleFlag = sendToController.text.isNotEmpty;
@@ -1885,7 +1875,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   : (coin is Firo) &&
                           ref
                                   .watch(
-                                    publicPrivateBalanceStateProvider.state,
+                                    publicPrivateBalanceStateProvider
+                                        .state,
                                   )
                                   .state ==
                               FiroType.lelantus
