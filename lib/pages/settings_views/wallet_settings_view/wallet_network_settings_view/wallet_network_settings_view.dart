@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
@@ -39,6 +39,7 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -125,7 +126,7 @@ class _WalletNetworkSettingsViewState
   }
 
   Future<void> _attemptRescan() async {
-    if (!Platform.isLinux) await Wakelock.enable();
+    if (!Platform.isLinux) await WakelockPlus.enable();
 
     try {
       if (mounted) {
@@ -180,7 +181,7 @@ class _WalletNetworkSettingsViewState
             );
           }
         } catch (e) {
-          if (!Platform.isLinux) await Wakelock.disable();
+          if (!Platform.isLinux) await WakelockPlus.disable();
 
           if (mounted) {
             // pop rescanning dialog
@@ -212,7 +213,7 @@ class _WalletNetworkSettingsViewState
         }
       }
     } finally {
-      if (!Platform.isLinux) await Wakelock.disable();
+      if (!Platform.isLinux) await WakelockPlus.disable();
     }
   }
 
@@ -233,7 +234,12 @@ class _WalletNetworkSettingsViewState
       _percent = 1;
       _blocksRemaining = 0;
     } else {
-      _percent = 0;
+      final wallet = ref.read(pWallets).getWallet(widget.walletId);
+      if (wallet is ElectrumXInterface) {
+        _percent = wallet.refreshingPercent ?? 0;
+      } else {
+        _percent = 0;
+      }
       _blocksRemaining = -1;
     }
 

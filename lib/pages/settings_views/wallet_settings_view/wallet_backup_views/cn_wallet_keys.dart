@@ -156,11 +156,13 @@ class _CNWalletKeysState extends State<CNWalletKeys> {
           SizedBox(
             height: Util.isDesktop ? 12 : 16,
           ),
-          QR(
-            data: _current(_currentDropDownValue),
-            size:
-                Util.isDesktop ? 256 : MediaQuery.of(context).size.width / 1.5,
-          ),
+          if (_current(_currentDropDownValue) != "ERROR")
+            QR(
+              data: _current(_currentDropDownValue),
+              size: Util.isDesktop
+                  ? 256
+                  : MediaQuery.of(context).size.width / 1.5,
+            ),
           SizedBox(
             height: Util.isDesktop ? 12 : 16,
           ),

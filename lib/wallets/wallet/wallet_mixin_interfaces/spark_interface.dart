@@ -14,6 +14,8 @@ import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/signing_data.dart';
+import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
@@ -23,6 +25,7 @@ import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import 'cpfp_interface.dart';
 import 'electrumx_interface.dart';
 
 const kDefaultSparkIndex = 1;
@@ -183,14 +186,75 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<Amount> estimateFeeForSpark(Amount amount) async {
-    // int spendAmount = amount.raw.toInt();
-    // if (spendAmount == 0) {
-    return Amount(
-      rawValue: BigInt.from(0),
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
-    // }
-    // TODO actual fee estimation
+    final spendAmount = amount.raw.toInt();
+    if (spendAmount == 0) {
+      return Amount(
+        rawValue: BigInt.from(0),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+    } else {
+      // fetch spendable spark coins
+      final coins = await mainDB.isar.sparkCoins
+          .where()
+          .walletIdEqualToAnyLTagHash(walletId)
+          .filter()
+          .isUsedEqualTo(false)
+          .and()
+          .heightIsNotNull()
+          .and()
+          .not()
+          .valueIntStringEqualTo("0")
+          .findAll();
+
+      final available =
+          coins.map((e) => e.value).fold(BigInt.zero, (p, e) => p + e);
+
+      if (amount.raw > available) {
+        return Amount(
+          rawValue: BigInt.from(0),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+      }
+
+      // prepare coin data for ffi
+      final serializedCoins = coins
+          .map(
+            (e) => (
+              serializedCoin: e.serializedCoinB64!,
+              serializedCoinContext: e.contextB64!,
+              groupId: e.groupId,
+              height: e.height!,
+            ),
+          )
+          .toList();
+
+      final root = await getRootHDNode();
+      final String derivationPath;
+      if (cryptoCurrency.network.isTestNet) {
+        derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
+      } else {
+        derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
+      }
+      final privateKey = root.derivePath(derivationPath).privateKey.data;
+      int estimate = await _asyncSparkFeesWrapper(
+        privateKeyHex: privateKey.toHex,
+        index: kDefaultSparkIndex,
+        sendAmount: spendAmount,
+        subtractFeeFromAmount: true,
+        serializedCoins: serializedCoins,
+        // privateRecipientsCount: (txData.sparkRecipients?.length ?? 0),
+        privateRecipientsCount: 1, // ROUGHLY!
+      );
+
+      if (estimate < 0) {
+        estimate = 0;
+      }
+
+      return Amount(
+        rawValue: BigInt.from(estimate),
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+    }
   }
 
   /// Spark to Spark/Transparent (spend) creation
@@ -374,7 +438,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         recipientCount + (txData.sparkRecipients?.length ?? 0);
     final BigInt estimatedFee;
     if (isSendAll) {
-      final estFee = LibSpark.estimateSparkFee(
+      final estFee = await _asyncSparkFeesWrapper(
         privateKeyHex: privateKey.toHex,
         index: kDefaultSparkIndex,
         sendAmount: txAmount.raw.toInt(),
@@ -733,7 +797,25 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<void> refreshSparkData() async {
+  // returns next percent
+  double _triggerEventHelper(double current, double increment) {
+    refreshingPercent = current;
+    GlobalEventBus.instance.fire(
+      RefreshPercentChangedEvent(
+        current,
+        walletId,
+      ),
+    );
+    return current + increment;
+  }
+
+  // Linearly make calls so there is less chance of timing out or otherwise breaking
+  Future<void> refreshSparkData(
+    (
+      double startingPercent,
+      double endingPercent,
+    )? refreshProgressRange,
+  ) async {
     final start = DateTime.now();
     try {
       // start by checking if any previous sets are missing from db and add the
@@ -754,30 +836,61 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
       groupIds.add(latestGroupId);
 
-      // start fetch and update process for each set groupId as required
-      final possibleFutures = groupIds.map(
-        (e) =>
-            FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
-          e,
+      final steps = groupIds.length +
+          1 // get used tags step
+          +
+          1 // check updated cache step
+          +
+          1 // identify coins step
+          +
+          1 // cross ref coins and txns
+          +
+          1; // update balance
+
+      final percentIncrement = refreshProgressRange == null
+          ? null
+          : (refreshProgressRange.$2 - refreshProgressRange.$1) / steps;
+      double currentPercent = refreshProgressRange?.$1 ?? 0;
+
+      //   fetch and update process for each set groupId as required
+      for (final gId in groupIds) {
+        await FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
+          gId,
           electrumXClient,
           cryptoCurrency.network,
-        ),
+          // null,
+          (a, b) {
+            if (percentIncrement != null) {
+              _triggerEventHelper(
+                currentPercent + (percentIncrement * (a / b)),
+                0,
+              );
+            }
+          },
+        );
+        if (percentIncrement != null) {
+          currentPercent += percentIncrement;
+        }
+      }
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
+
+      await FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
+        electrumXClient,
+        cryptoCurrency.network,
       );
 
-      // wait for each fetch and update to complete
-      await Future.wait([
-        ...possibleFutures,
-        FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
-          electrumXClient,
-          cryptoCurrency.network,
-        ),
-      ]);
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
 
-      // Get cached timestamps per groupId. These timestamps are used to check
+      // Get cached block hashes per groupId. These hashes are used to check
       // and try to id coins that were added to the spark anon set cache
-      // after that timestamp.
-      final groupIdTimestampUTCMap =
-          info.otherData[WalletInfoKeys.firoSparkCacheSetTimestampCache]
+      // after that block.
+      final groupIdBlockHashMap =
+          info.otherData[WalletInfoKeys.firoSparkCacheSetBlockHashCache]
                   as Map? ??
               {};
 
@@ -785,8 +898,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // processed by this wallet yet
       final Map<int, List<List<String>>> rawCoinsBySetId = {};
       for (int i = 1; i <= latestGroupId; i++) {
-        final lastCheckedTimeStampUTC =
-            groupIdTimestampUTCMap[i.toString()] as int? ?? 0;
+        final lastCheckedHash = groupIdBlockHashMap[i.toString()] as String?;
         final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
           i,
           cryptoCurrency.network,
@@ -794,7 +906,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         final anonymitySetResult =
             await FiroCacheCoordinator.getSetCoinsForGroupId(
           i,
-          newerThanTimeStamp: lastCheckedTimeStampUTC,
+          afterBlockHash: lastCheckedHash,
           network: cryptoCurrency.network,
         );
         final coinsRaw = anonymitySetResult
@@ -811,11 +923,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           rawCoinsBySetId[i] = coinsRaw;
         }
 
-        // update last checked timestamp data
-        groupIdTimestampUTCMap[i.toString()] = max(
-          lastCheckedTimeStampUTC,
-          info?.timestampUTC ?? lastCheckedTimeStampUTC,
-        );
+        // update last checked
+        groupIdBlockHashMap[i.toString()] = info?.blockHash;
+      }
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
       }
 
       // get address(es) to get the private key hex strings required for
@@ -856,14 +969,17 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         });
       }
 
-      // finally update the cached timestamps in the database
+      // finally update the cached block hashes in the database
       await info.updateOtherData(
         newEntries: {
-          WalletInfoKeys.firoSparkCacheSetTimestampCache:
-              groupIdTimestampUTCMap,
+          WalletInfoKeys.firoSparkCacheSetBlockHashCache: groupIdBlockHashMap,
         },
         isar: mainDB.isar,
       );
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
 
       // check for spark coins in mempool
       final mempoolMyCoins = await _refreshSparkCoinsMempoolCheck(
@@ -926,6 +1042,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         });
       }
 
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
+
       // used to check if balance is spendable or total
       final currentHeight = await chainHeight;
 
@@ -946,9 +1066,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       final spendable = Amount(
         rawValue: unusedCoins
             .where(
-              (e) =>
-                  e.height != null &&
-                  e.height! + cryptoCurrency.minConfirms <= currentHeight,
+              (e) => e.isConfirmed(currentHeight, cryptoCurrency.minConfirms),
             )
             .map((e) => e.value)
             .fold(BigInt.zero, (prev, e) => prev + e),
@@ -985,7 +1103,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<Set<LTagPair>> getMissingSparkSpendTransactionIds() async {
+  Future<Set<LTagPair>> getSparkSpendTransactionIds() async {
     final tags = await mainDB.isar.sparkCoins
         .where()
         .walletIdEqualToAnyLTagHash(walletId)
@@ -994,20 +1112,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .lTagHashProperty()
         .findAll();
 
-    final usedCoinTxidsFoundLocally = await mainDB.isar.transactionV2s
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .subTypeEqualTo(TransactionSubType.sparkSpend)
-        .txidProperty()
-        .findAll();
-
     final pairs = await FiroCacheCoordinator.getUsedCoinTxidsFor(
       tags: tags,
       network: cryptoCurrency.network,
     );
-
-    pairs.removeWhere((e) => usedCoinTxidsFoundLocally.contains(e.txid));
 
     return pairs.toSet();
   }
@@ -1024,7 +1132,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
 
     try {
-      await refreshSparkData();
+      await refreshSparkData(null);
     } catch (e, s) {
       Logging.instance.log(
         "$runtimeType $walletId ${info.name}: $e\n$s",
@@ -1688,6 +1796,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         (e) => !e.isConfirmed(
           currentHeight,
           cryptoCurrency.minConfirms,
+          cryptoCurrency.minCoinbaseConfirms,
         ),
       );
 
@@ -1748,36 +1857,48 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         throw Exception("Attempted send of zero amount");
       }
 
+      final utxos = txData.utxos;
+      final bool coinControl = utxos != null;
+
+      final utxosTotal = coinControl
+          ? utxos
+              .map((e) => e.value)
+              .fold(BigInt.zero, (p, e) => p + BigInt.from(e))
+          : null;
+
+      if (coinControl && utxosTotal! < total) {
+        throw Exception("Insufficient selected UTXOs!");
+      }
+
+      final isSendAllCoinControlUtxos = coinControl && total == utxosTotal;
+
       final currentHeight = await chainHeight;
 
-      // coin control not enabled for firo currently so we can ignore this
-      // final utxosToUse = txData.utxos?.toList() ??  await mainDB.isar.utxos
-      //     .where()
-      //     .walletIdEqualTo(walletId)
-      //     .filter()
-      //     .isBlockedEqualTo(false)
-      //     .and()
-      //     .group((q) => q.usedEqualTo(false).or().usedIsNull())
-      //     .and()
-      //     .valueGreaterThan(0)
-      //     .findAll();
-      final spendableUtxos = await mainDB.isar.utxos
-          .where()
-          .walletIdEqualTo(walletId)
-          .filter()
-          .isBlockedEqualTo(false)
-          .and()
-          .group((q) => q.usedEqualTo(false).or().usedIsNull())
-          .and()
-          .valueGreaterThan(0)
-          .findAll();
+      final availableOutputs = utxos?.toList() ??
+          await mainDB.isar.utxos
+              .where()
+              .walletIdEqualTo(walletId)
+              .filter()
+              .isBlockedEqualTo(false)
+              .and()
+              .group((q) => q.usedEqualTo(false).or().usedIsNull())
+              .and()
+              .valueGreaterThan(0)
+              .findAll();
 
-      spendableUtxos.removeWhere(
-        (e) => !e.isConfirmed(
-          currentHeight,
-          cryptoCurrency.minConfirms,
-        ),
-      );
+      final canCPFP = this is CpfpInterface && coinControl;
+
+      final spendableUtxos = availableOutputs
+          .where(
+            (e) =>
+                canCPFP ||
+                e.isConfirmed(
+                  currentHeight,
+                  cryptoCurrency.minConfirms,
+                  cryptoCurrency.minCoinbaseConfirms,
+                ),
+          )
+          .toList();
 
       if (spendableUtxos.isEmpty) {
         throw Exception("No available UTXOs found to anonymize");
@@ -1788,7 +1909,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           .reduce((value, element) => value += element);
 
       final bool subtractFeeFromAmount;
-      if (available < total) {
+      if (isSendAllCoinControlUtxos) {
+        subtractFeeFromAmount = true;
+      } else if (available < total) {
         throw Exception("Insufficient balance");
       } else if (available == total) {
         subtractFeeFromAmount = true;
@@ -2001,4 +2124,54 @@ class MutableSparkRecipient {
   String toString() {
     return 'MutableSparkRecipient{ address: $address, value: $value, memo: $memo }';
   }
+}
+
+typedef SerializedCoinData = ({
+  int groupId,
+  int height,
+  String serializedCoin,
+  String serializedCoinContext
+});
+
+Future<int> _asyncSparkFeesWrapper({
+  required String privateKeyHex,
+  int index = 1,
+  required int sendAmount,
+  required bool subtractFeeFromAmount,
+  required List<SerializedCoinData> serializedCoins,
+  required int privateRecipientsCount,
+}) async {
+  return await compute(
+    _estSparkFeeComputeFunc,
+    (
+      privateKeyHex: privateKeyHex,
+      index: index,
+      sendAmount: sendAmount,
+      subtractFeeFromAmount: subtractFeeFromAmount,
+      serializedCoins: serializedCoins,
+      privateRecipientsCount: privateRecipientsCount,
+    ),
+  );
+}
+
+int _estSparkFeeComputeFunc(
+  ({
+    String privateKeyHex,
+    int index,
+    int sendAmount,
+    bool subtractFeeFromAmount,
+    List<SerializedCoinData> serializedCoins,
+    int privateRecipientsCount,
+  }) args,
+) {
+  final est = LibSpark.estimateSparkFee(
+    privateKeyHex: args.privateKeyHex,
+    index: args.index,
+    sendAmount: args.sendAmount,
+    subtractFeeFromAmount: args.subtractFeeFromAmount,
+    serializedCoins: args.serializedCoins,
+    privateRecipientsCount: args.privateRecipientsCount,
+  );
+
+  return est;
 }

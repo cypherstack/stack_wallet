@@ -64,4 +64,6 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   BitcoinFrost(CryptoCurrencyNetwork.test4),
 ]);
 
+final ({String from, String to}) _swapDefaults = (from: "BTC", to: "XMR");
+
 EOF

@@ -12,52 +12,49 @@ void main() {
 
   test("parse a valid uri string A", () {
     const uri = "dogecoin:$firoAddress?amount=50&label=eggs";
-    final result = AddressUtils.parseUri(uri);
-    expect(result, {
-      "scheme": "dogecoin",
-      "address": firoAddress,
-      "amount": "50",
-      "label": "eggs",
-    });
+    final result = AddressUtils.parsePaymentUri(uri);
+    expect(result, isNotNull);
+    expect(result!.scheme, "dogecoin");
+    expect(result.address, firoAddress);
+    expect(result.amount, "50");
+    expect(result.label, "eggs");
   });
 
   test("parse a valid uri string B", () {
     const uri = "firo:$firoAddress?amount=50&message=eggs+are+good";
-    final result = AddressUtils.parseUri(uri);
-    expect(result, {
-      "scheme": "firo",
-      "address": firoAddress,
-      "amount": "50",
-      "message": "eggs are good",
-    });
+    final result = AddressUtils.parsePaymentUri(uri);
+    expect(result, isNotNull);
+    expect(result!.scheme, "firo");
+    expect(result.address, firoAddress);
+    expect(result.amount, "50");
+    expect(result.message, "eggs are good");
   });
 
   test("parse a valid uri string C", () {
     const uri = "bitcoin:$firoAddress?amount=50.1&message=eggs%20are%20good%21";
-    final result = AddressUtils.parseUri(uri);
-    expect(result, {
-      "scheme": "bitcoin",
-      "address": firoAddress,
-      "amount": "50.1",
-      "message": "eggs are good!",
-    });
+    final result = AddressUtils.parsePaymentUri(uri);
+    expect(result, isNotNull);
+    expect(result!.scheme, "bitcoin");
+    expect(result.address, firoAddress);
+    expect(result.amount, "50.1");
+    expect(result.message, "eggs are good!");
   });
 
   test("parse an invalid uri string", () {
     const uri = "firo$firoAddress?amount=50&label=eggs";
-    final result = AddressUtils.parseUri(uri);
-    expect(result, {});
+    final result = AddressUtils.parsePaymentUri(uri);
+    expect(result, isNull);
   });
 
   test("parse an invalid string", () {
     const uri = "$firoAddress?amount=50&label=eggs";
-    final result = AddressUtils.parseUri(uri);
-    expect(result, {});
+    final result = AddressUtils.parsePaymentUri(uri);
+    expect(result, isNull);
   });
 
   test("parse an invalid uri string", () {
     const uri = ":::  8 \\ %23";
-    expect(AddressUtils.parseUri(uri), {});
+    expect(AddressUtils.parsePaymentUri(uri), isNull);
   });
 
   test("encode a list of (mnemonic) words/strings as a json object", () {
@@ -95,7 +92,7 @@ void main() {
   test("build a uri string with empty params", () {
     expect(
       AddressUtils.buildUriString(
-          Firo(CryptoCurrencyNetwork.main), firoAddress, {}),
+          Firo(CryptoCurrencyNetwork.main).uriScheme, firoAddress, {}),
       "firo:$firoAddress",
     );
   });
@@ -103,7 +100,7 @@ void main() {
   test("build a uri string with one param", () {
     expect(
       AddressUtils.buildUriString(
-        Firo(CryptoCurrencyNetwork.main),
+        Firo(CryptoCurrencyNetwork.main).uriScheme,
         firoAddress,
         {"amount": "10.0123"},
       ),
@@ -114,7 +111,7 @@ void main() {
   test("build a uri string with some params", () {
     expect(
       AddressUtils.buildUriString(
-        Firo(CryptoCurrencyNetwork.main),
+        Firo(CryptoCurrencyNetwork.main).uriScheme,
         firoAddress,
         {"amount": "10.0123", "message": "Some kind of message!"},
       ),

@@ -28,13 +28,15 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       isFailover: fields[8] as bool,
       isDown: fields[9] as bool,
       trusted: fields[10] as bool?,
+      torEnabled: fields[11] as bool? ?? true,
+      clearnetEnabled: fields[12] as bool? ?? true,
     );
   }
 
   @override
   void write(BinaryWriter writer, NodeModel obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +58,11 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       ..writeByte(9)
       ..write(obj.isDown)
       ..writeByte(10)
-      ..write(obj.trusted);
+      ..write(obj.trusted)
+      ..writeByte(11)
+      ..write(obj.torEnabled)
+      ..writeByte(12)
+      ..write(obj.clearnetEnabled);
   }
 
   @override

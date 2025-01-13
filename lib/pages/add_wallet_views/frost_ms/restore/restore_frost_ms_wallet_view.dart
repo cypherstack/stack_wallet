@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/frost_mascot.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
@@ -207,6 +209,52 @@ class _RestoreFrostMsWalletViewState
     super.dispose();
   }
 
+  Future<void> scanQr() async {
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        if (FocusScope.of(context).hasFocus) {
+          FocusScope.of(context).unfocus();
+          await Future<void>.delayed(
+            const Duration(milliseconds: 75),
+          );
+        }
+
+        final qrResult = await BarcodeScanner.scan();
+
+        configFieldController.text = qrResult.rawContent;
+
+        setState(() {
+          _configEmpty = configFieldController.text.isEmpty;
+        });
+      } else {
+        // Platform.isLinux, Platform.isWindows, or Platform.isMacOS.
+        final qrResult = await showDialog<String>(
+          context: context,
+          builder: (context) => const QrCodeScannerDialog(),
+        );
+
+        if (qrResult == null) {
+          Logging.instance.log(
+            "Qr scanning cancelled",
+            level: LogLevel.Info,
+          );
+        } else {
+          // TODO [prio=low]: Validate QR code data.
+          configFieldController.text = qrResult;
+
+          setState(() {
+            _configEmpty = configFieldController.text.isEmpty;
+          });
+        }
+      }
+    } on PlatformException catch (e, s) {
+      Logging.instance.log(
+        "Failed to get camera permissions while trying to scan qr code: $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ConditionalParent(
@@ -351,31 +399,7 @@ class _RestoreFrostMsWalletViewState
                               semanticsLabel:
                                   "Scan QR Button. Opens Camera For Scanning QR Code.",
                               key: const Key("frConfigScanQrButtonKey"),
-                              onTap: () async {
-                                try {
-                                  if (FocusScope.of(context).hasFocus) {
-                                    FocusScope.of(context).unfocus();
-                                    await Future<void>.delayed(
-                                      const Duration(milliseconds: 75),
-                                    );
-                                  }
-
-                                  final qrResult = await BarcodeScanner.scan();
-
-                                  configFieldController.text =
-                                      qrResult.rawContent;
-
-                                  setState(() {
-                                    _configEmpty =
-                                        configFieldController.text.isEmpty;
-                                  });
-                                } on PlatformException catch (e, s) {
-                                  Logging.instance.log(
-                                    "Failed to get camera permissions while trying to scan qr code: $e\n$s",
-                                    level: LogLevel.Warning,
-                                  );
-                                }
-                              },
+                              onTap: scanQr,
                               child: const QrCodeIcon(),
                             ),
                         ],

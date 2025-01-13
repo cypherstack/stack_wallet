@@ -10,7 +10,7 @@
 
 import 'dart:isolate';
 
-import 'package:cw_core/wallet_info.dart' as xmr;
+import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:hive/hive.dart' show Box;
 import 'package:hive/src/hive_impl.dart';
 import 'package:mutex/mutex.dart';
@@ -71,7 +71,7 @@ class DB {
   Box<Trade>? _boxTradesV2;
   Box<String>? _boxTradeNotes;
   Box<String>? _boxFavoriteWallets;
-  Box<xmr.WalletInfo>? _walletInfoSource;
+  Box<lib_monero_compat.WalletInfo>? _walletInfoSource;
   Box<dynamic>? _boxPrefs;
   Box<TradeWalletLookup>? _boxTradeLookup;
   Box<dynamic>? _boxDBInfo;
@@ -85,7 +85,8 @@ class DB {
   final Map<String, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
 
   // exposed for monero
-  Box<xmr.WalletInfo> get moneroWalletInfoBox => _walletInfoSource!;
+  Box<lib_monero_compat.WalletInfo> get moneroWalletInfoBox =>
+      _walletInfoSource!;
 
   // mutex for stack backup
   final mutex = Mutex();
@@ -147,8 +148,8 @@ class DB {
     _boxTradesV2 = await hive.openBox<Trade>(boxNameTradesV2);
     _boxTradeNotes = await hive.openBox<String>(boxNameTradeNotes);
     _boxTradeLookup = await hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
-    _walletInfoSource =
-        await hive.openBox<xmr.WalletInfo>(xmr.WalletInfo.boxName);
+    _walletInfoSource = await hive.openBox<lib_monero_compat.WalletInfo>(
+        lib_monero_compat.WalletInfo.boxName);
     _boxFavoriteWallets = await hive.openBox<String>(boxNameFavoriteWallets);
 
     await Future.wait([

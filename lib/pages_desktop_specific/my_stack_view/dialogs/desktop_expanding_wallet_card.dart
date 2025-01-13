@@ -11,19 +11,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../../models/isar/models/ethereum/eth_contract.dart';
+
+import '../../../pages/wallets_view/wallets_overview.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/animated_widgets/rotate_icon.dart';
 import '../../../widgets/expandable.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/wallet_card.dart';
 import '../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_balance.dart';
 import '../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
-import 'package:tuple/tuple.dart';
 
 class DesktopExpandingWalletCard extends StatefulWidget {
   const DesktopExpandingWalletCard({
@@ -32,7 +31,7 @@ class DesktopExpandingWalletCard extends StatefulWidget {
     required this.navigatorState,
   });
 
-  final Tuple2<Wallet, List<EthContract>> data;
+  final WalletListItemData data;
   final NavigatorState navigatorState;
 
   @override
@@ -48,9 +47,9 @@ class _DesktopExpandingWalletCardState
 
   @override
   void initState() {
-    if (widget.data.item1.cryptoCurrency.hasTokenSupport) {
+    if (widget.data.wallet.cryptoCurrency.hasTokenSupport) {
       tokenContractAddresses.addAll(
-        widget.data.item2.map((e) => e.address),
+        widget.data.contracts.map((e) => e.address),
       );
     }
 
@@ -63,7 +62,7 @@ class _DesktopExpandingWalletCardState
       padding: EdgeInsets.zero,
       borderColor: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
       child: Expandable(
-        initialState: widget.data.item1.cryptoCurrency.hasTokenSupport
+        initialState: widget.data.wallet.cryptoCurrency.hasTokenSupport
             ? ExpandableState.expanded
             : ExpandableState.collapsed,
         controller: expandableController,
@@ -89,13 +88,13 @@ class _DesktopExpandingWalletCardState
                       child: Row(
                         children: [
                           WalletInfoCoinIcon(
-                            coin: widget.data.item1.info.coin,
+                            coin: widget.data.wallet.info.coin,
                           ),
                           const SizedBox(
                             width: 12,
                           ),
                           Text(
-                            widget.data.item1.info.name,
+                            widget.data.wallet.info.name,
                             style: STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
                               color: Theme.of(context)
@@ -109,7 +108,7 @@ class _DesktopExpandingWalletCardState
                     Expanded(
                       flex: 4,
                       child: WalletInfoRowBalance(
-                        walletId: widget.data.item1.walletId,
+                        walletId: widget.data.wallet.walletId,
                       ),
                     ),
                   ],
@@ -173,7 +172,7 @@ class _DesktopExpandingWalletCardState
                 bottom: 14,
               ),
               child: SimpleWalletCard(
-                walletId: widget.data.item1.walletId,
+                walletId: widget.data.wallet.walletId,
                 popPrevious: true,
                 desktopNavigatorState: widget.navigatorState,
               ),
@@ -187,7 +186,7 @@ class _DesktopExpandingWalletCardState
                   bottom: 14,
                 ),
                 child: SimpleWalletCard(
-                  walletId: widget.data.item1.walletId,
+                  walletId: widget.data.wallet.walletId,
                   contractAddress: e,
                   popPrevious: true,
                   desktopNavigatorState: widget.navigatorState,

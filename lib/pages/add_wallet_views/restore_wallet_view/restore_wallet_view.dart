@@ -16,13 +16,14 @@ import 'dart:math';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
+import 'package:cs_monero/cs_monero.dart' as lib_monero;
+import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
+    as cs_monero_deprecated;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libmonero/monero/monero.dart' as libxmr;
-import 'package:flutter_libmonero/wownero/wownero.dart' as libwow;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
@@ -47,6 +48,7 @@ import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -86,7 +88,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
   final String mnemonicPassphrase;
   final int seedWordsLength;
-  final DateTime restoreFromDate;
+  final DateTime? restoreFromDate;
   final bool enableLelantusScanning;
 
   final BarcodeScannerInterface barcodeScanner;
@@ -181,7 +183,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     if (widget.coin is Monero) {
       switch (widget.seedWordsLength) {
         case 25:
-          return libxmr.monero.getMoneroWordList("English").contains(word);
+          return lib_monero.getMoneroWordList("English").contains(word);
         case 16:
           return Monero.sixteenWordsWordList.contains(word);
         default:
@@ -189,7 +191,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
     }
     if (widget.coin is Wownero) {
-      final wowneroWordList = libwow.wownero.getWowneroWordList(
+      final wowneroWordList = lib_monero.getWowneroWordList(
         "English",
         seedWordsLength: widget.seedWordsLength,
       );
@@ -219,29 +221,35 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       int height = 0;
       String? otherDataJsonString;
 
-      if (widget.coin is Monero) {
-        height = libxmr.monero.getHeigthByDate(date: widget.restoreFromDate);
-      } else if (widget.coin is Wownero) {
-        height = libwow.wownero.getHeightByDate(date: widget.restoreFromDate);
+      if (widget.restoreFromDate != null) {
+        if (widget.coin is Monero) {
+          height = cs_monero_deprecated.getMoneroHeightByDate(
+            date: widget.restoreFromDate!,
+          );
+        }
+        if (widget.coin is Wownero) {
+          height = cs_monero_deprecated.getWowneroHeightByDate(
+            date: widget.restoreFromDate!,
+          );
+        }
+        if (height < 0) {
+          height = 0;
+        }
       }
-      // todo: wait until this implemented
-      // else if (widget.coin is Wownero) {
-      //   height = wownero.getHeightByDate(date: widget.restoreFromDate);
-      // }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
       if (widget.coin is Epiccash) {
-        final int secondsSinceEpoch =
-            widget.restoreFromDate.millisecondsSinceEpoch ~/ 1000;
-        const int epicCashFirstBlock = 1565370278;
-        const double overestimateSecondsPerBlock = 61;
-        final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-        final int approximateHeight =
-            chosenSeconds ~/ overestimateSecondsPerBlock;
-        //todo: check if print needed
-        // debugPrint(
-        //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
-        height = approximateHeight;
+        if (widget.restoreFromDate != null) {
+          final int secondsSinceEpoch =
+              widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
+          const int epicCashFirstBlock = 1565370278;
+          const double overestimateSecondsPerBlock = 61;
+          final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+          final int approximateHeight =
+              chosenSeconds ~/ overestimateSecondsPerBlock;
+
+          height = approximateHeight;
+        }
         if (height < 0) {
           height = 0;
         }
@@ -282,7 +290,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           ),
         );
       } else {
-        if (!Platform.isLinux) await Wakelock.enable();
+        if (!Platform.isLinux) await WakelockPlus.enable();
 
         final info = WalletInfo.createNew(
           coin: widget.coin,
@@ -362,6 +370,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
           await wallet.recover(isRescan: false);
 
+          if (wallet is LibMoneroWallet) {
+            await wallet.exit();
+          }
+
           // check if state is still active before continuing
           if (mounted) {
             await wallet.info.setMnemonicVerified(
@@ -426,12 +438,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             }
 
             if (!Platform.isLinux && !isDesktop) {
-              await Wakelock.disable();
+              await WakelockPlus.disable();
             }
           }
         } catch (e) {
           if (!Platform.isLinux && !isDesktop) {
-            await Wakelock.disable();
+            await WakelockPlus.disable();
           }
 
           // if (e is HiveError &&
@@ -463,7 +475,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         }
 
         if (!Platform.isLinux && !isDesktop) {
-          await Wakelock.disable();
+          await WakelockPlus.disable();
         }
       }
     }
@@ -648,16 +660,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       const Duration(milliseconds: 100),
     );
 
-    await showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: true,
-      builder: (context) {
-        return ConfirmRecoveryDialog(
-          onConfirm: attemptRestore,
-        );
-      },
-    );
+    if (mounted) {
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          return ConfirmRecoveryDialog(
+            onConfirm: attemptRestore,
+          );
+        },
+      );
+    }
   }
 
   @override

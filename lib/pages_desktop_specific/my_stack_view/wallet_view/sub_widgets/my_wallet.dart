@@ -10,20 +10,22 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../frost_route_generator.dart';
 import '../../../../pages/send_view/frost_ms/frost_send_view.dart';
 import '../../../../pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
-import '../../my_stack_view.dart';
-import 'desktop_receive.dart';
-import 'desktop_send.dart';
-import 'desktop_token_send.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/custom_tab_view.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/frost_scaffold.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../my_stack_view.dart';
+import 'desktop_receive.dart';
+import 'desktop_send.dart';
+import 'desktop_token_send.dart';
 
 class MyWallet extends ConsumerStatefulWidget {
   const MyWallet({
@@ -48,6 +50,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
   late final bool isEth;
   late final CryptoCurrency coin;
   late final bool isFrost;
+  late final bool isViewOnly;
 
   @override
   void initState() {
@@ -60,11 +63,34 @@ class _MyWalletState extends ConsumerState<MyWallet> {
       titles.add("Transactions");
     }
 
+    isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+    if (isViewOnly) {
+      titles.remove("Receive");
+    }
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isViewOnly) {
+      return ListView(
+        primary: false,
+        children: [
+          RoundedWhiteContainer(
+            padding: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: DesktopReceive(
+                walletId: widget.walletId,
+                contractAddress: widget.contractAddress,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return ListView(
       primary: false,
       children: [

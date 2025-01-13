@@ -28,12 +28,14 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -271,6 +273,15 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         ),
       );
 
+      // Currently CwBasedInterface wallets (xmr/wow) shouldn't even have
+      // access to this screen but this is needed to get past an error that
+      // would occur only to lead to another error which is why xmr/wow wallets
+      // don't have access to this screen currently
+      if (wallet is LibMoneroWallet) {
+        await wallet.init();
+        await wallet.open();
+      }
+
       final time = Future<dynamic>.delayed(
         const Duration(
           milliseconds: 2500,
@@ -375,7 +386,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           );
         }
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.log("$e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();

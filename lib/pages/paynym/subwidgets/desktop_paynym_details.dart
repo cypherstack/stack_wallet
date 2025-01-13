@@ -284,13 +284,17 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                     const SizedBox(
                       width: 20,
                     ),
-                    Expanded(
-                      child: PaynymFollowToggleButton(
-                        walletId: widget.walletId,
-                        paymentCodeStringToFollow: widget.accountLite.code,
-                        style: PaynymFollowToggleButtonStyle.detailsDesktop,
-                      ),
-                    ),
+                    kDisableFollowing
+                        ? const Spacer()
+                        : Expanded(
+                            child: PaynymFollowToggleButton(
+                              walletId: widget.walletId,
+                              paymentCodeStringToFollow:
+                                  widget.accountLite.code,
+                              style:
+                                  PaynymFollowToggleButtonStyle.detailsDesktop,
+                            ),
+                          ),
                   ],
                 ),
                 if (_showInsufficientFundsInfo)

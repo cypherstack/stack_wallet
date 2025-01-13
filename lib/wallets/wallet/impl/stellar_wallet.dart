@@ -7,6 +7,7 @@ import 'package:mutex/mutex.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart' as stellar;
 
+import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -22,6 +23,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/test_stellar_node_connection.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
@@ -61,12 +63,40 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     );
   }
 
+  void _hackedCheck() {
+    final node = getCurrentNode();
+    final netOption = TorPlainNetworkOption.fromNodeData(
+      node.torEnabled,
+      node.clearnetEnabled,
+    );
+
+    if (prefs.useTor) {
+      if (netOption == TorPlainNetworkOption.clear) {
+        _stellarSdk?.httpClient.close();
+        _stellarSdk = null;
+        throw NodeTorMismatchConfigException(
+          message: "TOR enabled but node set to clearnet only",
+        );
+      }
+    } else {
+      if (netOption == TorPlainNetworkOption.tor) {
+        _stellarSdk?.httpClient.close();
+        _stellarSdk = null;
+        throw NodeTorMismatchConfigException(
+          message: "TOR off but node set to TOR only",
+        );
+      }
+    }
+  }
+
   Future<stellar.StellarSDK> get stellarSdk async {
     if (_requireMutex) {
       await _torConnectingLock.protect(() async {
+        _hackedCheck();
         _stellarSdk ??= _getFreshSdk();
       });
     } else {
+      _hackedCheck();
       _stellarSdk ??= _getFreshSdk();
     }
     return _stellarSdk!;

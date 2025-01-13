@@ -16,9 +16,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/keys/cw_key_data.dart';
 import '../../../../models/keys/key_data_interface.dart';
+import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../models/keys/xpriv_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import '../../../../pages/settings_views/sub_widgets/view_only_wallet_data_widget.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_backup_views/cn_wallet_keys.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_xprivs.dart';
 import '../../../../pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -180,31 +182,39 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                   ],
                 )
               : keyData != null
-                  ? CustomTabView(
-                      titles: [
-                        "Mnemonic",
-                        if (keyData is XPrivData) "XPriv(s)",
-                        if (keyData is CWKeyData) "Keys",
-                      ],
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: _Mnemonic(
-                            words: words,
+                  ? keyData is ViewOnlyWalletData
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: ViewOnlyWalletDataWidget(
+                            data: keyData as ViewOnlyWalletData,
                           ),
-                        ),
-                        if (keyData is XPrivData)
-                          WalletXPrivs(
-                            xprivData: keyData as XPrivData,
-                            walletId: walletId,
-                          ),
-                        if (keyData is CWKeyData)
-                          CNWalletKeys(
-                            cwKeyData: keyData as CWKeyData,
-                            walletId: walletId,
-                          ),
-                      ],
-                    )
+                        )
+                      : CustomTabView(
+                          titles: [
+                            if (words.isNotEmpty) "Mnemonic",
+                            if (keyData is XPrivData) "XPriv(s)",
+                            if (keyData is CWKeyData) "Keys",
+                          ],
+                          children: [
+                            if (words.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: _Mnemonic(
+                                  words: words,
+                                ),
+                              ),
+                            if (keyData is XPrivData)
+                              WalletXPrivs(
+                                xprivData: keyData as XPrivData,
+                                walletId: walletId,
+                              ),
+                            if (keyData is CWKeyData)
+                              CNWalletKeys(
+                                cwKeyData: keyData as CWKeyData,
+                                walletId: walletId,
+                              ),
+                          ],
+                        )
                   : _Mnemonic(
                       words: words,
                     ),

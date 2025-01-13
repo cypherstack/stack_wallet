@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../../app_config.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../isar_id_interface.dart';
 import 'wallet_info_meta.dart';
@@ -116,6 +117,17 @@ class WalletInfo implements IsarId {
   Map<String, dynamic> get otherData => otherDataJsonString == null
       ? {}
       : Map<String, dynamic>.from(jsonDecode(otherDataJsonString!) as Map);
+
+  @ignore
+  bool get isViewOnly =>
+      otherData[WalletInfoKeys.isViewOnlyKey] as bool? ?? false;
+
+  @ignore
+  ViewOnlyWalletType? get viewOnlyWalletType {
+    final index = otherData[WalletInfoKeys.viewOnlyTypeIndexKey] as int?;
+    if (index == null) return null;
+    return ViewOnlyWalletType.values[index];
+  }
 
   Future<bool> isMnemonicVerified(Isar isar) async =>
       (await isar.walletInfoMeta.where().walletIdEqualTo(walletId).findFirst())
@@ -508,8 +520,10 @@ abstract class WalletInfoKeys {
   static const String lelantusCoinIsarRescanRequired =
       "lelantusCoinIsarRescanRequired";
   static const String enableLelantusScanning = "enableLelantusScanningKey";
-  static const String firoSparkCacheSetTimestampCache =
-      "firoSparkCacheSetTimestampCacheKey";
+  static const String firoSparkCacheSetBlockHashCache =
+      "firoSparkCacheSetBlockHashCacheKey";
   static const String enableOptInRbf = "enableOptInRbfKey";
   static const String reuseAddress = "reuseAddressKey";
+  static const String isViewOnlyKey = "isViewOnlyKey";
+  static const String viewOnlyTypeIndexKey = "viewOnlyTypeIndexKey";
 }

@@ -77,6 +77,8 @@ class DbVersionMigrator with WalletDB {
                   name: e.name,
                   id: e.id,
                   useSSL: e.useSSL,
+                  torEnabled: e.torEnabled,
+                  clearnetEnabled: e.clearnetEnabled,
                 ),
               )
               .toList();
@@ -88,6 +90,8 @@ class DbVersionMigrator with WalletDB {
               name: node.name,
               id: node.id,
               useSSL: node.useSSL,
+              torEnabled: node.torEnabled,
+              clearnetEnabled: node.clearnetEnabled,
             ),
             prefs: prefs,
             failovers: failovers,

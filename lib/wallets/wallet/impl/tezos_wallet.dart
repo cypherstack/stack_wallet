@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:tuple/tuple.dart';
 
+import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -14,6 +15,7 @@ import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/impl/string.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../api/tezos/tezos_account.dart';
 import '../../api/tezos/tezos_api.dart';
 import '../../api/tezos/tezos_rpc_api.dart';
@@ -42,6 +44,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
     String passphrase = "",
   }) async {
     try {
+      _hackedCheckTorNodePrefs();
       for (final path in Tezos.possibleDerivationPaths) {
         final ks = await _getKeyStore(path: path.value);
 
@@ -99,6 +102,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
     // Amount? customRevealFee,
   }) async {
     try {
+      _hackedCheckTorNodePrefs();
       final sourceKeyStore = await _getKeyStore();
       final server = (_xtzNode ?? getCurrentNode()).host;
       // if (kDebugMode) {
@@ -178,6 +182,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
+      _hackedCheckTorNodePrefs();
       if (txData.recipients == null || txData.recipients!.length != 1) {
         throw Exception("$runtimeType prepareSend requires 1 recipient");
       }
@@ -288,6 +293,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
+    _hackedCheckTorNodePrefs();
     await txData.tezosOperationsList!.inject();
     await txData.tezosOperationsList!.monitor();
     return txData.copyWith(
@@ -301,6 +307,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
     TezosAccount account,
     String recipientAddress,
   ) async {
+    _hackedCheckTorNodePrefs();
     try {
       final opList = await _buildSendTransaction(
         amount: Amount(
@@ -356,6 +363,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
     int feeRate, {
     String recipientAddress = "tz1MXvDCyXSqBqXPNDcsdmVZKfoxL9FTHmp2",
   }) async {
+    _hackedCheckTorNodePrefs();
     if (info.cachedBalance.spendable.raw == BigInt.zero) {
       return Amount(
         rawValue: BigInt.zero,
@@ -402,6 +410,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
   @override
   Future<bool> pingCheck() async {
+    _hackedCheckTorNodePrefs();
     final currentNode = getCurrentNode();
     return await TezosRpcAPI.testNetworkConnection(
       nodeInfo: (
@@ -413,6 +422,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
   @override
   Future<void> recover({required bool isRescan}) async {
+    _hackedCheckTorNodePrefs();
     await refreshMutex.protect(() async {
       if (isRescan) {
         await mainDB.deleteWalletBlockchainData(walletId);
@@ -463,6 +473,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   @override
   Future<void> updateBalance() async {
     try {
+      _hackedCheckTorNodePrefs();
       final currentNode = _xtzNode ?? getCurrentNode();
       final balance = await TezosRpcAPI.getBalance(
         nodeInfo: (host: currentNode.host, port: currentNode.port),
@@ -498,6 +509,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   @override
   Future<void> updateChainHeight() async {
     try {
+      _hackedCheckTorNodePrefs();
       final currentNode = _xtzNode ?? getCurrentNode();
       final height = await TezosRpcAPI.getChainHeight(
         nodeInfo: (
@@ -530,14 +542,15 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
   @override
   NodeModel getCurrentNode() {
-    return _xtzNode ??
+    return _xtzNode ??=
         NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(currency: info.coin) ??
-        info.coin.defaultNode;
+                .getPrimaryNodeFor(currency: info.coin) ??
+            info.coin.defaultNode;
   }
 
   @override
   Future<void> updateTransactions() async {
+    _hackedCheckTorNodePrefs();
     // TODO: optimize updateTransactions and use V2
 
     final myAddress = (await getCurrentReceivingAddress())!;
@@ -614,5 +627,27 @@ class TezosWallet extends Bip39Wallet<Tezos> {
   Future<bool> updateUTXOs() async {
     // do nothing. Not used in tezos
     return false;
+  }
+
+  void _hackedCheckTorNodePrefs() {
+    final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency)!;
+    final netOption = TorPlainNetworkOption.fromNodeData(
+      node.torEnabled,
+      node.clearnetEnabled,
+    );
+
+    if (prefs.useTor) {
+      if (netOption == TorPlainNetworkOption.clear) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR enabled but node set to clearnet only",
+        );
+      }
+    } else {
+      if (netOption == TorPlainNetworkOption.tor) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR off but node set to TOR only",
+        );
+      }
+    }
   }
 }

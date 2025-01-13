@@ -12,6 +12,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http/io_client.dart';
+import 'package:monero_rpc/monero_rpc.dart';
+import 'package:digest_auth/digest_auth.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:tor_ffi_plugin/socks_socket.dart';
 
@@ -27,126 +30,132 @@ class MoneroNodeConnectionResponse {
   final int? port;
   final bool success;
 
-  MoneroNodeConnectionResponse(this.cert, this.url, this.port, this.success);
+  MoneroNodeConnectionResponse(
+    this.cert,
+    this.url,
+    this.port,
+    this.success,
+  );
 }
 
 Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
   Uri uri,
+  String? username,
+  String? password,
   bool allowBadX509Certificate, {
   required ({
     InternetAddress host,
     int port,
   })? proxyInfo,
 }) async {
-  final httpClient = HttpClient();
-  MoneroNodeConnectionResponse? badCertResponse;
-
-  try {
-    if (proxyInfo != null) {
-      SocksTCPClient.assignToHttpClient(httpClient, [
-        ProxySettings(
-          proxyInfo.host,
-          proxyInfo.port,
-        ),
-      ]);
+  if (uri.host.endsWith(".onion")) {
+    if (proxyInfo == null) {
+      // If the host ends in .onion, we can't access it without Tor.
+      return MoneroNodeConnectionResponse(null, null, null, false);
     }
 
-    httpClient.badCertificateCallback = (cert, url, port) {
-      if (allowBadX509Certificate) {
-        return true;
-      }
-
-      if (badCertResponse == null) {
-        badCertResponse = MoneroNodeConnectionResponse(cert, url, port, false);
-      } else {
-        return false;
-      }
-
-      return false;
-    };
-
-    if (!uri.host.endsWith('.onion')) {
-      final request = await httpClient.postUrl(uri);
-
-      final body = utf8.encode(
-        jsonEncode({
-          "jsonrpc": "2.0",
-          "id": "0",
-          "method": "get_info",
-        }),
-      );
-
-      request.headers.add(
-        'Content-Length',
-        body.length.toString(),
-        preserveHeaderCase: true,
-      );
-      request.headers.set(
-        'Content-Type',
-        'application/json',
-        preserveHeaderCase: true,
-      );
-
-      request.add(body);
-
-      final response = await request.close();
-      final result = await response.transform(utf8.decoder).join();
-      // TODO: json decoded without error so assume connection exists?
-      // or we can check for certain values in the response to decide
-      return MoneroNodeConnectionResponse(null, null, null, true);
-    } else {
-      // If the URL ends in .onion, we can't use an httpClient to connect to it.
+    SOCKSSocket? socket;
+    try {
+      // An HttpClient cannot be used for onion nodes.
       //
       // The SOCKSSocket class from the tor_ffi_plugin package can be used to
       // connect to .onion addresses.  We'll do the same things as above but
       // with SOCKSSocket instead of httpClient.
-      final socket = await SOCKSSocket.create(
-        proxyHost: proxyInfo!.host.address,
+      socket = await SOCKSSocket.create(
+        proxyHost: proxyInfo.host.address,
         proxyPort: proxyInfo.port,
         sslEnabled: false,
       );
       await socket.connect();
       await socket.connectTo(uri.host, uri.port);
 
-      final body = utf8.encode(
-        jsonEncode({
-          "jsonrpc": "2.0",
-          "id": "0",
-          "method": "get_info",
-        }),
-      );
+      final rawRequest = DaemonRpc.rawRequestRpc(uri, 'get_info', {});
+      var response = await socket.send(rawRequest);
+      // check if we need authentication
+      String? authenticateHeaderValue;
+      for (final line in response.split('\r\n')) {
+        if (line.contains('WWW-authenticate: ')) {
+          // both the password and username needs to be
+          if (username == null || password == null) {
+            // node asking us for authentication, but we don't have any crendentials.
+            return MoneroNodeConnectionResponse(null, null, null, false);
+          }
+          authenticateHeaderValue =
+              line.replaceFirst('WWW-authenticate: ', '').trim();
+        }
+      }
+      // header to authenticate was present, we need to remake the request with digest
+      if (authenticateHeaderValue != null) {
+        final digestAuth = DigestAuth(username!, password!);
+        digestAuth.initFromAuthorizationHeader(authenticateHeaderValue);
 
-      // Write the request body to the socket.
-      socket.write(body);
+        // generate the Authorization header for the second request.
+        final authHeader = digestAuth.getAuthString('POST', uri.path);
+        final rawRequestAuthenticated =
+            DaemonRpc.rawRequestRpc(uri, 'get_info', {}, authHeader);
+        // resend with an authenticated request
+        response = await socket.send(rawRequestAuthenticated);
+      }
 
-      // Read the response.
-      final response = await socket.inputStream.first;
-      final result = utf8.decode(response);
+      // Check if the response contains "results" and does not contain "error"
+      final success =
+          response.contains('"result":') && !response.contains('"error"');
 
-      // Close the socket.
-      await socket.close();
-      return MoneroNodeConnectionResponse(null, null, null, true);
-
-      // Parse the response.
-      //
-      // This is commented because any issues should throw.
-      // final Map<String, dynamic> jsonResponse = jsonDecode(result);
-      // print(jsonResponse);
-      // if (jsonResponse.containsKey('result')) {
-      //   return MoneroNodeConnectionResponse(null, null, null, true);
-      // } else {
-      //   return MoneroNodeConnectionResponse(null, null, null, false);
-      // }
-    }
-  } catch (e, s) {
-    if (badCertResponse != null) {
-      return badCertResponse!;
-    } else {
+      return MoneroNodeConnectionResponse(null, null, null, success);
+    } catch (e, s) {
       Logging.instance.log("$e\n$s", level: LogLevel.Warning);
       return MoneroNodeConnectionResponse(null, null, null, false);
+    } finally {
+      await socket?.close();
     }
-  } finally {
-    httpClient.close(force: true);
+  } else {
+    final httpClient = HttpClient();
+    MoneroNodeConnectionResponse? badCertResponse;
+    try {
+      if (proxyInfo != null) {
+        SocksTCPClient.assignToHttpClient(httpClient, [
+          ProxySettings(
+            proxyInfo.host,
+            proxyInfo.port,
+          ),
+        ]);
+      }
+
+      httpClient.badCertificateCallback = (cert, url, port) {
+        if (allowBadX509Certificate) {
+          return true;
+        }
+
+        if (badCertResponse == null) {
+          badCertResponse =
+              MoneroNodeConnectionResponse(cert, url, port, false);
+        } else {
+          return false;
+        }
+
+        return false;
+      };
+      final daemonRpc = DaemonRpc(
+        IOClient(httpClient),
+        '$uri',
+        username: username,
+        password: password,
+      );
+      final result = await daemonRpc.call('get_info', {});
+
+      final success = result.containsKey('status') && result['status'] == 'OK';
+
+      return MoneroNodeConnectionResponse(null, null, null, success);
+    } catch (e, s) {
+      if (badCertResponse != null) {
+        return badCertResponse!;
+      } else {
+        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+        return MoneroNodeConnectionResponse(null, null, null, false);
+      }
+    } finally {
+      httpClient.close(force: true);
+    }
   }
 }
 
@@ -190,4 +199,19 @@ Future<bool> showBadX509CertificateDialog(
   );
 
   return result ?? false;
+}
+
+extension on SOCKSSocket {
+  /// write the raw request to the socket and return the response as String
+  Future<String> send(String rawRequest) async {
+    write(rawRequest);
+    final buffer = StringBuffer();
+    await for (final response in inputStream) {
+      buffer.write(utf8.decode(response));
+      if (buffer.toString().contains("\r\n\r\n")) {
+        break;
+      }
+    }
+    return buffer.toString();
+  }
 }

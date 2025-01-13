@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -69,6 +68,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     ...AppConfig.coins.where((e) => e.network == CryptoCurrencyNetwork.main),
   ];
   final List<AddWalletListEntity> coinEntities = [];
+  final List<AddWalletListEntity> coinTestnetEntities = [];
   final List<EthTokenEntity> tokenEntities = [];
 
   final bool isDesktop = Util.isDesktop;
@@ -130,16 +130,11 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   void initState() {
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
-    // _coinsTestnet.remove(Coin.firoTestNet);
-
-    if (Util.isDesktop && !kDebugMode) {
-      _coins.removeWhere((e) => e is BitcoinFrost);
-    }
 
     coinEntities.addAll(_coins.map((e) => CoinEntity(e)));
 
     if (ref.read(prefsChangeNotifierProvider).showTestNetCoins) {
-      coinEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
+      coinTestnetEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
     }
 
     if (AppConfig.coins.whereType<Ethereum>().isNotEmpty) {
@@ -286,6 +281,14 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 initialState: ExpandableState.expanded,
                                 animationDurationMultiplier: 0.5,
                               ),
+                              if (coinTestnetEntities.isNotEmpty)
+                                ExpandingSubListItem(
+                                  title: "Testnet",
+                                  entities:
+                                      filter(_searchTerm, coinTestnetEntities),
+                                  initialState: ExpandableState.expanded,
+                                  animationDurationMultiplier: 0.5,
+                                ),
                               if (tokenEntities.isNotEmpty)
                                 ExpandingSubListItem(
                                   title: "Tokens",
@@ -419,6 +422,13 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                             entities: filter(_searchTerm, coinEntities),
                             initialState: ExpandableState.expanded,
                           ),
+                          if (coinTestnetEntities.isNotEmpty)
+                            ExpandingSubListItem(
+                              title: "Testnet",
+                              entities:
+                                  filter(_searchTerm, coinTestnetEntities),
+                              initialState: ExpandableState.expanded,
+                            ),
                           if (tokenEntities.isNotEmpty)
                             ExpandingSubListItem(
                               title: "Tokens",

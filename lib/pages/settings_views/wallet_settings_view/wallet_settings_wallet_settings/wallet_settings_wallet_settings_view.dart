@@ -11,19 +11,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
@@ -31,6 +33,7 @@ import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
 import 'delete_wallet_warning_view.dart';
+import 'edit_refresh_height_view.dart';
 import 'lelantus_settings_view.dart';
 import 'rbf_settings_view.dart';
 import 'rename_wallet_view.dart';
@@ -53,82 +56,93 @@ class WalletSettingsWalletSettingsView extends ConsumerStatefulWidget {
 
 class _WalletSettingsWalletSettingsViewState
     extends ConsumerState<WalletSettingsWalletSettingsView> {
-  bool _switchReuseAddressToggledLock = false; // Mutex.
-  Future<void> _switchReuseAddressToggled(bool newValue) async {
-    if (newValue) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          final isDesktop = Util.isDesktop;
-          return StackDialog(
-            title: "Warning!",
-            message:
-                "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
-            leftButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Cancel",
-                style: STextStyles.itemSubtitle12(context),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonStyle(context),
-              child: Text(
-                "Continue",
-                style: STextStyles.button(context),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          );
-        },
-      ).then((confirmed) async {
-        if (_switchReuseAddressToggledLock) {
-          return;
-        }
-        _switchReuseAddressToggledLock = true; // Lock mutex.
+  late final DSBController _switchController;
 
-        try {
-          if (confirmed == true) {
-            await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-              newEntries: {
-                WalletInfoKeys.reuseAddress: true,
-              },
-              isar: ref.read(mainDBProvider).isar,
+  bool _switchReuseAddressToggledLock = false; // Mutex.
+  Future<void> _switchReuseAddressToggled() async {
+    if (_switchReuseAddressToggledLock) {
+      return;
+    }
+    _switchReuseAddressToggledLock = true; // Lock mutex.
+
+    try {
+      if (_switchController.isOn?.call() != true) {
+        final canContinue = await showDialog<bool?>(
+          context: context,
+          builder: (context) {
+            return StackDialog(
+              title: "Warning!",
+              message:
+                  "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
+              leftButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Cancel",
+                  style: STextStyles.itemSubtitle12(context),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getPrimaryEnabledButtonStyle(context),
+                child: Text(
+                  "Continue",
+                  style: STextStyles.button(context),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
             );
-          } else {
-            await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-              newEntries: {
-                WalletInfoKeys.reuseAddress: false,
-              },
-              isar: ref.read(mainDBProvider).isar,
-            );
-          }
-        } finally {
-          // ensure _switchReuseAddressToggledLock is set to false no matter what.
-          _switchReuseAddressToggledLock = false;
+          },
+        );
+
+        if (canContinue == true) {
+          await _updateAddressReuse(true);
         }
-      });
-    } else {
-      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-        newEntries: {
-          WalletInfoKeys.reuseAddress: false,
-        },
-        isar: ref.read(mainDBProvider).isar,
-      );
+      } else {
+        await _updateAddressReuse(false);
+      }
+    } finally {
+      // ensure _switchReuseAddressToggledLock is set to false no matter what.
+      _switchReuseAddressToggledLock = false;
+    }
+  }
+
+  Future<void> _updateAddressReuse(bool shouldReuse) async {
+    await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+      newEntries: {
+        WalletInfoKeys.reuseAddress: shouldReuse,
+      },
+      isar: ref.read(mainDBProvider).isar,
+    );
+
+    if (_switchController.isOn != null) {
+      if (_switchController.isOn!.call() != shouldReuse) {
+        _switchController.activate?.call();
+      }
     }
   }
 
   @override
+  void initState() {
+    _switchController = DSBController();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final wallet = ref.watch(pWallets).getWallet(widget.walletId);
+
+    final isViewOnlyNoAddressGen = wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -185,11 +199,11 @@ class _WalletSettingsWalletSettingsViewState
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 8,
-                ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is RbfInterface)
+                if (wallet is RbfInterface)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (wallet is RbfInterface)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
@@ -221,70 +235,60 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is RbfInterface)
+                if (wallet is MultiAddressInterface && !isViewOnlyNoAddressGen)
                   const SizedBox(
                     height: 8,
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is MultiAddressInterface)
+                if (wallet is MultiAddressInterface && !isViewOnlyNoAddressGen)
                   RoundedWhiteContainer(
-                    child: Consumer(
-                      builder: (_, ref, __) {
-                        return RawMaterialButton(
-                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      onPressed: _switchReuseAddressToggled,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Reuse receiving address",
+                              style: STextStyles.titleBold12(context),
+                              textAlign: TextAlign.left,
                             ),
-                          ),
-                          onPressed: null,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Reuse receiving address by default",
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: IgnorePointer(
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                        pWalletInfo(widget.walletId).select(
+                                          (value) => value.otherData,
+                                        ),
+                                      )[WalletInfoKeys.reuseAddress] as bool? ??
+                                      false,
+                                  controller: _switchController,
                                 ),
-                                SizedBox(
-                                  height: 20,
-                                  width: 40,
-                                  child: DraggableSwitchButton(
-                                    isOn: ref.watch(
-                                          pWalletInfo(widget.walletId).select(
-                                              (value) => value.otherData),
-                                        )[WalletInfoKeys.reuseAddress]
-                                            as bool? ??
-                                        false,
-                                    onValueChanged: (newValue) {
-                                      _switchReuseAddressToggled(newValue);
-                                    },
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is MultiAddressInterface)
+                if (wallet is LelantusInterface && !wallet.isViewOnly)
                   const SizedBox(
                     height: 8,
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is LelantusInterface)
-                  const SizedBox(
-                    height: 8,
-                  ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is LelantusInterface)
+                if (wallet is LelantusInterface && !wallet.isViewOnly)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
@@ -316,13 +320,11 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is SparkInterface)
+                if (wallet is SparkInterface && !wallet.isViewOnly)
                   const SizedBox(
                     height: 8,
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is SparkInterface)
+                if (wallet is SparkInterface && !wallet.isViewOnly)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
@@ -354,11 +356,45 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (ref.watch(pWallets).getWallet(widget.walletId)
-                    is RbfInterface)
+                if (wallet is LibMoneroWallet)
                   const SizedBox(
                     height: 8,
                   ),
+                if (wallet is LibMoneroWallet)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          EditRefreshHeightView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Restore height",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(
+                  height: 8,
+                ),
                 RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
                   child: RawMaterialButton(
@@ -371,7 +407,7 @@ class _WalletSettingsWalletSettingsViewState
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     padding: const EdgeInsets.all(0),
                     onPressed: () {
-                      showDialog(
+                      showDialog<void>(
                         barrierDismissible: true,
                         context: context,
                         builder: (_) => StackDialog(

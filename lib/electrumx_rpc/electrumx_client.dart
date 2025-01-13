@@ -21,6 +21,7 @@ import 'package:mutex/mutex.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import '../exceptions/electrumx/no_such_transaction.dart';
+import '../models/electrumx_response/spark_models.dart';
 import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
@@ -29,18 +30,16 @@ import '../utilities/amount/amount.dart';
 import '../utilities/extensions/impl/string.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'client_manager.dart';
 
-typedef SparkMempoolData = ({
-  String txid,
-  List<String> serialContext,
-  List<String> lTags,
-  List<String> coins,
-});
-
 class WifiOnlyException implements Exception {}
+
+class TorOnlyException implements Exception {}
+
+class ClearnetOnlyException implements Exception {}
 
 class ElectrumXNode {
   ElectrumXNode({
@@ -49,12 +48,16 @@ class ElectrumXNode {
     required this.name,
     required this.id,
     required this.useSSL,
+    required this.torEnabled,
+    required this.clearnetEnabled,
   });
   final String address;
   final int port;
   final String name;
   final String id;
   final bool useSSL;
+  final bool torEnabled;
+  final bool clearnetEnabled;
 
   factory ElectrumXNode.from(ElectrumXNode node) {
     return ElectrumXNode(
@@ -63,6 +66,8 @@ class ElectrumXNode {
       name: node.name,
       id: node.id,
       useSSL: node.useSSL,
+      torEnabled: node.torEnabled,
+      clearnetEnabled: node.clearnetEnabled,
     );
   }
 
@@ -74,6 +79,7 @@ class ElectrumXNode {
 
 class ElectrumXClient {
   final CryptoCurrency cryptoCurrency;
+  final TorPlainNetworkOption netType;
 
   String get host => _host;
   late String _host;
@@ -90,12 +96,13 @@ class ElectrumXClient {
   ElectrumClient? getElectrumAdapter() =>
       ClientManager.sharedInstance.getClient(
         cryptoCurrency: cryptoCurrency,
+        netType: netType,
       );
 
   late Prefs _prefs;
   late TorService _torService;
 
-  List<ElectrumXNode>? failovers;
+  late final List<ElectrumXNode> _failovers;
   int currentFailoverIndex = -1;
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
@@ -119,6 +126,7 @@ class ElectrumXClient {
     required int port,
     required bool useSSL,
     required Prefs prefs,
+    required this.netType,
     required List<ElectrumXNode> failovers,
     required this.cryptoCurrency,
     this.connectionTimeoutForSpecialCaseJsonRPCClients =
@@ -131,6 +139,7 @@ class ElectrumXClient {
     _host = host;
     _port = port;
     _useSSL = useSSL;
+    _failovers = failovers;
 
     final bus = globalEventBusForTesting ?? GlobalEventBus.instance;
 
@@ -168,6 +177,7 @@ class ElectrumXClient {
         _electrumAdapterChannel = null;
         await (await ClientManager.sharedInstance
                 .remove(cryptoCurrency: cryptoCurrency))
+            .$1
             ?.close();
 
         // Also close any chain height services that are currently open.
@@ -193,6 +203,10 @@ class ElectrumXClient {
       failovers: failovers,
       globalEventBusForTesting: globalEventBusForTesting,
       cryptoCurrency: cryptoCurrency,
+      netType: TorPlainNetworkOption.fromNodeData(
+        node.torEnabled,
+        node.clearnetEnabled,
+      ),
     );
   }
 
@@ -236,6 +250,18 @@ class ElectrumXClient {
         // Get the proxy info from the TorService.
         proxyInfo = _torService.getProxyInfo();
       }
+
+      if (netType == TorPlainNetworkOption.clear) {
+        _electrumAdapterChannel = null;
+        await ClientManager.sharedInstance
+            .remove(cryptoCurrency: cryptoCurrency);
+      }
+    } else {
+      if (netType == TorPlainNetworkOption.tor) {
+        _electrumAdapterChannel = null;
+        await ClientManager.sharedInstance
+            .remove(cryptoCurrency: cryptoCurrency);
+      }
     }
 
     // If the current ElectrumAdapterClient is closed, create a new one.
@@ -253,9 +279,11 @@ class ElectrumXClient {
       usePort = port;
       useUseSSL = useSSL;
     } else {
-      useHost = failovers![currentFailoverIndex].address;
-      usePort = failovers![currentFailoverIndex].port;
-      useUseSSL = failovers![currentFailoverIndex].useSSL;
+      _electrumAdapterChannel = null;
+      await ClientManager.sharedInstance.remove(cryptoCurrency: cryptoCurrency);
+      useHost = _failovers[currentFailoverIndex].address;
+      usePort = _failovers[currentFailoverIndex].port;
+      useUseSSL = _failovers[currentFailoverIndex].useSSL;
     }
 
     _electrumAdapterChannel ??= await electrum_adapter.connect(
@@ -288,9 +316,10 @@ class ElectrumXClient {
         );
       }
 
-      ClientManager.sharedInstance.addClient(
+      await ClientManager.sharedInstance.addClient(
         newClient,
         cryptoCurrency: cryptoCurrency,
+        netType: netType,
       );
     }
 
@@ -352,6 +381,10 @@ class ElectrumXClient {
       return response;
     } on WifiOnlyException {
       rethrow;
+    } on ClearnetOnlyException {
+      rethrow;
+    } on TorOnlyException {
+      rethrow;
     } on SocketException {
       // likely timed out so then retry
       if (retries > 0) {
@@ -366,7 +399,12 @@ class ElectrumXClient {
         rethrow;
       }
     } catch (e) {
-      if (failovers != null && currentFailoverIndex < failovers!.length - 1) {
+      final errorMessage = e.toString();
+      Logging.instance.log("$host $e", level: LogLevel.Debug);
+      if (errorMessage.contains("JSON-RPC error")) {
+        currentFailoverIndex = _failovers.length;
+      }
+      if (currentFailoverIndex < _failovers.length - 1) {
         currentFailoverIndex++;
         return request(
           command: command,
@@ -442,6 +480,10 @@ class ElectrumXClient {
       return response;
     } on WifiOnlyException {
       rethrow;
+    } on ClearnetOnlyException {
+      rethrow;
+    } on TorOnlyException {
+      rethrow;
     } on SocketException {
       // likely timed out so then retry
       if (retries > 0) {
@@ -455,7 +497,7 @@ class ElectrumXClient {
         rethrow;
       }
     } catch (e) {
-      if (failovers != null && currentFailoverIndex < failovers!.length - 1) {
+      if (currentFailoverIndex < _failovers.length - 1) {
         currentFailoverIndex++;
         return batchRequest(
           command: command,
@@ -488,9 +530,17 @@ class ElectrumXClient {
       return await request(
         requestID: requestID,
         command: 'server.ping',
-        requestTimeout: const Duration(seconds: 2),
+        requestTimeout: const Duration(seconds: 30),
         retries: retryCount,
-      ).timeout(const Duration(seconds: 2)) as bool;
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          Logging.instance.log(
+            "ElectrumxClient.ping timed out with retryCount=$retryCount, host=$_host",
+            level: LogLevel.Debug,
+          );
+        },
+      ) as bool;
     } catch (e) {
       rethrow;
     }
@@ -986,29 +1036,30 @@ class ElectrumXClient {
   ///       "b476ed2b374bb081ea51d111f68f0136252521214e213d119b8dc67b92f5a390",
   ///   ]
   /// }
-  Future<List<Map<String, dynamic>>> getSparkMintMetaData({
-    String? requestID,
-    required List<String> sparkCoinHashes,
-  }) async {
-    try {
-      Logging.instance.log(
-        "attempting to fetch spark.getsparkmintmetadata...",
-        level: LogLevel.Info,
-      );
-      await checkElectrumAdapter();
-      final List<dynamic> response =
-          await (getElectrumAdapter() as FiroElectrumClient)
-              .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
-      Logging.instance.log(
-        "Fetching spark.getsparkmintmetadata finished",
-        level: LogLevel.Info,
-      );
-      return List<Map<String, dynamic>>.from(response);
-    } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
-      rethrow;
-    }
-  }
+  /// NOT USED?
+  // Future<List<Map<String, dynamic>>> getSparkMintMetaData({
+  //   String? requestID,
+  //   required List<String> sparkCoinHashes,
+  // }) async {
+  //   try {
+  //     Logging.instance.log(
+  //       "attempting to fetch spark.getsparkmintmetadata...",
+  //       level: LogLevel.Info,
+  //     );
+  //     await checkElectrumAdapter();
+  //     final List<dynamic> response =
+  //         await (getElectrumAdapter() as FiroElectrumClient)
+  //             .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
+  //     Logging.instance.log(
+  //       "Fetching spark.getsparkmintmetadata finished",
+  //       level: LogLevel.Info,
+  //     );
+  //     return List<Map<String, dynamic>>.from(response);
+  //   } catch (e) {
+  //     Logging.instance.log(e, level: LogLevel.Error);
+  //     rethrow;
+  //   }
+  // }
 
   /// Returns the latest Spark set id
   ///
@@ -1084,7 +1135,7 @@ class ElectrumXClient {
       final List<SparkMempoolData> result = [];
       for (final entry in map.entries) {
         result.add(
-          (
+          SparkMempoolData(
             txid: entry.key,
             serialContext:
                 List<String>.from(entry.value["serial_context"] as List),
@@ -1140,6 +1191,98 @@ class ElectrumXClient {
       rethrow;
     }
   }
+  // ======== New Paginated Endpoints ==========================================
+
+  Future<SparkAnonymitySetMeta> getSparkAnonymitySetMeta({
+    String? requestID,
+    required int coinGroupId,
+  }) async {
+    try {
+      const command = "spark.getsparkanonymitysetmeta";
+      Logging.instance.log(
+        "[${getElectrumAdapter()?.host}] => attempting to fetch $command...",
+        level: LogLevel.Info,
+      );
+
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: command,
+        args: [
+          "$coinGroupId",
+        ],
+      );
+
+      final map = Map<String, dynamic>.from(response as Map);
+
+      final result = SparkAnonymitySetMeta(
+        coinGroupId: coinGroupId,
+        blockHash: map["blockHash"] as String,
+        setHash: map["setHash"] as String,
+        size: map["size"] as int,
+      );
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getSparkAnonymitySetMeta("
+        "requestID=$requestID, "
+        "coinGroupId=$coinGroupId"
+        "). Set meta=$result, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Debug,
+      );
+
+      return result;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
+  Future<List<dynamic>> getSparkAnonymitySetBySector({
+    String? requestID,
+    required int coinGroupId,
+    required String latestBlock,
+    required int startIndex, // inclusive
+    required int endIndex, // exclusive
+  }) async {
+    try {
+      const command =
+          "spark.getsparkanonymitysetsector"; // TODO verify this will be correct
+      final start = DateTime.now();
+      final response = await request(
+        requestID: requestID,
+        command: command,
+        args: [
+          "$coinGroupId",
+          latestBlock,
+          "$startIndex",
+          "$endIndex",
+        ],
+      );
+
+      final map = Map<String, dynamic>.from(response as Map);
+
+      final result = map["coins"] as List;
+
+      Logging.instance.log(
+        "Finished ElectrumXClient.getSparkAnonymitySetBySector("
+        "requestID=$requestID, "
+        "coinGroupId=$coinGroupId, "
+        "latestBlock=$latestBlock, "
+        "startIndex=$startIndex, "
+        "endIndex=$endIndex"
+        "). # of coins=${result.length}, "
+        "Duration=${DateTime.now().difference(start)}",
+        level: LogLevel.Debug,
+      );
+
+      return result;
+    } catch (e) {
+      Logging.instance.log(e, level: LogLevel.Error);
+      rethrow;
+    }
+  }
+
   // ===========================================================================
 
   Future<bool> isMasterNodeCollateral({

@@ -1,7 +1,7 @@
-import '../../crypto_currency/intermediate/bip39_hd_currency.dart';
-import '../intermediate/bip39_hd_wallet.dart';
+import '../../crypto_currency/crypto_currency.dart';
+import '../wallet.dart';
 
-mixin CoinControlInterface<T extends Bip39HDCurrency> on Bip39HDWallet<T> {
+mixin CoinControlInterface<T extends CryptoCurrency> on Wallet<T> {
   // any required here?
   // currently only used to id which wallets support coin control
 }

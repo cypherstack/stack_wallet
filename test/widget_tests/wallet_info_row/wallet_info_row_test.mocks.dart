@@ -104,6 +104,7 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
           Invocation.getter(#nodeService),
         ),
       ) as _i2.NodeService);
+
   @override
   set nodeService(_i2.NodeService? _nodeService) => super.noSuchMethod(
         Invocation.setter(
@@ -112,6 +113,7 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i3.MainDB get mainDB => (super.noSuchMethod(
         Invocation.getter(#mainDB),
@@ -120,6 +122,7 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
           Invocation.getter(#mainDB),
         ),
       ) as _i3.MainDB);
+
   @override
   set mainDB(_i3.MainDB? _mainDB) => super.noSuchMethod(
         Invocation.setter(
@@ -128,11 +131,13 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   List<_i5.Wallet<_i4.CryptoCurrency>> get wallets => (super.noSuchMethod(
         Invocation.getter(#wallets),
         returnValue: <_i5.Wallet<_i4.CryptoCurrency>>[],
       ) as List<_i5.Wallet<_i4.CryptoCurrency>>);
+
   @override
   _i5.Wallet<_i4.CryptoCurrency> getWallet(String? walletId) =>
       (super.noSuchMethod(
@@ -148,6 +153,7 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
           ),
         ),
       ) as _i5.Wallet<_i4.CryptoCurrency>);
+
   @override
   void addWallet(_i5.Wallet<_i4.CryptoCurrency>? wallet) => super.noSuchMethod(
         Invocation.method(
@@ -156,6 +162,7 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i9.Future<void> deleteWallet(
     _i10.WalletInfo? info,
@@ -172,6 +179,7 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> load(
     _i11.Prefs? prefs,
@@ -188,6 +196,7 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> loadAfterStackRestore(
     _i11.Prefs? prefs,
@@ -224,6 +233,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
           Invocation.getter(#client),
         ),
       ) as _i6.HTTP);
+
   @override
   set client(_i6.HTTP? _client) => super.noSuchMethod(
         Invocation.setter(
@@ -232,6 +242,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i3.MainDB get db => (super.noSuchMethod(
         Invocation.getter(#db),
@@ -240,11 +251,13 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
           Invocation.getter(#db),
         ),
       ) as _i3.MainDB);
+
   @override
   List<_i13.StackTheme> get installedThemes => (super.noSuchMethod(
         Invocation.getter(#installedThemes),
         returnValue: <_i13.StackTheme>[],
       ) as List<_i13.StackTheme>);
+
   @override
   void init(_i3.MainDB? db) => super.noSuchMethod(
         Invocation.method(
@@ -253,6 +266,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   _i9.Future<void> install({required _i14.Uint8List? themeArchiveData}) =>
       (super.noSuchMethod(
@@ -264,6 +278,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
         Invocation.method(
@@ -274,6 +289,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
         Invocation.method(
@@ -283,6 +299,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<bool> verifyInstalled({required String? themeId}) =>
       (super.noSuchMethod(
@@ -293,6 +310,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
         ),
         returnValue: _i9.Future<bool>.value(false),
       ) as _i9.Future<bool>);
+
   @override
   _i9.Future<List<_i12.StackThemeMetaData>> fetchThemes() =>
       (super.noSuchMethod(
@@ -303,6 +321,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
         returnValue: _i9.Future<List<_i12.StackThemeMetaData>>.value(
             <_i12.StackThemeMetaData>[]),
       ) as _i9.Future<List<_i12.StackThemeMetaData>>);
+
   @override
   _i9.Future<_i14.Uint8List> fetchTheme(
           {required _i12.StackThemeMetaData? themeMetaData}) =>
@@ -314,6 +333,7 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
         ),
         returnValue: _i9.Future<_i14.Uint8List>.value(_i14.Uint8List(0)),
       ) as _i9.Future<_i14.Uint8List>);
+
   @override
   _i13.StackTheme? getTheme({required String? themeId}) =>
       (super.noSuchMethod(Invocation.method(
@@ -339,21 +359,25 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
           Invocation.getter(#secureStorageInterface),
         ),
       ) as _i7.SecureStorageInterface);
+
   @override
   List<_i15.NodeModel> get primaryNodes => (super.noSuchMethod(
         Invocation.getter(#primaryNodes),
         returnValue: <_i15.NodeModel>[],
       ) as List<_i15.NodeModel>);
+
   @override
   List<_i15.NodeModel> get nodes => (super.noSuchMethod(
         Invocation.getter(#nodes),
         returnValue: <_i15.NodeModel>[],
       ) as List<_i15.NodeModel>);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   _i9.Future<void> updateDefaults() => (super.noSuchMethod(
         Invocation.method(
@@ -363,6 +387,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> setPrimaryNodeFor({
     required _i4.CryptoCurrency? coin,
@@ -382,6 +407,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i15.NodeModel? getPrimaryNodeFor({required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(Invocation.method(
@@ -389,6 +415,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         [],
         {#currency: currency},
       )) as _i15.NodeModel?);
+
   @override
   List<_i15.NodeModel> getNodesFor(_i4.CryptoCurrency? coin) =>
       (super.noSuchMethod(
@@ -398,6 +425,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         ),
         returnValue: <_i15.NodeModel>[],
       ) as List<_i15.NodeModel>);
+
   @override
   _i15.NodeModel? getNodeById({required String? id}) =>
       (super.noSuchMethod(Invocation.method(
@@ -405,6 +433,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         [],
         {#id: id},
       )) as _i15.NodeModel?);
+
   @override
   List<_i15.NodeModel> failoverNodesFor(
           {required _i4.CryptoCurrency? currency}) =>
@@ -416,6 +445,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         ),
         returnValue: <_i15.NodeModel>[],
       ) as List<_i15.NodeModel>);
+
   @override
   _i9.Future<void> add(
     _i15.NodeModel? node,
@@ -434,6 +464,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> delete(
     String? id,
@@ -450,6 +481,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> setEnabledState(
     String? id,
@@ -468,6 +500,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> edit(
     _i15.NodeModel? editedNode,
@@ -486,6 +519,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   _i9.Future<void> updateCommunityNodes() => (super.noSuchMethod(
         Invocation.method(
@@ -495,6 +529,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
   @override
   void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -503,6 +538,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -511,6 +547,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -519,6 +556,7 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(

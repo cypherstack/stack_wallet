@@ -9,10 +9,15 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../themes/stack_colors.dart';
+import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
+import 'icon_widgets/clipboard_icon.dart';
+import 'icon_widgets/x_icon.dart';
+import 'textfield_icon_button.dart';
 
 InputDecoration standardInputDecoration(
   String? labelText,
@@ -51,4 +56,114 @@ InputDecoration standardInputDecoration(
     disabledBorder: InputBorder.none,
     focusedErrorBorder: InputBorder.none,
   );
+}
+
+class FullTextField extends StatefulWidget {
+  const FullTextField({
+    super.key,
+    this.controller,
+    this.focusNode,
+    required this.label,
+    this.onChanged,
+  });
+
+  final String label;
+
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+
+  final void Function(String)? onChanged;
+
+  @override
+  State<FullTextField> createState() => _FullTextFieldState();
+}
+
+class _FullTextFieldState extends State<FullTextField> {
+  late final TextEditingController controller;
+  late final FocusNode focusNode;
+
+  bool _hasValue = false;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = widget.controller ?? TextEditingController();
+    focusNode = widget.focusNode ?? FocusNode();
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(
+        Constants.size.circularBorderRadius,
+      ),
+      child: TextField(
+        controller: controller,
+        autocorrect: false,
+        enableSuggestions: false,
+        onChanged: (newValue) {
+          widget.onChanged?.call(newValue);
+        },
+        focusNode: focusNode,
+        style: STextStyles.field(context),
+        decoration: standardInputDecoration(
+          widget.label,
+          focusNode,
+          context,
+        ).copyWith(
+          contentPadding: const EdgeInsets.only(
+            left: 16,
+            top: 6,
+            bottom: 8,
+            right: 5,
+          ),
+          suffixIcon: Padding(
+            padding: controller.text.isEmpty
+                ? const EdgeInsets.only(right: 8)
+                : const EdgeInsets.only(right: 0),
+            child: UnconstrainedBox(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  TextFieldIconButton(
+                    onTap: () async {
+                      if (_hasValue) {
+                        controller.text = "";
+
+                        setState(() {
+                          _hasValue = false;
+                        });
+                      } else {
+                        final data =
+                            await Clipboard.getData(Clipboard.kTextPlain);
+                        if (data?.text != null && data!.text!.isNotEmpty) {
+                          final content = data.text!.trim();
+
+                          controller.text = content;
+                          setState(() {
+                            _hasValue = content.isNotEmpty;
+                          });
+                        }
+                      }
+
+                      widget.onChanged?.call(controller.text);
+                    },
+                    child: _hasValue ? const XIcon() : const ClipboardIcon(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -12,6 +12,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+
 import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../models/node_model.dart';
@@ -31,6 +32,49 @@ class NodeService extends ChangeNotifier {
   });
 
   Future<void> updateDefaults() async {
+    // hack
+    if (AppConfig.coins.where((e) => e.identifier == "firo").isNotEmpty) {
+      final others = [
+        "electrumx01.firo.org",
+        "electrumx02.firo.org",
+        "electrumx03.firo.org",
+        "electrumx.firo.org",
+      ];
+      const port = 50002;
+      const idPrefix = "not_a_real_default_but_temp";
+
+      for (final host in others) {
+        final _id = "${idPrefix}_$host";
+
+        NodeModel? node = DB.instance.get<NodeModel>(
+          boxName: DB.boxNameNodeModels,
+          key: _id,
+        );
+
+        if (node == null) {
+          node = NodeModel(
+            host: host,
+            port: port,
+            name: host,
+            id: _id,
+            useSSL: true,
+            enabled: true,
+            coinName: "firo",
+            isFailover: true,
+            isDown: false,
+            torEnabled: true,
+            clearnetEnabled: true,
+          );
+
+          await DB.instance.put<NodeModel>(
+            boxName: DB.boxNameNodeModels,
+            key: _id,
+            value: node,
+          );
+        }
+      }
+    }
+
     for (final defaultNode in AppConfig.coins.map(
       (e) => e.defaultNode,
     )) {
@@ -58,6 +102,9 @@ class NodeService extends ChangeNotifier {
             enabled: savedNode.enabled,
             isFailover: savedNode.isFailover,
             trusted: savedNode.trusted,
+            torEnabled: savedNode.torEnabled,
+            clearnetEnabled: savedNode.clearnetEnabled,
+            loginName: savedNode.loginName,
           ),
         );
       }
@@ -74,6 +121,9 @@ class NodeService extends ChangeNotifier {
             enabled: primaryNode.enabled,
             isFailover: primaryNode.isFailover,
             trusted: primaryNode.trusted,
+            torEnabled: primaryNode.torEnabled,
+            clearnetEnabled: primaryNode.clearnetEnabled,
+            loginName: primaryNode.loginName,
           ),
         );
       }
@@ -165,6 +215,8 @@ class NodeService extends ChangeNotifier {
         key: "${node.id}_nodePW",
         value: password,
       );
+    } else {
+      await secureStorageInterface.delete(key: "${node.id}_nodePW");
     }
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -192,7 +244,11 @@ class NodeService extends ChangeNotifier {
     await DB.instance.put<NodeModel>(
       boxName: DB.boxNameNodeModels,
       key: model.id,
-      value: model.copyWith(enabled: enabled),
+      value: model.copyWith(
+        enabled: enabled,
+        loginName: model.loginName,
+        trusted: model.trusted,
+      ),
     );
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -253,7 +309,9 @@ class NodeService extends ChangeNotifier {
             enabled: true,
             coinName: coin.identifier,
             isFailover: true,
+            torEnabled: nodeMap["torEnabled"] == "true",
             isDown: nodeMap["isDown"] == "true",
+            clearnetEnabled: nodeMap["plainEnabled"] == "true",
           );
           final currentNode = getNodeById(id: nodeMap["id"] as String);
           if (currentNode != null) {
@@ -264,6 +322,8 @@ class NodeService extends ChangeNotifier {
               useSSL: node.useSSL,
               coinName: node.coinName,
               isDown: node.isDown,
+              loginName: node.loginName,
+              trusted: node.trusted,
             );
           }
           await add(node, null, false);

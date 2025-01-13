@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/edit_refresh_height_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
@@ -30,7 +31,9 @@ import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
 import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
@@ -43,7 +46,8 @@ enum _WalletOptions {
   showXpub,
   lelantusCoins,
   sparkCoins,
-  frostOptions;
+  frostOptions,
+  refreshFromHeight;
 
   String get prettyName {
     switch (this) {
@@ -61,6 +65,8 @@ enum _WalletOptions {
         return "Spark Coins";
       case _WalletOptions.frostOptions:
         return "FROST settings";
+      case _WalletOptions.refreshFromHeight:
+        return "Refresh height";
     }
   }
 }
@@ -109,6 +115,9 @@ class WalletOptionsButton extends ConsumerWidget {
               },
               onFrostMSWalletOptionsPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.frostOptions);
+              },
+              onRefreshHeightPressed: () async {
+                Navigator.of(context).pop(_WalletOptions.refreshFromHeight);
               },
               walletId: walletId,
             );
@@ -242,6 +251,26 @@ class WalletOptionsButton extends ConsumerWidget {
                 ),
               );
               break;
+
+            case _WalletOptions.refreshFromHeight:
+              if (Util.isDesktop) {
+                unawaited(
+                  showDialog(
+                    context: context,
+                    builder: (context) => EditRefreshHeightView(
+                      walletId: walletId,
+                    ),
+                  ),
+                );
+              } else {
+                unawaited(
+                  Navigator.of(context).pushNamed(
+                    EditRefreshHeightView.routeName,
+                    arguments: walletId,
+                  ),
+                );
+              }
+              break;
           }
         }
       },
@@ -277,6 +306,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onFiroShowLelantusCoins,
     required this.onFiroShowSparkCoins,
     required this.onFrostMSWalletOptionsPressed,
+    required this.onRefreshHeightPressed,
     required this.walletId,
   });
 
@@ -287,20 +317,27 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   final VoidCallback onFiroShowLelantusCoins;
   final VoidCallback onFiroShowSparkCoins;
   final VoidCallback onFrostMSWalletOptionsPressed;
+  final VoidCallback onRefreshHeightPressed;
   final String walletId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(pWalletCoin(walletId));
 
-    final firoDebug = kDebugMode && (coin is Firo);
+    bool firoDebug = kDebugMode && (coin is Firo);
 
-    final bool xpubEnabled =
-        ref.watch(pWallets).getWallet(walletId) is ExtendedKeysInterface;
+    final wallet = ref.watch(pWallets).getWallet(walletId);
+    bool xpubEnabled = wallet is ExtendedKeysInterface;
+
+    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+      xpubEnabled = false;
+      firoDebug = false;
+    }
 
     final bool canChangeRep = coin is NanoCurrency;
 
     final bool isFrost = coin is FrostCurrency;
+    final bool isMoneroWow = wallet is LibMoneroWallet;
 
     return Stack(
       children: [
@@ -490,6 +527,43 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.frostOptions.prettyName,
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (isMoneroWow)
+                    const SizedBox(
+                      height: 8,
+                    ),
+                  if (isMoneroWow)
+                    TransparentButton(
+                      onPressed: onRefreshHeightPressed,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.addressBookDesktop,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.refreshFromHeight.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                   context,
                                 ).copyWith(

@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,24 +19,31 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../models/node_model.dart';
 import '../../../../notifications/show_flush_bar.dart';
+import '../../../../providers/global/active_wallet_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/node_uri_util.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/tor_plain_net_option_enum.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
@@ -69,6 +77,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late final CryptoCurrency coin;
   late final String? nodeId;
   late final bool isDesktop;
+
+  (NodeModel, String)? _scannedResult;
 
   late bool saveEnabled;
   late bool testConnectionEnabled;
@@ -222,12 +232,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin is CwBasedInterface) {
+    if (coin is LibMoneroWallet) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
       }
     }
+
+    final torEnabled = formData.netOption == TorPlainNetworkOption.tor ||
+        formData.netOption == TorPlainNetworkOption.both;
+    final plainEnabled = formData.netOption == TorPlainNetworkOption.clear ||
+        formData.netOption == TorPlainNetworkOption.both;
 
     switch (viewType) {
       case AddEditNodeViewType.add:
@@ -243,6 +258,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           isFailover: formData.isFailover!,
           trusted: formData.trusted!,
           isDown: false,
+          torEnabled: torEnabled,
+          clearnetEnabled: plainEnabled,
         );
 
         await ref.read(nodeServiceChangeNotifierProvider).add(
@@ -250,6 +267,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               formData.password,
               true,
             );
+        await _notifyWalletsOfUpdatedNode();
         if (mounted) {
           Navigator.of(context)
               .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
@@ -268,6 +286,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           isFailover: formData.isFailover!,
           trusted: formData.trusted!,
           isDown: false,
+          torEnabled: torEnabled,
+          clearnetEnabled: plainEnabled,
         );
 
         await ref.read(nodeServiceChangeNotifierProvider).add(
@@ -275,11 +295,127 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               formData.password,
               true,
             );
+        await _notifyWalletsOfUpdatedNode();
         if (mounted) {
           Navigator.of(context)
               .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
         }
         break;
+    }
+  }
+
+  Future<void> _notifyWalletsOfUpdatedNode() async {
+    final wallets =
+        ref.read(pWallets).wallets.where((e) => e.info.coin == widget.coin);
+    final prefs = ref.read(prefsChangeNotifierProvider);
+
+    switch (prefs.syncType) {
+      case SyncingType.currentWalletOnly:
+        for (final wallet in wallets) {
+          if (ref.read(currentWalletIdProvider) == wallet.walletId) {
+            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
+          } else {
+            unawaited(wallet.updateNode());
+          }
+        }
+        break;
+      case SyncingType.selectedWalletsAtStartup:
+        final List<String> walletIdsToSync = prefs.walletIdsSyncOnStartup;
+        for (final wallet in wallets) {
+          if (walletIdsToSync.contains(wallet.walletId)) {
+            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
+          } else {
+            unawaited(wallet.updateNode());
+          }
+        }
+        break;
+      case SyncingType.allWalletsOnStartup:
+        for (final wallet in wallets) {
+          unawaited(wallet.updateNode().then((value) => wallet.refresh()));
+        }
+        break;
+    }
+  }
+
+  bool _scanLock = false;
+
+  void _scanQr() async {
+    if (_scanLock) return;
+    _scanLock = true;
+    try {
+      if (Util.isDesktop) {
+        try {
+          final qrResult = await showDialog<String>(
+            context: context,
+            builder: (context) => const QrCodeScannerDialog(),
+          );
+
+          if (qrResult == null) {
+            Logging.instance.log(
+              "Qr scanning cancelled",
+              level: LogLevel.Info,
+            );
+          } else {
+            try {
+              await _processQrData(qrResult);
+            } catch (e, s) {
+              Logging.instance.log(
+                "Error processing QR code data: $e\n$s",
+                level: LogLevel.Error,
+              );
+            }
+          }
+        } catch (e, s) {
+          Logging.instance.log(
+            "Error opening QR code scanner dialog: $e\n$s",
+            level: LogLevel.Error,
+          );
+        }
+      } else {
+        try {
+          final result = await BarcodeScanner.scan();
+          await _processQrData(result.rawContent);
+        } catch (e, s) {
+          Logging.instance.log(
+            "$e\n$s",
+            level: LogLevel.Warning,
+          );
+        }
+      }
+    } finally {
+      _scanLock = false;
+    }
+  }
+
+  Future<void> _processQrData(String data) async {
+    try {
+      final nodeQrData = NodeQrUtil.decodeUri(data);
+      if (mounted) {
+        setState(() {
+          _scannedResult = (
+            NodeModel(
+              host: nodeQrData.host,
+              port: nodeQrData.port,
+              name: nodeQrData.label ?? "",
+              id: const Uuid().v1(),
+              useSSL: nodeQrData.scheme == "https",
+              enabled: true,
+              coinName: coin.identifier,
+              isFailover: true,
+              isDown: false,
+              torEnabled: true,
+              clearnetEnabled: !nodeQrData.host.endsWith(".onion"),
+              loginName: (nodeQrData as LibMoneroNodeQrData?)?.user,
+            ),
+            (nodeQrData as LibMoneroNodeQrData?)?.password ?? ""
+          );
+        });
+      }
+    } catch (e, s) {
+      Logging.instance.log(
+        "$e\n$s",
+        level: LogLevel.Warning,
+      );
     }
   }
 
@@ -343,6 +479,35 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               style: STextStyles.navBarTitle(context),
             ),
             actions: [
+              if (viewType == AddEditNodeViewType.add &&
+                  coin
+                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("qrNodeAppBarButtonKey"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: QrCodeIcon(
+                        width: 20,
+                        height: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
+                      onPressed: _scanQr,
+                    ),
+                  ),
+                ),
               if (viewType == AddEditNodeViewType.edit &&
                   ref
                           .watch(
@@ -422,23 +587,51 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         condition: isDesktop,
         builder: (child) => DesktopDialog(
           maxWidth: 580,
-          maxHeight: 500,
+          maxHeight: double.infinity,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(
+                height: 8,
+              ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(
-                    width: 8,
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      const AppBarBackButton(
+                        iconSize: 24,
+                        size: 40,
+                      ),
+                      Text(
+                        "Add new node",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ],
                   ),
-                  const AppBarBackButton(
-                    iconSize: 24,
-                    size: 40,
-                  ),
-                  Text(
-                    "Add new node",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  if (coin
+                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
+                    Padding(
+                      padding: const EdgeInsets.only(right: 32),
+                      child: AppBarIconButton(
+                        size: 40,
+                        color: isDesktop
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .background,
+                        icon: const QrCodeIcon(
+                          width: 21,
+                          height: 21,
+                        ),
+                        onPressed: _scanQr,
+                      ),
+                    ),
                 ],
               ),
               Padding(
@@ -457,7 +650,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             NodeForm(
-              node: node,
+              key: Key((node ?? _scannedResult?.$1)?.id ?? "none"),
+              node: node ?? _scannedResult?.$1,
+              scannedPw: _scannedResult?.$2,
               secureStore: ref.read(secureStoreProvider),
               readOnly: false,
               coin: widget.coin,
@@ -568,10 +763,11 @@ class NodeFormData {
   String? name, host, login, password;
   int? port;
   bool? useSSL, isFailover, trusted;
+  TorPlainNetworkOption? netOption;
 
   @override
   String toString() {
-    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted }";
+    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted, netOption: $netOption }";
   }
 }
 
@@ -581,6 +777,7 @@ class NodeForm extends ConsumerStatefulWidget {
   const NodeForm({
     super.key,
     this.node,
+    this.scannedPw,
     required this.secureStore,
     required this.readOnly,
     required this.coin,
@@ -588,6 +785,7 @@ class NodeForm extends ConsumerStatefulWidget {
   });
 
   final NodeModel? node;
+  final String? scannedPw;
   final SecureStorageInterface secureStore;
   final bool readOnly;
   final CryptoCurrency coin;
@@ -615,6 +813,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   bool _trusted = false;
   int? port;
   late bool enableSSLCheckbox;
+  late TorPlainNetworkOption netOption;
 
   late final bool enableAuthFields;
 
@@ -661,17 +860,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     onChanged?.call(canSave, canTestConnection);
     ref.read(nodeFormDataProvider).name = _nameController.text;
     ref.read(nodeFormDataProvider).host = _hostController.text;
-
     ref.read(nodeFormDataProvider).login =
         _usernameController.text.isEmpty ? null : _usernameController.text;
-
     ref.read(nodeFormDataProvider).password =
         _passwordController.text.isEmpty ? null : _passwordController.text;
-
     ref.read(nodeFormDataProvider).port = port;
     ref.read(nodeFormDataProvider).useSSL = _useSSL;
     ref.read(nodeFormDataProvider).isFailover = _isFailover;
     ref.read(nodeFormDataProvider).trusted = _trusted;
+    ref.read(nodeFormDataProvider).netOption = netOption;
   }
 
   @override
@@ -688,13 +885,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     if (widget.node != null) {
       final node = widget.node!;
       if (enableAuthFields) {
-        node.getPassword(widget.secureStore).then((value) {
-          if (value is String) {
-            _passwordController.text = value;
-          }
-        });
-
-        _usernameController.text = node.loginName ?? "";
+        if (widget.scannedPw == null) {
+          node.getPassword(widget.secureStore).then((value) {
+            if (value is String) {
+              _passwordController.text = value;
+            }
+          });
+        } else {
+          _passwordController.text = widget.scannedPw!;
+        }
       }
 
       _nameController.text = node.name;
@@ -704,6 +903,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
       _trusted = node.trusted ?? false;
+
+      if (node.torEnabled && !node.clearnetEnabled) {
+        netOption = TorPlainNetworkOption.tor;
+      } else if (node.clearnetEnabled && !node.torEnabled) {
+        netOption = TorPlainNetworkOption.clear;
+      } else {
+        netOption = TorPlainNetworkOption.both;
+      }
+
       if (widget.coin is Epiccash) {
         enableSSLCheckbox = !node.host.startsWith("http");
       } else {
@@ -716,6 +924,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       });
     } else {
       enableSSLCheckbox = true;
+      netOption = TorPlainNetworkOption.both;
       // default to port 3413
       // _portController.text = "3413";
     }
@@ -837,7 +1046,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 } else {
                   enableSSLCheckbox = true;
                 }
-              } else if (widget.coin is CwBasedInterface) {
+              } else if (widget.coin is LibMoneroWallet) {
                 if (newValue.startsWith("https://")) {
                   _useSSL = true;
                 } else if (newValue.startsWith("http://")) {
@@ -1052,7 +1261,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin is CwBasedInterface)
+        if (widget.coin is LibMoneroWallet)
           Row(
             children: [
               GestureDetector(
@@ -1119,7 +1328,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   });
                   if (widget.readOnly) {
                     ref.read(nodeServiceChangeNotifierProvider).edit(
-                          widget.node!.copyWith(isFailover: _isFailover),
+                          widget.node!.copyWith(
+                            isFailover: _isFailover,
+                            loginName: widget.node!.loginName,
+                            trusted: widget.node!.trusted,
+                          ),
                           null,
                           true,
                         );
@@ -1144,8 +1357,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                             });
                             if (widget.readOnly) {
                               ref.read(nodeServiceChangeNotifierProvider).edit(
-                                    widget.node!
-                                        .copyWith(isFailover: _isFailover),
+                                    widget.node!.copyWith(
+                                      isFailover: _isFailover,
+                                      loginName: widget.node!.loginName,
+                                      trusted: widget.node!.trusted,
+                                    ),
                                     null,
                                     true,
                                   );
@@ -1168,7 +1384,145 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
+        if (widget.coin is! Ethereum)
+          const SizedBox(
+            height: 16,
+          ),
+        if (widget.coin is! Ethereum)
+          Row(
+            children: [
+              RadioTextButton(
+                label: "Only TOR traffic",
+                enabled: !widget.readOnly,
+                value: TorPlainNetworkOption.tor,
+                groupValue: netOption,
+                onChanged: (value) {
+                  if (!widget.readOnly) {
+                    setState(
+                      () => netOption = TorPlainNetworkOption.tor,
+                    );
+                    _updateState();
+                  }
+                },
+              ),
+            ],
+          ),
+        if (widget.coin is! Ethereum)
+          const SizedBox(
+            height: 8,
+          ),
+        if (widget.coin is! Ethereum)
+          Row(
+            children: [
+              RadioTextButton(
+                label: "Only non-TOR traffic",
+                enabled: !widget.readOnly,
+                value: TorPlainNetworkOption.clear,
+                groupValue: netOption,
+                onChanged: (value) {
+                  if (!widget.readOnly) {
+                    setState(
+                      () => netOption = TorPlainNetworkOption.clear,
+                    );
+                    _updateState();
+                  }
+                },
+              ),
+            ],
+          ),
+        if (widget.coin is! Ethereum)
+          const SizedBox(
+            height: 8,
+          ),
+        if (widget.coin is! Ethereum)
+          Row(
+            children: [
+              RadioTextButton(
+                label: "Allow both",
+                enabled: !widget.readOnly,
+                value: TorPlainNetworkOption.both,
+                groupValue: netOption,
+                onChanged: (value) {
+                  if (!widget.readOnly) {
+                    setState(
+                      () => netOption = TorPlainNetworkOption.both,
+                    );
+                    _updateState();
+                  }
+                },
+              ),
+            ],
+          ),
       ],
+    );
+  }
+}
+
+class RadioTextButton<T> extends StatelessWidget {
+  const RadioTextButton({
+    super.key,
+    required this.value,
+    required this.label,
+    required this.groupValue,
+    required this.onChanged,
+    this.enabled = true,
+  });
+
+  final T value;
+  final String label;
+  final T groupValue;
+  final bool enabled;
+  final void Function(T) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConditionalParent(
+      condition: Util.isDesktop,
+      builder: (child) => MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: child,
+      ),
+      child: GestureDetector(
+        onTap: () {
+          if (value != groupValue) {
+            onChanged.call(value);
+          }
+        },
+        child: Container(
+          color: Colors.transparent,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: Radio<T>(
+                  activeColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .radioButtonIconEnabled,
+                  value: value,
+                  groupValue: groupValue,
+                  onChanged: !enabled
+                      ? null
+                      : (_) {
+                          if (value != groupValue) {
+                            onChanged.call(value);
+                          }
+                        },
+                ),
+              ),
+              const SizedBox(
+                width: 14,
+              ),
+              Text(
+                label,
+                style: STextStyles.w500_14(context),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

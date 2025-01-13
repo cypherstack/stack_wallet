@@ -77,6 +77,7 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
     _enabled = widget.enabled;
     valueListener = _isOn ? ValueNotifier(1.0) : ValueNotifier(0.0);
 
+    widget.controller?.isOn = () => _isOn;
     widget.controller?.activate = () {
       _isOn = !_isOn;
       // widget.onValueChanged?.call(_isOn);
@@ -212,4 +213,5 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
 
 class DSBController {
   VoidCallback? activate;
+  bool Function()? isOn;
 }

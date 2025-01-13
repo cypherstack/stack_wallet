@@ -19,6 +19,7 @@ import '../../../db/hive/db.dart';
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/epicbox_config_model.dart';
 import '../../../models/keys/key_data_interface.dart';
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../providers/ui/transaction_filter_provider.dart';
@@ -36,9 +37,10 @@ import '../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
@@ -98,8 +100,13 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   void initState() {
     walletId = widget.walletId;
     coin = widget.coin;
-    xPubEnabled =
-        ref.read(pWallets).getWallet(walletId) is ExtendedKeysInterface;
+
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+      xPubEnabled = false;
+    } else {
+      xPubEnabled = wallet is ExtendedKeysInterface;
+    }
 
     xpub = "";
 
@@ -165,6 +172,15 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+    bool canBackup = true;
+    if (wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
+      canBackup = false;
+    }
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -247,106 +263,156 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                     );
                                   },
                                 ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                Consumer(
-                                  builder: (_, ref, __) {
-                                    return SettingsListButton(
-                                      iconAssetName: Assets.svg.lock,
-                                      iconSize: 16,
-                                      title: "Wallet backup",
-                                      onPressed: () async {
-                                        final wallet = ref
-                                            .read(pWallets)
-                                            .getWallet(widget.walletId);
+                                if (canBackup)
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                if (canBackup)
+                                  Consumer(
+                                    builder: (_, ref, __) {
+                                      return SettingsListButton(
+                                        iconAssetName: Assets.svg.lock,
+                                        iconSize: 16,
+                                        title: "Wallet backup",
+                                        onPressed: () async {
+                                          // TODO: [prio=med] take wallets that don't have a mnemonic into account
 
-                                        // TODO: [prio=med] take wallets that don't have a mnemonic into account
-
-                                        List<String>? mnemonic;
-                                        ({
-                                          String myName,
-                                          String config,
-                                          String keys,
+                                          List<String>? mnemonic;
                                           ({
+                                            String myName,
                                             String config,
-                                            String keys
-                                          })? prevGen,
-                                        })? frostWalletData;
-                                        if (wallet is BitcoinFrostWallet) {
-                                          final futures = [
-                                            wallet.getSerializedKeys(),
-                                            wallet.getMultisigConfig(),
-                                            wallet.getSerializedKeysPrevGen(),
-                                            wallet.getMultisigConfigPrevGen(),
-                                          ];
+                                            String keys,
+                                            ({
+                                              String config,
+                                              String keys
+                                            })? prevGen,
+                                          })? frostWalletData;
+                                          if (wallet is BitcoinFrostWallet) {
+                                            final futures = [
+                                              wallet.getSerializedKeys(),
+                                              wallet.getMultisigConfig(),
+                                              wallet.getSerializedKeysPrevGen(),
+                                              wallet.getMultisigConfigPrevGen(),
+                                            ];
 
-                                          final results =
-                                              await Future.wait(futures);
+                                            final results =
+                                                await Future.wait(futures);
 
-                                          if (results.length == 4) {
-                                            frostWalletData = (
-                                              myName: wallet.frostInfo.myName,
-                                              config: results[1]!,
-                                              keys: results[0]!,
-                                              prevGen: results[2] == null ||
-                                                      results[3] == null
-                                                  ? null
-                                                  : (
-                                                      config: results[3]!,
-                                                      keys: results[2]!,
-                                                    ),
-                                            );
+                                            if (results.length == 4) {
+                                              frostWalletData = (
+                                                myName: wallet.frostInfo.myName,
+                                                config: results[1]!,
+                                                keys: results[0]!,
+                                                prevGen: results[2] == null ||
+                                                        results[3] == null
+                                                    ? null
+                                                    : (
+                                                        config: results[3]!,
+                                                        keys: results[2]!,
+                                                      ),
+                                              );
+                                            }
+                                          } else {
+                                            if (wallet is MnemonicInterface) {
+                                              if (wallet
+                                                      is ViewOnlyOptionInterface &&
+                                                  (wallet as ViewOnlyOptionInterface)
+                                                      .isViewOnly) {
+                                                // TODO: is something needed here?
+                                              } else {
+                                                mnemonic = await wallet
+                                                    .getMnemonicAsWords();
+                                              }
+                                            }
                                           }
-                                        } else if (wallet
-                                            is MnemonicInterface) {
-                                          mnemonic =
-                                              await wallet.getMnemonicAsWords();
-                                        }
 
-                                        KeyDataInterface? keyData;
-                                        if (wallet is ExtendedKeysInterface) {
-                                          keyData = await wallet.getXPrivs();
-                                        } else if (wallet is CwBasedInterface) {
-                                          keyData = await wallet.getKeys();
-                                        }
+                                          KeyDataInterface? keyData;
+                                          if (wallet
+                                                  is ViewOnlyOptionInterface &&
+                                              wallet.isViewOnly) {
+                                            keyData = await wallet
+                                                .getViewOnlyWalletData();
+                                          } else if (wallet
+                                              is ExtendedKeysInterface) {
+                                            keyData = await wallet.getXPrivs();
+                                          } else if (wallet
+                                              is LibMoneroWallet) {
+                                            keyData = await wallet.getKeys();
+                                          }
 
-                                        if (context.mounted) {
-                                          await Navigator.push(
-                                            context,
-                                            RouteGenerator.getRoute(
-                                              shouldUseMaterialRoute:
-                                                  RouteGenerator
-                                                      .useMaterialPageRoute,
-                                              builder: (_) => LockscreenView(
-                                                routeOnSuccessArguments: (
-                                                  walletId: walletId,
-                                                  mnemonic: mnemonic ?? [],
-                                                  frostWalletData:
-                                                      frostWalletData,
-                                                  keyData: keyData,
+                                          if (context.mounted) {
+                                            if (keyData != null &&
+                                                wallet
+                                                    is ViewOnlyOptionInterface &&
+                                                wallet.isViewOnly) {
+                                              await Navigator.push(
+                                                context,
+                                                RouteGenerator.getRoute(
+                                                  shouldUseMaterialRoute:
+                                                      RouteGenerator
+                                                          .useMaterialPageRoute,
+                                                  builder: (_) =>
+                                                      LockscreenView(
+                                                    routeOnSuccessArguments: (
+                                                      walletId: walletId,
+                                                      keyData: keyData,
+                                                    ),
+                                                    showBackButton: true,
+                                                    routeOnSuccess:
+                                                        MobileKeyDataView
+                                                            .routeName,
+                                                    biometricsCancelButtonString:
+                                                        "CANCEL",
+                                                    biometricsLocalizedReason:
+                                                        "Authenticate to view recovery data",
+                                                    biometricsAuthenticationTitle:
+                                                        "View recovery data",
+                                                  ),
+                                                  settings: const RouteSettings(
+                                                    name:
+                                                        "/viewRecoveryDataLockscreen",
+                                                  ),
                                                 ),
-                                                showBackButton: true,
-                                                routeOnSuccess:
-                                                    WalletBackupView.routeName,
-                                                biometricsCancelButtonString:
-                                                    "CANCEL",
-                                                biometricsLocalizedReason:
-                                                    "Authenticate to view recovery phrase",
-                                                biometricsAuthenticationTitle:
-                                                    "View recovery phrase",
-                                              ),
-                                              settings: const RouteSettings(
-                                                name:
-                                                    "/viewRecoverPhraseLockscreen",
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    );
-                                  },
-                                ),
+                                              );
+                                            } else {
+                                              await Navigator.push(
+                                                context,
+                                                RouteGenerator.getRoute(
+                                                  shouldUseMaterialRoute:
+                                                      RouteGenerator
+                                                          .useMaterialPageRoute,
+                                                  builder: (_) =>
+                                                      LockscreenView(
+                                                    routeOnSuccessArguments: (
+                                                      walletId: walletId,
+                                                      mnemonic: mnemonic ?? [],
+                                                      frostWalletData:
+                                                          frostWalletData,
+                                                      keyData: keyData,
+                                                    ),
+                                                    showBackButton: true,
+                                                    routeOnSuccess:
+                                                        WalletBackupView
+                                                            .routeName,
+                                                    biometricsCancelButtonString:
+                                                        "CANCEL",
+                                                    biometricsLocalizedReason:
+                                                        "Authenticate to view recovery phrase",
+                                                    biometricsAuthenticationTitle:
+                                                        "View recovery phrase",
+                                                  ),
+                                                  settings: const RouteSettings(
+                                                    name:
+                                                        "/viewRecoverPhraseLockscreen",
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        },
+                                      );
+                                    },
+                                  ),
                                 const SizedBox(
                                   height: 8,
                                 ),

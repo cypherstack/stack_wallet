@@ -14,16 +14,17 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../app_config.dart';
 import '../../../../../db/sqlite/firo_cache.dart';
+import '../../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/wallets_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/text_styles.dart';
-import '../../../../../utilities/util.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
@@ -31,6 +32,7 @@ import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -49,6 +51,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onOrdinalsPressed,
     required this.onMonkeyPressed,
     required this.onFusionPressed,
+    required this.onChurnPressed,
   });
 
   final String walletId;
@@ -59,6 +62,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   final VoidCallback? onOrdinalsPressed;
   final VoidCallback? onMonkeyPressed;
   final VoidCallback? onFusionPressed;
+  final VoidCallback? onChurnPressed;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -106,115 +110,120 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     }
   }
 
+  late final DSBController _switchController;
+
   bool _switchReuseAddressToggledLock = false; // Mutex.
-  Future<void> _switchReuseAddressToggled(bool newValue) async {
-    if (newValue) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          final isDesktop = Util.isDesktop;
-          return DesktopDialog(
-            maxWidth: 576,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 32),
-                      child: Text(
-                        "Warning!",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                    ),
-                    const DesktopDialogCloseButton(),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 8,
-                    left: 32,
-                    right: 32,
-                    bottom: 32,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+  Future<void> _switchReuseAddressToggled() async {
+    if (_switchReuseAddressToggledLock) {
+      return;
+    }
+    _switchReuseAddressToggledLock = true; // Lock mutex.
+
+    try {
+      if (_switchController.isOn?.call() != true) {
+        final canContinue = await showDialog<bool?>(
+          context: context,
+          builder: (context) {
+            return DesktopDialog(
+              maxWidth: 576,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
-                        style: STextStyles.desktopTextSmall(context),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 32),
+                        child: Text(
+                          "Warning!",
+                          style: STextStyles.desktopH3(context),
+                        ),
                       ),
-                      const SizedBox(
-                        height: 43,
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SecondaryButton(
-                              buttonHeight: ButtonHeight.l,
-                              onPressed: () {
-                                Navigator.of(context).pop(false);
-                              },
-                              label: "Cancel",
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: PrimaryButton(
-                              buttonHeight: ButtonHeight.l,
-                              onPressed: () {
-                                Navigator.of(context).pop(true);
-                              },
-                              label: "Continue",
-                            ),
-                          ),
-                        ],
-                      ),
+                      const DesktopDialogCloseButton(),
                     ],
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      ).then((confirmed) async {
-        if (_switchReuseAddressToggledLock) {
-          return;
-        }
-        _switchReuseAddressToggledLock = true; // Lock mutex.
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 8,
+                      left: 32,
+                      right: 32,
+                      bottom: 32,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(
+                          height: 43,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SecondaryButton(
+                                buttonHeight: ButtonHeight.l,
+                                onPressed: () {
+                                  Navigator.of(context).pop(false);
+                                },
+                                label: "Cancel",
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            Expanded(
+                              child: PrimaryButton(
+                                buttonHeight: ButtonHeight.l,
+                                onPressed: () {
+                                  Navigator.of(context).pop(true);
+                                },
+                                label: "Continue",
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
 
-        try {
-          if (confirmed == true) {
-            await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-              newEntries: {
-                WalletInfoKeys.reuseAddress: true,
-              },
-              isar: ref.read(mainDBProvider).isar,
-            );
-          } else {
-            await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-              newEntries: {
-                WalletInfoKeys.reuseAddress: false,
-              },
-              isar: ref.read(mainDBProvider).isar,
-            );
-          }
-        } finally {
-          // ensure _switchReuseAddressToggledLock is set to false no matter what.
-          _switchReuseAddressToggledLock = false;
+        if (canContinue == true) {
+          await _updateAddressReuse(true);
         }
-      });
-    } else {
-      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-        newEntries: {
-          WalletInfoKeys.reuseAddress: false,
-        },
-        isar: ref.read(mainDBProvider).isar,
-      );
+      } else {
+        await _updateAddressReuse(false);
+      }
+    } finally {
+      // ensure _switchReuseAddressToggledLock is set to false no matter what.
+      _switchReuseAddressToggledLock = false;
     }
+  }
+
+  Future<void> _updateAddressReuse(bool shouldReuse) async {
+    await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
+      newEntries: {
+        WalletInfoKeys.reuseAddress: shouldReuse,
+      },
+      isar: ref.read(mainDBProvider).isar,
+    );
+
+    if (_switchController.isOn != null) {
+      if (_switchController.isOn!.call() != shouldReuse) {
+        _switchController.activate?.call();
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    _switchController = DSBController();
+    super.initState();
   }
 
   @override
@@ -231,7 +240,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
       ),
     );
 
+    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+    final isViewOnlyNoAddressGen = wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
+
     return DesktopDialog(
+      maxHeight: double.infinity,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -250,7 +265,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (wallet.info.coin is Firo)
+          if (!isViewOnly && wallet.info.coin is Firo)
             _MoreFeaturesItem(
               label: "Anonymize funds",
               detail: "Anonymize funds",
@@ -272,7 +287,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.coinControl.gamePad,
               onPressed: () async => widget.onCoinControlPressed?.call(),
             ),
-          if (wallet is PaynymInterface)
+          if (!isViewOnly && wallet is PaynymInterface)
             _MoreFeaturesItem(
               label: "PayNym",
               detail: "Increased address privacy using BIP47",
@@ -293,18 +308,25 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               iconAsset: Assets.svg.monkey,
               onPressed: () async => widget.onMonkeyPressed?.call(),
             ),
-          if (wallet is CashFusionInterface)
+          if (!isViewOnly && wallet is CashFusionInterface)
             _MoreFeaturesItem(
               label: "Fusion",
               detail: "Decentralized mixing protocol",
               iconAsset: Assets.svg.cashFusion,
               onPressed: () async => widget.onFusionPressed?.call(),
             ),
-          if (wallet is SparkInterface)
+          if (!isViewOnly && wallet is LibMoneroWallet)
+            _MoreFeaturesItem(
+              label: "Churn",
+              detail: "Churning",
+              iconAsset: Assets.svg.churn,
+              onPressed: () async => widget.onChurnPressed?.call(),
+            ),
+          if (wallet is SparkInterface && !isViewOnly)
             _MoreFeaturesClearSparkCacheItem(
               cryptoCurrency: wallet.cryptoCurrency,
             ),
-          if (wallet is LelantusInterface)
+          if (wallet is LelantusInterface && !isViewOnly)
             _MoreFeaturesItemBase(
               child: Row(
                 children: [
@@ -369,37 +391,41 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               ),
             ),
           // reuseAddress preference.
-          _MoreFeaturesItemBase(
-            child: Row(
-              children: [
-                const SizedBox(width: 3),
-                SizedBox(
-                  height: 20,
-                  width: 40,
-                  child: DraggableSwitchButton(
-                    isOn: ref.watch(
-                          pWalletInfo(widget.walletId)
-                              .select((value) => value.otherData),
-                        )[WalletInfoKeys.reuseAddress] as bool? ??
-                        false,
-                    onValueChanged: _switchReuseAddressToggled,
-                  ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Reuse receiving address by default",
-                      style: STextStyles.w600_20(context),
+          if (!isViewOnlyNoAddressGen)
+            _MoreFeaturesItemBase(
+              onPressed: _switchReuseAddressToggled,
+              child: Row(
+                children: [
+                  const SizedBox(width: 3),
+                  SizedBox(
+                    height: 20,
+                    width: 40,
+                    child: IgnorePointer(
+                      child: DraggableSwitchButton(
+                        isOn: ref.watch(
+                              pWalletInfo(widget.walletId)
+                                  .select((value) => value.otherData),
+                            )[WalletInfoKeys.reuseAddress] as bool? ??
+                            false,
+                        controller: _switchController,
+                      ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(
+                    width: 16,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Reuse receiving address",
+                        style: STextStyles.w600_20(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(
             height: 28,
           ),

@@ -23,9 +23,10 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -82,7 +83,9 @@ class _UnlockWalletKeysDesktopState
         .verifyPassphrase(passwordController.text);
 
     if (verified) {
-      Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
 
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
       ({String keys, String config})? frostData;
@@ -100,13 +103,20 @@ class _UnlockWalletKeysDesktopState
           throw Exception("FIXME ~= see todo in code");
         }
       } else {
-        words = await wallet.getMnemonicAsWords();
+        if (wallet is ViewOnlyOptionInterface &&
+            (wallet as ViewOnlyOptionInterface).isViewOnly) {
+          // TODO: is something needed here?
+        } else {
+          words = await wallet.getMnemonicAsWords();
+        }
       }
 
       KeyDataInterface? keyData;
-      if (wallet is ExtendedKeysInterface) {
+      if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+        keyData = await wallet.getViewOnlyWalletData();
+      } else if (wallet is ExtendedKeysInterface) {
         keyData = await wallet.getXPrivs();
-      } else if (wallet is CwBasedInterface) {
+      } else if (wallet is LibMoneroWallet) {
         keyData = await wallet.getKeys();
       }
 
@@ -122,17 +132,20 @@ class _UnlockWalletKeysDesktopState
         );
       }
     } else {
-      Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
 
       await Future<void>.delayed(const Duration(milliseconds: 300));
-
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Invalid passphrase!",
-          context: context,
-        ),
-      );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Invalid passphrase!",
+            context: context,
+          ),
+        );
+      }
     }
   }
 
@@ -300,92 +313,7 @@ class _UnlockWalletKeysDesktopState
                   child: PrimaryButton(
                     label: "Continue",
                     enabled: continueEnabled,
-                    onPressed: continueEnabled
-                        ? () async {
-                            unawaited(
-                              showDialog(
-                                context: context,
-                                builder: (context) => const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    LoadingIndicator(
-                                      width: 200,
-                                      height: 200,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-
-                            await Future<void>.delayed(
-                              const Duration(seconds: 1),
-                            );
-
-                            final verified = await ref
-                                .read(storageCryptoHandlerProvider)
-                                .verifyPassphrase(passwordController.text);
-
-                            if (verified) {
-                              Navigator.of(context, rootNavigator: true).pop();
-
-                              ({String keys, String config})? frostData;
-                              List<String>? words;
-
-                              final wallet =
-                                  ref.read(pWallets).getWallet(widget.walletId);
-
-                              // TODO: [prio=low] handle wallets that don't have a mnemonic
-                              // All wallets currently are mnemonic based
-                              if (wallet is! MnemonicInterface) {
-                                if (wallet is BitcoinFrostWallet) {
-                                  frostData = (
-                                    keys: (await wallet.getSerializedKeys())!,
-                                    config: (await wallet.getMultisigConfig())!,
-                                  );
-                                } else {
-                                  throw Exception("FIXME ~= see todo in code");
-                                }
-                              } else {
-                                words = await wallet.getMnemonicAsWords();
-                              }
-
-                              KeyDataInterface? keyData;
-                              if (wallet is ExtendedKeysInterface) {
-                                keyData = await wallet.getXPrivs();
-                              } else if (wallet is CwBasedInterface) {
-                                keyData = await wallet.getKeys();
-                              }
-
-                              if (context.mounted) {
-                                await Navigator.of(context)
-                                    .pushReplacementNamed(
-                                  WalletKeysDesktopPopup.routeName,
-                                  arguments: (
-                                    mnemonic: words ?? [],
-                                    walletId: widget.walletId,
-                                    frostData: frostData,
-                                    keyData: keyData,
-                                  ),
-                                );
-                              }
-                            } else {
-                              Navigator.of(context, rootNavigator: true).pop();
-
-                              await Future<void>.delayed(
-                                const Duration(milliseconds: 300),
-                              );
-
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.warning,
-                                  message: "Invalid passphrase!",
-                                  context: context,
-                                ),
-                              );
-                            }
-                          }
-                        : null,
+                    onPressed: continueEnabled ? enterPassphrase : null,
                   ),
                 ),
               ],

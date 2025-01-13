@@ -479,6 +479,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
             availableOutputs[i].isConfirmed(
                   await fetchChainHeight(),
                   cryptoCurrency.minConfirms,
+                  cryptoCurrency.minCoinbaseConfirms,
                 ) ==
                 true) {
           spendableOutputs.add(availableOutputs[i]);

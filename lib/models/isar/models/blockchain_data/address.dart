@@ -11,6 +11,7 @@
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
+
 import '../../../../exceptions/address/address_exception.dart';
 import 'crypto_currency_address.dart';
 import 'transaction.dart';
@@ -27,6 +28,7 @@ class Address extends CryptoCurrencyAddress {
     required this.derivationPath,
     required this.type,
     required this.subType,
+    this.zSafeFrost,
     this.otherData,
   });
 
@@ -55,6 +57,8 @@ class Address extends CryptoCurrencyAddress {
 
   final transactions = IsarLinks<Transaction>();
 
+  late final bool? zSafeFrost;
+
   int derivationChain() {
     if (subType == AddressSubType.receiving) {
       return 0; // 0 for receiving (external)
@@ -80,6 +84,7 @@ class Address extends CryptoCurrencyAddress {
     AddressType? type,
     AddressSubType? subType,
     DerivationPath? derivationPath,
+    bool? zSafeFrost,
     String? otherData,
   }) {
     return Address(
@@ -90,6 +95,7 @@ class Address extends CryptoCurrencyAddress {
       type: type ?? this.type,
       subType: subType ?? this.subType,
       derivationPath: derivationPath ?? this.derivationPath,
+      zSafeFrost: zSafeFrost ?? this.zSafeFrost,
       otherData: otherData ?? this.otherData,
     );
   }
@@ -105,6 +111,7 @@ class Address extends CryptoCurrencyAddress {
       "subType: ${subType.name}, "
       "transactionsLength: ${transactions.length} "
       "derivationPath: $derivationPath, "
+      "zSafeFrost: $zSafeFrost, "
       "otherData: $otherData, "
       "}";
 
@@ -117,6 +124,7 @@ class Address extends CryptoCurrencyAddress {
       "type": type.name,
       "subType": subType.name,
       "derivationPath": derivationPath?.value,
+      "zSafeFrost": zSafeFrost,
       "otherData": otherData,
     };
     return jsonEncode(result);
@@ -143,6 +151,7 @@ class Address extends CryptoCurrencyAddress {
       derivationPath: derivationPath,
       type: AddressType.values.byName(json["type"] as String),
       subType: AddressSubType.values.byName(json["subType"] as String),
+      zSafeFrost: json["zSafeFrost"] as bool?,
       otherData: json["otherData"] as String?,
     );
   }
@@ -165,7 +174,8 @@ enum AddressType {
   tezos,
   frostMS,
   p2tr,
-  solana;
+  solana,
+  cardanoShelley;
 
   String get readableName {
     switch (this) {
@@ -201,6 +211,8 @@ enum AddressType {
         return "Solana";
       case AddressType.p2tr:
         return "P2TR (taproot)";
+      case AddressType.cardanoShelley:
+        return "Cardano Shelley";
     }
   }
 }

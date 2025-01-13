@@ -102,6 +102,8 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           coinName: identifier,
           isFailover: true,
           isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
       // case CryptoCurrencyNetwork.test:
       // TODO: [prio=low] Add testnet support.
@@ -227,7 +229,7 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   bool get hasMnemonicPassphraseSupport => true;
 
   @override
-  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 12];
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
   AddressType get defaultAddressType => defaultDerivePathType.getAddressType();

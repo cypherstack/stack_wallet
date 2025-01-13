@@ -121,6 +121,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
       (e) => !e.isConfirmed(
         height,
         cryptoCurrency.minConfirms,
+        cryptoCurrency.minCoinbaseConfirms,
       ),
     );
 

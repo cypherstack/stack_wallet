@@ -205,6 +205,7 @@ class _SVG {
   String get robotHead => "assets/svg/robot-head.svg";
   String get whirlPool => "assets/svg/whirlpool.svg";
   String get cashFusion => "assets/svg/cashfusion-icon.svg";
+  String get churn => "assets/svg/churn.svg";
   String get fingerprint => "assets/svg/fingerprint.svg";
   String get faceId => "assets/svg/faceid.svg";
   String get tokens => "assets/svg/tokens.svg";
@@ -278,4 +279,5 @@ class _GIF {
   const _GIF();
 
   String get stacyOnion => "assets/gif/stacy_onion.gif";
+  String get moneroChanDance => "assets/gif/monero-chan-dance.gif";
 }

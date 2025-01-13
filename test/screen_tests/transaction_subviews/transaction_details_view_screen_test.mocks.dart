@@ -49,11 +49,13 @@ class MockAddressBookService extends _i1.Mock
         Invocation.getter(#contacts),
         returnValue: <_i2.ContactEntry>[],
       ) as List<_i2.ContactEntry>);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   _i2.ContactEntry getContactById(String? id) => (super.noSuchMethod(
         Invocation.method(
@@ -68,6 +70,7 @@ class MockAddressBookService extends _i1.Mock
           ),
         ),
       ) as _i2.ContactEntry);
+
   @override
   _i4.Future<List<_i2.ContactEntry>> search(String? text) =>
       (super.noSuchMethod(
@@ -78,6 +81,7 @@ class MockAddressBookService extends _i1.Mock
         returnValue:
             _i4.Future<List<_i2.ContactEntry>>.value(<_i2.ContactEntry>[]),
       ) as _i4.Future<List<_i2.ContactEntry>>);
+
   @override
   bool matches(
     String? term,
@@ -93,6 +97,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValue: false,
       ) as bool);
+
   @override
   _i4.Future<bool> addContact(_i2.ContactEntry? contact) => (super.noSuchMethod(
         Invocation.method(
@@ -101,6 +106,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
+
   @override
   _i4.Future<bool> editContact(_i2.ContactEntry? editedContact) =>
       (super.noSuchMethod(
@@ -110,6 +116,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
+
   @override
   _i4.Future<void> removeContact(String? id) => (super.noSuchMethod(
         Invocation.method(
@@ -119,6 +126,7 @@ class MockAddressBookService extends _i1.Mock
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   void addListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -127,6 +135,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -135,6 +144,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -143,6 +153,7 @@ class MockAddressBookService extends _i1.Mock
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(
@@ -169,11 +180,13 @@ class MockLocaleService extends _i1.Mock implements _i6.LocaleService {
           Invocation.getter(#locale),
         ),
       ) as String);
+
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
       ) as bool);
+
   @override
   _i4.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
         Invocation.method(
@@ -184,6 +197,7 @@ class MockLocaleService extends _i1.Mock implements _i6.LocaleService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+
   @override
   void addListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -192,6 +206,7 @@ class MockLocaleService extends _i1.Mock implements _i6.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void removeListener(_i5.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
@@ -200,6 +215,7 @@ class MockLocaleService extends _i1.Mock implements _i6.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void dispose() => super.noSuchMethod(
         Invocation.method(
@@ -208,6 +224,7 @@ class MockLocaleService extends _i1.Mock implements _i6.LocaleService {
         ),
         returnValueForMissingStub: null,
       );
+
   @override
   void notifyListeners() => super.noSuchMethod(
         Invocation.method(

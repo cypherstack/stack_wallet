@@ -1,4 +1,5 @@
-import 'package:monero/monero.dart' as monero;
+import 'package:cs_monero/src/ffi_bindings/monero_wallet_bindings.dart'
+    as xmr_wallet_ffi;
 
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
@@ -48,9 +49,12 @@ class Monero extends CryptonoteCurrency {
 
   @override
   bool validateAddress(String address) {
+    if (address.contains("111")) {
+      return false;
+    }
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return monero.Wallet_addressValid(address, 0);
+        return xmr_wallet_ffi.validateAddress(address, 0);
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -71,6 +75,8 @@ class Monero extends CryptonoteCurrency {
           isFailover: true,
           isDown: false,
           trusted: true,
+          torEnabled: true,
+          clearnetEnabled: true,
         );
 
       default:

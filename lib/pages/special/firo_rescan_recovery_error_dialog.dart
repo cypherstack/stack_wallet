@@ -12,7 +12,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../widgets/background.dart';
@@ -270,7 +270,7 @@ class _FiroRescanRecoveryErrorViewState
                           KeyDataInterface? keyData;
                           if (wallet is ExtendedKeysInterface) {
                             keyData = await wallet.getXPrivs();
-                          } else if (wallet is CwBasedInterface) {
+                          } else if (wallet is LibMoneroWallet) {
                             keyData = await wallet.getKeys();
                           }
 

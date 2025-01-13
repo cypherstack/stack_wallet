@@ -21,10 +21,11 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/show_loading.dart';
+import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/cw_based_interface.dart';
+import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../widgets/dialogs/tor_warning_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../wallet_view/wallet_view.dart';
@@ -83,8 +84,22 @@ class WalletListItem extends ConsumerWidget {
                 .read(pWallets)
                 .wallets
                 .firstWhere((e) => e.info.coin == coin);
+
+            final canContinue = await checkShowNodeTorSettingsMismatch(
+              context: context,
+              currency: coin,
+              prefs: ref.read(prefsChangeNotifierProvider),
+              nodeService: ref.read(nodeServiceChangeNotifierProvider),
+              allowCancel: true,
+              rootNavigator: Util.isDesktop,
+            );
+
+            if (!canContinue) {
+              return;
+            }
+
             final Future<void> loadFuture;
-            if (wallet is CwBasedInterface) {
+            if (wallet is LibMoneroWallet) {
               loadFuture =
                   wallet.init().then((value) async => await (wallet).open());
             } else {

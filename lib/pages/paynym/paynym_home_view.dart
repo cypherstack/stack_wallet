@@ -27,6 +27,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/paynym_follow_toggle_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/secondary_button.dart';
@@ -121,72 +122,75 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   ),
                 ],
               ),
-              trailing: Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: SizedBox(
-                  height: 56,
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    onEnter: (_) => setState(() {
-                      _followButtonHoverState = true;
-                    }),
-                    onExit: (_) => setState(() {
-                      _followButtonHoverState = false;
-                    }),
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog<void>(
-                          context: context,
-                          builder: (context) => AddNewPaynymFollowView(
-                            walletId: widget.walletId,
-                          ),
-                        );
-                      },
-                      child: RoundedContainer(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        color: _followButtonHoverState
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .highlight
-                            : Colors.transparent,
-                        radiusMultiplier: 100,
-                        child: Row(
-                          children: [
-                            SvgPicture.asset(
-                              Assets.svg.plus,
-                              width: 16,
-                              height: 16,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark,
-                            ),
-                            const SizedBox(
-                              width: 8,
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Follow",
-                                  style:
-                                      STextStyles.desktopButtonSecondaryEnabled(
-                                    context,
-                                  ).copyWith(
-                                    fontSize: 16,
+              trailing: kDisableFollowing
+                  ? null
+                  : Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: SizedBox(
+                        height: 56,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          onEnter: (_) => setState(() {
+                            _followButtonHoverState = true;
+                          }),
+                          onExit: (_) => setState(() {
+                            _followButtonHoverState = false;
+                          }),
+                          child: GestureDetector(
+                            onTap: () {
+                              showDialog<void>(
+                                context: context,
+                                builder: (context) => AddNewPaynymFollowView(
+                                  walletId: widget.walletId,
+                                ),
+                              );
+                            },
+                            child: RoundedContainer(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 24.0),
+                              color: _followButtonHoverState
+                                  ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .highlight
+                                  : Colors.transparent,
+                              radiusMultiplier: 100,
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                    Assets.svg.plus,
+                                    width: 16,
+                                    height: 16,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
-                                ),
-                                const SizedBox(
-                                  height: 2,
-                                ),
-                              ],
+                                  const SizedBox(
+                                    width: 8,
+                                  ),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Follow",
+                                        style: STextStyles
+                                            .desktopButtonSecondaryEnabled(
+                                          context,
+                                        ).copyWith(
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 2,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ),
             )
           : AppBar(
               leading: AppBarBackButton(
@@ -201,28 +205,29 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                 overflow: TextOverflow.ellipsis,
               ),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      icon: SvgPicture.asset(
-                        Assets.svg.circlePlusFilled,
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
+                if (!kDisableFollowing)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        icon: SvgPicture.asset(
+                          Assets.svg.circlePlusFilled,
+                          width: 20,
+                          height: 20,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            AddNewPaynymFollowView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
                       ),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          AddNewPaynymFollowView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      },
                     ),
                   ),
-                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: AspectRatio(

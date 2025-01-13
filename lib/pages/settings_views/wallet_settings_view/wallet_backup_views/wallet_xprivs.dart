@@ -49,7 +49,7 @@ class WalletXPrivsState extends ConsumerState<WalletXPrivs> {
   late String _currentDropDownValue;
 
   String _current(String key) =>
-      widget.xprivData.xprivs.firstWhere((e) => e.path == key).xpriv;
+      widget.xprivData.xprivs.firstWhere((e) => e.path == key).encoded;
 
   Future<void> _copy() async {
     await widget.clipboardInterface.setData(

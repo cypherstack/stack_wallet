@@ -9,6 +9,7 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../electrumx_rpc/electrumx_client.dart';
+import '../../models/electrumx_response/spark_models.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/stack_file_system.dart';
@@ -30,7 +31,7 @@ void _debugLog(Object? object) {
 }
 
 abstract class _FiroCache {
-  static const int _setCacheVersion = 1;
+  static const int _setCacheVersion = 2;
   static const int _tagsCacheVersion = 2;
 
   static final networks = [
@@ -134,7 +135,7 @@ abstract class _FiroCache {
           blockHash TEXT NOT NULL,
           setHash TEXT NOT NULL,
           groupId INTEGER NOT NULL,
-          timestampUTC INTEGER NOT NULL,
+          size INTEGER NOT NULL,
           UNIQUE (blockHash, setHash, groupId)
         );
         
@@ -143,7 +144,8 @@ abstract class _FiroCache {
           serialized TEXT NOT NULL,
           txHash TEXT NOT NULL,
           context TEXT NOT NULL,
-          UNIQUE(serialized, txHash, context)
+          groupId INTEGER NOT NULL,
+          UNIQUE(serialized, txHash, context, groupId)
         );
         
         CREATE TABLE SparkSetCoins (

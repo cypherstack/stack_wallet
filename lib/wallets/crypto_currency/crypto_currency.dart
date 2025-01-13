@@ -6,6 +6,7 @@ export 'coins/banano.dart';
 export 'coins/bitcoin.dart';
 export 'coins/bitcoin_frost.dart';
 export 'coins/bitcoincash.dart';
+export 'coins/cardano.dart';
 export 'coins/dash.dart';
 export 'coins/dogecoin.dart';
 export 'coins/ecash.dart';
@@ -59,6 +60,7 @@ abstract class CryptoCurrency {
   bool get torSupport => false;
 
   int get minConfirms;
+  int get minCoinbaseConfirms => minConfirms;
 
   // TODO: [prio=low] could be handled differently as (at least) epiccash does not use this
   String get genesisHash;

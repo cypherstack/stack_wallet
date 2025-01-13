@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../app_config.dart';
 import '../../db/hive/db.dart';
 import '../../models/exchange/active_pair.dart';
 import '../../models/exchange/aggregate_currency.dart';
@@ -79,7 +80,7 @@ class ExchangeDataLoadingService {
       if (await isar.currencies.count() > 0) {
         pair?.setSend(
           await getAggregateCurrency(
-            "BTC",
+            AppConfig.swapDefaults.from,
             rateType,
             null,
           ),
@@ -88,7 +89,7 @@ class ExchangeDataLoadingService {
 
         pair?.setReceive(
           await getAggregateCurrency(
-            "XMR",
+            AppConfig.swapDefaults.to,
             rateType,
             null,
           ),

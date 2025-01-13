@@ -25,14 +25,14 @@ cd "$LINUX_DIRECTORY" || exit 1
 #pip3 install --user meson markdown tomli --upgrade
 # pip3 install --user gi-docgen
 cd build || exit 1
-git -C libsecret pull origin $LIBSECRET_TAG || git clone https://gitlab.gnome.org/GNOME/libsecret.git libsecret
+git -C libsecret pull origin $LIBSECRET_TAG || git clone https://git.cypherstack.com/Cypher_Stack/libsecret.git libsecret
 cd libsecret || exit 1
 git checkout $LIBSECRET_TAG
 if ! [ -x "$(command -v meson)" ]; then
   echo 'Error: meson is not installed.' >&2
   exit 1
 fi
-meson _build
+meson _build -Dmanpage=false -Dgtk_doc=false
 if ! [ -x "$(command -v ninja)" ]; then
   echo 'Error: ninja is not installed.' >&2
   exit 1
