@@ -38,6 +38,8 @@ Future<bool> _xmrHelper(
   final data = nodeFormData;
   final url = data.host!;
   final port = data.port;
+  final username = data.login;
+  final password = data.password;
 
   final uri = Uri.parse(url);
 
@@ -51,6 +53,8 @@ Future<bool> _xmrHelper(
 
   final response = await testMoneroNodeConnection(
     Uri.parse(uriString),
+    username,
+    password,
     false,
     proxyInfo: proxyInfo,
   ).timeout(Duration(seconds: proxyInfo != null ? 30 : 10));
@@ -67,6 +71,8 @@ Future<bool> _xmrHelper(
       if (shouldAllowBadCert) {
         final response = await testMoneroNodeConnection(
           Uri.parse(uriString),
+          username,
+          password,
           true,
           proxyInfo: proxyInfo,
         );
