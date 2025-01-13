@@ -633,6 +633,14 @@ packages:
       url: "https://github.com/cypherstack/flutter-devicelocale"
     source: git
     version: "0.8.1"
+  digest_auth:
+    dependency: "direct main"
+    description:
+      name: digest_auth
+      sha256: c8f4a8d65300bd58c4a2ca84ea6bd63cb584e8021e5689c600ee7efae34d73ea
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   dio:
     dependency: transitive
     description:
@@ -1360,6 +1368,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  monero_rpc:
+    dependency: "direct main"
+    description:
+      name: monero_rpc
+      sha256: "6052b6812e3e831015d776645d0d880fce5b9632d9df2cacae54b5e10ffe2db5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   mutex:
     dependency: "direct main"
     description:
