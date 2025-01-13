@@ -104,6 +104,7 @@ class NodeService extends ChangeNotifier {
             trusted: savedNode.trusted,
             torEnabled: savedNode.torEnabled,
             clearnetEnabled: savedNode.clearnetEnabled,
+            loginName: savedNode.loginName,
           ),
         );
       }
@@ -122,6 +123,7 @@ class NodeService extends ChangeNotifier {
             trusted: primaryNode.trusted,
             torEnabled: primaryNode.torEnabled,
             clearnetEnabled: primaryNode.clearnetEnabled,
+            loginName: primaryNode.loginName,
           ),
         );
       }
@@ -213,6 +215,8 @@ class NodeService extends ChangeNotifier {
         key: "${node.id}_nodePW",
         value: password,
       );
+    } else {
+      await secureStorageInterface.delete(key: "${node.id}_nodePW");
     }
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -240,7 +244,11 @@ class NodeService extends ChangeNotifier {
     await DB.instance.put<NodeModel>(
       boxName: DB.boxNameNodeModels,
       key: model.id,
-      value: model.copyWith(enabled: enabled),
+      value: model.copyWith(
+        enabled: enabled,
+        loginName: model.loginName,
+        trusted: model.trusted,
+      ),
     );
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -314,6 +322,8 @@ class NodeService extends ChangeNotifier {
               useSSL: node.useSSL,
               coinName: node.coinName,
               isDown: node.isDown,
+              loginName: node.loginName,
+              trusted: node.trusted,
             );
           }
           await add(node, null, false);

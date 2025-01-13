@@ -860,8 +860,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     onChanged?.call(canSave, canTestConnection);
     ref.read(nodeFormDataProvider).name = _nameController.text;
     ref.read(nodeFormDataProvider).host = _hostController.text;
-    ref.read(nodeFormDataProvider).login = _usernameController.text;
-    ref.read(nodeFormDataProvider).password = _passwordController.text;
+    ref.read(nodeFormDataProvider).login =
+        _usernameController.text.isEmpty ? null : _usernameController.text;
+    ref.read(nodeFormDataProvider).password =
+        _passwordController.text.isEmpty ? null : _passwordController.text;
     ref.read(nodeFormDataProvider).port = port;
     ref.read(nodeFormDataProvider).useSSL = _useSSL;
     ref.read(nodeFormDataProvider).isFailover = _isFailover;
@@ -1326,7 +1328,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   });
                   if (widget.readOnly) {
                     ref.read(nodeServiceChangeNotifierProvider).edit(
-                          widget.node!.copyWith(isFailover: _isFailover),
+                          widget.node!.copyWith(
+                            isFailover: _isFailover,
+                            loginName: widget.node!.loginName,
+                            trusted: widget.node!.trusted,
+                          ),
                           null,
                           true,
                         );
@@ -1351,8 +1357,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                             });
                             if (widget.readOnly) {
                               ref.read(nodeServiceChangeNotifierProvider).edit(
-                                    widget.node!
-                                        .copyWith(isFailover: _isFailover),
+                                    widget.node!.copyWith(
+                                      isFailover: _isFailover,
+                                      loginName: widget.node!.loginName,
+                                      trusted: widget.node!.trusted,
+                                    ),
                                     null,
                                     true,
                                   );
