@@ -1017,8 +1017,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             .findFirst();
 
         final otherDataMap = {
-          "keyImage": rawUTXO.keyImage,
-          "spent": rawUTXO.spent,
+          UTXOOtherDataKeys.keyImage: rawUTXO.keyImage,
+          UTXOOtherDataKeys.spent: rawUTXO.spent,
         };
 
         final utxo = UTXO(
