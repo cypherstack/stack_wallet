@@ -61,11 +61,11 @@ class MoneroWallet extends LibMoneroWallet {
   bool walletExists(String path) => lib_monero.MoneroWallet.isWalletExist(path);
 
   @override
-  void loadWallet({
+  Future<void> loadWallet({
     required String path,
     required String password,
-  }) {
-    libMoneroWallet = lib_monero.MoneroWallet.loadWallet(
+  }) async {
+    libMoneroWallet = await lib_monero.MoneroWallet.loadWallet(
       path: path,
       password: password,
     );

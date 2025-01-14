@@ -137,7 +137,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   int currentKnownChainHeight = 0;
   double highestPercentCached = 0;
 
-  void loadWallet({required String path, required String password});
+  Future<void> loadWallet({required String path, required String password});
 
   Future<lib_monero.Wallet> getCreatedWallet({
     required String path,
@@ -206,7 +206,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         throw Exception("Password not found $e, $s");
       }
 
-      loadWallet(path: path, password: password);
+      await loadWallet(path: path, password: password);
 
       _setListener();
 
@@ -329,7 +329,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     } catch (e, s) {
       throw Exception("Password not found $e, $s");
     }
-    loadWallet(path: path, password: password);
+    await loadWallet(path: path, password: password);
     final wallet = libMoneroWallet!;
     return (wallet.getAddress().value, wallet.getPrivateViewKey());
   }
@@ -565,7 +565,26 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       return;
     }
 
-    final transactions = await base.getTxs(refresh: true);
+    final localTxids = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightGreaterThan(0)
+        .txidProperty()
+        .findAll();
+
+    final allTxids = await base.getAllTxids(refresh: true);
+
+    final txidsToFetch = allTxids.toSet().difference(localTxids.toSet());
+
+    if (txidsToFetch.isEmpty) {
+      return;
+    }
+
+    final transactions = await base.getTxs(
+      txids: txidsToFetch,
+      refresh: false,
+    );
 
     final allOutputs = await base.getOutputs(includeSpent: true, refresh: true);
 
@@ -692,7 +711,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       } else {
-        final transactions = await libMoneroWallet!.getTxs(refresh: true);
+        final transactions = await libMoneroWallet!.getAllTxs(refresh: true);
         BigInt transactionBalance = BigInt.zero;
         for (final tx in transactions) {
           if (!tx.isSpend) {
@@ -790,8 +809,15 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     }
   }
 
-  void onNewBlock(int nodeHeight) {
-    // do something?
+  void onNewBlock(int nodeHeight) async {
+    try {
+      await updateTransactions();
+    } catch (e, s) {
+      Logging.instance.log(
+        "onNewBlock(): $e\n$s",
+        level: LogLevel.Warning,
+      );
+    }
   }
 
   final _utxosUpdateLock = Mutex();
@@ -1161,7 +1187,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     try {
       int highestIndex = -1;
-      final entries = await libMoneroWallet?.getTxs(refresh: true);
+      final entries = await libMoneroWallet?.getAllTxs(refresh: true);
       if (entries != null) {
         for (final element in entries) {
           if (!element.isSpend) {
