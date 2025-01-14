@@ -202,7 +202,7 @@ dependencies:
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
-  cs_monero: 1.0.0-pre.1
+  cs_monero: 1.0.0-pre.2
   cs_monero_flutter_libs: 1.0.0-pre.0
   monero_rpc: ^2.0.0
   digest_auth: ^1.0.1
