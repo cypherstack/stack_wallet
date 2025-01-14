@@ -270,7 +270,11 @@ void main() {
         final service = NodeService(secureStorageInterface: fakeStore);
         final currentLength = service.nodes.length;
 
-        final editedNode = nodeA.copyWith(name: "Some new kind of name");
+        final editedNode = nodeA.copyWith(
+          name: "Some new kind of name",
+          loginName: null,
+          trusted: null,
+        );
 
         await service.edit(editedNode, "123456", true);
 
