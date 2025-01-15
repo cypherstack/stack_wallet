@@ -164,7 +164,14 @@ class AddressUtils {
   ) {
     // Filter unrecognized parameters.
     final filteredParams = _filterParams(params);
-    String uriString = "$scheme:$address";
+    String uriString;
+
+    // cashaddrs strike again
+    if (address.startsWith("$scheme:")) {
+      uriString = address;
+    } else {
+      uriString = "$scheme:$address";
+    }
 
     if (scheme.toLowerCase() == "monero") {
       // Handle Monero-specific formatting.
