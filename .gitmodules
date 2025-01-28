@@ -7,3 +7,6 @@
 [submodule "crypto_plugins/frostdart"]
 	path = crypto_plugins/frostdart
 	url = https://github.com/cypherstack/frostdart
+[submodule "crypto_plugins/xelis_flutter"]
+	path = crypto_plugins/xelis_flutter
+	url = https://github.com/Tritonn204/xelis_flutter_ffi.git

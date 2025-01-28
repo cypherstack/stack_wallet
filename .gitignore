@@ -65,6 +65,7 @@ libepic_cash_wallet.dll
 libmobileliblelantus.dll
 libtor_ffi.dll
 flutter_libsparkmobile.dll
+xelis_flutter.dll
 secp256k1.dll
 /libisar.so
 /lib/app_config.g.dart

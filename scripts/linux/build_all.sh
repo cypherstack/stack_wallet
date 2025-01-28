@@ -16,6 +16,7 @@ mkdir -p build
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/linux && ./build_all.sh )
 set_rust_to_1720
 (cd ../../crypto_plugins/frostdart/scripts/linux && ./build_all.sh )
+(cd ../../crypto_plugins/xelis_flutter/scripts/linux && ./build_all.sh )
 
 ./build_secp256k1.sh
 
