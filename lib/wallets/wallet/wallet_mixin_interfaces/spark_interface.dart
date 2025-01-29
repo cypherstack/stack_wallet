@@ -1014,31 +1014,35 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
 
       // check and update coins if required
-      final List<SparkCoin> updatedCoins = [];
+      final List<SparkCoin> checkedCoins = [];
       for (final coin in coinsToCheck) {
-        SparkCoin updated = coin;
+        final SparkCoin checked;
 
-        if (updated.height == null) {
+        if (coin.height == null) {
           final tx = await electrumXCachedClient.getTransaction(
-            txHash: updated.txHash,
+            txHash: coin.txHash,
             cryptoCurrency: info.coin,
           );
           if (tx["height"] is int) {
-            updated = updated.copyWith(height: tx["height"] as int);
+            checked = coin.copyWith(
+              height: tx["height"] as int,
+              isUsed: spentCoinTags!.contains(coin.lTagHash),
+            );
+          } else {
+            checked = coin;
           }
+        } else {
+          checked = spentCoinTags!.contains(coin.lTagHash)
+              ? coin.copyWith(isUsed: true)
+              : coin;
         }
 
-        if (updated.height != null &&
-            spentCoinTags!.contains(updated.lTagHash)) {
-          updated = coin.copyWith(isUsed: true);
-        }
-
-        updatedCoins.add(updated);
+        checkedCoins.add(checked);
       }
-      // update in db if any have changed
-      if (updatedCoins.isNotEmpty) {
+      // add/update in db
+      if (checkedCoins.isNotEmpty) {
         await mainDB.isar.writeTxn(() async {
-          await mainDB.isar.sparkCoins.putAll(updatedCoins);
+          await mainDB.isar.sparkCoins.putAll(checkedCoins);
         });
       }
 
