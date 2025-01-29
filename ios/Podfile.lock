@@ -9,7 +9,7 @@ PODS:
   - connectivity_plus (0.0.1):
     - Flutter
     - ReachabilitySwift
-  - cs_monero_flutter_libs (0.0.1):
+  - cs_monero_flutter_libs_ios (0.0.1):
     - Flutter
   - device_info_plus (0.0.1):
     - Flutter
@@ -87,8 +87,6 @@ PODS:
   - "sqlite3 (3.46.0+1)":
     - "sqlite3/common (= 3.46.0+1)"
   - "sqlite3/common (3.46.0+1)"
-  - "sqlite3/dbstatvtab (3.46.0+1)":
-    - sqlite3/common
   - "sqlite3/fts5 (3.46.0+1)":
     - sqlite3/common
   - "sqlite3/perf-threadsafe (3.46.0+1)":
@@ -97,8 +95,7 @@ PODS:
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - Flutter
-    - "sqlite3 (~> 3.46.0+1)"
-    - sqlite3/dbstatvtab
+    - sqlite3 (~> 3.46.0)
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
@@ -117,7 +114,7 @@ DEPENDENCIES:
   - barcode_scan2 (from `.symlinks/plugins/barcode_scan2/ios`)
   - coinlib_flutter (from `.symlinks/plugins/coinlib_flutter/darwin`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
-  - cs_monero_flutter_libs (from `.symlinks/plugins/cs_monero_flutter_libs/ios`)
+  - cs_monero_flutter_libs_ios (from `.symlinks/plugins/cs_monero_flutter_libs_ios/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - devicelocale (from `.symlinks/plugins/devicelocale/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
@@ -160,8 +157,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/coinlib_flutter/darwin"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
-  cs_monero_flutter_libs:
-    :path: ".symlinks/plugins/cs_monero_flutter_libs/ios"
+  cs_monero_flutter_libs_ios:
+    :path: ".symlinks/plugins/cs_monero_flutter_libs_ios/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   devicelocale:
@@ -213,7 +210,7 @@ SPEC CHECKSUMS:
   barcode_scan2: 0af2bb63c81b4565aab6cd78278e4c0fa136dbb0
   coinlib_flutter: 9275e8255ef67d3da33beb6e117d09ced4f46eb5
   connectivity_plus: 07c49e96d7fc92bc9920617b83238c4d178b446a
-  cs_monero_flutter_libs: 43cda3474c2bc907f2b2b5bb26fd89cb864fcfc6
+  cs_monero_flutter_libs_ios: fd353631682247f72a36493ff060d4328d6f720d
   device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
   devicelocale: 35ba84dc7f45f527c3001535d8c8d104edd5d926
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
@@ -231,14 +228,14 @@ SPEC CHECKSUMS:
   lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
   local_auth_darwin: 66e40372f1c29f383a314c738c7446e2f7fdadc3
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
-  package_info_plus: 58f0028419748fad15bf008b270aaa8e54380b1c
+  package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
   SDWebImage: 72f86271a6f3139cc7e4a89220946489d4b9a866
   share_plus: c3fef564749587fc939ef86ffb283ceac0baf9f5
   sqlite3: 292c3e1bfe89f64e51ea7fc7dab9182a017c8630
-  sqlite3_flutter_libs: c00457ebd31e59fa6bb830380ddba24d44fbcd3b
+  sqlite3_flutter_libs: 0d611efdf6d1c9297d5ab03dab21b75aeebdae31
   stack_wallet_backup: 5b8563aba5d8ffbf2ce1944331ff7294a0ec7c03
   SwiftProtobuf: 6ef3f0e422ef90d6605ca20b21a94f6c1324d6b3
   SwiftyGif: 6c3eafd0ce693cad58bb63d2b2fb9bacb8552780
