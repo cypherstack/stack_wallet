@@ -14,8 +14,8 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.5.3 <4.0.0"
-  flutter: ^3.24.3
+  sdk: ">=3.6.1 <4.0.0"
+  flutter: ^3.27.3
 
 dependencies:
   flutter:
