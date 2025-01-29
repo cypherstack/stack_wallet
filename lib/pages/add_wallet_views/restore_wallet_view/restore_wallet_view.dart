@@ -114,6 +114,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   late final TextSelectionControls textSelectionControls;
 
+  bool _hideSeedWords = false;
+
   Future<void> onControlsPaste(TextSelectionDelegate delegate) async {
     final data = await widget.clipboard.getData(Clipboard.kTextPlain);
     if (data?.text == null) {
@@ -212,6 +214,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   Future<void> attemptRestore() async {
     if (_formKey.currentState!.validate()) {
+      if (mounted) setState(() => _hideSeedWords = true);
+
       String mnemonic = "";
       for (final element in _controllers) {
         mnemonic += " ${element.text.trim().toLowerCase()}";
@@ -282,6 +286,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       // TODO: do actual check to make sure it is a valid mnemonic for monero
       if (bip39.validateMnemonic(mnemonic) == false &&
           !(widget.coin is Monero || widget.coin is Wownero)) {
+        if (mounted) setState(() => _hideSeedWords = false);
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -312,6 +317,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 return RestoringDialog(
                   onCancel: () async {
                     isRestoring = false;
+
+                    if (mounted) setState(() => _hideSeedWords = false);
 
                     await ref.read(pWallets).deleteWallet(
                           info,
@@ -471,6 +478,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 );
               },
             );
+
+            if (mounted) setState(() => _hideSeedWords = false);
           }
         }
 
@@ -868,6 +877,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             child: Column(
                                               children: [
                                                 TextFormField(
+                                                  obscureText: _hideSeedWords,
                                                   autocorrect: !isDesktop,
                                                   enableSuggestions: !isDesktop,
                                                   textCapitalization:
@@ -1001,6 +1011,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             child: Column(
                                               children: [
                                                 TextFormField(
+                                                  obscureText: _hideSeedWords,
                                                   autocorrect: !isDesktop,
                                                   enableSuggestions: !isDesktop,
                                                   textCapitalization:
@@ -1135,6 +1146,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 4),
                                   child: TextFormField(
+                                    obscureText: _hideSeedWords,
                                     autocorrect: !isDesktop,
                                     enableSuggestions: !isDesktop,
                                     textCapitalization: TextCapitalization.none,
