@@ -1,0 +1,122 @@
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/node_model.dart';
+import '../../../utilities/default_nodes.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../crypto_currency.dart';
+import '../intermediate/bip39_currency.dart';
+
+import 'package:xelis_flutter/lib.dart' as xelis;
+
+class Xelis extends Bip39Currency {
+  Xelis(super.network) {
+    _idMain = "xelis";
+    _uriScheme = "xelis";
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        _id = _idMain;
+        _name = "Xelis";
+        _ticker = "XEL";
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
+
+  late final String _id;
+  @override
+  String get identifier => _id;
+
+  late final String _idMain;
+  @override
+  String get mainNetId => _idMain;
+
+  late final String _name;
+  @override
+  String get prettyName => _name;
+
+  late final String _uriScheme;
+  @override
+  String get uriScheme => _uriScheme;
+
+  late final String _ticker;
+  @override
+  String get ticker => _ticker;
+
+  @override
+  NodeModel get defaultNode {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return NodeModel(
+          host: "https://us-node.xelis.io",
+          port: 443,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
+        );
+      default:
+        throw Exception("Unsupported network: $network");
+    }
+  }
+
+  @override
+  int get minConfirms => 20;
+
+  @override
+  bool get torSupport => true;
+
+  @override
+  bool validateAddress(String address) {
+    try {
+      return xelis.isAddressValid(address);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  String get genesisHash => throw UnimplementedError();
+
+  @override
+  int get defaultSeedPhraseLength => 12;
+
+  @override
+  int get fractionDigits => 9;
+
+  @override
+  bool get hasBuySupport => false;
+
+  @override
+  bool get hasMnemonicPassphraseSupport => false;
+
+  @override
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+
+  @override
+  AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
+
+  @override
+  BigInt get satsPerCoin => BigInt.from(1000000000);
+
+  @override
+  int get targetBlockTimeSeconds => 15;
+
+  @override
+  DerivePathType get defaultDerivePathType => DerivePathType.xelis;
+
+  @override
+  Uri defaultBlockExplorer(String txid) {
+    switch (network) {
+      case CryptoCurrencyNetwork.main:
+        return Uri.parse("https://explorer.xelis.io/txs/$txid");
+      default:
+        throw Exception(
+          "Unsupported network for defaultBlockExplorer(): $network",
+        );
+    }
+  }
+}
