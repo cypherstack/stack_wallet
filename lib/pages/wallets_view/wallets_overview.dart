@@ -187,7 +187,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
     updateWallets();
 
     if (AppConfig.isSingleCoinApp) {
-      GlobalEventBus.instance.on<WalletAddedEvent>().listen((_) {
+      GlobalEventBus.instance.on<WalletsChangedEvent>().listen((_) {
         updateWallets();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {

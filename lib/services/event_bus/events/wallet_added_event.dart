@@ -1,1 +1,1 @@
-class WalletAddedEvent {}
+class WalletsChangedEvent {}
