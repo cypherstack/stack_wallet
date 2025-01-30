@@ -62,7 +62,9 @@ class Wallets {
       );
     }
     _wallets[wallet.walletId] = wallet;
-    GlobalEventBus.instance.fire(WalletAddedEvent());
+    if (AppConfig.isSingleCoinApp) {
+      GlobalEventBus.instance.fire(WalletsChangedEvent());
+    }
   }
 
   Future<void> deleteWallet(
@@ -150,6 +152,10 @@ class Wallets {
     await mainDB.isar.writeTxn(() async {
       await mainDB.isar.walletInfo.deleteByWalletId(walletId);
     });
+
+    if (AppConfig.isSingleCoinApp) {
+      GlobalEventBus.instance.fire(WalletsChangedEvent());
+    }
   }
 
   Future<void> load(Prefs prefs, MainDB mainDB) async {
