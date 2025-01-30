@@ -28,7 +28,7 @@ const kTrocadorApiKey = "8rFqf7QLxX1mUBiNPEMaLUpV2biz6n";
 const kTrocadorRefCode = "9eHm9BkQfS";
 
 abstract class TrocadorAPI {
-  static const String authority = "trocador.app";
+  static const String authority = "api.trocador.app";
   static const String onionAuthority =
       "trocadorfyhlu27aefre5u7zri66gudtzdyelymftvr4yjwcxhfaqsid.onion";
 
@@ -42,8 +42,8 @@ abstract class TrocadorAPI {
     Map<String, String>? params,
   }) {
     return isOnion
-        ? Uri.http(onionAuthority, "api/$method", params)
-        : Uri.https(authority, "api/$method", params);
+        ? Uri.http(onionAuthority, method, params)
+        : Uri.https(authority, method, params);
   }
 
   static Future<dynamic> _makeGetRequest(Uri uri) async {
@@ -52,7 +52,10 @@ abstract class TrocadorAPI {
       debugPrint("URI: $uri");
       final response = await client.get(
         url: uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          "Content-Type": "application/json",
+          "API-KEY": kTrocadorApiKey,
+        },
         proxyInfo: Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
@@ -83,7 +86,6 @@ abstract class TrocadorAPI {
       isOnion: isOnion,
       method: "coins",
       params: {
-        "api_key": kTrocadorApiKey,
         "ref": kTrocadorRefCode,
       },
     );
@@ -123,7 +125,6 @@ abstract class TrocadorAPI {
       isOnion: isOnion,
       method: "trade",
       params: {
-        "api_key": kTrocadorApiKey,
         "ref": kTrocadorRefCode,
         "id": tradeId,
       },
@@ -155,7 +156,6 @@ abstract class TrocadorAPI {
     required String fromAmount,
   }) async {
     final params = {
-      "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
       "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
@@ -180,7 +180,6 @@ abstract class TrocadorAPI {
     required String toAmount,
   }) async {
     final params = {
-      "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
       "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
@@ -239,7 +238,6 @@ abstract class TrocadorAPI {
     required bool isFixedRate,
   }) async {
     final Map<String, String> params = {
-      "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
       "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
@@ -280,7 +278,6 @@ abstract class TrocadorAPI {
     required bool isFixedRate,
   }) async {
     final params = {
-      "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
       "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
