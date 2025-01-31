@@ -11,285 +11,126 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+
 import '../../providers/db/main_db_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../wallets/isar/models/spark_coin.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
-import '../../widgets/rounded_white_container.dart';
+import '../../widgets/isar_collection_watcher_list.dart';
 
-class SparkCoinsView extends ConsumerStatefulWidget {
+class SparkCoinsView extends ConsumerWidget {
   const SparkCoinsView({
     super.key,
     required this.walletId,
   });
 
+  static const title = "Spark coins";
   static const String routeName = "/sparkCoinsView";
 
   final String walletId;
 
   @override
-  ConsumerState<SparkCoinsView> createState() => _SparkCoinsViewState();
-}
-
-class _SparkCoinsViewState extends ConsumerState<SparkCoinsView> {
-  List<SparkCoin> _coins = [];
-
-  Stream<List<SparkCoin>>? sparkCoinsCollectionWatcher;
-
-  void _onSparkCoinsCollectionWatcherEvent(List<SparkCoin> coins) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          _coins = coins;
-        });
-      }
-    });
-  }
-
-  @override
-  void initState() {
-    sparkCoinsCollectionWatcher = ref
-        .read(mainDBProvider)
-        .isar
-        .sparkCoins
-        .where()
-        .walletIdEqualToAnyLTagHash(widget.walletId)
-        .sortByHeightDesc()
-        .watch(fireImmediately: true);
-    sparkCoinsCollectionWatcher!
-        .listen((data) => _onSparkCoinsCollectionWatcherEvent(data));
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    sparkCoinsCollectionWatcher = null;
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DesktopScaffold(
-      appBar: DesktopAppBar(
-        background: Theme.of(context).extension<StackColors>()!.popupBG,
-        leading: Expanded(
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 32,
-              ),
-              AppBarIconButton(
-                size: 32,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                shadows: const [],
-                icon: SvgPicture.asset(
-                  Assets.svg.arrowLeft,
-                  width: 18,
-                  height: 18,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
-                ),
-                onPressed: Navigator.of(context).pop,
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              Text(
-                "Spark Coins",
-                style: STextStyles.desktopH3(context),
-              ),
-              const Spacer(),
-            ],
-          ),
-        ),
-        useSpacers: false,
-        isCompactHeight: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(4),
-              child: RoundedWhiteContainer(
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 9,
-                      child: Text(
-                        "TXID",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 9,
-                      child: Text(
-                        "LTag Hash",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 9,
-                      child: Text(
-                        "Address",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: Text(
-                        "Memo",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        "Value (sats)",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Height",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Group Id",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Type",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Used",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: _coins.length,
-                separatorBuilder: (_, __) => Container(
-                  height: 1,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .backgroundAppBar,
-                ),
-                itemBuilder: (_, index) => Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: RoundedWhiteContainer(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          flex: 9,
-                          child: SelectableText(
-                            _coins[index].txHash,
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 9,
-                          child: SelectableText(
-                            _coins[index].lTagHash,
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 9,
-                          child: SelectableText(
-                            _coins[index].address,
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 4,
-                          child: SelectableText(
-                            _coins[index].memo ?? "",
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: SelectableText(
-                            _coins[index].value.toString(),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: SelectableText(
-                            _coins[index].height.toString(),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: SelectableText(
-                            _coins[index].groupId.toString(),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: SelectableText(
-                            _coins[index].type.name,
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: SelectableText(
-                            _coins[index].isUsed.toString(),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                      ],
-                    ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ConditionalParent(
+      condition: Util.isDesktop,
+      builder: (child) {
+        return DesktopScaffold(
+          appBar: DesktopAppBar(
+            background: Theme.of(context).extension<StackColors>()!.popupBG,
+            leading: Expanded(
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 32,
                   ),
-                ),
+                  AppBarIconButton(
+                    size: 32,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.arrowLeft,
+                      width: 18,
+                      height: 18,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                    ),
+                    onPressed: Navigator.of(context).pop,
+                  ),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  Text(
+                    title,
+                    style: STextStyles.desktopH3(context),
+                  ),
+                  const Spacer(),
+                ],
               ),
             ),
-          ],
+            useSpacers: false,
+            isCompactHeight: true,
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(24),
+            child: child,
+          ),
+        );
+      },
+      child: ConditionalParent(
+        condition: !Util.isDesktop,
+        builder: (child) {
+          return Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                leading: AppBarBackButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                title: Text(
+                  title,
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: child,
+              ),
+            ),
+          );
+        },
+        child: IsarCollectionWatcherList(
+          itemName: title,
+          queryBuilder: () => ref
+              .read(mainDBProvider)
+              .isar
+              .sparkCoins
+              .where()
+              .walletIdEqualToAnyLTagHash(walletId)
+              .sortByHeightDesc(),
+          itemBuilder: (SparkCoin? coin) {
+            return [
+              ("TXID", coin?.txHash ?? "", 9),
+              ("LTag Hash", coin?.lTagHash ?? "", 9),
+              ("Address", coin?.address ?? "", 9),
+              ("Memo", coin?.memo ?? "", 4),
+              ("Value (sats)", coin?.value.toString() ?? "", 3),
+              ("Height", coin?.height.toString() ?? "", 2),
+              ("Group ID", coin?.groupId.toString() ?? "", 2),
+              ("Type", coin?.type.name ?? "", 2),
+              ("Used", coin?.isUsed.toString() ?? "", 2),
+            ];
+          },
         ),
       ),
     );

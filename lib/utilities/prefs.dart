@@ -72,6 +72,7 @@ class Prefs extends ChangeNotifier {
       _fusionServerInfo = await _getFusionServerInfo();
       _autoPin = await _getAutoPin();
       _enableExchange = await _getEnableExchange();
+      _advancedFiroFeatures = await _getAdvancedFiroFeatures();
 
       _initialized = true;
     }
@@ -1157,5 +1158,28 @@ class Prefs extends ChangeNotifier {
           key: "showExchange",
         ) as bool? ??
         true;
+  }
+
+  // Show/hide lelantus and spark coins. Defaults to false
+  bool _advancedFiroFeatures = false;
+  bool get advancedFiroFeatures => _advancedFiroFeatures;
+  set advancedFiroFeatures(bool advancedFiroFeatures) {
+    if (_advancedFiroFeatures != advancedFiroFeatures) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "advancedFiroFeatures",
+        value: advancedFiroFeatures,
+      );
+      _advancedFiroFeatures = advancedFiroFeatures;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getAdvancedFiroFeatures() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "advancedFiroFeatures",
+        ) as bool? ??
+        false;
   }
 }

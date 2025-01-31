@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -27,7 +26,6 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -35,8 +33,6 @@ import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
-import '../../../lelantus_coins/lelantus_coins_view.dart';
-import '../../../spark_coins/spark_coins_view.dart';
 import 'desktop_delete_wallet_dialog.dart';
 
 enum _WalletOptions {
@@ -44,8 +40,6 @@ enum _WalletOptions {
   deleteWallet,
   changeRepresentative,
   showXpub,
-  lelantusCoins,
-  sparkCoins,
   frostOptions,
   refreshFromHeight;
 
@@ -59,10 +53,6 @@ enum _WalletOptions {
         return "Change representative";
       case _WalletOptions.showXpub:
         return "Show xPub";
-      case _WalletOptions.lelantusCoins:
-        return "Lelantus Coins";
-      case _WalletOptions.sparkCoins:
-        return "Spark Coins";
       case _WalletOptions.frostOptions:
         return "FROST settings";
       case _WalletOptions.refreshFromHeight:
@@ -106,12 +96,6 @@ class WalletOptionsButton extends ConsumerWidget {
               },
               onShowXpubPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.showXpub);
-              },
-              onFiroShowLelantusCoins: () async {
-                Navigator.of(context).pop(_WalletOptions.lelantusCoins);
-              },
-              onFiroShowSparkCoins: () async {
-                Navigator.of(context).pop(_WalletOptions.sparkCoins);
               },
               onFrostMSWalletOptionsPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.frostOptions);
@@ -225,24 +209,6 @@ class WalletOptionsButton extends ConsumerWidget {
               }
               break;
 
-            case _WalletOptions.lelantusCoins:
-              unawaited(
-                Navigator.of(context).pushNamed(
-                  LelantusCoinsView.routeName,
-                  arguments: walletId,
-                ),
-              );
-              break;
-
-            case _WalletOptions.sparkCoins:
-              unawaited(
-                Navigator.of(context).pushNamed(
-                  SparkCoinsView.routeName,
-                  arguments: walletId,
-                ),
-              );
-              break;
-
             case _WalletOptions.frostOptions:
               unawaited(
                 Navigator.of(context).pushNamed(
@@ -303,8 +269,6 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onAddressListPressed,
     required this.onShowXpubPressed,
     required this.onChangeRepPressed,
-    required this.onFiroShowLelantusCoins,
-    required this.onFiroShowSparkCoins,
     required this.onFrostMSWalletOptionsPressed,
     required this.onRefreshHeightPressed,
     required this.walletId,
@@ -314,8 +278,6 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   final VoidCallback onAddressListPressed;
   final VoidCallback onShowXpubPressed;
   final VoidCallback onChangeRepPressed;
-  final VoidCallback onFiroShowLelantusCoins;
-  final VoidCallback onFiroShowSparkCoins;
   final VoidCallback onFrostMSWalletOptionsPressed;
   final VoidCallback onRefreshHeightPressed;
   final String walletId;
@@ -324,14 +286,11 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final coin = ref.watch(pWalletCoin(walletId));
 
-    bool firoDebug = kDebugMode && (coin is Firo);
-
     final wallet = ref.watch(pWallets).getWallet(walletId);
     bool xpubEnabled = wallet is ExtendedKeysInterface;
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       xpubEnabled = false;
-      firoDebug = false;
     }
 
     final bool canChangeRep = coin is NanoCurrency;
@@ -416,80 +375,6 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.changeRepresentative.prettyName,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (firoDebug)
-                    const SizedBox(
-                      height: 8,
-                    ),
-                  if (firoDebug)
-                    TransparentButton(
-                      onPressed: onFiroShowLelantusCoins,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SvgPicture.asset(
-                              Assets.svg.eye,
-                              width: 20,
-                              height: 20,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldActiveSearchIconLeft,
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                _WalletOptions.lelantusCoins.prettyName,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (firoDebug)
-                    const SizedBox(
-                      height: 8,
-                    ),
-                  if (firoDebug)
-                    TransparentButton(
-                      onPressed: onFiroShowSparkCoins,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SvgPicture.asset(
-                              Assets.svg.eye,
-                              width: 20,
-                              height: 20,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldActiveSearchIconLeft,
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                _WalletOptions.sparkCoins.prettyName,
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                   context,
                                 ).copyWith(

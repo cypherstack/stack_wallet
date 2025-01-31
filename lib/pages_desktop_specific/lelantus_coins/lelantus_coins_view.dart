@@ -11,224 +11,122 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
+
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../widgets/background.dart';
+import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
-import '../../widgets/rounded_white_container.dart';
+import '../../widgets/isar_collection_watcher_list.dart';
 
-class LelantusCoinsView extends ConsumerStatefulWidget {
+class LelantusCoinsView extends ConsumerWidget {
   const LelantusCoinsView({
     super.key,
     required this.walletId,
   });
 
+  static const title = "Lelantus coins";
   static const String routeName = "/lelantusCoinsView";
 
   final String walletId;
 
   @override
-  ConsumerState<LelantusCoinsView> createState() => _LelantusCoinsViewState();
-}
-
-class _LelantusCoinsViewState extends ConsumerState<LelantusCoinsView> {
-  List<LelantusCoin> _coins = [];
-
-  Stream<List<LelantusCoin>>? lelantusCoinsCollectionWatcher;
-
-  void _onLelantusCoinsCollectionWatcherEvent(List<LelantusCoin> coins) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          _coins = coins;
-        });
-      }
-    });
-  }
-
-  @override
-  void initState() {
-    lelantusCoinsCollectionWatcher = ref
-        .read(mainDBProvider)
-        .isar
-        .lelantusCoins
-        .where()
-        .walletIdEqualTo(widget.walletId)
-        .sortByMintIndexDesc()
-        .watch(fireImmediately: true);
-    lelantusCoinsCollectionWatcher!
-        .listen((data) => _onLelantusCoinsCollectionWatcherEvent(data));
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    lelantusCoinsCollectionWatcher = null;
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DesktopScaffold(
-      appBar: DesktopAppBar(
-        background: Theme.of(context).extension<StackColors>()!.popupBG,
-        leading: Expanded(
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 32,
-              ),
-              AppBarIconButton(
-                size: 32,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                shadows: const [],
-                icon: SvgPicture.asset(
-                  Assets.svg.arrowLeft,
-                  width: 18,
-                  height: 18,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
-                ),
-                onPressed: Navigator.of(context).pop,
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              Text(
-                "Lelantus Coins",
-                style: STextStyles.desktopH3(context),
-              ),
-              const Spacer(),
-            ],
-          ),
-        ),
-        useSpacers: false,
-        isCompactHeight: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(4),
-              child: RoundedWhiteContainer(
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 9,
-                      child: Text(
-                        "TXID",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.left,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        "Value (sats)",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Index",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Is JMint",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Used",
-                        style: STextStyles.itemSubtitle(context),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: _coins.length,
-                separatorBuilder: (_, __) => Container(
-                  height: 1,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .backgroundAppBar,
-                ),
-                itemBuilder: (_, index) => Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: RoundedWhiteContainer(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          flex: 9,
-                          child: SelectableText(
-                            _coins[index].txid,
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: SelectableText(
-                            _coins[index].value,
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: SelectableText(
-                            _coins[index].mintIndex.toString(),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: SelectableText(
-                            _coins[index].isJMint.toString(),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: SelectableText(
-                            _coins[index].isUsed.toString(),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                      ],
-                    ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ConditionalParent(
+      condition: Util.isDesktop,
+      builder: (child) {
+        return DesktopScaffold(
+          appBar: DesktopAppBar(
+            background: Theme.of(context).extension<StackColors>()!.popupBG,
+            leading: Expanded(
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 32,
                   ),
-                ),
+                  AppBarIconButton(
+                    size: 32,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.arrowLeft,
+                      width: 18,
+                      height: 18,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
+                    ),
+                    onPressed: Navigator.of(context).pop,
+                  ),
+                  const SizedBox(
+                    width: 12,
+                  ),
+                  Text(
+                    title,
+                    style: STextStyles.desktopH3(context),
+                  ),
+                  const Spacer(),
+                ],
               ),
             ),
-          ],
+            useSpacers: false,
+            isCompactHeight: true,
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(24),
+            child: child,
+          ),
+        );
+      },
+      child: ConditionalParent(
+        condition: !Util.isDesktop,
+        builder: (child) {
+          return Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                leading: AppBarBackButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                title: Text(
+                  title,
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: child,
+              ),
+            ),
+          );
+        },
+        child: IsarCollectionWatcherList(
+          itemName: title,
+          queryBuilder: () => ref
+              .read(mainDBProvider)
+              .isar
+              .lelantusCoins
+              .where()
+              .walletIdEqualTo(walletId)
+              .sortByMintIndexDesc(),
+          itemBuilder: (LelantusCoin? coin) {
+            return [
+              ("TXID", coin?.txid ?? "", 9),
+              ("Value (sats)", coin?.value ?? "", 3),
+              ("Index", coin?.mintIndex.toString() ?? "", 2),
+              ("Is JMint", coin?.isJMint.toString() ?? "", 2),
+              ("Used", coin?.isUsed.toString() ?? "", 2),
+            ];
+          },
         ),
       ),
     );
