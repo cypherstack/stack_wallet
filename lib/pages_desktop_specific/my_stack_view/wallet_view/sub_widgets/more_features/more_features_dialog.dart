@@ -24,6 +24,7 @@ import '../../../../../utilities/text_styles.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -46,6 +47,8 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.walletId,
     required this.onPaynymPressed,
     required this.onCoinControlPressed,
+    required this.onLelantusCoinsPressed,
+    required this.onSparkCoinsPressedPressed,
     required this.onAnonymizeAllPressed,
     required this.onWhirlpoolPressed,
     required this.onOrdinalsPressed,
@@ -57,6 +60,8 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   final String walletId;
   final VoidCallback? onPaynymPressed;
   final VoidCallback? onCoinControlPressed;
+  final VoidCallback? onLelantusCoinsPressed;
+  final VoidCallback? onSparkCoinsPressedPressed;
   final VoidCallback? onAnonymizeAllPressed;
   final VoidCallback? onWhirlpoolPressed;
   final VoidCallback? onOrdinalsPressed;
@@ -286,6 +291,24 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               detail: "Control, freeze, and utilize outputs at your discretion",
               iconAsset: Assets.svg.coinControl.gamePad,
               onPressed: () async => widget.onCoinControlPressed?.call(),
+            ),
+          if (wallet is FiroWallet &&
+              ref.watch(prefsChangeNotifierProvider
+                  .select((s) => s.advancedFiroFeatures)))
+            _MoreFeaturesItem(
+              label: "Lelantus Coins",
+              detail: "View wallet lelantus coins",
+              iconAsset: Assets.svg.coinControl.gamePad,
+              onPressed: () async => widget.onLelantusCoinsPressed?.call(),
+            ),
+          if (wallet is FiroWallet &&
+              ref.watch(prefsChangeNotifierProvider
+                  .select((s) => s.advancedFiroFeatures)))
+            _MoreFeaturesItem(
+              label: "Spark Coins",
+              detail: "View wallet spark coins",
+              iconAsset: Assets.svg.coinControl.gamePad,
+              onPressed: () async => widget.onSparkCoinsPressedPressed?.call(),
             ),
           if (!isViewOnly && wallet is PaynymInterface)
             _MoreFeaturesItem(

@@ -79,6 +79,39 @@ class HiddenSettings extends StatelessWidget {
                           builder: (_, ref, __) {
                             return GestureDetector(
                               onTap: () async {
+                                ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .advancedFiroFeatures =
+                                    !ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .advancedFiroFeatures;
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (s) => s.advancedFiroFeatures,
+                                    ),
+                                  )
+                                      ? "Hide advanced Firo features"
+                                      : "Show advanced Firo features",
+                                  style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
                                 final notifs = ref
                                     .read(notificationsProvider)
                                     .notifications;

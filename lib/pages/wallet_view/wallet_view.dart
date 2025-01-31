@@ -22,6 +22,8 @@ import '../../app_config.dart';
 import '../../frost_route_generator.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../pages_desktop_specific/lelantus_coins/lelantus_coins_view.dart';
+import '../../pages_desktop_specific/spark_coins/spark_coins_view.dart';
 import '../../providers/global/active_wallet_provider.dart';
 import '../../providers/global/auto_swb_service_provider.dart';
 import '../../providers/global/paynym_api_provider.dart';
@@ -1135,6 +1137,38 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             widget.walletId,
                             CoinControlViewType.manage,
                           ),
+                        );
+                      },
+                    ),
+                  if (wallet is FiroWallet &&
+                      ref.watch(
+                        prefsChangeNotifierProvider.select(
+                          (value) => value.advancedFiroFeatures,
+                        ),
+                      ))
+                    WalletNavigationBarItemData(
+                      label: "Lelantus coins",
+                      icon: const CoinControlNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          LelantusCoinsView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
+                  if (wallet is FiroWallet &&
+                      ref.watch(
+                        prefsChangeNotifierProvider.select(
+                          (value) => value.advancedFiroFeatures,
+                        ),
+                      ))
+                    WalletNavigationBarItemData(
+                      label: "Spark coins",
+                      icon: const CoinControlNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          SparkCoinsView.routeName,
+                          arguments: widget.walletId,
                         );
                       },
                     ),

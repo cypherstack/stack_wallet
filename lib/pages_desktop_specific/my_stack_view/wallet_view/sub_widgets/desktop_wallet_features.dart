@@ -49,7 +49,9 @@ import '../../../cashfusion/desktop_cashfusion_view.dart';
 import '../../../churning/desktop_churning_view.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../desktop_menu.dart';
+import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
+import '../../../spark_coins/spark_coins_view.dart';
 import '../desktop_wallet_view.dart';
 import 'more_features/more_features_dialog.dart';
 
@@ -89,6 +91,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         walletId: widget.walletId,
         onPaynymPressed: _onPaynymPressed,
         onCoinControlPressed: _onCoinControlPressed,
+        onLelantusCoinsPressed: _onLelantusCoinsPressed,
+        onSparkCoinsPressedPressed: _onSparkCoinsPressed,
         onAnonymizeAllPressed: _onAnonymizeAllPressed,
         onWhirlpoolPressed: _onWhirlpoolPressed,
         onOrdinalsPressed: _onOrdinalsPressed,
@@ -108,6 +112,24 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     Navigator.of(context).pushNamed(
       DesktopCoinControlView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
+  void _onLelantusCoinsPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      LelantusCoinsView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
+  void _onSparkCoinsPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      SparkCoinsView.routeName,
       arguments: widget.walletId,
     );
   }
