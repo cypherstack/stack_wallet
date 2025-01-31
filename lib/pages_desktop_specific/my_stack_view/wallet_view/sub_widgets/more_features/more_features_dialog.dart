@@ -8,9 +8,12 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../../app_config.dart';
 import '../../../../../db/sqlite/firo_cache.dart';
@@ -20,7 +23,10 @@ import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/wallets_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/logger.dart';
+import '../../../../../utilities/show_loading.dart';
 import '../../../../../utilities/text_styles.dart';
+import '../../../../../utilities/util.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -40,6 +46,7 @@ import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/rounded_container.dart';
+import '../../../../../widgets/stack_dialog.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({
@@ -88,6 +95,10 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
         },
         isar: ref.read(mainDBProvider).isar,
       );
+
+      if (newValue) {
+        await _doRescanMaybe();
+      }
     } finally {
       // ensure _isUpdatingLelantusScanning is set to false no matter what
       _isUpdatingLelantusScanning = false;
@@ -112,6 +123,124 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     } finally {
       // ensure _switchRbfToggledLock is set to false no matter what
       _switchRbfToggledLock = false;
+    }
+  }
+
+  Future<void> _doRescanMaybe() async {
+    final shouldRescan = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return DesktopDialog(
+          maxWidth: 700,
+          child: Column(
+            children: [
+              const DesktopDialogCloseButton(),
+              const SizedBox(
+                height: 5,
+              ),
+              Text(
+                "Rescan may be required",
+                style: STextStyles.desktopH2(context),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              const Spacer(),
+              Text(
+                "A blockchain rescan may be required to fully recover all lelantus history."
+                "\nThis may take a while.",
+                style: STextStyles.desktopTextMedium(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 32,
+                  right: 32,
+                  bottom: 32,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SecondaryButton(
+                        label: "Rescan now",
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Expanded(
+                      child: PrimaryButton(
+                        label: "Later",
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (mounted && shouldRescan == true) {
+      try {
+        if (!Platform.isLinux) await WakelockPlus.enable();
+
+        Exception? e;
+        if (mounted) {
+          await showLoading(
+            whileFuture: ref.read(pWallets).getWallet(widget.walletId).recover(
+                  isRescan: true,
+                ),
+            context: context,
+            message: "Rescanning blockchain",
+            subMessage:
+                "This may take a while.\nPlease do not exit this screen.",
+            rootNavigator: Util.isDesktop,
+            onException: (ex) => e = ex,
+          );
+
+          if (e != null) {
+            throw e!;
+          }
+        }
+      } catch (e, s) {
+        Logging.instance.log("$e\n$s", level: LogLevel.Error);
+        if (mounted) {
+          // show error
+          await showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) => StackDialog(
+              title: "Rescan failed",
+              message: e.toString(),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.itemSubtitle12(context),
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: Util.isDesktop).pop();
+                },
+              ),
+            ),
+          );
+        }
+      } finally {
+        if (!Platform.isLinux) await WakelockPlus.disable();
+      }
     }
   }
 

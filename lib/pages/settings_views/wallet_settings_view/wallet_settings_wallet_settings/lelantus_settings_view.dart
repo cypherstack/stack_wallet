@@ -8,17 +8,27 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../providers/db/main_db_provider.dart';
+import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/stack_dialog.dart';
 
 class LelantusSettingsView extends ConsumerStatefulWidget {
   const LelantusSettingsView({
@@ -50,9 +60,88 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
         },
         isar: ref.read(mainDBProvider).isar,
       );
+      if (newValue) {
+        await _doRescanMaybe();
+      }
     } finally {
       // ensure _isUpdatingLelantusScanning is set to false no matter what
       _isUpdatingLelantusScanning = false;
+    }
+  }
+
+  Future<void> _doRescanMaybe() async {
+    final shouldRescan = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StackDialog(
+          title: "Rescan may be required",
+          message: "A blockchain rescan may be required to fully recover all "
+              "lelantus history. This may take a while.",
+          leftButton: SecondaryButton(
+            label: "Rescan now",
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+          ),
+          rightButton: PrimaryButton(
+            label: "Later",
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+        );
+      },
+    );
+
+    if (mounted && shouldRescan == true) {
+      try {
+        if (!Platform.isLinux) await WakelockPlus.enable();
+
+        Exception? e;
+        if (mounted) {
+          await showLoading(
+            whileFuture: ref.read(pWallets).getWallet(widget.walletId).recover(
+                  isRescan: true,
+                ),
+            context: context,
+            message: "Rescanning blockchain",
+            subMessage: "This may take a while."
+                "\nPlease do not exit this screen.",
+            rootNavigator: Util.isDesktop,
+            onException: (ex) => e = ex,
+          );
+
+          if (e != null) {
+            throw e!;
+          }
+        }
+      } catch (e, s) {
+        Logging.instance.log("$e\n$s", level: LogLevel.Error);
+        if (mounted) {
+          // show error
+          await showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) => StackDialog(
+              title: "Rescan failed",
+              message: e.toString(),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.itemSubtitle12(context),
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: Util.isDesktop).pop();
+                },
+              ),
+            ),
+          );
+        }
+      } finally {
+        if (!Platform.isLinux) await WakelockPlus.disable();
+      }
     }
   }
 
