@@ -29,6 +29,8 @@ import '../utilities/constants.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/stack_file_system.dart';
+import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'hive/db.dart';
 import 'isar/main_db.dart';
@@ -144,7 +146,6 @@ class DbVersionMigrator with WalletDB {
                 ),
               });
             }
-            Logger.print("newcoins $coins", normalLength: false);
             await DB.instance.put<dynamic>(
               boxName: walletInfo.walletId,
               key: '_lelantus_coins',
@@ -443,6 +444,20 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(13, secureStore: secureStore);
 
+      case 13:
+        // migrate
+        await _v13(secureStore);
+
+        // update version
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 14,
+        );
+
+        // try to continue migrating
+        return await migrate(14, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -732,6 +747,33 @@ class DbVersionMigrator with WalletDB {
       await DB.instance.deleteBoxFromDisk(
         boxName: "${identifier}_sparkUsedCoinsTagsCache",
       );
+    }
+  }
+
+  Future<void> _v13(SecureStorageInterface secureStore) async {
+    if (!(Util.isArmLinux || Util.isTestEnv)) {
+      // open logs db
+      final isar = await Isar.open(
+        [isar_models.LogSchema],
+        directory: (await StackFileSystem.applicationIsarDirectory()).path,
+        inspector: false,
+        maxSizeMiB: 512,
+      );
+
+      // fetch all logs
+      final allLogs = await isar.logs.where().findAll();
+
+      // migrate to simple file based logs. Date/time may be out of order
+      for (final log in allLogs) {
+        Logging.instance.lg(
+          log.logLevel.getLoggerLevel(),
+          "MIGRATED LOG::=> ${log.message}",
+          time: DateTime.fromMillisecondsSinceEpoch(log.timestampInMillisUTC),
+        );
+      }
+
+      // finally delete logs db
+      await isar.close(deleteFromDisk: true);
     }
   }
 }

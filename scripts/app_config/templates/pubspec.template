@@ -33,7 +33,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 9318bdd8e76e4dc8a49e3d64e8851c85e017eff3
+      ref: dd1e2a31bab034c97f8ea5745d1aa0b70c245490
 
   # cs_monero compat (unpublished)
   compat:
@@ -206,6 +206,11 @@ dependencies:
   cs_monero_flutter_libs: 1.0.0-pre.0
   monero_rpc: ^2.0.0
   digest_auth: ^1.0.1
+#  logger: ^2.5.0
+  logger:
+    git:
+      url: https://github.com/cypherstack/logger
+      ref: 3c0cba27868ebb5c7d65ebc30a8e6e5342186692
 
 dev_dependencies:
   flutter_test:
@@ -233,6 +238,11 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+  logger:
+    git:
+      url: https://github.com/cypherstack/logger
+      ref: 3c0cba27868ebb5c7d65ebc30a8e6e5342186692
+
   # required to make devicelocale work
   web: ^0.5.0
 

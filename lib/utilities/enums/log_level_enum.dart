@@ -10,10 +10,27 @@
 
 // Used in Isar db and stored there as int indexes so adding/removing values
 // in this definition should be done extremely carefully in production
+import 'package:logger/logger.dart';
+
 enum LogLevel {
   Info,
   Warning,
   Error,
   Fatal,
   Debug;
+
+  Level getLoggerLevel() {
+    switch (this) {
+      case LogLevel.Info:
+        return Level.info;
+      case LogLevel.Warning:
+        return Level.warning;
+      case LogLevel.Error:
+        return Level.error;
+      case LogLevel.Fatal:
+        return Level.fatal;
+      case LogLevel.Debug:
+        return Level.debug;
+    }
+  }
 }

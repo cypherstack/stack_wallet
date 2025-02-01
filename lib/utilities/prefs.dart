@@ -73,6 +73,7 @@ class Prefs extends ChangeNotifier {
       _autoPin = await _getAutoPin();
       _enableExchange = await _getEnableExchange();
       _advancedFiroFeatures = await _getAdvancedFiroFeatures();
+      _logsPath = await _getLogsPath();
 
       _initialized = true;
     }
@@ -1181,5 +1182,27 @@ class Prefs extends ChangeNotifier {
           key: "advancedFiroFeatures",
         ) as bool? ??
         false;
+  }
+
+  // Logs path. Null defaults to default as defined in stack_file_system.dart
+  String? _logsPath;
+  String? get logsPath => _logsPath;
+  set logsPath(String? logsPath) {
+    if (_logsPath != logsPath) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "logsPath",
+        value: logsPath,
+      );
+      _logsPath = logsPath;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> _getLogsPath() async {
+    return await DB.instance.get<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "logsPath",
+    ) as String?;
   }
 }

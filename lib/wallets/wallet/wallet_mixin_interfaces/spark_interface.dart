@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart' as spark
+    show Log;
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 
@@ -50,6 +53,66 @@ String _hashTag(String tag) {
   return hash;
 }
 
+abstract class _SparkIsolate {
+  static Isolate? _isolate;
+  static SendPort? _sendPort;
+  static final ReceivePort _receivePort = ReceivePort();
+
+  static Future<void> initialize() async {
+    _isolate = await Isolate.spawn(
+      (SendPort sendPort) {
+        spark.Log.levels.addAll(LoggingLevel.values);
+        spark.Log.onLog = (
+          level,
+          value, {
+          error,
+          stackTrace,
+          required time,
+        }) {
+          Logging.instance.lg(
+            level.getLoggerLevel(),
+            value,
+            error: error,
+            stackTrace: stackTrace,
+            time: time,
+          );
+        };
+        final receivePort = ReceivePort();
+
+        sendPort.send(receivePort.sendPort);
+
+        receivePort.listen((message) async {
+          if (message is List && message.length == 3) {
+            final function = message[0] as Function;
+            final argument = message[1];
+            final replyPort = message[2] as SendPort;
+
+            final result = await function(argument);
+            replyPort.send(result);
+          }
+        });
+      },
+      _receivePort.sendPort,
+    );
+    _sendPort = await _receivePort.first as SendPort;
+  }
+
+  static Future<R> run<M, R>(ComputeCallback<M, R> task, M argument) async {
+    if (_isolate == null || _sendPort == null) await initialize();
+
+    final ReceivePort responsePort = ReceivePort();
+    _sendPort?.send([task, argument, responsePort.sendPort]);
+    return await responsePort.first as R;
+  }
+}
+
+Future<R> computeWithLibSparkLogging<M, R>(
+  ComputeCallback<M, R> callback,
+  M message,
+) async {
+  return _SparkIsolate.run(callback, message);
+}
+
 mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
   String? _sparkChangeAddressCached;
@@ -70,7 +133,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   Future<String> hashTag(String tag) async {
     try {
-      return await compute(_hashTag, tag);
+      return await computeWithLibSparkLogging(_hashTag, tag);
     } catch (_) {
       throw ArgumentError("Invalid tag string format", "tag");
     }
@@ -553,7 +616,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
     extractedTx.setPayload(Uint8List(0));
 
-    final spend = await compute(
+    final spend = await computeWithLibSparkLogging(
       _createSparkSend,
       (
         privateKeyHex: privateKey.toHex,
@@ -764,7 +827,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // if there is new data we try and identify the coins
       if (rawCoins.isNotEmpty) {
         // run identify off main isolate
-        final myCoins = await compute(
+        final myCoins = await computeWithLibSparkLogging(
           _identifyCoins,
           (
             anonymitySetCoins: rawCoins,
@@ -950,7 +1013,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // try to identify any coins in the unchecked set data
       final List<SparkCoin> newlyIdCoins = [];
       for (final groupId in rawCoinsBySetId.keys) {
-        final myCoins = await compute(
+        final myCoins = await computeWithLibSparkLogging(
           _identifyCoins,
           (
             anonymitySetCoins: rawCoinsBySetId[groupId]!,
@@ -2145,7 +2208,7 @@ Future<int> _asyncSparkFeesWrapper({
   required List<SerializedCoinData> serializedCoins,
   required int privateRecipientsCount,
 }) async {
-  return await compute(
+  return await computeWithLibSparkLogging(
     _estSparkFeeComputeFunc,
     (
       privateKeyHex: privateKeyHex,

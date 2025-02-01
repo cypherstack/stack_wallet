@@ -91,7 +91,7 @@ import 'pages/send_view/send_view.dart';
 import 'pages/send_view/token_send_view.dart';
 import 'pages/settings_views/global_settings_view/about_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
-import 'pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
+import 'pages/settings_views/global_settings_view/advanced_views/logging_settings_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
@@ -951,10 +951,10 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
-      case DebugView.routeName:
+      case LoggingSettingsView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const DebugView(),
+          builder: (_) => const LoggingSettingsView(),
           settings: RouteSettings(name: settings.name),
         );
 

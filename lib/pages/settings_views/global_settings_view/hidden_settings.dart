@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../notifications/show_flush_bar.dart';
-import '../../../providers/global/debug_service_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -176,40 +175,40 @@ class HiddenSettings extends StatelessWidget {
                         //     ),
                         //   );
                         // }),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return GestureDetector(
-                              onTap: () async {
-                                await ref
-                                    .read(debugServiceProvider)
-                                    .deleteAllLogs();
-
-                                if (context.mounted) {
-                                  unawaited(
-                                    showFloatingFlushBar(
-                                      type: FlushBarType.success,
-                                      message: "Debug Logs deleted",
-                                      context: context,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: RoundedWhiteContainer(
-                                child: Text(
-                                  "Delete Debug Logs",
-                                  style: STextStyles.button(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .accentColorDark,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                        // const SizedBox(
+                        //   height: 12,
+                        // ),
+                        // Consumer(
+                        //   builder: (_, ref, __) {
+                        //     return GestureDetector(
+                        //       onTap: () async {
+                        //         await ref
+                        //             .read(debugServiceProvider)
+                        //             .deleteAllLogs();
+                        //
+                        //         if (context.mounted) {
+                        //           unawaited(
+                        //             showFloatingFlushBar(
+                        //               type: FlushBarType.success,
+                        //               message: "Debug Logs deleted",
+                        //               context: context,
+                        //             ),
+                        //           );
+                        //         }
+                        //       },
+                        //       child: RoundedWhiteContainer(
+                        //         child: Text(
+                        //           "Delete Debug Logs",
+                        //           style: STextStyles.button(context).copyWith(
+                        //             color: Theme.of(context)
+                        //                 .extension<StackColors>()!
+                        //                 .accentColorDark,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     );
+                        //   },
+                        // ),
                         const SizedBox(
                           height: 12,
                         ),
