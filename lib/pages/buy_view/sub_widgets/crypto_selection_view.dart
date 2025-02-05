@@ -304,7 +304,7 @@ class CoinIconForTicker extends ConsumerWidget {
         height: size,
       );
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Fatal);
       rethrow;
     }
   }

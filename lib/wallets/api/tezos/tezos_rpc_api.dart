@@ -28,7 +28,7 @@ abstract final class TezosRpcAPI {
           BigInt.parse(response.body.substring(1, response.body.length - 2));
       return balance;
     } catch (e) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error occurred in tezos_rpc_api.dart while getting balance for $address: $e",
         level: LogLevel.Error,
       );
@@ -54,7 +54,7 @@ abstract final class TezosRpcAPI {
       final jsonParsedResponse = jsonDecode(response.body);
       return int.parse(jsonParsedResponse["level"].toString());
     } catch (e) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error occurred in tezos_rpc_api.dart while getting chain height for tezos: $e",
         level: LogLevel.Error,
       );

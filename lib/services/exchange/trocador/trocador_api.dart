@@ -70,7 +70,7 @@ abstract class TrocadorAPI {
 
       return json;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_makeRequest($uri) HTTP:$code threw: $e\n$s",
         level: LogLevel.Error,
       );
@@ -106,7 +106,8 @@ abstract class TrocadorAPI {
         throw Exception("unexpected json: $json");
       }
     } catch (e, s) {
-      Logging.instance.log("getCoins exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance
+          .logd("getCoins exception: $e\n$s", level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -136,7 +137,8 @@ abstract class TrocadorAPI {
 
       return ExchangeResponse(value: TrocadorTrade.fromMap(map));
     } catch (e, s) {
-      Logging.instance.log("getTrade exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance
+          .logd("getTrade exception: $e\n$s", level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -211,7 +213,7 @@ abstract class TrocadorAPI {
       return ExchangeResponse(value: TrocadorRate.fromMap(map));
     } catch (e, s) {
       Logging.instance
-          .log("getNewRate exception: $e\n$s", level: LogLevel.Error);
+          .logd("getNewRate exception: $e\n$s", level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -326,7 +328,7 @@ abstract class TrocadorAPI {
               "This trade couldn't be completed. Please select another provider.";
         }
 
-        Logging.instance.log(
+        Logging.instance.logd(
           "_getNewTrade failed to parse response: $json\n$e\n$s",
           level: LogLevel.Error,
         );
@@ -338,7 +340,7 @@ abstract class TrocadorAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_getNewTrade exception: $e\n$s",
         level: LogLevel.Error,
       );

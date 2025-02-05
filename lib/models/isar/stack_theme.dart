@@ -1884,7 +1884,7 @@ class StackTheme {
           (map[mainNetId] as String).toBigIntFromHex.toInt(),
         );
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Color not found in theme for $mainNetId",
           level: LogLevel.Error,
         );

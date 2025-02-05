@@ -175,8 +175,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                         });
                                       }
                                     } catch (e, s) {
-                                      Logging.instance
-                                          .log("$e\n$s", level: LogLevel.Error);
+                                      Logging.instance.logd("$e\n$s",
+                                          level: LogLevel.Error);
                                     }
                                   },
                             controller: fileLocationController,
@@ -578,8 +578,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                   } on Exception catch (e, s) {
                                     final String err =
                                         getErrorMessageFromSWBException(e);
-                                    Logging.instance
-                                        .log("$err\n$s", level: LogLevel.Error);
+                                    Logging.instance.logd("$err\n$s",
+                                        level: LogLevel.Error);
                                     // pop encryption progress dialog
                                     Navigator.of(context).pop();
                                     showFloatingFlushBar(
@@ -590,7 +590,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     return;
                                   } catch (e, s) {
                                     Logging.instance
-                                        .log("$e\n$s", level: LogLevel.Error);
+                                        .logd("$e\n$s", level: LogLevel.Error);
                                     // pop encryption progress dialog
                                     Navigator.of(context).pop();
                                     showFloatingFlushBar(

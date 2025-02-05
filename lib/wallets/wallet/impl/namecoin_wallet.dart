@@ -264,7 +264,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         // Only found outputs owned by this wallet.
         type = TransactionType.incoming;
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Unexpected tx found (ignoring it): $txData",
           level: LogLevel.Error,
         );

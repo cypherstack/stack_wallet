@@ -60,7 +60,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
       return Tezos.standardDerivationPath;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error in _scanPossiblePaths() in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -144,7 +144,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
       return opList;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error in _buildSendTransaction() in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -164,7 +164,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
       }
     } catch (e, s) {
       // do nothing, still allow user into wallet
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -271,7 +271,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         tezosOperationsList: opList,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error in prepareSend() in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -338,14 +338,14 @@ class TezosWallet extends Bip39Wallet<Tezos> {
     } catch (e, s) {
       if (_estCount > 3) {
         _estCount = 0;
-        Logging.instance.log(
+        Logging.instance.logd(
           " Error in _estimate in tezos_wallet.dart: $e\n$s",
           level: LogLevel.Error,
         );
         rethrow;
       } else {
         _estCount++;
-        Logging.instance.log(
+        Logging.instance.logd(
           "_estimate() retry _estCount=$_estCount",
           level: LogLevel.Warning,
         );
@@ -386,7 +386,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
       return fee;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "  Error in estimateFeeFor() in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -499,7 +499,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
 
       await info.updateBalance(newBalance: newBalance, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error getting balance in tezos_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -523,7 +523,7 @@ class TezosWallet extends Bip39Wallet<Tezos> {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error occurred in tezos_wallet.dart while getting"
         " chain height for tezos: $e\n$s",
         level: LogLevel.Error,

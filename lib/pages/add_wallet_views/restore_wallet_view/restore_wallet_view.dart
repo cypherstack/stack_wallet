@@ -628,7 +628,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       final results = AddressUtils.decodeQRSeedData(qrResult.rawContent);
 
-      Logging.instance.log("scan parsed: $results", level: LogLevel.Info);
+      Logging.instance.logd("scan parsed: $results", level: LogLevel.Info);
 
       if (results["mnemonic"] != null) {
         final list = (results["mnemonic"] as List)
@@ -636,16 +636,16 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             .toList(growable: false);
         if (list.isNotEmpty) {
           _clearAndPopulateMnemonic(list);
-          Logging.instance.log("mnemonic populated", level: LogLevel.Info);
+          Logging.instance.logd("mnemonic populated", level: LogLevel.Info);
         } else {
           Logging.instance
-              .log("mnemonic failed to populate", level: LogLevel.Info);
+              .logd("mnemonic failed to populate", level: LogLevel.Info);
         }
       }
     } on PlatformException catch (e) {
       // likely failed to get camera permissions
       Logging.instance
-          .log("Restore wallet qr scan failed: $e", level: LogLevel.Warning);
+          .logd("Restore wallet qr scan failed: $e", level: LogLevel.Warning);
     }
   }
 

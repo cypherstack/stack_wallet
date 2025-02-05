@@ -81,7 +81,7 @@ class _FrostReshareStep1aState extends ConsumerState<FrostReshareStep1a> {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$e\n$s",
         level: LogLevel.Fatal,
       );

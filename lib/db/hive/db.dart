@@ -166,7 +166,7 @@ class DB {
         AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Error, ${jsonObject["coin"]} does not exist, $name wallet cannot be loaded",
           level: LogLevel.Error,
         );
@@ -343,7 +343,7 @@ class DB {
       await DB.instance.deleteBoxFromDisk(boxName: "theme");
       return true;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Error);
+      Logging.instance.logd("$e $s", level: LogLevel.Error);
       return false;
     }
   }

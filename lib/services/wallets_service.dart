@@ -11,6 +11,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+
 import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../utilities/logger.dart';
@@ -74,7 +75,7 @@ class WalletsService extends ChangeNotifier {
     final names = DB.instance
         .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
     if (names == null) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Fetched wallet 'names' returned null. Setting initializing 'names'",
         level: LogLevel.Info,
       );
@@ -85,7 +86,7 @@ class WalletsService extends ChangeNotifier {
       );
       return {};
     }
-    Logging.instance.log("Fetched wallet names: $names", level: LogLevel.Info);
+    Logging.instance.logd("Fetched wallet names: $names", level: LogLevel.Info);
     final mapped = Map<String, dynamic>.from(names);
     mapped.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
@@ -93,7 +94,7 @@ class WalletsService extends ChangeNotifier {
         AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Error, ${jsonObject["coin"]} does not exist",
           level: LogLevel.Error,
         );

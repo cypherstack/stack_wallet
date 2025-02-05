@@ -162,7 +162,7 @@ class _ConfirmChangeNowSendViewState
         Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Broadcast transaction failed: $e\n$s",
         level: LogLevel.Error,
       );

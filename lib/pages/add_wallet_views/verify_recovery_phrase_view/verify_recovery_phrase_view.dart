@@ -306,7 +306,7 @@ class _VerifyRecoveryPhraseViewState
             throw ex!;
           }
         } catch (e, s) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "$e\n$s",
             level: LogLevel.Fatal,
           );

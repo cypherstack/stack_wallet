@@ -115,7 +115,7 @@ class _NewContactAddressEntryFormState
       //     .read(shouldShowLockscreenOnResumeStateProvider
       //         .state)
       //     .state = true;
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to get camera permissions to scan address qr code: $e\n$s",
         level: LogLevel.Warning,
       );

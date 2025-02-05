@@ -345,7 +345,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       }
     } catch (e, s) {
       // do nothing, still allow user into wallet
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -489,7 +489,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       );
     } catch (e, s) {
       Logging.instance
-          .log("Error sending transaction $e - $s", level: LogLevel.Error);
+          .logd("Error sending transaction $e - $s", level: LogLevel.Error);
       rethrow;
     }
   }
@@ -669,7 +669,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
       await info.updateBalance(newBalance: balance, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to update ${cryptoCurrency.runtimeType} balance: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -705,7 +705,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
       await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to update ${cryptoCurrency.runtimeType} chain height: $e\n$s",
         level: LogLevel.Warning,
       );

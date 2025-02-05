@@ -9,6 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
+
 import '../../../utilities/logger.dart';
 
 class Estimate {
@@ -46,7 +47,8 @@ class Estimate {
         kycRating: kycRating,
       );
     } catch (e, s) {
-      Logging.instance.log("Estimate.fromMap(): $e\n$s", level: LogLevel.Error);
+      Logging.instance
+          .logd("Estimate.fromMap(): $e\n$s", level: LogLevel.Error);
       rethrow;
     }
   }

@@ -68,7 +68,7 @@ class DPS {
       await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
       await _updateStoredKeyBlobVersion(kLatestBlobVersion);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "${_getMessageFromException(e)}\n$s",
         level: LogLevel.Error,
       );
@@ -104,7 +104,7 @@ class DPS {
         await _updateStoredKeyBlobVersion(kLatestBlobVersion);
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "${_getMessageFromException(e)}\n$s",
         level: LogLevel.Error,
       );
@@ -125,7 +125,7 @@ class DPS {
       // existing passphrase matches key blob
       return true;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "${_getMessageFromException(e)}\n$s",
         level: LogLevel.Warning,
       );
@@ -161,7 +161,7 @@ class DPS {
       // successfully updated passphrase
       return true;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "${_getMessageFromException(e)}\n$s",
         level: LogLevel.Warning,
       );
@@ -189,7 +189,7 @@ class DPS {
       box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
       await box.put(key, value);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "DPS failed put($key): $e\n$s",
         level: LogLevel.Fatal,
       );
@@ -205,7 +205,7 @@ class DPS {
       box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
       value = box.get(key);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "DPS failed get($key): $e\n$s",
         level: LogLevel.Fatal,
       );

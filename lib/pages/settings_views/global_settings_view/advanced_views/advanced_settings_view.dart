@@ -23,7 +23,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../stack_privacy_calls.dart';
-import 'debug_view.dart';
+import 'logging_settings_view.dart';
 import 'manage_coin_units/manage_coin_units_view.dart';
 import 'manage_explorer_view.dart';
 
@@ -68,7 +68,8 @@ class AdvancedSettingsView extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pushNamed(DebugView.routeName);
+                    Navigator.of(context)
+                        .pushNamed(LoggingSettingsView.routeName);
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -78,7 +79,7 @@ class AdvancedSettingsView extends StatelessWidget {
                     child: Row(
                       children: [
                         Text(
-                          "Debug info",
+                          "Logging",
                           style: STextStyles.titleBold12(context),
                           textAlign: TextAlign.left,
                         ),

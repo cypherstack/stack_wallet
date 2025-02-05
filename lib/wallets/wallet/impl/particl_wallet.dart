@@ -313,7 +313,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         // Only found outputs owned by this wallet.
         type = TransactionType.incoming;
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Unexpected tx found (ignoring it): $txData",
           level: LogLevel.Error,
         );
@@ -348,7 +348,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     required TxData txData,
     required List<SigningData> utxoSigningData,
   }) async {
-    Logging.instance.log(
+    Logging.instance.logd(
       "Starting Particl buildTransaction ----------",
       level: LogLevel.Info,
     );
@@ -523,7 +523,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Caught exception while signing transaction: $e\n$s",
         level: LogLevel.Error,
       );
@@ -540,7 +540,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     String hexString = builtTx.toHex(isParticl: true).toString();
     if (hexString.length % 2 != 0) {
       // Ensure the string has an even length.
-      Logging.instance.log(
+      Logging.instance.logd(
         "Hex string has odd length, which is unexpected.",
         level: LogLevel.Error,
       );

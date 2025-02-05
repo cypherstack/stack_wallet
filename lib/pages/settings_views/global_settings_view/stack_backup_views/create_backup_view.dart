@@ -208,7 +208,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                                 }
                               } catch (e, s) {
                                 Logging.instance
-                                    .log("$e\n$s", level: LogLevel.Error);
+                                    .logd("$e\n$s", level: LogLevel.Error);
                               }
                             },
                       controller: fileLocationController,

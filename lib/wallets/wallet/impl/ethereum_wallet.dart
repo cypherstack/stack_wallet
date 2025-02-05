@@ -240,7 +240,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType wallet failed to update balance: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -258,7 +258,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType Exception caught in chainHeight: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -297,7 +297,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     );
 
     if (response.value == null) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to refresh transactions for ${cryptoCurrency.prettyName} ${info.name} "
         "$walletId: ${response.exception}",
         level: LogLevel.Warning,
@@ -407,7 +407,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       }
       await mainDB.updateOrPutTransactionV2s(txns);
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to refresh transactions with nonces for ${cryptoCurrency.prettyName} "
         "${info.name} $walletId: ${txsResponse.exception}",
         level: LogLevel.Warning,

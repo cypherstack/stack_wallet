@@ -387,7 +387,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         }
       }
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();

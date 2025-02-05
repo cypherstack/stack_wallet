@@ -12,7 +12,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'paynym_card_button.dart';
+
 import '../../../providers/global/paynym_api_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../providers/wallet/my_paynym_account_state_provider.dart';
@@ -24,6 +24,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/rounded_white_container.dart';
+import 'paynym_card_button.dart';
 
 class PaynymFollowingList extends ConsumerStatefulWidget {
   const PaynymFollowingList({
@@ -93,7 +94,7 @@ class _PaynymFollowingListState extends ConsumerState<PaynymFollowingList> {
                   account.value!;
             }
           } catch (e) {
-            Logging.instance.log(
+            Logging.instance.logd(
               "Failed pull down refresh of paynym home page: $e",
               level: LogLevel.Warning,
             );

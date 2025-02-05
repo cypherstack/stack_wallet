@@ -158,7 +158,7 @@ class _SendViewState extends ConsumerState<SendView> {
       //       .state = true,
       // );
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "qrResult content: ${qrResult.rawContent}",
         level: LogLevel.Info,
       );
@@ -216,7 +216,7 @@ class _SendViewState extends ConsumerState<SendView> {
       //     .state = true;
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -248,8 +248,8 @@ class _SendViewState extends ConsumerState<SendView> {
         return;
       }
       _cachedAmountToSend = amount;
-      Logging.instance
-          .log("it changed $amount $_cachedAmountToSend", level: LogLevel.Info);
+      Logging.instance.logd("it changed $amount $_cachedAmountToSend",
+          level: LogLevel.Info);
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
             amount,
@@ -285,7 +285,7 @@ class _SendViewState extends ConsumerState<SendView> {
           return;
         }
         _cachedAmountToSend = amount;
-        Logging.instance.log(
+        Logging.instance.logd(
           "it changed $amount $_cachedAmountToSend",
           level: LogLevel.Info,
         );
@@ -828,7 +828,7 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       }
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();

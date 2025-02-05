@@ -97,7 +97,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
         );
 
         if (qrResult == null) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "Qr scanning cancelled",
             level: LogLevel.Info,
           );
@@ -109,7 +109,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
         }
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to get camera permissions while trying to scan qr code: $e\n$s",
         level: LogLevel.Warning,
       );

@@ -21,7 +21,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:isar/isar.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
@@ -35,7 +34,6 @@ import 'db/sqlite/firo_cache.dart';
 import 'models/exchange/change_now/exchange_transaction.dart';
 import 'models/exchange/change_now/exchange_transaction_status.dart';
 import 'models/exchange/response_objects/trade.dart';
-import 'models/isar/models/isar_models.dart';
 import 'models/models.dart';
 import 'models/node_model.dart';
 import 'models/notification_model.dart';
@@ -56,8 +54,6 @@ import 'providers/global/base_currencies_provider.dart';
 import 'providers/global/trades_service_provider.dart';
 import 'providers/providers.dart';
 import 'route_generator.dart';
-// import 'package:stackwallet/services/buy/buy_data_loading_service.dart';
-import 'services/debug_service.dart';
 import 'services/exchange/exchange_data_loading_service.dart';
 import 'services/locale_service.dart';
 import 'services/node_service.dart';
@@ -75,6 +71,7 @@ import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
+import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -118,19 +115,6 @@ void main(List<String> args) async {
   }
 
   // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  if (!(Logging.isArmLinux || Logging.isTestEnv)) {
-    final isar = await Isar.open(
-      [LogSchema],
-      directory: (await StackFileSystem.applicationIsarDirectory()).path,
-      inspector: false,
-      maxSizeMiB: 512,
-    );
-    await Logging.instance.init(isar);
-    await DebugService.instance.init(isar);
-
-    // clear out all info logs on startup. No need to await and block
-    unawaited(DebugService.instance.deleteLogsOlderThan());
-  }
 
   // Registering Transaction Model Adapters
   DB.instance.hive.registerAdapter(TransactionDataAdapter());
@@ -179,6 +163,14 @@ void main(List<String> args) async {
   await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
   await Prefs.instance.init();
 
+  await Logging.instance.initialize(
+    (await StackFileSystem.applicationLogsDirectory(Prefs.instance)).path,
+    level: Prefs.instance.logLevel,
+  );
+
+  // setup lib spark logging
+  initSparkLogging(Prefs.instance.logLevel);
+
   if (AppConfig.appName == "Campfire" &&
       !Util.isDesktop &&
       !CampfireMigration.didRun) {
@@ -217,7 +209,7 @@ void main(List<String> args) async {
           ),
         );
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Cannot migrate mobile database\n$e $s",
           level: LogLevel.Error,
           printFullLength: true,
@@ -404,7 +396,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       //     .userID; // Just reading the ref should set it if it's not already set
       // We shouldn't need to do this, instead only generating an ID when (or if) the userID is looked up when creating a quote
     } catch (e, s) {
-      Logger.print("$e $s", normalLength: false);
+      Logging.instance.e("load failure", error: e, stackTrace: s);
     }
   }
 
@@ -566,7 +558,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     // call reset to clear cached value
     await resetOpenPath();
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
       level: LogLevel.Info,
     );

@@ -20,6 +20,7 @@ import '../db/hive/db.dart';
 import '../networking/http.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'tor_service.dart';
 
@@ -128,9 +129,9 @@ class PriceAPI {
     }
 
     final externalCalls = Prefs.instance.externalCalls;
-    if ((!Logger.isTestEnv && !externalCalls) ||
+    if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "User does not want to use external calls",
         level: LogLevel.Info,
       );
@@ -171,7 +172,7 @@ class PriceAPI {
 
       return _cachedPrices;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getPricesAnd24hChange($baseCurrency): $e\n$s",
         level: LogLevel.Error,
       );
@@ -184,9 +185,9 @@ class PriceAPI {
     final externalCalls = Prefs.instance.externalCalls;
     final HTTP client = HTTP();
 
-    if ((!Logger.isTestEnv && !externalCalls) ||
+    if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "User does not want to use external calls",
         level: LogLevel.Info,
       );
@@ -207,7 +208,7 @@ class PriceAPI {
       final json = jsonDecode(response.body) as List<dynamic>;
       return List<String>.from(json);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "availableBaseCurrencies() using $uriString: $e\n$s",
         level: LogLevel.Error,
       );
@@ -226,9 +227,9 @@ class PriceAPI {
         contractAddresses.isEmpty) return tokenPrices;
 
     final externalCalls = Prefs.instance.externalCalls;
-    if ((!Logger.isTestEnv && !externalCalls) ||
+    if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "User does not want to use external calls",
         level: LogLevel.Info,
       );
@@ -272,7 +273,7 @@ class PriceAPI {
 
       return tokenPrices;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddresses): $e\n$s",
         level: LogLevel.Error,
       );

@@ -153,7 +153,7 @@ class EthTokenWallet extends Wallet {
           usingContractAddress: contractAddress.hex,
         );
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "$runtimeType _updateTokenABI(): $e\n$s",
           level: LogLevel.Warning,
         );
@@ -200,7 +200,7 @@ class EthTokenWallet extends Wallet {
 
       _sendFunction = _deployedContract.function('transfer');
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType wallet failed init(): $e\n$s",
         level: LogLevel.Warning,
       );
@@ -311,7 +311,7 @@ class EthTokenWallet extends Wallet {
     try {
       throw Exception();
     } catch (_, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Eth token wallet recover called. This should not happen. Stacktrace: $s",
         level: LogLevel.Warning,
       );
@@ -347,13 +347,13 @@ class EthTokenWallet extends Wallet {
           isar: mainDB.isar,
         );
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "CachedEthTokenBalance.fetchAndUpdateCachedBalance failed: ${response.exception}",
           level: LogLevel.Warning,
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType wallet failed to update balance: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -380,7 +380,7 @@ class EthTokenWallet extends Wallet {
         if (response.exception != null &&
             response.exception!.message
                 .contains("response is empty but status code is 200")) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "No ${tokenContract.name} transfers found for $addressString",
             level: LogLevel.Info,
           );
@@ -419,7 +419,7 @@ class EthTokenWallet extends Wallet {
           // Server indexing failed for some reason. Instead of hard crashing or
           // showing no transactions we just skip it here. Not ideal but better
           // than nothing showing up
-          Logging.instance.log(
+          Logging.instance.logd(
             "Server error: Transaction ${tokenDto.transactionHash} not found.",
             level: LogLevel.Error,
           );
@@ -523,7 +523,7 @@ class EthTokenWallet extends Wallet {
       }
       await mainDB.updateOrPutTransactionV2s(txns);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType wallet failed to update transactions: $e\n$s",
         level: LogLevel.Warning,
       );

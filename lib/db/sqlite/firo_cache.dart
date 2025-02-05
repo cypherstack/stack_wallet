@@ -23,7 +23,7 @@ part 'firo_cache_writer.dart';
 /// Temporary debugging log function for this file
 void _debugLog(Object? object) {
   if (kDebugMode) {
-    Logging.instance.log(
+    Logging.instance.logd(
       object,
       level: LogLevel.Debug,
     );

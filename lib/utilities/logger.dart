@@ -8,161 +8,264 @@
  *
  */
 
+import 'dart:convert';
 import 'dart:core' as core;
 import 'dart:core';
-import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart' as spark;
+import 'package:logger/logger.dart';
 
-import '../models/isar/models/log.dart';
-import 'constants.dart';
 import 'enums/log_level_enum.dart';
+import 'util.dart';
 
 export 'enums/log_level_enum.dart';
 
+const _kLoggerPortName = "logger_port";
+
+// convenience conversion for spark
+extension LoggingLevelExt on spark.LoggingLevel {
+  Level getLoggerLevel() {
+    switch (this) {
+      case spark.LoggingLevel.info:
+        return Level.info;
+      case spark.LoggingLevel.warning:
+        return Level.warning;
+      case spark.LoggingLevel.error:
+        return Level.error;
+      case spark.LoggingLevel.fatal:
+        return Level.fatal;
+      case spark.LoggingLevel.debug:
+        return Level.debug;
+      case spark.LoggingLevel.trace:
+        return Level.trace;
+    }
+  }
+}
+
 class Logging {
-  static const isArmLinux = bool.fromEnvironment("IS_ARM");
-  static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
   Logging._();
   static final Logging _instance = Logging._();
   static Logging get instance => _instance;
 
-  static const core.int defaultPrintLength = 1020;
+  late final String logsDirPath;
 
-  late final Isar? isar;
-  late final _AsyncLogWriterQueue _queue;
-
-  Future<void> init(Isar isar) async {
-    _queue = _AsyncLogWriterQueue();
-    this.isar = isar;
+  SendPort get _sendPort {
+    final port = IsolateNameServer.lookupPortByName(_kLoggerPortName);
+    if (port == null) {
+      throw Exception(
+        "Did you forget to call Logging.initialize()?",
+      );
+    }
+    return port;
   }
 
-  void log(
+  Future<void> initialize(String logsPath, {required Level level}) async {
+    if (Isolate.current.debugName != "main") {
+      throw Exception(
+        "Logging.initialize() must be called on the main isolate.",
+      );
+    }
+    if (IsolateNameServer.lookupPortByName(_kLoggerPortName) != null) {
+      throw Exception(
+        "Logging was already initialized",
+      );
+    }
+
+    logsDirPath = logsPath;
+
+    final receivePort = ReceivePort();
+    await Isolate.spawn(
+      (sendPort) {
+        final ReceivePort receivePort = ReceivePort();
+        sendPort.send(receivePort.sendPort);
+
+        PrettyPrinter prettyPrinter(bool toFile) => PrettyPrinter(
+              printEmojis: false,
+              methodCount: 0,
+              dateTimeFormat:
+                  toFile ? DateTimeFormat.none : DateTimeFormat.dateAndTime,
+              colors: !toFile,
+              noBoxingByDefault: toFile,
+            );
+
+        final consoleLogger = Logger(
+          printer: PrefixPrinter(prettyPrinter(false)),
+          filter: ProductionFilter(),
+          level: level,
+        );
+
+        final fileLogger = Logger(
+          printer: PrefixPrinter(prettyPrinter(true)),
+          filter: ProductionFilter(),
+          level: level,
+          output: AdvancedFileOutput(
+            path: logsDirPath,
+            overrideExisting: false,
+            latestFileName: "latest.txt",
+            writeImmediately: [
+              Level.error,
+              Level.fatal,
+              Level.warning,
+              Level.trace, // mainly for spark debugging. TODO: Remove later
+            ],
+          ),
+        );
+
+        receivePort.listen((message) {
+          final event = (message as (LogEvent, bool)).$1;
+          consoleLogger.log(
+            event.level,
+            event.message,
+            stackTrace: event.stackTrace,
+            error: event.error,
+            time: event.time.toUtc(),
+          );
+          if (message.$2) {
+            fileLogger.log(
+              event.level,
+              "${event.time.toUtc().toIso8601String()} ${event.message}",
+              stackTrace: event.stackTrace,
+              error: event.error,
+              time: event.time,
+            );
+          }
+        });
+      },
+      receivePort.sendPort,
+    );
+    final loggerPort = await receivePort.first as SendPort;
+    IsolateNameServer.registerPortWithName(loggerPort, _kLoggerPortName);
+  }
+
+  String _stringifyMessage(dynamic message) =>
+      !(message is Map || message is Iterable)
+          ? message.toString()
+          : JsonEncoder.withIndent('  ', (o) => o.toString()).convert(message);
+
+  @core.Deprecated("Use Logging.instance.log instead")
+  void logd(
     core.Object? object, {
     required LogLevel level,
     core.bool printToConsole = true,
     core.bool printFullLength = false,
-  }) {
-    try {
-      if (isTestEnv || isArmLinux) {
-        Logger.print(object, normalLength: !printFullLength);
-        return;
-      }
-      String message = object.toString();
-
-      // random value to check max size of message before storing in db
-      if (message.length > 20000) {
-        message = "${message.substring(0, 20000)}...";
-      }
-
-      final now = core.DateTime.now().toUtc();
-      final log = Log()
-        ..message = message
-        ..logLevel = level
-        ..timestampInMillisUTC = now.millisecondsSinceEpoch;
-      if (level == LogLevel.Error || level == LogLevel.Fatal) {
-        printFullLength = true;
-      }
-
-      _queue.add(
-        () async => isar!.writeTxn(
-          () async => await isar!.logs.put(log),
-        ),
+  }) =>
+      log(
+        level.getLoggerLevel(),
+        object,
       );
 
-      if (printToConsole) {
-        final core.String logStr = "Log: ${log.toString()}";
-        final core.int logLength = logStr.length;
-
-        if (!printFullLength || logLength <= defaultPrintLength) {
-          debugPrint(logStr);
-        } else {
-          core.int start = 0;
-          core.int endIndex = defaultPrintLength;
-          core.int tmpLogLength = logLength;
-          while (endIndex < logLength) {
-            debugPrint(logStr.substring(start, endIndex));
-            endIndex += defaultPrintLength;
-            start += defaultPrintLength;
-            tmpLogLength -= defaultPrintLength;
-          }
-          if (tmpLogLength > 0) {
-            debugPrint(logStr.substring(start, logLength));
-          }
-        }
-      }
-    } catch (e, s) {
-      print("problem trying to log");
-      print("$e $s");
-      Logger.print(object);
+  void log(
+    Level level,
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+    bool toFile = true, // false will print to console only
+  }) {
+    if (Util.isTestEnv || Util.isArmLinux) {
+      toFile = false;
     }
-  }
-}
-
-abstract class Logger {
-  static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
-
-  static void print(
-    core.Object? object, {
-    core.bool withTimeStamp = true,
-    core.bool normalLength = true,
-  }) async {
-    if (Constants.disableLogger && !isTestEnv) {
-      return;
-    }
-    final utcTime = withTimeStamp ? "${core.DateTime.now().toUtc()}: " : "";
-    final core.int defaultPrintLength = 1020 - utcTime.length;
-    if (normalLength) {
-      debugPrint("$utcTime$object");
-    } else if (object == null ||
-        object.toString().length <= defaultPrintLength) {
-      debugPrint("$utcTime$object");
-    } else {
-      final core.String log = object.toString();
-      core.int start = 0;
-      core.int endIndex = defaultPrintLength;
-      final core.int logLength = log.length;
-      core.int tmpLogLength = log.length;
-      while (endIndex < logLength) {
-        debugPrint(utcTime + log.substring(start, endIndex));
-        endIndex += defaultPrintLength;
-        start += defaultPrintLength;
-        tmpLogLength -= defaultPrintLength;
-      }
-      if (tmpLogLength > 0) {
-        debugPrint(utcTime + log.substring(start, logLength));
-      }
-    }
-  }
-}
-
-/// basic async queue for writing logs in the [Logging] to isar
-class _AsyncLogWriterQueue {
-  final List<Future<void> Function()> _queue = [];
-  bool _runningLock = false;
-
-  void add(Future<void> Function() futureFunction) {
-    _queue.add(futureFunction);
-    _run();
-  }
-
-  void _run() async {
-    if (_runningLock) {
-      return;
-    }
-    _runningLock = true;
     try {
-      while (_queue.isNotEmpty) {
-        final futureFunction = _queue.removeAt(0);
-        try {
-          await futureFunction.call();
-        } catch (e, s) {
-          debugPrint("$e\n$s");
-        }
-      }
-    } finally {
-      _runningLock = false;
+      _sendPort.send(
+        (
+          LogEvent(
+            level,
+            _stringifyMessage(message),
+            time: time,
+            error: error,
+            stackTrace: stackTrace,
+          ),
+          toFile
+        ),
+      );
+    } catch (e, s) {
+      t("Isolates suck", error: e, stackTrace: s);
     }
   }
+
+  void t(
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+  }) =>
+      log(
+        Level.trace,
+        message,
+        time: time,
+        error: error,
+        stackTrace: stackTrace,
+      );
+
+  void d(
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+  }) =>
+      log(
+        Level.debug,
+        message,
+        time: time,
+        error: error,
+        stackTrace: stackTrace,
+      );
+
+  void i(
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+  }) =>
+      log(
+        Level.info,
+        message,
+        time: time,
+        error: error,
+        stackTrace: stackTrace,
+      );
+
+  void w(
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+  }) =>
+      log(
+        Level.warning,
+        message,
+        time: time,
+        error: error,
+        stackTrace: stackTrace,
+      );
+
+  void e(
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+  }) =>
+      log(
+        Level.error,
+        message,
+        time: time,
+        error: error,
+        stackTrace: stackTrace,
+      );
+
+  void f(
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+  }) =>
+      log(
+        Level.fatal,
+        message,
+        time: time,
+        error: error,
+        stackTrace: stackTrace,
+      );
 }

@@ -58,7 +58,7 @@ class EstimatedExchangeAmount {
       );
     } catch (e, s) {
       Logging.instance
-          .log("Failed to parse: $json \n$e\n$s", level: LogLevel.Fatal);
+          .logd("Failed to parse: $json \n$e\n$s", level: LogLevel.Fatal);
       rethrow;
     }
   }

@@ -1,10 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../networking/http.dart';
-import 'tor_service.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import 'tor_service.dart';
 
 final pMonKeyService = Provider((ref) => MonKeyService());
 
@@ -38,7 +39,7 @@ class MonKeyService {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed fetchMonKey($address): $e\n$s",
         level: LogLevel.Error,
       );

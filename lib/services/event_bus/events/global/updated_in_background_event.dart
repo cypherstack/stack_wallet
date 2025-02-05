@@ -18,7 +18,7 @@ class UpdatedInBackgroundEvent {
 
   UpdatedInBackgroundEvent(this.message, this.walletId) {
     if (kDebugMode) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "UpdatedInBackgroundEvent fired with message: $message",
         level: LogLevel.Info,
       );

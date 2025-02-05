@@ -71,7 +71,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
               // Toggle the useTor preference on success.
               ref.read(prefsChangeNotifierProvider).useTor = true;
             } catch (e, s) {
-              Logging.instance.log(
+              Logging.instance.logd(
                 "Error starting tor: $e\n$s",
                 level: LogLevel.Error,
               );
@@ -101,7 +101,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
               // Toggle the useTor preference on success.
               ref.read(prefsChangeNotifierProvider).useTor = false;
             } catch (e, s) {
-              Logging.instance.log(
+              Logging.instance.logd(
                 "Error stopping tor: $e\n$s",
                 level: LogLevel.Error,
               );

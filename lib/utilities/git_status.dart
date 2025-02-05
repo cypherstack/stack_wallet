@@ -138,7 +138,7 @@ abstract class GitStatus {
     String project,
     String commit,
   ) async {
-    Logging.instance.log("doesCommitExist", level: LogLevel.Info);
+    Logging.instance.logd("doesCommitExist", level: LogLevel.Info);
     final Client client = Client();
     try {
       final uri = Uri.parse(
@@ -151,7 +151,7 @@ abstract class GitStatus {
       );
 
       final response = jsonDecode(commitQuery.body.toString());
-      Logging.instance.log(
+      Logging.instance.logd(
         "doesCommitExist $project $commit $response",
         level: LogLevel.Info,
       );
@@ -159,13 +159,13 @@ abstract class GitStatus {
       try {
         isThereCommit = response['sha'] == commit;
         Logging.instance
-            .log("isThereCommit $isThereCommit", level: LogLevel.Info);
+            .logd("isThereCommit $isThereCommit", level: LogLevel.Info);
         return isThereCommit;
       } catch (e, s) {
         return false;
       }
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Error);
+      Logging.instance.logd("$e $s", level: LogLevel.Error);
       return false;
     }
   }
@@ -176,7 +176,7 @@ abstract class GitStatus {
     String branch,
     String commit,
   ) async {
-    Logging.instance.log("doesCommitExist", level: LogLevel.Info);
+    Logging.instance.logd("doesCommitExist", level: LogLevel.Info);
     final Client client = Client();
     try {
       final uri = Uri.parse(
@@ -189,20 +189,20 @@ abstract class GitStatus {
       );
 
       final response = jsonDecode(commitQuery.body.toString());
-      Logging.instance.log(
+      Logging.instance.logd(
         "isHeadCommit $project $commit $branch $response",
         level: LogLevel.Info,
       );
       bool isHead;
       try {
         isHead = response['sha'] == commit;
-        Logging.instance.log("isHead $isHead", level: LogLevel.Info);
+        Logging.instance.logd("isHead $isHead", level: LogLevel.Info);
         return isHead;
       } catch (e, s) {
         return false;
       }
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Error);
+      Logging.instance.logd("$e $s", level: LogLevel.Error);
       return false;
     }
   }

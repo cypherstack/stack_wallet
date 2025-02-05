@@ -56,7 +56,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     required List<String> participants,
     required int threshold,
   }) async {
-    Logging.instance.log(
+    Logging.instance.logd(
       "Generating new FROST wallet.",
       level: LogLevel.Info,
     );
@@ -108,7 +108,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       await mainDB.putAddresses([address]);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from initializeNewFrost(): $e\n$s",
         level: LogLevel.Fatal,
       );
@@ -626,7 +626,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
         // TODO: [prio=none] Check for special Bitcoin outputs like ordinals.
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Unexpected tx found (ignoring it): $txData",
           level: LogLevel.Error,
         );
@@ -686,7 +686,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
               "index < kFrostSecureStartingIndex hit someSaneMaximum");
         }
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "$runtimeType.checkSaveInitialReceivingAddress() failed due"
           " to missing serialized keys",
           level: LogLevel.Fatal,
@@ -698,12 +698,13 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
+      Logging.instance
+          .logd("confirmSend txData: $txData", level: LogLevel.Info);
 
       final hex = txData.raw!;
 
       final txHash = await electrumXClient.broadcastTransaction(rawTx: hex);
-      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+      Logging.instance.logd("Sent txHash: $txHash", level: LogLevel.Info);
 
       // mark utxos as used
       final usedUTXOs = txData.utxos!.map((e) => e.copyWith(used: true));
@@ -717,7 +718,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return txData;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from confirmSend(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -803,11 +804,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         ).raw.toInt(),
       );
 
-      Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
+      Logging.instance.logd("fetched fees: $feeObject", level: LogLevel.Info);
       return feeObject;
     } catch (e) {
-      Logging.instance
-          .log("Exception rethrown from _getFees(): $e", level: LogLevel.Error);
+      Logging.instance.logd("Exception rethrown from _getFees(): $e",
+          level: LogLevel.Error);
       rethrow;
     }
   }
@@ -830,7 +831,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     }
     if (serializedKeys == null || multisigConfig == null) {
       final err = "${info.coinName} wallet ${info.walletId} had null keys/cfg";
-      Logging.instance.log(err, level: LogLevel.Fatal);
+      Logging.instance.logd(err, level: LogLevel.Fatal);
       throw Exception(err);
       // TODO [prio=low]: handle null keys or config.  This should not happen.
     }
@@ -957,7 +958,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       unawaited(refresh());
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "recoverFromSerializedKeys failed: $e\n$s",
         level: LogLevel.Fatal,
       );
@@ -1164,7 +1165,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return await mainDB.updateUTXOs(walletId, outputArray);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Output fetch unsuccessful: $e\n$s",
         level: LogLevel.Error,
       );
@@ -1381,7 +1382,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       if (e.toString().contains("initialized")) {
         // Ignore.  This should happen every first time the wallet is opened.
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Error closing electrumXClient: $e",
           level: LogLevel.Error,
         );
@@ -1478,7 +1479,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         await checkChangeAddressForTransactions();
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from _checkChangeAddressForTransactions"
         "($cryptoCurrency): $e\n$s",
         level: LogLevel.Error,
@@ -1493,7 +1494,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       try {
         throw Exception();
       } catch (_, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "checkReceivingAddressForTransactions called but reuse address flag set: $s",
           level: LogLevel.Error,
         );
@@ -1525,7 +1526,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         }
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from _checkReceivingAddressForTransactions"
         "($cryptoCurrency): $e\n$s",
         level: LogLevel.Error,
@@ -1748,7 +1749,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     int gapCounter = 0;
     int index = secure ? kFrostSecureStartingIndex : 0;
     for (; gapCounter < 20; index++) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Frost index: $index, \t GapCounter chain=$chain: $gapCounter",
         level: LogLevel.Info,
       );
@@ -1843,7 +1844,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return allTxHashes;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType._fetchHistory: $e\n$s",
         level: LogLevel.Error,
       );

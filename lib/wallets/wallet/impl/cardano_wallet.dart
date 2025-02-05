@@ -76,7 +76,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         await mainDB.updateOrPutAddresses([address]);
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -94,7 +94,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       return Future.value(health);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error ping checking in cardano_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -146,7 +146,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         slow: fee,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error getting fees in cardano_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -264,7 +264,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType Cardano prepareSend failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -355,7 +355,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         txid: sentTx,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType Cardano confirmSend failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -425,7 +425,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       await info.updateBalance(newBalance: balance, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error getting balance in cardano_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -446,7 +446,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error updating transactions in cardano_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -581,7 +581,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     } on NodeTorMismatchConfigException {
       rethrow;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error updating transactions in cardano_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );

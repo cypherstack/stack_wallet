@@ -93,13 +93,13 @@ class EpiccashWallet extends Bip39Wallet {
         wallet: wallet,
         transactionId: txSlateId,
       );
-      Logging.instance.log(
+      Logging.instance.logd(
         "cancel $txSlateId result: $result",
         level: LogLevel.Info,
       );
       return result;
     } catch (e, s) {
-      Logging.instance.log("$e, $s", level: LogLevel.Error);
+      Logging.instance.logd("$e, $s", level: LogLevel.Error);
       return e.toString();
     }
   }
@@ -196,14 +196,15 @@ class EpiccashWallet extends Bip39Wallet {
       }
       return realFee;
     } catch (e, s) {
-      Logging.instance.log("Error getting fees $e - $s", level: LogLevel.Error);
+      Logging.instance
+          .logd("Error getting fees $e - $s", level: LogLevel.Error);
       rethrow;
     }
   }
 
   Future<void> _startSync() async {
     _hackedCheckTorNodePrefs();
-    Logging.instance.log("request start sync", level: LogLevel.Info);
+    Logging.instance.logd("request start sync", level: LogLevel.Info);
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     const int refreshFromNode = 1;
     if (!syncMutex.isLocked) {
@@ -216,7 +217,7 @@ class EpiccashWallet extends Bip39Wallet {
         );
       });
     } else {
-      Logging.instance.log("request start sync denied", level: LogLevel.Info);
+      Logging.instance.logd("request start sync denied", level: LogLevel.Info);
     }
   }
 
@@ -257,7 +258,7 @@ class EpiccashWallet extends Bip39Wallet {
 
       return response is String && response.contains("Challenge");
     } catch (_) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_testEpicBoxConnection failed on \"$host:$port\"",
         level: LogLevel.Info,
       );
@@ -289,7 +290,7 @@ class EpiccashWallet extends Bip39Wallet {
       return true;
     } catch (e, s) {
       Logging.instance
-          .log("ERROR STORING ADDRESS $e $s", level: LogLevel.Error);
+          .logd("ERROR STORING ADDRESS $e $s", level: LogLevel.Error);
       return false;
     }
   }
@@ -301,7 +302,7 @@ class EpiccashWallet extends Bip39Wallet {
       //  of the last one that has not been processed, or the index after the one most recently processed;
       return receivingIndex;
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Error);
+      Logging.instance.logd("$e $s", level: LogLevel.Error);
       return 0;
     }
   }
@@ -340,7 +341,7 @@ class EpiccashWallet extends Bip39Wallet {
       epicboxConfig: epicboxConfig.toString(),
     );
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "WALLET_ADDRESS_IS $walletAddress",
       level: LogLevel.Info,
     );
@@ -378,7 +379,7 @@ class EpiccashWallet extends Bip39Wallet {
 
       // loop while scanning in chain in chunks (of blocks?)
       while (lastScannedBlock < chainHeight) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "chainHeight: $chainHeight, lastScannedBlock: $lastScannedBlock",
           level: LogLevel.Info,
         );
@@ -405,14 +406,14 @@ class EpiccashWallet extends Bip39Wallet {
         lastScannedBlock = nextScannedBlock;
       }
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "_startScans successfully at the tip",
         level: LogLevel.Info,
       );
       //Once scanner completes restart listener
       await _listenToEpicbox();
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_startScans failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -421,7 +422,8 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   Future<void> _listenToEpicbox() async {
-    Logging.instance.log("STARTING WALLET LISTENER ....", level: LogLevel.Info);
+    Logging.instance
+        .logd("STARTING WALLET LISTENER ....", level: LogLevel.Info);
     final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
     final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
     epiccash.LibEpiccash.startEpicboxListener(
@@ -548,7 +550,7 @@ class EpiccashWallet extends Bip39Wallet {
         );
       } else {
         try {
-          Logging.instance.log(
+          Logging.instance.logd(
             "initializeExisting() ${cryptoCurrency.prettyName} wallet",
             level: LogLevel.Info,
           );
@@ -569,7 +571,7 @@ class EpiccashWallet extends Bip39Wallet {
           await updateNode();
         } catch (e, s) {
           // do nothing, still allow user into wallet
-          Logging.instance.log(
+          Logging.instance.logd(
             "$runtimeType init() failed: $e\n$s",
             level: LogLevel.Error,
           );
@@ -635,7 +637,7 @@ class EpiccashWallet extends Bip39Wallet {
         txid: transaction.slateId,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Epic cash confirmSend: $e\n$s",
         level: LogLevel.Error,
       );
@@ -680,7 +682,7 @@ class EpiccashWallet extends Bip39Wallet {
       );
     } catch (e, s) {
       Logging.instance
-          .log("Epic cash prepareSend: $e\n$s", level: LogLevel.Error);
+          .logd("Epic cash prepareSend: $e\n$s", level: LogLevel.Error);
       rethrow;
     }
   }
@@ -762,7 +764,7 @@ class EpiccashWallet extends Bip39Wallet {
         unawaited(refresh(doScan: false));
       });
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from electrumx_mixin recover(): $e\n$s",
         level: LogLevel.Info,
       );
@@ -880,7 +882,7 @@ class EpiccashWallet extends Bip39Wallet {
           cryptoCurrency,
         ),
       );
-      Logging.instance.log(
+      Logging.instance.logd(
         "Caught exception in refreshWalletData(): $error\n$strace",
         level: LogLevel.Error,
       );
@@ -918,7 +920,7 @@ class EpiccashWallet extends Bip39Wallet {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Epic cash wallet failed to update balance: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -1058,7 +1060,7 @@ class EpiccashWallet extends Bip39Wallet {
         await mainDB.isar.transactionV2s.putAll(txns);
       });
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "${cryptoCurrency.runtimeType} ${cryptoCurrency.network} net wallet"
         " \"${info.name}\"_${info.walletId} updateTransactions() failed: $e\n$s",
         level: LogLevel.Warning,
@@ -1105,7 +1107,7 @@ class EpiccashWallet extends Bip39Wallet {
           ) !=
           null;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Info);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Info);
       return false;
     }
   }
@@ -1162,7 +1164,8 @@ class EpiccashWallet extends Bip39Wallet {
     timer?.cancel();
     timer = null;
     await super.exit();
-    Logging.instance.log("EpicCash_wallet exit finished", level: LogLevel.Info);
+    Logging.instance
+        .logd("EpicCash_wallet exit finished", level: LogLevel.Info);
   }
 
   void _hackedCheckTorNodePrefs() {
@@ -1216,7 +1219,7 @@ Future<String> deleteEpicWallet({
         config: config!,
       );
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       return "deleteEpicWallet($walletId) failed...";
     }
   }

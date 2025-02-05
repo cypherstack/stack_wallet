@@ -311,7 +311,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           .read(simplexProvider)
           .updateSupportedCryptos(response.value!); // TODO validate
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_loadSimplexCurrencies: $response",
         level: LogLevel.Warning,
       );
@@ -326,7 +326,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           .read(simplexProvider)
           .updateSupportedFiats(response.value!); // TODO validate
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_loadSimplexCurrencies: $response",
         level: LogLevel.Warning,
       );
@@ -626,7 +626,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       ref.read(simplexProvider).updateQuote(response.value!);
       return BuyResponse(value: response.value!);
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_loadQuote: $response",
         level: LogLevel.Warning,
       );
@@ -724,7 +724,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
       final qrResult = await scanner.scan();
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "qrResult content: ${qrResult.rawContent}",
         level: LogLevel.Info,
       );
@@ -734,7 +734,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
         logging: Logging.instance,
       );
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "qrResult parsed: $paymentData",
         level: LogLevel.Info,
       );
@@ -760,7 +760,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     } on PlatformException catch (e, s) {
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -1241,7 +1241,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           }
                         });
                       } catch (e, s) {
-                        Logging.instance.log("$e\n$s", level: LogLevel.Info);
+                        Logging.instance.logd("$e\n$s", level: LogLevel.Info);
                       }
                     },
                   ),

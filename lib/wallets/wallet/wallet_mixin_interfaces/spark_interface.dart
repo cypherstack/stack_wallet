@@ -1,11 +1,15 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart' as spark
+    show Log;
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
+import 'package:logger/logger.dart';
 
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/balance.dart';
@@ -20,6 +24,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
@@ -50,6 +55,75 @@ String _hashTag(String tag) {
   return hash;
 }
 
+void initSparkLogging(Level level) {
+  final levels = Level.values.where((e) => e >= level).map((e) => e.name);
+  spark.Log.levels
+      .addAll(LoggingLevel.values.where((e) => levels.contains(e.name)));
+  spark.Log.onLog = (
+    level,
+    value, {
+    error,
+    stackTrace,
+    required time,
+  }) {
+    Logging.instance.log(
+      level.getLoggerLevel(),
+      value,
+      error: error,
+      stackTrace: stackTrace,
+      time: time,
+    );
+  };
+}
+
+abstract class _SparkIsolate {
+  static Isolate? _isolate;
+  static SendPort? _sendPort;
+  static final ReceivePort _receivePort = ReceivePort();
+
+  static Future<void> initialize() async {
+    final level = Prefs.instance.logLevel;
+
+    _isolate = await Isolate.spawn(
+      (SendPort sendPort) {
+        initSparkLogging(level); // ensure logging is set up in isolate
+
+        final receivePort = ReceivePort();
+
+        sendPort.send(receivePort.sendPort);
+
+        receivePort.listen((message) async {
+          if (message is List && message.length == 3) {
+            final function = message[0] as Function;
+            final argument = message[1];
+            final replyPort = message[2] as SendPort;
+
+            final result = await function(argument);
+            replyPort.send(result);
+          }
+        });
+      },
+      _receivePort.sendPort,
+    );
+    _sendPort = await _receivePort.first as SendPort;
+  }
+
+  static Future<R> run<M, R>(ComputeCallback<M, R> task, M argument) async {
+    if (_isolate == null || _sendPort == null) await initialize();
+
+    final ReceivePort responsePort = ReceivePort();
+    _sendPort?.send([task, argument, responsePort.sendPort]);
+    return await responsePort.first as R;
+  }
+}
+
+Future<R> computeWithLibSparkLogging<M, R>(
+  ComputeCallback<M, R> callback,
+  M message,
+) async {
+  return _SparkIsolate.run(callback, message);
+}
+
 mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
   String? _sparkChangeAddressCached;
@@ -70,7 +144,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   Future<String> hashTag(String tag) async {
     try {
-      return await compute(_hashTag, tag);
+      return await computeWithLibSparkLogging(_hashTag, tag);
     } catch (_) {
       throw ArgumentError("Invalid tag string format", "tag");
     }
@@ -105,7 +179,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
     } catch (e, s) {
       // do nothing, still allow user into wallet
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType init() failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -553,7 +627,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
     extractedTx.setPayload(Uint8List(0));
 
-    final spend = await compute(
+    final spend = await computeWithLibSparkLogging(
       _createSparkSend,
       (
         privateKeyHex: privateKey.toHex,
@@ -685,12 +759,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     required TxData txData,
   }) async {
     try {
-      Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
+      Logging.instance
+          .logd("confirmSend txData: $txData", level: LogLevel.Info);
 
       final txHash = await electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
       );
-      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+      Logging.instance.logd("Sent txHash: $txHash", level: LogLevel.Info);
 
       txData = txData.copyWith(
         // TODO revisit setting these both
@@ -709,7 +784,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from confirmSend(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -764,7 +839,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // if there is new data we try and identify the coins
       if (rawCoins.isNotEmpty) {
         // run identify off main isolate
-        final myCoins = await compute(
+        final myCoins = await computeWithLibSparkLogging(
           _identifyCoins,
           (
             anonymitySetCoins: rawCoins,
@@ -783,13 +858,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       return result;
     } catch (e) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_refreshSparkCoinsMempoolCheck() failed: $e",
         level: LogLevel.Error,
       );
       return [];
     } finally {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$walletId ${info.name} _refreshSparkCoinsMempoolCheck() run "
         "duration: ${DateTime.now().difference(start)}",
         level: LogLevel.Debug,
@@ -950,7 +1025,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // try to identify any coins in the unchecked set data
       final List<SparkCoin> newlyIdCoins = [];
       for (final groupId in rawCoinsBySetId.keys) {
-        final myCoins = await compute(
+        final myCoins = await computeWithLibSparkLogging(
           _identifyCoins,
           (
             anonymitySetCoins: rawCoinsBySetId[groupId]!,
@@ -1093,13 +1168,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType $walletId ${info.name}: $e\n$s",
         level: LogLevel.Error,
       );
       rethrow;
     } finally {
-      Logging.instance.log(
+      Logging.instance.logd(
         "${info.name} refreshSparkData() duration:"
         " ${DateTime.now().difference(start)}",
         level: LogLevel.Debug,
@@ -1138,7 +1213,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     try {
       await refreshSparkData(null);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType $walletId ${info.name}: $e\n$s",
         level: LogLevel.Error,
       );
@@ -1672,7 +1747,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           );
         }
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Caught exception while signing spark mint transaction: $e\n$s",
           level: LogLevel.Error,
         );
@@ -1825,7 +1900,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       await confirmSparkMintTransactions(txData: TxData(sparkMints: mints));
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception caught in anonymizeAllSpark(): $e\n$s",
         level: LogLevel.Warning,
       );
@@ -1932,7 +2007,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       return txData.copyWith(sparkMints: mints);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception caught in prepareSparkMintTransaction(): $e\n$s",
         level: LogLevel.Warning,
       );
@@ -2145,7 +2220,7 @@ Future<int> _asyncSparkFeesWrapper({
   required List<SerializedCoinData> serializedCoins,
   required int privateRecipientsCount,
 }) async {
-  return await compute(
+  return await computeWithLibSparkLogging(
     _estSparkFeeComputeFunc,
     (
       privateKeyHex: privateKeyHex,

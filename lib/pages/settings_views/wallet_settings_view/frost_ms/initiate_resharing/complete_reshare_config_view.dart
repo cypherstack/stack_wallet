@@ -148,7 +148,7 @@ class _CompleteReshareConfigViewState
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$e\n$s",
         level: LogLevel.Fatal,
       );

@@ -9,6 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
+
 import '../../../utilities/logger.dart';
 
 class FixedRateMarket {
@@ -53,7 +54,7 @@ class FixedRateMarket {
         minerFee: Decimal.tryParse(json["minerFee"].toString()),
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "FixedRateMarket.fromMap(): $e\n$s",
         level: LogLevel.Error,
       );

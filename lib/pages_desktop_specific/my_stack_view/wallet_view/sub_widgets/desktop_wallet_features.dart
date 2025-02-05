@@ -319,7 +319,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final account = await ref.read(paynymAPIProvider).nym(code.toString());
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "my nym account: $account",
       level: LogLevel.Info,
     );

@@ -49,7 +49,6 @@ import '../../../widgets/stack_dialog.dart';
 import '../../address_book_views/address_book_view.dart';
 import '../../home_view/home_view.dart';
 import '../../pinpad_views/lock_screen_view.dart';
-import '../global_settings_view/advanced_views/debug_view.dart';
 import '../global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import '../sub_widgets/settings_list_button.dart';
 import 'frost_ms/frost_ms_options_view.dart';
@@ -558,17 +557,17 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                       );
                                     },
                                   ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                SettingsListButton(
-                                  iconAssetName: Assets.svg.ellipsis,
-                                  title: "Debug Info",
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pushNamed(DebugView.routeName);
-                                  },
-                                ),
+                                // const SizedBox(
+                                //   height: 8,
+                                // ),
+                                // SettingsListButton(
+                                //   iconAssetName: Assets.svg.ellipsis,
+                                //   title: "Debug Info",
+                                //   onPressed: () {
+                                //     Navigator.of(context)
+                                //         .pushNamed(DebugView.routeName);
+                                //   },
+                                // ),
                               ],
                             ),
                           ),

@@ -106,7 +106,7 @@ class NotificationsService extends ChangeNotifier {
 
     _timer = Timer.periodic(notificationRefreshInterval, (_) {
       Logging.instance
-          .log("Periodic notifications update check", level: LogLevel.Info);
+          .logd("Periodic notifications update check", level: LogLevel.Info);
       if (prefs.externalCalls) {
         _checkTrades();
       }
@@ -222,7 +222,7 @@ class NotificationsService extends ChangeNotifier {
       } on NoSuchTransactionException catch (e, s) {
         await _deleteWatchedTxNotification(notification);
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Error);
+        Logging.instance.logd("$e $s", level: LogLevel.Error);
       }
     }
   }

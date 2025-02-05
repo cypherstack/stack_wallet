@@ -72,7 +72,7 @@ class Wallets {
     SecureStorageInterface secureStorage,
   ) async {
     final walletId = info.walletId;
-    Logging.instance.log(
+    Logging.instance.logd(
       "deleteWallet called with walletId=$walletId",
       level: LogLevel.Warning,
     );
@@ -97,7 +97,7 @@ class Wallets {
         appRoot: await StackFileSystem.applicationRootDirectory(),
       );
       Logging.instance
-          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+          .logd("monero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (info.coin is Monero) {
       await lib_monero_compat.deleteWalletFiles(
         name: walletId,
@@ -105,13 +105,13 @@ class Wallets {
         appRoot: await StackFileSystem.applicationRootDirectory(),
       );
       Logging.instance
-          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+          .logd("monero wallet: $walletId deleted", level: LogLevel.Info);
     } else if (info.coin is Epiccash) {
       final deleteResult = await deleteEpicWallet(
         walletId: walletId,
         secureStore: secureStorage,
       );
-      Logging.instance.log(
+      Logging.instance.logd(
         "epic wallet: $walletId deleted with result: $deleteResult",
         level: LogLevel.Info,
       );
@@ -210,7 +210,7 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance.log(
+        Logging.instance.logd(
           "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
           "IS VERIFIED: $isVerified",
           level: LogLevel.Info,
@@ -252,7 +252,7 @@ class Wallets {
           // await walletsService.deleteWallet(walletInfo.name, false);
         }
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Fatal);
+        Logging.instance.logd("$e $s", level: LogLevel.Fatal);
         continue;
       }
     }
@@ -317,7 +317,7 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance.log(
+        Logging.instance.logd(
           "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
           "IS VERIFIED: $isVerified",
           level: LogLevel.Info,
@@ -355,7 +355,7 @@ class Wallets {
           deleteFutures.add(_deleteWallet(walletInfo.walletId));
         }
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Fatal);
+        Logging.instance.logd("$e $s", level: LogLevel.Fatal);
         continue;
       }
     }
@@ -447,7 +447,7 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance.log(
+        Logging.instance.logd(
           "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
           "IS VERIFIED: $isVerified",
           level: LogLevel.Info,
@@ -485,7 +485,7 @@ class Wallets {
           deleteFutures.add(_deleteWallet(walletInfo.walletId));
         }
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Fatal);
+        Logging.instance.logd("$e $s", level: LogLevel.Fatal);
         continue;
       }
     }
@@ -509,7 +509,7 @@ class Wallets {
 
     Future<void> _refreshFutures(List<String> idsToRefresh) async {
       final start = DateTime.now();
-      Logging.instance.log(
+      Logging.instance.logd(
         "Initial refresh start: ${start.toUtc()}",
         level: LogLevel.Warning,
       );
@@ -526,7 +526,7 @@ class Wallets {
         }
         await Future.wait(futures);
       }
-      Logging.instance.log(
+      Logging.instance.logd(
         "Initial refresh duration: ${DateTime.now().difference(start)}",
         level: LogLevel.Warning,
       );
@@ -580,7 +580,7 @@ class Wallets {
 
     for (final wallet in wallets) {
       final isVerified = await wallet.info.isMnemonicVerified(mainDB.isar);
-      Logging.instance.log(
+      Logging.instance.logd(
         "LOADING WALLET: ${wallet.info.name}:${wallet.walletId} IS VERIFIED: $isVerified",
         level: LogLevel.Info,
       );

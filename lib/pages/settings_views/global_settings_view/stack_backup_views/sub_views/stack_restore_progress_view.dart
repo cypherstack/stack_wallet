@@ -169,7 +169,7 @@ class _StackRestoreProgressViewState
         ref.read(secureStoreProvider),
       );
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
     }
 
     if (finished != null && finished && uiState.done) {

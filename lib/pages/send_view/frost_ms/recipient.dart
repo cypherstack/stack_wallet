@@ -133,7 +133,7 @@ class _RecipientState extends ConsumerState<Recipient> {
 
       final qrResult = await ref.read(pBarcodeScanner).scan();
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "qrResult content: ${qrResult.rawContent}",
         level: LogLevel.Info,
       );
@@ -143,7 +143,7 @@ class _RecipientState extends ConsumerState<Recipient> {
         logging: Logging.instance,
       );
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "qrResult parsed: $paymentData",
         level: LogLevel.Info,
       );
@@ -175,7 +175,7 @@ class _RecipientState extends ConsumerState<Recipient> {
 
       _updateRecipientData();
     } on PlatformException catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to get camera permissions while "
         "trying to scan qr code in SendView: $e\n$s",
         level: LogLevel.Warning,

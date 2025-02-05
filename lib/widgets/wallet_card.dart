@@ -159,7 +159,7 @@ class SimpleWalletCard extends ConsumerWidget {
 
         if (!success!) {
           // TODO: show error dialog here?
-          Logging.instance.log(
+          Logging.instance.logd(
             "Failed to load token wallet for $contract",
             level: LogLevel.Error,
           );
