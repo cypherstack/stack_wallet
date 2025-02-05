@@ -178,75 +178,79 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
               onChanged: (newValue) {},
             ),
           ),
-          const SizedBox(
-            height: 16,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Row(
-              children: [
-                Expanded(
-                  child: RoundedWhiteContainer(
-                    borderColor: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle6,
-                    child: Text(
-                      "NOTE: ${AppConfig.appName} must be restarted in order"
-                      " for the new path to take effect.",
-                      style: STextStyles.desktopTextExtraExtraSmall(context),
+          if (!Platform.isMacOS)
+            const SizedBox(
+              height: 16,
+            ),
+          if (!Platform.isMacOS)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: RoundedWhiteContainer(
+                      borderColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle6,
+                      child: Text(
+                        "NOTE: ${AppConfig.appName} must be restarted in order"
+                        " for the new path to take effect.",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(32),
-            child: Row(
-              children: [
-                const Spacer(),
-                const SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: PrimaryButton(
-                    label: "Edit",
-                    onPressed: () async {
-                      if (_lock) {
-                        return;
-                      }
-                      _lock = true;
-                      try {
-                        await _edit();
-                      } catch (e, s) {
-                        Logging.instance.e(
-                          "Failed to change logs path",
-                          error: e,
-                          stackTrace: s,
-                        );
-                        if (context.mounted) {
-                          unawaited(
-                            showDialog(
-                              context: context,
-                              builder: (context) => StackOkDialog(
-                                title: "Failed to change logs path",
-                                message: e.toString(),
-                              ),
-                            ),
-                          );
-                        }
-                      } finally {
-                        _lock = false;
-                      }
-                    },
+          if (!Platform.isMacOS)
+            const SizedBox(
+              height: 16,
+            ),
+          if (!Platform.isMacOS)
+            Padding(
+              padding: const EdgeInsets.all(32),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  const SizedBox(
+                    width: 16,
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: PrimaryButton(
+                      label: "Edit",
+                      onPressed: () async {
+                        if (_lock) {
+                          return;
+                        }
+                        _lock = true;
+                        try {
+                          await _edit();
+                        } catch (e, s) {
+                          Logging.instance.e(
+                            "Failed to change logs path",
+                            error: e,
+                            stackTrace: s,
+                          );
+                          if (context.mounted) {
+                            unawaited(
+                              showDialog(
+                                context: context,
+                                builder: (context) => StackOkDialog(
+                                  title: "Failed to change logs path",
+                                  message: e.toString(),
+                                ),
+                              ),
+                            );
+                          }
+                        } finally {
+                          _lock = false;
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
