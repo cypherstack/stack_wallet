@@ -12,6 +12,7 @@
 // in this definition should be done extremely carefully in production
 import 'package:logger/logger.dart';
 
+@Deprecated("Use Level instead, combined with the new logging features")
 enum LogLevel {
   Info,
   Warning,
