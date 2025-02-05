@@ -138,7 +138,10 @@ dependencies:
   pointycastle: ^3.6.0
   package_info_plus: ^8.0.2
   lottie: ^2.3.2
-  file_picker: ^8.0.3
+  file_picker:
+    git:
+      url: https://github.com/cypherstack/flutter_file_picker.git
+      ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
   connectivity_plus: ^4.0.1
   isar:
     version: 3.1.8
@@ -279,12 +282,6 @@ dependency_overrides:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
       ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
-
-
-  file_picker:
-    git:
-      url: https://github.com/cypherstack/flutter_file_picker.git
-      ref: 9abc0930081c9859884e073bd25ab88b2114d9e7
 
   crypto: 3.0.2
   analyzer: ^6.7.0

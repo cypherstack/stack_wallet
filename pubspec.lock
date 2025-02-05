@@ -758,11 +758,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9abc0930081c9859884e073bd25ab88b2114d9e7"
-      resolved-ref: "9abc0930081c9859884e073bd25ab88b2114d9e7"
+      ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
+      resolved-ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
       url: "https://github.com/cypherstack/flutter_file_picker.git"
     source: git
-    version: "8.0.3"
+    version: "8.3.1"
   fixnum:
     dependency: transitive
     description:
