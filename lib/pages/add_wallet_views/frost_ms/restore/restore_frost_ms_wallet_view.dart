@@ -171,7 +171,7 @@ class _RestoreFrostMsWalletViewState
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$e\n$s",
         level: LogLevel.Fatal,
       );
@@ -234,7 +234,7 @@ class _RestoreFrostMsWalletViewState
         );
 
         if (qrResult == null) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "Qr scanning cancelled",
             level: LogLevel.Info,
           );
@@ -248,7 +248,7 @@ class _RestoreFrostMsWalletViewState
         }
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to get camera permissions while trying to scan qr code: $e\n$s",
         level: LogLevel.Warning,
       );

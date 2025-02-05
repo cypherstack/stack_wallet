@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
+
 import '../../../utilities/logger.dart';
 import '../../isar/models/wallet_info.dart';
 
@@ -17,7 +18,7 @@ extension EpiccashWalletInfoExtension on WalletInfo {
         ),
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "ExtraEpiccashWalletInfo.fromMap failed: $e\n$s",
         level: LogLevel.Error,
       );

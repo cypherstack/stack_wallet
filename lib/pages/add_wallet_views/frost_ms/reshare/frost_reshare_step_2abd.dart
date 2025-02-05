@@ -79,7 +79,7 @@ class _FrostReshareStep2abdState extends ConsumerState<FrostReshareStep2abd> {
             .routeName,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$e\n$s",
         level: LogLevel.Fatal,
       );

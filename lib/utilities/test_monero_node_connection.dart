@@ -11,10 +11,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:digest_auth/digest_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/io_client.dart';
 import 'package:monero_rpc/monero_rpc.dart';
-import 'package:digest_auth/digest_auth.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:tor_ffi_plugin/socks_socket.dart';
 
@@ -103,7 +103,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
       return MoneroNodeConnectionResponse(null, null, null, success);
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
       return MoneroNodeConnectionResponse(null, null, null, false);
     } finally {
       await socket?.close();
@@ -150,7 +150,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       if (badCertResponse != null) {
         return badCertResponse!;
       } else {
-        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+        Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
         return MoneroNodeConnectionResponse(null, null, null, false);
       }
     } finally {

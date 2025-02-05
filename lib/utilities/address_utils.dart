@@ -155,7 +155,7 @@ class AddressUtils {
         additionalParams: filteredParams,
       );
     } catch (e, s) {
-      logging?.log("$e\n$s", level: LogLevel.Error);
+      logging?.logd("$e\n$s", level: LogLevel.Error);
       return null;
     }
   }

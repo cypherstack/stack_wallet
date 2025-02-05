@@ -126,7 +126,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       await updateChainHeight();
     } catch (e, s) {
       // do nothing on failure (besides logging)
-      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
     }
 
     // return regardless of whether it was updated or not as we want a
@@ -552,7 +552,7 @@ abstract class Wallet<T extends CryptoCurrency> {
             cryptoCurrency,
           ),
         );
-        Logging.instance.log(
+        Logging.instance.logd(
           "Caught exception in refreshWalletData(): $error\n$strace",
           level: LogLevel.Error,
         );
@@ -699,7 +699,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         );
       }
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "Refresh for "
         "${info.name}: ${DateTime.now().difference(start)}",
         level: LogLevel.Info,

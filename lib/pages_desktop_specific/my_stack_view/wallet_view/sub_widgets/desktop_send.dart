@@ -150,7 +150,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         builder: (context) => const QrCodeScannerDialog(),
       );
       if (qrResult == null) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Qr scanning cancelled",
           level: LogLevel.Info,
         );
@@ -158,14 +158,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         try {
           _processQrCodeData(qrResult);
         } catch (e, s) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "Error processing QR code data: $e\n$s",
             level: LogLevel.Error,
           );
         }
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error opening QR code scanner dialog: $e\n$s",
         level: LogLevel.Error,
       );
@@ -513,7 +513,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
       }
     } catch (e, s) {
-      Logging.instance.log("Desktop send: $e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("Desktop send: $e\n$s", level: LogLevel.Error);
       if (mounted) {
         // pop building dialog
         Navigator.of(
@@ -618,7 +618,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
           return;
         }
-        Logging.instance.log(
+        Logging.instance.logd(
           "it changed $amount $_cachedAmountToSend",
           level: LogLevel.Info,
         );
@@ -708,7 +708,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     } catch (e, s) {
       Logging.instance
-          .log("Error processing QR code data: $e\n$s", level: LogLevel.Error);
+          .logd("Error processing QR code data: $e\n$s", level: LogLevel.Error);
     }
   }
 
@@ -858,8 +858,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         return;
       }
       _cachedAmountToSend = amount;
-      Logging.instance
-          .log("it changed $amount $_cachedAmountToSend", level: LogLevel.Info);
+      Logging.instance.logd("it changed $amount $_cachedAmountToSend",
+          level: LogLevel.Info);
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
             amount!,

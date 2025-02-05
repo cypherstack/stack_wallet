@@ -98,7 +98,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         });
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -135,7 +135,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         });
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -304,7 +304,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                       });
                                     } catch (e, s) {
                                       Logging.instance
-                                          .log("$e\n$s", level: LogLevel.Info);
+                                          .logd("$e\n$s", level: LogLevel.Info);
                                     }
                                   },
                                 ),
@@ -543,7 +543,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                           });
                                         });
                                       } catch (e, s) {
-                                        Logging.instance.log(
+                                        Logging.instance.logd(
                                           "$e\n$s",
                                           level: LogLevel.Info,
                                         );

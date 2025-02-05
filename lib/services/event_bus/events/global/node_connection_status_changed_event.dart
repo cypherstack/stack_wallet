@@ -19,7 +19,7 @@ class NodeConnectionStatusChangedEvent {
   CryptoCurrency coin;
 
   NodeConnectionStatusChangedEvent(this.newStatus, this.walletId, this.coin) {
-    Logging.instance.log(
+    Logging.instance.logd(
       "NodeConnectionStatusChangedEvent fired in $walletId with arg newStatus = $newStatus",
       level: LogLevel.Info,
     );

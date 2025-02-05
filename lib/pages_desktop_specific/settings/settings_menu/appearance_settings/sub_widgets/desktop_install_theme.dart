@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../themes/theme_service.dart';
 import '../../../../../utilities/assets.dart';
@@ -56,7 +57,7 @@ class _DesktopInstallThemeState extends ConsumerState<DesktopInstallTheme> {
       ]);
       return true;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to install theme: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -81,7 +82,7 @@ class _DesktopInstallThemeState extends ConsumerState<DesktopInstallTheme> {
         }
       }
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
     }
   }
 

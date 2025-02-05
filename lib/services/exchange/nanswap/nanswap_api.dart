@@ -47,7 +47,7 @@ class NanswapAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "NanswapAPI._makeRequest($uri) HTTP:$code threw: $e\n$s",
         level: LogLevel.Error,
       );
@@ -81,7 +81,7 @@ class NanswapAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "NanswapAPI._makePostRequest($uri) HTTP:$code threw: $e\n$s",
         level: LogLevel.Error,
       );
@@ -135,7 +135,7 @@ class NanswapAPI {
 
       return ExchangeResponse(value: result);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Nanswap.getSupportedCurrencies() exception: $e\n$s",
         level: LogLevel.Error,
       );
@@ -199,14 +199,14 @@ class NanswapAPI {
           ),
         );
       } catch (_) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Nanswap.getEstimate() response was: $json",
           level: LogLevel.Error,
         );
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Nanswap.getEstimate() exception: $e\n$s",
         level: LogLevel.Error,
       );
@@ -271,7 +271,7 @@ class NanswapAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Nanswap.getEstimateReverse() exception: $e\n$s",
         level: LogLevel.Error,
       );
@@ -322,7 +322,7 @@ class NanswapAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Nanswap.getOrderLimits() exception: $e\n$s",
         level: LogLevel.Error,
       );
@@ -419,7 +419,7 @@ class NanswapAPI {
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Nanswap.createOrder() exception: $e\n$s",
         level: LogLevel.Error,
       );
@@ -502,7 +502,7 @@ class NanswapAPI {
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Nanswap.getOrder($id) exception: $e\n$s",
         level: LogLevel.Error,
       );

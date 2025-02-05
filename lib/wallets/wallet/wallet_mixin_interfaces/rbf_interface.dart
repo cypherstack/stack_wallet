@@ -148,7 +148,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
           ),
         ],
       );
-      Logging.instance.log(
+      Logging.instance.logd(
         "RBF on assumed send all",
         level: LogLevel.Debug,
       );
@@ -184,7 +184,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
               isChange: removed.isChange,
             ),
           );
-          Logging.instance.log(
+          Logging.instance.logd(
             "RBF with same utxo set with increased fee and reduced change",
             level: LogLevel.Debug,
           );
@@ -198,7 +198,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
           // oh well...
 
           // do nothing here as we already removed the change output above
-          Logging.instance.log(
+          Logging.instance.logd(
             "RBF with same utxo set with increased fee and no change",
             level: LogLevel.Debug,
           );
@@ -255,7 +255,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
         // TODO: remove assert
         assert(newUtxoSet.length == txData.utxos!.length + extraUtxos.length);
 
-        Logging.instance.log(
+        Logging.instance.logd(
           "RBF with ${extraUtxos.length} extra utxo(s)"
           " added to pay for the new fee",
           level: LogLevel.Debug,

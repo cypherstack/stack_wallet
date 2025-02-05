@@ -42,11 +42,11 @@ abstract class FiroCacheCoordinator {
         ? await usedTagsCacheFile.length()
         : 0;
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "Spark cache used tags size: $tagsSize",
       level: LogLevel.Debug,
     );
-    Logging.instance.log(
+    Logging.instance.logd(
       "Spark cache anon set size: $setSize",
       level: LogLevel.Debug,
     );
@@ -111,7 +111,7 @@ abstract class FiroCacheCoordinator {
       progressUpdated?.call(prevSize, meta.size);
 
       if (prevMeta?.blockHash == meta.blockHash) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "prevMeta?.blockHash == meta.blockHash",
           level: LogLevel.Debug,
         );

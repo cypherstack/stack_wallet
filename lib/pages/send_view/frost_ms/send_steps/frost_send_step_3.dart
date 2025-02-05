@@ -233,7 +233,7 @@ class _FrostSendStep3State extends ConsumerState<FrostSendStep3> {
                       .routeName,
                 );
               } catch (e, s) {
-                Logging.instance.log(
+                Logging.instance.logd(
                   "$e\n$s",
                   level: LogLevel.Fatal,
                 );

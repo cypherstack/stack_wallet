@@ -27,14 +27,14 @@ class Biometrics {
     required String title,
   }) async {
     if (!(Platform.isIOS || Platform.isAndroid)) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Tried to use Biometrics.authenticate() on a platform that is not Android or iOS! ...returning false.",
         level: LogLevel.Error,
       );
       return false;
     }
     if (integrationTestFlag) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Tried to use Biometrics.authenticate() during integration testing. Returning false.",
         level: LogLevel.Warning,
       );
@@ -53,7 +53,7 @@ class Biometrics {
       List<BiometricType> availableSystems =
           await localAuth.getAvailableBiometrics();
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "Bio availableSystems: $availableSystems",
         level: LogLevel.Info,
       );
@@ -79,7 +79,7 @@ class Biometrics {
           return true;
         }
       } catch (e) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "local_auth exception caught in Biometrics.authenticate(), e: $e",
           level: LogLevel.Error,
         );

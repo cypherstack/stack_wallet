@@ -14,7 +14,7 @@ class BalanceRefreshedEvent {
   final String walletId;
 
   BalanceRefreshedEvent(this.walletId) {
-    Logging.instance.log(
+    Logging.instance.logd(
       "BalanceRefreshedEvent fired on $walletId",
       level: LogLevel.Info,
     );

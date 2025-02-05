@@ -60,7 +60,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     if (txData.tempTx != null) {
       await mainDB.updateOrPutTransactionV2s([txData.tempTx!]);
       _unconfirmedTxids.add(txData.tempTx!.txid);
-      Logging.instance.log(
+      Logging.instance.logd(
         "Added firo unconfirmed: ${txData.tempTx!.txid}",
         level: LogLevel.Info,
       );
@@ -221,7 +221,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       );
 
       if (isMySpark && sparkCoinsInvolvedReceived.isEmpty && !isMySpentSpark) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "sparkCoinsInvolvedReceived is empty and should not be! (ignoring tx parsing)",
           level: LogLevel.Error,
         );
@@ -229,7 +229,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       }
 
       if (isMySpentSpark && sparkCoinsInvolvedSpent.isEmpty && !isMySpark) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "sparkCoinsInvolvedSpent is empty and should not be! (ignoring tx parsing)",
           level: LogLevel.Error,
         );
@@ -248,13 +248,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             } else if (asm.startsWith("OP_LELANTUSMINT")) {
               isMint = true;
             } else {
-              Logging.instance.log(
+              Logging.instance.logd(
                 "Unknown mint op code found for lelantusmint tx: ${txData["txid"]}",
                 level: LogLevel.Error,
               );
             }
           } else {
-            Logging.instance.log(
+            Logging.instance.logd(
               "ASM for lelantusmint tx: ${txData["txid"]} is null!",
               level: LogLevel.Error,
             );
@@ -268,13 +268,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
                 asm.startsWith("OP_SPARKSMINT")) {
               isSparkMint = true;
             } else {
-              Logging.instance.log(
+              Logging.instance.logd(
                 "Unknown mint op code found for sparkmint tx: ${txData["txid"]}",
                 level: LogLevel.Error,
               );
             }
           } else {
-            Logging.instance.log(
+            Logging.instance.logd(
               "ASM for sparkmint tx: ${txData["txid"]} is null!",
               level: LogLevel.Error,
             );
@@ -570,7 +570,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         // only found outputs owned by this wallet
         type = TransactionType.incoming;
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Unexpected tx found (ignoring it): $txData",
           level: LogLevel.Error,
         );
@@ -747,7 +747,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         );
 
         // receiving addresses
-        Logging.instance.log(
+        Logging.instance.logd(
           "checking receiving addresses...",
           level: LogLevel.Info,
         );
@@ -772,7 +772,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         }
 
         // change addresses
-        Logging.instance.log(
+        Logging.instance.logd(
           "checking change addresses...",
           level: LogLevel.Info,
         );
@@ -899,13 +899,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       });
 
       unawaited(refresh());
-      Logging.instance.log(
+      Logging.instance.logd(
         "Firo recover for "
         "${info.name}: ${DateTime.now().difference(start)}",
         level: LogLevel.Info,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from electrumx_mixin recover(): $e\n$s",
         level: LogLevel.Info,
       );

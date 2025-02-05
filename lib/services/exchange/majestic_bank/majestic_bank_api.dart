@@ -11,6 +11,7 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
+
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../exceptions/exchange/majestic_bank/mb_exception.dart';
 import '../../../exceptions/exchange/pair_unavailable_exception.dart';
@@ -20,10 +21,10 @@ import '../../../models/exchange/majestic_bank/mb_order_calculation.dart';
 import '../../../models/exchange/majestic_bank/mb_order_status.dart';
 import '../../../models/exchange/majestic_bank/mb_rate.dart';
 import '../../../networking/http.dart';
-import '../exchange_response.dart';
-import '../../tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/prefs.dart';
+import '../../tor_service.dart';
+import '../exchange_response.dart';
 
 class MajesticBankAPI {
   static const String scheme = "https";
@@ -60,7 +61,7 @@ class MajesticBankAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_makeRequest($uri) HTTP:$code threw: $e\n$s",
         level: LogLevel.Error,
       );
@@ -91,7 +92,8 @@ class MajesticBankAPI {
       }
       return ExchangeResponse(value: rates);
     } catch (e, s) {
-      Logging.instance.log("getRates exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance
+          .logd("getRates exception: $e\n$s", level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -125,7 +127,7 @@ class MajesticBankAPI {
       return ExchangeResponse(value: limit);
     } catch (e, s) {
       Logging.instance
-          .log("getLimits exception: $e\n$s", level: LogLevel.Error);
+          .logd("getLimits exception: $e\n$s", level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -158,7 +160,7 @@ class MajesticBankAPI {
       return ExchangeResponse(value: limits);
     } catch (e, s) {
       Logging.instance
-          .log("getLimits exception: $e\n$s", level: LogLevel.Error);
+          .logd("getLimits exception: $e\n$s", level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -226,7 +228,7 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: result);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "calculateOrder $fromCurrency-$receiveCurrency exception: $e\n$s",
         level: LogLevel.Error,
       );
@@ -275,7 +277,7 @@ class MajesticBankAPI {
       return ExchangeResponse(value: order);
     } catch (e, s) {
       Logging.instance
-          .log("createOrder exception: $e\n$s", level: LogLevel.Error);
+          .logd("createOrder exception: $e\n$s", level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -329,8 +331,8 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: order);
     } catch (e, s) {
-      Logging.instance
-          .log("createFixedRateOrder exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("createFixedRateOrder exception: $e\n$s",
+          level: LogLevel.Error);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -377,7 +379,7 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: status);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "trackOrder exception when trying to parse $json: $e\n$s",
         level: LogLevel.Error,
       );

@@ -16,7 +16,7 @@ class TorConnectionStatusChangedEvent {
   String message = "";
 
   TorConnectionStatusChangedEvent(this.newStatus, this.message) {
-    Logging.instance.log(
+    Logging.instance.logd(
       "TorSyncStatusChangedEvent fired with arg newStatus = $newStatus ($message)",
       level: LogLevel.Info,
     );

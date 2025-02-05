@@ -145,7 +145,7 @@ class ExchangeDataLoadingService {
       if (_isar == null) {
         await initDB();
       }
-      Logging.instance.log(
+      Logging.instance.logd(
         "ExchangeDataLoadingService.loadAll starting...",
         level: LogLevel.Info,
       );
@@ -185,14 +185,14 @@ class ExchangeDataLoadingService {
         // wait for all loading futures to complete
         await Future.wait(futures);
 
-        Logging.instance.log(
+        Logging.instance.logd(
           "ExchangeDataLoadingService.loadAll finished in ${DateTime.now().difference(start).inSeconds} seconds",
           level: LogLevel.Info,
         );
         onLoadingComplete?.call();
         await _updateCurrentCacheVersion(cacheVersion);
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "ExchangeDataLoadingService.loadAll failed after ${DateTime.now().difference(start).inSeconds} seconds: $e\n$s",
           level: LogLevel.Error,
         );
@@ -219,7 +219,7 @@ class ExchangeDataLoadingService {
         await isar.currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to load changeNOW currencies: ${responseCurrencies.exception?.message}",
         level: LogLevel.Error,
       );
@@ -353,7 +353,7 @@ class ExchangeDataLoadingService {
         await isar.currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "loadMajesticBankCurrencies: $responseCurrencies",
         level: LogLevel.Warning,
       );
@@ -378,7 +378,7 @@ class ExchangeDataLoadingService {
         await isar.currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "loadTrocadorCurrencies: $responseCurrencies",
         level: LogLevel.Warning,
       );
@@ -403,7 +403,7 @@ class ExchangeDataLoadingService {
         await isar.currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "loadNanswapCurrencies: $responseCurrencies",
         level: LogLevel.Warning,
       );

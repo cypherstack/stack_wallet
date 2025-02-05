@@ -54,7 +54,7 @@ class CachedEthTokenBalance {
         isar: mainDB.isar,
       );
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "CachedEthTokenBalance.fetchAndUpdateCachedBalance failed: ${response.exception}",
         level: LogLevel.Warning,
       );

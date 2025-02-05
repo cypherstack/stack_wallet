@@ -889,7 +889,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
       return Tuple2(clTx.toHex(), clTx.vSize());
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "_createNotificationTx(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -902,15 +902,15 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
   }) async {
     try {
       Logging.instance
-          .log("confirmNotificationTx txData: $txData", level: LogLevel.Info);
+          .logd("confirmNotificationTx txData: $txData", level: LogLevel.Info);
       final txHash =
           await electrumXClient.broadcastTransaction(rawTx: txData.raw!);
-      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+      Logging.instance.logd("Sent txHash: $txHash", level: LogLevel.Info);
 
       try {
         await updateTransactions();
       } catch (e) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "refresh() failed in confirmNotificationTx (${info.name}::$walletId): $e",
           level: LogLevel.Error,
         );
@@ -921,7 +921,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         txHash: txHash,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from confirmSend(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -1047,7 +1047,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           return (witnessComponents[1] as String).toUint8ListFromHex;
         }
       } catch (e, s) {
-        Logging.instance.log("_pubKeyFromInput: $e\n$s", level: LogLevel.Info);
+        Logging.instance.logd("_pubKeyFromInput: $e\n$s", level: LogLevel.Info);
       }
     }
     return null;
@@ -1097,7 +1097,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
       return unBlindedPaymentCode;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "unBlindedPaymentCodeFromTransaction() failed: $e\n$s\nFor tx: $transaction",
         level: LogLevel.Warning,
       );
@@ -1149,7 +1149,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
       return unBlindedPaymentCode;
     } catch (e) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "unBlindedPaymentCodeFromTransactionBad() failed: $e\nFor tx: $transaction",
         level: LogLevel.Warning,
       );
@@ -1826,7 +1826,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
         // TODO: [prio=none] Check for special Bitcoin outputs like ordinals.
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Unexpected tx found (ignoring it): $txData",
           level: LogLevel.Error,
         );

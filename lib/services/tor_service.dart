@@ -85,7 +85,7 @@ class TorService {
       // Complete the future.
       return;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "TorService.start failed: $e\n$s",
         level: LogLevel.Warning,
       );

@@ -99,7 +99,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         await mainDB.updateOrPutAddresses([address]);
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -157,7 +157,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         ),
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType Solana prepareSend failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -197,7 +197,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         txid: txid,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType Solana confirmSend failed: $e\n$s",
         level: LogLevel.Error,
       );
@@ -259,7 +259,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       health = await _rpcClient?.getHealth();
       return health != null;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$runtimeType Solana pingCheck failed \"health response=$health\": $e\n$s",
         level: LogLevel.Error,
       );
@@ -334,7 +334,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
       await info.updateBalance(newBalance: newBalance, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error getting balance in solana_wallet.dart: $e\n$s",
         level: LogLevel.Error,
       );
@@ -354,7 +354,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error occurred in solana_wallet.dart while getting"
         " chain height for solana: $e\n$s",
         level: LogLevel.Error,
@@ -458,7 +458,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
     } on NodeTorMismatchConfigException {
       rethrow;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Error occurred in solana_wallet.dart while getting"
         " transactions for solana: $e\n$s",
         level: LogLevel.Error,

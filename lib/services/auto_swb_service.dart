@@ -42,14 +42,14 @@ class AutoSWBService extends ChangeNotifier {
   /// Attempt a backup.
   Future<void> doBackup() async {
     if (_status == AutoSWBStatus.backingUp) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "AutoSWBService attempted to run doBackup() while a backup is in progress!",
         level: LogLevel.Warning,
       );
       return;
     }
     Logging.instance
-        .log("AutoSWBService.doBackup() started...", level: LogLevel.Info);
+        .logd("AutoSWBService.doBackup() started...", level: LogLevel.Info);
 
     // set running backup status and notify listeners
     _status = AutoSWBStatus.backingUp;
@@ -62,7 +62,7 @@ class AutoSWBService extends ChangeNotifier {
 
       final autoBackupDirectoryPath = Prefs.instance.autoBackupLocation;
       if (autoBackupDirectoryPath == null) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "AutoSWBService attempted to run doBackup() when no auto backup directory was set!",
           level: LogLevel.Error,
         );
@@ -105,16 +105,16 @@ class AutoSWBService extends ChangeNotifier {
       trimBackups(autoBackupDirectoryPath, 3);
 
       Logging.instance
-          .log("AutoSWBService.doBackup() succeeded", level: LogLevel.Info);
+          .logd("AutoSWBService.doBackup() succeeded", level: LogLevel.Info);
     } on Exception catch (e, s) {
       final String err = getErrorMessageFromSWBException(e);
-      Logging.instance.log("$err\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$err\n$s", level: LogLevel.Error);
       // set error backup status and notify listeners
       _status = AutoSWBStatus.error;
       notifyListeners();
       return;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       // set error backup status and notify listeners
       _status = AutoSWBStatus.error;
       notifyListeners();

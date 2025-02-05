@@ -233,7 +233,7 @@ class ElectrumXClient {
         if (!_prefs.torKillSwitch) {
           // Then we'll just proceed and connect to ElectrumX through
           // clearnet at the bottom of this function.
-          Logging.instance.log(
+          Logging.instance.logd(
             "Tor preference set but Tor is not enabled, killswitch not set,"
             " connecting to Electrum adapter through clearnet",
             level: LogLevel.Warning,
@@ -400,7 +400,7 @@ class ElectrumXClient {
       }
     } catch (e) {
       final errorMessage = e.toString();
-      Logging.instance.log("$host $e", level: LogLevel.Debug);
+      Logging.instance.logd("$host $e", level: LogLevel.Debug);
       if (errorMessage.contains("JSON-RPC error")) {
         currentFailoverIndex = _failovers.length;
       }
@@ -535,7 +535,7 @@ class ElectrumXClient {
       ).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
-          Logging.instance.log(
+          Logging.instance.logd(
             "ElectrumxClient.ping timed out with retryCount=$retryCount, host=$_host",
             level: LogLevel.Debug,
           );
@@ -562,7 +562,7 @@ class ElectrumXClient {
         command: 'blockchain.headers.subscribe',
       );
       if (response == null) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "getBlockHeadTip returned null response",
           level: LogLevel.Error,
         );
@@ -761,7 +761,7 @@ class ElectrumXClient {
             // add empty list on error
             result.add([]);
 
-            Logging.instance.log(
+            Logging.instance.logd(
               "getBatchUTXOs failed to parse response=${response[i]}: $e",
               level: LogLevel.Error,
             );
@@ -826,13 +826,13 @@ class ElectrumXClient {
     bool verbose = true,
     String? requestID,
   }) async {
-    Logging.instance.log(
+    Logging.instance.logd(
       "attempting to fetch blockchain.transaction.get...",
       level: LogLevel.Info,
     );
     await checkElectrumAdapter();
     final dynamic response = await getElectrumAdapter()!.getTransaction(txHash);
-    Logging.instance.log(
+    Logging.instance.logd(
       "Fetching blockchain.transaction.get finished",
       level: LogLevel.Info,
     );
@@ -863,7 +863,7 @@ class ElectrumXClient {
     String blockhash = "",
     String? requestID,
   }) async {
-    Logging.instance.log(
+    Logging.instance.logd(
       "attempting to fetch lelantus.getanonymityset...",
       level: LogLevel.Info,
     );
@@ -871,7 +871,7 @@ class ElectrumXClient {
     final Map<String, dynamic> response =
         await (getElectrumAdapter() as FiroElectrumClient)
             .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
-    Logging.instance.log(
+    Logging.instance.logd(
       "Fetching lelantus.getanonymityset finished",
       level: LogLevel.Info,
     );
@@ -886,14 +886,14 @@ class ElectrumXClient {
     dynamic mints,
     String? requestID,
   }) async {
-    Logging.instance.log(
+    Logging.instance.logd(
       "attempting to fetch lelantus.getmintmetadata...",
       level: LogLevel.Info,
     );
     await checkElectrumAdapter();
     final dynamic response = await (getElectrumAdapter() as FiroElectrumClient)
         .getLelantusMintData(mints: mints);
-    Logging.instance.log(
+    Logging.instance.logd(
       "Fetching lelantus.getmintmetadata finished",
       level: LogLevel.Info,
     );
@@ -906,7 +906,7 @@ class ElectrumXClient {
     String? requestID,
     required int startNumber,
   }) async {
-    Logging.instance.log(
+    Logging.instance.logd(
       "attempting to fetch lelantus.getusedcoinserials...",
       level: LogLevel.Info,
     );
@@ -919,7 +919,7 @@ class ElectrumXClient {
       response = await (getElectrumAdapter() as FiroElectrumClient)
           .getLelantusUsedCoinSerials(startNumber: startNumber);
       // TODO add 2 minute timeout.
-      Logging.instance.log(
+      Logging.instance.logd(
         "Fetching lelantus.getusedcoinserials finished",
         level: LogLevel.Info,
       );
@@ -934,14 +934,14 @@ class ElectrumXClient {
   ///
   /// ex: 1
   Future<int> getLelantusLatestCoinId({String? requestID}) async {
-    Logging.instance.log(
+    Logging.instance.logd(
       "attempting to fetch lelantus.getlatestcoinid...",
       level: LogLevel.Info,
     );
     await checkElectrumAdapter();
     final int response =
         await (getElectrumAdapter() as FiroElectrumClient).getLatestCoinId();
-    Logging.instance.log(
+    Logging.instance.logd(
       "Fetching lelantus.getlatestcoinid finished",
       level: LogLevel.Info,
     );
@@ -977,7 +977,7 @@ class ElectrumXClient {
         coinGroupId: coinGroupId,
         startBlockHash: startBlockHash,
       );
-      Logging.instance.log(
+      Logging.instance.logd(
         "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
         "=$coinGroupId, startBlockHash=$startBlockHash). "
         "coins.length: ${(response["coins"] as List?)?.length}"
@@ -1068,20 +1068,20 @@ class ElectrumXClient {
     String? requestID,
   }) async {
     try {
-      Logging.instance.log(
+      Logging.instance.logd(
         "attempting to fetch spark.getsparklatestcoinid...",
         level: LogLevel.Info,
       );
       await checkElectrumAdapter();
       final int response = await (getElectrumAdapter() as FiroElectrumClient)
           .getSparkLatestCoinId();
-      Logging.instance.log(
+      Logging.instance.logd(
         "Fetching spark.getsparklatestcoinid finished",
         level: LogLevel.Info,
       );
       return response;
     } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+      Logging.instance.logd(e, level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1101,7 +1101,7 @@ class ElectrumXClient {
           .map((e) => e.toHexReversedFromBase64)
           .toSet();
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "Finished ElectrumXClient.getMempoolTxids(). "
         "Duration=${DateTime.now().difference(start)}",
         level: LogLevel.Info,
@@ -1109,7 +1109,7 @@ class ElectrumXClient {
 
       return txids;
     } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+      Logging.instance.logd(e, level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1146,7 +1146,7 @@ class ElectrumXClient {
         );
       }
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "Finished ElectrumXClient.getMempoolSparkData(txids: $txids). "
         "Duration=${DateTime.now().difference(start)}",
         level: LogLevel.Info,
@@ -1154,7 +1154,7 @@ class ElectrumXClient {
 
       return result;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1178,7 +1178,7 @@ class ElectrumXClient {
       final map = Map<String, dynamic>.from(response as Map);
       final tags = List<List<dynamic>>.from(map["tagsandtxids"] as List);
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "Finished ElectrumXClient.getSparkUnhashedUsedCoinsTagsWithTxHashes("
         "startNumber=$startNumber). # of tags fetched=${tags.length}, "
         "Duration=${DateTime.now().difference(start)}",
@@ -1187,7 +1187,7 @@ class ElectrumXClient {
 
       return tags;
     } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+      Logging.instance.logd(e, level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1199,7 +1199,7 @@ class ElectrumXClient {
   }) async {
     try {
       const command = "spark.getsparkanonymitysetmeta";
-      Logging.instance.log(
+      Logging.instance.logd(
         "[${getElectrumAdapter()?.host}] => attempting to fetch $command...",
         level: LogLevel.Info,
       );
@@ -1222,7 +1222,7 @@ class ElectrumXClient {
         size: map["size"] as int,
       );
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "Finished ElectrumXClient.getSparkAnonymitySetMeta("
         "requestID=$requestID, "
         "coinGroupId=$coinGroupId"
@@ -1233,7 +1233,7 @@ class ElectrumXClient {
 
       return result;
     } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+      Logging.instance.logd(e, level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1264,7 +1264,7 @@ class ElectrumXClient {
 
       final result = map["coins"] as List;
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "Finished ElectrumXClient.getSparkAnonymitySetBySector("
         "requestID=$requestID, "
         "coinGroupId=$coinGroupId, "
@@ -1278,7 +1278,7 @@ class ElectrumXClient {
 
       return result;
     } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+      Logging.instance.logd(e, level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1301,7 +1301,7 @@ class ElectrumXClient {
         ],
       );
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "Finished ElectrumXClient.isMasterNodeCollateral, "
         "response: $response, "
         "Duration=${DateTime.now().difference(start)}",
@@ -1310,7 +1310,7 @@ class ElectrumXClient {
 
       return response as bool;
     } catch (e) {
-      Logging.instance.log(e, level: LogLevel.Error);
+      Logging.instance.logd(e, level: LogLevel.Error);
       rethrow;
     }
   }
@@ -1369,7 +1369,7 @@ class ElectrumXClient {
       } catch (e, s) {
         final String msg = "Error parsing fee rate.  Response: $response"
             "\nResult: $response\nError: $e\nStack trace: $s";
-        Logging.instance.log(msg, level: LogLevel.Fatal);
+        Logging.instance.logd(msg, level: LogLevel.Fatal);
         throw Exception(msg);
       }
     } catch (e) {

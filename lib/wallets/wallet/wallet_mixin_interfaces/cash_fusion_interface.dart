@@ -379,7 +379,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
 
       return root.derivePath(derivationPath).privateKey.data;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Fatal);
       throw Exception("Derivation path for pubkey=$pubKey could not be found");
     }
   }
@@ -741,7 +741,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
           if (addr == null) {
             // A utxo object should always have a non null address.
             // If non found then just ignore the UTXO (aka don't fuse it)
-            Logging.instance.log(
+            Logging.instance.logd(
               "Ignoring utxo=$utxo for address=\"$addressString\" while selecting UTXOs for Fusion",
               level: LogLevel.Info,
             );
@@ -781,7 +781,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
           // Also reset the failed count here.
           _failedFuseCount = 0;
         } catch (e, s) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "$e\n$s",
             level: LogLevel.Error,
           );
@@ -816,7 +816,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
         }
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$e\n$s",
         level: LogLevel.Error,
       );

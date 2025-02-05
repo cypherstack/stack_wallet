@@ -100,9 +100,9 @@ abstract class SWB {
       _cancelCompleter = Completer<void>();
       _shouldCancelRestore = true;
       Logging.instance
-          .log("SWB cancel restore requested", level: LogLevel.Info);
+          .logd("SWB cancel restore requested", level: LogLevel.Info);
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB cancel restore requested while a cancellation request is currently in progress",
         level: LogLevel.Warning,
       );
@@ -147,10 +147,10 @@ abstract class SWB {
         backupFile
             .writeAsStringSync(Format.uint8listToString(encryptedContent));
       }
-      Logging.instance.log(backupFile.absolute, level: LogLevel.Info);
+      Logging.instance.logd(backupFile.absolute, level: LogLevel.Info);
       return true;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       return false;
     }
   }
@@ -174,10 +174,10 @@ abstract class SWB {
         backupFile
             .writeAsStringSync(Format.uint8listToString(encryptedContent));
       }
-      Logging.instance.log(backupFile.absolute, level: LogLevel.Info);
+      Logging.instance.logd(backupFile.absolute, level: LogLevel.Info);
       return true;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       return false;
     }
   }
@@ -194,7 +194,7 @@ abstract class SWB {
         Tuple2(encryptedText, passphrase),
       );
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       return null;
     }
   }
@@ -214,7 +214,7 @@ abstract class SWB {
       final jsonBackup = utf8.decode(decryptedContent);
       return jsonBackup;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
       return null;
     }
   }
@@ -224,24 +224,24 @@ abstract class SWB {
     required SecureStorageInterface secureStorage,
   }) async {
     Logging.instance
-        .log("Starting createStackWalletJSON...", level: LogLevel.Info);
+        .logd("Starting createStackWalletJSON...", level: LogLevel.Info);
     final _wallets = Wallets.sharedInstance;
     final Map<String, dynamic> backupJson = {};
     final NodeService nodeService =
         NodeService(secureStorageInterface: secureStorage);
     final _secureStore = secureStorage;
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "createStackWalletJSON awaiting DB.instance.mutex...",
       level: LogLevel.Info,
     );
     // prevent modification of data
     await DB.instance.mutex.protect(() async {
-      Logging.instance.log(
+      Logging.instance.logd(
         "...createStackWalletJSON DB.instance.mutex acquired",
         level: LogLevel.Info,
       );
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB backing up nodes",
         level: LogLevel.Warning,
       );
@@ -253,7 +253,7 @@ abstract class SWB {
         }).toList();
         backupJson['primaryNodes'] = await Future.wait(primaryNodes);
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Warning);
+        Logging.instance.logd("$e $s", level: LogLevel.Warning);
       }
       try {
         final nodesFuture = nodeService.nodes.map((e) async {
@@ -264,10 +264,10 @@ abstract class SWB {
         final nodes = await Future.wait(nodesFuture);
         backupJson['nodes'] = nodes;
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Error);
+        Logging.instance.logd("$e $s", level: LogLevel.Error);
       }
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB backing up prefs",
         level: LogLevel.Warning,
       );
@@ -291,7 +291,7 @@ abstract class SWB {
 
       backupJson['prefs'] = prefs;
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB backing up addressbook",
         level: LogLevel.Warning,
       );
@@ -301,7 +301,7 @@ abstract class SWB {
       backupJson['addressBookEntries'] =
           addresses.map((e) => e.toMap()).toList();
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB backing up wallets",
         level: LogLevel.Warning,
       );
@@ -330,7 +330,7 @@ abstract class SWB {
             final String err =
                 "${wallet.info.coin.identifier} wallet ${wallet.info.name} "
                 "has null keys or config";
-            Logging.instance.log(err, level: LogLevel.Fatal);
+            Logging.instance.logd(err, level: LogLevel.Fatal);
             throw Exception(err);
           }
           //This case should never actually happen in practice unless the whole
@@ -368,7 +368,7 @@ abstract class SWB {
       }
       backupJson['wallets'] = backupWallets;
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB backing up trades",
         level: LogLevel.Warning,
       );
@@ -385,7 +385,7 @@ abstract class SWB {
           tradeTxidLookupDataService.all.map((e) => e.toMap()).toList();
       backupJson["tradeTxidLookupData"] = lookupData;
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB backing up trade notes",
         level: LogLevel.Warning,
       );
@@ -395,7 +395,7 @@ abstract class SWB {
       final tradeNotes = tradeNotesService.all;
       backupJson["tradeNotes"] = tradeNotes;
     });
-    Logging.instance.log(
+    Logging.instance.logd(
       "createStackWalletJSON DB.instance.mutex released",
       level: LogLevel.Info,
     );
@@ -408,7 +408,7 @@ abstract class SWB {
     //     .toList(growable: false);
 
     Logging.instance
-        .log("...createStackWalletJSON complete", level: LogLevel.Info);
+        .logd("...createStackWalletJSON complete", level: LogLevel.Info);
     return backupJson;
   }
 
@@ -590,7 +590,7 @@ abstract class SWB {
 
       await restoringFuture;
 
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB restored: ${info.walletId} ${info.name} ${info.coin.prettyName}",
         level: LogLevel.Info,
       );
@@ -606,7 +606,7 @@ abstract class SWB {
         mnemonicPassphrase: mnemonicPassphrase,
       );
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      Logging.instance.logd("$e $s", level: LogLevel.Warning);
       uiState?.update(
         walletId: info.walletId,
         restoringStatus: StackRestoringStatus.failed,
@@ -640,7 +640,7 @@ abstract class SWB {
 
     uiState?.preferences = StackRestoringStatus.restoring;
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "SWB restoring prefs",
       level: LogLevel.Warning,
     );
@@ -649,7 +649,7 @@ abstract class SWB {
     uiState?.preferences = StackRestoringStatus.success;
     uiState?.addressBook = StackRestoringStatus.restoring;
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "SWB restoring addressbook",
       level: LogLevel.Warning,
     );
@@ -660,7 +660,7 @@ abstract class SWB {
     uiState?.addressBook = StackRestoringStatus.success;
     uiState?.nodes = StackRestoringStatus.restoring;
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "SWB restoring nodes",
       level: LogLevel.Warning,
     );
@@ -675,7 +675,7 @@ abstract class SWB {
 
     // restore trade history
     if (trades != null) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB restoring trades",
         level: LogLevel.Warning,
       );
@@ -684,7 +684,7 @@ abstract class SWB {
 
     // restore trade history lookup data for trades send from stack wallet
     if (tradeTxidLookupData != null) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB restoring trade look up data",
         level: LogLevel.Warning,
       );
@@ -694,7 +694,7 @@ abstract class SWB {
     // restore trade notes
 
     if (tradeNotes != null) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "SWB restoring trade notes",
         level: LogLevel.Warning,
       );
@@ -729,13 +729,13 @@ abstract class SWB {
   ) async {
     if (!Platform.isLinux) await WakelockPlus.enable();
 
-    Logging.instance.log(
+    Logging.instance.logd(
       "SWB creating temp backup",
       level: LogLevel.Warning,
     );
     final preRestoreJSON =
         await createStackWalletJSON(secureStorage: secureStorageInterface);
-    Logging.instance.log(
+    Logging.instance.logd(
       "SWB temp backup created",
       level: LogLevel.Warning,
     );
@@ -832,7 +832,7 @@ abstract class SWB {
           otherData = Map<String, dynamic>.from(data as Map);
         }
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "SWB restore walletinfo otherdata error: $e\n$s",
           level: LogLevel.Error,
         );
@@ -950,7 +950,7 @@ abstract class SWB {
       return false;
     }
 
-    Logging.instance.log("done with SWB restore", level: LogLevel.Warning);
+    Logging.instance.logd("done with SWB restore", level: LogLevel.Warning);
 
     await Wallets.sharedInstance
         .loadAfterStackRestore(_prefs, uiState?.wallets ?? [], Util.isDesktop);
@@ -1100,7 +1100,7 @@ abstract class SWB {
             node: nodeService.getNodeById(id: node['id'] as String)!,
           );
         } catch (e, s) {
-          Logging.instance.log("$e $s", level: LogLevel.Error);
+          Logging.instance.logd("$e $s", level: LogLevel.Error);
         }
       }
     }
@@ -1193,7 +1193,7 @@ abstract class SWB {
 
     _cancelCompleter!.complete();
     _shouldCancelRestore = false;
-    Logging.instance.log("Revert SWB complete", level: LogLevel.Info);
+    Logging.instance.logd("Revert SWB complete", level: LogLevel.Info);
   }
 
   static Future<void> _restorePrefs(Map<String, dynamic> prefs) async {
@@ -1310,7 +1310,7 @@ abstract class SWB {
             node: nodeService.getNodeById(id: node['id'] as String)!,
           );
         } catch (e, s) {
-          Logging.instance.log("$e $s", level: LogLevel.Error);
+          Logging.instance.logd("$e $s", level: LogLevel.Error);
         }
       }
     }

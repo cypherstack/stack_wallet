@@ -202,7 +202,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                     }
                                   } catch (e, s) {
                                     Logging.instance
-                                        .log("$e\n$s", level: LogLevel.Error);
+                                        .logd("$e\n$s", level: LogLevel.Error);
                                   }
                                 },
                           controller: fileLocationController,
@@ -700,7 +700,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                               final String err =
                                   getErrorMessageFromSWBException(e);
                               Logging.instance
-                                  .log("$err\n$s", level: LogLevel.Error);
+                                  .logd("$err\n$s", level: LogLevel.Error);
                               // pop encryption progress dialog
                               Navigator.of(context).pop();
                               unawaited(
@@ -713,7 +713,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                               return;
                             } catch (e, s) {
                               Logging.instance
-                                  .log("$e\n$s", level: LogLevel.Error);
+                                  .logd("$e\n$s", level: LogLevel.Error);
                               // pop encryption progress dialog
                               Navigator.of(context).pop();
                               unawaited(

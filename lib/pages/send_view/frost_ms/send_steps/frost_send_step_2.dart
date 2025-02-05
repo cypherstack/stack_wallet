@@ -291,7 +291,7 @@ class _FrostSendStep2State extends ConsumerState<FrostSendStep2> {
                 //   arguments: widget.walletId,
                 // );
               } catch (e, s) {
-                Logging.instance.log(
+                Logging.instance.logd(
                   "$e\n$s",
                   level: LogLevel.Fatal,
                 );

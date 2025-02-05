@@ -15,6 +15,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../themes/theme_service.dart';
 import '../../../../../utilities/assets.dart';
@@ -54,7 +55,7 @@ class _InstallThemeFromFileDialogState
       ]);
       return true;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to install theme: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -77,7 +78,7 @@ class _InstallThemeFromFileDialogState
         });
       }
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
     }
   }
 

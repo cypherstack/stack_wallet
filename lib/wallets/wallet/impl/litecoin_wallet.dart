@@ -287,7 +287,7 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
           // }
         }
       } else {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Unexpected tx found (ignoring it): $txData",
           level: LogLevel.Error,
         );

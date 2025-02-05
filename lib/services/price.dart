@@ -131,7 +131,7 @@ class PriceAPI {
     final externalCalls = Prefs.instance.externalCalls;
     if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "User does not want to use external calls",
         level: LogLevel.Info,
       );
@@ -172,7 +172,7 @@ class PriceAPI {
 
       return _cachedPrices;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getPricesAnd24hChange($baseCurrency): $e\n$s",
         level: LogLevel.Error,
       );
@@ -187,7 +187,7 @@ class PriceAPI {
 
     if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "User does not want to use external calls",
         level: LogLevel.Info,
       );
@@ -208,7 +208,7 @@ class PriceAPI {
       final json = jsonDecode(response.body) as List<dynamic>;
       return List<String>.from(json);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "availableBaseCurrencies() using $uriString: $e\n$s",
         level: LogLevel.Error,
       );
@@ -229,7 +229,7 @@ class PriceAPI {
     final externalCalls = Prefs.instance.externalCalls;
     if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "User does not want to use external calls",
         level: LogLevel.Info,
       );
@@ -273,7 +273,7 @@ class PriceAPI {
 
       return tokenPrices;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddresses): $e\n$s",
         level: LogLevel.Error,
       );

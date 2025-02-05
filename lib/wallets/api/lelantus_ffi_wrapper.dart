@@ -48,7 +48,7 @@ abstract final class LelantusFfiWrapper {
     try {
       return await compute(_restore, args);
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from _restore(): $e\n$s",
         level: LogLevel.Info,
       );

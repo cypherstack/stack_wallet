@@ -237,7 +237,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
                   }
                 }
               } catch (e, s) {
-                Logging.instance.log(
+                Logging.instance.logd(
                   "$e\n$s",
                   level: LogLevel.Fatal,
                 );

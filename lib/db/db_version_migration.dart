@@ -45,7 +45,7 @@ class DbVersionMigrator with WalletDB {
       // safe to skip to v11 for campfire
       fromVersion = 11;
     }
-    Logging.instance.log(
+    Logging.instance.logd(
       "Running migrate fromVersion $fromVersion",
       level: LogLevel.Warning,
     );
@@ -105,7 +105,7 @@ class DbVersionMigrator with WalletDB {
           } catch (e) {
             // default to 2 for now
             latestSetId = 2;
-            Logging.instance.log(
+            Logging.instance.logd(
               "Failed to fetch latest coin id during firo db migrate: $e \nUsing a default value of 2",
               level: LogLevel.Warning,
             );
@@ -765,7 +765,7 @@ class DbVersionMigrator with WalletDB {
 
       // migrate to simple file based logs. Date/time may be out of order
       for (final log in allLogs) {
-        Logging.instance.lg(
+        Logging.instance.log(
           log.logLevel.getLoggerLevel(),
           "MIGRATED LOG::=> ${log.message}",
           time: DateTime.fromMillisecondsSinceEpoch(log.timestampInMillisUTC),

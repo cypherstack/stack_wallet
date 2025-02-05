@@ -83,7 +83,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           privateKey,
         );
       } catch (_) {
-        Logging.instance.log("error bad key", level: LogLevel.Error);
+        Logging.instance.logd("error bad key", level: LogLevel.Error);
         return lelantus.DartLelantusEntry(1, 0, 0, 0, 0, '');
       }
     }).toList();
@@ -153,9 +153,10 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
         chaincode: root.chaincode,
       );
 
-      Logging.instance.log("prepared fee: ${result.fee}", level: LogLevel.Info);
       Logging.instance
-          .log("prepared vSize: ${result.vSize}", level: LogLevel.Info);
+          .logd("prepared fee: ${result.fee}", level: LogLevel.Info);
+      Logging.instance
+          .logd("prepared vSize: ${result.vSize}", level: LogLevel.Info);
 
       // fee should never be less than vSize sanity check
       if (result.fee!.raw.toInt() < result.vSize!) {
@@ -165,7 +166,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       }
       return result;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown in firo prepareSend(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -231,7 +232,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           await mainDB.isar.lelantusCoins.put(jmint);
         });
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "$e\n$s",
           level: LogLevel.Fatal,
         );
@@ -284,7 +285,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       await mainDB.addNewTransactionData(txnsData, walletId);
     } else {
       // This is a mint
-      Logging.instance.log("this is a mint", level: LogLevel.Info);
+      Logging.instance.logd("this is a mint", level: LogLevel.Info);
 
       final List<LelantusCoin> updatedCoins = [];
 
@@ -309,7 +310,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           await mainDB.isar.lelantusCoins.putAll(updatedCoins);
         });
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "$e\n$s",
           level: LogLevel.Fatal,
         );
@@ -432,7 +433,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
           txs[address] = txn;
         } catch (e, s) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "Exception caught in getJMintTransactions(): $e\n$s",
             level: LogLevel.Info,
           );
@@ -441,7 +442,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       }
       return txs;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown in getJMintTransactions(): $e\n$s",
         level: LogLevel.Info,
       );
@@ -470,7 +471,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       }
       return sets;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception rethrown from refreshAnonymitySets: $e\n$s",
         level: LogLevel.Error,
       );
@@ -536,7 +537,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
       final tx = await mainDB.getTransaction(walletId, coin.txid);
       if (tx == null) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Transaction with txid=${coin.txid} not found in local db!",
           level: LogLevel.Error,
         );
@@ -555,7 +556,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           await mainDB.isar.lelantusCoins.putAll(updatedCoins);
         });
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "$e\n$s",
           level: LogLevel.Fatal,
         );
@@ -638,7 +639,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       }
       if (inputTxns.isEmpty) {
         //some error.
-        Logging.instance.log(
+        Logging.instance.logd(
           "cryptic \"//some error\" occurred in staticProcessRestore on lelantus coin: $coin",
           level: LogLevel.Error,
         );
@@ -698,7 +699,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
         await mainDB.isar.lelantusCoins.putAll(result.lelantusCoins);
       });
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "$e\n$s",
         level: LogLevel.Fatal,
       );
@@ -716,7 +717,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     final spendTxs = await getJMintTransactions(
       result.spendTxIds,
     );
-    Logging.instance.log(spendTxs, level: LogLevel.Info);
+    Logging.instance.logd(spendTxs, level: LogLevel.Info);
 
     for (final element in spendTxs.entries) {
       final address = element.value.address.value ??
@@ -841,7 +842,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     }
 
     for (final mintsElement in txData.mintsMapLelantus!) {
-      Logging.instance.log("using $mintsElement", level: LogLevel.Info);
+      Logging.instance.logd("using $mintsElement", level: LogLevel.Info);
       final Uint8List mintu8 =
           Format.stringToUint8List(mintsElement['script'] as String);
       txb.addOutput(mintu8, mintsElement['value'] as int);
@@ -1063,7 +1064,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       try {
         anonymitySets = await fetchAnonymitySets();
       } catch (e, s) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Firo needs better internet to create mints: $e\n$s",
           level: LogLevel.Fatal,
         );
@@ -1087,7 +1088,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       }
 
       if (isUsedMintTag) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Found used index when minting",
           level: LogLevel.Warning,
         );
@@ -1135,7 +1136,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
       unawaited(refresh());
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Exception caught in anonymizeAllLelantus(): $e\n$s",
         level: LogLevel.Warning,
       );
@@ -1171,13 +1172,13 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           .findFirstSync();
 
       if (txn == null) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Transaction not found in DB for lelantus coin: $lelantusCoin",
           level: LogLevel.Fatal,
         );
       } else {
         if (txn.isLelantus != true) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "Bad database state found in ${info.name} $walletId for _refreshBalance lelantus",
             level: LogLevel.Fatal,
           );

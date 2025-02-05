@@ -144,19 +144,19 @@ class Logging {
           ? message.toString()
           : JsonEncoder.withIndent('  ', (o) => o.toString()).convert(message);
 
-  @core.Deprecated("Use Logging.instance.lg instead")
-  void log(
+  @core.Deprecated("Use Logging.instance.log instead")
+  void logd(
     core.Object? object, {
     required LogLevel level,
     core.bool printToConsole = true,
     core.bool printFullLength = false,
   }) =>
-      lg(
+      log(
         level.getLoggerLevel(),
         object,
       );
 
-  void lg(
+  void log(
     Level level,
     dynamic message, {
     DateTime? time,
@@ -191,7 +191,7 @@ class Logging {
     Object? error,
     StackTrace? stackTrace,
   }) =>
-      lg(
+      log(
         Level.trace,
         message,
         time: time,
@@ -205,7 +205,7 @@ class Logging {
     Object? error,
     StackTrace? stackTrace,
   }) =>
-      lg(
+      log(
         Level.debug,
         message,
         time: time,
@@ -219,7 +219,7 @@ class Logging {
     Object? error,
     StackTrace? stackTrace,
   }) =>
-      lg(
+      log(
         Level.info,
         message,
         time: time,
@@ -233,7 +233,7 @@ class Logging {
     Object? error,
     StackTrace? stackTrace,
   }) =>
-      lg(
+      log(
         Level.warning,
         message,
         time: time,
@@ -247,7 +247,7 @@ class Logging {
     Object? error,
     StackTrace? stackTrace,
   }) =>
-      lg(
+      log(
         Level.error,
         message,
         time: time,
@@ -261,7 +261,7 @@ class Logging {
     Object? error,
     StackTrace? stackTrace,
   }) =>
-      lg(
+      log(
         Level.fatal,
         message,
         time: time,

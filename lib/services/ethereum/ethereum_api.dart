@@ -104,7 +104,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getEthTransactions($address): $e\n$s",
         level: LogLevel.Error,
       );
@@ -170,7 +170,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getEthTransactionByHash($txid): $e\n$s",
         level: LogLevel.Error,
       );
@@ -233,7 +233,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getEthTransactionNonces($txns): $e\n$s",
         level: LogLevel.Error,
       );
@@ -291,7 +291,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getEthTokenTransactionsByTxids($txids): $e\n$s",
         level: LogLevel.Error,
       );
@@ -352,7 +352,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getTokenTransactions($address, $tokenContractAddress): $e\n$s",
         level: LogLevel.Error,
       );
@@ -478,7 +478,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getWalletTokenBalance(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -529,7 +529,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getAddressNonce(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -585,7 +585,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getGasOracle(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -643,14 +643,14 @@ abstract class EthereumAPI {
         if (json["data"] is List) {
           if ((json["data"] as List).isEmpty) {
             if (autoNameOnEmpty) {
-              Logging.instance.log(
+              Logging.instance.logd(
                 "getTokenByContractAddress(): Adding token data to server",
                 level: LogLevel.Debug,
               );
               // this will add the missing data to server
               await _addContractInfoToServer(contractAddress);
 
-              Logging.instance.log(
+              Logging.instance.logd(
                 "getTokenByContractAddress(): Adding to server threw so now"
                 "we try a normal fetch again",
                 level: LogLevel.Debug,
@@ -709,7 +709,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getTokenByContractAddress(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -753,7 +753,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getTokenAbi($name, $contractAddress): $e\n$s",
         level: LogLevel.Error,
       );
@@ -798,7 +798,7 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "getProxyTokenImplementationAddress($contractAddress) : $e\n$s",
         level: LogLevel.Error,
       );

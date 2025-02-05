@@ -100,7 +100,7 @@ class CachedElectrumXClient {
         }
         // save set to db
         await box.put(groupId, set);
-        Logging.instance.log(
+        Logging.instance.logd(
           "Updated current anonymity set for ${cryptoCurrency.identifier} with group ID $groupId",
           level: LogLevel.Info,
         );
@@ -108,7 +108,7 @@ class CachedElectrumXClient {
 
       return set;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to process CachedElectrumX.getAnonymitySet(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -162,7 +162,7 @@ class CachedElectrumXClient {
         return Map<String, dynamic>.from(cachedTx);
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to process CachedElectrumX.getTransaction(): $e\n$s",
         level: LogLevel.Error,
       );
@@ -212,7 +212,7 @@ class CachedElectrumXClient {
 
       return resultingList;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to process CachedElectrumX.getUsedCoinSerials(): $e\n$s",
         level: LogLevel.Error,
       );

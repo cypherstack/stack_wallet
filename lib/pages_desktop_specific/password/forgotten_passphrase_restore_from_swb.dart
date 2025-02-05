@@ -271,7 +271,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                         });
                       }
                     } catch (e, s) {
-                      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+                      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
                     }
                   },
                   child: MouseRegion(

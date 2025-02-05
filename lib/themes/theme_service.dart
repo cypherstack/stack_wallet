@@ -77,7 +77,7 @@ class ThemeService {
       if (file.isFile) {
         // TODO more sanitation?
         if (file.name.contains("..")) {
-          Logging.instance.log(
+          Logging.instance.logd(
             "Bad theme asset file path: ${file.name}",
             level: LogLevel.Error,
           );
@@ -110,7 +110,7 @@ class ThemeService {
         await dir.delete(recursive: true);
       }
     } else {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to delete theme $themeId",
         level: LogLevel.Warning,
       );
@@ -142,7 +142,7 @@ class ThemeService {
   }
 
   Future<void> _updateDefaultTheme(String name) async {
-    Logging.instance.log(
+    Logging.instance.logd(
       "Updating default $name theme...",
       level: LogLevel.Info,
     );
@@ -150,7 +150,7 @@ class ThemeService {
     await ThemeService.instance.install(
       themeArchiveData: zip.buffer.asUint8List(),
     );
-    Logging.instance.log(
+    Logging.instance.logd(
       "Updating default $name theme... finished",
       level: LogLevel.Info,
     );
@@ -174,7 +174,7 @@ class ThemeService {
           await Directory("${themesDir.path}/$themeId/assets").exists();
 
       if (!jsonFileExists || !assetsDirExists) {
-        Logging.instance.log(
+        Logging.instance.logd(
           "Theme $themeId found in DB but is missing files",
           level: LogLevel.Warning,
         );
@@ -204,7 +204,7 @@ class ThemeService {
 
       return result;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to fetch themes list: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -236,7 +236,7 @@ class ThemeService {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to fetch themes list: $e\n$s",
         level: LogLevel.Warning,
       );
@@ -279,7 +279,7 @@ class StackThemeMetaData {
         previewImageUrl: map["previewImageUrl"] as String,
       );
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.logd(
         "Failed to create instance of StackThemeMetaData using $map: \n$e\n$s",
         level: LogLevel.Fatal,
       );
