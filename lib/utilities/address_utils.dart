@@ -72,8 +72,12 @@ class AddressUtils {
           result["tx_description"] = Uri.decodeComponent(u.fragment);
         }
       }
-    } catch (e) {
-      print("Exception caught in parseUri($uri): $e");
+    } catch (e, s) {
+      Logging.instance.d(
+        "Exception caught in parseUri($uri): $e",
+        error: e,
+        stackTrace: s,
+      );
     }
     return result;
   }
@@ -199,8 +203,12 @@ class AddressUtils {
     Map<String, dynamic> result = {};
     try {
       result = Map<String, dynamic>.from(jsonDecode(data) as Map);
-    } catch (e) {
-      print("Exception caught in parseQRSeedData($data): $e");
+    } catch (e, s) {
+      Logging.instance.d(
+        "Exception caught in parseQRSeedData($data)",
+        error: e,
+        stackTrace: s,
+      );
     }
     return result;
   }

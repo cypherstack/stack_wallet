@@ -80,7 +80,6 @@ class NanswapExchange extends Exchange {
       }
 
       final t = response.value!;
-      print(t);
 
       return ExchangeResponse(
         value: Trade(

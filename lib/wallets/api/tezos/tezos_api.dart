@@ -51,8 +51,6 @@ abstract final class TezosAPI {
 
       final account = TezosAccount.fromMap(Map<String, dynamic>.from(result));
 
-      print("Get account =================== $account");
-
       return account;
     } catch (e, s) {
       Logging.instance.log(

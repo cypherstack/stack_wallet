@@ -22,6 +22,7 @@ import '../../providers/global/wallets_provider.dart';
 import '../../providers/wallet/my_paynym_account_state_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../desktop/primary_button.dart';
@@ -109,23 +110,25 @@ class _PaynymFollowToggleButtonState
           );
       await Future<void>.delayed(const Duration(milliseconds: 200));
 
-      print("RRR result: $result");
+      Logging.instance.d("PayNym follow result: $result");
     }
 
-    print("Follow result: $result on try $i");
+    Logging.instance.d("Follow result: $result on try $i");
 
     if (result.value!.following == followedAccount.value!.nymID) {
       if (!loadingPopped && mounted) {
         Navigator.of(context, rootNavigator: isDesktop).pop();
       }
 
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.success,
-          message: "You are following ${followedAccount.value!.nymName}",
-          context: context,
-        ),
-      );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "You are following ${followedAccount.value!.nymName}",
+            context: context,
+          ),
+        );
+      }
 
       final myAccount = ref.read(myPaynymAccountStateProvider.state).state!;
 
@@ -150,13 +153,15 @@ class _PaynymFollowToggleButtonState
         Navigator.of(context, rootNavigator: isDesktop).pop();
       }
 
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Failed to follow ${followedAccount.value!.nymName}",
-          context: context,
-        ),
-      );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Failed to follow ${followedAccount.value!.nymName}",
+            context: context,
+          ),
+        );
+      }
 
       return false;
     }
@@ -212,23 +217,25 @@ class _PaynymFollowToggleButtonState
             followedAccount.value!.nonSegwitPaymentCode.code,
           );
       await Future<void>.delayed(const Duration(milliseconds: 200));
-      print("unfollow RRR result: $result");
+      Logging.instance.d("PayNym unfollow result: $result");
     }
 
-    print("Unfollow result: $result on try $i");
+    Logging.instance.d("Unfollow result: $result on try $i");
 
     if (result.value!.unfollowing == followedAccount.value!.nymID) {
       if (!loadingPopped && mounted) {
         Navigator.of(context, rootNavigator: isDesktop).pop();
       }
 
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.success,
-          message: "You have unfollowed ${followedAccount.value!.nymName}",
-          context: context,
-        ),
-      );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "You have unfollowed ${followedAccount.value!.nymName}",
+            context: context,
+          ),
+        );
+      }
 
       final myAccount = ref.read(myPaynymAccountStateProvider.state).state!;
 
@@ -247,13 +254,15 @@ class _PaynymFollowToggleButtonState
         Navigator.of(context, rootNavigator: isDesktop).pop();
       }
 
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Failed to unfollow ${followedAccount.value!.nymName}",
-          context: context,
-        ),
-      );
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Failed to unfollow ${followedAccount.value!.nymName}",
+            context: context,
+          ),
+        );
+      }
 
       return false;
     }
