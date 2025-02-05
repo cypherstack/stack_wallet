@@ -53,6 +53,7 @@ import '../../../../../wallets/isar/models/frost_wallet_info.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
@@ -507,6 +508,10 @@ abstract class SWB {
         case const (EpiccashWallet):
           await (wallet as EpiccashWallet).init(isRestore: true);
           break;
+        
+        case const (MimblewimblecoinWallet):
+          await (wallet as MimblewimblecoinWallet).init(isRestore: true);
+          break;
 
         case const (MoneroWallet):
           await (wallet as MoneroWallet).init(isRestore: true);
@@ -522,7 +527,7 @@ abstract class SWB {
 
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
-        if (wallet is EpiccashWallet || wallet is LibMoneroWallet) {
+        if (wallet is EpiccashWallet  || wallet is MimblewimblecoinWallet || wallet is LibMoneroWallet) {
           restoreHeight = 0;
         } else {
           restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;

@@ -515,6 +515,7 @@ class WalletInfo implements IsarId {
 abstract class WalletInfoKeys {
   static const String tokenContractAddresses = "tokenContractAddressesKey";
   static const String epiccashData = "epiccashDataKey";
+  static const String mimblewimblecoinData = "mimblewimblecoinDataKey";
   static const String bananoMonkeyImageBytes = "monkeyImageBytesKey";
   static const String tezosDerivationPath = "tezosDerivationPathKey";
   static const String lelantusCoinIsarRescanRequired =

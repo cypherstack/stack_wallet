@@ -268,6 +268,54 @@ class AboutView extends ConsumerWidget {
                               );
                             },
                           ),
+                        if (AppConfig.coins
+                            .whereType<Mimblewimblecoin>()
+                            .isNotEmpty)
+                          const SizedBox(
+                            height: 12,
+                          ),
+                        if (AppConfig.coins
+                            .whereType<Mimblewimblecoin>()
+                            .isNotEmpty)
+                          FutureBuilder(
+                            future: GitStatus.getMimblewimblecoinCommitStatus(),
+                            builder: (
+                              context,
+                              AsyncSnapshot<CommitStatus> snapshot,
+                            ) {
+                              CommitStatus stateOfCommit =
+                                  CommitStatus.notLoaded;
+
+                              if (snapshot.connectionState ==
+                                      ConnectionState.done &&
+                                  snapshot.hasData) {
+                                stateOfCommit = snapshot.data!;
+                              }
+
+                              return RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      "Mimblewimblecoin Build Commit",
+                                      style: STextStyles.titleBold12(context),
+                                    ),
+                                    const SizedBox(
+                                      height: 4,
+                                    ),
+                                    SelectableText(
+                                      GitStatus.mimblewimblecoinCommit,
+                                      style: GitStatus.styleForStatus(
+                                        stateOfCommit,
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         if (AppConfig.coins.whereType<Monero>().isNotEmpty)
                           const SizedBox(
                             height: 12,

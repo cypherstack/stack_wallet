@@ -14,6 +14,7 @@ import 'dart:io';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_libepiccash/lib.dart';
+import 'package:flutter_libmwc/lib.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -33,6 +34,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/coins/epiccash.dart';
+import '../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -159,7 +161,7 @@ class _ConfirmTransactionViewState
               break;
           }
         } else {
-          if (coin is Epiccash) {
+          if (coin is Epiccash || coin is Mimblewimblecoin) {
             txDataFuture = wallet.confirmSend(
               txData: widget.txData.copyWith(
                 noteOnChain: onChainNoteController.text,
@@ -578,11 +580,13 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
-                  if (coin is Epiccash && widget.txData.noteOnChain!.isNotEmpty)
+                  if ((coin is Epiccash || coin is Mimblewimblecoin) &&
+                      widget.txData.noteOnChain!.isNotEmpty)
                     const SizedBox(
                       height: 12,
                     ),
-                  if (coin is Epiccash && widget.txData.noteOnChain!.isNotEmpty)
+                  if ((coin is Epiccash || coin is Mimblewimblecoin) &&
+                      widget.txData.noteOnChain!.isNotEmpty)
                     RoundedWhiteContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -611,7 +615,9 @@ class _ConfirmTransactionViewState
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            (coin is Epiccash) ? "Local Note" : "Note",
+                            (coin is Epiccash || coin is Mimblewimblecoin)
+                                ? "Local Note"
+                                : "Note",
                             style: STextStyles.smallMed12(context),
                           ),
                           const SizedBox(
@@ -913,17 +919,17 @@ class _ConfirmTransactionViewState
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (coin is Epiccash)
+                    if (coin is Epiccash || coin is Mimblewimblecoin)
                       Text(
                         "On chain Note (optional)",
                         style: STextStyles.smallMed12(context),
                         textAlign: TextAlign.left,
                       ),
-                    if (coin is Epiccash)
+                    if (coin is Epiccash || coin is Mimblewimblecoin)
                       const SizedBox(
                         height: 8,
                       ),
-                    if (coin is Epiccash)
+                    if (coin is Epiccash || coin is Mimblewimblecoin)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -963,12 +969,12 @@ class _ConfirmTransactionViewState
                           ),
                         ),
                       ),
-                    if (coin is Epiccash)
+                    if (coin is Epiccash || coin is Mimblewimblecoin)
                       const SizedBox(
                         height: 12,
                       ),
                     SelectableText(
-                      (coin is Epiccash)
+                      (coin is Epiccash || coin is Mimblewimblecoin)
                           ? "Local Note (optional)"
                           : "Note (optional)",
                       style:

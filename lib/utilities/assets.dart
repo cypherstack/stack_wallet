@@ -245,6 +245,7 @@ class _SVG {
   String get bitcoincash => "assets/svg/coin_icons/Bitcoincash.svg";
   String get dogecoin => "assets/svg/coin_icons/Dogecoin.svg";
   String get epicCash => "assets/svg/coin_icons/EpicCash.svg";
+  String get mimblewimblecoin => "assets/svg/coin_icons/Mimblewimblecoin.svg";
   String get ethereum => "assets/svg/coin_icons/Ethereum.svg";
   String get firo => "assets/svg/coin_icons/Firo.svg";
   String get monero => "assets/svg/coin_icons/Monero.svg";

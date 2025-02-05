@@ -15,6 +15,7 @@ Highlights include:
     - [Bitcoin Cash](https://bch.info/en/)
     - [Dogecoin](https://dogecoin.com/)
     - [Epic Cash](https://linktr.ee/epiccash)
+    - [MimbleWimbleCoin](https://mwc.mw)
     - [Ethereum](https://ethereum.org/en/)
     - [Firo](https://firo.org/)
     - [Litecoin](https://litecoin.org/)

@@ -40,6 +40,7 @@ import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/enums/txs_method_mwc_enum.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
@@ -75,6 +76,7 @@ import '../../../coin_control/desktop_coin_control_use_dialog.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
 import 'desktop_fee_dropdown.dart';
+import 'desktop_mwc_txs_method_toggle.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -108,6 +110,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   // late TextEditingController feeController;
   late TextEditingController memoController;
 
+
   late final SendViewAutoFillData? _data;
 
   final _addressFocusNode = FocusNode();
@@ -116,7 +119,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _memoFocus = FocusNode();
 
   late final bool isStellar;
+  late final bool isMimblewimblecoin;
 
+  String? _selectedMethodMwc; 
   String? _note;
   String? _onChainNote;
 
@@ -488,6 +493,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               noteOnChain: _onChainNote ?? "",
             );
           }
+          if (coin is Mimblewimblecoin) {
+            txData = txData.copyWith(
+              noteOnChain: _onChainNote ?? "",
+            );
+          }
         }
         // pop building dialog
         Navigator.of(
@@ -790,6 +800,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           if (coin is Epiccash) {
             content = AddressUtils().formatAddress(content);
           }
+          if (coin is Mimblewimblecoin) {
+            content = AddressUtils().formatAddressMwc(content);
+          }
 
           sendToController.text = content;
           _address = content;
@@ -804,6 +817,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
           content = AddressUtils().formatAddress(content);
+        }
+        if (coin is Mimblewimblecoin) {
+          // strip http:// and https:// if content contains @
+          content = AddressUtils().formatAddressMwc(content);
         }
 
         sendToController.text = content;
@@ -951,6 +968,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     clipboard = widget.clipboard;
     scanner = widget.barcodeScanner;
     isStellar = coin is Stellar;
+    isMimblewimblecoin = coin is Mimblewimblecoin;
+    if (isMimblewimblecoin) {
+      _selectedMethodMwc = "Slatepack";
+    }
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1042,6 +1063,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       });
     }
 
+    if (coin is Mimblewimblecoin) {
+      sendToController.addListener(() {
+        _address = sendToController.text;
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = formatAddressMwc(_address!);
+        }
+      });
+    }
+
     final firoType = ref.watch(publicPrivateBalanceStateProvider);
 
     final isExchangeAddress = ref.watch(pIsExchangeAddress);
@@ -1074,6 +1110,32 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         const SizedBox(
           height: 4,
         ),
+        if (isMimblewimblecoin)
+          Padding(
+            padding: const EdgeInsets.all(0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).extension<StackColors>()?.textFieldDefaultBG ?? Colors.white, // Fallback color
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).extension<StackColors>()?.backgroundAppBar ?? Colors.grey, // Fallback color
+                  width: 1,
+                ),
+              ),
+              child: SizedBox(
+                height: 50, // Provide an explicit height to avoid infinite constraints
+                child: MwcTxsMethodToggle(
+                  onChanged: (TxsMethodMwcType type) {
+                    setState(() {
+                      _selectedMethodMwc = type == TxsMethodMwcType.automatic ? 'Slatepack' : 'Automatic';
+                    });
+                  },
+                ),
+              ),
+            ),
+          ),
+        if (isMimblewimblecoin)
+
         if (coin is Firo)
           Text(
             "Send from",
@@ -1198,7 +1260,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-        if (coin is Firo)
+        if (coin is Firo || isMimblewimblecoin)
           const SizedBox(
             height: 20,
           ),
@@ -1715,7 +1777,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           const SizedBox(
             height: 20,
           ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
           ConditionalParent(
             condition: ref.watch(pWallets).getWallet(walletId)
                     is ElectrumXInterface &&
@@ -1771,11 +1836,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               textAlign: TextAlign.left,
             ),
           ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
           const SizedBox(
             height: 10,
           ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
+        if (coin is! NanoCurrency &&
+            coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            coin is! Tezos)
           if (!isCustomFee)
             Padding(
               padding: const EdgeInsets.all(10),
@@ -1979,4 +2050,26 @@ String formatAddress(String epicAddress) {
     epicAddress = epicAddress.substring(0, epicAddress.length - 1);
   }
   return epicAddress;
+}
+
+String formatAddressMwc(String mimblewimblecoinAddress) {
+  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an mwcmqs address)
+  if ((mimblewimblecoinAddress.startsWith("http://") ||
+          mimblewimblecoinAddress.startsWith("https://")) &&
+      mimblewimblecoinAddress.contains("@")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("http://", "");
+    mimblewimblecoinAddress =
+        mimblewimblecoinAddress.replaceAll("https://", "");
+  }
+  // strip mailto: prefix
+  if (mimblewimblecoinAddress.startsWith("mailto:")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("mailto:", "");
+  }
+  // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
+  if (mimblewimblecoinAddress.endsWith("/") &&
+      mimblewimblecoinAddress.contains("@")) {
+    mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
+        0, mimblewimblecoinAddress.length - 1);
+  }
+  return mimblewimblecoinAddress;
 }

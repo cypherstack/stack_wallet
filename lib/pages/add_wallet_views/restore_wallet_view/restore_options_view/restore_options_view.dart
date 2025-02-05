@@ -362,7 +362,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
 
     return Column(
       children: [
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isMoneroAnd25 || widget.coin is Epiccash || widget.coin is Mimblewimblecoin || isWowneroAnd25)
           Text(
             "Choose start date",
             style: Util.isDesktop
@@ -373,20 +373,20 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                 : STextStyles.smallMed12(context),
             textAlign: TextAlign.left,
           ),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isMoneroAnd25 || widget.coin is Epiccash || widget.coin is Mimblewimblecoin || isWowneroAnd25)
           SizedBox(
             height: Util.isDesktop ? 16 : 8,
           ),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isMoneroAnd25 || widget.coin is Epiccash || widget.coin is Mimblewimblecoin || isWowneroAnd25)
           RestoreFromDatePicker(
             onTap: widget.dateChooserFunction,
             controller: widget.dateController,
           ),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isMoneroAnd25 || widget.coin is Epiccash || widget.coin is Mimblewimblecoin || isWowneroAnd25)
           const SizedBox(
             height: 8,
           ),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isMoneroAnd25 || widget.coin is Epiccash || widget.coin is Mimblewimblecoin || isWowneroAnd25)
           RoundedWhiteContainer(
             child: Center(
               child: Text(
@@ -403,7 +403,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
               ),
             ),
           ),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isMoneroAnd25 || widget.coin is Epiccash || widget.coin is Mimblewimblecoin || isWowneroAnd25)
           SizedBox(
             height: Util.isDesktop ? 24 : 16,
           ),

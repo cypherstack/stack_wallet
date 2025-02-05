@@ -311,7 +311,9 @@ class _SendViewState extends ConsumerState<SendView> {
 
       _cryptoAmountChangedFeeUpdateTimer?.cancel();
       _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (coin is! Epiccash && !_baseFocus.hasFocus) {
+        if (coin is! Epiccash &&
+            coin is! Mimblewimblecoin &&
+            !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees(
               amount == null
@@ -332,7 +334,9 @@ class _SendViewState extends ConsumerState<SendView> {
   void _baseAmountChanged() {
     _baseAmountChangedFeeUpdateTimer?.cancel();
     _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (coin is! Epiccash && !_cryptoFocus.hasFocus) {
+      if (coin is! Epiccash &&
+          coin is! Mimblewimblecoin &&
+          !_cryptoFocus.hasFocus) {
         setState(() {
           _calculateFeesFuture = calculateFees(
             ref.read(pSendAmount) == null
@@ -1116,6 +1120,21 @@ class _SendViewState extends ConsumerState<SendView> {
       });
     }
 
+    if (coin is Mimblewimblecoin) {
+      sendToController.addListener(() {
+        _address = sendToController.text.trim();
+
+        if (_address != null && _address!.isNotEmpty) {
+          _address = _address!.trim();
+          if (_address!.contains("\n")) {
+            _address = _address!.substring(0, _address!.indexOf("\n"));
+          }
+
+          sendToController.text = AddressUtils().formatAddress(_address!);
+        }
+      });
+    }
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -1441,6 +1460,14 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       }
 
                                                       if (coin is Epiccash) {
+                                                        // strip http:// and https:// if content contains @
+                                                        content = AddressUtils()
+                                                            .formatAddress(
+                                                          content,
+                                                        );
+                                                      }
+                                                      if (coin
+                                                          is Mimblewimblecoin) {
                                                         // strip http:// and https:// if content contains @
                                                         content = AddressUtils()
                                                             .formatAddress(
@@ -2030,17 +2057,17 @@ class _SendViewState extends ConsumerState<SendView> {
                           const SizedBox(
                             height: 12,
                           ),
-                          if (coin is Epiccash)
+                          if (coin is Epiccash || coin is Mimblewimblecoin)
                             Text(
                               "On chain Note (optional)",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          if (coin is Epiccash)
+                          if (coin is Epiccash || coin is Mimblewimblecoin)
                             const SizedBox(
                               height: 8,
                             ),
-                          if (coin is Epiccash)
+                          if (coin is Epiccash || coin is Mimblewimblecoin)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -2084,12 +2111,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
-                          if (coin is Epiccash)
+                          if (coin is Epiccash || coin is Mimblewimblecoin)
                             const SizedBox(
                               height: 12,
                             ),
                           Text(
-                            (coin is Epiccash)
+                            (coin is Epiccash || coin is Mimblewimblecoin)
                                 ? "Local Note (optional)"
                                 : "Note (optional)",
                             style: STextStyles.smallMed12(context),
@@ -2141,6 +2168,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             height: 12,
                           ),
                           if (coin is! Epiccash &&
+                              coin is! Mimblewimblecoin &&
                               coin is! NanoCurrency &&
                               coin is! Tezos)
                             Text(
@@ -2149,12 +2177,14 @@ class _SendViewState extends ConsumerState<SendView> {
                               textAlign: TextAlign.left,
                             ),
                           if (coin is! Epiccash &&
+                              coin is! Mimblewimblecoin &&
                               coin is! NanoCurrency &&
                               coin is! Tezos)
                             const SizedBox(
                               height: 8,
                             ),
                           if (coin is! Epiccash &&
+                              coin is! Mimblewimblecoin &&
                               coin is! NanoCurrency &&
                               coin is! Tezos)
                             Stack(
