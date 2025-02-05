@@ -367,7 +367,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 children: [
                   if (monke != null)
                     SvgPicture.memory(
-                      Uint8List.fromList(monke!),
+                      Uint8List.fromList(monke),
                       width: 60,
                       height: 60,
                     ),

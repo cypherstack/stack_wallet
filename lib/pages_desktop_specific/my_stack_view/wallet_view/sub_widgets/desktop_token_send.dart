@@ -440,7 +440,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   }
 
   String? _updateInvalidAddressText(String address) {
-    if (_data != null && _data!.contactLabel == address) {
+    if (_data != null && _data.contactLabel == address) {
       return null;
     }
     if (address.isNotEmpty &&
@@ -652,11 +652,11 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     cryptoAmountController.addListener(onCryptoAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+      if (_data.amount != null) {
+        cryptoAmountController.text = _data.amount!.toString();
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address;
+      sendToController.text = _data.contactLabel;
+      _address = _data.address;
       _addressToggleFlag = true;
     }
 

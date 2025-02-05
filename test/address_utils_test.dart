@@ -92,7 +92,7 @@ void main() {
   test("build a uri string with empty params", () {
     expect(
       AddressUtils.buildUriString(
-          Firo(CryptoCurrencyNetwork.main).uriScheme, firoAddress, {}),
+          Firo(CryptoCurrencyNetwork.main).uriScheme, firoAddress, {},),
       "firo:$firoAddress",
     );
   });

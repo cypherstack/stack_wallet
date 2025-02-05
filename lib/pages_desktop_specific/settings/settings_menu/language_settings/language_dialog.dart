@@ -148,7 +148,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                     sliver: SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 32),
+                            vertical: 16, horizontal: 32,),
                         child: Column(
                           children: [
                             Padding(

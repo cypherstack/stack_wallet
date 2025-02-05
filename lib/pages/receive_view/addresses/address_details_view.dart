@@ -435,7 +435,6 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
 class _AddressDetailsTxList extends StatelessWidget {
   const _AddressDetailsTxList({
-    super.key,
     required this.walletId,
     required this.address,
   });
@@ -490,7 +489,6 @@ class _AddressDetailsTxList extends StatelessWidget {
 
 class _AddressDetailsTxV2List extends ConsumerWidget {
   const _AddressDetailsTxV2List({
-    super.key,
     required this.walletId,
     required this.address,
   });
@@ -576,7 +574,6 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
 
 class _Div extends StatelessWidget {
   const _Div({
-    super.key,
     required this.height,
   });
 
@@ -600,7 +597,6 @@ class _Div extends StatelessWidget {
 
 class _Tags extends StatelessWidget {
   const _Tags({
-    super.key,
     required this.tags,
   });
 

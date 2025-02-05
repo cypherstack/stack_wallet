@@ -266,7 +266,6 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
 
 class _Recipient extends StatelessWidget {
   const _Recipient({
-    super.key,
     required this.address,
     required this.amount,
   });

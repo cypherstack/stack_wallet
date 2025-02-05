@@ -146,7 +146,6 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
 
 class _DetailsItemWCopy extends StatelessWidget {
   const _DetailsItemWCopy({
-    super.key,
     required this.title,
     required this.data,
   });
@@ -220,7 +219,6 @@ class _DetailsItemWCopy extends StatelessWidget {
 
 class _OrdinalImageGroup extends ConsumerWidget {
   const _OrdinalImageGroup({
-    super.key,
     required this.walletId,
     required this.ordinal,
   });

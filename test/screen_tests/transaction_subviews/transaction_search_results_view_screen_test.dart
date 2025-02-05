@@ -17,7 +17,7 @@ import 'package:stackwallet/services/locale_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<LocaleService>(),
-])
+],)
 void main() {
 //   testWidgets(
 //       "TransactionSearchResultsView builds correctly without any transactions",

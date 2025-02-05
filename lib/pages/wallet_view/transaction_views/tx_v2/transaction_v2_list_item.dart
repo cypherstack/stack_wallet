@@ -94,7 +94,7 @@ class TxListItem extends ConsumerWidget {
                                             Text(
                                               "Trade details",
                                               style: STextStyles.desktopH3(
-                                                  context),
+                                                  context,),
                                             ),
                                             DesktopDialogCloseButton(
                                               onPressedOverride: Navigator.of(

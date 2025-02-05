@@ -1,8 +1,38 @@
 import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
+/// This file is part of the app configuration for the StackWallet application.
+/// 
+/// The `part` directive is used to include the generated code from `app_config.g.dart`.
+/// This allows for separation of generated code and manually written code,
+/// making the codebase more maintainable and organized.
 part 'app_config.g.dart';
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
+part of 'app_config.dart';
+
+// **************************************************************************
+// AppConfigGenerator
+// **************************************************************************
+
+// Add generated code here
+const _prefix = "StackWallet";
+const _separator = "-";
+const _suffix = "App";
+const _emptyWalletsMessage = "No wallets available.";
+const _appDataDirName = "stackwallet_data";
+const _shortDescriptionText = "StackWallet - Your secure crypto wallet.";
+const _commitHash = "abc123";
+const _features = <AppFeature>{
+  AppFeature.themeSelection,
+  AppFeature.buy,
+  AppFeature.swap,
+};
+const _appIconAsset = (light: "assets/icons/light_icon.png", dark: "assets/icons/dark_icon.png");
+const _supportedCoins = <CryptoCurrency>[
+  // Add supported cryptocurrencies here
+];
+const _swapDefaults = (from: "BTC", to: "ETH");
 enum AppFeature {
   themeSelection,
   buy,

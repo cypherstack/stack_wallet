@@ -83,7 +83,6 @@ class CustomSliverFillViewport extends StatelessWidget {
 class _SliverFillViewportRenderObjectWidget
     extends SliverMultiBoxAdaptorWidget {
   const _SliverFillViewportRenderObjectWidget({
-    super.key,
     required super.delegate,
     this.viewportFraction = 1.0,
   }) : assert(viewportFraction > 0.0);
@@ -340,7 +339,6 @@ class SliverFillRemaining extends StatelessWidget {
 
 class _SliverFillRemainingWithScrollable extends SingleChildRenderObjectWidget {
   const _SliverFillRemainingWithScrollable({
-    super.key,
     super.child,
   });
 
@@ -354,7 +352,6 @@ class _SliverFillRemainingWithScrollable extends SingleChildRenderObjectWidget {
 class _SliverFillRemainingWithoutScrollable
     extends SingleChildRenderObjectWidget {
   const _SliverFillRemainingWithoutScrollable({
-    super.key,
     super.child,
   });
 
@@ -365,7 +362,6 @@ class _SliverFillRemainingWithoutScrollable
 
 class _SliverFillRemainingAndOverscroll extends SingleChildRenderObjectWidget {
   const _SliverFillRemainingAndOverscroll({
-    super.key,
     super.child,
   });
 

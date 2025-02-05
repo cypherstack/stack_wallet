@@ -18,7 +18,7 @@ import 'package:stackwallet/services/node_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<NodeService>(),
-])
+],)
 void main() {
 //   testWidgets("NodeDetailsView non-editing builds correctly", (tester) async {
 //     await tester.pumpWidget(

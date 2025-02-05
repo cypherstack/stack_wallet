@@ -14,7 +14,7 @@ import 'package:stackwallet/services/node_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<NodeService>(),
-])
+],)
 void main() {
 //   testWidgets("NetworkSettingsView builds correctly", (tester) async {
 //     final nodeService = MockNodeService();

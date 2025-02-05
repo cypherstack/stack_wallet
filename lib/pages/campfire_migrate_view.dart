@@ -103,7 +103,7 @@ class CampfireMigrateView extends StatelessWidget {
 }
 
 class _ContinueButtonGroup extends StatefulWidget {
-  const _ContinueButtonGroup({super.key});
+  const _ContinueButtonGroup();
 
   @override
   State<_ContinueButtonGroup> createState() => _ContinueButtonGroupState();
@@ -148,7 +148,6 @@ class _ContinueButtonGroupState extends State<_ContinueButtonGroup> {
 
 class _CampfireWallet extends StatefulWidget {
   const _CampfireWallet({
-    super.key,
     required this.name,
     required this.mnemonic,
   });

@@ -219,7 +219,7 @@ class NotificationsService extends ChangeNotifier {
             // TODO: check non electrumx coins
           }
         }
-      } on NoSuchTransactionException catch (e, s) {
+      } on NoSuchTransactionException catch (e) {
         await _deleteWatchedTxNotification(notification);
       } catch (e, s) {
         Logging.instance.log("$e $s", level: LogLevel.Error);

@@ -15,7 +15,6 @@ import '../../models/isar/models/ethereum/eth_contract.dart';
 import 'ethereum_api.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/logger.dart';
-import '../../wallets/isar/models/token_wallet_info.dart';
 
 class CachedEthTokenBalance {
   final String walletId;

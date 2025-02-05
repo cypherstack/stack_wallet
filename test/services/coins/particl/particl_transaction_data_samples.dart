@@ -39,7 +39,7 @@ final tx1 = Transaction(
     Output(
       scriptpubkeyAddress: "PsHtVuRCybcTpJQN6ckLFptPB7k9ZkqztA",
       value: 9946400,
-    )
+    ),
   ],
 );
 
@@ -93,7 +93,7 @@ final tx3 = Transaction(
     Input(
       txid: "8a2c6a4c0797d057f20f93b5e3b6e5f306493c67b2341626e0375f30f35a2d47",
       vout: 0,
-    )
+    ),
   ],
   outputs: [
     Output(
@@ -150,9 +150,9 @@ final tx1Raw = {
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
         "30440220336bf0952b543314ba37b1bb8866a65b2482b499c715d778e92e90d7d59c6a39022072cae4341ca8825bee8043ae91f18de5776edd069ed228142eca55a16c887d6b01",
-        "026b4ca62de9e8f63abd0a6cf176536fe8e6a64d6343b6396aa9fb35232520e4a7"
+        "026b4ca62de9e8f63abd0a6cf176536fe8e6a64d6343b6396aa9fb35232520e4a7",
       ],
-      "sequence": 4294967293
+      "sequence": 4294967293,
     },
     {
       "txid":
@@ -161,9 +161,9 @@ final tx1Raw = {
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
         "304402205b914f31952958d54f0290d47eef6d9042259387c9493993882e24bd9acefe00022066b16f2f41885a85051c9bff4c119ecddc0209520e9a93d75866624f11b4e82d01",
-        "026b4ca62de9e8f63abd0a6cf176536fe8e6a64d6343b6396aa9fb35232520e4a7"
+        "026b4ca62de9e8f63abd0a6cf176536fe8e6a64d6343b6396aa9fb35232520e4a7",
       ],
-      "sequence": 4294967293
+      "sequence": 4294967293,
     }
   ],
   "vout": [
@@ -178,8 +178,8 @@ final tx1Raw = {
         "hex": "76a914e0923d464a2c30438f0808e4af94868253b63ca088ac",
         "reqSigs": 1,
         "type": "pubkeyhash",
-        "addresses": ["PtQCgwUx9mLmRDWxB3J7MPnNsWDcce7a5g"]
-      }
+        "addresses": ["PtQCgwUx9mLmRDWxB3J7MPnNsWDcce7a5g"],
+      },
     },
     {
       "n": 1,
@@ -192,8 +192,8 @@ final tx1Raw = {
         "hex": "76a914d4686eee8cd127b50d28869627d61b38cc63fe4a88ac",
         "reqSigs": 1,
         "type": "pubkeyhash",
-        "addresses": ["PsHtVuRCybcTpJQN6ckLFptPB7k9ZkqztA"]
-      }
+        "addresses": ["PsHtVuRCybcTpJQN6ckLFptPB7k9ZkqztA"],
+      },
     }
   ],
   "blockhash":
@@ -201,7 +201,7 @@ final tx1Raw = {
   "height": 1299909,
   "confirmations": 15447,
   "time": 1667814832,
-  "blocktime": 1667814832
+  "blocktime": 1667814832,
 };
 
 final tx2Raw = {
@@ -219,9 +219,9 @@ final tx2Raw = {
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
         "30440220486c87376122e2d3ca7154f41a45fdafa2865412ec90e4b3db791915eee1d13002204cca8520a655b43c3cddc216725cc8508cd9b326a39ed99ed893be59167289af01",
-        "03acc7ad6e2e9560db73f7ec7ef2f55a6115d85069cf0eacfe3ab663f33415573c"
+        "03acc7ad6e2e9560db73f7ec7ef2f55a6115d85069cf0eacfe3ab663f33415573c",
       ],
-      "sequence": 4294967293
+      "sequence": 4294967293,
     }
   ],
   "vout": [
@@ -236,8 +236,8 @@ final tx2Raw = {
         "hex": "76a9143024b192883be45b197b548f71155829af98072488ac",
         "reqSigs": 1,
         "type": "pubkeyhash",
-        "addresses": ["PcKLXor8hqb3qSjtoHQThapJSbPapSDt4C"]
-      }
+        "addresses": ["PcKLXor8hqb3qSjtoHQThapJSbPapSDt4C"],
+      },
     },
     {
       "n": 1,
@@ -250,8 +250,8 @@ final tx2Raw = {
         "hex": "76a9147be2f80f6b9f6df740142fb34668c25c4e5c8bd588ac",
         "reqSigs": 1,
         "type": "pubkeyhash",
-        "addresses": ["PjDq9kwadvgKNtQLTdGqcDsFzPmk9LMjT7"]
-      }
+        "addresses": ["PjDq9kwadvgKNtQLTdGqcDsFzPmk9LMjT7"],
+      },
     }
   ],
   "blockhash":
@@ -259,7 +259,7 @@ final tx2Raw = {
   "height": 1301433,
   "confirmations": 13927,
   "time": 1668010880,
-  "blocktime": 1668010880
+  "blocktime": 1668010880,
 };
 
 final tx3Raw = {
@@ -278,9 +278,9 @@ final tx3Raw = {
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
         "304402203535cf570aca7c1acfa6e8d2f43e0b188b76d0b7a75ffca448e6af953ffe8b6302202ea52b312aaaf6d615d722bd92535d1e8b25fa9584a8dbe34dfa1ea9c18105ca01",
-        "038b68078a95f73f8710e8464dec52c61f9e21675ddf69d4f61b93cc417cf73d74"
+        "038b68078a95f73f8710e8464dec52c61f9e21675ddf69d4f61b93cc417cf73d74",
       ],
-      "sequence": 4294967295
+      "sequence": 4294967295,
     },
     {
       "txid":
@@ -289,9 +289,9 @@ final tx3Raw = {
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
         "3044022045268613674326251c46caeaf435081ca753e4ee2018d79480c4930ad7d5e19f022050090a9add82e7272b8206b9d369675e7e9a5f1396fc93490143f0053666102901",
-        "028e2ede901e69887cb80603c8e207839f61a477d59beff17705162a2045dd974e"
+        "028e2ede901e69887cb80603c8e207839f61a477d59beff17705162a2045dd974e",
       ],
-      "sequence": 4294967295
+      "sequence": 4294967295,
     }
   ],
   "vout": [
@@ -303,8 +303,8 @@ final tx3Raw = {
         "hex": "0014756037000a8676334b35368581a29143fc078471",
         "reqSigs": 1,
         "type": "witness_v0_keyhash",
-        "addresses": ["nc1qw4srwqq2semrxje4x6zcrg53g07q0pr3yqv5kr"]
-      }
+        "addresses": ["nc1qw4srwqq2semrxje4x6zcrg53g07q0pr3yqv5kr"],
+      },
     },
     {
       "value": 0.2880577,
@@ -314,8 +314,8 @@ final tx3Raw = {
         "hex": "00148207ee56ed52878d546567f29d17332b85f66e4b",
         "reqSigs": 1,
         "type": "witness_v0_keyhash",
-        "addresses": ["nc1qsgr7u4hd22rc64r9vlef69en9wzlvmjt8dzyrm"]
-      }
+        "addresses": ["nc1qsgr7u4hd22rc64r9vlef69en9wzlvmjt8dzyrm"],
+      },
     }
   ],
   "hex":
@@ -324,7 +324,7 @@ final tx3Raw = {
       "98f388ba99e3b6fc421c23edf3c699ada082b01e5a5d130af7550b7fa6184f2f",
   "confirmations": 147,
   "time": 1663145287,
-  "blocktime": 1663145287
+  "blocktime": 1663145287,
 };
 
 final tx4Raw = {
@@ -342,9 +342,9 @@ final tx4Raw = {
       "scriptSig": {"asm": "", "hex": ""},
       "txinwitness": [
         "304402202e33ab9c5bb6a50c24de9ebfd1b2f398b4c9027787fb9620fda515a25b62ffcf02205e8371aeeda3b3765fa1e2a5c7ebce5dffbf18932012670c1f5266992f9ed9c901",
-        "039ca6c697fed4daf1697f137e7d5b113ff7b6c48ea48d707addd9cfa51889a42a"
+        "039ca6c697fed4daf1697f137e7d5b113ff7b6c48ea48d707addd9cfa51889a42a",
       ],
-      "sequence": 4294967293
+      "sequence": 4294967293,
     }
   ],
   "vout": [
@@ -359,8 +359,8 @@ final tx4Raw = {
         "hex": "76a914b9833ad924ab05567ea2b679a5c523c66a1da6d788ac",
         "reqSigs": 1,
         "type": "pubkeyhash",
-        "addresses": ["PpqgMahyfqfasunUKfkmVfdpyhhrHa2ibY"]
-      }
+        "addresses": ["PpqgMahyfqfasunUKfkmVfdpyhhrHa2ibY"],
+      },
     }
   ],
   "blockhash":
@@ -368,5 +368,5 @@ final tx4Raw = {
   "height": 1314873,
   "confirmations": 493,
   "time": 1669740960,
-  "blocktime": 1669740960
+  "blocktime": 1669740960,
 };

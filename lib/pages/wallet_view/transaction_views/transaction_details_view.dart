@@ -1240,7 +1240,7 @@ class _TransactionDetailsViewState
                                                           context,
                                                         ).copyWith(
                                                           color: Theme.of(
-                                                                  context)
+                                                                  context,)
                                                               .extension<
                                                                   StackColors>()!
                                                               .textDark,
@@ -1317,7 +1317,7 @@ class _TransactionDetailsViewState
                                                           context,
                                                         ).copyWith(
                                                           color: Theme.of(
-                                                                  context)
+                                                                  context,)
                                                               .extension<
                                                                   StackColors>()!
                                                               .textDark,
@@ -1831,7 +1831,7 @@ class _TransactionDetailsViewState
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider({super.key});
+  const _Divider();
 
   @override
   Widget build(BuildContext context) {

@@ -1,7 +1,6 @@
 import 'package:isar/isar.dart';
 
 import '../../../dto/ordinals/inscription_data.dart';
-import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../models/isar/ordinal.dart';
 import '../../../services/litescribe_api.dart';
 import '../../../utilities/logger.dart';

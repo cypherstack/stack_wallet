@@ -286,7 +286,6 @@ class _DesktopChooseFromStackState
 
 class _BalanceDisplay extends ConsumerWidget {
   const _BalanceDisplay({
-    super.key,
     required this.walletId,
   });
 

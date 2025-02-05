@@ -242,7 +242,7 @@ class _RestoreFrostMsWalletViewState
                   });
                 } catch (e, s) {
                   Logging.instance.log("Error processing QR code data: $e\n$s",
-                      level: LogLevel.Error);
+                      level: LogLevel.Error,);
                 }
               },
             );

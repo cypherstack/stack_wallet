@@ -195,8 +195,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
     if (!(wallet is CoinControlInterface && coinControlEnabled) ||
-        (wallet is CoinControlInterface &&
-            coinControlEnabled &&
+        (coinControlEnabled &&
             ref.read(desktopUseUTXOs).isEmpty)) {
       // confirm send all
       if (amount == availableBalance) {
@@ -372,8 +371,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos: (wallet is CoinControlInterface &&
-                          coinControlEnabled &&
+                  utxos: (coinControlEnabled &&
                           ref.read(desktopUseUTXOs).isNotEmpty)
                       ? ref.read(desktopUseUTXOs)
                       : null,
@@ -391,8 +389,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos: (wallet is CoinControlInterface &&
-                          coinControlEnabled &&
+                  utxos: (coinControlEnabled &&
                           ref.read(desktopUseUTXOs).isNotEmpty)
                       ? ref.read(desktopUseUTXOs)
                       : null,
@@ -626,7 +623,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = (amount!.decimal * price)
+          final String fiatAmountString = (amount.decimal * price)
               .toAmount(fractionDigits: 2)
               .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
@@ -860,7 +857,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           .log("it changed $amount $_cachedAmountToSend", level: LogLevel.Info);
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
-            amount!,
+            amount,
             withUnitName: false,
           );
 
@@ -960,11 +957,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.addListener(onCryptoAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+      if (_data.amount != null) {
+        cryptoAmountController.text = _data.amount!.toString();
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address;
+      sendToController.text = _data.contactLabel;
+      _address = _data.address;
       _addressToggleFlag = true;
     }
 
@@ -1584,9 +1581,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 error = null;
               } else if (coin is Firo) {
                 if (firoType == FiroType.lelantus) {
-                  if (_data != null && _data!.contactLabel == _address) {
+                  if (_data != null && _data.contactLabel == _address) {
                     error = SparkInterface.validateSparkAddress(
-                      address: _data!.address,
+                      address: _data.address,
                       isTestNet: coin.network.isTestNet,
                     )
                         ? "Lelantus to Spark not supported"
@@ -1599,7 +1596,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         : "Invalid address";
                   }
                 } else {
-                  if (_data != null && _data!.contactLabel == _address) {
+                  if (_data != null && _data.contactLabel == _address) {
                     error = null;
                   } else if (!ref.watch(pValidSendToAddress) &&
                       !ref.watch(pValidSparkSendToAddress)) {
@@ -1609,7 +1606,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   }
                 }
               } else {
-                if (_data != null && _data!.contactLabel == _address) {
+                if (_data != null && _data.contactLabel == _address) {
                   error = null;
                 } else if (!ref.watch(pValidSendToAddress)) {
                   error = "Invalid address";

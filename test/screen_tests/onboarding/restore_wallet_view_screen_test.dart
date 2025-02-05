@@ -22,11 +22,11 @@ import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 // import 'restore_wallet_view_screen_test.mocks.dart';
 
 @GenerateMocks([
-  BarcodeScannerWrapper
+  BarcodeScannerWrapper,
 ], customMocks: [
   MockSpec<WalletsService>(),
   MockSpec<NodeService>(),
-])
+],)
 void main() {
 //   testWidgets("RestoreWalletView builds correctly", (tester) async {
 //     await tester.pumpWidget(

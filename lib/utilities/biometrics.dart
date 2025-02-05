@@ -50,7 +50,7 @@ class Biometrics {
     // debugPrint("isDeviceSupported: $isDeviceSupported");
 
     if (canCheckBiometrics && isDeviceSupported) {
-      List<BiometricType> availableSystems =
+      final List<BiometricType> availableSystems =
           await localAuth.getAvailableBiometrics();
 
       Logging.instance.log(

@@ -669,7 +669,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
         if (index >= someSaneMaximum) {
           throw Exception(
-              "index < kFrostSecureStartingIndex hit someSaneMaximum");
+              "index < kFrostSecureStartingIndex hit someSaneMaximum",);
         }
       } else {
         Logging.instance.log(

@@ -110,21 +110,19 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       );
     }
 
-    if (contract != null) {
-      await MainDB.instance.putEthContract(contract);
-      unawaited(ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
-      if (mounted) {
-        setState(() {
-          if (tokenEntities
-              .where((e) => e.token.address == contract!.address)
-              .isEmpty) {
-            tokenEntities.add(EthTokenEntity(contract!));
-            tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
-          }
-        });
-      }
+    await MainDB.instance.putEthContract(contract);
+    unawaited(ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
+    if (mounted) {
+      setState(() {
+        if (tokenEntities
+            .where((e) => e.token.address == contract!.address)
+            .isEmpty) {
+          tokenEntities.add(EthTokenEntity(contract!));
+          tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+        }
+      });
     }
-  }
+    }
 
   @override
   void initState() {

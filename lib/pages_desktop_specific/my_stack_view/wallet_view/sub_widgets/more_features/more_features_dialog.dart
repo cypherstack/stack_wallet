@@ -437,7 +437,6 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
 
 class _MoreFeaturesItem extends StatefulWidget {
   const _MoreFeaturesItem({
-    super.key,
     required this.label,
     required this.detail,
     required this.iconAsset,
@@ -516,7 +515,6 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
 
 class _MoreFeaturesItemBase extends StatelessWidget {
   const _MoreFeaturesItemBase({
-    super.key,
     required this.child,
     this.onPressed,
   });
@@ -544,7 +542,6 @@ class _MoreFeaturesItemBase extends StatelessWidget {
 
 class _MoreFeaturesClearSparkCacheItem extends StatefulWidget {
   const _MoreFeaturesClearSparkCacheItem({
-    super.key,
     required this.cryptoCurrency,
   });
 

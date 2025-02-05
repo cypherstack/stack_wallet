@@ -19,7 +19,7 @@ void main() {
     await Hive.openBox<dynamic>(DB.boxNamePriceCache);
     await Hive.openBox<dynamic>(DB.boxNamePrefs);
     await DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs, key: "externalCalls", value: true);
+        boxName: DB.boxNamePrefs, key: "externalCalls", value: true,);
   });
 
   test("getPricesAnd24hChange fetch", () async {
@@ -34,8 +34,8 @@ void main() {
             "&order=market_cap_desc&per_page=50"
             "&page=1&sparkline=false"),
         headers: {
-          'Content-Type': 'application/json'
-        })).thenAnswer((_) async => Response(
+          'Content-Type': 'application/json',
+        },),).thenAnswer((_) async => Response(
         utf8.encode(
             '[{"id":"bitcoin","symbol":"btc","name":"Bitcoin","image":"https://asse'
             'ts.coingecko.com/coins/images/1/large/bitcoin.png?1547033579","curr'
@@ -94,7 +94,7 @@ void main() {
             ',"ath_date":"2021-12-11T08:39:41.129Z","atl":5.74028e-07,"atl_chang'
             'e_percentage":4783.08078,"atl_date":"2020-03-13T16:55:01.177Z","roi'
             '":null,"last_updated":"2022-08-22T16:38:32.826Z"}]'),
-        200));
+        200,),);
 
     final priceAPI = PriceAPI(client);
     priceAPI.resetLastCalledToForceNextCallToUpdateCache();
@@ -137,7 +137,7 @@ void main() {
           ",tezos"
           "&order=market_cap_desc&per_page=50&page=1&sparkline=false",
         ),
-        headers: {'Content-Type': 'application/json'})).called(1);
+        headers: {'Content-Type': 'application/json'},),).called(1);
 
     verifyNoMoreInteractions(client);
   });
@@ -154,8 +154,8 @@ void main() {
             ",tezos"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
-          'Content-Type': 'application/json'
-        })).thenAnswer((_) async => Response(
+          'Content-Type': 'application/json',
+        },),).thenAnswer((_) async => Response(
         utf8.encode(
             '[{"id":"bitcoin","symbol":"btc","name":"Bitcoin","image":"https://a'
             'ssets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579","c'
@@ -214,7 +214,7 @@ void main() {
             'e":-79.75864,"ath_date":"2021-12-11T08:39:41.129Z","atl":5.74028e-0'
             '7,"atl_change_percentage":4783.08078,"atl_date":"2020-03-13T16:55:01'
             '.177Z","roi":null,"last_updated":"2022-08-22T16:38:32.826Z"}]'),
-        200));
+        200,),);
 
     final priceAPI = PriceAPI(client);
     priceAPI.resetLastCalledToForceNextCallToUpdateCache();
@@ -260,7 +260,7 @@ void main() {
             "bitcoin-cash,namecoin,wownero,ethereum,particl,nano,banano,stellar"
             ",tezos"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
-        headers: {'Content-Type': 'application/json'})).called(1);
+        headers: {'Content-Type': 'application/json'},),).called(1);
 
     verifyNoMoreInteractions(client);
   });
@@ -277,8 +277,8 @@ void main() {
             ",tezos"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
-          'Content-Type': 'application/json'
-        })).thenAnswer((_) async => Response(
+          'Content-Type': 'application/json',
+        },),).thenAnswer((_) async => Response(
         utf8.encode(
             '[{"id":"bitcoin","symbol":"btc","name":com/coins/images/1/large/'
             'bitcoin.png?1547033579","current_price":1.0,"market_cap":19128800'
@@ -338,7 +338,7 @@ void main() {
             'ntage":-79.75864,"ath_date":"2021-12-11T08:39:41.129Z","atl":5.74'
             '028e-07,"atl_change_percentage":4783.08078,"atl_date":"2020-03-13T'
             '16:55:01.177Z","roi":null,"last_updated":"2022-08-22T16:38:32.826Z"}]'),
-        200));
+        200,),);
 
     final priceAPI = PriceAPI(client);
     priceAPI.resetLastCalledToForceNextCallToUpdateCache();
@@ -385,9 +385,9 @@ void main() {
             ",tezos"
             "&order=market_cap_desc&per_page=50&page=1&sparkline=false"),
         headers: {
-          'Content-Type': 'application/json'
-        })).thenThrow(const SocketException(
-        "Failed host lookup: 'api.com' (OS Error: Temporary failure in name resolution, errno = -3)"));
+          'Content-Type': 'application/json',
+        },),).thenThrow(const SocketException(
+        "Failed host lookup: 'api.com' (OS Error: Temporary failure in name resolution, errno = -3)",),);
 
     final priceAPI = PriceAPI(client);
     priceAPI.resetLastCalledToForceNextCallToUpdateCache();

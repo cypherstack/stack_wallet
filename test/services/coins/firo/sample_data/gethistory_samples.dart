@@ -5,12 +5,12 @@ abstract class SampleGetHistoryData {
     {
       "tx_hash":
           "76032a2408e7fefd62a0c7e793f93a2984621e37a625cc1f9e8febadbe583a40",
-      "height": 455866
+      "height": 455866,
     },
     {
       "tx_hash":
           "36c92daa4005d368e28cea917fdb2c1e7069319a4a79fb2ff45c089100680232",
-      "height": 455876
+      "height": 455876,
     }
   ];
 
@@ -20,27 +20,27 @@ abstract class SampleGetHistoryData {
     {
       "tx_hash":
           "9201d7a58185f000c312a8b0c19d8e5c61c1ce1b69201c1a4dc2bce289794280",
-      "height": 457339
+      "height": 457339,
     },
     {
       "tx_hash":
           "ea77e74edecd8c14ff5a8ddeb54e9e5e9c7c301c6f76f0ac1ac8119c6cc15e35",
-      "height": 457341
+      "height": 457341,
     },
     {
       "tx_hash":
           "ac0322cfdd008fa2a79bec525468fd05cf51a5a4e2c2e9c15598b659ec71ac68",
-      "height": 457373
+      "height": 457373,
     },
     {
       "tx_hash":
           "e8e4bfc080bd6133d38263d2ac7ef6f60dfd73eb29b464e34766ebb5a0d27dd8",
-      "height": 457376
+      "height": 457376,
     },
     {
       "tx_hash":
           "51576e2230c2911a508aabb85bb50045f04b8dc958790ce2372986c3ebbe7d3e",
-      "height": 457379
+      "height": 457379,
     },
   ];
 
@@ -65,39 +65,39 @@ final Map<String, List<Map<String, dynamic>>> batchHistoryResponse0 = {
     {
       "tx_hash":
           "76032a2408e7fefd62a0c7e793f93a2984621e37a625cc1f9e8febadbe583a40",
-      "height": 455866
+      "height": 455866,
     },
     {
       "tx_hash":
           "36c92daa4005d368e28cea917fdb2c1e7069319a4a79fb2ff45c089100680232",
-      "height": 455876
+      "height": 455876,
     }
   ],
   "1": [
     {
       "tx_hash":
           "9201d7a58185f000c312a8b0c19d8e5c61c1ce1b69201c1a4dc2bce289794280",
-      "height": 457339
+      "height": 457339,
     },
     {
       "tx_hash":
           "ea77e74edecd8c14ff5a8ddeb54e9e5e9c7c301c6f76f0ac1ac8119c6cc15e35",
-      "height": 457341
+      "height": 457341,
     },
     {
       "tx_hash":
           "ac0322cfdd008fa2a79bec525468fd05cf51a5a4e2c2e9c15598b659ec71ac68",
-      "height": 457373
+      "height": 457373,
     },
     {
       "tx_hash":
           "e8e4bfc080bd6133d38263d2ac7ef6f60dfd73eb29b464e34766ebb5a0d27dd8",
-      "height": 457376
+      "height": 457376,
     },
     {
       "tx_hash":
           "51576e2230c2911a508aabb85bb50045f04b8dc958790ce2372986c3ebbe7d3e",
-      "height": 457379
+      "height": 457379,
     },
   ],
   "2": [],

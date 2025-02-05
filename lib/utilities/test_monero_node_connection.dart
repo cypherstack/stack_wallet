@@ -76,7 +76,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       print("Request sent: $request");
 
       final buffer = StringBuffer();
-      await for (var response in socket.inputStream) {
+      await for (final response in socket.inputStream) {
         buffer.write(utf8.decode(response));
         if (buffer.toString().contains("\r\n\r\n")) {
           break;

@@ -20,7 +20,7 @@ void main() {
           color: null,
           fontWeight: FontWeight.w500,
           fontSize: 14,
-        ));
+        ),);
     await widgetTester.pumpWidget(
       MaterialApp(
         theme: ThemeData(

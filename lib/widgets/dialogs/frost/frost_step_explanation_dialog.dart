@@ -18,7 +18,7 @@ class FrostStepExplanationDialog extends StatelessWidget {
   final String title;
   final String body;
   const FrostStepExplanationDialog(
-      {super.key, required this.title, required this.body});
+      {super.key, required this.title, required this.body,});
 
   @override
   Widget build(BuildContext context) {

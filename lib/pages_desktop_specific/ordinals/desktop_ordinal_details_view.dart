@@ -336,7 +336,7 @@ class _DesktopOrdinalDetailsViewState
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider({super.key});
+  const _Divider();
 
   @override
   Widget build(BuildContext context) {
@@ -354,7 +354,6 @@ class _Divider extends StatelessWidget {
 
 class _DetailsItemWCopy extends StatelessWidget {
   const _DetailsItemWCopy({
-    super.key,
     required this.title,
     required this.data,
   });

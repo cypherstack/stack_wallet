@@ -342,7 +342,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   }
 
   String? _updateInvalidAddressText(String address) {
-    if (_data != null && _data!.contactLabel == address) {
+    if (_data != null && _data.contactLabel == address) {
       return null;
     }
     if (address.isNotEmpty &&
@@ -609,11 +609,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+      if (_data.amount != null) {
+        cryptoAmountController.text = _data.amount!.toString();
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address.trim();
+      sendToController.text = _data.contactLabel;
+      _address = _data.address.trim();
       _addressToggleFlag = true;
     }
 

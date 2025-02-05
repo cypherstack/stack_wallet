@@ -116,21 +116,21 @@ void main() {
       );
 
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+          (widget) => widget is NumberKey && widget.number == "1",),);
       await tester.pumpAndSettle();
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "2"));
+          (widget) => widget is NumberKey && widget.number == "2",),);
       await tester.pumpAndSettle();
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "6"));
+          (widget) => widget is NumberKey && widget.number == "6",),);
       await tester.pumpAndSettle();
       await tester.tap(find.byType(BackspaceKey));
       await tester.pumpAndSettle();
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "3"));
+          (widget) => widget is NumberKey && widget.number == "3",),);
       await tester.pumpAndSettle();
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "4"));
+          (widget) => widget is NumberKey && widget.number == "4",),);
       await tester.pumpAndSettle();
       await tester.tap(find.byType(SubmitKey));
       await tester.pumpAndSettle();
@@ -164,7 +164,7 @@ void main() {
       );
 
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+          (widget) => widget is NumberKey && widget.number == "1",),);
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -199,7 +199,7 @@ void main() {
       );
 
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+          (widget) => widget is NumberKey && widget.number == "1",),);
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -234,7 +234,7 @@ void main() {
       );
 
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+          (widget) => widget is NumberKey && widget.number == "1",),);
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -393,7 +393,7 @@ void main() {
       );
 
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+          (widget) => widget is NumberKey && widget.number == "1",),);
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -434,7 +434,7 @@ void main() {
       );
 
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+          (widget) => widget is NumberKey && widget.number == "1",),);
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -475,7 +475,7 @@ void main() {
       );
 
       await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+          (widget) => widget is NumberKey && widget.number == "1",),);
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 

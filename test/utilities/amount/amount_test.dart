@@ -111,7 +111,7 @@ void main() {
     test("fromSerializedJsonString", () {
       expect(
         Amount.fromSerializedJsonString(
-            '{"raw":"200000000","fractionDigits":8}'),
+            '{"raw":"200000000","fractionDigits":8}',),
         Amount.fromDecimal(Decimal.parse("2"), fractionDigits: 8),
       );
     });
@@ -181,11 +181,11 @@ void main() {
       expect(
           Amount(rawValue: BigInt.from(3), fractionDigits: 0) +
               Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(-2), fractionDigits: 0));
+          Amount(rawValue: BigInt.from(-2), fractionDigits: 0),);
       expect(
           Amount(rawValue: BigInt.from(-3), fractionDigits: 0) +
               Amount(rawValue: BigInt.from(6), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(3), fractionDigits: 0));
+          Amount(rawValue: BigInt.from(3), fractionDigits: 0),);
     });
 
     test("-", () {
@@ -195,11 +195,11 @@ void main() {
       expect(
           Amount(rawValue: BigInt.from(3), fractionDigits: 0) -
               Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(8), fractionDigits: 0));
+          Amount(rawValue: BigInt.from(8), fractionDigits: 0),);
       expect(
           Amount(rawValue: BigInt.from(-3), fractionDigits: 0) -
               Amount(rawValue: BigInt.from(6), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(-9), fractionDigits: 0));
+          Amount(rawValue: BigInt.from(-9), fractionDigits: 0),);
     });
 
     test("*", () {
@@ -209,11 +209,11 @@ void main() {
       expect(
           Amount(rawValue: BigInt.from(3), fractionDigits: 0) *
               Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(-15), fractionDigits: 0));
+          Amount(rawValue: BigInt.from(-15), fractionDigits: 0),);
       expect(
           Amount(rawValue: BigInt.from(-3), fractionDigits: 0) *
               Amount(rawValue: BigInt.from(-6), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(18), fractionDigits: 0));
+          Amount(rawValue: BigInt.from(18), fractionDigits: 0),);
     });
   });
 }

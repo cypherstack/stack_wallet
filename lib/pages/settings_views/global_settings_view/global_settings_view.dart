@@ -213,12 +213,12 @@ class GlobalSettingsView extends StatelessWidget {
                                   },
                                 ),
                                 if (AppConfig.hasFeature(
-                                    AppFeature.themeSelection))
+                                    AppFeature.themeSelection,))
                                   const SizedBox(
                                     height: 8,
                                   ),
                                 if (AppConfig.hasFeature(
-                                    AppFeature.themeSelection))
+                                    AppFeature.themeSelection,))
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.sun,
                                     iconSize: 18,

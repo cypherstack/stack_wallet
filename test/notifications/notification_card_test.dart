@@ -43,7 +43,7 @@ void main() {
           walletId: "wallet id",
           read: true,
           shouldWatchForUpdates: true,
-          coinName: "Bitcoin"),
+          coinName: "Bitcoin",),
     );
 
     await widgetTester.pumpWidget(
@@ -52,7 +52,7 @@ void main() {
           pThemeService.overrideWithValue(mockThemeService),
           coinIconProvider.overrideWithProvider(
             (argument) => Provider<String>((_) =>
-                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",),
           ),
         ],
         child: MaterialApp(

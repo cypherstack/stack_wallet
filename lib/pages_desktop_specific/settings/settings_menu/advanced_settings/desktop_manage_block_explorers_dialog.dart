@@ -140,7 +140,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
 }
 
 class _DesktopEditBlockExplorerDialog extends ConsumerStatefulWidget {
-  const _DesktopEditBlockExplorerDialog({super.key, required this.coin});
+  const _DesktopEditBlockExplorerDialog({required this.coin});
 
   final CryptoCurrency coin;
 

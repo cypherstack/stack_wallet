@@ -17,7 +17,7 @@ void main() {
 
     await expectLater(
         () async => await wrapper.write(key: "testKey", value: "some value"),
-        returnsNormally);
+        returnsNormally,);
 
     verify(secureStore.write(key: "testKey", value: "some value")).called(1);
     verifyNoMoreInteractions(secureStore);
@@ -43,7 +43,7 @@ void main() {
     final wrapper = SecureStorageWrapper(store: secureStore, isDesktop: false);
 
     await expectLater(
-        () async => await wrapper.delete(key: "testKey"), returnsNormally);
+        () async => await wrapper.delete(key: "testKey"), returnsNormally,);
 
     verify(secureStore.delete(key: "testKey")).called(1);
     verifyNoMoreInteractions(secureStore);

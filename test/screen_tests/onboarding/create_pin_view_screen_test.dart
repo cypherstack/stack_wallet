@@ -20,7 +20,7 @@ import 'package:stackwallet/services/wallets_service.dart';
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(),
   MockSpec<NodeService>(),
-])
+],)
 void main() {
 //   testWidgets("CreatePinView builds correctly", (tester) async {
 //     await tester.pumpWidget(

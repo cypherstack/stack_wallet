@@ -246,7 +246,7 @@ class PrivacyAndTOSText extends StatelessWidget {
         style: STextStyles.label(context).copyWith(fontSize: fontSize),
         children: [
           const TextSpan(
-              text: "By using ${AppConfig.appName}, you agree to the "),
+              text: "By using ${AppConfig.appName}, you agree to the ",),
           TextSpan(
             text: "Terms of service",
             style: STextStyles.richLink(context).copyWith(fontSize: fontSize),

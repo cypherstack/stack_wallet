@@ -11,7 +11,7 @@ import 'package:stackwallet/utilities/prefs.dart';
   LocaleService,
   ThemeService,
   Prefs,
-], customMocks: [])
+], customMocks: [],)
 void main() {
   // testWidgets("Send to valid address", (widgetTester) async {
   //   final mockWallets = MockWallets();

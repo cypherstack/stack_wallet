@@ -79,7 +79,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
       }
 
       // hack to not show lelantus balance in ui if zero
-      if (balanceSecondary?.spendable.raw == BigInt.zero) {
+      if (balanceSecondary.spendable.raw == BigInt.zero) {
         balanceSecondary = null;
       }
     }

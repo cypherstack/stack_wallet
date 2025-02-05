@@ -38,10 +38,10 @@ void main() {
               isDown: false,
               torEnabled: true,
               clearnetEnabled: true,
-            ));
+            ),);
 
     when(mockNodeService.getPrimaryNodeFor(
-            currency: Bitcoin(CryptoCurrencyNetwork.main)))
+            currency: Bitcoin(CryptoCurrencyNetwork.main),),)
         .thenAnswer((realInvocation) => NodeModel(
             host: "127.0.0.1",
             port: 2000,
@@ -53,14 +53,14 @@ void main() {
             isFailover: false,
             torEnabled: true,
             clearnetEnabled: true,
-            isDown: false));
+            isDown: false,),);
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           pWallets.overrideWithValue(mockWallets),
           prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
-          nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService)
+          nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService),
         ],
         child: MaterialApp(
           theme: ThemeData(
@@ -75,7 +75,7 @@ void main() {
           home: NodeOptionsSheet(
               nodeId: "node id",
               coin: Bitcoin(CryptoCurrencyNetwork.main),
-              popBackToRoute: ""),
+              popBackToRoute: "",),
         ),
       ),
     );
@@ -89,7 +89,7 @@ void main() {
     expect(find.text("Connect"), findsOneWidget);
 
     verify(mockNodeService.getPrimaryNodeFor(
-            currency: Bitcoin(CryptoCurrencyNetwork.main)))
+            currency: Bitcoin(CryptoCurrencyNetwork.main),),)
         .called(1);
     verify(mockNodeService.getNodeById(id: "node id")).called(1);
     verify(mockNodeService.addListener(any)).called(1);
@@ -120,7 +120,7 @@ void main() {
     );
 
     when(mockNodeService.getPrimaryNodeFor(
-            currency: Bitcoin(CryptoCurrencyNetwork.main)))
+            currency: Bitcoin(CryptoCurrencyNetwork.main),),)
         .thenAnswer(
       (_) => NodeModel(
         host: "127.0.0.1",
@@ -201,7 +201,7 @@ void main() {
     );
 
     when(mockNodeService.getPrimaryNodeFor(
-            currency: Bitcoin(CryptoCurrencyNetwork.main)))
+            currency: Bitcoin(CryptoCurrencyNetwork.main),),)
         .thenAnswer(
       (_) => NodeModel(
         host: "127.0.0.1",

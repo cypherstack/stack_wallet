@@ -95,7 +95,6 @@ class StepRow extends StatelessWidget {
 
 class _SpacerRow extends StatelessWidget {
   const _SpacerRow({
-    super.key,
     required this.width,
     required this.dotSize,
     required this.spacing,
@@ -135,7 +134,6 @@ class _SpacerRow extends StatelessWidget {
 
 class _SpacerDot extends StatelessWidget {
   const _SpacerDot({
-    super.key,
     required this.color,
     this.size = 1.5,
   });

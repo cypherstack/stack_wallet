@@ -271,7 +271,7 @@ class DashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     Map<String, dynamic> jsonTX,
     String? utxoOwnerAddress,
   ) async {
-    bool blocked = false;
+    final bool blocked = false;
     String? blockedReason;
 
     // // check for bip47 notification

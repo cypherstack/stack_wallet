@@ -1,7 +1,6 @@
 import 'package:isar/isar.dart';
 
 import '../db/isar/main_db.dart';
-import '../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'amount/amount.dart';
 import 'amount/amount_formatter.dart';

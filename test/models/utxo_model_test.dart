@@ -13,7 +13,7 @@ void main() {
       );
 
       expect(status.toString(),
-          "{confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 1}");
+          "{confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 1}",);
     });
 
     test("Status.fromJson factory", () {
@@ -25,7 +25,7 @@ void main() {
       });
 
       expect(status.toString(),
-          "{confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 0}");
+          "{confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 0}",);
     });
   });
 
@@ -49,9 +49,9 @@ void main() {
       );
 
       expect(utxoObject.toString(),
-          "{txid: some txid, vout: 1, value: 1000, fiat: 2, blocked: false, status: {confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 1}, is_coinbase: false}");
+          "{txid: some txid, vout: 1, value: 1000, fiat: 2, blocked: false, status: {confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 1}, is_coinbase: false}",);
       expect(utxoObject.status.toString(),
-          "{confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 1}");
+          "{confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 1}",);
     });
 
     test("UtxoObject.fromJson factory", () {
@@ -65,13 +65,13 @@ void main() {
           "block_hash": "some block hash",
           "block_height": 67254372,
           "block_time": 87263547764,
-        }
+        },
       });
 
       expect(utxoObject.toString(),
-          "{txid: some txid, vout: 1, value: 1000, fiat: 2, blocked: false, status: {confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 0}, is_coinbase: false}");
+          "{txid: some txid, vout: 1, value: 1000, fiat: 2, blocked: false, status: {confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 0}, is_coinbase: false}",);
       expect(utxoObject.status.toString(),
-          "{confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 0}");
+          "{confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 0}",);
     });
   });
 
@@ -86,7 +86,7 @@ void main() {
       );
 
       expect(utxoData.toString(),
-          "{totalUserCurrency: 100.0, satoshiBalance: 100000000, bitcoinBalance: 2, unspentOutputArray: []}");
+          "{totalUserCurrency: 100.0, satoshiBalance: 100000000, bitcoinBalance: 2, unspentOutputArray: []}",);
     });
 
     test("UtxoData.fromJson factory", () {
@@ -105,7 +105,7 @@ void main() {
               "block_hash": "some block hash",
               "block_height": 67254372,
               "block_time": 87263547764,
-            }
+            },
           },
           {
             "txid": "some txid2",
@@ -117,13 +117,13 @@ void main() {
               "block_hash": "some block hash",
               "block_height": 2836375,
               "block_time": 5634236123,
-            }
+            },
           }
         ],
       });
 
       expect(utxoData.toString(),
-          "{totalUserCurrency: 100.0, satoshiBalance: 100000000, bitcoinBalance: 1, unspentOutputArray: [{txid: some txid, vout: 1, value: 1000, fiat: 2, blocked: false, status: {confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 0}, is_coinbase: false}, {txid: some txid2, vout: 0, value: 100, fiat: 1, blocked: false, status: {confirmed: false, blockHash: some block hash, blockHeight: 2836375, blockTime: 5634236123, confirmations: 0}, is_coinbase: false}]}");
+          "{totalUserCurrency: 100.0, satoshiBalance: 100000000, bitcoinBalance: 1, unspentOutputArray: [{txid: some txid, vout: 1, value: 1000, fiat: 2, blocked: false, status: {confirmed: true, blockHash: some block hash, blockHeight: 67254372, blockTime: 87263547764, confirmations: 0}, is_coinbase: false}, {txid: some txid2, vout: 0, value: 100, fiat: 1, blocked: false, status: {confirmed: false, blockHash: some block hash, blockHeight: 2836375, blockTime: 5634236123, confirmations: 0}, is_coinbase: false}]}",);
     });
   });
 }

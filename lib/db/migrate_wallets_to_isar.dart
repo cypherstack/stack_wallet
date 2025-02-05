@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:isar/isar.dart';
 
 import '../app_config.dart';
-import '../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../models/isar/models/isar_models.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';

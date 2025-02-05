@@ -17,7 +17,7 @@ void main() {
           color: Colors.green,
           spreadRadius: 1.0,
           blurRadius: 2.0,
-        )
+        ),
       ],
     );
 

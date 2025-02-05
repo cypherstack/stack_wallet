@@ -90,7 +90,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
           address: address,
           amount: Amount(
               rawValue: output.value,
-              fractionDigits: cryptoCurrency.fractionDigits),
+              fractionDigits: cryptoCurrency.fractionDigits,),
           isChange: isChange,
         ),
       );

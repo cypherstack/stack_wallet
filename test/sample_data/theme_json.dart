@@ -14,7 +14,7 @@ const Map<String, dynamic> lightThemeJsonMap = {
       "monero": "0xFFFF9E6B",
       "namecoin": "0xFF91B1E1",
       "wownero": "0xFFED80C1",
-      "particl": "0xFF8175BD"
+      "particl": "0xFF8175BD",
     },
     "background": "0xFFF7F7F7",
     "background_app_bar": "0xFFF7F7F7",
@@ -171,14 +171,14 @@ const Map<String, dynamic> lightThemeJsonMap = {
       "standard": {
         "color": "0x0F2D3132",
         "spread_radius": 3.0,
-        "blur_radius": 4.0
+        "blur_radius": 4.0,
       },
       "home_view_button_bar": {
         "color": "0x0F2D3132",
         "spread_radius": 3.0,
-        "blur_radius": 4.0
-      }
-    }
+        "blur_radius": 4.0,
+      },
+    },
   },
   "assets": {
     "bitcoin": "dummy.svg",
@@ -231,6 +231,6 @@ const Map<String, dynamic> lightThemeJsonMap = {
     "send_pending": "dummy.svg",
     "send_cancelled": "dummy.svg",
     "theme_selector": "dummy.svg",
-    "theme_preview": "dummy.png"
-  }
+    "theme_preview": "dummy.png",
+  },
 };

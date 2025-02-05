@@ -154,7 +154,6 @@ class _TokenContractDetailsViewState
 
 class _Item extends StatelessWidget {
   const _Item({
-    super.key,
     required this.title,
     required this.data,
     required this.button,
