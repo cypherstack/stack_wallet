@@ -61,7 +61,7 @@ class Logging {
     return port;
   }
 
-  Future<void> initialize(String logsPath) async {
+  Future<void> initialize(String logsPath, {required Level level}) async {
     if (Isolate.current.debugName != "main") {
       throw Exception(
         "Logging.initialize() must be called on the main isolate.",
@@ -92,11 +92,14 @@ class Logging {
 
         final consoleLogger = Logger(
           printer: PrefixPrinter(prettyPrinter(false)),
+          filter: ProductionFilter(),
+          level: level,
         );
 
         final fileLogger = Logger(
           printer: PrefixPrinter(prettyPrinter(true)),
           filter: ProductionFilter(),
+          level: level,
           output: AdvancedFileOutput(
             path: logsDirPath,
             overrideExisting: false,

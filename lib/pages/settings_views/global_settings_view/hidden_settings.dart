@@ -147,6 +147,29 @@ class HiddenSettings extends StatelessWidget {
                             );
                           },
                         ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Consumer(
+                          builder: (_, ref, __) {
+                            return GestureDetector(
+                              onTap: () async {
+                                ref.read(prefsChangeNotifierProvider).logsPath =
+                                    null;
+                              },
+                              child: RoundedWhiteContainer(
+                                child: Text(
+                                  "Reset log location",
+                                  style: STextStyles.button(context).copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                         // const SizedBox(
                         //   height: 12,
                         // ),

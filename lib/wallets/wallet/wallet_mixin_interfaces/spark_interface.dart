@@ -9,6 +9,7 @@ import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart' as spark
     show Log;
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
+import 'package:logger/logger.dart';
 
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/balance.dart';
@@ -23,6 +24,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
@@ -53,30 +55,39 @@ String _hashTag(String tag) {
   return hash;
 }
 
+void initSparkLogging(Level level) {
+  final levels = Level.values.where((e) => e >= level).map((e) => e.name);
+  spark.Log.levels
+      .addAll(LoggingLevel.values.where((e) => levels.contains(e.name)));
+  spark.Log.onLog = (
+    level,
+    value, {
+    error,
+    stackTrace,
+    required time,
+  }) {
+    Logging.instance.lg(
+      level.getLoggerLevel(),
+      value,
+      error: error,
+      stackTrace: stackTrace,
+      time: time,
+    );
+  };
+}
+
 abstract class _SparkIsolate {
   static Isolate? _isolate;
   static SendPort? _sendPort;
   static final ReceivePort _receivePort = ReceivePort();
 
   static Future<void> initialize() async {
+    final level = Prefs.instance.logLevel;
+
     _isolate = await Isolate.spawn(
       (SendPort sendPort) {
-        spark.Log.levels.addAll(LoggingLevel.values);
-        spark.Log.onLog = (
-          level,
-          value, {
-          error,
-          stackTrace,
-          required time,
-        }) {
-          Logging.instance.lg(
-            level.getLoggerLevel(),
-            value,
-            error: error,
-            stackTrace: stackTrace,
-            time: time,
-          );
-        };
+        initSparkLogging(level); // ensure logging is set up in isolate
+
         final receivePort = ReceivePort();
 
         sendPort.send(receivePort.sendPort);

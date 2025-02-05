@@ -18,7 +18,6 @@ import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart' as spark;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -72,6 +71,7 @@ import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
+import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
 
 final openedFromSWBFileStringStateProvider =
@@ -165,24 +165,11 @@ void main(List<String> args) async {
 
   await Logging.instance.initialize(
     (await StackFileSystem.applicationLogsDirectory(Prefs.instance)).path,
+    level: Prefs.instance.logLevel,
   );
 
-  spark.Log.levels.addAll(spark.LoggingLevel.values);
-  spark.Log.onLog = (
-    level,
-    value, {
-    error,
-    stackTrace,
-    required time,
-  }) {
-    Logging.instance.lg(
-      level.getLoggerLevel(),
-      value,
-      error: error,
-      stackTrace: stackTrace,
-      time: time,
-    );
-  };
+  // setup lib spark logging
+  initSparkLogging(Prefs.instance.logLevel);
 
   if (AppConfig.appName == "Campfire" &&
       !Util.isDesktop &&

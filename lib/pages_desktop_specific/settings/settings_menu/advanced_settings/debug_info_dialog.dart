@@ -25,6 +25,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/log_level_preference_widget.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 
@@ -178,9 +179,16 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
               onChanged: (newValue) {},
             ),
           ),
+          const SizedBox(
+            height: 8,
+          ),
+          const Padding(
+            padding: EdgeInsets.all(32),
+            child: LogLevelPreferenceWidget(),
+          ),
           if (!Platform.isMacOS)
             const SizedBox(
-              height: 16,
+              height: 8,
             ),
           if (!Platform.isMacOS)
             Padding(
@@ -194,7 +202,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                           .textSubtitle6,
                       child: Text(
                         "NOTE: ${AppConfig.appName} must be restarted in order"
-                        " for the new path to take effect.",
+                        " for changes to take effect.",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),
                     ),
@@ -217,7 +225,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                   ),
                   Expanded(
                     child: PrimaryButton(
-                      label: "Edit",
+                      label: "Select log save location",
                       onPressed: () async {
                         if (_lock) {
                           return;

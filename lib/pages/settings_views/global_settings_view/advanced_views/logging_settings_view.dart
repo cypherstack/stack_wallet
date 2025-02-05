@@ -26,6 +26,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/log_level_preference_widget.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 
@@ -117,102 +118,6 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
             "Logging",
             style: STextStyles.navBarTitle(context),
           ),
-          // actions: [
-          //   Padding(
-          //     padding: const EdgeInsets.only(
-          //       top: 10,
-          //       bottom: 10,
-          //       right: 10,
-          //     ),
-          //     child: AspectRatio(
-          //       aspectRatio: 1,
-          //       child: AppBarIconButton(
-          //         key: const Key("deleteLogsAppBarButtonKey"),
-          //         size: 36,
-          //         shadows: const [],
-          //         color: Theme.of(context).extension<StackColors>()!.background,
-          //         icon: SvgPicture.asset(
-          //           Assets.svg.trash,
-          //           color: Theme.of(context)
-          //               .extension<StackColors>()!
-          //               .accentColorDark,
-          //           width: 20,
-          //           height: 20,
-          //         ),
-          //         onPressed: () async {
-          //           await showDialog<void>(
-          //             context: context,
-          //             builder: (_) => StackDialog(
-          //               title: "Delete logs?",
-          //               message:
-          //                   "You are about to delete all logs permanently. Are you sure?",
-          //               leftButton: TextButton(
-          //                 style: Theme.of(context)
-          //                     .extension<StackColors>()!
-          //                     .getSecondaryEnabledButtonStyle(context),
-          //                 child: Text(
-          //                   "Cancel",
-          //                   style: STextStyles.itemSubtitle12(context),
-          //                 ),
-          //                 onPressed: () {
-          //                   Navigator.of(context).pop();
-          //                 },
-          //               ),
-          //               rightButton: TextButton(
-          //                 style: Theme.of(context)
-          //                     .extension<StackColors>()!
-          //                     .getPrimaryEnabledButtonStyle(context),
-          //                 child: Text(
-          //                   "Delete logs",
-          //                   style: STextStyles.button(context),
-          //                 ),
-          //                 onPressed: () async {
-          //                   Navigator.of(context).pop();
-          //
-          //                   bool shouldPop = false;
-          //                   unawaited(
-          //                     showDialog<dynamic>(
-          //                       barrierDismissible: false,
-          //                       context: context,
-          //                       builder: (_) => WillPopScope(
-          //                         onWillPop: () async {
-          //                           return shouldPop;
-          //                         },
-          //                         child: const CustomLoadingOverlay(
-          //                           message: "Deleting logs...",
-          //                           eventBus: null,
-          //                         ),
-          //                       ),
-          //                     ),
-          //                   );
-          //
-          //                   await ref
-          //                       .read(debugServiceProvider)
-          //                       .deleteAllLogs();
-          //
-          //                   shouldPop = true;
-          //
-          //                   if (mounted) {
-          //                     Navigator.pop(context);
-          //                     unawaited(
-          //                       showFloatingFlushBar(
-          //                         type: FlushBarType.info,
-          //                         context: context,
-          //                         message: 'Logs cleared!',
-          //                       ),
-          //                     );
-          //
-          //                     setState(() {});
-          //                   }
-          //                 },
-          //               ),
-          //             ),
-          //           );
-          //         },
-          //       ),
-          //     ),
-          //   ),
-          // ],
         ),
         body: SafeArea(
           child: Padding(
@@ -279,13 +184,17 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                 const SizedBox(
                   height: 16,
                 ),
+                const LogLevelPreferenceWidget(),
+                const SizedBox(
+                  height: 16,
+                ),
                 Row(
                   children: [
                     Expanded(
                       child: RoundedWhiteContainer(
                         child: Text(
                           "NOTE: ${AppConfig.appName} must be restarted in order"
-                          " for the new path to take effect.",
+                          " for changes to take effect.",
                           style: STextStyles.subtitle500(context),
                         ),
                       ),
@@ -297,7 +206,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                 ),
                 const Spacer(),
                 PrimaryButton(
-                  label: "Edit",
+                  label: "Select log save location",
                   onPressed: () async {
                     if (_lock) {
                       return;

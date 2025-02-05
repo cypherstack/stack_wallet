@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
 import '../app_config.dart';
@@ -74,6 +75,7 @@ class Prefs extends ChangeNotifier {
       _enableExchange = await _getEnableExchange();
       _advancedFiroFeatures = await _getAdvancedFiroFeatures();
       _logsPath = await _getLogsPath();
+      _logLevel = await _getLogLevel();
 
       _initialized = true;
     }
@@ -1204,5 +1206,34 @@ class Prefs extends ChangeNotifier {
       boxName: DB.boxNamePrefs,
       key: "logsPath",
     ) as String?;
+  }
+
+  // log level pref
+  Level _logLevel = Level.warning;
+  Level get logLevel => _logLevel;
+  set logLevel(Level logLevel) {
+    if (_logLevel != logLevel) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "logLevel",
+        value: logLevel.value,
+      );
+      _logLevel = logLevel;
+      notifyListeners();
+    }
+  }
+
+  Future<Level> _getLogLevel() async {
+    final value = await DB.instance.get<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "logLevel",
+    ) as int?;
+
+    try {
+      return Level.values.firstWhere((e) => e.value == value);
+    } catch (_) {
+      // default to warning
+      return Level.warning;
+    }
   }
 }
