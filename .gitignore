@@ -107,3 +107,4 @@ scripts/linux/build/libsecret/subprojects/gi-docgen/.meson-subproject-wrap-hash.
 
 crypto_plugins/cs_monero/built_outputs
 crypto_plugins/cs_monero/build
+crypto_plugins/*.diff
