@@ -18,10 +18,7 @@ extension EpiccashWalletInfoExtension on WalletInfo {
         ),
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "ExtraEpiccashWalletInfo.fromMap failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("ExtraEpiccashWalletInfo.fromMap failed: ", error: e, stackTrace: s);
       return null;
     }
   }

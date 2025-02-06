@@ -150,25 +150,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         builder: (context) => const QrCodeScannerDialog(),
       );
       if (qrResult == null) {
-        Logging.instance.logd(
-          "Qr scanning cancelled",
-          level: LogLevel.Info,
-        );
+        Logging.instance.w("Qr scanning cancelled");
       } else {
         try {
           _processQrCodeData(qrResult);
         } catch (e, s) {
-          Logging.instance.logd(
-            "Error processing QR code data: $e\n$s",
-            level: LogLevel.Error,
-          );
+          Logging.instance
+              .e("Error processing QR code data", error: e, stackTrace: s);
         }
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Error opening QR code scanner dialog: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("Error opening QR code scanner dialog", error: e, stackTrace: s);
     }
   }
 
@@ -513,7 +506,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
       }
     } catch (e, s) {
-      Logging.instance.logd("Desktop send: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
       if (mounted) {
         // pop building dialog
         Navigator.of(
@@ -618,17 +611,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
           return;
         }
-        Logging.instance.logd(
-          "it changed $amount $_cachedAmountToSend",
-          level: LogLevel.Info,
-        );
+
         _cachedAmountToSend = amount;
 
         final price =
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = (amount!.decimal * price)
+          final String fiatAmountString = (amount.decimal * price)
               .toAmount(fractionDigits: 2)
               .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
@@ -707,8 +697,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         });
       }
     } catch (e, s) {
-      Logging.instance
-          .logd("Error processing QR code data: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "Error processing QR code data",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -858,11 +851,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         return;
       }
       _cachedAmountToSend = amount;
-      Logging.instance.logd("it changed $amount $_cachedAmountToSend",
-          level: LogLevel.Info);
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
-            amount!,
+            amount,
             withUnitName: false,
           );
 
@@ -962,11 +953,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.addListener(onCryptoAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+      if (_data.amount != null) {
+        cryptoAmountController.text = _data.amount!.toString();
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address;
+      sendToController.text = _data.contactLabel;
+      _address = _data.address;
       _addressToggleFlag = true;
     }
 
@@ -1586,9 +1577,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 error = null;
               } else if (coin is Firo) {
                 if (firoType == FiroType.lelantus) {
-                  if (_data != null && _data!.contactLabel == _address) {
+                  if (_data != null && _data.contactLabel == _address) {
                     error = SparkInterface.validateSparkAddress(
-                      address: _data!.address,
+                      address: _data.address,
                       isTestNet: coin.network.isTestNet,
                     )
                         ? "Lelantus to Spark not supported"
@@ -1601,7 +1592,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         : "Invalid address";
                   }
                 } else {
-                  if (_data != null && _data!.contactLabel == _address) {
+                  if (_data != null && _data.contactLabel == _address) {
                     error = null;
                   } else if (!ref.watch(pValidSendToAddress) &&
                       !ref.watch(pValidSparkSendToAddress)) {
@@ -1611,7 +1602,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   }
                 }
               } else {
-                if (_data != null && _data!.contactLabel == _address) {
+                if (_data != null && _data.contactLabel == _address) {
                   error = null;
                 } else if (!ref.watch(pValidSendToAddress)) {
                   error = "Invalid address";

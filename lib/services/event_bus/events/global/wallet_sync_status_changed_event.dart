@@ -19,9 +19,7 @@ class WalletSyncStatusChangedEvent {
   CryptoCurrency coin;
 
   WalletSyncStatusChangedEvent(this.newStatus, this.walletId, this.coin) {
-    Logging.instance.logd(
-      "WalletSyncStatusChangedEvent fired in $walletId with arg newStatus = $newStatus",
-      level: LogLevel.Info,
-    );
+    Logging.instance.d(
+        "WalletSyncStatusChangedEvent fired in $walletId with arg newStatus = $newStatus");
   }
 }

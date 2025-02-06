@@ -351,34 +351,28 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           );
 
           if (qrResult == null) {
-            Logging.instance.logd(
-              "Qr scanning cancelled",
-              level: LogLevel.Info,
-            );
+            Logging.instance.d("Qr scanning cancelled");
           } else {
             try {
               await _processQrData(qrResult);
             } catch (e, s) {
-              Logging.instance.logd(
-                "Error processing QR code data: $e\n$s",
-                level: LogLevel.Error,
-              );
+              Logging.instance.e("Error processing QR code data: ",
+                  error: e, stackTrace: s);
             }
           }
         } catch (e, s) {
-          Logging.instance.logd(
-            "Error opening QR code scanner dialog: $e\n$s",
-            level: LogLevel.Error,
-          );
+          Logging.instance.e("Error opening QR code scanner dialog: ",
+              error: e, stackTrace: s);
         }
       } else {
         try {
           final result = await BarcodeScanner.scan();
           await _processQrData(result.rawContent);
         } catch (e, s) {
-          Logging.instance.logd(
-            "$e\n$s",
-            level: LogLevel.Warning,
+          Logging.instance.e(
+            "$runtimeType._scanQr()",
+            error: e,
+            stackTrace: s,
           );
         }
       }
@@ -412,9 +406,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         });
       }
     } catch (e, s) {
-      Logging.instance.logd(
+      Logging.instance.w(
         "$e\n$s",
-        level: LogLevel.Warning,
+        error: e,
+        stackTrace: s,
       );
     }
   }

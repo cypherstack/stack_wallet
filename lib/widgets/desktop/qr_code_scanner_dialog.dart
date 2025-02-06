@@ -61,7 +61,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     try {
       if (Platform.isLinux && _cameraLinuxPlugin != null) {
         await _cameraLinuxPlugin.initializeCamera();
-        Logging.instance.logd("Linux Camera initialized", level: LogLevel.Info);
+        Logging.instance.d("Linux Camera initialized");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         final List<CameraDescription> cameras =
             await _cameraWindowsPlugin.availableCameras();
@@ -81,9 +81,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         await _cameraWindowsPlugin.initializeCamera(_cameraId);
         // await _cameraWindowsPlugin!.onCameraInitialized(_cameraId).first;
         // TODO [prio=low]: Make this work. ^^^
-        Logging.instance.logd(
+        Logging.instance.d(
           "Windows Camera initialized with ID: $_cameraId",
-          level: LogLevel.Info,
         );
       } else if (Platform.isMacOS) {
         final List<CameraMacOSDevice> videoDevices = await CameraMacOS.instance
@@ -95,16 +94,18 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         await CameraMacOS.instance
             .initialize(cameraMacOSMode: CameraMacOSMode.photo);
 
-        Logging.instance.logd(
+        Logging.instance.d(
           "macOS Camera initialized with ID: $_macOSDeviceId",
-          level: LogLevel.Info,
         );
       }
 
       return true;
     } catch (e, s) {
-      Logging.instance
-          .logd("Failed to initialize camera: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "Failed to initialize camera",
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
   }
@@ -115,14 +116,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     try {
       if (Platform.isLinux && _cameraLinuxPlugin != null) {
         _cameraLinuxPlugin.stopCamera();
-        Logging.instance.logd("Linux Camera stopped", level: LogLevel.Info);
+        Logging.instance.d("Linux Camera stopped");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         // if (_cameraId >= 0) {
         await _cameraWindowsPlugin.dispose(_cameraId);
-        Logging.instance.logd(
-          "Windows Camera stopped with ID: $_cameraId",
-          level: LogLevel.Info,
-        );
+        Logging.instance.d("Windows Camera stopped with ID: $_cameraId");
         // } else {
         //   Logging.instance.log("Windows Camera ID is null. Cannot dispose.",
         //       level: LogLevel.Error);
@@ -130,18 +128,18 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       } else if (Platform.isMacOS) {
         // if (_macOSDeviceId != null) {
         await CameraMacOS.instance.stopImageStream();
-        Logging.instance.logd(
-          "macOS Camera stopped with ID: $_macOSDeviceId",
-          level: LogLevel.Info,
-        );
+        Logging.instance.d("macOS Camera stopped with ID: $_macOSDeviceId");
         // } else {
         //   Logging.instance.log("macOS Camera ID is null. Cannot stop.",
         //       level: LogLevel.Error);
         // }
       }
     } catch (e, s) {
-      Logging.instance
-          .logd("Failed to stop camera: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "Failed to stop camera",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -161,15 +159,13 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         } else if (Platform.isMacOS) {
           final macOSimg = await CameraMacOS.instance.takePicture();
           if (macOSimg == null) {
-            Logging.instance
-                .logd("Failed to capture image", level: LogLevel.Error);
+            Logging.instance.w("Failed to capture image");
             await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
             continue;
           }
           final img.Image? image = img.decodeImage(macOSimg.bytes!);
           if (image == null) {
-            Logging.instance
-                .logd("Failed to capture image", level: LogLevel.Error);
+            Logging.instance.w("Failed to capture image");
             await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
             continue;
           }
@@ -187,8 +183,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // > WARNING Since this will check the image data against all known
         // > decoders, it is much slower than using an explicit decoder
         if (image == null) {
-          Logging.instance
-              .logd("Failed to decode image", level: LogLevel.Error);
+          Logging.instance.w("Failed to decode image");
           await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
           continue;
         }
@@ -211,7 +206,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           }
           break;
         } else {
-          // Logging.instance.log("No QR code found in the image", level: LogLevel.Info);
+          // Logging.instance.log("No QR code found in the image");
           // if (mounted) {
           //   widget.onSnackbar("No QR code found in the image.");
           // }
@@ -220,7 +215,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
         await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
       } catch (e) {
-        // Logging.instance.log("Failed to capture and scan image: $e\n$s", level: LogLevel.Error);
+        // Logging.instance.log("Failed to capture and scan image", error: e, stackTrace: s,);
         // Spammy.
 
         // if (mounted) {
@@ -252,7 +247,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       }
       return qrDecode.text;
     } catch (e) {
-      // Logging.instance.log("Failed to decode QR code: $e\n$s", level: LogLevel.Error);
+      // Logging.instance.log("Failed to decode QR code", error: e, stackTrace: s,);
       // Spammy.
       return null;
     }
@@ -361,9 +356,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                             }
                           }
                         } catch (e, s) {
-                          Logging.instance.logd(
-                            "Failed to decode image: $e\n$s",
-                            level: LogLevel.Error,
+                          Logging.instance.e(
+                            "Failed to decode image: ",
+                            error: e,
+                            stackTrace: s,
                           );
                           if (context.mounted) {
                             await showFloatingFlushBar(

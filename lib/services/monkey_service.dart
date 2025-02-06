@@ -39,10 +39,7 @@ class MonKeyService {
         );
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Failed fetchMonKey($address): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Failed fetchMonKey($address): ", error: e, stackTrace: s);
       rethrow;
     }
   }

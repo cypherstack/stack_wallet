@@ -71,10 +71,7 @@ Future<T?> showLoading<T>({
       result = await whileFuture;
     }
   } catch (e, s) {
-    Logging.instance.logd(
-      "showLoading caught: $e\n$s",
-      level: LogLevel.Warning,
-    );
+    Logging.instance.w("showLoading caught: ", error: e, stackTrace: s);
     ex = e is Exception ? e : Exception(e.toString());
   }
 

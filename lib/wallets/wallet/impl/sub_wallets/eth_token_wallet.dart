@@ -153,10 +153,8 @@ class EthTokenWallet extends Wallet {
           usingContractAddress: contractAddress.hex,
         );
       } catch (e, s) {
-        Logging.instance.logd(
-          "$runtimeType _updateTokenABI(): $e\n$s",
-          level: LogLevel.Warning,
-        );
+        Logging.instance
+            .w("$runtimeType _updateTokenABI(): ", error: e, stackTrace: s);
       }
 
       try {
@@ -200,10 +198,8 @@ class EthTokenWallet extends Wallet {
 
       _sendFunction = _deployedContract.function('transfer');
     } catch (e, s) {
-      Logging.instance.logd(
-        "$runtimeType wallet failed init(): $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance
+          .w("$runtimeType wallet failed init(): ", error: e, stackTrace: s);
     }
   }
 
@@ -311,9 +307,9 @@ class EthTokenWallet extends Wallet {
     try {
       throw Exception();
     } catch (_, s) {
-      Logging.instance.logd(
-        "Eth token wallet recover called. This should not happen. Stacktrace: $s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Eth token wallet recover called. This should not happen.",
+        stackTrace: s,
       );
     }
   }
@@ -347,15 +343,15 @@ class EthTokenWallet extends Wallet {
           isar: mainDB.isar,
         );
       } else {
-        Logging.instance.logd(
+        Logging.instance.w(
           "CachedEthTokenBalance.fetchAndUpdateCachedBalance failed: ${response.exception}",
-          level: LogLevel.Warning,
         );
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "$runtimeType wallet failed to update balance: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.e(
+        "$runtimeType wallet failed to update balance: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -380,9 +376,8 @@ class EthTokenWallet extends Wallet {
         if (response.exception != null &&
             response.exception!.message
                 .contains("response is empty but status code is 200")) {
-          Logging.instance.logd(
+          Logging.instance.d(
             "No ${tokenContract.name} transfers found for $addressString",
-            level: LogLevel.Info,
           );
           return;
         }
@@ -415,13 +410,19 @@ class EthTokenWallet extends Wallet {
               extra: txExtra,
             ),
           );
-        } catch (_) {
+        } catch (e, s) {
           // Server indexing failed for some reason. Instead of hard crashing or
           // showing no transactions we just skip it here. Not ideal but better
           // than nothing showing up
-          Logging.instance.logd(
+          Logging.instance.e(
+            "Server error: Transaction hash not found.",
+            error: e,
+            stackTrace: s,
+          );
+          Logging.instance.d(
             "Server error: Transaction ${tokenDto.transactionHash} not found.",
-            level: LogLevel.Error,
+            error: e,
+            stackTrace: s,
           );
         }
       }
@@ -523,9 +524,10 @@ class EthTokenWallet extends Wallet {
       }
       await mainDB.updateOrPutTransactionV2s(txns);
     } catch (e, s) {
-      Logging.instance.logd(
-        "$runtimeType wallet failed to update transactions: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "$runtimeType wallet failed to update transactions: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }

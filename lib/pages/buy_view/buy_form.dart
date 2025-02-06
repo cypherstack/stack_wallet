@@ -311,10 +311,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           .read(simplexProvider)
           .updateSupportedCryptos(response.value!); // TODO validate
     } else {
-      Logging.instance.logd(
-        "_loadSimplexCurrencies: $response",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.d("_loadSimplexCurrencies: $response");
     }
   }
 
@@ -326,10 +323,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
           .read(simplexProvider)
           .updateSupportedFiats(response.value!); // TODO validate
     } else {
-      Logging.instance.logd(
-        "_loadSimplexCurrencies: $response",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.d("_loadSimplexCurrencies: $response");
     }
   }
 
@@ -626,10 +620,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       ref.read(simplexProvider).updateQuote(response.value!);
       return BuyResponse(value: response.value!);
     } else {
-      Logging.instance.logd(
-        "_loadQuote: $response",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.d("_loadQuote: $response");
       return BuyResponse(
         exception: response.exception ??
             BuyException(
@@ -724,20 +715,14 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
       final qrResult = await scanner.scan();
 
-      Logging.instance.logd(
-        "qrResult content: ${qrResult.rawContent}",
-        level: LogLevel.Info,
-      );
+      Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
         logging: Logging.instance,
       );
 
-      Logging.instance.logd(
-        "qrResult parsed: $paymentData",
-        level: LogLevel.Info,
-      );
+      Logging.instance.d("qrResult parsed: $paymentData");
 
       if (paymentData != null) {
         // auto fill address
@@ -760,9 +745,10 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     } on PlatformException catch (e, s) {
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
-      Logging.instance.logd(
-        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.e(
+        "Failed to get camera permissions while trying to scan qr code in SendView: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -1241,7 +1227,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           }
                         });
                       } catch (e, s) {
-                        Logging.instance.logd("$e\n$s", level: LogLevel.Info);
+                        Logging.instance.w(
+                          "",
+                          error: e,
+                          stackTrace: s,
+                        );
                       }
                     },
                   ),

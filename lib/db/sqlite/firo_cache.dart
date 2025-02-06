@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -19,16 +18,6 @@ part 'firo_cache_coordinator.dart';
 part 'firo_cache_reader.dart';
 part 'firo_cache_worker.dart';
 part 'firo_cache_writer.dart';
-
-/// Temporary debugging log function for this file
-void _debugLog(Object? object) {
-  if (kDebugMode) {
-    Logging.instance.logd(
-      object,
-      level: LogLevel.Debug,
-    );
-  }
-}
 
 abstract class _FiroCache {
   static const int _setCacheVersion = 2;
@@ -116,7 +105,8 @@ abstract class _FiroCache {
         VACUUM;
       """,
     );
-    _debugLog(
+
+    Logging.instance.d(
       "_deleteAllCache() "
       "duration = ${DateTime.now().difference(start)}",
     );

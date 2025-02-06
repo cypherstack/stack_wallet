@@ -214,7 +214,7 @@ class DogecoinWallet<T extends ElectrumXCurrencyInterface>
           .fold(BigInt.zero, (value, element) => value + element);
 
       TransactionType type;
-      final TransactionSubType subType = TransactionSubType.none;
+      const TransactionSubType subType = TransactionSubType.none;
 
       // At least one input was owned by this wallet.
       if (wasSentFromThisWallet) {
@@ -237,10 +237,8 @@ class DogecoinWallet<T extends ElectrumXCurrencyInterface>
         // Only found outputs owned by this wallet.
         type = TransactionType.incoming;
       } else {
-        Logging.instance.logd(
-          "Unexpected tx found (ignoring it): $txData",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Unexpected tx found (ignoring it)");
+        Logging.instance.d("Unexpected tx found (ignoring it): $txData");
         continue;
       }
 

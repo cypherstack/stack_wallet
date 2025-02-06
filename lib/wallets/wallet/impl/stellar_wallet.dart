@@ -172,10 +172,10 @@ class StellarWallet extends Bip39Wallet<Stellar> {
         exists = true;
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Error getting account  ${e.toString()} - ${s.toString()}",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e(
+          "Error getting account  ${e.toString()} - ${s.toString()}",
+          error: e,
+          stackTrace: s);
     }
     return exists;
   }
@@ -230,10 +230,10 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       }
     } catch (e, s) {
       // do nothing, still allow user into wallet
-      Logging.instance.logd(
-        "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e(
+          "$runtimeType  checkSaveInitialReceivingAddress() failed: ",
+          error: e,
+          stackTrace: s);
     }
   }
 
@@ -266,10 +266,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
         ),
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "$runtimeType prepareSend() failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("$runtimeType prepareSend() failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -327,7 +325,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
         txid: response.hash!,
       );
     } catch (e, s) {
-      Logging.instance.logd("Error sending TX $e - $s", level: LogLevel.Error);
+      Logging.instance.e("Error sending TX $e - $s", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -394,10 +392,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           // probably just doesn't have any history yet or whatever stellar needs
           return;
         } else {
-          Logging.instance.logd(
+          Logging.instance.w(
             "$runtimeType ${info.name} $walletId "
             "failed to fetch account to updateBalance",
-            level: LogLevel.Warning,
           );
           rethrow;
         }
@@ -428,10 +425,11 @@ class StellarWallet extends Bip39Wallet<Stellar> {
         }
       }
     } catch (e, s) {
-      Logging.instance.logd(
+      Logging.instance.w(
         "$runtimeType ${info.name} $walletId "
         "updateBalance() failed: $e\n$s",
-        level: LogLevel.Warning,
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -448,10 +446,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           .then((value) => value.records!.first.sequence);
       await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.logd(
-        "$runtimeType updateChainHeight() failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("$runtimeType updateChainHeight() failed: ",
+          error: e, stackTrace: s);
 
       rethrow;
     }
@@ -485,9 +481,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           // probably just doesn't have any history yet or whatever stellar needs
           return;
         } else {
-          Logging.instance.logd(
+          Logging.instance.w(
             "Stellar ${info.name} $walletId failed to fetch transactions",
-            level: LogLevel.Warning,
           );
           rethrow;
         }
@@ -676,10 +671,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
       await mainDB.updateOrPutTransactionV2s(transactionList);
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from updateTransactions(): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Exception rethrown from updateTransactions(): ",
+          error: e, stackTrace: s);
       rethrow;
     }
   }

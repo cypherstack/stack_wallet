@@ -126,7 +126,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       await updateChainHeight();
     } catch (e, s) {
       // do nothing on failure (besides logging)
-      Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.w(
+        "$e\n$s",
+        error: e,
+        stackTrace: s,
+      );
     }
 
     // return regardless of whether it was updated or not as we want a
@@ -537,7 +541,7 @@ abstract class Wallet<T extends CryptoCurrency> {
           });
         }
       },
-      onError: (Object error, StackTrace strace) {
+      onError: (Object e, StackTrace s) {
         GlobalEventBus.instance.fire(
           NodeConnectionStatusChangedEvent(
             NodeConnectionStatus.disconnected,
@@ -552,9 +556,10 @@ abstract class Wallet<T extends CryptoCurrency> {
             cryptoCurrency,
           ),
         );
-        Logging.instance.logd(
-          "Caught exception in refreshWalletData(): $error\n$strace",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "Caught exception in refreshWalletData()",
+          error: e,
+          stackTrace: s,
         );
       },
     );
@@ -699,10 +704,9 @@ abstract class Wallet<T extends CryptoCurrency> {
         );
       }
 
-      Logging.instance.logd(
+      Logging.instance.i(
         "Refresh for "
-        "${info.name}: ${DateTime.now().difference(start)}",
-        level: LogLevel.Info,
+        "$walletId::${info.name}: ${DateTime.now().difference(start)}",
       );
     }
   }

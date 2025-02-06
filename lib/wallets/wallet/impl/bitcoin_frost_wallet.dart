@@ -56,10 +56,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     required List<String> participants,
     required int threshold,
   }) async {
-    Logging.instance.logd(
-      "Generating new FROST wallet.",
-      level: LogLevel.Info,
-    );
+    Logging.instance.i("Generating new FROST wallet.");
 
     try {
       final salt = frost
@@ -108,9 +105,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       await mainDB.putAddresses([address]);
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from initializeNewFrost(): $e\n$s",
-        level: LogLevel.Fatal,
+      Logging.instance.f(
+        "Exception rethrown from initializeNewFrost(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -626,10 +624,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
         // TODO: [prio=none] Check for special Bitcoin outputs like ordinals.
       } else {
-        Logging.instance.logd(
-          "Unexpected tx found (ignoring it): $txData",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Unexpected tx found (ignoring it): $txData");
         continue;
       }
 
@@ -683,13 +678,13 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
         if (index >= someSaneMaximum) {
           throw Exception(
-              "index < kFrostSecureStartingIndex hit someSaneMaximum");
+            "index < kFrostSecureStartingIndex hit someSaneMaximum",
+          );
         }
       } else {
-        Logging.instance.logd(
+        Logging.instance.f(
           "$runtimeType.checkSaveInitialReceivingAddress() failed due"
           " to missing serialized keys",
-          level: LogLevel.Fatal,
         );
       }
     }
@@ -698,13 +693,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      Logging.instance
-          .logd("confirmSend txData: $txData", level: LogLevel.Info);
+      Logging.instance.d("confirmSend txData: $txData");
 
       final hex = txData.raw!;
 
       final txHash = await electrumXClient.broadcastTransaction(rawTx: hex);
-      Logging.instance.logd("Sent txHash: $txHash", level: LogLevel.Info);
+      Logging.instance.d(
+        "Sent txHash: $txHash",
+      );
 
       // mark utxos as used
       final usedUTXOs = txData.utxos!.map((e) => e.copyWith(used: true));
@@ -718,9 +714,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return txData;
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from confirmSend(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Exception rethrown from confirmSend(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -804,11 +801,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         ).raw.toInt(),
       );
 
-      Logging.instance.logd("fetched fees: $feeObject", level: LogLevel.Info);
+      Logging.instance.i("fetched fees: $feeObject");
       return feeObject;
-    } catch (e) {
-      Logging.instance.logd("Exception rethrown from _getFees(): $e",
-          level: LogLevel.Error);
+    } catch (e, s) {
+      Logging.instance.e(
+        "Exception rethrown from _getFees(): $e",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -831,7 +831,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     }
     if (serializedKeys == null || multisigConfig == null) {
       final err = "${info.coinName} wallet ${info.walletId} had null keys/cfg";
-      Logging.instance.logd(err, level: LogLevel.Fatal);
+      Logging.instance.f(err, stackTrace: StackTrace.current);
       throw Exception(err);
       // TODO [prio=low]: handle null keys or config.  This should not happen.
     }
@@ -958,10 +958,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       unawaited(refresh());
     } catch (e, s) {
-      Logging.instance.logd(
-        "recoverFromSerializedKeys failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance
+          .f("recoverFromSerializedKeys failed: ", error: e, stackTrace: s);
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
           WalletSyncStatus.unableToSync,
@@ -1165,10 +1163,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return await mainDB.updateUTXOs(walletId, outputArray);
     } catch (e, s) {
-      Logging.instance.logd(
-        "Output fetch unsuccessful: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("Output fetch unsuccessful: ", error: e, stackTrace: s);
       return false;
     }
   }
@@ -1378,13 +1374,14 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     final newNode = await _getCurrentElectrumXNode();
     try {
       await electrumXClient.closeAdapter();
-    } catch (e) {
+    } catch (e, s) {
       if (e.toString().contains("initialized")) {
         // Ignore.  This should happen every first time the wallet is opened.
       } else {
-        Logging.instance.logd(
-          "Error closing electrumXClient: $e",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "Error closing electrumXClient",
+          error: e,
+          stackTrace: s,
         );
       }
     }
@@ -1479,11 +1476,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         await checkChangeAddressForTransactions();
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from _checkChangeAddressForTransactions"
-        "($cryptoCurrency): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .i("Exception rethrown from _checkChangeAddressForTransactions"
+              "($cryptoCurrency): $e\n$s");
       rethrow;
     }
   }
@@ -1494,9 +1489,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       try {
         throw Exception();
       } catch (_, s) {
-        Logging.instance.logd(
+        Logging.instance.e(
           "checkReceivingAddressForTransactions called but reuse address flag set: $s",
-          level: LogLevel.Error,
+          stackTrace: s,
         );
       }
     }
@@ -1526,10 +1521,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         }
       }
     } catch (e, s) {
-      Logging.instance.logd(
+      Logging.instance.e(
         "Exception rethrown from _checkReceivingAddressForTransactions"
-        "($cryptoCurrency): $e\n$s",
-        level: LogLevel.Error,
+        "($cryptoCurrency)",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -1749,9 +1745,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     int gapCounter = 0;
     int index = secure ? kFrostSecureStartingIndex : 0;
     for (; gapCounter < 20; index++) {
-      Logging.instance.logd(
+      Logging.instance.d(
         "Frost index: $index, \t GapCounter chain=$chain: $gapCounter",
-        level: LogLevel.Info,
       );
 
       Address? address;
@@ -1844,10 +1839,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return allTxHashes;
     } catch (e, s) {
-      Logging.instance.logd(
-        "$runtimeType._fetchHistory: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("$runtimeType._fetchHistory: ", error: e, stackTrace: s);
       rethrow;
     }
   }

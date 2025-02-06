@@ -83,7 +83,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         ref.read(desktopExchangeModelProvider)!.recipientAddress = info.item2;
       }
     } catch (e, s) {
-      Logging.instance.logd("$e\n$s", level: LogLevel.Info);
+      Logging.instance.i("$e\n$s", error: e, stackTrace: s,);
     }
 
     widget.enableNextChanged.call(
@@ -116,7 +116,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         ref.read(desktopExchangeModelProvider)!.refundAddress = info.item2;
       }
     } catch (e, s) {
-      Logging.instance.logd("$e\n$s", level: LogLevel.Info);
+      Logging.instance.i("$e\n$s", error: e, stackTrace: s,);
     }
     widget.enableNextChanged.call(
       _next(),

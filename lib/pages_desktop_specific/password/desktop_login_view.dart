@@ -75,10 +75,10 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             secureStore: ref.read(secureStoreProvider),
           );
         } catch (e, s) {
-          Logging.instance.logd(
-            "Cannot migrate desktop database\n$e $s",
-            level: LogLevel.Error,
-            printFullLength: true,
+          Logging.instance.f(
+            "Cannot migrate desktop database",
+            error: e,
+            stackTrace: s,
           );
         }
       }

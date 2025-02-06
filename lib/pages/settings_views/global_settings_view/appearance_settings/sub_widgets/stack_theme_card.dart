@@ -64,10 +64,7 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
       await service.install(themeArchiveData: data);
       return true;
     } catch (e, s) {
-      Logging.instance.logd(
-        "Failed _downloadAndInstall of ${widget.data.id}: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("Failed _downloadAndInstall of ${widget.data.id}: ", error: e, stackTrace: s);
       return false;
     }
   }

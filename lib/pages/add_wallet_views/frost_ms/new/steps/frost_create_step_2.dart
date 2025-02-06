@@ -178,10 +178,7 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
                       .routeName,
                 );
               } catch (e, s) {
-                Logging.instance.logd(
-                  "$e\n$s",
-                  level: LogLevel.Fatal,
-                );
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
                 if (context.mounted) {
                   return await showDialog<void>(
                     context: context,

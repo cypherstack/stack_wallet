@@ -47,8 +47,11 @@ class Estimate {
         kycRating: kycRating,
       );
     } catch (e, s) {
-      Logging.instance
-          .logd("Estimate.fromMap(): $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "Estimate.fromMap()",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }

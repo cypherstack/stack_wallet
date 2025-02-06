@@ -79,10 +79,7 @@ class _FreezeButtonState extends State<FreezeButton> {
         break;
 
       default:
-        Logging.instance.logd(
-          "Unknown utxo method name found in $runtimeType",
-          level: LogLevel.Fatal,
-        );
+        Logging.instance.f("Unknown utxo method name found in $runtimeType");
         return;
     }
 

@@ -159,18 +159,14 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       //       .state = true,
       // );
 
-      Logging.instance.logd(
-        "qrResult content: ${qrResult.rawContent}",
-        level: LogLevel.Info,
-      );
+      Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
         logging: Logging.instance,
       );
 
-      Logging.instance
-          .logd("qrResult parsed: $paymentData", level: LogLevel.Info);
+      Logging.instance.d("qrResult parsed: $paymentData");
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
@@ -221,9 +217,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       //     .state = true;
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
-      Logging.instance.logd(
-        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Failed to get camera permissions while trying to scan qr code in SendView: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -255,10 +252,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         return;
       }
       _cachedAmountToSend = _amountToSend;
-      Logging.instance.logd(
-        "it changed $_amountToSend $_cachedAmountToSend",
-        level: LogLevel.Info,
-      );
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
@@ -293,10 +286,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           return;
         }
         _cachedAmountToSend = _amountToSend;
-        Logging.instance.logd(
-          "it changed $_amountToSend $_cachedAmountToSend",
-          level: LogLevel.Info,
-        );
 
         final price = ref
             .read(priceAnd24hChangeNotifierProvider)
@@ -535,7 +524,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         );
       }
     } catch (e, s) {
-      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();

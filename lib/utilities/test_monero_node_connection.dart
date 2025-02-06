@@ -103,7 +103,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
       return MoneroNodeConnectionResponse(null, null, null, success);
     } catch (e, s) {
-      Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
       return MoneroNodeConnectionResponse(null, null, null, false);
     } finally {
       await socket?.close();
@@ -150,7 +150,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       if (badCertResponse != null) {
         return badCertResponse!;
       } else {
-        Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
+        Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
         return MoneroNodeConnectionResponse(null, null, null, false);
       }
     } finally {

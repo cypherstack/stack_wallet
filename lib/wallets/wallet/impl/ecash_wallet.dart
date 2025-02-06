@@ -276,10 +276,8 @@ class EcashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         // only found outputs owned by this wallet
         type = TransactionType.incoming;
       } else {
-        Logging.instance.logd(
-          "Unexpected tx found (ignoring it): $txData",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Unexpected tx found (ignoring it)");
+        Logging.instance.d("Unexpected tx found (ignoring it): $txData");
         continue;
       }
 
@@ -332,10 +330,11 @@ class EcashWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         }
       } catch (e, s) {
         // Probably doesn't contain a cash token so just log failure
-        Logging.instance.logd(
+        Logging.instance.w(
           "Script pub key \"$scriptPubKeyHex\" cash token"
           " parsing check failed: $e\n$s",
-          level: LogLevel.Warning,
+          error: e,
+          stackTrace: s,
         );
       }
 

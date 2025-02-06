@@ -45,10 +45,7 @@ class DbVersionMigrator with WalletDB {
       // safe to skip to v11 for campfire
       fromVersion = 11;
     }
-    Logging.instance.logd(
-      "Running migrate fromVersion $fromVersion",
-      level: LogLevel.Warning,
-    );
+    Logging.instance.i("Running migrate fromVersion $fromVersion");
     switch (fromVersion) {
       case 0:
         await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
@@ -102,12 +99,13 @@ class DbVersionMigrator with WalletDB {
 
           try {
             latestSetId = await client.getLelantusLatestCoinId();
-          } catch (e) {
+          } catch (e, s) {
             // default to 2 for now
             latestSetId = 2;
-            Logging.instance.logd(
+            Logging.instance.w(
               "Failed to fetch latest coin id during firo db migrate: $e \nUsing a default value of 2",
-              level: LogLevel.Warning,
+              error: e,
+              stackTrace: s,
             );
           }
         }

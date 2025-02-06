@@ -274,10 +274,7 @@ class _NewWalletRecoveryPhraseWarningViewState
 
       return (wallet, fetchedMnemonic);
     } catch (e, s) {
-      Logging.instance.logd(
-        "$e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
       rethrow;
     }
   }

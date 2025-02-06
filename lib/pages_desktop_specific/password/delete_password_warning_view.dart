@@ -87,10 +87,7 @@ class _ForgotPasswordDesktopViewState
 
       await DB.instance.init();
     } catch (e, s) {
-      Logging.instance.logd(
-        "$e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
       return false;
     }
 

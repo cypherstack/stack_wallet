@@ -47,9 +47,10 @@ class NanswapAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.logd(
-        "NanswapAPI._makeRequest($uri) HTTP:$code threw: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "NanswapAPI._makeRequest($uri) HTTP:$code threw: ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -81,9 +82,10 @@ class NanswapAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.logd(
-        "NanswapAPI._makePostRequest($uri) HTTP:$code threw: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "NanswapAPI._makePostRequest($uri) HTTP:$code threw: ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -135,9 +137,10 @@ class NanswapAPI {
 
       return ExchangeResponse(value: result);
     } catch (e, s) {
-      Logging.instance.logd(
-        "Nanswap.getSupportedCurrencies() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getSupportedCurrencies() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -198,17 +201,19 @@ class NanswapAPI {
             map,
           ),
         );
-      } catch (_) {
-        Logging.instance.logd(
+      } catch (e, s) {
+        Logging.instance.e(
           "Nanswap.getEstimate() response was: $json",
-          level: LogLevel.Error,
+          error: e,
+          stackTrace: s,
         );
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Nanswap.getEstimate() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getEstimate() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -271,9 +276,10 @@ class NanswapAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "Nanswap.getEstimateReverse() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getEstimateReverse() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -322,9 +328,10 @@ class NanswapAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "Nanswap.getOrderLimits() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getOrderLimits() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -419,9 +426,10 @@ class NanswapAPI {
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Nanswap.createOrder() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.createOrder() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -502,9 +510,10 @@ class NanswapAPI {
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Nanswap.getOrder($id) exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getOrder($id) exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(

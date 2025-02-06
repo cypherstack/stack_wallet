@@ -293,7 +293,7 @@ class NodeService extends ChangeNotifier {
       final json = jsonDecode(response.body) as Map;
       final result = jsonDecode(json['result'] as String);
       final map = jsonDecode(result as String);
-      Logging.instance.logd(map, level: LogLevel.Info);
+      Logging.instance.d(map);
 
       for (final coin in AppConfig.coins) {
         final nodeList = List<Map<String, dynamic>>.from(
@@ -330,8 +330,11 @@ class NodeService extends ChangeNotifier {
         }
       }
     } catch (e, s) {
-      Logging.instance
-          .logd("updateCommunityNodes() failed: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "updateCommunityNodes() failed",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 }

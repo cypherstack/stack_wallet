@@ -406,10 +406,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             _cachedAmountToSend == _amountToSend) {
           return;
         }
-        Logging.instance.logd(
-          "it changed $_amountToSend $_cachedAmountToSend",
-          level: LogLevel.Info,
-        );
         _cachedAmountToSend = _amountToSend;
 
         final price = ref
@@ -471,18 +467,14 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
       final qrResult = await scanner.scan();
 
-      Logging.instance.logd(
-        "qrResult content: ${qrResult.rawContent}",
-        level: LogLevel.Info,
-      );
+      Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
         logging: Logging.instance,
       );
 
-      Logging.instance
-          .logd("qrResult parsed: $paymentData", level: LogLevel.Info);
+      Logging.instance.d("qrResult parsed: $paymentData");
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
@@ -529,9 +521,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     } on PlatformException catch (e, s) {
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
-      Logging.instance.logd(
-        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Failed to get camera permissions while trying to scan qr code in SendView: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -586,10 +579,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         return;
       }
       _cachedAmountToSend = _amountToSend;
-      Logging.instance.logd(
-        "it changed $_amountToSend $_cachedAmountToSend",
-        level: LogLevel.Info,
-      );
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
             _amountToSend!,

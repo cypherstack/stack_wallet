@@ -68,10 +68,7 @@ extension ContractAbiExtensions on ContractAbi {
 
       return ContractAbi(name, functions, events);
     } catch (e, s) {
-      Logging.instance.logd(
-        "Failed to parse ABI for $name: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Failed to parse ABI for $name: ", error: e, stackTrace: s);
       rethrow;
     }
   }

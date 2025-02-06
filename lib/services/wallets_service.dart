@@ -75,9 +75,8 @@ class WalletsService extends ChangeNotifier {
     final names = DB.instance
         .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
     if (names == null) {
-      Logging.instance.logd(
+      Logging.instance.e(
         "Fetched wallet 'names' returned null. Setting initializing 'names'",
-        level: LogLevel.Info,
       );
       await DB.instance.put<dynamic>(
         boxName: DB.boxNameAllWalletsData,
@@ -86,7 +85,7 @@ class WalletsService extends ChangeNotifier {
       );
       return {};
     }
-    Logging.instance.logd("Fetched wallet names: $names", level: LogLevel.Info);
+    Logging.instance.d("Fetched wallet names: $names");
     final mapped = Map<String, dynamic>.from(names);
     mapped.removeWhere((name, dyn) {
       final jsonObject = Map<String, dynamic>.from(dyn as Map);
@@ -94,9 +93,10 @@ class WalletsService extends ChangeNotifier {
         AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
       } catch (e, s) {
-        Logging.instance.logd(
+        Logging.instance.e(
           "Error, ${jsonObject["coin"]} does not exist",
-          level: LogLevel.Error,
+          error: e,
+          stackTrace: s,
         );
         return true;
       }

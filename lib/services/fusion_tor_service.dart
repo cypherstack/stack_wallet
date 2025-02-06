@@ -62,10 +62,7 @@ class FusionTorService {
     try {
       await _tor!.start(torDataDirPath: _torDataDirPath!);
     } catch (e, s) {
-      Logging.instance.logd(
-        "FusionTorService.start failed: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("FusionTorService.start failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }

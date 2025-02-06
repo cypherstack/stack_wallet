@@ -213,7 +213,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
           }
         }
       } catch (e, s) {
-        Logging.instance.logd("$e\n$s", level: LogLevel.Error);
+        Logging.instance.e("$e\n$s", error: e, stackTrace: s);
         if (mounted) {
           // show error
           await showDialog<dynamic>(
