@@ -175,7 +175,7 @@ enum AddressType {
   frostMS,
   p2tr,
   solana,
-  cardanoShelley
+  cardanoShelley,
   xelis;
 
   String get readableName {

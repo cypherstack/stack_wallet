@@ -5,9 +5,9 @@ import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
 
-import 'package:xelis_flutter/lib.dart' as xelis;
+import 'package:xelis_flutter/src/api/utils.dart' as x_utils;
 
-class Xelis extends Bip39Currency {
+class Xelis extends CryptoCurrency {
   Xelis(super.network) {
     _idMain = "xelis";
     _uriScheme = "xelis";
@@ -16,6 +16,10 @@ class Xelis extends Bip39Currency {
         _id = _idMain;
         _name = "Xelis";
         _ticker = "XEL";
+      case CryptoCurrencyNetwork.test:
+        _id = "xelisTestNet";
+        _name = "tXelis";
+        _ticker = "XET";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -58,6 +62,22 @@ class Xelis extends Bip39Currency {
           torEnabled: true,
           clearnetEnabled: true,
         );
+
+      case CryptoCurrencyNetwork.test:
+        return NodeModel(
+          host: "https://testnet-node.xelis.io",
+          port: 443,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+          torEnabled: true,
+          clearnetEnabled: true,
+        );
+
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -72,7 +92,7 @@ class Xelis extends Bip39Currency {
   @override
   bool validateAddress(String address) {
     try {
-      return xelis.isAddressValid(address);
+      return x_utils.isAddressValid(strAddress: address);
     } catch (_) {
       return false;
     }

@@ -187,6 +187,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
+  build_cli_annotations:
+    dependency: transitive
+    description:
+      name: build_cli_annotations
+      sha256: b59d2769769efd6c9ff6d4c4cede0be115a566afc591705c2040b707534b1172
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   build_config:
     dependency: transitive
     description:
@@ -885,6 +893,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  flutter_rust_bridge:
+    dependency: transitive
+    description:
+      name: flutter_rust_bridge
+      sha256: "3292ad6085552987b8b3b9a7e5805567f4013372d302736b702801acb001ee00"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.1"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -1185,6 +1201,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.8.0"
+  jsontool:
+    dependency: transitive
+    description:
+      name: jsontool
+      sha256: e49bf419e82d90f009426cd7fdec8d54ba8382975b3454ed16a3af3ee1d1b697
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   keyboard_dismisser:
     dependency: "direct main"
     description:
@@ -2148,6 +2172,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  very_good_analysis:
+    dependency: transitive
+    description:
+      name: very_good_analysis
+      sha256: "62d2b86d183fb81b2edc22913d9f155d26eb5cf3855173adb1f59fac85035c63"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.0"
   vm_service:
     dependency: transitive
     description:
@@ -2237,6 +2269,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.5"
+  web_socket_client:
+    dependency: transitive
+    description:
+      name: web_socket_client
+      sha256: "0ec5230852349191188c013112e4d2be03e3fc83dbe80139ead9bf3a136e53b5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.5"
   webdriver:
     dependency: transitive
     description:
@@ -2286,6 +2326,21 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  xelis_dart_sdk:
+    dependency: "direct main"
+    description:
+      name: xelis_dart_sdk
+      sha256: "2a7f8ab4c30fad2fd824ba6ea4e83ac20c726b47c7aa4f1e713ef3971a3ec1f7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.24.0"
+  xelis_flutter:
+    dependency: "direct main"
+    description:
+      path: "crypto_plugins/xelis_flutter"
+      relative: true
+    source: path
+    version: "0.0.1"
   xml:
     dependency: transitive
     description:

@@ -20,6 +20,7 @@
 #include <stack_wallet_backup/stack_wallet_backup_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <window_size/window_size_plugin.h>
+#include <xelis_flutter/xelis_flutter_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
   CameraWindowsRegisterWithRegistrar(
@@ -50,4 +51,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
   WindowSizePluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("WindowSizePlugin"));
+  XelisFlutterPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("XelisFlutterPluginCApi"));
 }
