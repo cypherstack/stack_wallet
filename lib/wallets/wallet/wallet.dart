@@ -242,6 +242,13 @@ abstract class Wallet<T extends CryptoCurrency> {
         .walletIdEqualTo(walletId)
         .findFirst();
 
+    Logging.instance.i(
+      "Wallet.load loading"
+      " $walletId "
+      "${walletInfo?.coin.identifier}"
+      " ${walletInfo?.name}",
+    );
+
     if (walletInfo == null) {
       throw Exception(
         "WalletInfo not found for $walletId when trying to call Wallet.load()",
@@ -712,6 +719,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   Future<void> exit() async {
+    Logging.instance.i("exit called on $walletId");
     _periodicRefreshTimer?.cancel();
     _networkAliveTimer?.cancel();
 
