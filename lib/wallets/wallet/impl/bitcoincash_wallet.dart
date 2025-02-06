@@ -198,9 +198,10 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
             valueStringSats = prevOut.valueStringSats;
             addresses.addAll(prevOut.addresses);
           } catch (e, s) {
-            Logging.instance.logd(
+            Logging.instance.w(
               "Error getting prevOutJson: $e\nStack trace: $s",
-              level: LogLevel.Warning,
+              error: e,
+              stackTrace: s,
             );
           }
         }
@@ -293,9 +294,11 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
         // only found outputs owned by this wallet
         type = TransactionType.incoming;
       } else {
-        Logging.instance.logd(
+        Logging.instance.e(
+          "Unexpected tx found (ignoring it)",
+        );
+        Logging.instance.d(
           "Unexpected tx found (ignoring it): $txData",
-          level: LogLevel.Error,
         );
         continue;
       }
@@ -345,10 +348,17 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
         }
       } catch (e, s) {
         // Probably doesn't contain a cash token so just log failure
-        Logging.instance.logd(
+        Logging.instance.w(
+          "Script pub key cash token"
+          " parsing check failed",
+          error: e,
+          stackTrace: s,
+        );
+        Logging.instance.d(
           "Script pub key \"$scriptPubKeyHex\" cash token"
           " parsing check failed: $e\n$s",
-          level: LogLevel.Warning,
+          error: e,
+          stackTrace: s,
         );
       }
 

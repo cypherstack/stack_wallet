@@ -17,7 +17,6 @@ import 'dart:ui';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart' as spark;
 import 'package:logger/logger.dart';
 
-import 'enums/log_level_enum.dart';
 import 'util.dart';
 
 export 'enums/log_level_enum.dart';
@@ -143,18 +142,6 @@ class Logging {
       !(message is Map || message is Iterable)
           ? message.toString()
           : JsonEncoder.withIndent('  ', (o) => o.toString()).convert(message);
-
-  @core.Deprecated("Use Logging.instance.log instead")
-  void logd(
-    core.Object? object, {
-    required LogLevel level,
-    core.bool printToConsole = true,
-    core.bool printFullLength = false,
-  }) =>
-      log(
-        level.getLoggerLevel(),
-        object,
-      );
 
   void log(
     Level level,

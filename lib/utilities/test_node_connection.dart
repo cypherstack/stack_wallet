@@ -100,17 +100,15 @@ Future<bool> testNodeConnection({
 
   if (ref.read(prefsChangeNotifierProvider).useTor) {
     if (formData.netOption! == TorPlainNetworkOption.clear) {
-      Logging.instance.logd(
+      Logging.instance.w(
         "This node is configured for non-TOR only but TOR is enabled",
-        level: LogLevel.Warning,
       );
       return false;
     }
   } else {
     if (formData.netOption! == TorPlainNetworkOption.tor) {
-      Logging.instance.logd(
+      Logging.instance.w(
         "This node is configured for TOR only but TOR is disabled",
-        level: LogLevel.Warning,
       );
       return false;
     }
@@ -128,7 +126,11 @@ Future<bool> testNodeConnection({
           onSuccess?.call(data);
         }
       } catch (e, s) {
-        Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
+        Logging.instance.w(
+          "$e\n$s",
+          error: e,
+          stackTrace: s,
+        );
       }
       break;
 
@@ -175,7 +177,11 @@ Future<bool> testNodeConnection({
           }
         }
       } catch (e, s) {
-        Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
+        Logging.instance.w(
+          "$e\n$s",
+          error: e,
+          stackTrace: s,
+        );
       }
 
       break;
@@ -251,9 +257,8 @@ Future<bool> testNodeConnection({
         );
 
         final health = await rpcClient.getHealth();
-        Logging.instance.logd(
+        Logging.instance.i(
           "Solana testNodeConnection \"health=$health\"",
-          level: LogLevel.Info,
         );
         return true;
       } catch (_) {
@@ -283,9 +288,8 @@ Future<bool> testNodeConnection({
           BlockfrostRequestBackendHealthStatus(),
         );
 
-        Logging.instance.logd(
+        Logging.instance.i(
           "Cardano testNodeConnection \"health=$health\"",
-          level: LogLevel.Info,
         );
 
         return health;

@@ -97,10 +97,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
         );
 
         if (qrResult == null) {
-          Logging.instance.logd(
-            "Qr scanning cancelled",
-            level: LogLevel.Info,
-          );
+          Logging.instance.d("Qr scanning cancelled");
         } else {
           // TODO [prio=low]: Validate QR code data.
           widget.controller.text = qrResult;
@@ -109,9 +106,10 @@ class _FrostStepFieldState extends State<FrostStepField> {
         }
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.logd(
-        "Failed to get camera permissions while trying to scan qr code: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Failed to get camera permissions while trying to scan qr code: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }

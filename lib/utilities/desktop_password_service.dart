@@ -68,10 +68,7 @@ class DPS {
       await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
       await _updateStoredKeyBlobVersion(kLatestBlobVersion);
     } catch (e, s) {
-      Logging.instance.logd(
-        "${_getMessageFromException(e)}\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("${_getMessageFromException(e)}\n$s", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -104,10 +101,7 @@ class DPS {
         await _updateStoredKeyBlobVersion(kLatestBlobVersion);
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "${_getMessageFromException(e)}\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("${_getMessageFromException(e)}\n$s", error: e, stackTrace: s);
       throw Exception(_getMessageFromException(e));
     }
   }
@@ -125,10 +119,7 @@ class DPS {
       // existing passphrase matches key blob
       return true;
     } catch (e, s) {
-      Logging.instance.logd(
-        "${_getMessageFromException(e)}\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("${_getMessageFromException(e)}\n$s", error: e, stackTrace: s,);
       // password is wrong or some other error
       return false;
     }
@@ -161,10 +152,7 @@ class DPS {
       // successfully updated passphrase
       return true;
     } catch (e, s) {
-      Logging.instance.logd(
-        "${_getMessageFromException(e)}\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("${_getMessageFromException(e)}\n$s", error: e, stackTrace: s,);
       return false;
     }
   }
@@ -189,10 +177,7 @@ class DPS {
       box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
       await box.put(key, value);
     } catch (e, s) {
-      Logging.instance.logd(
-        "DPS failed put($key): $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("DPS failed put($key): ", error: e, stackTrace: s);
     } finally {
       await box?.close();
     }
@@ -205,10 +190,7 @@ class DPS {
       box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
       value = box.get(key);
     } catch (e, s) {
-      Logging.instance.logd(
-        "DPS failed get($key): $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("DPS failed get($key): ", error: e, stackTrace: s);
     } finally {
       await box?.close();
     }

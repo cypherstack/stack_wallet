@@ -209,10 +209,10 @@ void main(List<String> args) async {
           ),
         );
       } catch (e, s) {
-        Logging.instance.logd(
-          "Cannot migrate mobile database\n$e $s",
-          level: LogLevel.Error,
-          printFullLength: true,
+        Logging.instance.w(
+          "Cannot migrate mobile database",
+          error: e,
+          stackTrace: s,
         );
       }
     }
@@ -558,9 +558,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     // call reset to clear cached value
     await resetOpenPath();
 
-    Logging.instance.logd(
+    Logging.instance.d(
       "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
-      level: LogLevel.Info,
     );
   }
 

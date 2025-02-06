@@ -67,10 +67,7 @@ class _FrostSendStep1aState extends ConsumerState<FrostSendStep1a> {
             .routeName,
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "$e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
     } finally {
       _attemptSignLock = false;
     }

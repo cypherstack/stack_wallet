@@ -93,10 +93,11 @@ class _PaynymFollowingListState extends ConsumerState<PaynymFollowingList> {
               ref.read(myPaynymAccountStateProvider.state).state =
                   account.value!;
             }
-          } catch (e) {
-            Logging.instance.logd(
+          } catch (e, s) {
+            Logging.instance.w(
               "Failed pull down refresh of paynym home page: $e",
-              level: LogLevel.Warning,
+              error: e,
+              stackTrace: s,
             );
           }
         },

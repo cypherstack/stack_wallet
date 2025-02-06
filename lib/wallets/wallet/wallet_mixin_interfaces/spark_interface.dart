@@ -179,10 +179,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
     } catch (e, s) {
       // do nothing, still allow user into wallet
-      Logging.instance.logd(
-        "$runtimeType init() failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("$runtimeType init() failed", error: e, stackTrace: s);
     }
 
     // await info.updateReceivingAddress(
@@ -759,13 +756,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     required TxData txData,
   }) async {
     try {
-      Logging.instance
-          .logd("confirmSend txData: $txData", level: LogLevel.Info);
+      Logging.instance.d("confirmSend txData: $txData");
 
       final txHash = await electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
       );
-      Logging.instance.logd("Sent txHash: $txHash", level: LogLevel.Info);
+      Logging.instance.d("Sent txHash: $txHash");
 
       txData = txData.copyWith(
         // TODO revisit setting these both
@@ -784,9 +780,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from confirmSend(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Exception rethrown from confirmSend(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -857,17 +854,17 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
 
       return result;
-    } catch (e) {
-      Logging.instance.logd(
-        "_refreshSparkCoinsMempoolCheck() failed: $e",
-        level: LogLevel.Error,
+    } catch (e, s) {
+      Logging.instance.e(
+        "_refreshSparkCoinsMempoolCheck() failed",
+        error: e,
+        stackTrace: s,
       );
       return [];
     } finally {
-      Logging.instance.logd(
+      Logging.instance.d(
         "$walletId ${info.name} _refreshSparkCoinsMempoolCheck() run "
         "duration: ${DateTime.now().difference(start)}",
-        level: LogLevel.Debug,
       );
     }
   }
@@ -1168,16 +1165,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "$runtimeType $walletId ${info.name}: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("$runtimeType $walletId ${info.name}: ", error: e, stackTrace: s);
       rethrow;
     } finally {
-      Logging.instance.logd(
+      Logging.instance.d(
         "${info.name} refreshSparkData() duration:"
         " ${DateTime.now().difference(start)}",
-        level: LogLevel.Debug,
       );
     }
   }
@@ -1213,10 +1207,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     try {
       await refreshSparkData(null);
     } catch (e, s) {
-      Logging.instance.logd(
-        "$runtimeType $walletId ${info.name}: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("$runtimeType $walletId ${info.name}: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -1747,9 +1739,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           );
         }
       } catch (e, s) {
-        Logging.instance.logd(
-          "Caught exception while signing spark mint transaction: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "Caught exception while signing spark mint transaction: ",
+          error: e,
+          stackTrace: s,
         );
         rethrow;
       }
@@ -1900,9 +1893,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       await confirmSparkMintTransactions(txData: TxData(sparkMints: mints));
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception caught in anonymizeAllSpark(): $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Exception caught in anonymizeAllSpark(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -2007,9 +2001,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       return txData.copyWith(sparkMints: mints);
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception caught in prepareSparkMintTransaction(): $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Exception caught in prepareSparkMintTransaction(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }

@@ -57,10 +57,7 @@ class _DesktopInstallThemeState extends ConsumerState<DesktopInstallTheme> {
       ]);
       return true;
     } catch (e, s) {
-      Logging.instance.logd(
-        "Failed to install theme: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("Failed to install theme: ", error: e, stackTrace: s);
       return false;
     }
   }
@@ -82,7 +79,7 @@ class _DesktopInstallThemeState extends ConsumerState<DesktopInstallTheme> {
         }
       }
     } catch (e, s) {
-      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
     }
   }
 

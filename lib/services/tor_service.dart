@@ -85,10 +85,7 @@ class TorService {
       // Complete the future.
       return;
     } catch (e, s) {
-      Logging.instance.logd(
-        "TorService.start failed: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("TorService.start failed: ", error: e, stackTrace: s);
       // _enabled should already be false
 
       // Fire a TorConnectionStatusChangedEvent on the event bus.

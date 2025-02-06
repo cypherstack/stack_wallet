@@ -55,10 +55,7 @@ class _InstallThemeFromFileDialogState
       ]);
       return true;
     } catch (e, s) {
-      Logging.instance.logd(
-        "Failed to install theme: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("Failed to install theme: ", error: e, stackTrace: s);
       return false;
     }
   }
@@ -78,7 +75,7 @@ class _InstallThemeFromFileDialogState
         });
       }
     } catch (e, s) {
-      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
     }
   }
 

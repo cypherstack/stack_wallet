@@ -60,9 +60,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     if (txData.tempTx != null) {
       await mainDB.updateOrPutTransactionV2s([txData.tempTx!]);
       _unconfirmedTxids.add(txData.tempTx!.txid);
-      Logging.instance.logd(
+      Logging.instance.d(
         "Added firo unconfirmed: ${txData.tempTx!.txid}",
-        level: LogLevel.Info,
       );
     }
     return txData;
@@ -221,17 +220,15 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       );
 
       if (isMySpark && sparkCoinsInvolvedReceived.isEmpty && !isMySpentSpark) {
-        Logging.instance.logd(
+        Logging.instance.e(
           "sparkCoinsInvolvedReceived is empty and should not be! (ignoring tx parsing)",
-          level: LogLevel.Error,
         );
         continue;
       }
 
       if (isMySpentSpark && sparkCoinsInvolvedSpent.isEmpty && !isMySpark) {
-        Logging.instance.logd(
+        Logging.instance.e(
           "sparkCoinsInvolvedSpent is empty and should not be! (ignoring tx parsing)",
-          level: LogLevel.Error,
         );
         continue;
       }
@@ -248,15 +245,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             } else if (asm.startsWith("OP_LELANTUSMINT")) {
               isMint = true;
             } else {
-              Logging.instance.logd(
+              Logging.instance.d(
                 "Unknown mint op code found for lelantusmint tx: ${txData["txid"]}",
-                level: LogLevel.Error,
               );
             }
           } else {
-            Logging.instance.logd(
+            Logging.instance.d(
               "ASM for lelantusmint tx: ${txData["txid"]} is null!",
-              level: LogLevel.Error,
             );
           }
         }
@@ -268,15 +263,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
                 asm.startsWith("OP_SPARKSMINT")) {
               isSparkMint = true;
             } else {
-              Logging.instance.logd(
+              Logging.instance.d(
                 "Unknown mint op code found for sparkmint tx: ${txData["txid"]}",
-                level: LogLevel.Error,
               );
             }
           } else {
-            Logging.instance.logd(
+            Logging.instance.d(
               "ASM for sparkmint tx: ${txData["txid"]} is null!",
-              level: LogLevel.Error,
             );
           }
         }
@@ -570,10 +563,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         // only found outputs owned by this wallet
         type = TransactionType.incoming;
       } else {
-        Logging.instance.logd(
-          "Unexpected tx found (ignoring it): $txData",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Unexpected tx found (ignoring it)");
+        Logging.instance.d("Unexpected tx found (ignoring it): $txData");
         continue;
       }
 
@@ -747,10 +738,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         );
 
         // receiving addresses
-        Logging.instance.logd(
-          "checking receiving addresses...",
-          level: LogLevel.Info,
-        );
+        Logging.instance.d("checking receiving addresses...");
 
         final canBatch = await serverCanBatch;
 
@@ -772,10 +760,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         }
 
         // change addresses
-        Logging.instance.logd(
-          "checking change addresses...",
-          level: LogLevel.Info,
-        );
+        Logging.instance.d("checking change addresses...");
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           changeFutures.add(
             canBatch
@@ -899,15 +884,15 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       });
 
       unawaited(refresh());
-      Logging.instance.logd(
+      Logging.instance.i(
         "Firo recover for "
         "${info.name}: ${DateTime.now().difference(start)}",
-        level: LogLevel.Info,
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from electrumx_mixin recover(): $e\n$s",
-        level: LogLevel.Info,
+      Logging.instance.e(
+        "Exception rethrown from electrumx_mixin recover(): ",
+        error: e,
+        stackTrace: s,
       );
 
       rethrow;

@@ -175,8 +175,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                         });
                                       }
                                     } catch (e, s) {
-                                      Logging.instance.logd("$e\n$s",
-                                          level: LogLevel.Error);
+                                      Logging.instance
+                                          .e("$e\n$s", error: e, stackTrace: s);
                                     }
                                   },
                             controller: fileLocationController,
@@ -578,8 +578,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                   } on Exception catch (e, s) {
                                     final String err =
                                         getErrorMessageFromSWBException(e);
-                                    Logging.instance.logd("$err\n$s",
-                                        level: LogLevel.Error);
+                                    Logging.instance
+                                        .e("$err\n$s", error: e, stackTrace: s);
                                     // pop encryption progress dialog
                                     Navigator.of(context).pop();
                                     showFloatingFlushBar(
@@ -589,8 +589,11 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     );
                                     return;
                                   } catch (e, s) {
-                                    Logging.instance
-                                        .logd("$e\n$s", level: LogLevel.Error);
+                                    Logging.instance.e(
+                                      "",
+                                      error: e,
+                                      stackTrace: s,
+                                    );
                                     // pop encryption progress dialog
                                     Navigator.of(context).pop();
                                     showFloatingFlushBar(

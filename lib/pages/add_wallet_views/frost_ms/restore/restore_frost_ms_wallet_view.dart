@@ -171,9 +171,10 @@ class _RestoreFrostMsWalletViewState
         );
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "$e\n$s",
-        level: LogLevel.Fatal,
+      Logging.instance.e(
+        "",
+        error: e,
+        stackTrace: s,
       );
 
       if (mounted) {
@@ -234,9 +235,8 @@ class _RestoreFrostMsWalletViewState
         );
 
         if (qrResult == null) {
-          Logging.instance.logd(
+          Logging.instance.d(
             "Qr scanning cancelled",
-            level: LogLevel.Info,
           );
         } else {
           // TODO [prio=low]: Validate QR code data.
@@ -248,9 +248,10 @@ class _RestoreFrostMsWalletViewState
         }
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.logd(
-        "Failed to get camera permissions while trying to scan qr code: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Failed to get camera permissions while trying to scan qr code: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }

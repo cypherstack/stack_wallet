@@ -73,11 +73,8 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
                     ref.read(secureStoreProvider),
                   );
             } catch (e, s) {
-              Logging.instance.logd(
-                "Error while getting wallet info in restore failed dialog\n"
-                "Error: $e\nStack trace: $s",
-                level: LogLevel.Error,
-              );
+              Logging.instance.e("Error while getting wallet info in restore failed dialog\n"
+                "Error: $e\nStack trace: $s");
             } finally {
               if (mounted) {
                 Navigator.of(context).pop();

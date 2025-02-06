@@ -179,7 +179,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           onNewBlock: onNewBlock,
           onBalancesChanged: onBalancesChanged,
           onError: (e, s) {
-            Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
+            Logging.instance.w(
+              "$e\n$s",
+              error: e,
+              stackTrace: s,
+            );
           },
         ),
       );
@@ -307,7 +311,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         privateSpendKey: base.getPrivateSpendKey(),
       );
     } catch (e, s) {
-      Logging.instance.logd("getKeys failed: $e\n$s", level: LogLevel.Fatal);
+      Logging.instance.f("getKeys failed: ", error: e, stackTrace: s);
       return CWKeyData(
         walletId: walletId,
         publicViewKey: "ERROR",
@@ -374,7 +378,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           value: "",
         );
       } catch (e, s) {
-        Logging.instance.logd("$e\n$s", level: LogLevel.Fatal);
+        Logging.instance.f("", error: e, stackTrace: s);
       }
       await updateNode();
     }
@@ -462,7 +466,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             isar: mainDB.isar,
           );
         } catch (e, s) {
-          Logging.instance.logd("$e\n$s", level: LogLevel.Fatal);
+          Logging.instance.f("", error: e, stackTrace: s);
           rethrow;
         }
         await updateNode();
@@ -476,10 +480,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         libMoneroWallet?.startListeners();
         libMoneroWallet?.startAutoSaving();
       } catch (e, s) {
-        Logging.instance.logd(
-          "Exception rethrown from recoverFromMnemonic(): $e\n$s",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Exception rethrown from recoverFromMnemonic(): ",
+            error: e, stackTrace: s);
         rethrow;
       }
     });
@@ -548,10 +550,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       _setSyncStatus(lib_monero_compat.ConnectedSyncStatus());
     } catch (e, s) {
       _setSyncStatus(lib_monero_compat.FailedSyncStatus());
-      Logging.instance.logd(
-        "Exception caught in $runtimeType.updateNode(): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Exception caught in $runtimeType.updateNode(): ",
+          error: e, stackTrace: s);
     }
 
     return;
@@ -802,10 +802,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       await updateBalance();
       await updateTransactions();
     } catch (e, s) {
-      Logging.instance.logd(
-        "onBalancesChanged(): $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("onBalancesChanged(): ", error: e, stackTrace: s);
     }
   }
 
@@ -813,10 +810,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     try {
       await updateTransactions();
     } catch (e, s) {
-      Logging.instance.logd(
-        "onNewBlock(): $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("onNewBlock(): ", error: e, stackTrace: s);
     }
   }
 
@@ -1165,10 +1159,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception in generateNewAddress(): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("Exception in generateNewAddress(): ", error: e, stackTrace: s);
     }
   }
 
@@ -1178,10 +1170,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       try {
         throw Exception();
       } catch (_, s) {
-        Logging.instance.logd(
-          "checkReceivingAddressForTransactions called but reuse address flag set: $s",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e(
+            "checkReceivingAddressForTransactions called but reuse address flag set: $s",
+            error: e,
+            stackTrace: s);
       }
     }
 
@@ -1230,16 +1222,16 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         }
       }
     } on SocketException catch (se, s) {
-      Logging.instance.logd(
-        "SocketException caught in _checkReceivingAddressForTransactions(): $se\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e(
+          "SocketException caught in _checkReceivingAddressForTransactions(): $se\n$s",
+          error: e,
+          stackTrace: s);
       return;
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from _checkReceivingAddressForTransactions(): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e(
+          "Exception rethrown from _checkReceivingAddressForTransactions(): ",
+          error: e,
+          stackTrace: s);
       rethrow;
     }
   }
@@ -1386,10 +1378,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         throw ArgumentError("Invalid fee rate argument provided!");
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from prepare send(): $e\n$s",
-        level: LogLevel.Info,
-      );
+      Logging.instance.i("Exception rethrown from prepare send(): ",
+          error: e, stackTrace: s);
 
       if (e.toString().contains("Incorrect unlocked balance")) {
         throw Exception("Insufficient balance!");
@@ -1407,23 +1397,20 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           txData.pendingTransaction!,
         );
 
-        Logging.instance.logd(
+        Logging.instance.d(
           "transaction ${txData.pendingTransaction!.txid} has been sent",
-          level: LogLevel.Info,
         );
         return txData.copyWith(txid: txData.pendingTransaction!.txid);
       } catch (e, s) {
-        Logging.instance.logd(
-          "${info.name} ${compatType.name.toLowerCase()} confirmSend: $e\n$s",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e(
+            "${info.name} ${compatType.name.toLowerCase()} confirmSend: ",
+            error: e,
+            stackTrace: s);
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Exception rethrown from confirmSend(): $e\n$s",
-        level: LogLevel.Info,
-      );
+      Logging.instance.e("Exception rethrown from confirmSend(): ",
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -1499,10 +1486,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         libMoneroWallet?.startListeners();
         libMoneroWallet?.startAutoSaving();
       } catch (e, s) {
-        Logging.instance.logd(
-          "Exception rethrown from recoverViewOnly(): $e\n$s",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Exception rethrown from recoverViewOnly(): ",
+            error: e, stackTrace: s);
         rethrow;
       }
     });

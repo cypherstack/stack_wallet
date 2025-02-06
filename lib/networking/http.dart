@@ -53,10 +53,7 @@ class HTTP {
         response.statusCode,
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "HTTP.get() rethrew: $e\n$s",
-        level: LogLevel.Info,
-      );
+      Logging.instance.w("HTTP.get() rethrew: ", error: e, stackTrace: s);
       rethrow;
     } finally {
       httpClient.close(force: true);
@@ -99,10 +96,7 @@ class HTTP {
         response.statusCode,
       );
     } catch (e, s) {
-      Logging.instance.logd(
-        "HTTP.post() rethrew: $e\n$s",
-        level: LogLevel.Info,
-      );
+      Logging.instance.w("HTTP.post() rethrew: ", error: e, stackTrace: s);
       rethrow;
     } finally {
       httpClient.close(force: true);
@@ -119,9 +113,10 @@ class HTTP {
       onDone: () => completer.complete(
         Uint8List.fromList(bytes),
       ),
-      onError: (Object err, StackTrace s) => Logging.instance.logd(
-        "Http wrapper layer listen: $err\n$s",
-        level: LogLevel.Error,
+      onError: (Object err, StackTrace s) => Logging.instance.e(
+        "Http wrapper layer listen",
+        error: err,
+        stackTrace: s,
       ),
     );
     return completer.future;

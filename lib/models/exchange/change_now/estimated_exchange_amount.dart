@@ -57,8 +57,11 @@ class EstimatedExchangeAmount {
         networkFee: Decimal.tryParse(json["networkFee"].toString()),
       );
     } catch (e, s) {
-      Logging.instance
-          .logd("Failed to parse: $json \n$e\n$s", level: LogLevel.Fatal);
+      Logging.instance.e(
+        "Failed to parse: $json",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }

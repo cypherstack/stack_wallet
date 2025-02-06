@@ -131,9 +131,8 @@ class PriceAPI {
     final externalCalls = Prefs.instance.externalCalls;
     if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.logd(
+      Logging.instance.i(
         "User does not want to use external calls",
-        level: LogLevel.Info,
       );
       return _cachedPrices;
     }
@@ -172,10 +171,8 @@ class PriceAPI {
 
       return _cachedPrices;
     } catch (e, s) {
-      Logging.instance.logd(
-        "getPricesAnd24hChange($baseCurrency): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("getPricesAnd24hChange($baseCurrency): ", error: e, stackTrace: s);
       // return previous cached values
       return _cachedPrices;
     }
@@ -187,9 +184,8 @@ class PriceAPI {
 
     if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.logd(
+      Logging.instance.i(
         "User does not want to use external calls",
-        level: LogLevel.Info,
       );
       return null;
     }
@@ -208,9 +204,10 @@ class PriceAPI {
       final json = jsonDecode(response.body) as List<dynamic>;
       return List<String>.from(json);
     } catch (e, s) {
-      Logging.instance.logd(
-        "availableBaseCurrencies() using $uriString: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "availableBaseCurrencies() using $uriString: ",
+        error: e,
+        stackTrace: s,
       );
       return null;
     }
@@ -229,9 +226,8 @@ class PriceAPI {
     final externalCalls = Prefs.instance.externalCalls;
     if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
-      Logging.instance.logd(
+      Logging.instance.i(
         "User does not want to use external calls",
-        level: LogLevel.Info,
       );
       return tokenPrices;
     }
@@ -273,9 +269,10 @@ class PriceAPI {
 
       return tokenPrices;
     } catch (e, s) {
-      Logging.instance.logd(
-        "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddresses): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getPricesAnd24hChangeForEthTokens($baseCurrency,$contractAddresses): ",
+        error: e,
+        stackTrace: s,
       );
       // return previous cached values
       return tokenPrices;

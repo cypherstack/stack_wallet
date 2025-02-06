@@ -61,10 +61,8 @@ class MajesticBankAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.logd(
-        "_makeRequest($uri) HTTP:$code threw: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("_makeRequest($uri) HTTP:$code threw: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -92,8 +90,11 @@ class MajesticBankAPI {
       }
       return ExchangeResponse(value: rates);
     } catch (e, s) {
-      Logging.instance
-          .logd("getRates exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getRates exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -126,8 +127,11 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: limit);
     } catch (e, s) {
-      Logging.instance
-          .logd("getLimits exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getLimits exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -159,8 +163,11 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: limits);
     } catch (e, s) {
-      Logging.instance
-          .logd("getLimits exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getLimits exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -228,9 +235,10 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: result);
     } catch (e, s) {
-      Logging.instance.logd(
-        "calculateOrder $fromCurrency-$receiveCurrency exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "calculateOrder $fromCurrency-$receiveCurrency exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -276,8 +284,11 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: order);
     } catch (e, s) {
-      Logging.instance
-          .logd("createOrder exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "createOrder exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -331,8 +342,8 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: order);
     } catch (e, s) {
-      Logging.instance.logd("createFixedRateOrder exception: $e\n$s",
-          level: LogLevel.Error);
+      Logging.instance
+          .e("createFixedRateOrder exception: ", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -379,9 +390,10 @@ class MajesticBankAPI {
 
       return ExchangeResponse(value: status);
     } catch (e, s) {
-      Logging.instance.logd(
-        "trackOrder exception when trying to parse $json: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "trackOrder exception when trying to parse $json: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(

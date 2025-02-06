@@ -20,9 +20,7 @@ class TorPreferenceChangedEvent {
     required this.status,
     this.message,
   }) {
-    Logging.instance.logd(
-      "TorStatusChangedEvent changed to \"$status\" with message: $message",
-      level: LogLevel.Warning,
-    );
+    Logging.instance.w(
+        "TorStatusChangedEvent changed to \"$status\" with message: $message");
   }
 }

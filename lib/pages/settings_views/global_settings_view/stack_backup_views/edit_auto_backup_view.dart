@@ -159,7 +159,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
       adkVersion = adk.item1;
     } on Exception catch (e, s) {
       final String err = getErrorMessageFromSWBException(e);
-      Logging.instance.logd("$err\n$s", level: LogLevel.Error);
+      Logging.instance.e("$err\n$s", error: e, stackTrace: s);
       // pop encryption progress dialog
       Navigator.of(context).pop();
       unawaited(
@@ -171,7 +171,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
       );
       return;
     } catch (e, s) {
-      Logging.instance.logd("$e\n$s", level: LogLevel.Error);
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       // pop encryption progress dialog
       Navigator.of(context).pop();
       unawaited(
@@ -374,7 +374,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                           });
                         }
                       } catch (e, s) {
-                        Logging.instance.logd("$e\n$s", level: LogLevel.Error);
+                        Logging.instance.e("$e\n$s", error: e, stackTrace: s);
                       }
                     },
               controller: fileLocationController,

@@ -8,8 +8,6 @@
  *
  */
 
-import 'package:flutter/foundation.dart';
-
 import '../../../../utilities/logger.dart';
 
 class UpdatedInBackgroundEvent {
@@ -17,11 +15,8 @@ class UpdatedInBackgroundEvent {
   String walletId;
 
   UpdatedInBackgroundEvent(this.message, this.walletId) {
-    if (kDebugMode) {
-      Logging.instance.logd(
-        "UpdatedInBackgroundEvent fired with message: $message",
-        level: LogLevel.Info,
-      );
-    }
+    Logging.instance.d(
+      "UpdatedInBackgroundEvent fired with message: $message",
+    );
   }
 }

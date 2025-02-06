@@ -291,7 +291,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           .fold(BigInt.zero, (value, element) => value + element);
 
       TransactionType type;
-      final TransactionSubType subType = TransactionSubType.none;
+      const TransactionSubType subType = TransactionSubType.none;
 
       // Particl has special outputs like confidential amounts. We can check
       // for them here.  They're also checked in checkBlockUTXO.
@@ -313,10 +313,8 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         // Only found outputs owned by this wallet.
         type = TransactionType.incoming;
       } else {
-        Logging.instance.logd(
-          "Unexpected tx found (ignoring it): $txData",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Unexpected tx found (ignoring it)");
+        Logging.instance.d("Unexpected tx found (ignoring it): $txData");
         continue;
       }
 
@@ -348,10 +346,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     required TxData txData,
     required List<SigningData> utxoSigningData,
   }) async {
-    Logging.instance.logd(
-      "Starting Particl buildTransaction ----------",
-      level: LogLevel.Info,
-    );
+    Logging.instance.d("Starting Particl buildTransaction ----------");
 
     // TODO: use coinlib (For this we need coinlib to support particl)
 
@@ -523,10 +518,8 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         );
       }
     } catch (e, s) {
-      Logging.instance.logd(
-        "Caught exception while signing transaction: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Caught exception while signing transaction: ",
+          error: e, stackTrace: s);
       rethrow;
     }
 
@@ -540,9 +533,9 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     String hexString = builtTx.toHex(isParticl: true).toString();
     if (hexString.length % 2 != 0) {
       // Ensure the string has an even length.
-      Logging.instance.logd(
+      Logging.instance.e(
         "Hex string has odd length, which is unexpected.",
-        level: LogLevel.Error,
+        stackTrace: StackTrace.current,
       );
       throw Exception("Invalid hex string length.");
     }

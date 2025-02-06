@@ -406,7 +406,7 @@ class _TransactionV2DetailsViewState
         return address;
       }
     } catch (e, s) {
-      Logging.instance.logd("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
       return address;
     }
   }

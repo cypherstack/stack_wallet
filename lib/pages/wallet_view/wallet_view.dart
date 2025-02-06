@@ -1199,10 +1199,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             .read(paynymAPIProvider)
                             .nym(code.toString());
 
-                        Logging.instance.logd(
-                          "my nym account: $account",
-                          level: LogLevel.Info,
-                        );
+                        Logging.instance.d("my nym account: $account");
 
                         if (context.mounted) {
                           Navigator.of(context).pop();
