@@ -1,5 +1,5 @@
-name: PLACEHOLDER
-description: PLACEHOLDER
+name: stackwallet
+description: Stack Wallet
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -11,7 +11,7 @@ description: PLACEHOLDER
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: PLACEHOLDER_V+PLACEHOLDER_B
+version: 2.1.1+211
 
 environment:
   sdk: ">=3.7.0 <4.0.0"
@@ -34,6 +34,8 @@ dependencies:
     path: ./crypto_plugins/xelis_flutter
 
   xelis_dart_sdk: ^0.24.0
+
+  freezed_annotation: ^2.4.1
 
   flutter_libsparkmobile:
     git:
@@ -229,6 +231,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
       sdk: flutter
+  freezed: ^2.4.2
   build_runner: ^2.1.7
   flutter_launcher_icons: ^0.13.1
   hive_generator: ^2.0.0

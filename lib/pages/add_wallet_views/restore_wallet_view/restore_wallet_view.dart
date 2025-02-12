@@ -49,6 +49,7 @@ import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -199,6 +200,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       );
       return wowneroWordList.contains(word);
     }
+    // TODO: use Xelis word list
+    if (widget.coin is Xelis) {
+      return true;
+    }
     return _wordListHashSet.contains(word);
   }
 
@@ -283,10 +288,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         );
       }
 
-      // TODO: do actual check to make sure it is a valid mnemonic for monero
+      // TODO: do actual check to make sure it is a valid mnemonic for monero + xelis
       if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin is Monero || widget.coin is Wownero)) {
-        if (mounted) setState(() => _hideSeedWords = false);
+          !(widget.coin is Monero || widget.coin is Wownero || widget.coin is Xelis)) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -369,6 +373,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             case const (WowneroWallet):
               await (wallet as WowneroWallet).init(isRestore: true);
+              break;
+
+            case const (XelisWallet):
+              await (wallet as XelisWallet).init(isRestore: true);
               break;
 
             default:

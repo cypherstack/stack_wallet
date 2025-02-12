@@ -3,11 +3,11 @@ import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../crypto_currency.dart';
-import '../intermediate/bip39_currency.dart';
+import '../intermediate/electrum_currency.dart';
 
 import 'package:xelis_flutter/src/api/utils.dart' as x_utils;
 
-class Xelis extends CryptoCurrency {
+class Xelis extends ElectrumCurrency {
   Xelis(super.network) {
     _idMain = "xelis";
     _uriScheme = "xelis";
@@ -50,7 +50,7 @@ class Xelis extends CryptoCurrency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "https://us-node.xelis.io",
+          host: "us-node.xelis.io",
           port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
@@ -65,7 +65,7 @@ class Xelis extends CryptoCurrency {
 
       case CryptoCurrencyNetwork.test:
         return NodeModel(
-          host: "https://testnet-node.xelis.io",
+          host: "testnet-node.xelis.io",
           port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
@@ -84,7 +84,7 @@ class Xelis extends CryptoCurrency {
   }
 
   @override
-  int get minConfirms => 20;
+  int get minConfirms => 1;
 
   @override
   bool get torSupport => true;
@@ -102,10 +102,10 @@ class Xelis extends CryptoCurrency {
   String get genesisHash => throw UnimplementedError();
 
   @override
-  int get defaultSeedPhraseLength => 12;
+  int get defaultSeedPhraseLength => 25;
 
   @override
-  int get fractionDigits => 9;
+  int get fractionDigits => 8;
 
   @override
   bool get hasBuySupport => false;
@@ -114,7 +114,7 @@ class Xelis extends CryptoCurrency {
   bool get hasMnemonicPassphraseSupport => false;
 
   @override
-  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength];
 
   @override
   AddressType get defaultAddressType => defaultDerivePathType.getAddressType();

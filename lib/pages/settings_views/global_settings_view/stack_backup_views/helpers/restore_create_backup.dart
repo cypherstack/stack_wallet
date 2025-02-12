@@ -55,6 +55,7 @@ import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
@@ -505,6 +506,10 @@ abstract class SWB {
 
         case const (WowneroWallet):
           await (wallet as WowneroWallet).init(isRestore: true);
+          break;
+        
+        case const (XelisWallet):
+          await (wallet as XelisWallet).init(isRestore: true);
           break;
 
         default:

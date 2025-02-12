@@ -140,6 +140,9 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libepiccash
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_liblelantus/scripts/linux/build/libmobileliblelantus.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/xelis_flutter/linux/bin/x86_64-unknown-linux-gnu/release/libxelis_flutter.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
+
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so.1.7.4" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/linux/build/jsoncpp/build/src/lib_json/libjsoncpp.so.1" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"

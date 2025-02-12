@@ -71,6 +71,10 @@ secp256k1.dll
 /lib/app_config.g.dart
 /android/app/src/main/app_icon-playstore.png
 
+# Dart generated files (Freezed, Riverpod, GoRouter etc..)
+lib/**/*.g.dart
+lib/**/*.freezed.dart
+
 ## other generated project files
 
 pubspec.yaml
