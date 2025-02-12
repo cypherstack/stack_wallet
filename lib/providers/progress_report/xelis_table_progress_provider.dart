@@ -1,6 +1,9 @@
 import 'package:xelis_flutter/src/api/api.dart' as xelis_api;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flutter/foundation.dart';
+import 'dart:math' as math;
+
 enum XelisTableGenerationStep {
   t1PointsGeneration,
   t1CuckooSetup,
@@ -45,6 +48,7 @@ class XelisTableProgressState {
 }
 
 final xelisTableProgressProvider = StreamProvider<XelisTableProgressState>((ref) {
+  double lastPrintedProgress = 0.0;
   return xelis_api.createProgressReportStream().map((report) {
     return report.when(
       tableGeneration: (progress, step, _) {
@@ -56,10 +60,15 @@ final xelisTableProgressProvider = StreamProvider<XelisTableProgressState>((ref)
           XelisTableGenerationStep.unknown => 0,
         };
         
-        final totalProgress = (stepIndex * 0.5) + (progress * 0.5);
-        
+        if ((progress - lastPrintedProgress).abs() >= 0.05 || 
+            currentStep != XelisTableGenerationStep.fromString(step) ||
+            progress >= 0.99) {
+          debugPrint("Xelis Table Generation: $step - ${progress*100.0}%");
+          lastPrintedProgress = progress;
+        }
+
         return XelisTableProgressState(
-          tableProgress: totalProgress,
+          tableProgress: progress,
           currentStep: currentStep,
         );
       },

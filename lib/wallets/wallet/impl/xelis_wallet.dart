@@ -57,23 +57,6 @@ class XelisWallet extends LibXelisWallet {
   @override
   Future<void> init({bool? isRestore}) async {
     debugPrint("Xelis: init");
-
-    // final progressState = ref.read(xelisTableProgressProvider);
-    // if (progressState.hasValue && 
-    //     progressState.value?.tableProgress != null && 
-    //     progressState.value!.tableProgress! < 1.0) {
-    //   GlobalEventBus.instance.fire(
-    //     WalletSyncStatusChangedEvent(
-    //       WalletSyncStatus.syncing,
-    //       walletId,
-    //       info.coin,
-    //     ),
-    //   );
-      
-    //   while ((ref.read(xelisTableProgressProvider).value?.tableProgress ?? 1.0) < 1.0) {
-    //     await Future.delayed(const Duration(milliseconds: 100));
-    //   }
-    // }
     
     if (isRestore == true) {
       await _restoreWallet();
@@ -88,7 +71,6 @@ class XelisWallet extends LibXelisWallet {
     }
 
     await open();
-    await updateTransactions(isRescan: true, topoheight: 0);
 
     return await super.init();
   }
@@ -168,10 +150,12 @@ class XelisWallet extends LibXelisWallet {
   Future<bool> pingCheck() async {
     checkInitialized();
     try {
-      await libXelisWallet!.getDaemonInfo();
+      final nodeInfo = await libXelisWallet!.getDaemonInfo();
+      await handleOnline();
       return true;
     } catch (_) {
       return false;
+      await handleOffline();
     }
   }
 

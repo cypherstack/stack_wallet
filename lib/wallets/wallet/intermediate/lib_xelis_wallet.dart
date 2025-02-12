@@ -427,10 +427,12 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
           rethrow;
         }
       });
-    }
-
-    if (await isTableUpgradeAvailable()) {
-      unawaited(updateTablesToDesiredSize());
+    
+      debugPrint("Checking for upgradability");
+      if (await isTableUpgradeAvailable()) {
+        debugPrint("Generating large tables in background");
+        unawaited(updateTablesToDesiredSize());
+      }
     }
 
     final newReceivingAddress = await getCurrentReceivingAddress() ??
@@ -540,7 +542,8 @@ extension XelisTableManagement on LibXelisWallet {
           currentSize: state.desiredSize,
           desiredSize: state.desiredSize,
         ));
-        
+
+        debugPrint("Table upgrade done");
         LibXelisWallet._tableGenerationCompleter!.complete();
       } catch (e, s) {
         Logging.instance.log(
