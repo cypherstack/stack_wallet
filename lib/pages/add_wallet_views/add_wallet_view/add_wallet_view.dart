@@ -153,7 +153,12 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.refresh(addWalletSelectedEntityStateProvider);
+      if (mounted) {
+        ref.refresh(addWalletSelectedEntityStateProvider);
+        if (isDesktop) {
+          _searchFocusNode.requestFocus();
+        }
+      }
     });
 
     super.initState();
