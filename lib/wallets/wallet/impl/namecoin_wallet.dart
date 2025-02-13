@@ -476,14 +476,8 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         .findAll();
 
     for (final utxo in utxos) {
-      final otherData = jsonDecode(utxo.otherData!) as Map;
-      if (otherData[UTXOOtherDataKeys.nameOpData] != null) {
-        final nameOp = OpNameData(
-          (jsonDecode(otherData[UTXOOtherDataKeys.nameOpData] as String) as Map)
-              .cast(),
-          utxo.blockHeight!,
-        );
-
+      final nameOp = getOpNameDataFrom(utxo);
+      if (nameOp != null) {
         Logging.instance.t(
           "Found OpName: $nameOp",
           stackTrace: StackTrace.current,
@@ -499,6 +493,9 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
           final encoded = await secureStorageInterface.read(key: sKey);
           if (encoded == null) {
+            Logging.instance.w(
+              "Found OpName encoded value not found!!",
+            );
             continue;
           }
 
@@ -1201,5 +1198,43 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     }
 
     return txData;
+  }
+
+  /// return null if utxo does not contain name op
+  OpNameData? getOpNameDataFrom(UTXO utxo) {
+    if (utxo.otherData == null) {
+      return null;
+    }
+    final otherData = jsonDecode(utxo.otherData!) as Map;
+    if (otherData[UTXOOtherDataKeys.nameOpData] != null) {
+      try {
+        final nameOp = OpNameData(
+          (jsonDecode(otherData[UTXOOtherDataKeys.nameOpData] as String) as Map)
+              .cast(),
+          utxo.blockHeight!,
+        );
+        return nameOp;
+      } catch (e, s) {
+        Logging.instance.d(
+          "getOpNameDataFrom($utxo) failed",
+          error: e,
+          stackTrace: s,
+        );
+        return null;
+      }
+    }
+    return null;
+  }
+
+  bool checkUtxoConfirmed(UTXO utxo, int currentChainHeight) {
+    final isNameOpOutput = getOpNameDataFrom(utxo) != null;
+
+    final confirmedStatus = utxo.isConfirmed(
+      currentChainHeight,
+      cryptoCurrency.minConfirms,
+      cryptoCurrency.minCoinbaseConfirms,
+      overrideMinConfirms: isNameOpOutput ? kNameWaitBlocks : null,
+    );
+    return confirmedStatus;
   }
 }

@@ -20,6 +20,8 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/icon_widgets/utxo_status_icon.dart';
 import '../../widgets/rounded_container.dart';
@@ -51,6 +53,18 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
   late UTXO utxo;
 
   late bool _selected;
+
+  bool _isConfirmed(UTXO utxo, int currentChainHeight, Wallet wallet) {
+    if (wallet is NamecoinWallet) {
+      return wallet.checkUtxoConfirmed(utxo, currentChainHeight);
+    } else {
+      return utxo.isConfirmed(
+        currentChainHeight,
+        wallet.cryptoCurrency.minConfirms,
+        wallet.cryptoCurrency.minCoinbaseConfirms,
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -110,18 +124,16 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                   ),
                   child: UTXOStatusIcon(
                     blocked: utxo.isBlocked,
-                    status: utxo.isConfirmed(
+                    status: _isConfirmed(
+                      utxo,
                       currentHeight,
-                      ref
-                          .watch(pWallets)
-                          .getWallet(widget.walletId)
-                          .cryptoCurrency
-                          .minConfirms,
-                      ref
-                          .watch(pWallets)
-                          .getWallet(widget.walletId)
-                          .cryptoCurrency
-                          .minCoinbaseConfirms,
+                      ref.watch(
+                        pWallets.select(
+                          (s) => s.getWallet(
+                            widget.walletId,
+                          ),
+                        ),
+                      ),
                     )
                         ? UTXOStatusIconStatus.confirmed
                         : UTXOStatusIconStatus.unconfirmed,

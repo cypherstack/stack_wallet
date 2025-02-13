@@ -85,9 +85,14 @@ class UTXO {
   bool isConfirmed(
     int currentChainHeight,
     int minimumConfirms,
-    int minimumCoinbaseConfirms,
-  ) {
+    int minimumCoinbaseConfirms, {
+    int? overrideMinConfirms, // added to handle namecoin name op outputs
+  }) {
     final confirmations = getConfirmations(currentChainHeight);
+
+    if (overrideMinConfirms != null) {
+      return confirmations >= overrideMinConfirms;
+    }
     return confirmations >=
         (isCoinbase ? minimumCoinbaseConfirms : minimumConfirms);
   }
