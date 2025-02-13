@@ -917,19 +917,103 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
     final canCPFP = this is CpfpInterface && coinControl;
 
-    final spendableOutputs = availableOutputs
-        .where(
-          (e) =>
-              !e.isBlocked &&
-              (e.used != true) &&
-              (canCPFP ||
+    int nameOutputCount = 0; // for sanity check. Should only be max 1;
+    void nameOutputCountCheck() {
+      nameOutputCount++;
+      if (nameOutputCount > 1) {
+        throw Exception("nameOutputCount greater than one");
+      }
+    }
+
+    final List<UTXO> spendableOutputs;
+    switch (txData.opNameState!.type) {
+      case OpName.nameNew:
+        spendableOutputs = availableOutputs
+            .where(
+              (e) =>
+                  !e.isBlocked &&
+                  (e.used != true) &&
+                  (canCPFP ||
+                      e.isConfirmed(
+                        currentChainHeight,
+                        cryptoCurrency.minConfirms,
+                        cryptoCurrency.minCoinbaseConfirms,
+                      )),
+            )
+            .toList();
+        break;
+
+      case OpName.nameFirstUpdate:
+        spendableOutputs = availableOutputs.where(
+          (e) {
+            if (e.used == true) return false;
+
+            final nameOp = getOpNameDataFrom(e);
+            if (nameOp != null) {
+              if (nameOp.op == OpName.nameFirstUpdate ||
+                  nameOp.op == OpName.nameUpdate) {
+                return false;
+              } else {
+                final confirmed = e.isConfirmed(
+                  currentChainHeight,
+                  cryptoCurrency.minConfirms,
+                  cryptoCurrency.minCoinbaseConfirms,
+                  overrideMinConfirms: kNameWaitBlocks,
+                );
+
+                if (confirmed) {
+                  nameOutputCountCheck();
+                }
+                return confirmed;
+              }
+            } else {
+              return canCPFP ||
                   e.isConfirmed(
                     currentChainHeight,
                     cryptoCurrency.minConfirms,
                     cryptoCurrency.minCoinbaseConfirms,
-                  )),
-        )
-        .toList();
+                  );
+            }
+          },
+        ).toList();
+        break;
+
+      case OpName.nameUpdate:
+        spendableOutputs = availableOutputs.where(
+          (e) {
+            if (e.used == true) return false;
+
+            final nameOp = getOpNameDataFrom(e);
+            if (nameOp != null) {
+              if (nameOp.op == OpName.nameFirstUpdate ||
+                  nameOp.op == OpName.nameUpdate) {
+                final confirmed = e.isConfirmed(
+                  currentChainHeight,
+                  cryptoCurrency.minConfirms,
+                  cryptoCurrency.minCoinbaseConfirms,
+                  overrideMinConfirms: kNameWaitBlocks,
+                );
+
+                if (confirmed) {
+                  nameOutputCountCheck();
+                }
+                return confirmed;
+              } else {
+                return false;
+              }
+            } else {
+              return canCPFP ||
+                  e.isConfirmed(
+                    currentChainHeight,
+                    cryptoCurrency.minConfirms,
+                    cryptoCurrency.minCoinbaseConfirms,
+                  );
+            }
+          },
+        ).toList();
+        break;
+    }
+
     final spendableSatoshiValue =
         spendableOutputs.fold(BigInt.zero, (p, e) => p + BigInt.from(e.value));
 
