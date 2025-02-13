@@ -33,14 +33,19 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     return coinlib.HDPrivateKey.fromSeed(seed);
   }
 
+  Future<coinlib.ECPrivateKey> getPrivateKey(Address address) async {
+    return (await getRootHDNode())
+        .derivePath(address.derivationPath!.value)
+        .privateKey;
+  }
+
   Future<String> getPrivateKeyWIF(Address address) async {
-    final keys =
-        (await getRootHDNode()).derivePath(address.derivationPath!.value);
+    final privateKey = await getPrivateKey(address);
 
     final List<int> data = [
       cryptoCurrency.networkParams.wifPrefix,
-      ...keys.privateKey.data,
-      if (keys.privateKey.compressed) 1,
+      ...privateKey.data,
+      if (privateKey.compressed) 1,
     ];
     final checksum =
         coinlib.sha256DoubleHash(Uint8List.fromList(data)).sublist(0, 4);

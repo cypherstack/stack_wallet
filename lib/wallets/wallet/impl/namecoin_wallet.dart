@@ -497,9 +497,20 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
           final sKey = nameSaltKeyBuilder(utxo.txid, walletId);
 
-          final data = decodeNameSaltData(
-            (await secureStorageInterface.read(key: sKey))!,
-          );
+          final encoded = await secureStorageInterface.read(key: sKey);
+          if (encoded == null) {
+            continue;
+          }
+
+          final data = decodeNameSaltData(encoded);
+
+          // verify cached matches
+          final myAddress = await mainDB.getAddress(walletId, utxo.address!);
+          final pk = await getPrivateKey(myAddress!);
+          final generatedSalt = scriptNameNew(data.name, pk.data).$2;
+
+          // TODO replace assert with proper error
+          assert(generatedSalt == data.salt);
 
           final nameScriptHex = scriptNameFirstUpdate(
             data.name,
