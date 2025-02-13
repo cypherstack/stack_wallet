@@ -663,17 +663,21 @@ abstract class Wallet<T extends CryptoCurrency> {
         await (this as SparkInterface).refreshSparkData((0.3, 0.6));
       }
 
-      final fetchFuture = updateTransactions();
-
-      _fireRefreshPercentChange(0.6);
-      final utxosRefreshFuture = updateUTXOs();
-      // if (currentHeight != storedHeight) {
-      _fireRefreshPercentChange(0.65);
-
-      await utxosRefreshFuture;
-      _fireRefreshPercentChange(0.70);
-
-      await fetchFuture;
+      if (this is NamecoinWallet) {
+        await updateUTXOs();
+        _fireRefreshPercentChange(0.6);
+        await (this as NamecoinWallet).checkForNameNewOPs();
+        _fireRefreshPercentChange(0.70);
+        await updateTransactions();
+      } else {
+        final fetchFuture = updateTransactions();
+        _fireRefreshPercentChange(0.6);
+        final utxosRefreshFuture = updateUTXOs();
+        _fireRefreshPercentChange(0.65);
+        await utxosRefreshFuture;
+        _fireRefreshPercentChange(0.70);
+        await fetchFuture;
+      }
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {

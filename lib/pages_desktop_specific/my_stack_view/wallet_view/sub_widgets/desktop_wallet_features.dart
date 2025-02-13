@@ -19,6 +19,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/monkey/monkey_view.dart';
+import '../../../../pages/namecoin_names/namecoin_names_home_view.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
@@ -99,6 +100,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         onMonkeyPressed: _onMonkeyPressed,
         onFusionPressed: _onFusionPressed,
         onChurnPressed: _onChurnPressed,
+        onNamesPressed: _onNamesPressed,
       ),
     );
   }
@@ -376,6 +378,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     Navigator.of(context).pushNamed(
       DesktopChurningView.routeName,
+      arguments: widget.walletId,
+    );
+  }
+
+  void _onNamesPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(context).pushNamed(
+      NamecoinNamesHomeView.routeName,
       arguments: widget.walletId,
     );
   }

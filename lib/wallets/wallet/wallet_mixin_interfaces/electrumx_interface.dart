@@ -74,7 +74,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<List<({String address, Amount amount, bool isChange})>>
-      _helperRecipientsConvert(
+      helperRecipientsConvert(
     List<String> addrs,
     List<BigInt> satValues,
   ) async {
@@ -248,7 +248,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       vSizeForOneOutput = (await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
-          recipients: await _helperRecipientsConvert(
+          recipients: await helperRecipientsConvert(
             [recipientAddress],
             [satoshisBeingUsed - BigInt.one],
           ),
@@ -268,7 +268,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       vSizeForTwoOutPuts = (await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
-          recipients: await _helperRecipientsConvert(
+          recipients: await helperRecipientsConvert(
             [recipientAddress, (await getCurrentChangeAddress())!.value],
             [
               satoshiAmountToSend,
@@ -330,7 +330,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       final txnData = await buildTransaction(
         utxoSigningData: utxoSigningData,
         txData: txData.copyWith(
-          recipients: await _helperRecipientsConvert(
+          recipients: await helperRecipientsConvert(
             recipientsArray,
             recipientsAmtArray,
           ),
@@ -392,7 +392,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           TxData txnData = await buildTransaction(
             utxoSigningData: utxoSigningData,
             txData: txData.copyWith(
-              recipients: await _helperRecipientsConvert(
+              recipients: await helperRecipientsConvert(
                 recipientsArray,
                 recipientsAmtArray,
               ),
@@ -425,7 +425,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             txnData = await buildTransaction(
               utxoSigningData: utxoSigningData,
               txData: txData.copyWith(
-                recipients: await _helperRecipientsConvert(
+                recipients: await helperRecipientsConvert(
                   recipientsArray,
                   recipientsAmtArray,
                 ),
@@ -474,7 +474,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final int vSizeForOneOutput = (await buildTransaction(
       utxoSigningData: utxoSigningData,
       txData: txData.copyWith(
-        recipients: await _helperRecipientsConvert(
+        recipients: await helperRecipientsConvert(
           [recipientAddress],
           [satoshisBeingUsed - BigInt.one],
         ),
@@ -511,7 +511,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     final data = await buildTransaction(
       txData: txData.copyWith(
-        recipients: await _helperRecipientsConvert(
+        recipients: await helperRecipientsConvert(
           [recipientAddress],
           [amount],
         ),
@@ -1155,8 +1155,6 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  /// The optional (nullable) param [checkBlock] is a callback that can be used
-  /// to check if a utxo should be marked as blocked
   Future<UTXO> parseUTXO({
     required Map<String, dynamic> jsonUTXO,
   }) async {
@@ -1685,8 +1683,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       return await mainDB.updateUTXOs(walletId, outputArray);
     } catch (e, s) {
-      Logging.instance
-          .e("Output fetch unsuccessful: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "Output fetch unsuccessful: ",
+        error: e,
+        stackTrace: s,
+      );
       return false;
     }
   }

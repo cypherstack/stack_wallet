@@ -8,6 +8,7 @@ import '../../models/paynym/paynym_account_lite.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../isar/models/spark_coin.dart';
+import 'name_op_state.dart';
 
 typedef TxRecipient = ({String address, Amount amount, bool isChange});
 
@@ -77,6 +78,9 @@ class TxData {
 
   final bool ignoreCachedBalanceChecks;
 
+  // Namecoin Name related
+  final NameOpState? opNameState;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -113,6 +117,7 @@ class TxData {
     this.usedSparkCoins,
     this.tempTx,
     this.ignoreCachedBalanceChecks = false,
+    this.opNameState,
   });
 
   Amount? get amount {
@@ -239,6 +244,7 @@ class TxData {
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
     bool? ignoreCachedBalanceChecks,
+    NameOpState? opNameState,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -277,6 +283,7 @@ class TxData {
       tempTx: tempTx ?? this.tempTx,
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
+      opNameState: opNameState ?? this.opNameState,
     );
   }
 
@@ -316,5 +323,6 @@ class TxData {
       'usedSparkCoins: $usedSparkCoins, '
       'tempTx: $tempTx, '
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
+      'opNameState: $opNameState, '
       '}';
 }

@@ -1385,6 +1385,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  namecoin:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "41c4f32eb0eb82540a42fae25a10ece2557d517c"
+      resolved-ref: "41c4f32eb0eb82540a42fae25a10ece2557d517c"
+      url: "https://github.com/Cyrix126/namecoin_dart"
+    source: git
+    version: "0.3.0"
   nanodart:
     dependency: "direct main"
     description:
