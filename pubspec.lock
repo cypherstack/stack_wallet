@@ -1389,11 +1389,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "41c4f32eb0eb82540a42fae25a10ece2557d517c"
-      resolved-ref: "41c4f32eb0eb82540a42fae25a10ece2557d517c"
+      ref: "819b21164ef93cc0889049d4a8a1be2d0cc36a1b"
+      resolved-ref: "819b21164ef93cc0889049d4a8a1be2d0cc36a1b"
       url: "https://github.com/Cyrix126/namecoin_dart"
     source: git
-    version: "0.3.0"
+    version: "2.0.0"
   nanodart:
     dependency: "direct main"
     description:
