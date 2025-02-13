@@ -26,6 +26,8 @@ import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_bar_field.dart';
@@ -86,6 +88,18 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
     final coinControlInterface =
         ref.read(pWallets).getWallet(widget.walletId) as CoinControlInterface;
     await coinControlInterface.updateBalance();
+  }
+
+  bool _isConfirmed(UTXO utxo, int currentChainHeight, Wallet wallet) {
+    if (wallet is NamecoinWallet) {
+      return wallet.checkUtxoConfirmed(utxo, currentChainHeight);
+    } else {
+      return utxo.isConfirmed(
+        currentChainHeight,
+        wallet.cryptoCurrency.minConfirms,
+        wallet.cryptoCurrency.minCoinbaseConfirms,
+      );
+    }
   }
 
   @override
@@ -347,10 +361,15 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           CoinControlViewType.manage ||
                                       (widget.type == CoinControlViewType.use &&
                                           !utxo.isBlocked &&
-                                          utxo.isConfirmed(
+                                          _isConfirmed(
+                                            utxo,
                                             currentHeight,
-                                            minConfirms,
-                                            coin.minCoinbaseConfirms,
+                                            ref.watch(
+                                              pWallets.select(
+                                                (s) => s
+                                                    .getWallet(widget.walletId),
+                                              ),
+                                            ),
                                           )),
                                   initialSelectedState: isSelected,
                                   onSelectedChanged: (value) {
@@ -412,10 +431,16 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                             (widget.type ==
                                                     CoinControlViewType.use &&
                                                 !_showBlocked &&
-                                                utxo.isConfirmed(
+                                                _isConfirmed(
+                                                  utxo,
                                                   currentHeight,
-                                                  minConfirms,
-                                                  coin.minCoinbaseConfirms,
+                                                  ref.watch(
+                                                    pWallets.select(
+                                                      (s) => s.getWallet(
+                                                        widget.walletId,
+                                                      ),
+                                                    ),
+                                                  ),
                                                 )),
                                         initialSelectedState: isSelected,
                                         onSelectedChanged: (value) {
@@ -557,10 +582,16 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                           CoinControlViewType
                                                               .use &&
                                                       !utxo.isBlocked &&
-                                                      utxo.isConfirmed(
+                                                      _isConfirmed(
+                                                        utxo,
                                                         currentHeight,
-                                                        minConfirms,
-                                                        coin.minCoinbaseConfirms,
+                                                        ref.watch(
+                                                          pWallets.select(
+                                                            (s) => s.getWallet(
+                                                              widget.walletId,
+                                                            ),
+                                                          ),
+                                                        ),
                                                       )),
                                               initialSelectedState: isSelected,
                                               onSelectedChanged: (value) {

@@ -20,7 +20,9 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/coins/namecoin.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
@@ -135,19 +137,18 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                 ),
               UTXOStatusIcon(
                 blocked: utxo.isBlocked,
-                status: utxo.isConfirmed(
-                  ref.watch(pWalletChainHeight(widget.walletId)),
-                  ref
-                      .watch(pWallets)
-                      .getWallet(widget.walletId)
-                      .cryptoCurrency
-                      .minConfirms,
-                  ref
-                      .watch(pWallets)
-                      .getWallet(widget.walletId)
-                      .cryptoCurrency
-                      .minCoinbaseConfirms,
-                )
+                status: (coin is Namecoin
+                        ? (ref.watch(pWallets).getWallet(widget.walletId)
+                                as NamecoinWallet)
+                            .checkUtxoConfirmed(
+                            utxo,
+                            ref.watch(pWalletChainHeight(widget.walletId)),
+                          )
+                        : utxo.isConfirmed(
+                            ref.watch(pWalletChainHeight(widget.walletId)),
+                            coin.minConfirms,
+                            coin.minCoinbaseConfirms,
+                          ))
                     ? UTXOStatusIconStatus.confirmed
                     : UTXOStatusIconStatus.unconfirmed,
                 background: Theme.of(context).extension<StackColors>()!.popupBG,
