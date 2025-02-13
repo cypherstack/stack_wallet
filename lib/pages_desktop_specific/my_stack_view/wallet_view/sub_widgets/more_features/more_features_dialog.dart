@@ -479,9 +479,9 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             ),
           if (wallet is NamecoinWallet)
             _MoreFeaturesItem(
-              label: "Names",
+              label: "Domains",
               detail: "Namecoin DNS",
-              iconAsset: Assets.svg.file,
+              iconAsset: Assets.svg.robotHead,
               onPressed: () async => widget.onNamesPressed?.call(),
             ),
           if (wallet is SparkInterface && !isViewOnly)
