@@ -217,7 +217,7 @@ dependencies:
   namecoin:
     git:
       url: https://github.com/Cyrix126/namecoin_dart
-      ref: 41c4f32eb0eb82540a42fae25a10ece2557d517c
+      ref: 819b21164ef93cc0889049d4a8a1be2d0cc36a1b
 
 dev_dependencies:
   flutter_test:
