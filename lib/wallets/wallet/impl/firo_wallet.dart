@@ -738,7 +738,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         );
 
         // receiving addresses
-        Logging.instance.d("checking receiving addresses...");
+        Logging.instance.i("checking receiving addresses...");
 
         final canBatch = await serverCanBatch;
 

@@ -1472,7 +1472,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
 
         // receiving addresses
-        Logging.instance.e(
+        Logging.instance.i(
           "checking receiving addresses...",
         );
 
@@ -2003,7 +2003,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
         if (root != null) {
           // receiving addresses
-          Logging.instance.d(
+          Logging.instance.i(
             "checking receiving addresses...",
           );
 
