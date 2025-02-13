@@ -54,7 +54,15 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
       ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet;
 
   Future<void> _preRegister() async {
-    final data = scriptNameNew(lastAvailableName!);
+    final myAddress = await _wallet.getCurrentReceivingAddress();
+    if (myAddress == null) {
+      throw Exception("No receiving address found");
+    }
+
+    // get address private key for deterministic salt
+    final pk = await _wallet.getPrivateKey(myAddress);
+
+    final data = scriptNameNew(lastAvailableName!, pk.data);
 
     // TODO: fill out properly
     TxData txData = TxData(
@@ -69,7 +77,7 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
       feeRateType: FeeRateType.slow, // TODO: make configurable?
       recipients: [
         (
-          address: (await _wallet.getCurrentReceivingAddress())!.value,
+          address: myAddress.value,
           isChange: false,
           amount: Amount.fromDecimal(
             Decimal.parse("0.015"),
