@@ -7,6 +7,7 @@ import 'dart:async' as _i10;
 import 'dart:typed_data' as _i19;
 import 'dart:ui' as _i14;
 
+import 'package:logger/logger.dart' as _i22;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i16;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
@@ -17,7 +18,7 @@ import 'package:stackwallet/services/locale_service.dart' as _i15;
 import 'package:stackwallet/services/node_service.dart' as _i2;
 import 'package:stackwallet/services/wallets.dart' as _i9;
 import 'package:stackwallet/themes/theme_service.dart' as _i17;
-import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i22;
+import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i23;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i21;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i20;
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart'
@@ -1129,6 +1130,45 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       );
 
   @override
+  bool get advancedFiroFeatures => (super.noSuchMethod(
+        Invocation.getter(#advancedFiroFeatures),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set advancedFiroFeatures(bool? advancedFiroFeatures) => super.noSuchMethod(
+        Invocation.setter(
+          #advancedFiroFeatures,
+          advancedFiroFeatures,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  set logsPath(String? logsPath) => super.noSuchMethod(
+        Invocation.setter(
+          #logsPath,
+          logsPath,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i22.Level get logLevel => (super.noSuchMethod(
+        Invocation.getter(#logLevel),
+        returnValue: _i22.Level.all,
+      ) as _i22.Level);
+
+  @override
+  set logLevel(_i22.Level? logLevel) => super.noSuchMethod(
+        Invocation.setter(
+          #logLevel,
+          logLevel,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -1184,18 +1224,18 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
       ) as _i10.Future<void>);
 
   @override
-  _i22.AmountUnit amountUnit(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
+  _i23.AmountUnit amountUnit(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
         Invocation.method(
           #amountUnit,
           [coin],
         ),
-        returnValue: _i22.AmountUnit.normal,
-      ) as _i22.AmountUnit);
+        returnValue: _i23.AmountUnit.normal,
+      ) as _i23.AmountUnit);
 
   @override
   void updateAmountUnit({
     required _i4.CryptoCurrency? coin,
-    required _i22.AmountUnit? amountUnit,
+    required _i23.AmountUnit? amountUnit,
   }) =>
       super.noSuchMethod(
         Invocation.method(
