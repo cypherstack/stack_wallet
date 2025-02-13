@@ -4,14 +4,15 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i9;
-import 'dart:ui' as _i14;
+import 'dart:ui' as _i15;
 
 import 'package:decimal/decimal.dart' as _i4;
+import 'package:logger/logger.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i8;
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart' as _i6;
 import 'package:stackwallet/models/electrumx_response/spark_models.dart' as _i3;
-import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i13;
+import 'package:stackwallet/utilities/amount/amount_unit.dart' as _i14;
 import 'package:stackwallet/utilities/enums/backup_frequency_type.dart' as _i12;
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart' as _i11;
 import 'package:stackwallet/utilities/prefs.dart' as _i10;
@@ -1131,6 +1132,45 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
       );
 
   @override
+  bool get advancedFiroFeatures => (super.noSuchMethod(
+        Invocation.getter(#advancedFiroFeatures),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set advancedFiroFeatures(bool? advancedFiroFeatures) => super.noSuchMethod(
+        Invocation.setter(
+          #advancedFiroFeatures,
+          advancedFiroFeatures,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  set logsPath(String? logsPath) => super.noSuchMethod(
+        Invocation.setter(
+          #logsPath,
+          logsPath,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i13.Level get logLevel => (super.noSuchMethod(
+        Invocation.getter(#logLevel),
+        returnValue: _i13.Level.all,
+      ) as _i13.Level);
+
+  @override
+  set logLevel(_i13.Level? logLevel) => super.noSuchMethod(
+        Invocation.setter(
+          #logLevel,
+          logLevel,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
@@ -1186,18 +1226,18 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
       ) as _i9.Future<void>);
 
   @override
-  _i13.AmountUnit amountUnit(_i2.CryptoCurrency? coin) => (super.noSuchMethod(
+  _i14.AmountUnit amountUnit(_i2.CryptoCurrency? coin) => (super.noSuchMethod(
         Invocation.method(
           #amountUnit,
           [coin],
         ),
-        returnValue: _i13.AmountUnit.normal,
-      ) as _i13.AmountUnit);
+        returnValue: _i14.AmountUnit.normal,
+      ) as _i14.AmountUnit);
 
   @override
   void updateAmountUnit({
     required _i2.CryptoCurrency? coin,
-    required _i13.AmountUnit? amountUnit,
+    required _i14.AmountUnit? amountUnit,
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -1270,7 +1310,7 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
       );
 
   @override
-  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -1279,7 +1319,7 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
       );
 
   @override
-  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
