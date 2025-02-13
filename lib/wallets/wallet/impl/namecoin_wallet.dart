@@ -31,8 +31,13 @@ const kNameTxVersion = 0x7100;
 
 const _kNameSaltSplitter = r"$$$$";
 
-String nameSaltKeyBuilder(String txid, String walletId) =>
-    "${walletId}_${txid}_nameSaltData";
+String nameSaltKeyBuilder(String txid, String walletId, int txPos) {
+  if (txPos.isNegative) {
+    throw Exception("Invalid vout index");
+  }
+
+  return "${walletId}_${txid}_${txPos}nameSaltData";
+}
 
 String encodeNameSaltData(String name, String salt, String value) =>
     "$name$_kNameSaltSplitter$salt$_kNameSaltSplitter$value";
@@ -461,99 +466,118 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     return (data: opNameData, available: available);
   }
 
+  // TODO: handle this differently?
+  final Set<(int, String)> _unknownNameNewOutputs = {};
+
   /// Must be called in refresh() AFTER the wallet's UTXOs have been updated!
-  Future<void> checkForNameNewOPs() async {
-    final currentHeight = await chainHeight;
-    // not ideal filtering
-    final utxos = await mainDB
-        .getUTXOs(walletId)
-        .filter()
-        .otherDataIsNotNull()
-        .and()
-        .blockHeightIsNotNull()
-        .and()
-        .blockHeightLessThan(currentHeight - kNameWaitBlocks)
-        .findAll();
+  Future<void> checkAutoRegisterNameNewOutputs() async {
+    try {
+      final currentHeight = await chainHeight;
+      // not ideal filtering
+      final utxos = await mainDB
+          .getUTXOs(walletId)
+          .filter()
+          .otherDataIsNotNull()
+          .and()
+          .blockHeightIsNotNull()
+          .and()
+          .blockHeightGreaterThan(0)
+          .and()
+          .blockHeightLessThan(currentHeight - kNameWaitBlocks)
+          .findAll();
 
-    for (final utxo in utxos) {
-      final nameOp = getOpNameDataFrom(utxo);
-      if (nameOp != null) {
-        Logging.instance.t(
-          "Found OpName: $nameOp",
-          stackTrace: StackTrace.current,
-        );
+      Logging.instance.t(
+        "_unknownNameNewOutputs(count=${_unknownNameNewOutputs.length})"
+        ":\n$_unknownNameNewOutputs",
+      );
 
-        if (nameOp.op == OpName.nameNew) {
-          // at this point we should have an unspent UTXO that is at least
-          // 12 blocks old which we can now do nameFirstUpdate on
+      // check cache and remove known auto unspendable name new outputs
+      utxos.removeWhere(
+          (e) => _unknownNameNewOutputs.contains((e.vout, e.txid)));
 
-          //TODO: Should check if name was registered by someone else here
+      for (final utxo in utxos) {
+        final nameOp = getOpNameDataFrom(utxo);
+        if (nameOp != null) {
+          Logging.instance.t(
+            "Found OpName: $nameOp\n\nIN UTXO: $utxo",
+          );
 
-          final sKey = nameSaltKeyBuilder(utxo.txid, walletId);
+          if (nameOp.op == OpName.nameNew) {
+            // at this point we should have an unspent UTXO that is at least
+            // 12 blocks old which we can now do nameFirstUpdate on
 
-          final encoded = await secureStorageInterface.read(key: sKey);
-          if (encoded == null) {
-            Logging.instance.w(
-              "Found OpName encoded value not found!!",
+            //TODO: Should check if name was registered by someone else here
+
+            final sKey = nameSaltKeyBuilder(utxo.txid, walletId, utxo.vout);
+
+            final encoded = await secureStorageInterface.read(key: sKey);
+            if (encoded == null) {
+              Logging.instance.d(
+                "Found OpName NAME NEW utxo without local matching data."
+                "\nUTXO: $utxo"
+                "\nUnable to auto register.",
+              );
+              _unknownNameNewOutputs.add((utxo.vout, utxo.txid));
+              continue;
+            }
+
+            final data = decodeNameSaltData(encoded);
+
+            // verify cached matches
+            final myAddress = await mainDB.getAddress(walletId, utxo.address!);
+            final pk = await getPrivateKey(myAddress!);
+            final generatedSalt = scriptNameNew(data.name, pk.data).$2;
+
+            // TODO replace assert with proper error
+            assert(generatedSalt == data.salt);
+
+            final nameScriptHex = scriptNameFirstUpdate(
+              data.name,
+              data.value,
+              data.salt,
             );
-            continue;
-          }
 
-          final data = decodeNameSaltData(encoded);
-
-          // verify cached matches
-          final myAddress = await mainDB.getAddress(walletId, utxo.address!);
-          final pk = await getPrivateKey(myAddress!);
-          final generatedSalt = scriptNameNew(data.name, pk.data).$2;
-
-          // TODO replace assert with proper error
-          assert(generatedSalt == data.salt);
-
-          final nameScriptHex = scriptNameFirstUpdate(
-            data.name,
-            data.value,
-            data.salt,
-          );
-
-          TxData txData = TxData(
-            opNameState: NameOpState(
-              name: data.name,
-              saltHex: data.salt,
-              commitment: "n/a",
-              value: data.value,
-              nameScriptHex: nameScriptHex,
-              type: OpName.nameFirstUpdate,
-            ),
-            feeRateType: FeeRateType.slow, // TODO: make configurable?
-            recipients: [
-              (
-                address: (await getCurrentReceivingAddress())!.value,
-                isChange: false,
-                amount: Amount.fromDecimal(
-                  Decimal.parse("0.01"),
-                  fractionDigits: cryptoCurrency.fractionDigits,
-                ),
+            TxData txData = TxData(
+              utxos: {utxo},
+              opNameState: NameOpState(
+                name: data.name,
+                saltHex: data.salt,
+                commitment: "n/a",
+                value: data.value,
+                nameScriptHex: nameScriptHex,
+                type: OpName.nameFirstUpdate,
+                outputPosition: -1, //currently unknown, updated later
               ),
-            ],
-          );
+              feeRateType: FeeRateType.slow, // TODO: make configurable?
+              recipients: [
+                (
+                  address: (await getCurrentReceivingAddress())!.value,
+                  isChange: false,
+                  amount: Amount.fromDecimal(
+                    Decimal.parse("0.01"),
+                    fractionDigits: cryptoCurrency.fractionDigits,
+                  ),
+                ),
+              ],
+            );
 
-          txData = await prepareNameSend(txData: txData);
+            // generate tx
+            txData = await prepareNameSend(txData: txData);
 
-          txData = await confirmSend(txData: txData);
+            // broadcast tx
+            txData = await confirmSend(txData: txData);
 
-          // TODO
-          await secureStorageInterface.delete(key: sKey);
-          // TODO
-          await secureStorageInterface.write(
-            key: nameSaltKeyBuilder(txData.txid!, walletId),
-            value: encodeNameSaltData(
-              txData.opNameState!.name,
-              txData.opNameState!.saltHex,
-              txData.opNameState!.value,
-            ),
-          );
+            // clear out value from local secure storage on successful registration
+            await secureStorageInterface.delete(key: sKey);
+          }
         }
       }
+    } catch (e, s) {
+      Logging.instance.e(
+        "checkAutoRegisterNameNewOutputs() failed",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -603,7 +627,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         : 0xffffffff - 1;
 
     // Add transaction inputs
-    for (var i = 0; i < utxoSigningData.length; i++) {
+    for (int i = 0; i < utxoSigningData.length; i++) {
       final txid = utxoSigningData[i].utxo.txid;
 
       final hash = Uint8List.fromList(
@@ -685,9 +709,11 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       );
     }
 
+    int? nameOpVoutIndex;
+
     int nonChangeCount = 0; // sanity check counter. Should only hit 1.
     // Add transaction outputs
-    for (var i = 0; i < txData.recipients!.length; i++) {
+    for (int i = 0; i < txData.recipients!.length; i++) {
       final address = coinlib.Address.fromString(
         normalizeAddress(txData.recipients![i].address),
         cryptoCurrency.networkParams,
@@ -709,7 +735,13 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
             txData.opNameState!.nameScriptHex.toUint8ListFromHex + scriptPubKey,
           ),
         );
+        // redundant sanity check
+        if (nameOpVoutIndex != null) {
+          throw Exception("More than one NAME OP output detected!");
+        }
+        nameOpVoutIndex = i;
       } else {
+        // change output
         output = coinlib.Output.fromAddress(
           txData.recipients![i].amount.raw,
           address,
@@ -739,7 +771,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
     try {
       // Sign the transaction accordingly
-      for (var i = 0; i < utxoSigningData.length; i++) {
+      for (int i = 0; i < utxoSigningData.length; i++) {
         final value = BigInt.from(utxoSigningData[i].utxo.value);
         coinlib.ECPrivateKey key = utxoSigningData[i].keyPair!.privateKey;
 
@@ -767,9 +799,16 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       rethrow;
     }
 
+    if (nameOpVoutIndex == null) {
+      throw Exception("No NAME OP output detected!");
+    }
+
     return txData.copyWith(
       raw: clTx.toHex(),
       vSize: clTx.vSize(),
+      opNameState: txData.opNameState!.copyWith(
+        outputPosition: nameOpVoutIndex,
+      ),
       tempTx: TransactionV2(
         walletId: walletId,
         blockHash: null,
@@ -798,6 +837,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       if (txData.amount == null) {
         throw Exception("No recipients in attempted transaction!");
       }
+
+      Logging.instance.t(
+        "prepareNameSend called with TxData:\n\n$txData",
+      );
 
       final feeRateType = txData.feeRateType;
       final customSatsPerVByte = txData.satsPerVByte;
@@ -1049,7 +1092,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     final List<UTXO> utxoObjectsToUse = [];
 
     if (!coinControl) {
-      for (var i = 0;
+      for (int i = 0;
           satoshisBeingUsed < satoshiAmountToSend &&
               i < spendableOutputs.length;
           i++) {
