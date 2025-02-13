@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/models.dart';

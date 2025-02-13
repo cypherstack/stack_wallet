@@ -52,6 +52,7 @@ import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -87,6 +88,7 @@ import '../churning/churning_view.dart';
 import '../coin_control/coin_control_view.dart';
 import '../exchange_view/wallet_initiated_exchange_view.dart';
 import '../monkey/monkey_view.dart';
+import '../namecoin_names/namecoin_names_home_view.dart';
 import '../notification_views/notifications_view.dart';
 import '../ordinals/ordinals_view.dart';
 import '../paynym/paynym_claim_view.dart';
@@ -1168,6 +1170,17 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           SparkCoinsView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
+                  if (wallet is NamecoinWallet)
+                    WalletNavigationBarItemData(
+                      label: "Names",
+                      icon: const CoinControlNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          NamecoinNamesHomeView.routeName,
                           arguments: widget.walletId,
                         );
                       },

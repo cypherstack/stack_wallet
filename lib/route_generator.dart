@@ -72,6 +72,8 @@ import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
 import 'pages/manage_favorites_view/manage_favorites_view.dart';
 import 'pages/monkey/monkey_view.dart';
+import 'pages/namecoin_names/confirm_name_transaction_view.dart';
+import 'pages/namecoin_names/namecoin_names_home_view.dart';
 import 'pages/notification_views/notifications_view.dart';
 import 'pages/ordinals/ordinal_details_view.dart';
 import 'pages/ordinals/ordinals_filter_view.dart';
@@ -763,6 +765,20 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CashFusionView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case NamecoinNamesHomeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => NamecoinNamesHomeView(
               walletId: args,
             ),
             settings: RouteSettings(
@@ -1835,6 +1851,21 @@ class RouteGenerator {
               txData: args.$1,
               walletId: args.$2,
               onSuccess: args.$3,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ConfirmNameTransactionView.routeName:
+        if (args is (TxData, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ConfirmNameTransactionView(
+              txData: args.$1,
+              walletId: args.$2,
             ),
             settings: RouteSettings(
               name: settings.name,

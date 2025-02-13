@@ -180,4 +180,5 @@ class UTXO {
 abstract final class UTXOOtherDataKeys {
   static const keyImage = "keyImage";
   static const spent = "spent";
+  static const nameOpData = "nameOpData";
 }
