@@ -1176,8 +1176,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   if (wallet is NamecoinWallet)
                     WalletNavigationBarItemData(
-                      label: "Names",
-                      icon: const CoinControlNavIcon(),
+                      label: "Domains",
+                      icon: const PaynymNavIcon(),
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           NamecoinNamesHomeView.routeName,
