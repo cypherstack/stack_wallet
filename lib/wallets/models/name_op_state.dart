@@ -2,13 +2,12 @@ import 'package:namecoin/namecoin.dart';
 
 class NameOpState {
   final String name;
-
   final OpName type;
-
   final String saltHex;
   final String commitment;
   final String value;
   final String nameScriptHex;
+  final int outputPosition;
 
   NameOpState({
     required this.name,
@@ -17,17 +16,17 @@ class NameOpState {
     required this.commitment,
     required this.value,
     required this.nameScriptHex,
+    required this.outputPosition,
   });
 
   NameOpState copyWith({
-    String? walletId,
     String? name,
-    String? txid,
     OpName? type,
     String? saltHex,
     String? commitment,
     String? value,
     String? nameScriptHex,
+    int? outputPosition,
   }) {
     return NameOpState(
       name: name ?? this.name,
@@ -36,6 +35,7 @@ class NameOpState {
       commitment: commitment ?? this.commitment,
       value: value ?? this.value,
       nameScriptHex: nameScriptHex ?? this.nameScriptHex,
+      outputPosition: outputPosition ?? this.outputPosition,
     );
   }
 
@@ -47,6 +47,7 @@ class NameOpState {
         "saltHex: $saltHex, "
         "commitment: $commitment, "
         "value: $value, "
-        "nameScriptHex: $nameScriptHex)";
+        "nameScriptHex: $nameScriptHex, "
+        "outputPosition: $outputPosition)";
   }
 }

@@ -73,6 +73,7 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
         value: "test", // TODO: get from user for automatic reg later
         nameScriptHex: data.$1,
         type: OpName.nameNew,
+        outputPosition: -1, //currently unknown, updated later
       ),
       feeRateType: FeeRateType.slow, // TODO: make configurable?
       recipients: [
@@ -88,8 +89,6 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
     );
 
     txData = await _wallet.prepareNameSend(txData: txData);
-
-    Logging.instance.f("SALTY: ${txData.opNameState!.saltHex}");
 
     if (mounted) {
       if (Util.isDesktop) {

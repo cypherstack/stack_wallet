@@ -126,7 +126,11 @@ class _ConfirmNameTransactionViewState
 
         // associated name data for reg tx
         ref.read(secureStoreProvider).write(
-              key: nameSaltKeyBuilder(txData.txid!, walletId),
+              key: nameSaltKeyBuilder(
+                txData.txid!,
+                walletId,
+                txData.opNameState!.outputPosition,
+              ),
               value: encodeNameSaltData(
                 txData.opNameState!.name,
                 txData.opNameState!.saltHex,

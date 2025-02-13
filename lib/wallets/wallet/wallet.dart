@@ -666,7 +666,7 @@ abstract class Wallet<T extends CryptoCurrency> {
       if (this is NamecoinWallet) {
         await updateUTXOs();
         _fireRefreshPercentChange(0.6);
-        await (this as NamecoinWallet).checkForNameNewOPs();
+        await (this as NamecoinWallet).checkAutoRegisterNameNewOutputs();
         _fireRefreshPercentChange(0.70);
         await updateTransactions();
       } else {
