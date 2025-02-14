@@ -1,36 +1,19 @@
-import 'dart:async';
-
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar/isar.dart';
-import 'package:namecoin/namecoin.dart';
 
-import '../../models/isar/models/blockchain_data/utxo.dart';
-import '../../providers/db/main_db_provider.dart';
-import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
-import '../../utilities/enums/fee_rate_type_enum.dart';
-import '../../utilities/logger.dart';
-import '../../utilities/show_loading.dart';
+import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/models/name_op_state.dart';
-import '../../wallets/models/tx_data.dart';
-import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
-import '../../widgets/desktop/primary_button.dart';
-import '../../widgets/desktop/secondary_button.dart';
-import '../../widgets/rounded_white_container.dart';
-import '../../widgets/stack_dialog.dart';
-import 'confirm_name_transaction_view.dart';
+import '../../widgets/toggle.dart';
+import 'sub_widgets/buy_domain_option_widget.dart';
+import 'sub_widgets/manage_domains_option_widget.dart';
 
 class NamecoinNamesHomeView extends ConsumerStatefulWidget {
   const NamecoinNamesHomeView({
@@ -48,69 +31,7 @@ class NamecoinNamesHomeView extends ConsumerStatefulWidget {
 }
 
 class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
-  String? lastAvailableName;
-
-  NamecoinWallet get _wallet =>
-      ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet;
-
-  Future<void> _preRegister() async {
-    final myAddress = await _wallet.getCurrentReceivingAddress();
-    if (myAddress == null) {
-      throw Exception("No receiving address found");
-    }
-
-    // get address private key for deterministic salt
-    final pk = await _wallet.getPrivateKey(myAddress);
-
-    final data = scriptNameNew(lastAvailableName!, pk.data);
-
-    // TODO: fill out properly
-    TxData txData = TxData(
-      opNameState: NameOpState(
-        name: lastAvailableName!,
-        saltHex: data.$2,
-        commitment: data.$3,
-        value: "test", // TODO: get from user for automatic reg later
-        nameScriptHex: data.$1,
-        type: OpName.nameNew,
-        outputPosition: -1, //currently unknown, updated later
-      ),
-      feeRateType: FeeRateType.slow, // TODO: make configurable?
-      recipients: [
-        (
-          address: myAddress.value,
-          isChange: false,
-          amount: Amount.fromDecimal(
-            Decimal.parse("0.015"),
-            fractionDigits: _wallet.cryptoCurrency.fractionDigits,
-          ),
-        ),
-      ],
-    );
-
-    txData = await _wallet.prepareNameSend(txData: txData);
-
-    if (mounted) {
-      if (Util.isDesktop) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => DesktopDialog(
-            maxHeight: MediaQuery.of(context).size.height - 64,
-            maxWidth: 580,
-            child: ConfirmNameTransactionView(
-              txData: txData,
-              walletId: _wallet.walletId,
-            ),
-          ),
-        );
-      } else {
-        await Navigator.of(context).pushNamed(
-          ConfirmNameTransactionView.routeName,
-          arguments: (txData, _wallet.walletId),
-        );
-      }
-    }
-  }
+  bool _onManage = true;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +69,7 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
                     ),
                   ),
                   SvgPicture.asset(
-                    Assets.svg.file,
+                    Assets.svg.robotHead,
                     width: 32,
                     height: 32,
                     color: Theme.of(context).extension<StackColors>()!.textDark,
@@ -157,7 +78,7 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
                     width: 10,
                   ),
                   Text(
-                    "Names",
+                    "Domains",
                     style: STextStyles.desktopH3(context),
                   ),
                 ],
@@ -171,7 +92,7 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
               ),
               titleSpacing: 0,
               title: Text(
-                "Names",
+                "Domains",
                 style: STextStyles.navBarTitle(context),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -188,170 +109,56 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
           crossAxisAlignment:
               isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
           children: [
-            LookupNameForm(
-              walletId: widget.walletId,
-              onNameAvailable: (name) {
-                if (name != lastAvailableName) {
-                  setState(() {
-                    lastAvailableName = name;
-                  });
-                }
-              },
-            ),
-            if (lastAvailableName != null)
-              PrimaryButton(
-                label: "Register $lastAvailableName",
-                onPressed: _preRegister,
+            Padding(
+              padding: EdgeInsets.only(
+                top: Util.isDesktop ? 24 : 16,
+                left: Util.isDesktop ? 24 : 16,
+                right: Util.isDesktop ? 24 : 16,
               ),
-            const SizedBox(
-              height: 32,
-            ),
-            Expanded(
-              child: StreamBuilder(
-                stream: ref.watch(
-                  mainDBProvider.select(
-                    (s) => s.isar.utxos
-                        .where()
-                        .walletIdEqualTo(widget.walletId)
-                        .filter()
-                        .otherDataIsNotNull()
-                        .watch(fireImmediately: true),
+              child: SizedBox(
+                height: 48,
+                child: Toggle(
+                  key: UniqueKey(),
+                  onColor: Theme.of(context).extension<StackColors>()!.popupBG,
+                  offColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
+                  onText: "Buy domain",
+                  offText: "Manage domains",
+                  isOn: !_onManage,
+                  onValueChanged: (value) {
+                    setState(() {
+                      _onManage = !value;
+                    });
+                  },
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
                   ),
                 ),
-                builder: (context, snapshot) {
-                  List<UTXO> list = [];
-                  if (snapshot.hasData) {
-                    list = snapshot.data!;
-                  }
-
-                  return ListView.separated(
-                    itemCount: list.length,
-                    itemBuilder: (context, index) => RoundedWhiteContainer(
-                      child: Text(list[index].otherData!),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(Util.isDesktop ? 24 : 16),
+                child: IndexedStack(
+                  index: _onManage ? 0 : 1,
+                  children: [
+                    BuyDomainOptionWidget(
+                      walletId: widget.walletId,
                     ),
-                    separatorBuilder: (context, index) => const SizedBox(
-                      height: 10,
+                    ManageDomainsOptionWidget(
+                      walletId: widget.walletId,
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class LookupNameForm extends ConsumerStatefulWidget {
-  const LookupNameForm({
-    super.key,
-    required this.walletId,
-    this.onNameAvailable,
-  });
-
-  final String walletId;
-
-  final void Function(String? name)? onNameAvailable;
-
-  @override
-  ConsumerState<LookupNameForm> createState() => _LookupNameFormState();
-}
-
-class _LookupNameFormState extends ConsumerState<LookupNameForm> {
-  final nameController = TextEditingController();
-  final nameFieldFocus = FocusNode();
-
-  NamecoinWallet get _wallet =>
-      ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet;
-
-  bool _lookupLock = false;
-  Future<void> _lookup() async {
-    if (_lookupLock) return;
-    _lookupLock = true;
-    try {
-      widget.onNameAvailable?.call(null);
-      final result = await showLoading(
-        whileFuture: _wallet.lookupName(nameController.text),
-        context: context,
-        message: "Looking up ${nameController.text}",
-        onException: (e) => throw e,
-        rootNavigator: Util.isDesktop,
-        delay: const Duration(seconds: 2),
-      );
-
-      if (result?.available == true) {
-        widget.onNameAvailable?.call(nameController.text);
-      }
-
-      Logging.instance.i("LOOKUP RESULT: $result");
-    } catch (e, s) {
-      widget.onNameAvailable?.call(null);
-      Logging.instance.e("_lookup failed", error: e, stackTrace: s);
-
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (_) => StackOkDialog(
-            title: "Name lookup failed",
-            desktopPopRootNavigator: Util.isDesktop,
-            maxWidth: Util.isDesktop ? 600 : null,
-          ),
-        );
-      }
-    } finally {
-      _lookupLock = false;
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        nameFieldFocus.requestFocus();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    nameFieldFocus.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment:
-          Util.isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-      children: [
-        TextField(
-          textInputAction: TextInputAction.search,
-          focusNode: nameFieldFocus,
-          controller: nameController,
-          onSubmitted: (_) {
-            if (nameController.text.isNotEmpty) {
-              _lookup();
-            }
-          },
-          onChanged: (_) {
-            // trigger look up button enabled/disabled state change
-            setState(() {});
-          },
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-        SecondaryButton(
-          label: "Look up name",
-          enabled: nameController.text.isNotEmpty,
-          width: 160,
-          buttonHeight: ButtonHeight.l,
-          onPressed: _lookup,
-        ),
-      ],
     );
   }
 }
