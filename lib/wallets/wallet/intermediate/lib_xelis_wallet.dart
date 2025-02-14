@@ -206,10 +206,12 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
   StreamSubscription<void>? _eventSubscription;
 
   Future<String> getPrecomputedTablesPath() async {
-    final appDir = await StackFileSystem.applicationRootDirectory();
-    // Create a subdirectory for the tables
-    final tablePath = path.join(appDir.path, 'xelis', 'tables/');
-    return tablePath;
+    if (kIsWeb) {
+      return "";
+    } else {
+      final appDir = await getApplicationSupportDirectory();
+      return "${appDir.path}/";
+    }
   }
 
   Future<XelisTableState> getTableState() async {
@@ -345,7 +347,8 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
       wasNull = true;
       final tablePath = await getPrecomputedTablesPath();
       final tableState = await getTableState();
-      final String name = walletId;
+      final appDir = await getApplicationDocumentsDirectory();
+      final String name = path.join(appDir.path, walletId);
       final password = await secureStorageInterface.read(
         key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
       );
@@ -504,6 +507,7 @@ extension XelisTableManagement on LibXelisWallet {
   Future<void> updateTablesToDesiredSize() async {
     if (kIsWeb) return;
     
+    await Future.delayed(const Duration(seconds: 1));
     if (LibXelisWallet._tableGenerationCompleter != null) {
       try {
         await LibXelisWallet._tableGenerationCompleter!.future;
