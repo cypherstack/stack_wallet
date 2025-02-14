@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
-import 'package:decimal/decimal.dart';
 import 'package:isar/isar.dart';
 import 'package:namecoin/namecoin.dart';
 
@@ -28,6 +27,10 @@ import '../wallet_mixin_interfaces/rbf_interface.dart';
 
 const kNameWaitBlocks = blocksMinToRenewName;
 const kNameTxVersion = 0x7100;
+const kNameTxDefaultFeeRate = FeeRateType.slow;
+
+const kNameNewAmountSats = 150_0000;
+const kNameAmountSats = 100_0000;
 
 const _kNameSaltSplitter = r"$$$$";
 
@@ -429,7 +432,38 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
   // namecoin names ============================================================
 
-  Future<({OpNameData? data, bool available})> lookupName(String name) async {
+  Future<({OpNameData? data, NameState nameState})> lookupName(
+    String name,
+  ) async {
+    // first check own utxos. Should only need to check NAME NEW here.
+    // NAME UPDATE and NAME FIRST UPDATE will appear readable from electrumx
+    final utxos =
+        await mainDB.getUTXOs(walletId).filter().otherDataIsNotNull().findAll();
+    for (final utxo in utxos) {
+      final nameOp = getOpNameDataFrom(utxo);
+      if (nameOp?.op == OpName.nameNew) {
+        Logging.instance.f(utxo);
+        final sKey = nameSaltKeyBuilder(utxo.txid, walletId, utxo.vout);
+
+        final encoded = await secureStorageInterface.read(key: sKey);
+        if (encoded == null) {
+          // seems this NAME NEW was created elsewhere
+          continue;
+        }
+
+        final data = decodeNameSaltData(encoded);
+        Logging.instance.e(
+          data,
+        );
+        if (data.name == name) {
+          return (
+            data: null,
+            nameState: NameState.unavailable,
+          );
+        }
+      }
+    }
+
     bool available = false;
 
     final nameScriptHash = nameIdentifierToScriptHash(name);
@@ -463,7 +497,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       available = true;
     }
 
-    return (data: opNameData, available: available);
+    return (
+      data: opNameData,
+      nameState: available ? NameState.available : NameState.unavailable,
+    );
   }
 
   // TODO: handle this differently?
@@ -471,6 +508,9 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
   /// Must be called in refresh() AFTER the wallet's UTXOs have been updated!
   Future<void> checkAutoRegisterNameNewOutputs() async {
+    Logging.instance.t(
+      "$walletId checkAutoRegisterNameNewOutputs()",
+    );
     try {
       final currentHeight = await chainHeight;
       // not ideal filtering
@@ -493,7 +533,8 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
       // check cache and remove known auto unspendable name new outputs
       utxos.removeWhere(
-          (e) => _unknownNameNewOutputs.contains((e.vout, e.txid)));
+        (e) => _unknownNameNewOutputs.contains((e.vout, e.txid)),
+      );
 
       for (final utxo in utxos) {
         final nameOp = getOpNameDataFrom(utxo);
@@ -548,13 +589,13 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
                 type: OpName.nameFirstUpdate,
                 outputPosition: -1, //currently unknown, updated later
               ),
-              feeRateType: FeeRateType.slow, // TODO: make configurable?
+              feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
               recipients: [
                 (
                   address: (await getCurrentReceivingAddress())!.value,
                   isChange: false,
-                  amount: Amount.fromDecimal(
-                    Decimal.parse("0.01"),
+                  amount: Amount(
+                    rawValue: BigInt.from(kNameAmountSats),
                     fractionDigits: cryptoCurrency.fractionDigits,
                   ),
                 ),
@@ -598,12 +639,12 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       switch (txData.opNameState!.type) {
         case OpName.nameNew:
           assert(
-            nameAmount.decimal.toString() == "0.015",
+            nameAmount.raw == BigInt.from(kNameNewAmountSats),
           );
           break;
         case OpName.nameFirstUpdate || OpName.nameUpdate:
           assert(
-            nameAmount.decimal.toString() == "0.01",
+            nameAmount.raw == BigInt.from(kNameAmountSats),
           );
           break;
       }
@@ -941,10 +982,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     final int expectedSatsValue;
     switch (txData.opNameState!.type) {
       case OpName.nameNew:
-        expectedSatsValue = 150_0000;
+        expectedSatsValue = kNameNewAmountSats;
         break;
       case OpName.nameFirstUpdate || OpName.nameUpdate:
-        expectedSatsValue = 100_0000;
+        expectedSatsValue = kNameAmountSats;
         break;
     }
 
@@ -1364,4 +1405,9 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     );
     return confirmedStatus;
   }
+}
+
+enum NameState {
+  available,
+  unavailable;
 }
