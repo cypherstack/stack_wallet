@@ -348,7 +348,8 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
       final tablePath = await getPrecomputedTablesPath();
       final tableState = await getTableState();
       final appDir = await getApplicationDocumentsDirectory();
-      final String name = path.join(appDir.path, walletId);
+      final String name = walletId;
+      final String directory = path.join(appDir.path, '/');
       final password = await secureStorageInterface.read(
         key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
       );
@@ -368,6 +369,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
               debugPrint("Xelis: creating new wallet");
               final wallet = await x_wallet.createXelisWallet(
                 name: name,
+                directory: directory,
                 password: password!,
                 network: cryptoCurrency.network.xelisNetwork,
                 precomputedTablesPath: tablePath,
@@ -394,6 +396,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
               debugPrint("Xelis: recovering wallet");
               final wallet = await x_wallet.createXelisWallet(
                 name: name,
+                directory: directory,
                 password: password!,
                 seed: mnemonic.trim(),
                 network: cryptoCurrency.network.xelisNetwork,
@@ -415,6 +418,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
               debugPrint("Xelis: opening existing wallet");
               return await x_wallet.openXelisWallet(
                 name: name,
+                directory: directory,
                 password: password!,
                 network: cryptoCurrency.network.xelisNetwork,
                 precomputedTablesPath: tablePath,
