@@ -349,7 +349,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
       final tableState = await getTableState();
       final appDir = await getApplicationDocumentsDirectory();
       final String name = walletId;
-      final String directory = path.join(appDir.path, '/');
+      final String directory = appDir.path;
       final password = await secureStorageInterface.read(
         key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
       );

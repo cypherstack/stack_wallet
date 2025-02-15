@@ -17,7 +17,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   stack_wallet_backup
   url_launcher_windows
   window_size
-  xelis_flutter
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
@@ -25,6 +24,7 @@ list(APPEND FLUTTER_FFI_PLUGIN_LIST
   flutter_libsparkmobile
   frostdart
   tor_ffi_plugin
+  xelis_flutter
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

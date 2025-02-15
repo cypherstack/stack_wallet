@@ -65,6 +65,8 @@ PODS:
     - FlutterMacOS
   - window_size (0.0.2):
     - FlutterMacOS
+  - xelis_flutter (0.0.1):
+    - FlutterMacOS
 
 DEPENDENCIES:
   - camera_macos (from `Flutter/ephemeral/.symlinks/plugins/camera_macos/macos`)
@@ -92,6 +94,7 @@ DEPENDENCIES:
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
   - window_size (from `Flutter/ephemeral/.symlinks/plugins/window_size/macos`)
+  - xelis_flutter (from `Flutter/ephemeral/.symlinks/plugins/xelis_flutter/macos`)
 
 SPEC REPOS:
   trunk:
@@ -149,6 +152,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
   window_size:
     :path: Flutter/ephemeral/.symlinks/plugins/window_size/macos
+  xelis_flutter:
+    :path: Flutter/ephemeral/.symlinks/plugins/xelis_flutter/macos
 
 SPEC CHECKSUMS:
   camera_macos: c2603f5eed16f05076cf17e12030d2ce55a77839
@@ -170,7 +175,7 @@ SPEC CHECKSUMS:
   package_info_plus: f5790acc797bf17c3e959e9d6cf162cc68ff7523
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
-  share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
+  share_plus: 3c787998077d6b31e839225a282e9e27edf99274
   sqlite3: 292c3e1bfe89f64e51ea7fc7dab9182a017c8630
   sqlite3_flutter_libs: 1be4459672f8168ded2d8667599b8e3ca5e72b83
   stack_wallet_backup: 6ebc60b1bdcf11cf1f1cbad9aa78332e1e15778c
@@ -181,4 +186,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

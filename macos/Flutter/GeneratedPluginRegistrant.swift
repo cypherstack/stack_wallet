@@ -26,7 +26,6 @@ import stack_wallet_backup
 import url_launcher_macos
 import wakelock_plus
 import window_size
-import xelis_flutter
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   CameraMacosPlugin.register(with: registry.registrar(forPlugin: "CameraMacosPlugin"))
@@ -50,5 +49,4 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   UrlLauncherPlugin.register(with: registry.registrar(forPlugin: "UrlLauncherPlugin"))
   WakelockPlusMacosPlugin.register(with: registry.registrar(forPlugin: "WakelockPlusMacosPlugin"))
   WindowSizePlugin.register(with: registry.registrar(forPlugin: "WindowSizePlugin"))
-  XelisFlutterPlugin.register(with: registry.registrar(forPlugin: "XelisFlutterPlugin"))
 }
