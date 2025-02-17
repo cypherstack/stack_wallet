@@ -356,6 +356,14 @@ class XelisWallet extends LibXelisWallet {
                 coinbase: null,
                 walletOwns: true,
             ));
+
+            outputs.add(OutputV2.isarCantDoRequiredInDefaultConstructor(
+                scriptPubKeyHex: "",
+                valueStringSats: burn.amount.toString(),
+                addresses: ['burn'],
+                walletOwns: false,
+            ));
+
             otherData['burnAsset'] = burn.asset;
         } else if (entryType is xelis_sdk.IncomingEntry) {
             final incoming = entryType;
@@ -376,9 +384,10 @@ class XelisWallet extends LibXelisWallet {
                 outputs.add(OutputV2.isarCantDoRequiredInDefaultConstructor(
                     scriptPubKeyHex: "",
                     valueStringSats: transfer.amount.toString(),
-                    addresses: [incoming.from],
+                    addresses: [thisAddress],
                     walletOwns: true,
                 ));
+
                 otherData['asset_${transfer.asset}'] = transfer.amount.toString();
                 if (transfer.extraData != null) {
                     otherData['extraData_${transfer.asset}'] = transfer.extraData!.toJson();
@@ -404,13 +413,21 @@ class XelisWallet extends LibXelisWallet {
                     scriptSigAsm: null,
                     sequence: null,
                     outpoint: null,
-                    addresses: [transfer.destination],
+                    addresses: [thisAddress],
                     valueStringSats: (transfer.amount + outgoing.fee).toString(),
                     witness: null,
                     innerRedeemScriptAsm: null,
                     coinbase: null,
                     walletOwns: true,
                 ));
+
+                outputs.add(OutputV2.isarCantDoRequiredInDefaultConstructor(
+                    scriptPubKeyHex: "",
+                    valueStringSats: transfer.amount.toString(),
+                    addresses: [transfer.destination],
+                    walletOwns: false,
+                ));
+
                 otherData['asset_${transfer.asset}_amount'] = transfer.amount.toString();
                 otherData['asset_${transfer.asset}_fee'] = fee.toString();
                 if (transfer.extraData != null) {
