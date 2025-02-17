@@ -47,6 +47,8 @@ import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../intermediate/lib_xelis_wallet.dart';
 
+import 'dart:math';
+
 class XelisWallet extends LibXelisWallet {
   XelisWallet(CryptoCurrencyNetwork network) : super(Xelis(network));
   // ==================== Overrides ============================================
@@ -577,45 +579,66 @@ class XelisWallet extends LibXelisWallet {
       checkInitialized();
       final asset = assetId ?? xelis_sdk.xelisAsset;
 
-      // // Use default address if recipients list is empty
-      // final effectiveRecipients = recipients.isNotEmpty 
-      //     ? recipients
-      //     : [(
-      //         address: 'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m', 
-      //         amount: amount, 
-      //         isChange: false
-      //       )];
+      // Default values for a new wallet or when estimation fails
+      final defaultDecimals = 8;
+      final defaultFee = BigInt.from(0);
+      
+      // Use default address if recipients list is empty
+      final effectiveRecipients = recipients.isNotEmpty 
+          ? recipients
+          : [(
+              address: 'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m', 
+              amount: amount, 
+              isChange: false
+            )];
 
-      // final transfers = await Future.wait(
-      //   effectiveRecipients.map((recipient) async {
-      //     final amountStr = await libXelisWallet!.formatCoin(
-      //       atomicAmount: recipient.amount.raw, 
-      //       assetHash: asset
-      //     );
-      //     return x_wallet.Transfer(
-      //       floatAmount: amountStr as double,
-      //       strAddress: recipient.address,
-      //       assetHash: asset,
-      //     );
-      //   })
-      // );
+      try {
+        final transfers = await Future.wait(
+          effectiveRecipients.map((recipient) async {
+            try {
+              final amt = double.parse(await libXelisWallet!.formatCoin(
+                atomicAmount: recipient.amount.raw,
+                assetHash: asset
+              ));
+              return x_wallet.Transfer(
+                floatAmount: amt,
+                strAddress: recipient.address,
+                assetHash: asset,
+                extraData: null,
+              );
+            } catch (e) {
+              // Handle formatCoin error - use default conversion
+              debugPrint("formatCoin failed: $e, using fallback conversion");
+              final rawAmount = recipient.amount.raw;
+              final floatAmount = rawAmount / BigInt.from(10).pow(defaultDecimals);
+              return x_wallet.Transfer(
+                floatAmount: floatAmount.toDouble(),
+                strAddress: recipient.address,
+                assetHash: asset,
+                extraData: null,
+              );
+            }
+          })
+        );
 
-      // // Estimate fees
-      // final estimatedFeeString = await libXelisWallet!.estimateFees(transfers: transfers);
-      // final feeAmount = Amount(
-      //   rawValue: BigInt.parse(estimatedFeeString),
-      //   fractionDigits: cryptoCurrency.fractionDigits,
-      // );
-
-      // // Apply fee multiplier
-      // final multiplier = feeMultiplier ?? 1.0;
-      return Amount(
-        // rawValue: (BigInt.from((feeAmount.raw * 
-        //           BigInt.from((multiplier * 100).toInt())) / 
-        //           BigInt.from(100))),
-        rawValue: BigInt.zero,
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
+        final decimals = await libXelisWallet!.getAssetDecimals(
+          asset: asset
+        );
+        final estimatedFee = double.parse(await libXelisWallet!.estimateFees(transfers: transfers));
+        final rawFee = (estimatedFee * pow(10, decimals)).round();
+        return Amount(
+          rawValue: BigInt.from(rawFee),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+      } catch (e, s) {
+        debugPrint("Fee estimation failed: $e\n$s");
+        
+        debugPrint("Using fallback fee: $defaultFee");
+        return Amount(
+          rawValue: defaultFee,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+      }
     } catch (e, s) {
       Logging.instance.log(
         "Exception rethrown from estimateFeeFor(): $e\n$s",

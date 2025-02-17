@@ -86,10 +86,6 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libepiccash
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_liblelantus/scripts/windows/build/libmobileliblelantus.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-# todo make this handle arm+x86, required plugin adjustment
-# install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/xelis_flutter/windows/bin/x86_64-unknown-windows-msvc/release/libxelis_flutter.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-#   COMPONENT Runtime)
-
 if(PLUGIN_BUNDLED_LIBRARIES)
   install(FILES "${PLUGIN_BUNDLED_LIBRARIES}"
     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
