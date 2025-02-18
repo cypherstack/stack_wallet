@@ -16,7 +16,15 @@ final class DNSRecord {
     required this.data,
   });
 
-  String jsonDataString() => jsonEncode(data);
+  String getValueString() {
+    // TODO error handling
+    dynamic value = data;
+    while (value is Map) {
+      value = value[value.keys.first];
+    }
+
+    return value.toString();
+  }
 
   DNSRecord copyWith({
     DNSRecordType? type,
