@@ -219,7 +219,7 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get targetBlockTimeSeconds => 600;
 
   @override
-  DerivePathType get defaultDerivePathType => DerivePathType.bip84;
+  DerivePathType get defaultDerivePathType => DerivePathType.bip44;
 
   @override
   Uri defaultBlockExplorer(String txid) {
