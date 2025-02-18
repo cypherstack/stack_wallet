@@ -15,7 +15,9 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
+import '../../models/namecoin_dns/dns_a_record_address_type.dart';
 import '../../models/namecoin_dns/dns_record.dart';
+import '../../models/namecoin_dns/dns_record_type.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -425,12 +427,19 @@ class DNSRecordCard extends StatelessWidget {
     super.key,
     required this.record,
     required this.onRemoveTapped,
-    this.extraInfo,
   });
 
   final DNSRecord record;
   final VoidCallback onRemoveTapped;
-  final String? extraInfo;
+
+  String get _extraInfo {
+    if (record.type == DNSRecordType.A) {
+      // TODO error handling
+      return " - ${DNSAddressType.values.firstWhere((e) => e.key == record.data.keys.first).name}";
+    }
+
+    return "";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -442,7 +451,7 @@ class DNSRecordCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "${record.type.name}${extraInfo != null ? " - ${extraInfo!}" : ""}",
+                "${record.type.name}$_extraInfo",
               ),
               CustomTextButton(
                 text: "Remove",
@@ -450,7 +459,7 @@ class DNSRecordCard extends StatelessWidget {
               ),
             ],
           ),
-          Text(record.jsonDataString()),
+          Text(record.getValueString()),
         ],
       ),
     );
