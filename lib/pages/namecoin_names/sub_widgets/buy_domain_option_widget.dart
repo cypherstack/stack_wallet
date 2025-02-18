@@ -13,10 +13,10 @@ import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/wallet/impl/namecoin_wallet.dart';
-import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../buy_domain_view.dart';
@@ -289,36 +289,38 @@ class _NameCard extends ConsumerWidget {
                   if (Util.isDesktop) {
                     await showDialog<void>(
                       context: context,
-                      builder: (context) => DesktopDialog(
-                        maxWidth: 580,
-                        maxHeight: double.infinity,
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 32,
+                      builder: (context) => SDialog(
+                        child: SizedBox(
+                          width: 580,
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 32,
+                                    ),
+                                    child: Text(
+                                      "Buy domain",
+                                      style: STextStyles.desktopH3(context),
+                                    ),
                                   ),
-                                  child: Text(
-                                    "Buy domain",
-                                    style: STextStyles.desktopH3(context),
-                                  ),
+                                  const DesktopDialogCloseButton(),
+                                ],
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
                                 ),
-                                const DesktopDialogCloseButton(),
-                              ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
+                                child: BuyDomainView(
+                                  walletId: walletId,
+                                  domainName: formattedName,
+                                ),
                               ),
-                              child: BuyDomainView(
-                                walletId: walletId,
-                                domainName: formattedName,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );
