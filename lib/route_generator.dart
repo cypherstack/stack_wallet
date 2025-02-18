@@ -72,6 +72,7 @@ import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
 import 'pages/manage_favorites_view/manage_favorites_view.dart';
 import 'pages/monkey/monkey_view.dart';
+import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
 import 'pages/namecoin_names/namecoin_names_home_view.dart';
 import 'pages/notification_views/notifications_view.dart';
@@ -2178,6 +2179,21 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => EditRefreshHeightView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case BuyDomainView.routeName:
+        if (args is ({String walletId, String domainName})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => BuyDomainView(
+              walletId: args.walletId,
+              domainName: args.domainName,
             ),
             settings: RouteSettings(
               name: settings.name,
