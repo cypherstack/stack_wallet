@@ -3,26 +3,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:namecoin/namecoin.dart';
 
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
-import '../../../utilities/amount/amount.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/models/name_op_state.dart';
-import '../../../wallets/models/tx_data.dart';
 import '../../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
-import '../confirm_name_transaction_view.dart';
+import '../buy_domain_view.dart';
 
 class BuyDomainOptionWidget extends ConsumerStatefulWidget {
   const BuyDomainOptionWidget({super.key, required this.walletId});
@@ -248,68 +245,6 @@ class _NameCard extends ConsumerWidget {
   final bool isAvailable;
   final String formattedName;
 
-  Future<void> _preRegister(
-    BuildContext context,
-    NamecoinWallet wallet,
-    String value,
-  ) async {
-    final myAddress = await wallet.getCurrentReceivingAddress();
-    if (myAddress == null) {
-      throw Exception("No receiving address found");
-    }
-
-    // get address private key for deterministic salt
-    final pk = await wallet.getPrivateKey(myAddress);
-
-    final data = scriptNameNew(formattedName, pk.data);
-
-    TxData txData = TxData(
-      opNameState: NameOpState(
-        name: formattedName,
-        saltHex: data.$2,
-        commitment: data.$3,
-        value: value,
-        nameScriptHex: data.$1,
-        type: OpName.nameNew,
-        outputPosition: -1, //currently unknown, updated later
-      ),
-      feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
-      recipients: [
-        (
-          address: myAddress.value,
-          isChange: false,
-          amount: Amount(
-            rawValue: BigInt.from(kNameNewAmountSats),
-            fractionDigits: wallet.cryptoCurrency.fractionDigits,
-          ),
-        ),
-      ],
-    );
-
-    txData = await wallet.prepareNameSend(txData: txData);
-
-    if (context.mounted) {
-      if (Util.isDesktop) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => DesktopDialog(
-            maxHeight: MediaQuery.of(context).size.height - 64,
-            maxWidth: 580,
-            child: ConfirmNameTransactionView(
-              txData: txData,
-              walletId: wallet.walletId,
-            ),
-          ),
-        );
-      } else {
-        await Navigator.of(context).pushNamed(
-          ConfirmNameTransactionView.routeName,
-          arguments: (txData, wallet.walletId),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final availability = isAvailable ? "Available" : "Unavailable";
@@ -349,10 +284,55 @@ class _NameCard extends ConsumerWidget {
               enabled: isAvailable,
               buttonHeight: ButtonHeight.m,
               width: 140,
-              onPressed: () => _preRegister(
-                context,
-                ref.read(pWallets).getWallet(walletId) as NamecoinWallet,
-              ),
+              onPressed: () async {
+                if (context.mounted) {
+                  if (Util.isDesktop) {
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => DesktopDialog(
+                        maxWidth: 580,
+                        maxHeight: double.infinity,
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: 32,
+                                  ),
+                                  child: Text(
+                                    "Buy domain",
+                                    style: STextStyles.desktopH3(context),
+                                  ),
+                                ),
+                                const DesktopDialogCloseButton(),
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                              ),
+                              child: BuyDomainView(
+                                walletId: walletId,
+                                domainName: formattedName,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    await Navigator.of(context).pushNamed(
+                      BuyDomainView.routeName,
+                      arguments: (
+                        walletId: walletId,
+                        domainName: formattedName
+                      ),
+                    );
+                  }
+                }
+              },
             ),
           ],
         ),
