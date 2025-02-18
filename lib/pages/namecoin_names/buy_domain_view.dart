@@ -11,7 +11,6 @@ import '../../../utilities/util.dart';
 import '../../../wallets/models/name_op_state.dart';
 import '../../../wallets/models/tx_data.dart';
 import '../../../wallets/wallet/impl/namecoin_wallet.dart';
-import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
@@ -28,6 +27,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'add_dns_record/add_dns_step_1.dart';
 import 'confirm_name_transaction_view.dart';
@@ -116,12 +116,13 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
         if (Util.isDesktop) {
           await showDialog<void>(
             context: context,
-            builder: (context) => DesktopDialog(
-              maxHeight: MediaQuery.of(context).size.height - 64,
-              maxWidth: 580,
-              child: ConfirmNameTransactionView(
-                txData: txData,
-                walletId: wallet.walletId,
+            builder: (context) => SDialog(
+              child: SizedBox(
+                width: 580,
+                child: ConfirmNameTransactionView(
+                  txData: txData,
+                  walletId: wallet.walletId,
+                ),
               ),
             ),
           );
@@ -153,37 +154,39 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
               return RouteGenerator.getRoute(
                 builder: (context) {
                   return Util.isDesktop
-                      ? DesktopDialog(
-                          maxHeight: double.infinity,
-                          maxWidth: 580,
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 32,
+                      ? SDialog(
+                          child: SizedBox(
+                            width: 580,
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 32,
+                                      ),
+                                      child: Text(
+                                        "Add DNS record",
+                                        style: STextStyles.desktopH3(context),
+                                      ),
                                     ),
-                                    child: Text(
-                                      "Add DNS record",
-                                      style: STextStyles.desktopH3(context),
+                                    DesktopDialogCloseButton(
+                                      onPressedOverride: () {
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop();
+                                      },
                                     ),
-                                  ),
-                                  DesktopDialogCloseButton(
-                                    onPressedOverride: () {
-                                      Navigator.of(context, rootNavigator: true)
-                                          .pop();
-                                    },
-                                  ),
-                                ],
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 32),
-                                child: AddDnsStep1(),
-                              ),
-                            ],
+                                  ],
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 32),
+                                  child: AddDnsStep1(),
+                                ),
+                              ],
+                            ),
                           ),
                         )
                       : const StackDialogBase(
