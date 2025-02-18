@@ -1368,6 +1368,15 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     return txData;
   }
 
+  @override
+  bool ignoreUtxoInBalance(UTXO utxo) {
+    if (getOpNameDataFrom(utxo) != null) {
+      // ignore name outputs in balance calculation
+      return true;
+    }
+    return false;
+  }
+
   /// return null if utxo does not contain name op
   OpNameData? getOpNameDataFrom(UTXO utxo) {
     if (utxo.otherData == null) {
