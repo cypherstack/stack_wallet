@@ -6,6 +6,7 @@ import 'package:isar/isar.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
@@ -194,6 +195,9 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     return address;
   }
 
+  /// If this function returns true, the UTXO will be ignored in displayed balance
+  bool ignoreUtxoInBalance(UTXO utxo) => false;
+
   // ========== Private ========================================================
 
   Future<DerivePathType> _viewOnlyPathHelper() async {
@@ -329,6 +333,8 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     );
 
     for (final utxo in utxos) {
+      if (ignoreUtxoInBalance(utxo)) continue;
+
       final utxoAmount = Amount(
         rawValue: BigInt.from(utxo.value),
         fractionDigits: cryptoCurrency.fractionDigits,
