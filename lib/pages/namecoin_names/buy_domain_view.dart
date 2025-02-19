@@ -72,7 +72,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
 
       final value = _getFormattedDNSRecords();
 
-      Logging.instance.f(value);
+      Logging.instance.t("Formatted namecoin name value: $value");
 
       // get address private key for deterministic salt
       final pk = await wallet.getPrivateKey(myAddress);

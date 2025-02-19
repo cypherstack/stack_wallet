@@ -445,7 +445,6 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
     for (final utxo in utxos) {
       final nameOp = getOpNameDataFrom(utxo);
       if (nameOp?.op == OpName.nameNew) {
-        Logging.instance.f(utxo);
         final sKey = nameSaltKeyBuilder(utxo.txid, walletId, utxo.vout);
 
         final encoded = await secureStorageInterface.read(key: sKey);
