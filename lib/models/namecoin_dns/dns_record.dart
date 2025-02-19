@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:namecoin/namecoin.dart';
 
-import '../../utilities/logger.dart';
+import '../../utilities/extensions/extensions.dart';
 import 'dns_a_record_address_type.dart';
 import 'dns_record_type.dart';
 
@@ -43,8 +44,6 @@ final class DNSRecord {
   }
 
   static String merge(List<DNSRecord> records) {
-    final start = DateTime.now();
-
     final Map<String, dynamic> result = {};
 
     for (final record in records) {
@@ -69,8 +68,15 @@ final class DNSRecord {
       }
     }
 
-    Logging.instance.w(DateTime.now().difference(start));
-    return jsonEncode(result);
+    final string = jsonEncode(result);
+    if (string.toUint8ListFromUtf8.length > valueMaxLength) {
+      throw Exception(
+        "Value length (${string.toUint8ListFromUtf8.length}) exceeds maximum"
+        " allowed ($valueMaxLength)",
+      );
+    }
+
+    return string;
   }
 }
 
