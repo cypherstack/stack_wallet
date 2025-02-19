@@ -32,8 +32,6 @@ const kNameTxDefaultFeeRate = FeeRateType.slow;
 const kNameNewAmountSats = 150_0000;
 const kNameAmountSats = 100_0000;
 
-const _kNameSaltSplitter = r"$$$$";
-
 String nameSaltKeyBuilder(String txid, String walletId, int txPos) {
   if (txPos.isNegative) {
     throw Exception("Invalid vout index");
@@ -43,11 +41,16 @@ String nameSaltKeyBuilder(String txid, String walletId, int txPos) {
 }
 
 String encodeNameSaltData(String name, String salt, String value) =>
-    "$name$_kNameSaltSplitter$salt$_kNameSaltSplitter$value";
+    jsonEncode({
+      "name": name,
+      "salt": salt,
+      "value": value,
+    });
+
 ({String salt, String name, String value}) decodeNameSaltData(String value) {
   try {
-    final split = value.split(_kNameSaltSplitter);
-    return (salt: split[1], name: split[0], value: split[2]);
+    final map = (jsonDecode(value) as Map).cast<String, String>();
+    return (salt: map["salt"]!, name: map["name"]!, value: map["value"]!);
   } catch (_) {
     throw Exception("Bad name salt data");
   }
