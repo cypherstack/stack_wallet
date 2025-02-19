@@ -160,6 +160,8 @@ class _ConfirmNameTransactionViewState
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
         // pop confirm send view
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
+        // pop buy popup //TODO test on mobile
+        Navigator.of(context, rootNavigator: Util.isDesktop).pop();
       }
     } catch (e, s) {
       const niceError = "Broadcast name transaction failed";
