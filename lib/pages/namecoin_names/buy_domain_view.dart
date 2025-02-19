@@ -135,6 +135,23 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
       }
     } catch (e, s) {
       Logging.instance.e("_preRegister failed", error: e, stackTrace: s);
+
+      String err = e.toString();
+      if (err.startsWith("Exception: ")) {
+        err = err.replaceFirst("Exception: ", "");
+      }
+
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: "Add DNS record failed",
+            message: err,
+            desktopPopRootNavigator: Util.isDesktop,
+            maxWidth: Util.isDesktop ? 600 : null,
+          ),
+        );
+      }
     } finally {
       _preRegLock = false;
     }
