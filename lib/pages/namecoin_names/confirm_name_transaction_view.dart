@@ -492,11 +492,13 @@ class _ConfirmNameTransactionViewState
                         ],
                       ),
                     ),
-                  if (widget.txData.note!.isNotEmpty)
+                  if (widget.txData.note != null &&
+                      widget.txData.note!.isNotEmpty)
                     const SizedBox(
                       height: 12,
                     ),
-                  if (widget.txData.note!.isNotEmpty)
+                  if (widget.txData.note != null &&
+                      widget.txData.note!.isNotEmpty)
                     RoundedWhiteContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:namecoin/namecoin.dart';
@@ -20,6 +21,7 @@ import '../../models/namecoin_dns/dns_record_type.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
@@ -58,59 +60,76 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
     return DNSRecord.merge(_dnsRecords);
   }
 
+  String _getNameFormattedForInternal() {
+    String formattedName = widget.domainName;
+    if (!formattedName.startsWith("d/")) {
+      formattedName = "d/$formattedName";
+    }
+    if (formattedName.endsWith(".bit")) {
+      formattedName.split(".bit").first;
+    }
+    return formattedName;
+  }
+
+  Future<TxData> _preRegFuture() async {
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet;
+    final myAddress = await wallet.getCurrentReceivingAddress();
+    if (myAddress == null) {
+      throw Exception("No receiving address found");
+    }
+
+    final value = _getFormattedDNSRecords();
+
+    Logging.instance.t("Formatted namecoin name value: $value");
+
+    // get address private key for deterministic salt
+    final pk = await wallet.getPrivateKey(myAddress);
+
+    final formattedName = _getNameFormattedForInternal();
+
+    final data = await compute(_computeScriptNameNew, (formattedName, pk.data));
+
+    TxData txData = TxData(
+      opNameState: NameOpState(
+        name: formattedName,
+        saltHex: data.$2,
+        commitment: data.$3,
+        value: value,
+        nameScriptHex: data.$1,
+        type: OpName.nameNew,
+        outputPosition: -1, //currently unknown, updated later
+      ),
+      feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
+      recipients: [
+        (
+          address: myAddress.value,
+          isChange: false,
+          amount: Amount(
+            rawValue: BigInt.from(kNameNewAmountSats),
+            fractionDigits: wallet.cryptoCurrency.fractionDigits,
+          ),
+        ),
+      ],
+    );
+
+    txData = await wallet.prepareNameSend(txData: txData);
+    return txData;
+  }
+
   bool _preRegLock = false;
   Future<void> _preRegister() async {
     if (_preRegLock) return;
     _preRegLock = true;
     try {
-      final wallet =
-          ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet;
-      final myAddress = await wallet.getCurrentReceivingAddress();
-      if (myAddress == null) {
-        throw Exception("No receiving address found");
-      }
-
-      final value = _getFormattedDNSRecords();
-
-      Logging.instance.t("Formatted namecoin name value: $value");
-
-      // get address private key for deterministic salt
-      final pk = await wallet.getPrivateKey(myAddress);
-
-      String formattedName = widget.domainName;
-      if (!formattedName.startsWith("d/")) {
-        formattedName = "d/$formattedName";
-      }
-      if (formattedName.endsWith(".bit")) {
-        formattedName.split(".bit").first;
-      }
-
-      final data = scriptNameNew(formattedName, pk.data);
-
-      TxData txData = TxData(
-        opNameState: NameOpState(
-          name: formattedName,
-          saltHex: data.$2,
-          commitment: data.$3,
-          value: value,
-          nameScriptHex: data.$1,
-          type: OpName.nameNew,
-          outputPosition: -1, //currently unknown, updated later
-        ),
-        feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
-        recipients: [
-          (
-            address: myAddress.value,
-            isChange: false,
-            amount: Amount(
-              rawValue: BigInt.from(kNameNewAmountSats),
-              fractionDigits: wallet.cryptoCurrency.fractionDigits,
-            ),
-          ),
-        ],
-      );
-
-      txData = await wallet.prepareNameSend(txData: txData);
+      final txData = (await showLoading(
+        whileFuture: _preRegFuture(),
+        context: context,
+        message: "Preparing transaction...",
+        onException: (e) {
+          throw e;
+        },
+      ))!;
 
       if (mounted) {
         if (Util.isDesktop) {
@@ -121,7 +140,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
                 width: 580,
                 child: ConfirmNameTransactionView(
                   txData: txData,
-                  walletId: wallet.walletId,
+                  walletId: widget.walletId,
                 ),
               ),
             ),
@@ -129,7 +148,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
         } else {
           await Navigator.of(context).pushNamed(
             ConfirmNameTransactionView.routeName,
-            arguments: (txData, wallet.walletId),
+            arguments: (txData, widget.walletId),
           );
         }
       }
@@ -145,7 +164,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
         await showDialog<void>(
           context: context,
           builder: (_) => StackOkDialog(
-            title: "Add DNS record failed",
+            title: "Error",
             message: err,
             desktopPopRootNavigator: Util.isDesktop,
             maxWidth: Util.isDesktop ? 600 : null,
@@ -191,23 +210,30 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
                                     ),
                                     DesktopDialogCloseButton(
                                       onPressedOverride: () {
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .pop();
+                                        Navigator.of(
+                                          context,
+                                          rootNavigator: true,
+                                        ).pop();
                                       },
                                     ),
                                   ],
                                 ),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 32),
-                                  child: AddDnsStep1(),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 32,
+                                  ),
+                                  child: AddDnsStep1(
+                                    name: _getNameFormattedForInternal(),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         )
-                      : const StackDialogBase(
-                          child: AddDnsStep1(),
+                      : StackDialogBase(
+                          child: AddDnsStep1(
+                            name: _getNameFormattedForInternal(),
+                          ),
                         );
                 },
               );
@@ -247,6 +273,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
       builder: (child) {
         return Background(
           child: Scaffold(
+            backgroundColor: Colors.transparent,
             appBar: AppBar(
               leading: const AppBarBackButton(),
               titleSpacing: 0,
@@ -256,9 +283,23 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: child,
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (ctx, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -279,7 +320,9 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
             height: Util.isDesktop ? 24 : 16,
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: Util.isDesktop
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
             children: [
               Text(
                 "Name registration will take approximately 2 to 4 hours.",
@@ -363,15 +406,21 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
             ),
           ),
           SizedBox(
-            height: Util.isDesktop ? 16 : 8,
+            height: Util.isDesktop ? 24 : 16,
           ),
-          CustomTextButton(
-            text: _settingsHidden ? "More settings" : "Hide settings",
-            onTap: () {
-              setState(() {
-                _settingsHidden = !_settingsHidden;
-              });
-            },
+          ConditionalParent(
+            condition: !Util.isDesktop,
+            builder: (child) => Row(
+              children: [child],
+            ),
+            child: CustomTextButton(
+              text: _settingsHidden ? "More settings" : "Hide settings",
+              onTap: () {
+                setState(() {
+                  _settingsHidden = !_settingsHidden;
+                });
+              },
+            ),
           ),
           if (!_settingsHidden)
             SizedBox(
@@ -395,38 +444,38 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
                 ),
               ),
           if (!_settingsHidden)
-            if (_dnsRecords.isNotEmpty)
-              ListView(
-                shrinkWrap: true,
+            ConditionalParent(
+              condition: !Util.isDesktop,
+              builder: (child) => Expanded(child: child),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   ..._dnsRecords.map(
                     (e) => DNSRecordCard(
-                      key: Key(e.toString()),
+                      key: ValueKey(e),
                       record: e,
                       onRemoveTapped: () => setState(() {
                         _dnsRecords.remove(e);
                       }),
                     ),
                   ),
+                  SizedBox(
+                    height: Util.isDesktop ? 16 : 8,
+                  ),
+                  SecondaryButton(
+                    label: _dnsRecords.isEmpty
+                        ? "Add DNS record"
+                        : "Add another DNS record",
+                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+                    onPressed: _addRecord,
+                  ),
                 ],
               ),
-          if (!_settingsHidden)
-            SizedBox(
-              height: Util.isDesktop ? 16 : 8,
-            ),
-          if (!_settingsHidden)
-            SecondaryButton(
-              label: _dnsRecords.isEmpty
-                  ? "Add DNS record"
-                  : "Add another DNS record",
-              // width: Util.isDesktop ? 160 : double.infinity,
-              buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-              onPressed: _addRecord,
             ),
           SizedBox(
             height: Util.isDesktop ? 24 : 16,
           ),
-          if (!Util.isDesktop) const Spacer(),
+          if (!Util.isDesktop && _settingsHidden) const Spacer(),
           PrimaryButton(
             label: "Buy",
             // width: Util.isDesktop ? 160 : double.infinity,
@@ -440,6 +489,10 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
       ),
     );
   }
+}
+
+(String, String, String) _computeScriptNameNew((String, Uint8List) args) {
+  return scriptNameNew(args.$1, args.$2);
 }
 
 class DNSRecordCard extends StatelessWidget {

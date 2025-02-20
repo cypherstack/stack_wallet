@@ -6,7 +6,7 @@ import '../../../../utilities/util.dart';
 import '../name_form_interface.dart';
 
 class DSForm extends NameFormStatefulWidget {
-  const DSForm({super.key});
+  const DSForm({super.key, required super.name});
 
   @override
   NameFormState<DSForm> createState() => _DSFormState();
@@ -21,6 +21,7 @@ class _DSFormState extends NameFormState<DSForm> {
   @override
   DNSRecord buildRecord() {
     return DNSRecord(
+      name: widget.name,
       type: DNSRecordType.DS,
       data: {
         "ds": [

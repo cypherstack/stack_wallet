@@ -7,7 +7,9 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 
 abstract class NameFormStatefulWidget extends StatefulWidget {
-  const NameFormStatefulWidget({super.key});
+  const NameFormStatefulWidget({super.key, required this.name});
+
+  final String name;
 }
 
 abstract class NameFormState<T extends NameFormStatefulWidget>
@@ -54,8 +56,6 @@ class DNSFormField extends StatelessWidget {
         decoration: InputDecoration(
           isDense: true,
           contentPadding: const EdgeInsets.all(16),
-          fillColor: Colors.transparent,
-          // hintText: "e.g. ns1.stackwallet.com.",
           hintStyle: STextStyles.fieldLabel(context),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,

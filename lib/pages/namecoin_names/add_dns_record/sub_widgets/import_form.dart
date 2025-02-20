@@ -6,7 +6,7 @@ import '../../../../utilities/util.dart';
 import '../name_form_interface.dart';
 
 class IMPORTForm extends NameFormStatefulWidget {
-  const IMPORTForm({super.key});
+  const IMPORTForm({super.key, required super.name});
 
   @override
   NameFormState<IMPORTForm> createState() => _IMPORTFormState();
@@ -19,6 +19,7 @@ class _IMPORTFormState extends NameFormState<IMPORTForm> {
   @override
   DNSRecord buildRecord() {
     return DNSRecord(
+      name: widget.name,
       type: DNSRecordType.IMPORT,
       data: {
         "import": [

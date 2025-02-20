@@ -6,7 +6,7 @@ import '../../../../utilities/util.dart';
 import '../name_form_interface.dart';
 
 class SSHForm extends NameFormStatefulWidget {
-  const SSHForm({super.key});
+  const SSHForm({super.key, required super.name});
 
   @override
   NameFormState<SSHForm> createState() => _SSHFormState();
@@ -20,6 +20,7 @@ class _SSHFormState extends NameFormState<SSHForm> {
   @override
   DNSRecord buildRecord() {
     return DNSRecord(
+      name: widget.name,
       type: DNSRecordType.SSH,
       data: {
         "sshfp": [

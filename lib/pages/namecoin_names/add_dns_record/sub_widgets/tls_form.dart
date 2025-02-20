@@ -6,7 +6,7 @@ import '../../../../utilities/util.dart';
 import '../name_form_interface.dart';
 
 class TLSForm extends NameFormStatefulWidget {
-  const TLSForm({super.key});
+  const TLSForm({super.key, required super.name});
 
   @override
   NameFormState<TLSForm> createState() => _TLSFormState();
@@ -18,6 +18,7 @@ class _TLSFormState extends NameFormState<TLSForm> {
   @override
   DNSRecord buildRecord() {
     return DNSRecord(
+      name: widget.name,
       type: DNSRecordType.TLS,
       data: {
         "map": {

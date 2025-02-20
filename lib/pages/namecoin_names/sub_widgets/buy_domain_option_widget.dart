@@ -182,7 +182,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainOptionWidget> {
               ),
               Container(
                 height: 48,
-                width: 100,
+                width: Util.isDesktop ? 100 : 74,
                 decoration: BoxDecoration(
                   color: Theme.of(context)
                       .extension<StackColors>()!
@@ -282,8 +282,8 @@ class _NameCard extends ConsumerWidget {
             PrimaryButton(
               label: "Buy domain",
               enabled: isAvailable,
-              buttonHeight: ButtonHeight.m,
-              width: 140,
+              buttonHeight: Util.isDesktop ? ButtonHeight.m : ButtonHeight.l,
+              width: Util.isDesktop ? 140 : 120,
               onPressed: () async {
                 if (context.mounted) {
                   if (Util.isDesktop) {
