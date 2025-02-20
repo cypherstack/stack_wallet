@@ -4,19 +4,44 @@ import 'package:meta/meta.dart';
 import 'package:namecoin/namecoin.dart';
 
 import '../../utilities/extensions/extensions.dart';
-import 'dns_a_record_address_type.dart';
 import 'dns_record_type.dart';
 
 @Immutable()
-final class DNSRecord {
+abstract class DNSRecordBase {
+  final String name;
+
+  DNSRecordBase({required this.name});
+
+  String getValueString();
+}
+
+@Immutable()
+final class RawDNSRecord extends DNSRecordBase {
+  final String value;
+
+  RawDNSRecord({required super.name, required this.value});
+
+  @override
+  String getValueString() => value;
+
+  @override
+  String toString() {
+    return "RawDNSRecord(name: $name, value: $value)";
+  }
+}
+
+@Immutable()
+final class DNSRecord extends DNSRecordBase {
   final DNSRecordType type;
   final Map<String, dynamic> data;
 
   DNSRecord({
+    required super.name,
     required this.type,
     required this.data,
   });
 
+  @override
   String getValueString() {
     // TODO error handling
     dynamic value = data;
@@ -29,18 +54,18 @@ final class DNSRecord {
 
   DNSRecord copyWith({
     DNSRecordType? type,
-    DNSAddressType? addressType,
     Map<String, dynamic>? data,
   }) {
     return DNSRecord(
       type: type ?? this.type,
       data: data ?? this.data,
+      name: name,
     );
   }
 
   @override
   String toString() {
-    return "DNSRecord(type: $type, data: $data)";
+    return "DNSRecord(name: $name, type: $type, data: $data)";
   }
 
   static String merge(List<DNSRecord> records) {

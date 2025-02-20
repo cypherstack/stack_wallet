@@ -890,6 +890,12 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       final feeRateAmount = txData.feeRateAmount;
       final utxos = txData.utxos;
 
+      if (txData.note == null) {
+        txData = txData.copyWith(
+          note: "Name transaction ${txData.opNameState!.type.name}",
+        );
+      }
+
       final bool coinControl = utxos != null;
 
       if (customSatsPerVByte != null) {

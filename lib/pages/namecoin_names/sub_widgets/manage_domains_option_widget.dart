@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
+import 'package:namecoin/namecoin.dart';
 
 import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../providers/db/main_db_provider.dart';
-import '../../../widgets/rounded_white_container.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import 'owned_name_card.dart';
 
 class ManageDomainsOptionWidget extends ConsumerStatefulWidget {
   const ManageDomainsOptionWidget({
@@ -23,6 +28,7 @@ class _ManageDomainsWidgetState
     extends ConsumerState<ManageDomainsOptionWidget> {
   @override
   Widget build(BuildContext context) {
+    final height = ref.watch(pWalletChainHeight(widget.walletId));
     return StreamBuilder(
       stream: ref.watch(
         mainDBProvider.select(
@@ -35,19 +41,37 @@ class _ManageDomainsWidgetState
         ),
       ),
       builder: (context, snapshot) {
-        List<UTXO> list = [];
+        List<(UTXO, OpNameData)> list = [];
         if (snapshot.hasData) {
-          list = snapshot.data!;
+          list = snapshot.data!.map((utxo) {
+            final data = jsonDecode(utxo.otherData!) as Map;
+
+            final nameData = jsonDecode(data["nameOpData"] as String) as Map;
+
+            return (
+              utxo,
+              OpNameData(nameData.cast(), utxo.blockHeight ?? height)
+            );
+          }).toList(growable: false);
         }
 
-        return ListView.separated(
-          itemCount: list.length,
-          itemBuilder: (context, index) => RoundedWhiteContainer(
-            child: Text(list[index].otherData!),
-          ),
-          separatorBuilder: (context, index) => const SizedBox(
-            height: 10,
-          ),
+        return Column(
+          children: [
+            ...list.map(
+              (e) => Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 10,
+                ),
+                child: OwnedNameCard(
+                  utxo: e.$1,
+                  opNameData: e.$2,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: Util.isDesktop ? 14 : 6,
+            ),
+          ],
         );
       },
     );

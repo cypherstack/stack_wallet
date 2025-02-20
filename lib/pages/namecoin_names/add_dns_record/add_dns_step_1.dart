@@ -17,7 +17,9 @@ import '../../../widgets/stack_dialog.dart';
 import 'add_dns_step_2.dart';
 
 class AddDnsStep1 extends StatefulWidget {
-  const AddDnsStep1({super.key});
+  const AddDnsStep1({super.key, required this.name});
+
+  final String name;
 
   @override
   State<AddDnsStep1> createState() => _AddDnsStep1State();
@@ -64,13 +66,19 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
                             ),
                             child: AddDnsStep2(
                               recordType: _recordType!,
+                              name: widget.name,
                             ),
                           ),
                         ],
                       ),
                     )
                   : StackDialogBase(
-                      child: AddDnsStep2(recordType: _recordType!),
+                      keyboardPaddingAmount:
+                          MediaQuery.of(context).viewInsets.bottom,
+                      child: AddDnsStep2(
+                        recordType: _recordType!,
+                        name: widget.name,
+                      ),
                     );
             },
           ),
@@ -114,9 +122,20 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
               "Choose a record type",
               style: STextStyles.fieldLabel(context),
             ),
+            buttonStyleData: ButtonStyleData(
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+            ),
             dropdownStyleData: DropdownStyleData(
               offset: const Offset(0, -10),
               elevation: 0,
+              maxHeight: Util.isDesktop ? null : 200,
               decoration: BoxDecoration(
                 color: Theme.of(context)
                     .extension<StackColors>()!
@@ -142,11 +161,14 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
               }
             },
             iconStyleData: IconStyleData(
-              icon: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 10,
-                height: 5,
-                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              icon: Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: SvgPicture.asset(
+                  Assets.svg.chevronDown,
+                  width: 10,
+                  height: 5,
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                ),
               ),
             ),
             items: [
@@ -206,7 +228,7 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
             Expanded(
               child: SecondaryButton(
                 label: "Cancel",
-                buttonHeight: ButtonHeight.l,
+                buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
                 },
@@ -220,14 +242,15 @@ class _AddDnsStep1State extends State<AddDnsStep1> {
                 label: "Next",
                 enabled: _recordType != null,
                 onPressed: _next,
-                buttonHeight: ButtonHeight.l,
+                buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
               ),
             ),
           ],
         ),
-        SizedBox(
-          height: Util.isDesktop ? 32 : 16,
-        ),
+        if (Util.isDesktop)
+          const SizedBox(
+            height: 32,
+          ),
       ],
     );
   }

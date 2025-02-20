@@ -6,7 +6,7 @@ import '../../../../utilities/util.dart';
 import '../name_form_interface.dart';
 
 class SRVForm extends NameFormStatefulWidget {
-  const SRVForm({super.key});
+  const SRVForm({super.key, required super.name});
 
   @override
   NameFormState<SRVForm> createState() => _SRVFormState();
@@ -21,6 +21,7 @@ class _SRVFormState extends NameFormState<SRVForm> {
   @override
   DNSRecord buildRecord() {
     return DNSRecord(
+      name: widget.name,
       type: DNSRecordType.SRV,
       data: {
         "srv": [

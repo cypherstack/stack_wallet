@@ -42,4 +42,27 @@ enum DNSRecordType {
             " for securely connecting to your domain's services.";
     }
   }
+
+  String? get key {
+    switch (this) {
+      case DNSRecordType.A:
+        return null;
+      case DNSRecordType.CNAME:
+        return "alias";
+      case DNSRecordType.NS:
+        return "ns";
+      case DNSRecordType.DS:
+        return "ds";
+      case DNSRecordType.TLS:
+        return "tls";
+      case DNSRecordType.SRV:
+        return "srv";
+      case DNSRecordType.TXT:
+        return "txt";
+      case DNSRecordType.IMPORT:
+        return "import";
+      case DNSRecordType.SSH:
+        return "sshfp";
+    }
+  }
 }

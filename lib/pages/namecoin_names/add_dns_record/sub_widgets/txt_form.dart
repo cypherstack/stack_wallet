@@ -6,7 +6,7 @@ import '../../../../utilities/util.dart';
 import '../name_form_interface.dart';
 
 class TXTForm extends NameFormStatefulWidget {
-  const TXTForm({super.key});
+  const TXTForm({super.key, required super.name});
 
   @override
   NameFormState<TXTForm> createState() => _TXTFormState();
@@ -18,6 +18,7 @@ class _TXTFormState extends NameFormState<TXTForm> {
   @override
   DNSRecord buildRecord() {
     return DNSRecord(
+      name: widget.name,
       type: DNSRecordType.TXT,
       data: {
         "txt": [_valueController.text.trim()],

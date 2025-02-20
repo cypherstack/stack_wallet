@@ -15,7 +15,7 @@ import '../../../../utilities/util.dart';
 import '../name_form_interface.dart';
 
 class AForm extends NameFormStatefulWidget {
-  const AForm({super.key});
+  const AForm({super.key, required super.name});
 
   @override
   NameFormState<AForm> createState() => _AFormState();
@@ -25,7 +25,7 @@ class _AFormState extends NameFormState<AForm> {
   final _addressDataController = TextEditingController();
   final _addressDataFieldFocus = FocusNode();
 
-  DNSAddressType? _addressType;
+  DNSAddressType _addressType = DNSAddressType.IPv4;
 
   @override
   DNSRecord buildRecord() {
@@ -34,7 +34,7 @@ class _AFormState extends NameFormState<AForm> {
     final List<String> addresses = [];
 
     for (final part in parts) {
-      switch (_addressType!) {
+      switch (_addressType) {
         case DNSAddressType.IPv4:
           final address =
               InternetAddress(part.trim(), type: InternetAddressType.IPv4);
@@ -102,6 +102,7 @@ class _AFormState extends NameFormState<AForm> {
     }
 
     return DNSRecord(
+      name: widget.name,
       type: DNSRecordType.A,
       data: map,
     );
@@ -123,6 +124,9 @@ class _AFormState extends NameFormState<AForm> {
         const DNSFieldText(
           "Address type",
         ),
+        SizedBox(
+          height: Util.isDesktop ? 10 : 8,
+        ),
         DropdownButtonHideUnderline(
           child: DropdownButton2<DNSAddressType>(
             hint: Text(
@@ -132,6 +136,7 @@ class _AFormState extends NameFormState<AForm> {
             dropdownStyleData: DropdownStyleData(
               offset: const Offset(0, -10),
               elevation: 0,
+              maxHeight: Util.isDesktop ? null : 200,
               decoration: BoxDecoration(
                 color: Theme.of(context)
                     .extension<StackColors>()!
@@ -156,12 +161,25 @@ class _AFormState extends NameFormState<AForm> {
                 });
               }
             },
+            buttonStyleData: ButtonStyleData(
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+              ),
+            ),
             iconStyleData: IconStyleData(
-              icon: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 10,
-                height: 5,
-                color: Theme.of(context).extension<StackColors>()!.textDark3,
+              icon: Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: SvgPicture.asset(
+                  Assets.svg.chevronDown,
+                  width: 10,
+                  height: 5,
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                ),
               ),
             ),
             items: [
@@ -188,6 +206,12 @@ class _AFormState extends NameFormState<AForm> {
         SizedBox(
           height: Util.isDesktop ? 24 : 16,
         ),
+        const DNSFieldText(
+          "Value",
+        ),
+        SizedBox(
+          height: Util.isDesktop ? 10 : 8,
+        ),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
@@ -200,7 +224,6 @@ class _AFormState extends NameFormState<AForm> {
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.all(16),
-              fillColor: Colors.transparent,
               hintText: "e.g. 255.255.255.255, "
                   "76f4a520a262c269dcba66bc1f560452e30a44e14ce6b37ce20b8.onion",
               hintStyle: STextStyles.fieldLabel(context),

@@ -101,63 +101,150 @@ class _NamecoinNamesHomeViewState extends ConsumerState<NamecoinNamesHomeView> {
         condition: !isDesktop,
         builder: (child) => SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(
+              top: 16,
+              left: 16,
+              right: 16,
+            ),
             child: child,
           ),
         ),
-        child: Column(
-          crossAxisAlignment:
-              isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                top: Util.isDesktop ? 24 : 16,
-                left: Util.isDesktop ? 24 : 16,
-                right: Util.isDesktop ? 24 : 16,
-              ),
-              child: SizedBox(
-                height: 48,
-                child: Toggle(
-                  key: UniqueKey(),
-                  onColor: Theme.of(context).extension<StackColors>()!.popupBG,
-                  offColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
-                  onText: "Buy domain",
-                  offText: "Manage domains",
-                  isOn: !_onManage,
-                  onValueChanged: (value) {
-                    setState(() {
-                      _onManage = !value;
-                    });
-                  },
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
+        child: Util.isDesktop
+            ? Padding(
+                padding: const EdgeInsets.only(
+                  top: 24,
+                  left: 24,
+                  right: 24,
                 ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(Util.isDesktop ? 24 : 16),
-                child: IndexedStack(
-                  index: _onManage ? 0 : 1,
+                child: Row(
                   children: [
-                    BuyDomainOptionWidget(
-                      walletId: widget.walletId,
+                    SizedBox(
+                      width: 460,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "Buy domain",
+                                style:
+                                    STextStyles.desktopTextExtraSmall(context)
+                                        .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveSearchIconLeft,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 14,
+                          ),
+                          Flexible(
+                            child: BuyDomainOptionWidget(
+                              walletId: widget.walletId,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    ManageDomainsOptionWidget(
-                      walletId: widget.walletId,
+                    const SizedBox(
+                      width: 24,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "Manage domains",
+                                style:
+                                    STextStyles.desktopTextExtraSmall(context)
+                                        .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveSearchIconLeft,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 14,
+                          ),
+                          Flexible(
+                            child: SingleChildScrollView(
+                              child: ManageDomainsOptionWidget(
+                                walletId: widget.walletId,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: 48,
+                    child: Toggle(
+                      key: UniqueKey(),
+                      onColor:
+                          Theme.of(context).extension<StackColors>()!.popupBG,
+                      offColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      onText: "Buy domain",
+                      offText: "Manage domains",
+                      isOn: !_onManage,
+                      onValueChanged: (value) {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        setState(() {
+                          _onManage = !value;
+                        });
+                      },
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Expanded(
+                    child: IndexedStack(
+                      index: _onManage ? 0 : 1,
+                      children: [
+                        BuyDomainOptionWidget(
+                          walletId: widget.walletId,
+                        ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            return ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
+                              ),
+                              child: SingleChildScrollView(
+                                child: IntrinsicHeight(
+                                  child: ManageDomainsOptionWidget(
+                                    walletId: widget.walletId,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

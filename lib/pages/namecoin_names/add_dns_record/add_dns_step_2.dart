@@ -19,7 +19,13 @@ import 'sub_widgets/tls_form.dart';
 import 'sub_widgets/txt_form.dart';
 
 class AddDnsStep2 extends StatefulWidget {
-  const AddDnsStep2({super.key, required this.recordType});
+  const AddDnsStep2({
+    super.key,
+    required this.recordType,
+    required this.name,
+  });
+
+  final String name;
   final DNSRecordType recordType;
 
   @override
@@ -86,23 +92,23 @@ class _AddDnsStep2State extends State<AddDnsStep2> {
   NameFormStatefulWidget _buildForm() {
     switch (widget.recordType) {
       case DNSRecordType.A:
-        return AForm(key: _formStateKey);
+        return AForm(key: _formStateKey, name: widget.name);
       case DNSRecordType.CNAME:
-        return CNAMEForm(key: _formStateKey);
+        return CNAMEForm(key: _formStateKey, name: widget.name);
       case DNSRecordType.NS:
-        return NSForm(key: _formStateKey);
+        return NSForm(key: _formStateKey, name: widget.name);
       case DNSRecordType.DS:
-        return DSForm(key: _formStateKey);
+        return DSForm(key: _formStateKey, name: widget.name);
       case DNSRecordType.TLS:
-        return TLSForm(key: _formStateKey);
+        return TLSForm(key: _formStateKey, name: widget.name);
       case DNSRecordType.SRV:
-        return SRVForm(key: _formStateKey);
+        return SRVForm(key: _formStateKey, name: widget.name);
       case DNSRecordType.TXT:
-        return TXTForm(key: _formStateKey);
+        return TXTForm(key: _formStateKey, name: widget.name);
       case DNSRecordType.IMPORT:
-        return IMPORTForm(key: _formStateKey);
+        return IMPORTForm(key: _formStateKey, name: widget.name);
       case DNSRecordType.SSH:
-        return SSHForm(key: _formStateKey);
+        return SSHForm(key: _formStateKey, name: widget.name);
     }
   }
 
@@ -129,7 +135,7 @@ class _AddDnsStep2State extends State<AddDnsStep2> {
             Expanded(
               child: SecondaryButton(
                 label: "Cancel",
-                buttonHeight: ButtonHeight.l,
+                buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -142,14 +148,15 @@ class _AddDnsStep2State extends State<AddDnsStep2> {
               child: PrimaryButton(
                 label: "Next",
                 onPressed: _nextPressed,
-                buttonHeight: ButtonHeight.l,
+                buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
               ),
             ),
           ],
         ),
-        SizedBox(
-          height: Util.isDesktop ? 32 : 16,
-        ),
+        if (Util.isDesktop)
+          const SizedBox(
+            height: 32,
+          ),
       ],
     );
   }

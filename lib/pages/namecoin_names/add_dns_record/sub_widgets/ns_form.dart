@@ -6,7 +6,7 @@ import '../../../../utilities/util.dart';
 import '../name_form_interface.dart';
 
 class NSForm extends NameFormStatefulWidget {
-  const NSForm({super.key});
+  const NSForm({super.key, required super.name});
 
   @override
   NameFormState<NSForm> createState() => _NSFormState();
@@ -20,6 +20,7 @@ class _NSFormState extends NameFormState<NSForm> {
     final address = _serverController.text.trim();
 
     return DNSRecord(
+      name: widget.name,
       type: DNSRecordType.NS,
       data: {
         "ns": [address],

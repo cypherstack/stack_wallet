@@ -75,6 +75,7 @@ import 'pages/monkey/monkey_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
 import 'pages/namecoin_names/namecoin_names_home_view.dart';
+import 'pages/namecoin_names/sub_widgets/name_details.dart';
 import 'pages/notification_views/notifications_view.dart';
 import 'pages/ordinals/ordinal_details_view.dart';
 import 'pages/ordinals/ordinals_filter_view.dart';
@@ -711,6 +712,21 @@ class RouteGenerator {
             builder: (_) => UtxoDetailsView(
               walletId: args.item2,
               utxoId: args.item1,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case NameDetailsView.routeName:
+        if (args is (Id, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => NameDetailsView(
+              walletId: args.$2,
+              utxoId: args.$1,
             ),
             settings: RouteSettings(
               name: settings.name,
