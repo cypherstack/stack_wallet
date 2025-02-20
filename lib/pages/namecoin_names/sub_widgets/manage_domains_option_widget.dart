@@ -26,6 +26,25 @@ class ManageDomainsOptionWidget extends ConsumerStatefulWidget {
 
 class _ManageDomainsWidgetState
     extends ConsumerState<ManageDomainsOptionWidget> {
+  double _tempWidth = 0;
+  double? _width;
+  int _count = 0;
+
+  void _sillyHack(double value, int length) {
+    if (value > _tempWidth) _tempWidth = value;
+    _count++;
+    if (_count == length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _width = _tempWidth;
+            _tempWidth = 0;
+          });
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final height = ref.watch(pWalletChainHeight(widget.walletId));
@@ -65,6 +84,11 @@ class _ManageDomainsWidgetState
                 child: OwnedNameCard(
                   utxo: e.$1,
                   opNameData: e.$2,
+                  firstColWidth: _width,
+                  calculatedFirstColWidth: (value) => _sillyHack(
+                    value,
+                    list.length,
+                  ),
                 ),
               ),
             ),

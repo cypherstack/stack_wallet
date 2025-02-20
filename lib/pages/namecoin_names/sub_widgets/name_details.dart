@@ -513,7 +513,7 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
                                 ),
                                 if (!isExpired)
                                   Text(
-                                    " blocks left",
+                                    " blocks remaining",
                                     style:
                                         STextStyles.w500_14(context).copyWith(
                                       color: isExpired

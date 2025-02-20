@@ -11,6 +11,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
@@ -21,10 +22,15 @@ class OwnedNameCard extends ConsumerStatefulWidget {
     super.key,
     required this.opNameData,
     required this.utxo,
+    this.firstColWidth,
+    this.calculatedFirstColWidth,
   });
 
   final OpNameData opNameData;
   final UTXO utxo;
+
+  final double? firstColWidth;
+  final void Function(double)? calculatedFirstColWidth;
 
   @override
   ConsumerState<OwnedNameCard> createState() => _OwnedNameCardState();
@@ -33,7 +39,7 @@ class OwnedNameCard extends ConsumerStatefulWidget {
 class _OwnedNameCardState extends ConsumerState<OwnedNameCard> {
   String? constructedName, value;
 
-  (String, Color) getExpiry(int currentChainHeight, StackColors theme) {
+  (String, Color) _getExpiry(int currentChainHeight, StackColors theme) {
     final String message;
     final Color color;
 
@@ -50,7 +56,7 @@ class _OwnedNameCardState extends ConsumerState<OwnedNameCard> {
       color = theme.accentColorRed;
       message = "Expired";
     } else {
-      message = "$remaining blocks remaining";
+      message = "Expires in $remaining blocks";
       if (semiRemaining == null) {
         color = theme.accentColorYellow;
       } else {
@@ -136,9 +142,13 @@ class _OwnedNameCardState extends ConsumerState<OwnedNameCard> {
     _setName();
   }
 
+  double _callbackWidth = 0;
+
   @override
   Widget build(BuildContext context) {
-    final (message, color) = getExpiry(
+    debugPrint("BUILD: $runtimeType");
+
+    final (message, color) = _getExpiry(
       ref.watch(pWalletChainHeight(widget.utxo.walletId)),
       Theme.of(context).extension<StackColors>()!,
     );
@@ -148,29 +158,58 @@ class _OwnedNameCardState extends ConsumerState<OwnedNameCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            flex: 5,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SelectableText(constructedName ?? ""),
-                if (value != null)
-                  const SizedBox(
-                    height: 8,
-                  ),
-                if (value != null) SelectableText(value!),
-              ],
+          ConditionalParent(
+            condition: widget.firstColWidth != null && Util.isDesktop,
+            builder: (child) => ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: widget.firstColWidth!),
+              child: child,
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: SelectableText(
-              message,
-              style: STextStyles.w500_12(context).copyWith(
-                color: color,
+            child: ConditionalParent(
+              condition: widget.firstColWidth == null && Util.isDesktop,
+              builder: (child) => LayoutBuilder(
+                builder: (context, constraints) {
+                  if (widget.firstColWidth == null &&
+                      _callbackWidth != constraints.maxWidth) {
+                    _callbackWidth = constraints.maxWidth;
+                    widget.calculatedFirstColWidth?.call(_callbackWidth);
+                  }
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+                    child: child,
+                  );
+                },
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SelectableText(constructedName ?? ""),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    SelectableText(
+                      message,
+                      style: STextStyles.w500_12(context).copyWith(
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+          if (Util.isDesktop)
+            Expanded(
+              child: SelectableText(
+                value ?? "",
+                style: STextStyles.w500_12(context),
+              ),
+            ),
+          if (Util.isDesktop)
+            const SizedBox(
+              width: 12,
+            ),
           PrimaryButton(
             label: "Details",
             buttonHeight: Util.isDesktop ? ButtonHeight.xs : ButtonHeight.l,
