@@ -3,13 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:namecoin/namecoin.dart';
 
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/extensions/impl/string.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/show_loading.dart';
+import '../../../utilities/text_formatters.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/wallet/impl/namecoin_wallet.dart';
@@ -31,6 +34,8 @@ class BuyDomainOptionWidget extends ConsumerStatefulWidget {
 }
 
 class _BuyDomainWidgetState extends ConsumerState<BuyDomainOptionWidget> {
+  static const kMaxByteLength = nameMaxLength - 2; // subtract length of "d/"
+
   final _nameController = TextEditingController();
   final _nameFieldFocus = FocusNode();
 
@@ -77,11 +82,17 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainOptionWidget> {
     } catch (e, s) {
       Logging.instance.e("_lookup failed", error: e, stackTrace: s);
 
+      String? err;
+      if (e.toString().contains("Contains invalid characters")) {
+        err = "Contains invalid characters";
+      }
+
       if (mounted) {
         await showDialog<void>(
           context: context,
           builder: (_) => StackOkDialog(
             title: "Name lookup failed",
+            message: err,
             desktopPopRootNavigator: Util.isDesktop,
             maxWidth: Util.isDesktop ? 600 : null,
           ),
@@ -111,6 +122,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainOptionWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final double dotBitBoxLength = Util.isDesktop ? 100 : 74;
     return Column(
       crossAxisAlignment:
           Util.isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
@@ -140,6 +152,11 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainOptionWidget> {
                     children: [
                       Expanded(
                         child: TextField(
+                          inputFormatters: [
+                            Utf8ByteLengthLimitingTextInputFormatter(
+                              kMaxByteLength,
+                            ),
+                          ],
                           textInputAction: TextInputAction.search,
                           focusNode: _nameFieldFocus,
                           controller: _nameController,
@@ -170,7 +187,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainOptionWidget> {
                               _lookup();
                             }
                           },
-                          onChanged: (_) {
+                          onChanged: (value) {
                             // trigger look up button enabled/disabled state change
                             setState(() {});
                           },
@@ -182,7 +199,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainOptionWidget> {
               ),
               Container(
                 height: 48,
-                width: Util.isDesktop ? 100 : 74,
+                width: dotBitBoxLength,
                 decoration: BoxDecoration(
                   color: Theme.of(context)
                       .extension<StackColors>()!
@@ -208,6 +225,31 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainOptionWidget> {
               ),
             ],
           ),
+        ),
+        const SizedBox(
+          height: 4,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(right: dotBitBoxLength),
+              child: Builder(
+                builder: (context) {
+                  final length =
+                      _nameController.text.toUint8ListFromUtf8.lengthInBytes;
+                  return Text(
+                    "$length/$kMaxByteLength",
+                    style: STextStyles.w500_10(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle2,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
         SizedBox(
           height: Util.isDesktop ? 24 : 16,
@@ -263,78 +305,88 @@ class _NameCard extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "${formattedName.substring(2)}.bit",
-                  style: style,
-                ),
-                Text(
-                  availability,
-                  style: style.copyWith(
-                    color: color,
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "${formattedName.substring(2)}.bit",
+                    style: style,
                   ),
-                ),
-              ],
+                  const SizedBox(
+                    height: 4,
+                  ),
+                  Text(
+                    availability,
+                    style: style.copyWith(
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            PrimaryButton(
-              label: "Buy domain",
-              enabled: isAvailable,
-              buttonHeight: Util.isDesktop ? ButtonHeight.m : ButtonHeight.l,
-              width: Util.isDesktop ? 140 : 120,
-              onPressed: () async {
-                if (context.mounted) {
-                  if (Util.isDesktop) {
-                    await showDialog<void>(
-                      context: context,
-                      builder: (context) => SDialog(
-                        child: SizedBox(
-                          width: 580,
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+            Column(
+              children: [
+                PrimaryButton(
+                  label: "Buy domain",
+                  enabled: isAvailable,
+                  buttonHeight:
+                      Util.isDesktop ? ButtonHeight.m : ButtonHeight.l,
+                  width: Util.isDesktop ? 140 : 120,
+                  onPressed: () async {
+                    if (context.mounted) {
+                      if (Util.isDesktop) {
+                        await showDialog<void>(
+                          context: context,
+                          builder: (context) => SDialog(
+                            child: SizedBox(
+                              width: 580,
+                              child: Column(
                                 children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 32,
+                                        ),
+                                        child: Text(
+                                          "Buy domain",
+                                          style: STextStyles.desktopH3(context),
+                                        ),
+                                      ),
+                                      const DesktopDialogCloseButton(),
+                                    ],
+                                  ),
                                   Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 32,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
                                     ),
-                                    child: Text(
-                                      "Buy domain",
-                                      style: STextStyles.desktopH3(context),
+                                    child: BuyDomainView(
+                                      walletId: walletId,
+                                      domainName: formattedName,
                                     ),
                                   ),
-                                  const DesktopDialogCloseButton(),
                                 ],
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 32,
-                                ),
-                                child: BuyDomainView(
-                                  walletId: walletId,
-                                  domainName: formattedName,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  } else {
-                    await Navigator.of(context).pushNamed(
-                      BuyDomainView.routeName,
-                      arguments: (
-                        walletId: walletId,
-                        domainName: formattedName
-                      ),
-                    );
-                  }
-                }
-              },
+                        );
+                      } else {
+                        await Navigator.of(context).pushNamed(
+                          BuyDomainView.routeName,
+                          arguments: (
+                            walletId: walletId,
+                            domainName: formattedName
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ),
