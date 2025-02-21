@@ -16,10 +16,13 @@ import '../../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../manage_domain_view.dart';
 
 class NameDetailsView extends ConsumerStatefulWidget {
   const NameDetailsView({
@@ -150,6 +153,27 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
               "Domain details",
               style: STextStyles.navBarTitle(context),
             ),
+            actions: utxo == null
+                ? null
+                : [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        right: 10,
+                      ),
+                      child: CustomTextButton(
+                        key: const Key("addAddressBookEntryFavoriteButtonKey"),
+                        text: "Manage",
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            ManageDomainView.routeName,
+                            arguments: (walletId: widget.walletId, utxo: utxo!),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
           ),
           body: SafeArea(
             child: LayoutBuilder(
@@ -247,36 +271,79 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // if (isDesktop)
-                                //   UTXOStatusIcon(
-                                //     blocked: utxo!.isBlocked,
-                                //     status: confirmed
-                                //         ? UTXOStatusIconStatus.confirmed
-                                //         : UTXOStatusIconStatus.unconfirmed,
-                                //     background: Theme.of(context)
-                                //         .extension<StackColors>()!
-                                //         .popupBG,
-                                //     selected: false,
-                                //     width: 32,
-                                //     height: 32,
-                                //   ),
-                                // if (isDesktop)
-                                //   const SizedBox(
-                                //     width: 16,
-                                //   ),
-
                                 SelectableText(
                                   constructedName ?? "",
                                   style: STextStyles.pageTitleH2(context),
                                 ),
+                                if (Util.isDesktop)
+                                  SelectableText(
+                                    opNameData!.op.name,
+                                    style: STextStyles.w500_14(context),
+                                  ),
                               ],
                             ),
-                            SelectableText(
-                              opNameData!.op.name,
-                              style: STextStyles.w500_14(context),
-                            ),
+                            if (Util.isDesktop && utxo != null)
+                              CustomTextButton(
+                                text: "Manage",
+                                onTap: () {
+                                  showDialog<void>(
+                                    context: context,
+                                    builder: (context) {
+                                      return SDialog(
+                                        child: SizedBox(
+                                          width: 641,
+                                          child: Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 32,
+                                                    ),
+                                                    child: Text(
+                                                      "Manage domain",
+                                                      style:
+                                                          STextStyles.desktopH3(
+                                                        context,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const DesktopDialogCloseButton(),
+                                                ],
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 32,
+                                                  right: 32,
+                                                  bottom: 32,
+                                                ),
+                                                child: IntrinsicHeight(
+                                                  child: ManageDomainView(
+                                                    walletId: widget.walletId,
+                                                    utxo: utxo!,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            if (!Util.isDesktop)
+                              SelectableText(
+                                opNameData!.op.name,
+                                style: STextStyles.w500_14(context),
+                              ),
                           ],
                         ),
                       ),
@@ -305,19 +372,6 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
                                         .textSubtitle1,
                                   ),
                                 ),
-
-                                // TODO: edit value
-                                // SimpleEditButton(
-                                //   editValue: utxo!.name,
-                                //   editLabel: "label",
-                                //   onValueChanged: (newName) {
-                                //     MainDB.instance.putUTXO(
-                                //       utxo!.copyWith(
-                                //         name: newName,
-                                //       ),
-                                //     );
-                                //   },
-                                // ),
                               ],
                             ),
                             const SizedBox(

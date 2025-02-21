@@ -1,5 +1,7 @@
 import 'package:namecoin/namecoin.dart';
 
+import '../../models/isar/models/blockchain_data/utxo.dart';
+
 class NameOpState {
   final String name;
   final OpName type;
@@ -8,6 +10,7 @@ class NameOpState {
   final String value;
   final String nameScriptHex;
   final int outputPosition;
+  final UTXO? output;
 
   NameOpState({
     required this.name,
@@ -17,6 +20,7 @@ class NameOpState {
     required this.value,
     required this.nameScriptHex,
     required this.outputPosition,
+    this.output,
   });
 
   NameOpState copyWith({
@@ -36,6 +40,7 @@ class NameOpState {
       value: value ?? this.value,
       nameScriptHex: nameScriptHex ?? this.nameScriptHex,
       outputPosition: outputPosition ?? this.outputPosition,
+      output: output,
     );
   }
 
@@ -48,6 +53,7 @@ class NameOpState {
         "commitment: $commitment, "
         "value: $value, "
         "nameScriptHex: $nameScriptHex, "
-        "outputPosition: $outputPosition)";
+        "outputPosition: $outputPosition, "
+        "output: $output)";
   }
 }

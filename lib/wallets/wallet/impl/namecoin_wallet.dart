@@ -982,6 +982,11 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       throw Exception("Coin control used where utxos is null!");
     }
 
+    if (txData.opNameState!.type == OpName.nameUpdate &&
+        txData.opNameState!.output == null) {
+      throw Exception("Missing name output to update");
+    }
+
     final recipientAddress = txData.recipients!.first.address;
     final satoshiAmountToSend = txData.amount!.raw;
     final int? satsPerVByte = txData.satsPerVByte;
@@ -1005,6 +1010,12 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
     final List<UTXO> availableOutputs =
         utxos ?? await mainDB.getUTXOs(walletId).findAll();
+
+    if (txData.opNameState!.type == OpName.nameUpdate) {
+      // name output is added later
+      availableOutputs.removeWhere((e) => e == txData.opNameState!.output!);
+    }
+
     final currentChainHeight = await chainHeight;
 
     final canCPFP = this is CpfpInterface && coinControl;
@@ -1138,7 +1149,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
     BigInt satoshisBeingUsed = BigInt.zero;
     int inputsBeingConsumed = 0;
-    final List<UTXO> utxoObjectsToUse = [];
+    final List<UTXO> utxoObjectsToUse = [
+      if (txData.opNameState!.type == OpName.nameUpdate)
+        txData.opNameState!.output!,
+    ];
 
     if (!coinControl) {
       for (int i = 0;

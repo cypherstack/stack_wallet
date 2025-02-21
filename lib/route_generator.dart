@@ -74,6 +74,7 @@ import 'pages/manage_favorites_view/manage_favorites_view.dart';
 import 'pages/monkey/monkey_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
+import 'pages/namecoin_names/manage_domain_view.dart';
 import 'pages/namecoin_names/namecoin_names_home_view.dart';
 import 'pages/namecoin_names/sub_widgets/name_details.dart';
 import 'pages/notification_views/notifications_view.dart';
@@ -797,6 +798,21 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => NamecoinNamesHomeView(
               walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ManageDomainView.routeName:
+        if (args is ({String walletId, UTXO utxo})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ManageDomainView(
+              walletId: args.walletId,
+              utxo: args.utxo,
             ),
             settings: RouteSettings(
               name: settings.name,
