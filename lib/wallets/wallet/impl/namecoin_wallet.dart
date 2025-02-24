@@ -580,6 +580,12 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
               data.salt,
             );
 
+            String noteName =
+                data.name.startsWith("d/") ? data.name.substring(2) : data.name;
+            if (!noteName.endsWith(".bit")) {
+              noteName += ".bit";
+            }
+
             TxData txData = TxData(
               utxos: {utxo},
               opNameState: NameOpState(
@@ -591,6 +597,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
                 type: OpName.nameFirstUpdate,
                 outputPosition: -1, //currently unknown, updated later
               ),
+              note: "Purchase $noteName",
               feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
               recipients: [
                 (

@@ -100,6 +100,7 @@ class _BuyDomainWidgetState extends ConsumerState<BuyDomainView> {
         type: OpName.nameNew,
         outputPosition: -1, //currently unknown, updated later
       ),
+      note: "Reserve ${widget.domainName.substring(2)}.bit",
       feeRateType: kNameTxDefaultFeeRate, // TODO: make configurable?
       recipients: [
         (
