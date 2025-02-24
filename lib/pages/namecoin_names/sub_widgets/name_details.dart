@@ -19,10 +19,13 @@ import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../wallet_view/transaction_views/transaction_details_view.dart';
 import '../manage_domain_view.dart';
+import 'transfer_option_widget.dart';
+import 'update_option_widget.dart';
 
 class NameDetailsView extends ConsumerStatefulWidget {
   const NameDetailsView({
@@ -232,6 +235,122 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
                     child: child,
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SecondaryButton(
+                          label: "Transfer",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (context) {
+                                return SDialog(
+                                  child: SizedBox(
+                                    width: 641,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 32,
+                                              ),
+                                              child: Text(
+                                                "Transfer domain",
+                                                style: STextStyles.desktopH3(
+                                                  context,
+                                                ),
+                                              ),
+                                            ),
+                                            const DesktopDialogCloseButton(),
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 32,
+                                            right: 32,
+                                            bottom: 32,
+                                            top: 16,
+                                          ),
+                                          child: TransferOptionWidget(
+                                            walletId: widget.walletId,
+                                            utxo: utxo!,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 32,
+                      ),
+                      Expanded(
+                        child: SecondaryButton(
+                          label: "Update",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (context) {
+                                return SDialog(
+                                  child: SizedBox(
+                                    width: 641,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 32,
+                                              ),
+                                              child: Text(
+                                                "Update domain",
+                                                style: STextStyles.desktopH3(
+                                                  context,
+                                                ),
+                                              ),
+                                            ),
+                                            const DesktopDialogCloseButton(),
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 32,
+                                            right: 32,
+                                            bottom: 32,
+                                          ),
+                                          child: UpdateOptionWidget(
+                                            walletId: widget.walletId,
+                                            utxo: utxo!,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
               ],
             ),
           );
@@ -285,60 +404,6 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
                                   ),
                               ],
                             ),
-                            if (Util.isDesktop && utxo != null)
-                              CustomTextButton(
-                                text: "Manage",
-                                onTap: () {
-                                  showDialog<void>(
-                                    context: context,
-                                    builder: (context) {
-                                      return SDialog(
-                                        child: SizedBox(
-                                          width: 641,
-                                          child: Column(
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                      left: 32,
-                                                    ),
-                                                    child: Text(
-                                                      "Manage domain",
-                                                      style:
-                                                          STextStyles.desktopH3(
-                                                        context,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const DesktopDialogCloseButton(),
-                                                ],
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 32,
-                                                  right: 32,
-                                                  bottom: 32,
-                                                ),
-                                                child: IntrinsicHeight(
-                                                  child: ManageDomainView(
-                                                    walletId: widget.walletId,
-                                                    utxo: utxo!,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
                             if (!Util.isDesktop)
                               SelectableText(
                                 opNameData!.op.name,
