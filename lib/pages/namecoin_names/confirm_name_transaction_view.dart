@@ -15,6 +15,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:namecoin/namecoin.dart';
 
 import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -160,8 +161,13 @@ class _ConfirmNameTransactionViewState
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
         // pop confirm send view
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
-        // pop buy popup //TODO test on mobile
+        // pop buy popup
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
+
+        // pop name details view
+        if (txData.opNameState!.type == OpName.nameUpdate) {
+          Navigator.of(context, rootNavigator: Util.isDesktop).pop();
+        }
       }
     } catch (e, s) {
       const niceError = "Broadcast name transaction failed";

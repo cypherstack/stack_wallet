@@ -19,7 +19,10 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/models/name_op_state.dart';
 import '../../../wallets/models/tx_data.dart';
 import '../../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../widgets/icon_widgets/clipboard_icon.dart';
@@ -78,30 +81,61 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
       bool wasCancelled = false;
 
       if (mounted) {
-        unawaited(
-          showDialog<void>(
-            context: context,
-            useSafeArea: false,
-            barrierDismissible: false,
-            builder: (context) {
-              return BuildingTransactionDialog(
-                coin: wallet.info.coin,
-                isSpark: false,
-                onCancel: () {
-                  wasCancelled = true;
-                  Navigator.of(context).pop();
-                },
-              );
-            },
-          ),
-        );
+        if (Util.isDesktop) {
+          unawaited(
+            showDialog<dynamic>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: false,
+              builder: (context) {
+                return DesktopDialog(
+                  maxWidth: 400,
+                  maxHeight: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: BuildingTransactionDialog(
+                      coin: wallet.info.coin,
+                      isSpark: false,
+                      onCancel: () {
+                        wasCancelled = true;
+                        Navigator.of(context, rootNavigator: true).pop();
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        } else {
+          unawaited(
+            showDialog<void>(
+              context: context,
+              useSafeArea: false,
+              barrierDismissible: false,
+              builder: (context) {
+                return BuildingTransactionDialog(
+                  coin: wallet.info.coin,
+                  isSpark: false,
+                  onCancel: () {
+                    wasCancelled = true;
+                    Navigator.of(context).pop();
+                  },
+                );
+              },
+            ),
+          );
+        }
       }
+
+      final opName = wallet.getOpNameDataFrom(widget.utxo)!;
 
       final time = Future<dynamic>.delayed(
         const Duration(
           milliseconds: 2500,
         ),
       );
+
+      final nameScriptHex = scriptNameUpdate(opName.fullname, opName.value);
 
       final txDataFuture = wallet.prepareNameSend(
         txData: TxData(
@@ -116,23 +150,17 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
               ),
             ),
           ],
-          note: "Transfer domain name",
+          note: "Transfer ${opName.constructedName}",
           opNameState: NameOpState(
-            name: "",
+            name: opName.fullname,
             saltHex: "",
             commitment: "",
-            value: "",
-            nameScriptHex: "",
+            value: opName.value,
+            nameScriptHex: nameScriptHex,
             type: OpName.nameUpdate,
             output: widget.utxo,
             outputPosition: -1, //currently unknown, updated later
           ),
-          // satsPerVByte: isCustomFee ? customFeeRate : null,
-          // utxos: (wallet is CoinControlInterface &&
-          //         coinControlEnabled &&
-          //         selectedUTXOs.isNotEmpty)
-          //     ? selectedUTXOs
-          //     : null,
         ),
       );
 
@@ -405,19 +433,43 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
           ),
         ),
         SizedBox(
-          height: Util.isDesktop ? 24 : 16,
+          height: Util.isDesktop ? 42 : 16,
         ),
-        // if (!Util.isDesktop) const Spacer(),
-        PrimaryButton(
-          label: "Transfer",
-          enabled: _enableButton,
-          // width: Util.isDesktop ? 160 : double.infinity,
-          buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-          onPressed: _preview,
+        if (!Util.isDesktop) const Spacer(),
+        ConditionalParent(
+          condition: Util.isDesktop,
+          builder: (child) => Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  label: "Cancel",
+                  buttonHeight: ButtonHeight.l,
+                  onPressed: Navigator.of(
+                    context,
+                    rootNavigator: Util.isDesktop,
+                  ).pop,
+                ),
+              ),
+              const SizedBox(
+                width: 16,
+              ),
+              Expanded(
+                child: child,
+              ),
+            ],
+          ),
+          child: PrimaryButton(
+            label: "Transfer",
+            enabled: _enableButton,
+            // width: Util.isDesktop ? 160 : double.infinity,
+            buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+            onPressed: _preview,
+          ),
         ),
-        SizedBox(
-          height: Util.isDesktop ? 24 : 16,
-        ),
+        if (!Util.isDesktop)
+          const SizedBox(
+            height: 16,
+          ),
       ],
     );
   }

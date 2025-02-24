@@ -82,6 +82,7 @@ class _ManageDomainsWidgetState
                   bottom: 10,
                 ),
                 child: OwnedNameCard(
+                  key: ValueKey(e),
                   utxo: e.$1,
                   opNameData: e.$2,
                   firstColWidth: _width,
