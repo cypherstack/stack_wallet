@@ -143,6 +143,10 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
     final isExpired = opNameData?.expired(currentHeight) == true;
     final isSemiExpired = opNameData?.expired(currentHeight, true) == true;
 
+    final canManage = utxo != null &&
+        (opNameData?.op == OpName.nameUpdate ||
+            opNameData?.op == OpName.nameFirstUpdate);
+
     return ConditionalParent(
       condition: !Util.isDesktop,
       builder: (child) => Background(
@@ -156,9 +160,8 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
               "Domain details",
               style: STextStyles.navBarTitle(context),
             ),
-            actions: utxo == null
-                ? null
-                : [
+            actions: canManage
+                ? [
                     Padding(
                       padding: const EdgeInsets.only(
                         top: 10,
@@ -176,7 +179,8 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
                         },
                       ),
                     ),
-                  ],
+                  ]
+                : null,
           ),
           body: SafeArea(
             child: LayoutBuilder(
@@ -235,122 +239,124 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
                     child: child,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SecondaryButton(
-                          label: "Transfer",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed: () {
-                            showDialog<void>(
-                              context: context,
-                              builder: (context) {
-                                return SDialog(
-                                  child: SizedBox(
-                                    width: 641,
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 32,
-                                              ),
-                                              child: Text(
-                                                "Transfer domain",
-                                                style: STextStyles.desktopH3(
-                                                  context,
+                if (canManage)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: SecondaryButton(
+                            label: "Transfer",
+                            buttonHeight: ButtonHeight.l,
+                            onPressed: () {
+                              showDialog<void>(
+                                context: context,
+                                builder: (context) {
+                                  return SDialog(
+                                    child: SizedBox(
+                                      width: 641,
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 32,
+                                                ),
+                                                child: Text(
+                                                  "Transfer domain",
+                                                  style: STextStyles.desktopH3(
+                                                    context,
+                                                  ),
                                                 ),
                                               ),
+                                              const DesktopDialogCloseButton(),
+                                            ],
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 32,
+                                              right: 32,
+                                              bottom: 32,
+                                              top: 16,
                                             ),
-                                            const DesktopDialogCloseButton(),
-                                          ],
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 32,
-                                            right: 32,
-                                            bottom: 32,
-                                            top: 16,
+                                            child: TransferOptionWidget(
+                                              walletId: widget.walletId,
+                                              utxo: utxo!,
+                                            ),
                                           ),
-                                          child: TransferOptionWidget(
-                                            walletId: widget.walletId,
-                                            utxo: utxo!,
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
+                                  );
+                                },
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        width: 32,
-                      ),
-                      Expanded(
-                        child: SecondaryButton(
-                          label: "Update",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed: () {
-                            showDialog<void>(
-                              context: context,
-                              builder: (context) {
-                                return SDialog(
-                                  child: SizedBox(
-                                    width: 641,
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 32,
-                                              ),
-                                              child: Text(
-                                                "Update domain",
-                                                style: STextStyles.desktopH3(
-                                                  context,
+                        const SizedBox(
+                          width: 32,
+                        ),
+                        Expanded(
+                          child: SecondaryButton(
+                            label: "Update",
+                            buttonHeight: ButtonHeight.l,
+                            onPressed: () {
+                              showDialog<void>(
+                                context: context,
+                                builder: (context) {
+                                  return SDialog(
+                                    child: SizedBox(
+                                      width: 641,
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 32,
+                                                ),
+                                                child: Text(
+                                                  "Update domain",
+                                                  style: STextStyles.desktopH3(
+                                                    context,
+                                                  ),
                                                 ),
                                               ),
+                                              const DesktopDialogCloseButton(),
+                                            ],
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 32,
+                                              right: 32,
+                                              bottom: 32,
                                             ),
-                                            const DesktopDialogCloseButton(),
-                                          ],
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 32,
-                                            right: 32,
-                                            bottom: 32,
+                                            child: UpdateOptionWidget(
+                                              walletId: widget.walletId,
+                                              utxo: utxo!,
+                                            ),
                                           ),
-                                          child: UpdateOptionWidget(
-                                            walletId: widget.walletId,
-                                            utxo: utxo!,
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
+                                  );
+                                },
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 32,
-                ),
+                if (canManage)
+                  const SizedBox(
+                    height: 32,
+                  ),
               ],
             ),
           );
