@@ -5,13 +5,31 @@ import 'package:flutter/services.dart';
 
 class Utf8ByteLengthLimitingTextInputFormatter extends TextInputFormatter {
   Utf8ByteLengthLimitingTextInputFormatter(
-    this.maxBytes,
-  ) : assert(maxBytes == -1 || maxBytes > 0);
+    this.maxBytes, {
+    this.tryMinifyJson = false,
+  }) : assert(maxBytes == -1 || maxBytes > 0);
 
   final int maxBytes;
+  final bool tryMinifyJson;
 
-  static TextEditingValue truncate(TextEditingValue value, int maxBytes) {
-    final String text = value.text;
+  static String _maybeTryMinify(String text, bool tryMinifyJson) {
+    if (tryMinifyJson) {
+      try {
+        final json = jsonDecode(text);
+        final minified = jsonEncode(json);
+        return minified;
+      } catch (_) {}
+    }
+
+    return text;
+  }
+
+  static TextEditingValue truncate(
+    TextEditingValue value,
+    int maxBytes,
+    bool tryMinifyJson,
+  ) {
+    final String text = _maybeTryMinify(value.text, tryMinifyJson);
     final encoded = utf8.encode(text);
 
     if (encoded.length <= maxBytes) {
@@ -47,17 +65,23 @@ class Utf8ByteLengthLimitingTextInputFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     if (maxBytes == -1 ||
-        utf8.encode(newValue.text).lengthInBytes <= maxBytes) {
+        utf8
+                .encode(_maybeTryMinify(newValue.text, tryMinifyJson))
+                .lengthInBytes <=
+            maxBytes) {
       return newValue;
     }
 
     assert(maxBytes > 0);
 
-    if (utf8.encode(oldValue.text).lengthInBytes == maxBytes &&
+    if (utf8
+                .encode(_maybeTryMinify(oldValue.text, tryMinifyJson))
+                .lengthInBytes ==
+            maxBytes &&
         oldValue.selection.isCollapsed) {
       return oldValue;
     }
 
-    return truncate(newValue, maxBytes);
+    return truncate(newValue, maxBytes, tryMinifyJson);
   }
 }

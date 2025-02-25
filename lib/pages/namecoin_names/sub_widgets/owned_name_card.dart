@@ -43,24 +43,29 @@ class _OwnedNameCardState extends ConsumerState<OwnedNameCard> {
     final String message;
     final Color color;
 
-    final remaining = widget.opNameData.expiredBlockLeft(
-      currentChainHeight,
-      false,
-    );
-    final semiRemaining = widget.opNameData.expiredBlockLeft(
-      currentChainHeight,
-      true,
-    );
-
-    if (remaining == null) {
-      color = theme.accentColorRed;
-      message = "Expired";
+    if (widget.utxo.blockHash == null) {
+      message = "Expires in $blocksNameExpiration+ blocks";
+      color = theme.accentColorGreen;
     } else {
-      message = "Expires in $remaining blocks";
-      if (semiRemaining == null) {
-        color = theme.accentColorYellow;
+      final remaining = widget.opNameData.expiredBlockLeft(
+        currentChainHeight,
+        false,
+      );
+      final semiRemaining = widget.opNameData.expiredBlockLeft(
+        currentChainHeight,
+        true,
+      );
+
+      if (remaining == null) {
+        color = theme.accentColorRed;
+        message = "Expired";
       } else {
-        color = theme.accentColorGreen;
+        message = "Expires in $remaining blocks";
+        if (semiRemaining == null) {
+          color = theme.accentColorYellow;
+        } else {
+          color = theme.accentColorGreen;
+        }
       }
     }
 

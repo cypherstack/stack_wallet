@@ -8,6 +8,7 @@ import 'package:namecoin/namecoin.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -105,6 +106,47 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
     }
   }
 
+  (String, Color) _getExpiry(int currentChainHeight, StackColors theme) {
+    final String message;
+    final Color color;
+
+    if (utxo?.blockHash == null) {
+      message = "Expires in $blocksNameExpiration+ blocks";
+      color = theme.accentColorGreen;
+    } else {
+      final remaining = opNameData?.expiredBlockLeft(
+        currentChainHeight,
+        false,
+      );
+      final semiRemaining = opNameData?.expiredBlockLeft(
+        currentChainHeight,
+        true,
+      );
+
+      if (remaining == null) {
+        color = theme.accentColorRed;
+        message = "Expired";
+      } else {
+        message = "Expires in $remaining blocks";
+        if (semiRemaining == null) {
+          color = theme.accentColorYellow;
+        } else {
+          color = theme.accentColorGreen;
+        }
+      }
+    }
+
+    return (message, color);
+  }
+
+  bool _checkConfirmedUtxo(int currentHeight) {
+    return (ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet)
+        .checkUtxoConfirmed(
+      utxo!,
+      currentHeight,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -140,10 +182,13 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
   Widget build(BuildContext context) {
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
-    final isExpired = opNameData?.expired(currentHeight) == true;
-    final isSemiExpired = opNameData?.expired(currentHeight, true) == true;
+    final (message, color) = _getExpiry(
+      currentHeight,
+      Theme.of(context).extension<StackColors>()!,
+    );
 
     final canManage = utxo != null &&
+        _checkConfirmedUtxo(currentHeight) &&
         (opNameData?.op == OpName.nameUpdate ||
             opNameData?.op == OpName.nameFirstUpdate);
 
@@ -616,45 +661,11 @@ class _ManageDomainsWidgetState extends ConsumerState<NameDetailsView> {
                             const SizedBox(
                               height: 4,
                             ),
-                            Row(
-                              children: [
-                                SelectableText(
-                                  isExpired
-                                      ? "Expired"
-                                      : "${opNameData!.expiredBlockLeft(currentHeight)!}",
-                                  style: STextStyles.w500_14(context).copyWith(
-                                    color: isExpired
-                                        ? Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorRed
-                                        : isSemiExpired
-                                            ? Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorYellow
-                                            : Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorGreen,
-                                  ),
-                                ),
-                                if (!isExpired)
-                                  Text(
-                                    " blocks remaining",
-                                    style:
-                                        STextStyles.w500_14(context).copyWith(
-                                      color: isExpired
-                                          ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorRed
-                                          : isSemiExpired
-                                              ? Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorYellow
-                                              : Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorGreen,
-                                    ),
-                                  ),
-                              ],
+                            SelectableText(
+                              message,
+                              style: STextStyles.w500_14(context).copyWith(
+                                color: color,
+                              ),
                             ),
                           ],
                         ),
