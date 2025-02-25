@@ -42,6 +42,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   int? get maximumFeerate => null;
 
+  double? refreshingPercent;
+
   static const _kServerBatchCutoffVersion = [1, 6];
   List<int>? _serverVersion;
   Future<bool> get serverCanBatch async {
@@ -111,8 +113,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     int additionalOutputs = 0,
     List<UTXO>? utxos,
   }) async {
-    Logging.instance
-        .log("Starting coinSelection ----------", level: LogLevel.Info);
+    Logging.instance.d("Starting coinSelection ----------");
 
     // TODO: multiple recipients one day
     assert(txData.recipients!.length == 1);
@@ -169,22 +170,19 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
-    Logging.instance.log(
+    Logging.instance.d(
       "spendableOutputs.length: ${spendableOutputs.length}",
-      level: LogLevel.Info,
     );
-    Logging.instance.log(
+    Logging.instance.d(
       "availableOutputs.length: ${availableOutputs.length}",
-      level: LogLevel.Info,
     );
-    Logging.instance
-        .log("spendableOutputs: $spendableOutputs", level: LogLevel.Info);
-    Logging.instance.log(
+    Logging.instance.d("spendableOutputs: $spendableOutputs");
+    Logging.instance.d(
       "spendableSatoshiValue: $spendableSatoshiValue",
-      level: LogLevel.Info,
     );
-    Logging.instance
-        .log("satoshiAmountToSend: $satoshiAmountToSend", level: LogLevel.Info);
+    Logging.instance.d(
+      "satoshiAmountToSend: $satoshiAmountToSend",
+    );
 
     BigInt satoshisBeingUsed = BigInt.zero;
     int inputsBeingConsumed = 0;
@@ -214,12 +212,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       inputsBeingConsumed = spendableOutputs.length;
     }
 
-    Logging.instance
-        .log("satoshisBeingUsed: $satoshisBeingUsed", level: LogLevel.Info);
-    Logging.instance
-        .log("inputsBeingConsumed: $inputsBeingConsumed", level: LogLevel.Info);
-    Logging.instance
-        .log('utxoObjectsToUse: $utxoObjectsToUse', level: LogLevel.Info);
+    Logging.instance.d("satoshisBeingUsed: $satoshisBeingUsed");
+    Logging.instance.d(
+      "inputsBeingConsumed: $inputsBeingConsumed",
+    );
+    Logging.instance.d('utxoObjectsToUse: $utxoObjectsToUse');
 
     // numberOfOutputs' length must always be equal to that of recipientsArray and recipientsAmtArray
     final List<String> recipientsArray = [recipientAddress];
@@ -258,8 +255,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         ),
       ))
           .vSize!;
-    } catch (e) {
-      Logging.instance.log("vSizeForOneOutput: $e", level: LogLevel.Error);
+    } catch (e, s) {
+      Logging.instance.e("vSizeForOneOutput: $e", error: e, stackTrace: s);
       rethrow;
     }
 
@@ -284,8 +281,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         ),
       ))
           .vSize!;
-    } catch (e) {
-      Logging.instance.log("vSizeForTwoOutPuts: $e", level: LogLevel.Error);
+    } catch (e, s) {
+      Logging.instance.e("vSizeForTwoOutPuts: $e", error: e, stackTrace: s);
       rethrow;
     }
 
@@ -308,33 +305,27 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             ),
     );
 
-    Logging.instance.log(
+    Logging.instance.d(
       "feeForTwoOutputs: $feeForTwoOutputs",
-      level: LogLevel.Info,
     );
-    Logging.instance.log(
+    Logging.instance.d(
       "feeForOneOutput: $feeForOneOutput",
-      level: LogLevel.Info,
     );
 
     final difference = satoshisBeingUsed - satoshiAmountToSend;
 
     Future<TxData> singleOutputTxn() async {
-      Logging.instance.log(
+      Logging.instance.d(
         'Input size: $satoshisBeingUsed',
-        level: LogLevel.Info,
       );
-      Logging.instance.log(
+      Logging.instance.d(
         'Recipient output size: $satoshiAmountToSend',
-        level: LogLevel.Info,
       );
-      Logging.instance.log(
+      Logging.instance.d(
         'Fee being paid: $difference sats',
-        level: LogLevel.Info,
       );
-      Logging.instance.log(
+      Logging.instance.d(
         'Estimated fee: $feeForOneOutput',
-        level: LogLevel.Info,
       );
       final txnData = await buildTransaction(
         utxoSigningData: utxoSigningData,
@@ -356,12 +347,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     // no change output required
     if (difference == feeForOneOutput) {
-      Logging.instance.log('1 output in tx', level: LogLevel.Info);
+      Logging.instance.d('1 output in tx');
       return await singleOutputTxn();
     } else if (difference < feeForOneOutput) {
-      Logging.instance.log(
+      Logging.instance.w(
         'Cannot pay tx fee - checking for more outputs and trying again',
-        level: LogLevel.Warning,
       );
       // try adding more outputs
       if (spendableOutputs.length > inputsBeingConsumed) {
@@ -392,27 +382,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           recipientsArray.add(newChangeAddress);
           recipientsAmtArray.add(changeOutputSize);
 
-          Logging.instance.log('2 outputs in tx', level: LogLevel.Info);
-          Logging.instance.log(
-            'Input size: $satoshisBeingUsed',
-            level: LogLevel.Info,
-          );
-          Logging.instance.log(
-            'Recipient output size: $satoshiAmountToSend',
-            level: LogLevel.Info,
-          );
-          Logging.instance.log(
-            'Change Output Size: $changeOutputSize',
-            level: LogLevel.Info,
-          );
-          Logging.instance.log(
-            'Difference (fee being paid): $feeBeingPaid sats',
-            level: LogLevel.Info,
-          );
-          Logging.instance.log(
-            'Estimated fee: $feeForTwoOutputs',
-            level: LogLevel.Info,
-          );
+          Logging.instance.d('2 outputs in tx');
+          Logging.instance.d('Input size: $satoshisBeingUsed');
+          Logging.instance.d('Recipient output size: $satoshiAmountToSend');
+          Logging.instance.d('Change Output Size: $changeOutputSize');
+          Logging.instance.d('Difference (fee being paid): $feeBeingPaid sats');
+          Logging.instance.d('Estimated fee: $feeForTwoOutputs');
 
           TxData txnData = await buildTransaction(
             utxoSigningData: utxoSigningData,
@@ -431,25 +406,20 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             recipientsAmtArray.removeLast();
             recipientsAmtArray.add(changeOutputSize);
 
-            Logging.instance.log(
+            Logging.instance.d(
               'Adjusted Input size: $satoshisBeingUsed',
-              level: LogLevel.Info,
             );
-            Logging.instance.log(
+            Logging.instance.d(
               'Adjusted Recipient output size: $satoshiAmountToSend',
-              level: LogLevel.Info,
             );
-            Logging.instance.log(
+            Logging.instance.d(
               'Adjusted Change Output Size: $changeOutputSize',
-              level: LogLevel.Info,
             );
-            Logging.instance.log(
+            Logging.instance.d(
               'Adjusted Difference (fee being paid): $feeBeingPaid sats',
-              level: LogLevel.Info,
             );
-            Logging.instance.log(
+            Logging.instance.d(
               'Adjusted Estimated fee: $feeForTwoOutputs',
-              level: LogLevel.Info,
             );
 
             txnData = await buildTransaction(
@@ -473,9 +443,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         } else {
           // Something went wrong here. It either overshot or undershot the estimated fee amount or the changeOutputSize
           // is smaller than or equal to cryptoCurrency.dustLimit. Revert to single output transaction.
-          Logging.instance.log(
+          Logging.instance.d(
             'Reverting to 1 output in tx',
-            level: LogLevel.Info,
           );
 
           return await singleOutputTxn();
@@ -495,8 +464,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     required int? satsPerVByte,
     required int feeRatePerKB,
   }) async {
-    Logging.instance
-        .log("Attempting to send all $cryptoCurrency", level: LogLevel.Info);
+    Logging.instance.d("Attempting to send all $cryptoCurrency");
     if (txData.recipients!.length != 1) {
       throw Exception(
         "Send all to more than one recipient not yet supported",
@@ -626,8 +594,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       return signingData;
     } catch (e, s) {
-      Logging.instance
-          .log("fetchBuildTxData() threw: $e,\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "fetchBuildTxData() threw",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -637,8 +608,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     required TxData txData,
     required List<SigningData> utxoSigningData,
   }) async {
-    Logging.instance
-        .log("Starting buildTransaction ----------", level: LogLevel.Info);
+    Logging.instance.d("Starting buildTransaction ----------");
 
     // temp tx data to show in gui while waiting for real data from server
     final List<InputV2> tempInputs = [];
@@ -808,9 +778,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Caught exception while signing transaction: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Caught exception while signing transaction: ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -856,9 +827,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         await electrumXClient.checkElectrumAdapter();
         return await fetchChainHeight(retries: retries);
       }
-      Logging.instance.log(
+      Logging.instance.e(
         "Exception rethrown in fetchChainHeight\nError: $e\nStack trace: $s",
-        level: LogLevel.Error,
+        error: e,
+        stackTrace: s,
       );
       // completer.completeError(e, s);
       // return Future.error(e, s);
@@ -889,9 +861,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       }
       return result;
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown in _getBatchTxCount(address: $addresses: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Exception rethrown in _getBatchTxCount(address: $addresses: ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -930,12 +903,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final newNode = await _getCurrentElectrumXNode();
     try {
       await electrumXClient.closeAdapter();
-    } catch (e) {
+    } catch (e, s) {
       if (e.toString().contains("initialized")) {
         // Ignore.  This should happen every first time the wallet is opened.
       } else {
-        Logging.instance
-            .log("Error closing electrumXClient: $e", level: LogLevel.Error);
+        Logging.instance.e(
+          "Error closing electrumXClient",
+          error: e,
+          stackTrace: s,
+        );
       }
     }
     electrumXClient = ElectrumXClient.from(
@@ -964,9 +940,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     for (int index = 0;
         gapCounter < cryptoCurrency.maxUnusedAddressGap;
         index += txCountBatchSize) {
-      Logging.instance.log(
+      Logging.instance.d(
         "index: $index, \t GapCounter $chain ${type.name}: $gapCounter",
-        level: LogLevel.Info,
       );
 
       final List<String> txCountCallArgs = [];
@@ -1051,9 +1026,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     int index = 0;
 
     for (; gapCounter < cryptoCurrency.maxUnusedAddressGap; index++) {
-      Logging.instance.log(
+      Logging.instance.d(
         "index: $index, \t GapCounter chain=$chain ${type.name}: $gapCounter",
-        level: LogLevel.Info,
       );
 
       final derivePath = cryptoCurrency.constructDerivePath(
@@ -1175,10 +1149,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       return allTxHashes;
     } catch (e, s) {
-      Logging.instance.log(
-        "$runtimeType._fetchHistory: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("$runtimeType._fetchHistory: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -1296,13 +1268,16 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         ).raw.toInt(),
       );
 
-      Logging.instance.log("fetched fees: $feeObject", level: LogLevel.Info);
+      Logging.instance.d(
+        "fetched fees: $feeObject",
+      );
       _cachedFees = feeObject;
       return _cachedFees!;
     } catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.e(
         "Exception rethrown from _getFees(): $e\nStack trace: $s",
-        level: LogLevel.Error,
+        error: e,
+        stackTrace: s,
       );
       if (_cachedFees == null) {
         rethrow;
@@ -1373,9 +1348,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       try {
         throw Exception();
       } catch (_, s) {
-        Logging.instance.log(
+        Logging.instance.e(
           "checkReceivingAddressForTransactions called but reuse address flag set: $s",
-          level: LogLevel.Error,
+          error: e,
+          stackTrace: s,
         );
       }
     }
@@ -1409,11 +1385,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from _checkReceivingAddressForTransactions"
-        "($cryptoCurrency): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("Exception rethrown from _checkReceivingAddressForTransactions"
+              "($cryptoCurrency): $e\n$s");
       rethrow;
     }
   }
@@ -1428,9 +1402,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       try {
         throw Exception();
       } catch (_, s) {
-        Logging.instance.log(
+        Logging.instance.e(
           "checkChangeAddressForTransactions called but reuse address flag set: $s",
-          level: LogLevel.Error,
+          error: e,
+          stackTrace: s,
         );
       }
     }
@@ -1461,11 +1436,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         await checkChangeAddressForTransactions();
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from _checkChangeAddressForTransactions"
-        "($cryptoCurrency): $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("Exception rethrown from _checkChangeAddressForTransactions"
+              "($cryptoCurrency): $e\n$s");
       rethrow;
     }
   }
@@ -1501,9 +1474,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
 
         // receiving addresses
-        Logging.instance.log(
+        Logging.instance.e(
           "checking receiving addresses...",
-          level: LogLevel.Info,
         );
 
         final canBatch = await serverCanBatch;
@@ -1526,9 +1498,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         }
 
         // change addresses
-        Logging.instance.log(
+        Logging.instance.d(
           "checking change addresses...",
-          level: LogLevel.Info,
         );
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           changeFutures.add(
@@ -1632,11 +1603,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               paymentCodeStrings: codesToCheck,
             );
           } catch (e, s) {
-            Logging.instance.log(
+            Logging.instance.e(
               "Failed to check ${PaynymIsApi.baseURL} followers/following for history during "
               "bitcoin wallet ($walletId ${info.name}) "
-              "_recoverWalletFromBIP32SeedPhrase: $e/n$s",
-              level: LogLevel.Error,
+              "_recoverWalletFromBIP32SeedPhrase",
+              error: e,
+              stackTrace: s,
             );
           }
         }
@@ -1644,9 +1616,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       unawaited(refresh());
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from electrumx_mixin recover(): $e\n$s",
-        level: LogLevel.Info,
+      Logging.instance.e(
+        "Exception rethrown from electrumx_mixin recover(): ",
+        error: e,
+        stackTrace: s,
       );
 
       rethrow;
@@ -1712,10 +1685,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       return await mainDB.updateUTXOs(walletId, outputArray);
     } catch (e, s) {
-      Logging.instance.log(
-        "Output fetch unsuccessful: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("Output fetch unsuccessful: ", error: e, stackTrace: s);
       return false;
     }
   }
@@ -1723,12 +1694,16 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
+      Logging.instance.d(
+        "confirmSend txData: $txData",
+      );
 
       final txHash = await electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
       );
-      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+      Logging.instance.d(
+        "Sent txHash: $txHash",
+      );
 
       txData = txData.copyWith(
         usedUTXOs:
@@ -1743,9 +1718,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from confirmSend(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Exception rethrown from confirmSend(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -1795,8 +1771,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
         );
 
-        Logging.instance
-            .log("PREPARE SEND RESULT: $result", level: LogLevel.Info);
+        Logging.instance.d("PREPARE SEND RESULT: $result");
 
         if (result.fee!.raw.toInt() < result.vSize!) {
           throw Exception(
@@ -1844,7 +1819,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
         );
 
-        Logging.instance.log("prepare send: $result", level: LogLevel.Info);
+        Logging.instance.d(
+          "prepare send: $result",
+        );
         if (result.fee!.raw.toInt() < result.vSize!) {
           throw Exception(
               "Error in fee calculation: Transaction fee (${result.fee!.raw.toInt()}) cannot "
@@ -1856,9 +1833,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         throw ArgumentError("Invalid fee rate argument provided!");
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from prepareSend(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Exception rethrown from prepareSend(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -1873,9 +1851,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       await super.init();
     } catch (e, s) {
       // do nothing, still allow user into wallet
-      Logging.instance.log(
-        "$runtimeType init() did not complete: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "$runtimeType init() did not complete: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -1886,7 +1865,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           .getServerFeatures()
           .timeout(const Duration(seconds: 5));
 
-      Logging.instance.log("features: $features", level: LogLevel.Info);
+      Logging.instance.d(
+        "features: $features",
+      );
 
       _serverVersion =
           _parseServerVersion(features["server_version"] as String);
@@ -1895,9 +1876,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         throw Exception("Genesis hash does not match!");
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "$runtimeType _initializeServerVersionAndCheckGenesisHash() did not complete: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "$runtimeType _initializeServerVersionAndCheckGenesisHash() did not complete: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -1965,9 +1947,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       }
     } catch (_) {}
 
-    Logging.instance.log(
+    Logging.instance.d(
       "${info.name} _parseServerVersion($version) => $result",
-      level: LogLevel.Info,
     );
     return result;
   }
@@ -2021,9 +2002,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
         if (root != null) {
           // receiving addresses
-          Logging.instance.log(
+          Logging.instance.d(
             "checking receiving addresses...",
-            level: LogLevel.Info,
           );
 
           final canBatch = await serverCanBatch;
@@ -2055,9 +2035,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           }
 
           // change addresses
-          Logging.instance.log(
+          Logging.instance.d(
             "checking change addresses...",
-            level: LogLevel.Info,
           );
           for (final type in cryptoCurrency.supportedDerivationPathTypes) {
             final path = cryptoCurrency.constructDerivePath(
@@ -2182,9 +2161,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       unawaited(refresh());
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from electrumx_mixin recoverViewOnly(): $e\n$s",
-        level: LogLevel.Info,
+      Logging.instance.e(
+        "Exception rethrown from electrumx_mixin recoverViewOnly(): ",
+        error: e,
+        stackTrace: s,
       );
 
       rethrow;

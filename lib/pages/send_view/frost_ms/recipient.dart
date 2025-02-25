@@ -133,20 +133,14 @@ class _RecipientState extends ConsumerState<Recipient> {
 
       final qrResult = await ref.read(pBarcodeScanner).scan();
 
-      Logging.instance.log(
-        "qrResult content: ${qrResult.rawContent}",
-        level: LogLevel.Info,
-      );
+      Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
         logging: Logging.instance,
       );
 
-      Logging.instance.log(
-        "qrResult parsed: $paymentData",
-        level: LogLevel.Info,
-      );
+      Logging.instance.d("qrResult parsed: $paymentData");
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == widget.coin.uriScheme) {
@@ -175,10 +169,11 @@ class _RecipientState extends ConsumerState<Recipient> {
 
       _updateRecipientData();
     } on PlatformException catch (e, s) {
-      Logging.instance.log(
+      Logging.instance.e(
         "Failed to get camera permissions while "
         "trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
+        error: e,
+        stackTrace: s,
       );
     }
   }

@@ -109,7 +109,9 @@ class TransactionV2 {
 
   int getConfirmations(int currentChainHeight) {
     if (height == null || height! <= 0) return 0;
-    return max(0, currentChainHeight - (height! - 1));
+    return _isMonero()
+        ? max(0, currentChainHeight - (height!))
+        : max(0, currentChainHeight - (height! - 1));
   }
 
   bool isConfirmed(

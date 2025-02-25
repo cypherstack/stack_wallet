@@ -20,6 +20,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
@@ -32,6 +33,7 @@ import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
 import 'delete_wallet_warning_view.dart';
+import 'edit_refresh_height_view.dart';
 import 'lelantus_settings_view.dart';
 import 'rbf_settings_view.dart';
 import 'rename_wallet_view.dart';
@@ -347,6 +349,42 @@ class _WalletSettingsWalletSettingsViewState
                           children: [
                             Text(
                               "Spark info",
+                              style: STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                if (wallet is LibMoneroWallet)
+                  const SizedBox(
+                    height: 8,
+                  ),
+                if (wallet is LibMoneroWallet)
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          EditRefreshHeightView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "Restore height",
                               style: STextStyles.titleBold12(context),
                             ),
                           ],

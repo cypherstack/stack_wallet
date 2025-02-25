@@ -91,7 +91,7 @@ import 'pages/send_view/send_view.dart';
 import 'pages/send_view/token_send_view.dart';
 import 'pages/settings_views/global_settings_view/about_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
-import 'pages/settings_views/global_settings_view/advanced_views/debug_view.dart';
+import 'pages/settings_views/global_settings_view/advanced_views/logging_settings_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
@@ -135,6 +135,7 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_view_only_wallet_keys_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/edit_refresh_height_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/lelantus_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rbf_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
@@ -950,10 +951,10 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
-      case DebugView.routeName:
+      case LoggingSettingsView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const DebugView(),
+          builder: (_) => const LoggingSettingsView(),
           settings: RouteSettings(name: settings.name),
         );
 
@@ -2131,6 +2132,20 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SparkInfoView(
+              walletId: args,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case EditRefreshHeightView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => EditRefreshHeightView(
               walletId: args,
             ),
             settings: RouteSettings(

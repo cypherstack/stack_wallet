@@ -151,6 +151,16 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                           .textSubtitle1,
                     ),
                   ),
+                if (coin is Firo)
+                  const Row(
+                    children: [
+                      DesktopPrivateBalanceToggleButton(),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      DesktopBalanceToggleButton(),
+                    ],
+                  )
               ],
             ),
             const SizedBox(
@@ -163,15 +173,11 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                   ? ref.watch(pCurrentTokenWallet)!.tokenContract.address
                   : null,
             ),
-            if (coin is Firo)
+            if (coin is! Firo)
               const SizedBox(
                 width: 8,
               ),
-            if (coin is Firo) const DesktopPrivateBalanceToggleButton(),
-            const SizedBox(
-              width: 8,
-            ),
-            const DesktopBalanceToggleButton(),
+            if (coin is! Firo) const DesktopBalanceToggleButton(),
           ],
         );
       },

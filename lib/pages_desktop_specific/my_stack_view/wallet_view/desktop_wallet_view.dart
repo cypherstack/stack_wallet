@@ -298,7 +298,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                           ),
                           Text(
                             WalletDevTools.checkFiroTransactionTally(
-                              widget.walletId,
+                              wallet,
                             ),
                           ),
                         ],

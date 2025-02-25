@@ -503,7 +503,7 @@
 //         _responseHandler(response);
 //       } catch (e, s) {
 //         Logging.instance
-//             .log("JsonRPC jsonDecode: $e\n$s", level: LogLevel.Error);
+//             .log("JsonRPC jsonDecode", error: e, stackTrace: s,);
 //         rethrow;
 //       } finally {
 //         _responseData = [];

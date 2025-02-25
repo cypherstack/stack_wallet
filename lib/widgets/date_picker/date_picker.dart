@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/util.dart';
@@ -22,8 +23,6 @@ Future<DateTime?> showSWDatePicker(BuildContext context) async {
       _size.height >= 550 ? 450 : _size.height - 32,
     );
   }
-  print("=====================================");
-  print(size);
 
   final now = DateTime.now();
 

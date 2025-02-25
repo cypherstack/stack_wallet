@@ -98,9 +98,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         });
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.log(
-        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Failed to get camera permissions while trying to scan qr code in SendView: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -135,9 +136,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         });
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.log(
-        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Failed to get camera permissions while trying to scan qr code in SendView: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -303,8 +305,11 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                         }
                                       });
                                     } catch (e, s) {
-                                      Logging.instance
-                                          .log("$e\n$s", level: LogLevel.Info);
+                                      Logging.instance.e(
+                                        "",
+                                        error: e,
+                                        stackTrace: s,
+                                      );
                                     }
                                   },
                                 ),
@@ -543,9 +548,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                           });
                                         });
                                       } catch (e, s) {
-                                        Logging.instance.log(
+                                        Logging.instance.i(
                                           "$e\n$s",
-                                          level: LogLevel.Info,
+                                          error: e,
+                                          stackTrace: s,
                                         );
                                       }
                                     },

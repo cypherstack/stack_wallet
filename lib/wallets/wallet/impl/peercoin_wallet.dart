@@ -272,10 +272,8 @@ class PeercoinWallet<T extends ElectrumXCurrencyInterface>
         // Only found outputs owned by this wallet.
         type = TransactionType.incoming;
       } else {
-        Logging.instance.log(
-          "Unexpected tx found (ignoring it): $txData",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Unexpected tx found (ignoring it)");
+        Logging.instance.d("Unexpected tx found (ignoring it): $txData");
         continue;
       }
 

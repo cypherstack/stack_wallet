@@ -317,7 +317,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         }
       }
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context).pop();

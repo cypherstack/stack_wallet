@@ -201,8 +201,11 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                       });
                                     }
                                   } catch (e, s) {
-                                    Logging.instance
-                                        .log("$e\n$s", level: LogLevel.Error);
+                                    Logging.instance.e(
+                                      "",
+                                      error: e,
+                                      stackTrace: s,
+                                    );
                                   }
                                 },
                           controller: fileLocationController,
@@ -699,8 +702,11 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                             } on Exception catch (e, s) {
                               final String err =
                                   getErrorMessageFromSWBException(e);
-                              Logging.instance
-                                  .log("$err\n$s", level: LogLevel.Error);
+                              Logging.instance.e(
+                                err,
+                                error: e,
+                                stackTrace: s,
+                              );
                               // pop encryption progress dialog
                               Navigator.of(context).pop();
                               unawaited(
@@ -712,8 +718,11 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                               );
                               return;
                             } catch (e, s) {
-                              Logging.instance
-                                  .log("$e\n$s", level: LogLevel.Error);
+                              Logging.instance.e(
+                                "",
+                                error: e,
+                                stackTrace: s,
+                              );
                               // pop encryption progress dialog
                               Navigator.of(context).pop();
                               unawaited(

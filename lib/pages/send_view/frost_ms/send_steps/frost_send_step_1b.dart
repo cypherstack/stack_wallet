@@ -108,10 +108,7 @@ class _FrostSendStep1bState extends ConsumerState<FrostSendStep1b> {
             .routeName,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "$e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
         await showDialog<void>(
           context: context,

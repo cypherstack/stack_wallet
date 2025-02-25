@@ -77,9 +77,9 @@ class ThemeService {
       if (file.isFile) {
         // TODO more sanitation?
         if (file.name.contains("..")) {
-          Logging.instance.log(
+          Logging.instance.e(
             "Bad theme asset file path: ${file.name}",
-            level: LogLevel.Error,
+            stackTrace: StackTrace.current,
           );
         } else {
           final os = OutputFileStream("$assetsPath/${file.name}");
@@ -110,9 +110,9 @@ class ThemeService {
         await dir.delete(recursive: true);
       }
     } else {
-      Logging.instance.log(
+      Logging.instance.w(
         "Failed to delete theme $themeId",
-        level: LogLevel.Warning,
+        stackTrace: StackTrace.current,
       );
     }
   }
@@ -142,18 +142,12 @@ class ThemeService {
   }
 
   Future<void> _updateDefaultTheme(String name) async {
-    Logging.instance.log(
-      "Updating default $name theme...",
-      level: LogLevel.Info,
-    );
+    Logging.instance.w("Updating default $name theme...");
     final zip = await rootBundle.load("assets/default_themes/$name.zip");
     await ThemeService.instance.install(
       themeArchiveData: zip.buffer.asUint8List(),
     );
-    Logging.instance.log(
-      "Updating default $name theme... finished",
-      level: LogLevel.Info,
-    );
+    Logging.instance.w("Updating default $name theme... finished");
   }
 
   // TODO more thorough check/verification of theme
@@ -174,9 +168,9 @@ class ThemeService {
           await Directory("${themesDir.path}/$themeId/assets").exists();
 
       if (!jsonFileExists || !assetsDirExists) {
-        Logging.instance.log(
+        Logging.instance.w(
           "Theme $themeId found in DB but is missing files",
-          level: LogLevel.Warning,
+          stackTrace: StackTrace.current,
         );
       }
 
@@ -204,10 +198,8 @@ class ThemeService {
 
       return result;
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to fetch themes list: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance
+          .w("Failed to fetch themes list: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -236,10 +228,8 @@ class ThemeService {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to fetch themes list: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance
+          .w("Failed to fetch themes list: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -279,10 +269,10 @@ class StackThemeMetaData {
         previewImageUrl: map["previewImageUrl"] as String,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to create instance of StackThemeMetaData using $map: \n$e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f(
+          "Failed to create instance of StackThemeMetaData using $map",
+          error: e,
+          stackTrace: s);
       rethrow;
     }
   }

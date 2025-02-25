@@ -237,10 +237,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
                   }
                 }
               } catch (e, s) {
-                Logging.instance.log(
-                  "$e\n$s",
-                  level: LogLevel.Fatal,
-                );
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
                 if (context.mounted) {
                   return await showDialog<void>(
                     context: context,

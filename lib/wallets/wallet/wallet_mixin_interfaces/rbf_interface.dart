@@ -148,10 +148,7 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
           ),
         ],
       );
-      Logging.instance.log(
-        "RBF on assumed send all",
-        level: LogLevel.Debug,
-      );
+      Logging.instance.d("RBF on assumed send all");
       return await prepareSend(txData: txData);
     } else if (txData.recipients!.where((e) => e.isChange).length == 1) {
       final newFee = BigInt.from(oldTransaction.vSize! * newRate);
@@ -184,9 +181,8 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
               isChange: removed.isChange,
             ),
           );
-          Logging.instance.log(
+          Logging.instance.d(
             "RBF with same utxo set with increased fee and reduced change",
-            level: LogLevel.Debug,
           );
         } else {
           // new change amount is less than dust limit.
@@ -198,9 +194,8 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
           // oh well...
 
           // do nothing here as we already removed the change output above
-          Logging.instance.log(
+          Logging.instance.d(
             "RBF with same utxo set with increased fee and no change",
-            level: LogLevel.Debug,
           );
         }
         return await buildTransaction(
@@ -255,10 +250,9 @@ mixin RbfInterface<T extends ElectrumXCurrencyInterface>
         // TODO: remove assert
         assert(newUtxoSet.length == txData.utxos!.length + extraUtxos.length);
 
-        Logging.instance.log(
+        Logging.instance.d(
           "RBF with ${extraUtxos.length} extra utxo(s)"
           " added to pay for the new fee",
-          level: LogLevel.Debug,
         );
 
         return await buildTransaction(

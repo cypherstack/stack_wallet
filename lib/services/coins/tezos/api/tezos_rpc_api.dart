@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import '../../../../networking/http.dart';
-import '../../../tor_service.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
+import '../../../tor_service.dart';
 
 abstract final class TezosRpcAPI {
   static final HTTP _client = HTTP();
@@ -27,10 +27,11 @@ abstract final class TezosRpcAPI {
       final balance =
           BigInt.parse(response.body.substring(1, response.body.length - 2));
       return balance;
-    } catch (e) {
-      Logging.instance.log(
-        "Error occurred in tezos_rpc_api.dart while getting balance for $address: $e",
-        level: LogLevel.Error,
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error occurred in tezos_rpc_api.dart while getting balance for $address",
+        error: e,
+        stackTrace: s,
       );
     }
     return null;
@@ -53,10 +54,11 @@ abstract final class TezosRpcAPI {
 
       final jsonParsedResponse = jsonDecode(response.body);
       return int.parse(jsonParsedResponse["level"].toString());
-    } catch (e) {
-      Logging.instance.log(
-        "Error occurred in tezos_rpc_api.dart while getting chain height for tezos: $e",
-        level: LogLevel.Error,
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error occurred in tezos_rpc_api.dart while getting chain height for tezos",
+        error: e,
+        stackTrace: s,
       );
     }
     return null;

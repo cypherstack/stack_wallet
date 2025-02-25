@@ -42,14 +42,12 @@ class AutoSWBService extends ChangeNotifier {
   /// Attempt a backup.
   Future<void> doBackup() async {
     if (_status == AutoSWBStatus.backingUp) {
-      Logging.instance.log(
+      Logging.instance.w(
         "AutoSWBService attempted to run doBackup() while a backup is in progress!",
-        level: LogLevel.Warning,
       );
       return;
     }
-    Logging.instance
-        .log("AutoSWBService.doBackup() started...", level: LogLevel.Info);
+    Logging.instance.d("AutoSWBService.doBackup() started...");
 
     // set running backup status and notify listeners
     _status = AutoSWBStatus.backingUp;
@@ -62,9 +60,8 @@ class AutoSWBService extends ChangeNotifier {
 
       final autoBackupDirectoryPath = Prefs.instance.autoBackupLocation;
       if (autoBackupDirectoryPath == null) {
-        Logging.instance.log(
+        Logging.instance.e(
           "AutoSWBService attempted to run doBackup() when no auto backup directory was set!",
-          level: LogLevel.Error,
         );
         // set error backup status and notify listeners
         _status = AutoSWBStatus.error;
@@ -104,17 +101,16 @@ class AutoSWBService extends ChangeNotifier {
       // delete all but the latest 3 auto backups
       trimBackups(autoBackupDirectoryPath, 3);
 
-      Logging.instance
-          .log("AutoSWBService.doBackup() succeeded", level: LogLevel.Info);
+      Logging.instance.d("AutoSWBService.doBackup() succeeded");
     } on Exception catch (e, s) {
       final String err = getErrorMessageFromSWBException(e);
-      Logging.instance.log("$err\n$s", level: LogLevel.Error);
+      Logging.instance.e("$err\n$s", error: e, stackTrace: s);
       // set error backup status and notify listeners
       _status = AutoSWBStatus.error;
       notifyListeners();
       return;
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       // set error backup status and notify listeners
       _status = AutoSWBStatus.error;
       notifyListeners();

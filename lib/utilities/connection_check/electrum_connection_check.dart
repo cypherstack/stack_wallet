@@ -27,9 +27,8 @@ Future<bool> checkElectrumServer({
         // And the killswitch isn't set...
         if (!_prefs.torKillSwitch) {
           // Then we'll just proceed and connect to ElectrumX through clearnet at the bottom of this function.
-          Logging.instance.log(
+          Logging.instance.w(
             "Tor preference set but Tor is not enabled, killswitch not set, connecting to Electrum adapter through clearnet",
-            level: LogLevel.Warning,
           );
         } else {
           // ... But if the killswitch is set, then we throw an exception.
@@ -61,7 +60,12 @@ Future<bool> checkElectrumServer({
         .timeout(Duration(seconds: (proxyInfo == null ? 5 : 30)));
 
     return true;
-  } catch (_) {
+  } catch (e, s) {
+    Logging.instance.e(
+      "$e\n$s",
+      error: e,
+      stackTrace: s,
+    );
     return false;
   }
 }

@@ -173,9 +173,8 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                 ],
               );
             } else {
-              Logging.instance.log(
+              Logging.instance.w(
                 "$runtimeType rate unavailable for ${widget.exchange.name}: $data",
-                level: LogLevel.Warning,
               );
 
               return Consumer(

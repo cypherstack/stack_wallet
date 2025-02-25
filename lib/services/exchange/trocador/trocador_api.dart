@@ -28,7 +28,7 @@ const kTrocadorApiKey = "8rFqf7QLxX1mUBiNPEMaLUpV2biz6n";
 const kTrocadorRefCode = "9eHm9BkQfS";
 
 abstract class TrocadorAPI {
-  static const String authority = "trocador.app";
+  static const String authority = "api.trocador.app";
   static const String onionAuthority =
       "trocadorfyhlu27aefre5u7zri66gudtzdyelymftvr4yjwcxhfaqsid.onion";
 
@@ -42,8 +42,8 @@ abstract class TrocadorAPI {
     Map<String, String>? params,
   }) {
     return isOnion
-        ? Uri.http(onionAuthority, "api/$method", params)
-        : Uri.https(authority, "api/$method", params);
+        ? Uri.http(onionAuthority, method, params)
+        : Uri.https(authority, method, params);
   }
 
   static Future<dynamic> _makeGetRequest(Uri uri) async {
@@ -52,7 +52,10 @@ abstract class TrocadorAPI {
       debugPrint("URI: $uri");
       final response = await client.get(
         url: uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          "Content-Type": "application/json",
+          "API-KEY": kTrocadorApiKey,
+        },
         proxyInfo: Prefs.instance.useTor
             ? TorService.sharedInstance.getProxyInfo()
             : null,
@@ -67,10 +70,8 @@ abstract class TrocadorAPI {
 
       return json;
     } catch (e, s) {
-      Logging.instance.log(
-        "_makeRequest($uri) HTTP:$code threw: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("_makeRequest($uri) HTTP:$code threw: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -83,7 +84,6 @@ abstract class TrocadorAPI {
       isOnion: isOnion,
       method: "coins",
       params: {
-        "api_key": kTrocadorApiKey,
         "ref": kTrocadorRefCode,
       },
     );
@@ -104,7 +104,11 @@ abstract class TrocadorAPI {
         throw Exception("unexpected json: $json");
       }
     } catch (e, s) {
-      Logging.instance.log("getCoins exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getCoins exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -123,7 +127,6 @@ abstract class TrocadorAPI {
       isOnion: isOnion,
       method: "trade",
       params: {
-        "api_key": kTrocadorApiKey,
         "ref": kTrocadorRefCode,
         "id": tradeId,
       },
@@ -135,7 +138,11 @@ abstract class TrocadorAPI {
 
       return ExchangeResponse(value: TrocadorTrade.fromMap(map));
     } catch (e, s) {
-      Logging.instance.log("getTrade exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getTrade exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -155,7 +162,6 @@ abstract class TrocadorAPI {
     required String fromAmount,
   }) async {
     final params = {
-      "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
       "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
@@ -180,7 +186,6 @@ abstract class TrocadorAPI {
     required String toAmount,
   }) async {
     final params = {
-      "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
       "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
@@ -211,8 +216,11 @@ abstract class TrocadorAPI {
 
       return ExchangeResponse(value: TrocadorRate.fromMap(map));
     } catch (e, s) {
-      Logging.instance
-          .log("getNewRate exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getNewRate exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -239,7 +247,6 @@ abstract class TrocadorAPI {
     required bool isFixedRate,
   }) async {
     final Map<String, String> params = {
-      "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
       "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
@@ -280,7 +287,6 @@ abstract class TrocadorAPI {
     required bool isFixedRate,
   }) async {
     final params = {
-      "api_key": kTrocadorApiKey,
       "ref": kTrocadorRefCode,
       "ticker_from": fromTicker.toLowerCase(),
       "network_from": fromNetwork,
@@ -329,9 +335,10 @@ abstract class TrocadorAPI {
               "This trade couldn't be completed. Please select another provider.";
         }
 
-        Logging.instance.log(
-          "_getNewTrade failed to parse response: $json\n$e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "_getNewTrade failed to parse response: $json\n",
+          error: e,
+          stackTrace: s,
         );
         return ExchangeResponse(
           exception: ExchangeException(
@@ -341,10 +348,7 @@ abstract class TrocadorAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "_getNewTrade exception: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("_getNewTrade exception: ", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),

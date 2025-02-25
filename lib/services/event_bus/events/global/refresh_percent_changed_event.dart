@@ -15,9 +15,7 @@ class RefreshPercentChangedEvent {
   String walletId;
 
   RefreshPercentChangedEvent(this.percent, this.walletId) {
-    Logging.instance.log(
-      "RefreshPercentChangedEvent fired on $walletId with percent (range of 0.0-1.0)= $percent",
-      level: LogLevel.Info,
-    );
+    Logging.instance.d(
+        "RefreshPercentChangedEvent fired on $walletId with percent (range of 0.0-1.0)= $percent");
   }
 }

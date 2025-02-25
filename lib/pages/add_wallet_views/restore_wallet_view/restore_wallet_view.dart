@@ -48,6 +48,7 @@ import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -112,6 +113,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   late final BarcodeScannerInterface scanner;
 
   late final TextSelectionControls textSelectionControls;
+
+  bool _hideSeedWords = false;
 
   Future<void> onControlsPaste(TextSelectionDelegate delegate) async {
     final data = await widget.clipboard.getData(Clipboard.kTextPlain);
@@ -211,6 +214,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   Future<void> attemptRestore() async {
     if (_formKey.currentState!.validate()) {
+      if (mounted) setState(() => _hideSeedWords = true);
+
       String mnemonic = "";
       for (final element in _controllers) {
         mnemonic += " ${element.text.trim().toLowerCase()}";
@@ -281,6 +286,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       // TODO: do actual check to make sure it is a valid mnemonic for monero
       if (bip39.validateMnemonic(mnemonic) == false &&
           !(widget.coin is Monero || widget.coin is Wownero)) {
+        if (mounted) setState(() => _hideSeedWords = false);
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -311,6 +317,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 return RestoringDialog(
                   onCancel: () async {
                     isRestoring = false;
+
+                    if (mounted) setState(() => _hideSeedWords = false);
 
                     await ref.read(pWallets).deleteWallet(
                           info,
@@ -368,6 +376,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           }
 
           await wallet.recover(isRescan: false);
+
+          if (wallet is LibMoneroWallet) {
+            await wallet.exit();
+          }
 
           // check if state is still active before continuing
           if (mounted) {
@@ -466,6 +478,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 );
               },
             );
+
+            if (mounted) setState(() => _hideSeedWords = false);
           }
         }
 
@@ -614,24 +628,24 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
       final results = AddressUtils.decodeQRSeedData(qrResult.rawContent);
 
-      Logging.instance.log("scan parsed: $results", level: LogLevel.Info);
-
       if (results["mnemonic"] != null) {
         final list = (results["mnemonic"] as List)
             .map((value) => value as String)
             .toList(growable: false);
         if (list.isNotEmpty) {
           _clearAndPopulateMnemonic(list);
-          Logging.instance.log("mnemonic populated", level: LogLevel.Info);
+          Logging.instance.i("mnemonic populated");
         } else {
-          Logging.instance
-              .log("mnemonic failed to populate", level: LogLevel.Info);
+          Logging.instance.i("mnemonic failed to populate");
         }
       }
-    } on PlatformException catch (e) {
+    } on PlatformException catch (e, s) {
       // likely failed to get camera permissions
-      Logging.instance
-          .log("Restore wallet qr scan failed: $e", level: LogLevel.Warning);
+      Logging.instance.e(
+        "Restore wallet qr scan failed: $e",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -863,6 +877,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             child: Column(
                                               children: [
                                                 TextFormField(
+                                                  obscureText: _hideSeedWords,
                                                   autocorrect: !isDesktop,
                                                   enableSuggestions: !isDesktop,
                                                   textCapitalization:
@@ -996,6 +1011,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             child: Column(
                                               children: [
                                                 TextFormField(
+                                                  obscureText: _hideSeedWords,
                                                   autocorrect: !isDesktop,
                                                   enableSuggestions: !isDesktop,
                                                   textCapitalization:
@@ -1130,6 +1146,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 4),
                                   child: TextFormField(
+                                    obscureText: _hideSeedWords,
                                     autocorrect: !isDesktop,
                                     enableSuggestions: !isDesktop,
                                     textCapitalization: TextCapitalization.none,

@@ -78,8 +78,11 @@ class ChangeNowAPI {
         };
       }
     } catch (e, s) {
-      Logging.instance
-          .log("_makeRequest($uri) threw: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "_makeRequest($uri) threw",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -102,8 +105,11 @@ class ChangeNowAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance
-          .log("_makeRequestV2($uri) threw: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "_makeRequestV2($uri) threw",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -128,14 +134,20 @@ class ChangeNowAPI {
         final parsed = jsonDecode(data);
 
         return parsed;
-      } catch (_) {
-        Logging.instance
-            .log("ChangeNOW api failed to parse: $data", level: LogLevel.Error);
+      } catch (e, s) {
+        Logging.instance.e(
+          "ChangeNOW api failed to parse: $data",
+          error: e,
+          stackTrace: s,
+        );
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance
-          .log("_makePostRequest($uri) threw: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "_makePostRequest($uri) threw",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -173,9 +185,10 @@ class ChangeNowAPI {
         );
         return result;
       } catch (e, s) {
-        Logging.instance.log(
-          "getAvailableCurrencies exception: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "getAvailableCurrencies exception: ",
+          error: e,
+          stackTrace: s,
         );
         return ExchangeResponse(
           exception: ExchangeException(
@@ -185,9 +198,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableCurrencies exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getAvailableCurrencies exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -263,9 +277,10 @@ class ChangeNowAPI {
         );
         return result;
       } catch (e, s) {
-        Logging.instance.log(
-          "getAvailableCurrencies exception: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "getAvailableCurrencies exception: ",
+          error: e,
+          stackTrace: s,
         );
         return ExchangeResponse(
           exception: ExchangeException(
@@ -275,9 +290,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableCurrencies exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getAvailableCurrencies exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -381,9 +397,10 @@ class ChangeNowAPI {
           }
         }
       } catch (e, s) {
-        Logging.instance.log(
-          "getPairedCurrencies exception: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "getPairedCurrencies exception: ",
+          error: e,
+          stackTrace: s,
         );
         return ExchangeResponse(
           exception: ExchangeException(
@@ -394,8 +411,11 @@ class ChangeNowAPI {
       }
       return ExchangeResponse(value: currencies);
     } catch (e, s) {
-      Logging.instance
-          .log("getPairedCurrencies exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getPairedCurrencies exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -435,9 +455,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getMinimalExchangeAmount exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getMinimalExchangeAmount exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -478,9 +499,10 @@ class ChangeNowAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getRange exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getRange exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -551,9 +573,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getEstimatedExchangeAmount exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getEstimatedExchangeAmount exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -637,9 +660,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getEstimatedExchangeAmount exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getEstimatedExchangeAmount exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -763,9 +787,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getEstimatedExchangeAmountV2 exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getEstimatedExchangeAmountV2 exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -797,9 +822,10 @@ class ChangeNowAPI {
             await compute(_parseFixedRateMarketsJson, jsonArray as List);
         return result;
       } catch (e, s) {
-        Logging.instance.log(
-          "getAvailableFixedRateMarkets exception: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "getAvailableFixedRateMarkets exception: ",
+          error: e,
+          stackTrace: s,
         );
         return ExchangeResponse(
           exception: ExchangeException(
@@ -809,9 +835,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableFixedRateMarkets exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getAvailableFixedRateMarkets exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -898,9 +925,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "createStandardExchangeTransaction exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "createStandardExchangeTransaction exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -973,9 +1001,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "createFixedRateExchangeTransaction exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "createFixedRateExchangeTransaction exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -1011,8 +1040,11 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance
-          .log("getTransactionStatus exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getTransactionStatus exception: ",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -1041,9 +1073,10 @@ class ChangeNowAPI {
         );
         return result;
       } catch (e, s) {
-        Logging.instance.log(
-          "getAvailableFloatingRatePairs exception: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "getAvailableFloatingRatePairs exception: ",
+          error: e,
+          stackTrace: s,
         );
         return ExchangeResponse(
           exception: ExchangeException(
@@ -1053,9 +1086,10 @@ class ChangeNowAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableFloatingRatePairs exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getAvailableFloatingRatePairs exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(

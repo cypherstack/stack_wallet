@@ -5,23 +5,23 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: f256b0c0ba6c7577c15e2e4e114755640a875e885099367bf6e012b19314c834
+      sha256: "16e298750b6d0af7ce8a3ba7c18c69c3785d11b15ec83f6dcd0ad2a0009b3cab"
       url: "https://pub.dev"
     source: hosted
-    version: "72.0.0"
+    version: "76.0.0"
   _macros:
     dependency: transitive
     description: dart
     source: sdk
-    version: "0.3.2"
+    version: "0.3.3"
   analyzer:
     dependency: "direct dev"
     description:
       name: analyzer
-      sha256: b652861553cd3990d8ed361f7979dc6d7053a9ac8843fa73820ab68ce5410139
+      sha256: "1f14db053a8c23e260789e9b0980fa27f2680dd640932cae5e1137cce0e46e1e"
       url: "https://pub.dev"
     source: hosted
-    version: "6.7.0"
+    version: "6.11.0"
   another_flushbar:
     dependency: "direct main"
     description:
@@ -254,10 +254,11 @@ packages:
   camera_linux:
     dependency: "direct main"
     description:
-      name: camera_linux
-      sha256: "6ea08c23f643364e650e8fad73653747c049cbd00803a7c317132379ee3653ac"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      resolved-ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      url: "https://github.com/cypherstack/camera-linux"
+    source: git
     version: "0.0.8"
   camera_macos:
     dependency: "direct main"
@@ -362,10 +363,10 @@ packages:
     dependency: transitive
     description:
       name: collection
-      sha256: ee67cb0715911d28db6bf4af1026078bd6f0128b07a5f66fb2ed94ec6783c09a
+      sha256: a1ace0a119f20aabc852d165077c036cd864315bd99b7eaa10a60100341941bf
       url: "https://pub.dev"
     source: hosted
-    version: "1.18.0"
+    version: "1.19.0"
   compat:
     dependency: "direct main"
     description:
@@ -435,10 +436,10 @@ packages:
     dependency: "direct main"
     description:
       name: cs_monero
-      sha256: b9b9db6602361587b1ce512002f174fd833818ff2a63787c3058e0532fc0d9d8
+      sha256: ed81d9e74ea71a8b8b0bfed07a284e14b6e5f4d0dbde774735f9f0a9ab60b7fb
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0-pre"
+    version: "1.0.0-pre.2"
   cs_monero_flutter_libs:
     dependency: "direct main"
     description:
@@ -626,11 +627,20 @@ packages:
   devicelocale:
     dependency: "direct main"
     description:
-      name: devicelocale
-      sha256: "0812b66f9eac57bc55c6ed4c178e0779440aa4e4e7c7e32fe1db02a758501d0e"
+      path: "."
+      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
+      resolved-ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
+      url: "https://github.com/cypherstack/flutter-devicelocale"
+    source: git
+    version: "0.8.1"
+  digest_auth:
+    dependency: "direct main"
+    description:
+      name: digest_auth
+      sha256: c8f4a8d65300bd58c4a2ca84ea6bd63cb584e8021e5689c600ee7efae34d73ea
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.1"
+    version: "1.0.1"
   dio:
     dependency: transitive
     description:
@@ -683,8 +693,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6bf385b2e1e18c8aa23783cb8afeabace299cf68"
-      resolved-ref: "6bf385b2e1e18c8aa23783cb8afeabace299cf68"
+      ref: f0b1300140d45c13e7722f8f8d20308efeba8449
+      resolved-ref: f0b1300140d45c13e7722f8f8d20308efeba8449
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
     version: "3.0.0"
@@ -748,11 +758,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9abc0930081c9859884e073bd25ab88b2114d9e7"
-      resolved-ref: "9abc0930081c9859884e073bd25ab88b2114d9e7"
+      ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
+      resolved-ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
       url: "https://github.com/cypherstack/flutter_file_picker.git"
     source: git
-    version: "8.0.3"
+    version: "8.3.1"
   fixnum:
     dependency: transitive
     description:
@@ -814,11 +824,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "9318bdd8e76e4dc8a49e3d64e8851c85e017eff3"
-      resolved-ref: "9318bdd8e76e4dc8a49e3d64e8851c85e017eff3"
+      ref: dd1e2a31bab034c97f8ea5745d1aa0b70c245490
+      resolved-ref: dd1e2a31bab034c97f8ea5745d1aa0b70c245490
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
-    version: "0.0.1"
+    version: "0.0.2"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -1187,18 +1197,18 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
-      sha256: "3f87a60e8c63aecc975dda1ceedbc8f24de75f09e4856ea27daf8958f2f0ce05"
+      sha256: "7bb2830ebd849694d1ec25bf1f44582d6ac531a57a365a803a6034ff751d2d06"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.5"
+    version: "10.0.7"
   leak_tracker_flutter_testing:
     dependency: transitive
     description:
       name: leak_tracker_flutter_testing
-      sha256: "932549fb305594d82d7183ecd9fa93463e9914e1b67cacc34bc40906594a1806"
+      sha256: "9491a714cca3667b60b5c420da8217e6de0d1ba7a5ec322fab01758f6998f379"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.5"
+    version: "3.0.8"
   leak_tracker_testing:
     dependency: transitive
     description:
@@ -1263,13 +1273,14 @@ packages:
     source: hosted
     version: "1.0.11"
   logger:
-    dependency: transitive
+    dependency: "direct main"
     description:
-      name: logger
-      sha256: "697d067c60c20999686a0add96cf6aba723b3aa1f83ecf806a8097231529ec32"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.4.0"
+      path: "."
+      ref: "3c0cba27868ebb5c7d65ebc30a8e6e5342186692"
+      resolved-ref: "3c0cba27868ebb5c7d65ebc30a8e6e5342186692"
+      url: "https://github.com/cypherstack/logger"
+    source: git
+    version: "2.5.0"
   logging:
     dependency: transitive
     description:
@@ -1290,10 +1301,10 @@ packages:
     dependency: transitive
     description:
       name: macros
-      sha256: "0acaed5d6b7eab89f63350bccd82119e6c602df0f391260d0e32b5e23db79536"
+      sha256: "1d9e801cd66f7ea3663c45fc708450db1fa57f988142c64289142c9b7ee80656"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.2-main.4"
+    version: "0.1.3-main.0"
   matcher:
     dependency: transitive
     description:
@@ -1358,6 +1369,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  monero_rpc:
+    dependency: "direct main"
+    description:
+      name: monero_rpc
+      sha256: "6052b6812e3e831015d776645d0d880fce5b9632d9df2cacae54b5e10ffe2db5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   mutex:
     dependency: "direct main"
     description:
@@ -1738,7 +1757,7 @@ packages:
     dependency: transitive
     description: flutter
     source: sdk
-    version: "0.0.99"
+    version: "0.0.0"
   socks5_proxy:
     dependency: "direct main"
     description:
@@ -1825,10 +1844,10 @@ packages:
     dependency: transitive
     description:
       name: stack_trace
-      sha256: "73713990125a6d93122541237550ee3352a2d84baad52d375a4cad2eb9b7ce0b"
+      sha256: "9f47fd3630d76be3ab26f0ee06d213679aa425996925ff3feffdec504931c377"
       url: "https://pub.dev"
     source: hosted
-    version: "1.11.1"
+    version: "1.12.0"
   stack_wallet_backup:
     dependency: "direct main"
     description:
@@ -1874,10 +1893,10 @@ packages:
     dependency: transitive
     description:
       name: string_scanner
-      sha256: "556692adab6cfa87322a115640c11f13cb77b3f076ddcc5d6ae3c20242bedcde"
+      sha256: "688af5ed3402a4bde5b3a6c15fd768dbf2621a614950b17f04626c431ab3c4c3"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "1.3.0"
   string_validator:
     dependency: "direct main"
     description:
@@ -1906,26 +1925,26 @@ packages:
     dependency: transitive
     description:
       name: test
-      sha256: "7ee44229615f8f642b68120165ae4c2a75fe77ae2065b1e55ae4711f6cf0899e"
+      sha256: "713a8789d62f3233c46b4a90b174737b2c04cb6ae4500f2aa8b1be8f03f5e67f"
       url: "https://pub.dev"
     source: hosted
-    version: "1.25.7"
+    version: "1.25.8"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: "5b8a98dafc4d5c4c9c72d8b31ab2b23fc13422348d2997120294d3bac86b4ddb"
+      sha256: "664d3a9a64782fcdeb83ce9c6b39e78fd2971d4e37827b9b06c3aa1edc5e760c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.2"
+    version: "0.7.3"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "55ea5a652e38a1dfb32943a7973f3681a60f872f8c3a05a14664ad54ef9c6696"
+      sha256: "12391302411737c176b0b5d6491f466b0dd56d4763e347b6714efbaa74d7953d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.4"
+    version: "0.6.5"
   tezart:
     dependency: "direct main"
     description:
@@ -1979,8 +1998,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "534ec251b339199446b723c01a25d324ae7bb974"
-      resolved-ref: "534ec251b339199446b723c01a25d324ae7bb974"
+      ref: "752f054b65c500adb9cad578bf183a978e012502"
+      resolved-ref: "752f054b65c500adb9cad578bf183a978e012502"
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.0.1"
@@ -2124,10 +2143,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "5c5f338a667b4c644744b661f309fb8080bb94b18a7e91ef1dbd343bed00ed6d"
+      sha256: f6be3ed8bd01289b34d679c2b62226f63c0e69f9fd2e50a6b3c1c729a961041b
       url: "https://pub.dev"
     source: hosted
-    version: "14.2.5"
+    version: "14.3.0"
   wakelock_platform_interface:
     dependency: transitive
     description:
@@ -2186,7 +2205,7 @@ packages:
     source: hosted
     version: "1.1.0"
   web:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: web
       sha256: "97da13628db363c635202ad97068d47c5b8aa555808e7a9411963c533b449b27"
@@ -2213,10 +2232,10 @@ packages:
     dependency: transitive
     description:
       name: webdriver
-      sha256: "003d7da9519e1e5f329422b36c4dcdf18d7d2978d1ba099ea4e45ba490ed845e"
+      sha256: "3d773670966f02a646319410766d3b5e1037efb7f07cc68f844d5e06cd4d61c8"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "3.0.4"
   webkit_inspection_protocol:
     dependency: transitive
     description:
@@ -2299,5 +2318,5 @@ packages:
     source: hosted
     version: "0.2.3"
 sdks:
-  dart: ">=3.5.3 <4.0.0"
-  flutter: ">=3.24.3"
+  dart: ">=3.6.1 <4.0.0"
+  flutter: ">=3.27.3"

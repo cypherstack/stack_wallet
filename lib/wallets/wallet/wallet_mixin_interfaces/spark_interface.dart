@@ -1,11 +1,15 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:bitcoindart/bitcoindart.dart' as btc;
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart' as spark
+    show Log;
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
+import 'package:logger/logger.dart';
 
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/balance.dart';
@@ -14,10 +18,13 @@ import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/signing_data.dart';
+import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
@@ -48,6 +55,75 @@ String _hashTag(String tag) {
   return hash;
 }
 
+void initSparkLogging(Level level) {
+  final levels = Level.values.where((e) => e >= level).map((e) => e.name);
+  spark.Log.levels
+      .addAll(LoggingLevel.values.where((e) => levels.contains(e.name)));
+  spark.Log.onLog = (
+    level,
+    value, {
+    error,
+    stackTrace,
+    required time,
+  }) {
+    Logging.instance.log(
+      level.getLoggerLevel(),
+      value,
+      error: error,
+      stackTrace: stackTrace,
+      time: time,
+    );
+  };
+}
+
+abstract class _SparkIsolate {
+  static Isolate? _isolate;
+  static SendPort? _sendPort;
+  static final ReceivePort _receivePort = ReceivePort();
+
+  static Future<void> initialize() async {
+    final level = Prefs.instance.logLevel;
+
+    _isolate = await Isolate.spawn(
+      (SendPort sendPort) {
+        initSparkLogging(level); // ensure logging is set up in isolate
+
+        final receivePort = ReceivePort();
+
+        sendPort.send(receivePort.sendPort);
+
+        receivePort.listen((message) async {
+          if (message is List && message.length == 3) {
+            final function = message[0] as Function;
+            final argument = message[1];
+            final replyPort = message[2] as SendPort;
+
+            final result = await function(argument);
+            replyPort.send(result);
+          }
+        });
+      },
+      _receivePort.sendPort,
+    );
+    _sendPort = await _receivePort.first as SendPort;
+  }
+
+  static Future<R> run<M, R>(ComputeCallback<M, R> task, M argument) async {
+    if (_isolate == null || _sendPort == null) await initialize();
+
+    final ReceivePort responsePort = ReceivePort();
+    _sendPort?.send([task, argument, responsePort.sendPort]);
+    return await responsePort.first as R;
+  }
+}
+
+Future<R> computeWithLibSparkLogging<M, R>(
+  ComputeCallback<M, R> callback,
+  M message,
+) async {
+  return _SparkIsolate.run(callback, message);
+}
+
 mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
   String? _sparkChangeAddressCached;
@@ -68,7 +144,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   Future<String> hashTag(String tag) async {
     try {
-      return await compute(_hashTag, tag);
+      return await computeWithLibSparkLogging(_hashTag, tag);
     } catch (_) {
       throw ArgumentError("Invalid tag string format", "tag");
     }
@@ -103,10 +179,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
     } catch (e, s) {
       // do nothing, still allow user into wallet
-      Logging.instance.log(
-        "$runtimeType init() failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("$runtimeType init() failed", error: e, stackTrace: s);
     }
 
     // await info.updateReceivingAddress(
@@ -551,7 +624,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
     extractedTx.setPayload(Uint8List(0));
 
-    final spend = await compute(
+    final spend = await computeWithLibSparkLogging(
       _createSparkSend,
       (
         privateKeyHex: privateKey.toHex,
@@ -683,12 +756,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     required TxData txData,
   }) async {
     try {
-      Logging.instance.log("confirmSend txData: $txData", level: LogLevel.Info);
+      Logging.instance.d("confirmSend txData: $txData");
 
       final txHash = await electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
       );
-      Logging.instance.log("Sent txHash: $txHash", level: LogLevel.Info);
+      Logging.instance.d("Sent txHash: $txHash");
 
       txData = txData.copyWith(
         // TODO revisit setting these both
@@ -707,9 +780,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       return await updateSentCachedTxData(txData: txData);
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from confirmSend(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Exception rethrown from confirmSend(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -762,7 +836,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // if there is new data we try and identify the coins
       if (rawCoins.isNotEmpty) {
         // run identify off main isolate
-        final myCoins = await compute(
+        final myCoins = await computeWithLibSparkLogging(
           _identifyCoins,
           (
             anonymitySetCoins: rawCoins,
@@ -780,22 +854,40 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
 
       return result;
-    } catch (e) {
-      Logging.instance.log(
-        "_refreshSparkCoinsMempoolCheck() failed: $e",
-        level: LogLevel.Error,
+    } catch (e, s) {
+      Logging.instance.e(
+        "_refreshSparkCoinsMempoolCheck() failed",
+        error: e,
+        stackTrace: s,
       );
       return [];
     } finally {
-      Logging.instance.log(
+      Logging.instance.d(
         "$walletId ${info.name} _refreshSparkCoinsMempoolCheck() run "
         "duration: ${DateTime.now().difference(start)}",
-        level: LogLevel.Debug,
       );
     }
   }
 
-  Future<void> refreshSparkData() async {
+  // returns next percent
+  double _triggerEventHelper(double current, double increment) {
+    refreshingPercent = current;
+    GlobalEventBus.instance.fire(
+      RefreshPercentChangedEvent(
+        current,
+        walletId,
+      ),
+    );
+    return current + increment;
+  }
+
+  // Linearly make calls so there is less chance of timing out or otherwise breaking
+  Future<void> refreshSparkData(
+    (
+      double startingPercent,
+      double endingPercent,
+    )? refreshProgressRange,
+  ) async {
     final start = DateTime.now();
     try {
       // start by checking if any previous sets are missing from db and add the
@@ -816,30 +908,61 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
       groupIds.add(latestGroupId);
 
-      // start fetch and update process for each set groupId as required
-      final possibleFutures = groupIds.map(
-        (e) =>
-            FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
-          e,
+      final steps = groupIds.length +
+          1 // get used tags step
+          +
+          1 // check updated cache step
+          +
+          1 // identify coins step
+          +
+          1 // cross ref coins and txns
+          +
+          1; // update balance
+
+      final percentIncrement = refreshProgressRange == null
+          ? null
+          : (refreshProgressRange.$2 - refreshProgressRange.$1) / steps;
+      double currentPercent = refreshProgressRange?.$1 ?? 0;
+
+      //   fetch and update process for each set groupId as required
+      for (final gId in groupIds) {
+        await FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
+          gId,
           electrumXClient,
           cryptoCurrency.network,
-        ),
+          // null,
+          (a, b) {
+            if (percentIncrement != null) {
+              _triggerEventHelper(
+                currentPercent + (percentIncrement * (a / b)),
+                0,
+              );
+            }
+          },
+        );
+        if (percentIncrement != null) {
+          currentPercent += percentIncrement;
+        }
+      }
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
+
+      await FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
+        electrumXClient,
+        cryptoCurrency.network,
       );
 
-      // wait for each fetch and update to complete
-      await Future.wait([
-        ...possibleFutures,
-        FiroCacheCoordinator.runFetchAndUpdateSparkUsedCoinTags(
-          electrumXClient,
-          cryptoCurrency.network,
-        ),
-      ]);
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
 
-      // Get cached timestamps per groupId. These timestamps are used to check
+      // Get cached block hashes per groupId. These hashes are used to check
       // and try to id coins that were added to the spark anon set cache
-      // after that timestamp.
-      final groupIdTimestampUTCMap =
-          info.otherData[WalletInfoKeys.firoSparkCacheSetTimestampCache]
+      // after that block.
+      final groupIdBlockHashMap =
+          info.otherData[WalletInfoKeys.firoSparkCacheSetBlockHashCache]
                   as Map? ??
               {};
 
@@ -847,8 +970,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // processed by this wallet yet
       final Map<int, List<List<String>>> rawCoinsBySetId = {};
       for (int i = 1; i <= latestGroupId; i++) {
-        final lastCheckedTimeStampUTC =
-            groupIdTimestampUTCMap[i.toString()] as int? ?? 0;
+        final lastCheckedHash = groupIdBlockHashMap[i.toString()] as String?;
         final info = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
           i,
           cryptoCurrency.network,
@@ -856,7 +978,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         final anonymitySetResult =
             await FiroCacheCoordinator.getSetCoinsForGroupId(
           i,
-          newerThanTimeStamp: lastCheckedTimeStampUTC,
+          afterBlockHash: lastCheckedHash,
           network: cryptoCurrency.network,
         );
         final coinsRaw = anonymitySetResult
@@ -873,11 +995,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           rawCoinsBySetId[i] = coinsRaw;
         }
 
-        // update last checked timestamp data
-        groupIdTimestampUTCMap[i.toString()] = max(
-          lastCheckedTimeStampUTC,
-          info?.timestampUTC ?? lastCheckedTimeStampUTC,
-        );
+        // update last checked
+        groupIdBlockHashMap[i.toString()] = info?.blockHash;
+      }
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
       }
 
       // get address(es) to get the private key hex strings required for
@@ -899,7 +1022,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // try to identify any coins in the unchecked set data
       final List<SparkCoin> newlyIdCoins = [];
       for (final groupId in rawCoinsBySetId.keys) {
-        final myCoins = await compute(
+        final myCoins = await computeWithLibSparkLogging(
           _identifyCoins,
           (
             anonymitySetCoins: rawCoinsBySetId[groupId]!,
@@ -918,14 +1041,17 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         });
       }
 
-      // finally update the cached timestamps in the database
+      // finally update the cached block hashes in the database
       await info.updateOtherData(
         newEntries: {
-          WalletInfoKeys.firoSparkCacheSetTimestampCache:
-              groupIdTimestampUTCMap,
+          WalletInfoKeys.firoSparkCacheSetBlockHashCache: groupIdBlockHashMap,
         },
         isar: mainDB.isar,
       );
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
+      }
 
       // check for spark coins in mempool
       final mempoolMyCoins = await _refreshSparkCoinsMempoolCheck(
@@ -960,32 +1086,40 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
 
       // check and update coins if required
-      final List<SparkCoin> updatedCoins = [];
+      final List<SparkCoin> checkedCoins = [];
       for (final coin in coinsToCheck) {
-        SparkCoin updated = coin;
+        final SparkCoin checked;
 
-        if (updated.height == null) {
+        if (coin.height == null) {
           final tx = await electrumXCachedClient.getTransaction(
-            txHash: updated.txHash,
+            txHash: coin.txHash,
             cryptoCurrency: info.coin,
           );
           if (tx["height"] is int) {
-            updated = updated.copyWith(height: tx["height"] as int);
+            checked = coin.copyWith(
+              height: tx["height"] as int,
+              isUsed: spentCoinTags!.contains(coin.lTagHash),
+            );
+          } else {
+            checked = coin;
           }
+        } else {
+          checked = spentCoinTags!.contains(coin.lTagHash)
+              ? coin.copyWith(isUsed: true)
+              : coin;
         }
 
-        if (updated.height != null &&
-            spentCoinTags!.contains(updated.lTagHash)) {
-          updated = coin.copyWith(isUsed: true);
-        }
-
-        updatedCoins.add(updated);
+        checkedCoins.add(checked);
       }
-      // update in db if any have changed
-      if (updatedCoins.isNotEmpty) {
+      // add/update in db
+      if (checkedCoins.isNotEmpty) {
         await mainDB.isar.writeTxn(() async {
-          await mainDB.isar.sparkCoins.putAll(updatedCoins);
+          await mainDB.isar.sparkCoins.putAll(checkedCoins);
         });
+      }
+
+      if (percentIncrement != null) {
+        currentPercent = _triggerEventHelper(currentPercent, percentIncrement);
       }
 
       // used to check if balance is spendable or total
@@ -1008,9 +1142,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       final spendable = Amount(
         rawValue: unusedCoins
             .where(
-              (e) =>
-                  e.height != null &&
-                  e.height! + cryptoCurrency.minConfirms <= currentHeight,
+              (e) => e.isConfirmed(currentHeight, cryptoCurrency.minConfirms),
             )
             .map((e) => e.value)
             .fold(BigInt.zero, (prev, e) => prev + e),
@@ -1033,21 +1165,18 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "$runtimeType $walletId ${info.name}: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("$runtimeType $walletId ${info.name}: ", error: e, stackTrace: s);
       rethrow;
     } finally {
-      Logging.instance.log(
+      Logging.instance.d(
         "${info.name} refreshSparkData() duration:"
         " ${DateTime.now().difference(start)}",
-        level: LogLevel.Debug,
       );
     }
   }
 
-  Future<Set<LTagPair>> getMissingSparkSpendTransactionIds() async {
+  Future<Set<LTagPair>> getSparkSpendTransactionIds() async {
     final tags = await mainDB.isar.sparkCoins
         .where()
         .walletIdEqualToAnyLTagHash(walletId)
@@ -1056,20 +1185,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .lTagHashProperty()
         .findAll();
 
-    final usedCoinTxidsFoundLocally = await mainDB.isar.transactionV2s
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .subTypeEqualTo(TransactionSubType.sparkSpend)
-        .txidProperty()
-        .findAll();
-
     final pairs = await FiroCacheCoordinator.getUsedCoinTxidsFor(
       tags: tags,
       network: cryptoCurrency.network,
     );
-
-    pairs.removeWhere((e) => usedCoinTxidsFoundLocally.contains(e.txid));
 
     return pairs.toSet();
   }
@@ -1086,12 +1205,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
 
     try {
-      await refreshSparkData();
+      await refreshSparkData(null);
     } catch (e, s) {
-      Logging.instance.log(
-        "$runtimeType $walletId ${info.name}: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("$runtimeType $walletId ${info.name}: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -1622,9 +1739,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           );
         }
       } catch (e, s) {
-        Logging.instance.log(
-          "Caught exception while signing spark mint transaction: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "Caught exception while signing spark mint transaction: ",
+          error: e,
+          stackTrace: s,
         );
         rethrow;
       }
@@ -1775,9 +1893,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       await confirmSparkMintTransactions(txData: TxData(sparkMints: mints));
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception caught in anonymizeAllSpark(): $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Exception caught in anonymizeAllSpark(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -1882,9 +2001,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       return txData.copyWith(sparkMints: mints);
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception caught in prepareSparkMintTransaction(): $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Exception caught in prepareSparkMintTransaction(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -2095,7 +2215,7 @@ Future<int> _asyncSparkFeesWrapper({
   required List<SerializedCoinData> serializedCoins,
   required int privateRecipientsCount,
 }) async {
-  return await compute(
+  return await computeWithLibSparkLogging(
     _estSparkFeeComputeFunc,
     (
       privateKeyHex: privateKeyHex,

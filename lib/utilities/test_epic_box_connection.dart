@@ -41,7 +41,7 @@ Future<bool> _testEpicBoxNodeConnection(Uri uri) async {
       return false;
     }
   } catch (e, s) {
-    Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+    Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
     return false;
   }
 }
@@ -87,7 +87,7 @@ Future<NodeFormData?> testEpicNodeConnection(NodeFormData data) async {
       return null;
     }
   } catch (e, s) {
-    Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+    Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
     return null;
   }
 }

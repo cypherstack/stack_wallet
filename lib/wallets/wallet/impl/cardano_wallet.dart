@@ -76,10 +76,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         await mainDB.updateOrPutAddresses([address]);
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "$runtimeType  checkSaveInitialReceivingAddress() failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("$runtimeType  checkSaveInitialReceivingAddress() failed: ", error: e, stackTrace: s);
     }
   }
 
@@ -94,10 +91,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       return Future.value(health);
     } catch (e, s) {
-      Logging.instance.log(
-        "Error ping checking in cardano_wallet.dart: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Error ping checking in cardano_wallet.dart: ", error: e, stackTrace: s);
       return Future.value(false);
     }
   }
@@ -146,10 +140,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         slow: fee,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "Error getting fees in cardano_wallet.dart: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Error getting fees in cardano_wallet.dart: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -264,10 +255,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "$runtimeType Cardano prepareSend failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("$runtimeType Cardano prepareSend failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -355,10 +343,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         txid: sentTx,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "$runtimeType Cardano confirmSend failed: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("$runtimeType Cardano confirmSend failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -425,10 +410,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
 
       await info.updateBalance(newBalance: balance, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.log(
-        "Error getting balance in cardano_wallet.dart: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Error getting balance in cardano_wallet.dart: ", error: e, stackTrace: s);
     }
   }
 
@@ -446,10 +428,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "Error updating transactions in cardano_wallet.dart: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Error updating transactions in cardano_wallet.dart: ", error: e, stackTrace: s);
     }
   }
 
@@ -581,10 +560,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
     } on NodeTorMismatchConfigException {
       rethrow;
     } catch (e, s) {
-      Logging.instance.log(
-        "Error updating transactions in cardano_wallet.dart: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Error updating transactions in cardano_wallet.dart: ", error: e, stackTrace: s);
     }
   }
 

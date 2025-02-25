@@ -188,10 +188,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       queryParams,
     );
 
-    Logging.instance.log(
-      "Generated receiving QR code for: $uriString",
-      level: LogLevel.Info,
-    );
+    Logging.instance.d("Generated receiving QR code for: $uriString");
 
     return uriString;
   }

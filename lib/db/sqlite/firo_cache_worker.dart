@@ -48,7 +48,11 @@ class _FiroCacheWorker {
     try {
       await Isolate.spawn(
         _startWorkerIsolate,
-        (initPort.sendPort, setCacheFilePath, usedTagsCacheFilePath),
+        (
+          initPort.sendPort,
+          setCacheFilePath,
+          usedTagsCacheFilePath,
+        ),
       );
     } catch (_) {
       initPort.close();
@@ -90,7 +94,8 @@ class _FiroCacheWorker {
           final FCResult result;
           switch (task.func) {
             case FCFuncName._updateSparkAnonSetCoinsWith:
-              final data = task.data as (int, Map<String, dynamic>);
+              final data =
+                  task.data as (SparkAnonymitySetMeta, List<RawSparkCoin>);
               result = _updateSparkAnonSetCoinsWith(
                 setCacheDb,
                 data.$2,

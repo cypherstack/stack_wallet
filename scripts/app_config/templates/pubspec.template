@@ -14,8 +14,8 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.5.3 <4.0.0"
-  flutter: ^3.24.3
+  sdk: ">=3.6.1 <4.0.0"
+  flutter: ^3.27.3
 
 dependencies:
   flutter:
@@ -33,7 +33,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 9318bdd8e76e4dc8a49e3d64e8851c85e017eff3
+      ref: dd1e2a31bab034c97f8ea5745d1aa0b70c245490
 
   # cs_monero compat (unpublished)
   compat:
@@ -63,7 +63,7 @@ dependencies:
   tor_ffi_plugin:
     git:
       url: https://github.com/cypherstack/tor.git
-      ref: 647cadc3c82c276dc07915b02d24538fd610f220
+      ref: 752f054b65c500adb9cad578bf183a978e012502
 
   fusiondart:
     git:
@@ -123,7 +123,10 @@ dependencies:
   barcode_scan2: ^4.3.3
   wakelock_plus: ^1.2.8
   intl: ^0.17.0
-  devicelocale: ^0.7.1
+  devicelocale:
+    git:
+      url: https://github.com/cypherstack/flutter-devicelocale
+      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
   device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
@@ -135,7 +138,10 @@ dependencies:
   pointycastle: ^3.6.0
   package_info_plus: ^8.0.2
   lottie: ^2.3.2
-  file_picker: ^8.0.3
+  file_picker:
+    git:
+      url: https://github.com/cypherstack/flutter_file_picker.git
+      ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
   connectivity_plus: ^4.0.1
   isar:
     version: 3.1.8
@@ -174,7 +180,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: 6bf385b2e1e18c8aa23783cb8afeabace299cf68
+      ref: f0b1300140d45c13e7722f8f8d20308efeba8449
   stream_channel: ^2.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
@@ -184,7 +190,11 @@ dependencies:
   calendar_date_picker2: ^1.0.2
   sqlite3: 2.4.3
   sqlite3_flutter_libs: 0.5.22
-  camera_linux: ^0.0.8
+#  camera_linux: ^0.0.8
+  camera_linux:
+    git:
+      url: https://github.com/cypherstack/camera-linux
+      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
   zxing2: ^0.2.3
   camera_windows:
     git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
@@ -195,8 +205,15 @@ dependencies:
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
-  cs_monero: 1.0.0-pre
+  cs_monero: 1.0.0-pre.2
   cs_monero_flutter_libs: 1.0.0-pre.0
+  monero_rpc: ^2.0.0
+  digest_auth: ^1.0.1
+#  logger: ^2.5.0
+  logger:
+    git:
+      url: https://github.com/cypherstack/logger
+      ref: 3c0cba27868ebb5c7d65ebc30a8e6e5342186692
 
 dev_dependencies:
   flutter_test:
@@ -224,6 +241,13 @@ flutter_native_splash:
   android_disable_fullscreen: true
 
 dependency_overrides:
+  logger:
+    git:
+      url: https://github.com/cypherstack/logger
+      ref: 3c0cba27868ebb5c7d65ebc30a8e6e5342186692
+
+  # required to make devicelocale work
+  web: ^0.5.0
 
   # needed for dart 3.5+ (at least for now)
   win32: ^5.5.4
@@ -240,12 +264,6 @@ dependency_overrides:
       url: https://github.com/julian-CStack/coinlib.git
       ref: 0acacfd17eacf72135c693a7b862bd9b7cc56739
       path: coinlib_flutter
-
-  # adding here due to pure laziness
-  tor_ffi_plugin:
-    git:
-      url: https://github.com/cypherstack/tor.git
-      ref: 534ec251b339199446b723c01a25d324ae7bb974
 
   bip47:
     git:
@@ -264,12 +282,6 @@ dependency_overrides:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
       ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
-
-
-  file_picker:
-    git:
-      url: https://github.com/cypherstack/flutter_file_picker.git
-      ref: 9abc0930081c9859884e073bd25ab88b2114d9e7
 
   crypto: 3.0.2
   analyzer: ^6.7.0

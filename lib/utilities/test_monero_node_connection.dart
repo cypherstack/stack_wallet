@@ -11,7 +11,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:digest_auth/digest_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/io_client.dart';
+import 'package:monero_rpc/monero_rpc.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:tor_ffi_plugin/socks_socket.dart';
 
@@ -27,11 +30,18 @@ class MoneroNodeConnectionResponse {
   final int? port;
   final bool success;
 
-  MoneroNodeConnectionResponse(this.cert, this.url, this.port, this.success);
+  MoneroNodeConnectionResponse(
+    this.cert,
+    this.url,
+    this.port,
+    this.success,
+  );
 }
 
 Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
   Uri uri,
+  String? username,
+  String? password,
   bool allowBadX509Certificate, {
   required ({
     InternetAddress host,
@@ -59,40 +69,41 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       await socket.connect();
       await socket.connectTo(uri.host, uri.port);
 
-      final body = jsonEncode({
-        "jsonrpc": "2.0",
-        "id": "0",
-        "method": "get_info",
-      });
-
-      final request = 'POST /json_rpc HTTP/1.1\r\n'
-          'Host: ${uri.host}\r\n'
-          'Content-Type: application/json\r\n'
-          'Content-Length: ${body.length}\r\n'
-          '\r\n'
-          '$body';
-
-      socket.write(request);
-      print("Request sent: $request");
-
-      final buffer = StringBuffer();
-      await for (var response in socket.inputStream) {
-        buffer.write(utf8.decode(response));
-        if (buffer.toString().contains("\r\n\r\n")) {
-          break;
+      final rawRequest = DaemonRpc.rawRequestRpc(uri, 'get_info', {});
+      var response = await socket.send(rawRequest);
+      // check if we need authentication
+      String? authenticateHeaderValue;
+      for (final line in response.split('\r\n')) {
+        if (line.contains('WWW-authenticate: ')) {
+          // both the password and username needs to be
+          if (username == null || password == null) {
+            // node asking us for authentication, but we don't have any crendentials.
+            return MoneroNodeConnectionResponse(null, null, null, false);
+          }
+          authenticateHeaderValue =
+              line.replaceFirst('WWW-authenticate: ', '').trim();
         }
       }
+      // header to authenticate was present, we need to remake the request with digest
+      if (authenticateHeaderValue != null) {
+        final digestAuth = DigestAuth(username!, password!);
+        digestAuth.initFromAuthorizationHeader(authenticateHeaderValue);
 
-      final result = buffer.toString();
-      print("Response received: $result");
+        // generate the Authorization header for the second request.
+        final authHeader = digestAuth.getAuthString('POST', uri.path);
+        final rawRequestAuthenticated =
+            DaemonRpc.rawRequestRpc(uri, 'get_info', {}, authHeader);
+        // resend with an authenticated request
+        response = await socket.send(rawRequestAuthenticated);
+      }
 
       // Check if the response contains "results" and does not contain "error"
       final success =
-          result.contains('"result":') && !result.contains('"error"');
+          response.contains('"result":') && !response.contains('"error"');
 
       return MoneroNodeConnectionResponse(null, null, null, success);
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
       return MoneroNodeConnectionResponse(null, null, null, false);
     } finally {
       await socket?.close();
@@ -124,43 +135,22 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
         return false;
       };
-
-      final request = await httpClient.postUrl(uri);
-
-      final body = utf8.encode(
-        jsonEncode({
-          "jsonrpc": "2.0",
-          "id": "0",
-          "method": "get_info",
-        }),
+      final daemonRpc = DaemonRpc(
+        IOClient(httpClient),
+        '$uri',
+        username: username,
+        password: password,
       );
+      final result = await daemonRpc.call('get_info', {});
 
-      request.headers.add(
-        'Content-Length',
-        body.length.toString(),
-        preserveHeaderCase: true,
-      );
-      request.headers.set(
-        'Content-Type',
-        'application/json',
-        preserveHeaderCase: true,
-      );
-
-      request.add(body);
-
-      final response = await request.close();
-      final result = await response.transform(utf8.decoder).join();
-      // print("HTTP Response: $result");
-
-      final success =
-          result.contains('"result":') && !result.contains('"error"');
+      final success = result.containsKey('status') && result['status'] == 'OK';
 
       return MoneroNodeConnectionResponse(null, null, null, success);
     } catch (e, s) {
       if (badCertResponse != null) {
         return badCertResponse!;
       } else {
-        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+        Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
         return MoneroNodeConnectionResponse(null, null, null, false);
       }
     } finally {
@@ -209,4 +199,19 @@ Future<bool> showBadX509CertificateDialog(
   );
 
   return result ?? false;
+}
+
+extension on SOCKSSocket {
+  /// write the raw request to the socket and return the response as String
+  Future<String> send(String rawRequest) async {
+    write(rawRequest);
+    final buffer = StringBuffer();
+    await for (final response in inputStream) {
+      buffer.write(utf8.decode(response));
+      if (buffer.toString().contains("\r\n\r\n")) {
+        break;
+      }
+    }
+    return buffer.toString();
+  }
 }

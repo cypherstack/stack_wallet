@@ -20,8 +20,7 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
     required TxData txData,
     required List<SigningData> utxoSigningData,
   }) async {
-    Logging.instance
-        .log("Starting buildTransaction ----------", level: LogLevel.Info);
+    Logging.instance.d("Starting buildTransaction ----------");
 
     // TODO: use coinlib
 
@@ -114,10 +113,8 @@ mixin BCashInterface<T extends ElectrumXCurrencyInterface>
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Caught exception while signing transaction: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Caught exception while signing transaction: ",
+          error: e, stackTrace: s);
       rethrow;
     }
 

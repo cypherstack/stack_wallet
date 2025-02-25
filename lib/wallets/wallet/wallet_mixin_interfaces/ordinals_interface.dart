@@ -18,8 +18,8 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
     try {
       return (await _litescribeAPI.getInscriptionsByAddress(address))
           .isNotEmpty;
-    } catch (_) {
-      Logging.instance.log("Litescribe api failure!", level: LogLevel.Error);
+    } catch (e, s) {
+      Logging.instance.e("Litescribe api failure!", error: e, stackTrace: s);
 
       return false;
     }
@@ -54,10 +54,8 @@ mixin OrdinalsInterface<T extends ElectrumXCurrencyInterface>
         await mainDB.isar.ordinals.putAll(ords);
       });
     } catch (e, s) {
-      Logging.instance.log(
-        "$runtimeType failed refreshInscriptions(): $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("$runtimeType failed refreshInscriptions(): ",
+          error: e, stackTrace: s);
     }
   }
   // =================== Overrides =============================================

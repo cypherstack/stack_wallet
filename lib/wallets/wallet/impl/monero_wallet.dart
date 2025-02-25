@@ -61,11 +61,11 @@ class MoneroWallet extends LibMoneroWallet {
   bool walletExists(String path) => lib_monero.MoneroWallet.isWalletExist(path);
 
   @override
-  void loadWallet({
+  Future<void> loadWallet({
     required String path,
     required String password,
-  }) {
-    libMoneroWallet = lib_monero.MoneroWallet.loadWallet(
+  }) async {
+    libMoneroWallet = await lib_monero.MoneroWallet.loadWallet(
       path: path,
       password: password,
     );
@@ -75,13 +75,28 @@ class MoneroWallet extends LibMoneroWallet {
   Future<lib_monero.Wallet> getCreatedWallet({
     required String path,
     required String password,
-  }) async =>
-      await lib_monero.MoneroWallet.create(
-        path: path,
-        password: password,
-        seedType: lib_monero.MoneroSeedType
-            .sixteen, // TODO: check we want to actually use 16 here
-      );
+    required int wordCount,
+  }) async {
+    final lib_monero.MoneroSeedType type;
+    switch (wordCount) {
+      case 16:
+        type = lib_monero.MoneroSeedType.sixteen;
+        break;
+
+      case 25:
+        type = lib_monero.MoneroSeedType.twentyFive;
+        break;
+
+      default:
+        throw Exception("Invalid mnemonic word count: $wordCount");
+    }
+
+    return await lib_monero.MoneroWallet.create(
+      path: path,
+      password: password,
+      seedType: type,
+    );
+  }
 
   @override
   Future<lib_monero.Wallet> getRestoredWallet({

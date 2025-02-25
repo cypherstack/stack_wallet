@@ -363,7 +363,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Debug info",
+                          "Logging",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                             color: Theme.of(context)
@@ -374,7 +374,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                         ),
                         PrimaryButton(
                           buttonHeight: ButtonHeight.xs,
-                          label: "Show logs",
+                          label: "View",
                           width: 101,
                           onPressed: () async {
                             await showDialog<dynamic>(
@@ -382,7 +382,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               useSafeArea: false,
                               barrierDismissible: true,
                               builder: (context) {
-                                return const DebugInfoDialog();
+                                return const DesktopLoggingDialog();
                               },
                             );
                           },

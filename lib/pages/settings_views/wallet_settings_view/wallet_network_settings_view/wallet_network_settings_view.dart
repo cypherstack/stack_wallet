@@ -39,6 +39,7 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -233,7 +234,12 @@ class _WalletNetworkSettingsViewState
       _percent = 1;
       _blocksRemaining = 0;
     } else {
-      _percent = 0;
+      final wallet = ref.read(pWallets).getWallet(widget.walletId);
+      if (wallet is ElectrumXInterface) {
+        _percent = wallet.refreshingPercent ?? 0;
+      } else {
+        _percent = 0;
+      }
       _blocksRemaining = -1;
     }
 

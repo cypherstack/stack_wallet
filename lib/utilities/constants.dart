@@ -35,12 +35,12 @@ abstract class Constants {
   // // true; // true for development,
 
   static const int notificationsMax = 0xFFFFFFFF;
-  static const Duration networkAliveTimerDuration = Duration(seconds: 10);
+  static const Duration networkAliveTimerDuration = Duration(seconds: 30);
 
   // Enable Logger.print statements
   static const bool disableLogger = false;
 
-  static const int currentDataVersion = 13;
+  static const int currentDataVersion = 14;
 
   static const int rescanV1 = 1;
 

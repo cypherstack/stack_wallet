@@ -18,6 +18,9 @@ import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
 
 abstract class Util {
+  static const isArmLinux = bool.fromEnvironment("IS_ARM");
+  static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
+
   static Directory? libraryPath;
   static double? screenWidth;
 

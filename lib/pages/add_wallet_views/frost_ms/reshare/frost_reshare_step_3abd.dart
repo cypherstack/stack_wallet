@@ -70,10 +70,7 @@ class _FrostReshareStep3abdState extends ConsumerState<FrostReshareStep3abd> {
             .routeName,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "$e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
       if (mounted) {
         await showDialog<void>(
           context: context,

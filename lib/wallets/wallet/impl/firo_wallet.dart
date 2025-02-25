@@ -60,9 +60,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     if (txData.tempTx != null) {
       await mainDB.updateOrPutTransactionV2s([txData.tempTx!]);
       _unconfirmedTxids.add(txData.tempTx!.txid);
-      Logging.instance.log(
+      Logging.instance.d(
         "Added firo unconfirmed: ${txData.tempTx!.txid}",
-        level: LogLevel.Info,
       );
     }
     return txData;
@@ -93,33 +92,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         .walletIdEqualToAnyLTagHash(walletId)
         .findAll();
 
-    final Set<String> sparkTxids = {};
-
-    for (final coin in sparkCoins) {
-      sparkTxids.add(coin.txHash);
-      // check for duplicates before adding to list
-      if (allTxHashes.indexWhere((e) => e["tx_hash"] == coin.txHash) == -1) {
-        final info = {
-          "tx_hash": coin.txHash,
-          "height": coin.height,
-        };
-        allTxHashes.add(info);
-      }
-    }
-
-    final missing = await getMissingSparkSpendTransactionIds();
-    for (final txid in missing.map((e) => e.txid).toSet()) {
-      allTxHashes.add({
-        "tx_hash": txid,
-      });
-    }
-
     final List<Map<String, dynamic>> allTransactions = [];
 
     // some lelantus transactions aren't fetched via wallet addresses so they
     // will never show as confirmed in the gui.
-    final unconfirmedTransactions = await mainDB
-        .getTransactions(walletId)
+    final unconfirmedTransactions = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
         .filter()
         .heightIsNull()
         .findAll();
@@ -137,21 +116,54 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         final info = {
           "tx_hash": tx.txid,
           "height": height,
-          "address": tx.address.value?.value,
         };
         allTxHashes.add(info);
       }
     }
 
-    for (final txHash in allTxHashes) {
-      // final storedTx = await db
-      //     .getTransactions(walletId)
-      //     .filter()
-      //     .txidEqualTo(txHash["tx_hash"] as String)
-      //     .findFirst();
+    final Set<String> sparkTxids = {};
+    for (final coin in sparkCoins) {
+      sparkTxids.add(coin.txHash);
+      // check for duplicates before adding to list
+      if (allTxHashes.indexWhere((e) => e["tx_hash"] == coin.txHash) == -1) {
+        final info = {
+          "tx_hash": coin.txHash,
+          "height": coin.height,
+        };
+        allTxHashes.add(info);
+      }
+    }
 
-      // if (storedTx == null ||
-      //     !storedTx.isConfirmed(currentHeight, MINIMUM_CONFIRMATIONS)) {
+    final missing = await getSparkSpendTransactionIds();
+    for (final txid in missing.map((e) => e.txid).toSet()) {
+      // check for duplicates before adding to list
+      if (allTxHashes.indexWhere((e) => e["tx_hash"] == txid) == -1) {
+        final info = {
+          "tx_hash": txid,
+        };
+        allTxHashes.add(info);
+      }
+    }
+
+    final currentHeight = await chainHeight;
+
+    for (final txHash in allTxHashes) {
+      final storedTx = await mainDB.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .txidEqualTo(txHash["tx_hash"] as String)
+          .findFirst();
+
+      if (storedTx?.isConfirmed(
+            currentHeight,
+            cryptoCurrency.minConfirms,
+            cryptoCurrency.minCoinbaseConfirms,
+          ) ==
+          true) {
+        // tx already confirmed, no need to process it again
+        continue;
+      }
 
       // firod/electrumx seem to take forever to process spark txns so we'll
       // just ignore null errors and check again on next refresh.
@@ -174,7 +186,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         tx["height"] ??= txHash["height"];
         allTransactions.add(tx);
       }
-      // }
     }
 
     final List<TransactionV2> txns = [];
@@ -193,7 +204,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       bool isMint = false;
       bool isJMint = false;
       bool isSparkMint = false;
-      final bool isMasterNodePayment = false;
       final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
       final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
       final bool isMySpentSpark =
@@ -210,17 +220,15 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       );
 
       if (isMySpark && sparkCoinsInvolvedReceived.isEmpty && !isMySpentSpark) {
-        Logging.instance.log(
+        Logging.instance.e(
           "sparkCoinsInvolvedReceived is empty and should not be! (ignoring tx parsing)",
-          level: LogLevel.Error,
         );
         continue;
       }
 
       if (isMySpentSpark && sparkCoinsInvolvedSpent.isEmpty && !isMySpark) {
-        Logging.instance.log(
+        Logging.instance.e(
           "sparkCoinsInvolvedSpent is empty and should not be! (ignoring tx parsing)",
-          level: LogLevel.Error,
         );
         continue;
       }
@@ -237,15 +245,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             } else if (asm.startsWith("OP_LELANTUSMINT")) {
               isMint = true;
             } else {
-              Logging.instance.log(
+              Logging.instance.d(
                 "Unknown mint op code found for lelantusmint tx: ${txData["txid"]}",
-                level: LogLevel.Error,
               );
             }
           } else {
-            Logging.instance.log(
+            Logging.instance.d(
               "ASM for lelantusmint tx: ${txData["txid"]} is null!",
-              level: LogLevel.Error,
             );
           }
         }
@@ -257,15 +263,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
                 asm.startsWith("OP_SPARKSMINT")) {
               isSparkMint = true;
             } else {
-              Logging.instance.log(
+              Logging.instance.d(
                 "Unknown mint op code found for sparkmint tx: ${txData["txid"]}",
-                level: LogLevel.Error,
               );
             }
           } else {
-            Logging.instance.log(
+            Logging.instance.d(
               "ASM for sparkmint tx: ${txData["txid"]} is null!",
-              level: LogLevel.Error,
             );
           }
         }
@@ -559,10 +563,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         // only found outputs owned by this wallet
         type = TransactionType.incoming;
       } else {
-        Logging.instance.log(
-          "Unexpected tx found (ignoring it): $txData",
-          level: LogLevel.Error,
-        );
+        Logging.instance.e("Unexpected tx found (ignoring it)");
+        Logging.instance.d("Unexpected tx found (ignoring it): $txData");
         continue;
       }
 
@@ -671,7 +673,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     // reset last checked values
     await info.updateOtherData(
       newEntries: {
-        WalletInfoKeys.firoSparkCacheSetTimestampCache: <String, int>{},
+        WalletInfoKeys.firoSparkCacheSetBlockHashCache: <String, String>{},
       },
       isar: mainDB.isar,
     );
@@ -725,6 +727,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
               i,
               electrumXClient,
               cryptoCurrency.network,
+              null,
             ),
           );
         }
@@ -735,10 +738,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         );
 
         // receiving addresses
-        Logging.instance.log(
-          "checking receiving addresses...",
-          level: LogLevel.Info,
-        );
+        Logging.instance.d("checking receiving addresses...");
 
         final canBatch = await serverCanBatch;
 
@@ -760,10 +760,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
         }
 
         // change addresses
-        Logging.instance.log(
-          "checking change addresses...",
-          level: LogLevel.Info,
-        );
+        Logging.instance.d("checking change addresses...");
         for (final type in cryptoCurrency.supportedDerivationPathTypes) {
           changeFutures.add(
             canBatch
@@ -887,15 +884,15 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       });
 
       unawaited(refresh());
-      Logging.instance.log(
+      Logging.instance.i(
         "Firo recover for "
         "${info.name}: ${DateTime.now().difference(start)}",
-        level: LogLevel.Info,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from electrumx_mixin recover(): $e\n$s",
-        level: LogLevel.Info,
+      Logging.instance.e(
+        "Exception rethrown from electrumx_mixin recover(): ",
+        error: e,
+        stackTrace: s,
       );
 
       rethrow;

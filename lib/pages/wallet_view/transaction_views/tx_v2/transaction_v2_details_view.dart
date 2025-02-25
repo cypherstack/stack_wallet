@@ -42,6 +42,7 @@ import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
@@ -57,6 +58,7 @@ import '../../../../widgets/icon_widgets/copy_icon.dart';
 import '../../../../widgets/icon_widgets/pencil_icon.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/tx_key_widget.dart';
 import '../../sub_widgets/tx_icon.dart';
 import '../../wallet_view.dart';
 import '../dialogs/cancelling_transaction_progress_dialog.dart';
@@ -96,6 +98,7 @@ class _TransactionV2DetailsViewState
   late final int minConfirms;
   late final EthContract? ethContract;
   late final bool supportsRbf;
+  late final bool hasTxKeyProbably;
 
   bool get isTokenTx => ethContract != null;
 
@@ -180,10 +183,16 @@ class _TransactionV2DetailsViewState
     _transaction = widget.transaction;
     walletId = widget.walletId;
 
+    final wallet = ref.read(pWallets).getWallet(walletId);
+
+    hasTxKeyProbably = wallet is LibMoneroWallet &&
+        (_transaction.type == TransactionType.outgoing ||
+            _transaction.type == TransactionType.sentToSelf);
+
     if (_transaction.type
         case TransactionType.sentToSelf || TransactionType.outgoing) {
       supportsRbf = _transaction.subType == TransactionSubType.none &&
-          ref.read(pWallets).getWallet(walletId) is RbfInterface;
+          wallet is RbfInterface;
     } else {
       supportsRbf = false;
     }
@@ -397,7 +406,7 @@ class _TransactionV2DetailsViewState
         return address;
       }
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
       return address;
     }
   }
@@ -1703,6 +1712,17 @@ class _TransactionV2DetailsViewState
                                     ),
                                   ],
                                 ),
+                              ),
+                            if (hasTxKeyProbably)
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(
+                                      height: 12,
+                                    ),
+                            if (hasTxKeyProbably)
+                              TxKeyWidget(
+                                walletId: walletId,
+                                txid: _transaction.txid,
                               ),
                             isDesktop
                                 ? const _Divider()

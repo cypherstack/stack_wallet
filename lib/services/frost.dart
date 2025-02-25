@@ -35,10 +35,7 @@ abstract class Frost {
 
       return participants;
     } catch (e, s) {
-      Logging.instance.log(
-        "getParticipants failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("getParticipants failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -48,10 +45,7 @@ abstract class Frost {
       decodeMultisigConfig(multisigConfig: encodedConfig);
       return true;
     } catch (e, s) {
-      Logging.instance.log(
-        "validateEncodedMultisigConfig failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("validateEncodedMultisigConfig failed: ", error: e, stackTrace: s);
       return false;
     }
   }
@@ -66,10 +60,7 @@ abstract class Frost {
 
       return threshold;
     } catch (e, s) {
-      Logging.instance.log(
-        "getThreshold failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("getThreshold failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -144,10 +135,7 @@ abstract class Frost {
         inputs: outputs,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "extractDataFromSignConfig failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("extractDataFromSignConfig failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -168,10 +156,7 @@ abstract class Frost {
 
       return config;
     } catch (e, s) {
-      Logging.instance.log(
-        "createMultisigConfig failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("createMultisigConfig failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -204,10 +189,7 @@ abstract class Frost {
         secretShareMachineWrapperPtr: machinePtr,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "startKeyGeneration failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("startKeyGeneration failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -234,10 +216,7 @@ abstract class Frost {
 
       return (share: share, secretSharesResPtr: secretSharesResPtr);
     } catch (e, s) {
-      Logging.instance.log(
-        "generateSecretShares failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("generateSecretShares failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -275,10 +254,7 @@ abstract class Frost {
         serializedKeys: serializedKeys,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "completeKeyGeneration failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("completeKeyGeneration failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -322,10 +298,7 @@ abstract class Frost {
 
       return signConfig;
     } catch (e, s) {
-      Logging.instance.log(
-        "createSignConfig failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("createSignConfig failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -352,10 +325,7 @@ abstract class Frost {
         machinePtr: attemptSignRes.ref.machine,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "attemptSignConfig failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("attemptSignConfig failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -378,10 +348,7 @@ abstract class Frost {
         machinePtr: continueSignRes.ref.machine,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "continueSigning failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("continueSigning failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -398,10 +365,7 @@ abstract class Frost {
 
       return rawTransaction;
     } catch (e, s) {
-      Logging.instance.log(
-        "completeSigning failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("completeSigning failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -419,10 +383,7 @@ abstract class Frost {
       );
       return configPtr;
     } catch (e, s) {
-      Logging.instance.log(
-        "decodedSignConfig failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("decodedSignConfig failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -443,10 +404,7 @@ abstract class Frost {
 
       return config;
     } catch (e, s) {
-      Logging.instance.log(
-        "createResharerConfig failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("createResharerConfig failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -469,10 +427,7 @@ abstract class Frost {
         machine: result.machine,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "beginResharer failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("beginResharer failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -498,10 +453,7 @@ abstract class Frost {
         prior: result.machine,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "beginReshared failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("beginReshared failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -518,10 +470,7 @@ abstract class Frost {
       );
       return result;
     } catch (e, s) {
-      Logging.instance.log(
-        "finishResharer failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("finishResharer failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -542,10 +491,7 @@ abstract class Frost {
       );
       return result;
     } catch (e, s) {
-      Logging.instance.log(
-        "finishReshared failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("finishReshared failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -558,10 +504,7 @@ abstract class Frost {
 
       return config;
     } catch (e, s) {
-      Logging.instance.log(
-        "decodedResharerConfig failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("decodedResharerConfig failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -631,10 +574,7 @@ abstract class Frost {
         newParticipants: newParticipants,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "extractResharerConfigData failed: $e\n$s",
-        level: LogLevel.Fatal,
-      );
+      Logging.instance.f("extractResharerConfigData failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }

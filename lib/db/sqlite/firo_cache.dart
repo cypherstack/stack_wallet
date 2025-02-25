@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:mutex/mutex.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../electrumx_rpc/electrumx_client.dart';
+import '../../models/electrumx_response/spark_models.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/stack_file_system.dart';
@@ -19,18 +19,8 @@ part 'firo_cache_reader.dart';
 part 'firo_cache_worker.dart';
 part 'firo_cache_writer.dart';
 
-/// Temporary debugging log function for this file
-void _debugLog(Object? object) {
-  if (kDebugMode) {
-    Logging.instance.log(
-      object,
-      level: LogLevel.Debug,
-    );
-  }
-}
-
 abstract class _FiroCache {
-  static const int _setCacheVersion = 1;
+  static const int _setCacheVersion = 2;
   static const int _tagsCacheVersion = 2;
 
   static final networks = [
@@ -115,7 +105,8 @@ abstract class _FiroCache {
         VACUUM;
       """,
     );
-    _debugLog(
+
+    Logging.instance.d(
       "_deleteAllCache() "
       "duration = ${DateTime.now().difference(start)}",
     );
@@ -134,7 +125,7 @@ abstract class _FiroCache {
           blockHash TEXT NOT NULL,
           setHash TEXT NOT NULL,
           groupId INTEGER NOT NULL,
-          timestampUTC INTEGER NOT NULL,
+          size INTEGER NOT NULL,
           UNIQUE (blockHash, setHash, groupId)
         );
         
@@ -143,7 +134,8 @@ abstract class _FiroCache {
           serialized TEXT NOT NULL,
           txHash TEXT NOT NULL,
           context TEXT NOT NULL,
-          UNIQUE(serialized, txHash, context)
+          groupId INTEGER NOT NULL,
+          UNIQUE(serialized, txHash, context, groupId)
         );
         
         CREATE TABLE SparkSetCoins (

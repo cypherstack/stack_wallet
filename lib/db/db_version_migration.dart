@@ -29,6 +29,8 @@ import '../utilities/constants.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/stack_file_system.dart';
+import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'hive/db.dart';
 import 'isar/main_db.dart';
@@ -43,10 +45,7 @@ class DbVersionMigrator with WalletDB {
       // safe to skip to v11 for campfire
       fromVersion = 11;
     }
-    Logging.instance.log(
-      "Running migrate fromVersion $fromVersion",
-      level: LogLevel.Warning,
-    );
+    Logging.instance.i("Running migrate fromVersion $fromVersion");
     switch (fromVersion) {
       case 0:
         await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
@@ -100,12 +99,13 @@ class DbVersionMigrator with WalletDB {
 
           try {
             latestSetId = await client.getLelantusLatestCoinId();
-          } catch (e) {
+          } catch (e, s) {
             // default to 2 for now
             latestSetId = 2;
-            Logging.instance.log(
+            Logging.instance.w(
               "Failed to fetch latest coin id during firo db migrate: $e \nUsing a default value of 2",
-              level: LogLevel.Warning,
+              error: e,
+              stackTrace: s,
             );
           }
         }
@@ -144,7 +144,6 @@ class DbVersionMigrator with WalletDB {
                 ),
               });
             }
-            Logger.print("newcoins $coins", normalLength: false);
             await DB.instance.put<dynamic>(
               boxName: walletInfo.walletId,
               key: '_lelantus_coins',
@@ -443,6 +442,20 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(13, secureStore: secureStore);
 
+      case 13:
+        // migrate
+        await _v13(secureStore);
+
+        // update version
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 14,
+        );
+
+        // try to continue migrating
+        return await migrate(14, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -732,6 +745,33 @@ class DbVersionMigrator with WalletDB {
       await DB.instance.deleteBoxFromDisk(
         boxName: "${identifier}_sparkUsedCoinsTagsCache",
       );
+    }
+  }
+
+  Future<void> _v13(SecureStorageInterface secureStore) async {
+    if (!(Util.isArmLinux || Util.isTestEnv)) {
+      // open logs db
+      final isar = await Isar.open(
+        [isar_models.LogSchema],
+        directory: (await StackFileSystem.applicationIsarDirectory()).path,
+        inspector: false,
+        maxSizeMiB: 512,
+      );
+
+      // fetch all logs
+      final allLogs = await isar.logs.where().findAll();
+
+      // migrate to simple file based logs. Date/time may be out of order
+      for (final log in allLogs) {
+        Logging.instance.log(
+          log.logLevel.getLoggerLevel(),
+          "MIGRATED LOG::=> ${log.message}",
+          time: DateTime.fromMillisecondsSinceEpoch(log.timestampInMillisUTC),
+        );
+      }
+
+      // finally delete logs db
+      await isar.close(deleteFromDisk: true);
     }
   }
 }

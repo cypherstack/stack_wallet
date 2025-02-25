@@ -59,10 +59,7 @@ class SPCurrency {
         warningsTo: json["warnings_to"] as List<dynamic>,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "SPCurrency.fromJson failed to parse: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("SPCurrency.fromJson failed to parse: ", error: e, stackTrace: s);
       rethrow;
     }
   }
