@@ -454,9 +454,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         }
 
         final data = decodeNameSaltData(encoded);
-        Logging.instance.e(
-          data,
-        );
+
         if (data.name == name) {
           return (
             data: null,

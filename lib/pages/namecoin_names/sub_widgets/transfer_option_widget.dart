@@ -198,7 +198,11 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         }
       }
     } catch (e, s) {
-      Logging.instance.e("_preview failed", error: e, stackTrace: s);
+      Logging.instance.e(
+        "_preview transfer name failed",
+        error: e,
+        stackTrace: s,
+      );
 
       if (mounted) {
         String err = e.toString();
