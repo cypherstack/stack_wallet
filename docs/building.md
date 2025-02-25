@@ -58,7 +58,7 @@ sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-con
 
 For Ubuntu 20.04,
 ```
-sudo apt-get install vapigen
+sudo apt-get install valac
 pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
