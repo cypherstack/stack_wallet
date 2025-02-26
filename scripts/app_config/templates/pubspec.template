@@ -33,7 +33,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: dd1e2a31bab034c97f8ea5745d1aa0b70c245490
+      ref: a5b90f613a7d0e77ec1089a7d95552cae4a58be6
 
   # cs_monero compat (unpublished)
   compat:
