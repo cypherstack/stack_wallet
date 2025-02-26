@@ -1107,28 +1107,30 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ],
                   ),
                 ),
-                DropdownMenuItem(
-                  value: FiroType.lelantus,
-                  child: Row(
-                    children: [
-                      Text(
-                        "Lelantus balance",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        ref.watch(pAmountFormatter(coin)).format(
-                              ref
-                                  .watch(pWalletBalanceSecondary(walletId))
-                                  .spendable,
-                            ),
-                        style: STextStyles.itemSubtitle(context),
-                      ),
-                    ],
+                if (ref.watch(pWalletBalanceSecondary(walletId)).spendable.raw >
+                    BigInt.zero)
+                  DropdownMenuItem(
+                    value: FiroType.lelantus,
+                    child: Row(
+                      children: [
+                        Text(
+                          "Lelantus balance",
+                          style: STextStyles.itemSubtitle12(context),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          ref.watch(pAmountFormatter(coin)).format(
+                                ref
+                                    .watch(pWalletBalanceSecondary(walletId))
+                                    .spendable,
+                              ),
+                          style: STextStyles.itemSubtitle(context),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 DropdownMenuItem(
                   value: FiroType.public,
                   child: Row(
