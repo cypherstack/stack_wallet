@@ -23,6 +23,8 @@ import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart'
+    show CryptoCurrency;
 import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -48,10 +50,15 @@ class DesktopWalletSummary extends ConsumerStatefulWidget {
 class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
   late final String walletId;
 
+  late final CryptoCurrency coin;
+  late final bool isFiro;
+
   @override
   void initState() {
-    walletId = widget.walletId;
     super.initState();
+    walletId = widget.walletId;
+    coin = ref.read(pWalletCoin(widget.walletId));
+    isFiro = coin is Firo;
   }
 
   @override
@@ -63,8 +70,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
         (value) => value.externalCalls,
       ),
     );
-    final coin = ref.watch(pWalletCoin(widget.walletId));
-    final isFiro = coin is Firo;
+
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
@@ -152,15 +158,17 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                     ),
                   ),
                 if (coin is Firo)
-                  const Row(
+                  Row(
                     children: [
-                      DesktopPrivateBalanceToggleButton(),
-                      SizedBox(
+                      DesktopPrivateBalanceToggleButton(
+                        walletId: walletId,
+                      ),
+                      const SizedBox(
                         width: 8,
                       ),
-                      DesktopBalanceToggleButton(),
+                      const DesktopBalanceToggleButton(),
                     ],
-                  )
+                  ),
               ],
             ),
             const SizedBox(
