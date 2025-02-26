@@ -66,35 +66,40 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
     debugPrint("BUILD: $runtimeType");
 
     final externalCalls = ref.watch(
-      prefsChangeNotifierProvider.select(
-        (value) => value.externalCalls,
-      ),
+      prefsChangeNotifierProvider.select((value) => value.externalCalls),
     );
 
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
-    final baseCurrency = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+    final baseCurrency = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.currency),
+    );
 
-    final tokenContract = widget.isToken
-        ? ref.watch(pCurrentTokenWallet.select((value) => value!.tokenContract))
-        : null;
+    final tokenContract =
+        widget.isToken
+            ? ref.watch(
+              pCurrentTokenWallet.select((value) => value!.tokenContract),
+            )
+            : null;
 
-    final priceTuple = widget.isToken
-        ? ref.watch(
-            priceAnd24hChangeNotifierProvider
-                .select((value) => value.getTokenPrice(tokenContract!.address)),
-          )
-        : ref.watch(
-            priceAnd24hChangeNotifierProvider
-                .select((value) => value.getPrice(coin)),
-          );
+    final priceTuple =
+        widget.isToken
+            ? ref.watch(
+              priceAnd24hChangeNotifierProvider.select(
+                (value) => value.getTokenPrice(tokenContract!.address),
+              ),
+            )
+            : ref.watch(
+              priceAnd24hChangeNotifierProvider.select(
+                (value) => value.getPrice(coin),
+              ),
+            );
 
     final _showAvailable =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
-            WalletBalanceToggleState.available;
+        WalletBalanceToggleState.available;
 
     final Amount balanceToShow;
     if (isFiro) {
@@ -115,13 +120,15 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
           break;
       }
     } else {
-      final Balance balance = widget.isToken
-          ? ref.watch(
-              pTokenBalance(
-                (walletId: walletId, contractAddress: tokenContract!.address),
-              ),
-            )
-          : ref.watch(pWalletBalance(walletId));
+      final Balance balance =
+          widget.isToken
+              ? ref.watch(
+                pTokenBalance((
+                  walletId: walletId,
+                  contractAddress: tokenContract!.address,
+                )),
+              )
+              : ref.watch(pWalletBalance(walletId));
 
       balanceToShow = _showAvailable ? balance.spendable : balance.total;
     }
@@ -145,47 +152,40 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                 ),
                 if (externalCalls)
                   SelectableText(
-                    "${Amount.fromDecimal(
-                      priceTuple.item1 * balanceToShow.decimal,
-                      fractionDigits: 2,
-                    ).fiatString(
-                      locale: locale,
-                    )} $baseCurrency",
+                    "${Amount.fromDecimal(priceTuple.item1 * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle1,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textSubtitle1,
                     ),
                   ),
-                if (coin is Firo)
-                  Row(
-                    children: [
-                      DesktopPrivateBalanceToggleButton(
-                        walletId: walletId,
-                      ),
-                      const SizedBox(
-                        width: 8,
-                      ),
-                      const DesktopBalanceToggleButton(),
-                    ],
-                  ),
+                // if (coin is Firo)
+                //   Row(
+                //     children: [
+                //       DesktopPrivateBalanceToggleButton(
+                //         walletId: walletId,
+                //       ),
+                //       const SizedBox(
+                //         width: 8,
+                //       ),
+                //       const DesktopBalanceToggleButton(),
+                //     ],
+                //   ),
               ],
             ),
-            const SizedBox(
-              width: 8,
-            ),
+            const SizedBox(width: 8),
             WalletRefreshButton(
               walletId: walletId,
               initialSyncStatus: widget.initialSyncStatus,
-              tokenContractAddress: widget.isToken
-                  ? ref.watch(pCurrentTokenWallet)!.tokenContract.address
-                  : null,
+              tokenContractAddress:
+                  widget.isToken
+                      ? ref.watch(pCurrentTokenWallet)!.tokenContract.address
+                      : null,
             ),
-            if (coin is! Firo)
-              const SizedBox(
-                width: 8,
-              ),
-            if (coin is! Firo) const DesktopBalanceToggleButton(),
+
+            const SizedBox(width: 8),
+            const DesktopBalanceToggleButton(),
           ],
         );
       },

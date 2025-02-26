@@ -22,7 +22,9 @@ import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/wallets_provider.dart';
 import '../../../../../themes/stack_colors.dart';
+import '../../../../../themes/theme_providers.dart';
 import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/constants.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/show_loading.dart';
 import '../../../../../utilities/text_styles.dart';
@@ -54,10 +56,11 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     super.key,
     required this.walletId,
     required this.onPaynymPressed,
+    required this.onBuyPressed,
     required this.onCoinControlPressed,
     required this.onLelantusCoinsPressed,
     required this.onSparkCoinsPressedPressed,
-    required this.onAnonymizeAllPressed,
+    // required this.onAnonymizeAllPressed,
     required this.onWhirlpoolPressed,
     required this.onOrdinalsPressed,
     required this.onMonkeyPressed,
@@ -68,10 +71,11 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
 
   final String walletId;
   final VoidCallback? onPaynymPressed;
+  final VoidCallback? onBuyPressed;
   final VoidCallback? onCoinControlPressed;
   final VoidCallback? onLelantusCoinsPressed;
   final VoidCallback? onSparkCoinsPressedPressed;
-  final VoidCallback? onAnonymizeAllPressed;
+  // final VoidCallback? onAnonymizeAllPressed;
   final VoidCallback? onWhirlpoolPressed;
   final VoidCallback? onOrdinalsPressed;
   final VoidCallback? onMonkeyPressed;
@@ -92,12 +96,12 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
 
     try {
       // Toggle enableLelantusScanning in wallet info.
-      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-        newEntries: {
-          WalletInfoKeys.enableLelantusScanning: newValue,
-        },
-        isar: ref.read(mainDBProvider).isar,
-      );
+      await ref
+          .read(pWalletInfo(widget.walletId))
+          .updateOtherData(
+            newEntries: {WalletInfoKeys.enableLelantusScanning: newValue},
+            isar: ref.read(mainDBProvider).isar,
+          );
 
       if (newValue) {
         await _doRescanMaybe();
@@ -117,12 +121,12 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
 
     try {
       // Toggle enableOptInRbf in wallet info.
-      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-        newEntries: {
-          WalletInfoKeys.enableOptInRbf: newValue,
-        },
-        isar: ref.read(mainDBProvider).isar,
-      );
+      await ref
+          .read(pWalletInfo(widget.walletId))
+          .updateOtherData(
+            newEntries: {WalletInfoKeys.enableOptInRbf: newValue},
+            isar: ref.read(mainDBProvider).isar,
+          );
     } finally {
       // ensure _switchRbfToggledLock is set to false no matter what
       _switchRbfToggledLock = false;
@@ -138,17 +142,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
           child: Column(
             children: [
               const DesktopDialogCloseButton(),
-              const SizedBox(
-                height: 5,
-              ),
+              const SizedBox(height: 5),
               Text(
                 "Rescan may be required",
                 style: STextStyles.desktopH2(context),
                 textAlign: TextAlign.left,
               ),
-              const SizedBox(
-                height: 16,
-              ),
+              const SizedBox(height: 16),
               const Spacer(),
               Text(
                 "A blockchain rescan may be required to fully recover all lelantus history."
@@ -160,11 +160,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               ),
               const Spacer(),
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                  bottom: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
                 child: Row(
                   children: [
                     Expanded(
@@ -175,9 +171,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                         },
                       ),
                     ),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: PrimaryButton(
                         label: "Later",
@@ -200,9 +194,10 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
         Exception? e;
         if (mounted) {
           await showLoading(
-            whileFuture: ref.read(pWallets).getWallet(widget.walletId).recover(
-                  isRescan: true,
-                ),
+            whileFuture: ref
+                .read(pWallets)
+                .getWallet(widget.walletId)
+                .recover(isRescan: true),
             context: context,
             message: "Rescanning blockchain",
             subMessage:
@@ -223,22 +218,26 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             context: context,
             useSafeArea: false,
             barrierDismissible: true,
-            builder: (context) => StackDialog(
-              title: "Rescan failed",
-              message: e.toString(),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Ok",
-                  style: STextStyles.itemSubtitle12(context),
+            builder:
+                (context) => StackDialog(
+                  title: "Rescan failed",
+                  message: e.toString(),
+                  rightButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    child: Text(
+                      "Ok",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                    onPressed: () {
+                      Navigator.of(
+                        context,
+                        rootNavigator: Util.isDesktop,
+                      ).pop();
+                    },
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: Util.isDesktop).pop();
-                },
-              ),
-            ),
           );
         }
       } finally {
@@ -293,9 +292,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                           "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
                           style: STextStyles.desktopTextSmall(context),
                         ),
-                        const SizedBox(
-                          height: 43,
-                        ),
+                        const SizedBox(height: 43),
                         Row(
                           children: [
                             Expanded(
@@ -307,9 +304,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                 label: "Cancel",
                               ),
                             ),
-                            const SizedBox(
-                              width: 16,
-                            ),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: PrimaryButton(
                                 buttonHeight: ButtonHeight.l,
@@ -343,12 +338,12 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
   }
 
   Future<void> _updateAddressReuse(bool shouldReuse) async {
-    await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-      newEntries: {
-        WalletInfoKeys.reuseAddress: shouldReuse,
-      },
-      isar: ref.read(mainDBProvider).isar,
-    );
+    await ref
+        .read(pWalletInfo(widget.walletId))
+        .updateOtherData(
+          newEntries: {WalletInfoKeys.reuseAddress: shouldReuse},
+          isar: ref.read(mainDBProvider).isar,
+        );
 
     if (_switchController.isOn != null) {
       if (_switchController.isOn!.call() != shouldReuse) {
@@ -366,19 +361,16 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
   @override
   Widget build(BuildContext context) {
     final wallet = ref.watch(
-      pWallets.select(
-        (value) => value.getWallet(widget.walletId),
-      ),
+      pWallets.select((value) => value.getWallet(widget.walletId)),
     );
 
     final coinControlPrefEnabled = ref.watch(
-      prefsChangeNotifierProvider.select(
-        (value) => value.enableCoinControl,
-      ),
+      prefsChangeNotifierProvider.select((value) => value.enableCoinControl),
     );
 
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
-    final isViewOnlyNoAddressGen = wallet is ViewOnlyOptionInterface &&
+    final isViewOnlyNoAddressGen =
+        wallet is ViewOnlyOptionInterface &&
         wallet.isViewOnly &&
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
 
@@ -391,9 +383,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32),
                 child: Text(
                   "More features",
                   style: STextStyles.desktopH3(context),
@@ -402,13 +392,25 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (!isViewOnly && wallet.info.coin is Firo)
+          if (Constants.enableExchange &&
+              AppConfig.hasFeature(AppFeature.buy) &&
+              ref.watch(prefsChangeNotifierProvider).enableExchange)
             _MoreFeaturesItem(
-              label: "Anonymize funds",
-              detail: "Anonymize funds",
-              iconAsset: Assets.svg.recycle,
-              onPressed: () async => widget.onAnonymizeAllPressed?.call(),
+              label: "Buy",
+              detail: "Buy cryptocurrency",
+              isSvgFile: true,
+              iconAsset: ref.watch(
+                themeProvider.select((value) => value.assets.buy),
+              ),
+              onPressed: () async => widget.onBuyPressed?.call(),
             ),
+          // if (!isViewOnly && wallet.info.coin is Firo)
+          //   _MoreFeaturesItem(
+          //     label: "Anonymize funds",
+          //     detail: "Anonymize funds",
+          //     iconAsset: Assets.svg.recycle,
+          //     onPressed: () async => widget.onAnonymizeAllPressed?.call(),
+          //   ),
           // TODO: [prio=med]
           // if (manager.hasWhirlpoolSupport)
           //   _MoreFeaturesItem(
@@ -425,8 +427,11 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               onPressed: () async => widget.onCoinControlPressed?.call(),
             ),
           if (wallet is FiroWallet &&
-              ref.watch(prefsChangeNotifierProvider
-                  .select((s) => s.advancedFiroFeatures)))
+              ref.watch(
+                prefsChangeNotifierProvider.select(
+                  (s) => s.advancedFiroFeatures,
+                ),
+              ))
             _MoreFeaturesItem(
               label: "Lelantus Coins",
               detail: "View wallet lelantus coins",
@@ -434,8 +439,11 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               onPressed: () async => widget.onLelantusCoinsPressed?.call(),
             ),
           if (wallet is FiroWallet &&
-              ref.watch(prefsChangeNotifierProvider
-                  .select((s) => s.advancedFiroFeatures)))
+              ref.watch(
+                prefsChangeNotifierProvider.select(
+                  (s) => s.advancedFiroFeatures,
+                ),
+              ))
             _MoreFeaturesItem(
               label: "Spark Coins",
               detail: "View wallet spark coins",
@@ -497,17 +505,18 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                     height: 20,
                     width: 40,
                     child: DraggableSwitchButton(
-                      isOn: ref.watch(
-                            pWalletInfo(widget.walletId)
-                                .select((value) => value.otherData),
-                          )[WalletInfoKeys.enableLelantusScanning] as bool? ??
+                      isOn:
+                          ref.watch(
+                                pWalletInfo(
+                                  widget.walletId,
+                                ).select((value) => value.otherData),
+                              )[WalletInfoKeys.enableLelantusScanning]
+                              as bool? ??
                           false,
                       onValueChanged: _switchToggled,
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -529,17 +538,18 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                     height: 20,
                     width: 40,
                     child: DraggableSwitchButton(
-                      isOn: ref.watch(
-                            pWalletInfo(widget.walletId)
-                                .select((value) => value.otherData),
-                          )[WalletInfoKeys.enableOptInRbf] as bool? ??
+                      isOn:
+                          ref.watch(
+                                pWalletInfo(
+                                  widget.walletId,
+                                ).select((value) => value.otherData),
+                              )[WalletInfoKeys.enableOptInRbf]
+                              as bool? ??
                           false,
                       onValueChanged: _switchRbfToggled,
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -564,18 +574,19 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                     width: 40,
                     child: IgnorePointer(
                       child: DraggableSwitchButton(
-                        isOn: ref.watch(
-                              pWalletInfo(widget.walletId)
-                                  .select((value) => value.otherData),
-                            )[WalletInfoKeys.reuseAddress] as bool? ??
+                        isOn:
+                            ref.watch(
+                                  pWalletInfo(
+                                    widget.walletId,
+                                  ).select((value) => value.otherData),
+                                )[WalletInfoKeys.reuseAddress]
+                                as bool? ??
                             false,
                         controller: _switchController,
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -588,9 +599,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                 ],
               ),
             ),
-          const SizedBox(
-            height: 28,
-          ),
+          const SizedBox(height: 28),
         ],
       ),
     );
@@ -603,6 +612,7 @@ class _MoreFeaturesItem extends StatefulWidget {
     required this.label,
     required this.detail,
     required this.iconAsset,
+    this.isSvgFile = false,
     this.onPressed,
   });
 
@@ -612,6 +622,7 @@ class _MoreFeaturesItem extends StatefulWidget {
   final String label;
   final String detail;
   final String iconAsset;
+  final bool isSvgFile;
   final Future<void> Function()? onPressed;
 
   @override
@@ -644,26 +655,33 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
             height: _MoreFeaturesItem.iconSizeBG,
             radiusMultiplier: _MoreFeaturesItem.iconSizeBG,
             child: Center(
-              child: SvgPicture.asset(
-                widget.iconAsset,
-                width: _MoreFeaturesItem.iconSize,
-                height: _MoreFeaturesItem.iconSize,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .settingsIconIcon,
-              ),
+              child:
+                  widget.isSvgFile
+                      ? SvgPicture.file(
+                        File(widget.iconAsset),
+                        width: _MoreFeaturesItem.iconSize,
+                        height: _MoreFeaturesItem.iconSize,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.settingsIconIcon,
+                      )
+                      : SvgPicture.asset(
+                        widget.iconAsset,
+                        width: _MoreFeaturesItem.iconSize,
+                        height: _MoreFeaturesItem.iconSize,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.settingsIconIcon,
+                      ),
             ),
           ),
-          const SizedBox(
-            width: 16,
-          ),
+          const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.label,
-                style: STextStyles.w600_20(context),
-              ),
+              Text(widget.label, style: STextStyles.w600_20(context)),
               Text(
                 widget.detail,
                 style: STextStyles.desktopTextExtraExtraSmall(context),
@@ -677,11 +695,7 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
 }
 
 class _MoreFeaturesItemBase extends StatelessWidget {
-  const _MoreFeaturesItemBase({
-    super.key,
-    required this.child,
-    this.onPressed,
-  });
+  const _MoreFeaturesItemBase({super.key, required this.child, this.onPressed});
 
   final Widget child;
   final VoidCallback? onPressed;
@@ -689,10 +703,7 @@ class _MoreFeaturesItemBase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 6,
-        horizontal: 32,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 32),
       child: RoundedContainer(
         color: Colors.transparent,
         borderColor:
@@ -755,22 +766,18 @@ class _MoreFeaturesClearSparkCacheItemState
                 Assets.svg.x,
                 width: _MoreFeaturesItem.iconSize,
                 height: _MoreFeaturesItem.iconSize,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .settingsIconIcon,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.settingsIconIcon,
               ),
             ),
           ),
-          const SizedBox(
-            width: 16,
-          ),
+          const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: STextStyles.w600_20(context),
-              ),
+              Text(label, style: STextStyles.w600_20(context)),
               FutureBuilder(
                 future: FiroCacheCoordinator.getSparkCacheSize(
                   widget.cryptoCurrency.network,
