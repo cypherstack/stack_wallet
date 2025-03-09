@@ -77,6 +77,9 @@ import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'widgets/crypto_notifications.dart';
 
+// Add OS detection import
+import 'os_detection.dart'; 
+
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
 
@@ -85,6 +88,35 @@ final openedFromSWBFileStringStateProvider =
 // miscellaneous box for later use
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+// Add OS detection and Tor configuration Tails/Whonix
+final isTails = await OSDetector.isTails();
+final isWhonix = await OSDetector.isWhonix();
+
+if (isTails) {
+  print('Tails detected, configuring Tor to use 127.0.0.1:9050');
+  // Configure Tor to use 127.0.0.1:9050
+  TorService.sharedInstance.init(
+    torDataDirPath: (await StackFileSystem.applicationTorDirectory()).path,
+    proxySettings: {
+      'host': '127.0.0.1',
+      'port': 9050,
+      'type': 'socks5h',
+    },
+  );
+  await TorService.sharedInstance.start();
+} else if (isWhonix) {
+  print('Whonix detected, using gateway Tor');
+  // No need to configure Tor, just notify the user
+} else {
+  // Existing Tor initialization
+  if (Prefs.instance.useTor) {
+    TorService.sharedInstance.init(
+      torDataDirPath: (await StackFileSystem.applicationTorDirectory()).path,
+    );
+    await TorService.sharedInstance.start();
+  }
+}
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
     StackFileSystem.setDesktopOverrideDir(args.last);
