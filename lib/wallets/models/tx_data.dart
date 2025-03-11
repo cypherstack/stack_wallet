@@ -146,11 +146,6 @@ class TxData {
     return null;
   }
 
-  String? get getOtherData {
-    final val = this.otherData;
-    return val;
-  }
-
   Amount? get amountSpark =>
       sparkRecipients != null && sparkRecipients!.isNotEmpty
           ? sparkRecipients!

@@ -678,7 +678,7 @@ class XelisWallet extends LibXelisWallet {
       final recipient = txData.recipients!.first;
       final Amount sendAmount = recipient.amount;
 
-      final asset = (txData.getOtherData != null ? jsonDecode(txData.getOtherData!) : null)?['asset'] ?? xelis_sdk.xelisAsset;
+      final asset = (txData.otherData != null ? jsonDecode(txData.otherData!) : null)?['asset'] ?? xelis_sdk.xelisAsset;
 
       final amt = double.parse(await libXelisWallet!.formatCoin(
         atomicAmount: sendAmount.raw, 

@@ -2345,9 +2345,11 @@ packages:
   xelis_flutter:
     dependency: "direct main"
     description:
-      path: "crypto_plugins/xelis_flutter"
-      relative: true
-    source: path
+      path: "."
+      ref: "v0.1.0"
+      resolved-ref: "2d36e584ae5d913b2634bcfe54e2266880cbd813"
+      url: "https://github.com/Tritonn204/xelis_flutter_ffi.git"
+    source: git
     version: "0.0.2"
   xml:
     dependency: transitive
