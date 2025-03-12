@@ -12,6 +12,7 @@ import 'package:decimal/decimal.dart';
 
 class TrocadorQuote {
   final String provider;
+  final String? providerLogo;
   final String kycRating;
   final int insurance;
   final bool fixed;
@@ -21,6 +22,7 @@ class TrocadorQuote {
 
   TrocadorQuote({
     required this.provider,
+    this.providerLogo,
     required this.kycRating,
     required this.insurance,
     required this.fixed,
@@ -32,6 +34,7 @@ class TrocadorQuote {
   factory TrocadorQuote.fromMap(Map<String, dynamic> map) {
     return TrocadorQuote(
       provider: map['provider'] as String,
+      providerLogo: map['provider_logo'] as String?,
       kycRating: map['kycrating'] as String,
       insurance: map['insurance'] as int,
       // wtf trocador?

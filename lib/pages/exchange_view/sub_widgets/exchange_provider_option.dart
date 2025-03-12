@@ -314,7 +314,43 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                   child: SizedBox(
                     width: isDesktop ? 32 : 24,
                     height: isDesktop ? 32 : 24,
-                    child: SvgPicture.asset(
+                    child: widget.estimate?.exchangeProviderLogo != null &&
+                        widget
+                            .estimate!
+                            .exchangeProviderLogo!
+                            .isNotEmpty
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: Image.network(
+                        widget.estimate!.exchangeProviderLogo!,
+                        loadingBuilder: (
+                            context,
+                            child,
+                            loadingProgress,
+                            ) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return const Center(
+                              child:
+                              CircularProgressIndicator(),
+                            );
+                          }
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return SvgPicture.asset(
+                            Assets.exchange.getIconFor(
+                              exchangeName: widget.exchange.name,
+                            ),
+                            width: isDesktop ? 32 : 24,
+                            height: isDesktop ? 32 : 24,
+                          );
+                        },
+                        width: isDesktop ? 32 : 24,
+                        height: isDesktop ? 32 : 24,
+                      ),
+                    )
+                        : SvgPicture.asset(
                       Assets.exchange.getIconFor(
                         exchangeName: widget.exchange.name,
                       ),
