@@ -50,7 +50,7 @@ class Xelis extends ElectrumCurrency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "127.0.0.1",
+          host: "us-node.xelis.io",
           port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),

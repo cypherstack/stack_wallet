@@ -301,11 +301,11 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
 
       final node = getCurrentNode();
       Logging.instance.log(
-        "Connecting to node: ${node.host}",
+        "Connecting to node: ${node.host}:${node.port}",
         level: LogLevel.Info,
       );
       await libXelisWallet!.onlineMode(
-        daemonAddress: node.host
+        daemonAddress: "${node.host}:${node.port}"
       );
       await super.refresh();
     } catch (e, s) {

@@ -304,7 +304,7 @@ Future<bool> testNodeConnection({
     case Xelis():
       try {
         final daemon = xelis_sdk.DaemonClient(
-          endPoint: formData.host!,
+          endPoint: "${formData.host!}:${formData.port!}",
           secureWebSocket: formData.useSSL ?? false,
         );
         daemon.connect();
