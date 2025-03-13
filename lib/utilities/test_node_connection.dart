@@ -26,7 +26,6 @@ import 'test_monero_node_connection.dart';
 import 'test_stellar_node_connection.dart';
 import 'tor_plain_net_option_enum.dart';
 
-import 'package:logging/logging.dart' as std_logging;
 import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
 
 Future<bool> _xmrHelper(
