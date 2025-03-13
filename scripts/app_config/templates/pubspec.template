@@ -30,15 +30,6 @@ dependencies:
   frostdart:
     path: ./crypto_plugins/frostdart
 
-  xelis_flutter:
-    git:
-      url: https://github.com/Tritonn204/xelis_flutter_ffi.git
-      ref: v0.1.0
-      
-  xelis_dart_sdk: ^0.24.0
-
-  freezed_annotation: ^2.4.1
-
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
@@ -233,7 +224,6 @@ dev_dependencies:
     sdk: flutter
   integration_test:
       sdk: flutter
-  freezed: ^2.4.2
   build_runner: ^2.1.7
   flutter_launcher_icons: ^0.13.1
   hive_generator: ^2.0.0

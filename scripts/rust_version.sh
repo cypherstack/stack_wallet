@@ -17,12 +17,3 @@ set_rust_to_1720() {
     exit 1
   fi
 }
-
-set_rust_to_1840() {
-  if rustup toolchain list | grep -q "1.84.0"; then
-    rustup default 1.84.0
-  else
-    echo "Rust version 1.84.0 is not installed. Please install it using 'rustup install 1.84.0'." >&2
-    exit 1
-  fi
-}
