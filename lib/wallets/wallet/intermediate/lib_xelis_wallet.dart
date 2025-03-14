@@ -183,6 +183,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
   static Completer<void>? _tableGenerationCompleter;
 
   x_wallet.XelisWallet? libXelisWallet;
+  int pruningHeight = 0;
 
   x_wallet.XelisWallet? get wallet => libXelisWallet;
   set wallet(x_wallet.XelisWallet? newWallet) {
@@ -273,10 +274,10 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
             yield HistorySynced(json['data']['topoheight'] as int);
         }
       } catch (e, s) {
-        Logging.instance.log(
-          "Error processing wallet event: $e\n$s",
-          level: LogLevel.Error,
-        );
+        // Logging.instance.log(
+        //   "Error processing wallet event: $e\n$s",
+        //   level: LogLevel.Error,
+        // );
         continue;
       }
     }
@@ -300,19 +301,19 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
         convertRawEvents().listen(handleEvent);
 
       final node = getCurrentNode();
-      Logging.instance.log(
-        "Connecting to node: ${node.host}:${node.port}",
-        level: LogLevel.Info,
-      );
+      // Logging.instance.log(
+      //   "Connecting to node: ${node.host}:${node.port}",
+      //   level: LogLevel.Info,
+      // );
       await libXelisWallet!.onlineMode(
         daemonAddress: "${node.host}:${node.port}"
       );
       await super.refresh();
     } catch (e, s) {
-      Logging.instance.log(
-        "Error connecting to node: $e\n$s",
-        level: LogLevel.Error,
-      );
+      // Logging.instance.log(
+      //   "Error connecting to node: $e\n$s",
+      //   level: LogLevel.Error,
+      // );
       rethrow;
     }
   }
@@ -427,10 +428,10 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
             }
           });
         } catch (e, s) {
-          Logging.instance.log(
-            "Failed to open/create wallet: $e\n$s",
-            level: LogLevel.Error,
-          );
+          // Logging.instance.log(
+          //   "Failed to open/create wallet: $e\n$s",
+          //   level: LogLevel.Error,
+          // );
           rethrow;
         }
       });
@@ -465,10 +466,10 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
       try {
         await connect();
       } catch (e) {
-        Logging.instance.log(
-          "Failed to start sync: $e",
-          level: LogLevel.Error,
-        );
+        // Logging.instance.log(
+        //   "Failed to start sync: $e",
+        //   level: LogLevel.Error,
+        // );
         rethrow;
       }
     }
@@ -486,6 +487,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
       _eventSubscription = null;
 
       await libXelisWallet?.offlineMode();
+      await libXelisWallet?.close();
       libXelisWallet?.dispose();
       libXelisWallet = null;
       
@@ -554,10 +556,10 @@ extension XelisTableManagement on LibXelisWallet {
         debugPrint("Table upgrade done");
         LibXelisWallet._tableGenerationCompleter!.complete();
       } catch (e, s) {
-        Logging.instance.log(
-          "Failed to update tables: $e\n$s",
-          level: LogLevel.Error,
-        );
+        // Logging.instance.log(
+        //   "Failed to update tables: $e\n$s",
+        //   level: LogLevel.Error,
+        // );
         await setTableState(state.copyWith(isGenerating: false));
         
         LibXelisWallet._tableGenerationCompleter!.completeError(e);

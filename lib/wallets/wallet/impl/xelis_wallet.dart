@@ -139,10 +139,10 @@ class XelisWallet extends LibXelisWallet {
     try {
       await open();
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from recoverFromMnemonic(): $e\n$s",
-        level: LogLevel.Error,
-      );
+      // Logging.instance.log(
+      //   "Exception rethrown from recoverFromMnemonic(): $e\n$s",
+      //   level: LogLevel.Error,
+      // );
       rethrow;
     }
   }
@@ -193,10 +193,10 @@ class XelisWallet extends LibXelisWallet {
           ); 
         }
       } catch (e, s) {
-        Logging.instance.log(
-          "Error in updateBalance(): $e\n$s",
-          level: LogLevel.Warning,
-        );
+        // Logging.instance.log(
+        //   "Error in updateBalance(): $e\n$s",
+        //   level: LogLevel.Warning,
+        // );
       }
     });
   }
@@ -204,6 +204,8 @@ class XelisWallet extends LibXelisWallet {
   Future<int> _fetchChainHeight() async {
     final infoString = await libXelisWallet!.getDaemonInfo();
     final Map<String, dynamic> nodeInfo = json.decode(infoString);
+
+    pruningHeight = int.parse(nodeInfo['pruned_topoheight'].toString());
     return int.parse(nodeInfo['topoheight'].toString());
   }
 
@@ -217,10 +219,10 @@ class XelisWallet extends LibXelisWallet {
         isar: mainDB.isar,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "Error in updateChainHeight(): $e\n$s",
-        level: LogLevel.Warning,
-      );
+      // Logging.instance.log(
+      //   "Error in updateChainHeight(): $e\n$s",
+      //   level: LogLevel.Warning,
+      // );
     }
   }
 
@@ -228,15 +230,16 @@ class XelisWallet extends LibXelisWallet {
   Future<void> updateNode() async {
     try {
       final node = getCurrentNode();
-      await libXelisWallet?.offlineMode();
-      await libXelisWallet!.onlineMode(
-        daemonAddress: node.host
-      );
+      final bool online = await libXelisWallet!.isOnline();
+      if (online == true) {
+        await libXelisWallet!.offlineMode();
+      }
+      await super.connect();
     } catch (e, s) {
-      Logging.instance.log(
-        "Error updating node: $e\n$s",
-        level: LogLevel.Error,
-      );
+      // Logging.instance.log(
+      //   "Error updating node: $e\n$s",
+      //   level: LogLevel.Error,
+      // );
       rethrow;
     }
   }
@@ -276,7 +279,7 @@ class XelisWallet extends LibXelisWallet {
         firstBlock -= 10;
       }
     } else {
-      await libXelisWallet!.rescan(topoheight: BigInt.from(topoheight!));
+      await libXelisWallet!.rescan(topoheight: BigInt.from(pruningHeight));
     }
 
     final txListJson = rawTransactions ?? await libXelisWallet!.allHistory();
@@ -457,18 +460,18 @@ class XelisWallet extends LibXelisWallet {
           }),
         );
 
-        Logging.instance.log(
-          "Entry done ${entryType.toString()}",
-          level: LogLevel.Debug,
-        );
+        // Logging.instance.log(
+        //   "Entry done ${entryType.toString()}",
+        //   level: LogLevel.Debug,
+        // );
 
 
         txns.add(txn);
       } catch (e, s) {
-        Logging.instance.log(
-          "Error handling tx $jsonString: $e\n$s",
-          level: LogLevel.Warning,
-        );
+        // Logging.instance.log(
+        //   "Error handling tx $jsonString: $e\n$s",
+        //   level: LogLevel.Warning,
+        // );
       }
     }
     await updateBalance();
@@ -574,10 +577,10 @@ class XelisWallet extends LibXelisWallet {
         }),
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from prepareSend(): $e\n$s",
-        level: LogLevel.Error,
-      );
+      // Logging.instance.log(
+      //   "Exception rethrown from prepareSend(): $e\n$s",
+      //   level: LogLevel.Error,
+      // );
       rethrow;
     }
   }
@@ -657,10 +660,10 @@ class XelisWallet extends LibXelisWallet {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from estimateFeeFor(): $e\n$s",
-        level: LogLevel.Error,
-      );
+      // Logging.instance.log(
+      //   "Exception rethrown from estimateFeeFor(): $e\n$s",
+      //   level: LogLevel.Error,
+      // );
       rethrow;
     }
   }
@@ -707,10 +710,10 @@ class XelisWallet extends LibXelisWallet {
         txid: txHash,
       ));
     } catch (e, s) {
-      Logging.instance.log(
-        "Exception rethrown from confirmSend(): $e\n$s",
-        level: LogLevel.Error,
-      );
+      // Logging.instance.log(
+      //   "Exception rethrown from confirmSend(): $e\n$s",
+      //   level: LogLevel.Error,
+      // );
       rethrow;
     }
   }
@@ -737,10 +740,10 @@ class XelisWallet extends LibXelisWallet {
           await handleHistorySynced(topoheight);
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Error handling wallet event: $e\n$s",
-        level: LogLevel.Error,
-      );
+      // Logging.instance.log(
+      //   "Error handling wallet event: $e\n$s",
+      //   level: LogLevel.Error,
+      // );
     }
   }
 
@@ -763,15 +766,15 @@ class XelisWallet extends LibXelisWallet {
 
       await updateBalance();
       
-      Logging.instance.log(
-        "New transaction processed: ${newTxIds.first}",
-        level: LogLevel.Info,
-      );
+      // Logging.instance.log(
+      //   "New transaction processed: ${newTxIds.first}",
+      //   level: LogLevel.Info,
+      // );
     } catch (e, s) {
-      Logging.instance.log(
-        "Error handling new transaction: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      // Logging.instance.log(
+      //   "Error handling new transaction: $e\n$s",
+      //   level: LogLevel.Warning,
+      // );
     }
   }
 
@@ -785,10 +788,10 @@ class XelisWallet extends LibXelisWallet {
       
       // TODO: Update asset balances if needed
     } catch (e, s) {
-      Logging.instance.log(
-        "Error handling balance change: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      // Logging.instance.log(
+      //   "Error handling balance change: $e\n$s",
+      //   level: LogLevel.Warning,
+      // );
     }
   }
 
@@ -842,24 +845,35 @@ class XelisWallet extends LibXelisWallet {
   Future<void> handleNewAsset(xelis_sdk.AssetData asset) async {
     // TODO: Store asset information if needed
     // TODO: Update UI/state for new asset
-    Logging.instance.log(
-      "New asset detected: ${asset}",
-      level: LogLevel.Info,
-    );
+    // Logging.instance.log(
+    //   "New asset detected: ${asset}",
+    //   level: LogLevel.Info,
+    // );
   }
 
   @override
   Future<void> refresh({int? topoheight}) async {
     await refreshMutex.protect(() async {
       try {
-        await updateChainHeight(topoheight: topoheight);
-        await updateBalance();
-        await updateTransactions();
+        final bool online = await libXelisWallet!.isOnline();
+        if (online == true) {
+          await updateChainHeight(topoheight: topoheight);
+          await updateBalance();
+          await updateTransactions();
+        } else {
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.unableToSync,
+              walletId,
+              info.coin,
+            ),
+          );
+        }
       } catch (e, s) {
-        Logging.instance.log(
-          "Error in refresh(): $e\n$s",
-          level: LogLevel.Warning,
-        );
+        // Logging.instance.log(
+        //   "Error in refresh(): $e\n$s",
+        //   level: LogLevel.Warning,
+        // );
       }
     });
   }

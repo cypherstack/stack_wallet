@@ -311,9 +311,8 @@ Future<bool> testNodeConnection({
         final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
         testPassed = networkInfo.height != null;
 
-        Logging.instance.log(
+        Logging.instance.i(
           "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
-          level: LogLevel.Info,
         );
       } catch (e, s) {
         testPassed = false;

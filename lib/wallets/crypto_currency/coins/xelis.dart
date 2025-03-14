@@ -59,7 +59,7 @@ class Xelis extends ElectrumCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
-          torEnabled: true,
+          torEnabled: false,
           clearnetEnabled: true,
         );
 
@@ -74,7 +74,7 @@ class Xelis extends ElectrumCurrency {
           coinName: identifier,
           isFailover: true,
           isDown: false,
-          torEnabled: true,
+          torEnabled: false,
           clearnetEnabled: true,
         );
 
@@ -87,7 +87,7 @@ class Xelis extends ElectrumCurrency {
   int get minConfirms => 1;
 
   @override
-  bool get torSupport => true;
+  bool get torSupport => false;
 
   @override
   bool validateAddress(String address) {
