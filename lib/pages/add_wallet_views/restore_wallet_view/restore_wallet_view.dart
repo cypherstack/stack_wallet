@@ -207,7 +207,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       );
       return wowneroWordList.contains(word);
     }
-    // TODO: use Xelis word list
     if (widget.coin is Xelis) {
       return _xelisSeedSearch!.search(query: word).length > 0;
     }
