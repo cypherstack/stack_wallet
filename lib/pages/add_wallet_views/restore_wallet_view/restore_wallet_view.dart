@@ -25,6 +25,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import 'package:xelis_flutter/src/api/seed_search_engine.dart' as x_seed;
+
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -104,6 +106,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   late final int _seedWordCount;
   late final bool isDesktop;
 
+  x_seed.SearchEngine? _xelisSeedSearch;
   final HashSet<String> _wordListHashSet = HashSet.from(bip39wordlist.WORDLIST);
   final ScrollController controller = ScrollController();
 
@@ -168,6 +171,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       // _focusNodes.add(FocusNode());
     }
 
+    if (widget.coin is Xelis) {
+      _xelisSeedSearch = x_seed.SearchEngine.init(languageIndex: BigInt.from(0));
+    }
+
     super.initState();
   }
 
@@ -202,7 +209,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     }
     // TODO: use Xelis word list
     if (widget.coin is Xelis) {
-      return true;
+      return _xelisSeedSearch!.search(query: word).length > 0;
     }
     return _wordListHashSet.contains(word);
   }

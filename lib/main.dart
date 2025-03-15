@@ -82,9 +82,9 @@ final openedFromSWBFileStringStateProvider =
 
 void startListeningToRustLogs() {
   xelis_api.createLogStream().listen((logEntry) {
-    print("[Rust Log] [${logEntry.level}] ${logEntry.tag}: ${logEntry.msg}");
+    Logging.instance.i("[Rust Log] [${logEntry.level}] ${logEntry.tag}: ${logEntry.msg}");
   }, onError: (e) {
-    print("Error receiving Rust logs: $e");
+    Logging.instance.e("Error receiving Rust logs: $e");
   });
 }
 
