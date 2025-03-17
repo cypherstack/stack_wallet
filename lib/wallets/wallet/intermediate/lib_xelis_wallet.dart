@@ -9,6 +9,7 @@ import 'package:xelis_flutter/src/api/network.dart' as x_network;
 import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/intermediate/electrum_currency.dart';
@@ -344,7 +345,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
           libXelisWallet = await syncMutex.protect(() async {
             if (needsCreation == 'true') {
-              debugPrint("Xelis: creating new wallet");
+              Logging.instance.i("Xelis: creating new wallet");
               final wallet = await x_wallet.createXelisWallet(
                 name: name,
                 directory: directory,
@@ -371,7 +372,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
               invalidSeedLengthCheck(seedLength);
 
-              debugPrint("Xelis: recovering wallet");
+              Logging.instance.i("Xelis: recovering wallet");
               final wallet = await x_wallet.createXelisWallet(
                 name: name,
                 directory: directory,
@@ -393,7 +394,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
               return wallet;
             } else {
-              debugPrint("Xelis: opening existing wallet");
+              Logging.instance.i("Xelis: opening existing wallet");
               return await x_wallet.openXelisWallet(
                 name: name,
                 directory: directory,
@@ -413,9 +414,9 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
         }
       });
 
-      debugPrint("Checking for upgradability");
+      Logging.instance.i("Xelis: Checking for upgradability");
       if (await isTableUpgradeAvailable()) {
-        debugPrint("Generating large tables in background");
+        Logging.instance.i("Xelis: Generating large tables in background");
         unawaited(updateTablesToDesiredSize());
       }
     }
@@ -533,7 +534,7 @@ extension XelisTableManagement on LibXelisWallet {
           ),
         );
 
-        debugPrint("Table upgrade done");
+        Logging.instance.i("Xelis: Table upgrade done");
         LibXelisWallet._tableGenerationCompleter!.complete();
       } catch (e) {
         // Logging.instance.log(
