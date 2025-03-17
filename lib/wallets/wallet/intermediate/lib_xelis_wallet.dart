@@ -4,12 +4,12 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
 import 'package:xelis_flutter/src/api/network.dart' as x_network;
 import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../utilities/stack_file_system.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/intermediate/electrum_currency.dart';
 import '../wallet.dart';
@@ -174,7 +174,6 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
   final syncMutex = Mutex();
   Timer? timer;
-  String? tablePath;
 
   StreamSubscription<void>? _eventSubscription;
 
@@ -182,7 +181,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
     if (kIsWeb) {
       return "";
     } else {
-      final appDir = await getApplicationSupportDirectory();
+      final appDir = await StackFileSystem.applicationXelisTableDirectory();
       return "${appDir.path}/";
     }
   }
@@ -326,9 +325,9 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
       wasNull = true;
       final tablePath = await getPrecomputedTablesPath();
       final tableState = await getTableState();
-      final appDir = await getApplicationDocumentsDirectory();
+      final xelisDir = await StackFileSystem.applicationXelisDirectory();
       final String name = walletId;
-      final String directory = appDir.path;
+      final String directory = xelisDir.path;
       final password = await secureStorageInterface.read(
         key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
       );
