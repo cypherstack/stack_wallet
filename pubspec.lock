@@ -831,9 +831,11 @@ packages:
   flutter_libsparkmobile:
     dependency: "direct main"
     description:
-      path: "../flutter_libsparkmobile"
-      relative: true
-    source: path
+      path: "."
+      ref: "28d0f6c8db56a7d14d6495e810b8705a5c438929"
+      resolved-ref: "28d0f6c8db56a7d14d6495e810b8705a5c438929"
+      url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
+    source: git
     version: "0.0.2"
   flutter_lints:
     dependency: "direct dev"
