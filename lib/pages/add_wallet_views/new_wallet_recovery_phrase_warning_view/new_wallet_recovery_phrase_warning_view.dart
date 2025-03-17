@@ -191,7 +191,7 @@ class _NewWalletRecoveryPhraseWarningViewState
 
       // TODO: Refactor these to generate each coin in their respective classes
       // This code should not be in a random view page file
-      if (coin is Monero || coin is Wownero) {
+      if (coin is Monero || coin is Wownero || coin is Xelis) {
         // currently a special case due to the
         // xmr/wow libraries handling their
         // own mnemonic generation

@@ -26,6 +26,8 @@ import 'test_monero_node_connection.dart';
 import 'test_stellar_node_connection.dart';
 import 'tor_plain_net_option_enum.dart';
 
+import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
+
 Future<bool> _xmrHelper(
   NodeFormData nodeFormData,
   BuildContext context,
@@ -294,6 +296,25 @@ Future<bool> testNodeConnection({
 
         return health;
       } catch (_) {
+        testPassed = false;
+      }
+      break;
+
+    case Xelis():
+      try {
+        final daemon = xelis_sdk.DaemonClient(
+          endPoint: "${formData.host!}:${formData.port!}",
+          secureWebSocket: formData.useSSL ?? false,
+        );
+        daemon.connect();
+
+        final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
+        testPassed = networkInfo.height != null;
+
+        Logging.instance.i(
+          "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
+        );
+      } catch (e, s) {
         testPassed = false;
       }
       break;

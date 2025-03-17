@@ -74,14 +74,30 @@ import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
 
+import 'package:xelis_flutter/src/frb_generated.dart' as xelis_rust;
+import 'package:xelis_flutter/src/api/api.dart' as xelis_api;
+
 final openedFromSWBFileStringStateProvider =
     StateProvider<String?>((ref) => null);
+
+void startListeningToRustLogs() {
+  xelis_api.createLogStream().listen((logEntry) {
+    Logging.instance.i("[Rust Log] [${logEntry.level}] ${logEntry.tag}: ${logEntry.msg}");
+  }, onError: (e) {
+    Logging.instance.e("Error receiving Rust logs: $e");
+  });
+}
 
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main(List<String> args) async {
+  // talker.info('initializing Rust lib ...');
+  await xelis_rust.RustLib.init();
   WidgetsFlutterBinding.ensureInitialized();
+
+  await xelis_api.setUpRustLogger();
+  startListeningToRustLogs();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
     StackFileSystem.setDesktopOverrideDir(args.last);

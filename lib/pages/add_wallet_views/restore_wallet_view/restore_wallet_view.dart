@@ -25,6 +25,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import 'package:xelis_flutter/src/api/seed_search_engine.dart' as x_seed;
+
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -49,6 +51,7 @@ import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -103,6 +106,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   late final int _seedWordCount;
   late final bool isDesktop;
 
+  x_seed.SearchEngine? _xelisSeedSearch;
   final HashSet<String> _wordListHashSet = HashSet.from(bip39wordlist.WORDLIST);
   final ScrollController controller = ScrollController();
 
@@ -167,6 +171,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       // _focusNodes.add(FocusNode());
     }
 
+    if (widget.coin is Xelis) {
+      _xelisSeedSearch = x_seed.SearchEngine.init(languageIndex: BigInt.from(0));
+    }
+
     super.initState();
   }
 
@@ -198,6 +206,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         seedWordsLength: widget.seedWordsLength,
       );
       return wowneroWordList.contains(word);
+    }
+    if (widget.coin is Xelis) {
+      return _xelisSeedSearch!.search(query: word).length > 0;
     }
     return _wordListHashSet.contains(word);
   }
@@ -283,10 +294,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         );
       }
 
-      // TODO: do actual check to make sure it is a valid mnemonic for monero
+      // TODO: do actual check to make sure it is a valid mnemonic for monero + xelis
       if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin is Monero || widget.coin is Wownero)) {
-        if (mounted) setState(() => _hideSeedWords = false);
+          !(widget.coin is Monero || widget.coin is Wownero || widget.coin is Xelis)) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -369,6 +379,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             case const (WowneroWallet):
               await (wallet as WowneroWallet).init(isRestore: true);
+              break;
+
+            case const (XelisWallet):
+              await (wallet as XelisWallet).init(isRestore: true);
               break;
 
             default:
