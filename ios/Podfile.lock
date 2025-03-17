@@ -220,34 +220,33 @@ SPEC CHECKSUMS:
   devicelocale: 35ba84dc7f45f527c3001535d8c8d104edd5d926
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
-  file_picker: 9b3292d7c8bc68c8a7bf8eb78f730e49c8efc517
+  file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_libepiccash: 7d480d11241faea8aefdcb96991319c5e26d4735
-  flutter_libsparkmobile: e2fcf99dafae4f5d28bf15468bad6d2ba9403c64
-  flutter_local_notifications: ad39620c743ea4c15127860f4b5641649a988100
-  flutter_native_splash: 9e672d3818957718ee006a491730c09deeecace9
-  flutter_secure_storage: 2c2ff13db9e0a5647389bff88b0ecac56e3f3418
+  flutter_libepiccash: 36241aa7d3126f6521529985ccb3dc5eaf7bb317
+  flutter_libsparkmobile: 6373955cc3327a926d17059e7405dde2fb12f99f
+  flutter_local_notifications: 4cde75091f6327eb8517fa068a0a5950212d2086
+  flutter_native_splash: 52501b97d1c0a5f898d687f1646226c1f93c56ef
+  flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
   frostdart: 4c72b69ccac2f13ede744107db046a125acce597
-  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
-  isar_flutter_libs: bc909e72c3d756c2759f14c8776c13b5b0556e26
-  lelantus: a5bdee9de3d78dedd1fffda1d92ea3c67106881f
-  local_auth_darwin: 553ce4f9b16d3fdfeafce9cf042e7c9f77c1c391
+  integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
+  isar_flutter_libs: fdf730ca925d05687f36d7f1d355e482529ed097
+  lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
+  local_auth_darwin: 66e40372f1c29f383a314c738c7446e2f7fdadc3
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
   SDWebImage: 72f86271a6f3139cc7e4a89220946489d4b9a866
-  share_plus: de6030e33b4e106470e09322d87cf2a4258d2d1d
+  share_plus: c3fef564749587fc939ef86ffb283ceac0baf9f5
   sqlite3: 292c3e1bfe89f64e51ea7fc7dab9182a017c8630
   sqlite3_flutter_libs: 0d611efdf6d1c9297d5ab03dab21b75aeebdae31
   stack_wallet_backup: 5b8563aba5d8ffbf2ce1944331ff7294a0ec7c03
   SwiftProtobuf: 6ef3f0e422ef90d6605ca20b21a94f6c1324d6b3
   SwiftyGif: 6c3eafd0ce693cad58bb63d2b2fb9bacb8552780
-  tor_ffi_plugin: 2a4dd758515e5124dce8323f950f6bb135e611b5
-  url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
-  wakelock_plus: fd58c82b1388f4afe3fe8aa2c856503a262a5b03
-  xelis_flutter: 63a1007da6fd27faa9f451bb9c2f7aa165c01cbe
+  tor_ffi_plugin: d80e291b649379c8176e1be739e49be007d4ef93
+  url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
+  wakelock_plus: 78ec7c5b202cab7761af8e2b2b3d0671be6c4ae1
 
 PODFILE CHECKSUM: 57c8aed26fba39d3ec9424816221f294a07c58eb
 

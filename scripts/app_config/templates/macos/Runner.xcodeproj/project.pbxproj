@@ -97,9 +97,7 @@
 		B98151802A674022009D013C /* mobileliblelantus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = mobileliblelantus.framework; path = ../crypto_plugins/flutter_liblelantus/scripts/macos/mobileliblelantus/mobileliblelantus.framework; sourceTree = "<group>"; };
 		B98151832A674143009D013C /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = usr/lib/libsqlite3.0.tbd; sourceTree = SDKROOT; };
 		BF5E76865ACB46314AC27D8F /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
-		CEA2021C2BDD4D7100FE1D27 /* wownero_libwallet2_api_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = wownero_libwallet2_api_c.dylib; sourceTree = "<group>"; };
-		CEA2021F2BDD4F0B00FE1D27 /* monero_libwallet2_api_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = monero_libwallet2_api_c.dylib; sourceTree = "<group>"; };
-		E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+  		E6036BF01BF05EA773C76D22 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1FA2C4D2BA4B49F00BDA1BB /* frostdart.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = frostdart.dylib; path = ../crypto_plugins/frostdart/macos/frostdart.dylib; sourceTree = "<group>"; };
 		F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = frostdart.dylib; path = ../crypto_plugins/frostdart/macos/frostdart.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -149,9 +147,7 @@
 		33CC10E42044A3C60003C045 = {
 			isa = PBXGroup;
 			children = (
-				CEA2021F2BDD4F0B00FE1D27 /* monero_libwallet2_api_c.dylib */,
-				CEA2021C2BDD4D7100FE1D27 /* wownero_libwallet2_api_c.dylib */,
-				F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */,
+ 				F1FA2C4F2BA4B4CA00BDA1BB /* frostdart.dylib */,
 				33FAB671232836740065AC1E /* Runner */,
 				33CEB47122A05771004F2AC0 /* Flutter */,
 				331C80D6294CF71000263BE5 /* RunnerTests */,
@@ -281,7 +277,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0920;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					331C80D4294CF70F00263BE5 = {
@@ -599,10 +595,7 @@
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity_plus\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_wownero\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
+ 					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libepiccash\"",
@@ -627,10 +620,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${DT_TOOLCHAIN_DIR}/usr/lib/swift/${PLATFORM_NAME}\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_monero/macos/External/macos/lib\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos/External/macos/lib\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos/External/macos/lib\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos/libs\"",
+ 					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos/libs\"",
 					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos\"",
 					/usr/lib/swift,
 					"$(PATH)/crypto_plugins/frostdart/macos\n",
@@ -763,9 +753,6 @@
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity_plus\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_wownero\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
@@ -791,9 +778,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${DT_TOOLCHAIN_DIR}/usr/lib/swift/${PLATFORM_NAME}\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_monero/macos/External/macos/lib\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos/External/macos/lib\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos/External/macos/lib\"",
 					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos/libs\"",
 					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos\"",
 					/usr/lib/swift,
@@ -818,9 +802,6 @@
 					"$(inherited)",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/ReachabilitySwift\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity_plus\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_monero\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_shared_external\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/cw_wownero\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/desktop_drop\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/device_info_plus\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale\"",
@@ -846,10 +827,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"${DT_TOOLCHAIN_DIR}/usr/lib/swift/${PLATFORM_NAME}\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_monero/macos/External/macos/lib\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos/External/macos/lib\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos/External/macos/lib\"",
-					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos/libs\"",
+ 					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/flutter_libepiccash/macos/libs\"",
 					"\"${PODS_ROOT}/../Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos\"",
 					/usr/lib/swift,
 					"$(PATH)/crypto_plugins/frostdart/macos\n",
