@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
@@ -34,7 +33,7 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<void> init({bool? isRestore}) async {
-    debugPrint("Xelis: init");
+    Logging.instance.d("Xelis: init");
 
     if (isRestore == true) {
       await _restoreWallet();
@@ -57,7 +56,7 @@ class XelisWallet extends LibXelisWallet {
   Future<void> _createNewWallet() async {
     final String password = generatePassword();
 
-    debugPrint("Xelis: storing password");
+    Logging.instance.d("Xelis: storing password");
     await secureStorageInterface.write(
       key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
       value: password,
@@ -626,9 +625,13 @@ class XelisWallet extends LibXelisWallet {
                 assetHash: asset,
                 extraData: null,
               );
-            } catch (e) {
+            } catch (e, s) {
               // Handle formatCoin error - use default conversion
-              debugPrint("formatCoin failed: $e, using fallback conversion");
+              Logging.instance.d(
+                "formatCoin failed, using fallback conversion",
+                error: e,
+                stackTrace: s,
+              );
               final rawAmount = recipient.amount.raw;
               final floatAmount =
                   rawAmount / BigInt.from(10).pow(defaultDecimals);
