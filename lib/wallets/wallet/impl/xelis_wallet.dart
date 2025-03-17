@@ -1,53 +1,29 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:math';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
-
-import 'package:xelis_flutter/src/api/network.dart' as x_network;
-import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
+import 'package:mutex/mutex.dart';
+import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
+import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
 
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
-
-import '../intermediate/lib_xelis_wallet.dart';
-
-import '../../../utilities/stack_file_system.dart';
+import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-
-import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
-import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
-import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import '../../../services/event_bus/events/global/tor_status_changed_event.dart';
-import '../../../services/event_bus/events/global/updated_in_background_event.dart';
+import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
-
-import '../../../models/node_model.dart';
-import '../../../models/paymint/fee_object_model.dart';
-import '../../../models/balance.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
-import '../wallet.dart';
-
-import '../../../providers/providers.dart';
-
-import 'package:isar/isar.dart';
-import 'package:mutex/mutex.dart';
-import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import '../intermediate/lib_xelis_wallet.dart';
-
-import 'dart:math';
+import '../wallet.dart';
 
 class XelisWallet extends LibXelisWallet {
   XelisWallet(CryptoCurrencyNetwork network) : super(Xelis(network));
@@ -59,14 +35,15 @@ class XelisWallet extends LibXelisWallet {
   @override
   Future<void> init({bool? isRestore}) async {
     debugPrint("Xelis: init");
-    
+
     if (isRestore == true) {
       await _restoreWallet();
       return await super.init();
     }
 
-    String? walletExists =
-        await secureStorageInterface.read(key: "${walletId}_wallet");
+    final String? walletExists = await secureStorageInterface.read(
+      key: "${walletId}_wallet",
+    );
 
     if (walletExists == null) {
       await _createNewWallet();
@@ -79,7 +56,7 @@ class XelisWallet extends LibXelisWallet {
 
   Future<void> _createNewWallet() async {
     final String password = generatePassword();
-    
+
     debugPrint("Xelis: storing password");
     await secureStorageInterface.write(
       key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
@@ -128,9 +105,9 @@ class XelisWallet extends LibXelisWallet {
         await updateTransactions(isRescan: true, topoheight: 0);
       });
       return;
-    } 
+    }
 
-    // Borrowed from libmonero for now, need to refactor for Xelis view keys    
+    // Borrowed from libmonero for now, need to refactor for Xelis view keys
     // if (isViewOnly) {
     //   await recoverViewOnly();
     //   return;
@@ -138,7 +115,7 @@ class XelisWallet extends LibXelisWallet {
 
     try {
       await open();
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Exception rethrown from recoverFromMnemonic(): $e\n$s",
       //   level: LogLevel.Error,
@@ -147,17 +124,16 @@ class XelisWallet extends LibXelisWallet {
     }
   }
 
-
   @override
   Future<bool> pingCheck() async {
     checkInitialized();
     try {
-      final nodeInfo = await libXelisWallet!.getDaemonInfo();
+      await libXelisWallet!.getDaemonInfo();
       await handleOnline();
       return true;
     } catch (_) {
-      return false;
       await handleOffline();
+      return false;
     }
   }
 
@@ -168,9 +144,11 @@ class XelisWallet extends LibXelisWallet {
     await _balanceUpdateMutex.protect(() async {
       try {
         if (await libXelisWallet!.hasXelisBalance()) {
-          final BigInt xelBalance = newBalance != null 
-            ? BigInt.from(newBalance) 
-            : await libXelisWallet!.getXelisBalanceRaw(); // in the future, use getAssetBalances and handle each
+          final BigInt xelBalance =
+              newBalance != null
+                  ? BigInt.from(newBalance)
+                  : await libXelisWallet!
+                      .getXelisBalanceRaw(); // in the future, use getAssetBalances and handle each
           final balance = Balance(
             total: Amount(
               rawValue: xelBalance,
@@ -187,12 +165,9 @@ class XelisWallet extends LibXelisWallet {
               fractionDigits: cryptoCurrency.fractionDigits,
             ),
           );
-          await info.updateBalance(
-            newBalance: balance,
-            isar: mainDB.isar,
-          ); 
+          await info.updateBalance(newBalance: balance, isar: mainDB.isar);
         }
-      } catch (e, s) {
+      } catch (_) {
         // Logging.instance.log(
         //   "Error in updateBalance(): $e\n$s",
         //   level: LogLevel.Warning,
@@ -203,7 +178,8 @@ class XelisWallet extends LibXelisWallet {
 
   Future<int> _fetchChainHeight() async {
     final infoString = await libXelisWallet!.getDaemonInfo();
-    final Map<String, dynamic> nodeInfo = json.decode(infoString);
+    final Map<String, dynamic> nodeInfo =
+        (json.decode(infoString) as Map).cast();
 
     pruningHeight = int.parse(nodeInfo['pruned_topoheight'].toString());
     return int.parse(nodeInfo['topoheight'].toString());
@@ -213,12 +189,12 @@ class XelisWallet extends LibXelisWallet {
   Future<void> updateChainHeight({int? topoheight}) async {
     try {
       final height = topoheight ?? await _fetchChainHeight();
-      
+
       await info.updateCachedChainHeight(
         newHeight: height.toInt(),
         isar: mainDB.isar,
       );
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Error in updateChainHeight(): $e\n$s",
       //   level: LogLevel.Warning,
@@ -235,7 +211,7 @@ class XelisWallet extends LibXelisWallet {
         await libXelisWallet!.offlineMode();
       }
       await super.connect();
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Error updating node: $e\n$s",
       //   level: LogLevel.Error,
@@ -252,22 +228,24 @@ class XelisWallet extends LibXelisWallet {
   }) async {
     checkInitialized();
 
-    final newReceivingAddress = await getCurrentReceivingAddress() ??
-      Address(
-        walletId: walletId,
-        derivationIndex: 0,
-        derivationPath: null,
-        value: libXelisWallet!.getAddressStr(),
-        publicKey: [],
-        type: AddressType.xelis,
-        subType: AddressSubType.receiving,
-      );
+    final newReceivingAddress =
+        await getCurrentReceivingAddress() ??
+        Address(
+          walletId: walletId,
+          derivationIndex: 0,
+          derivationPath: null,
+          value: libXelisWallet!.getAddressStr(),
+          publicKey: [],
+          type: AddressType.xelis,
+          subType: AddressSubType.receiving,
+        );
 
     final thisAddress = newReceivingAddress.value;
-          
+
     int firstBlock = 0;
     if (!isRescan) {
-      firstBlock = await mainDB.isar.transactionV2s
+      firstBlock =
+          await mainDB.isar.transactionV2s
               .where()
               .walletIdEqualTo(walletId)
               .heightProperty()
@@ -288,16 +266,19 @@ class XelisWallet extends LibXelisWallet {
 
     for (final jsonString in txListJson) {
       try {
-        final transactionEntry = xelis_sdk.TransactionEntry.fromJson(json.decode(jsonString));
+        final transactionEntry = xelis_sdk.TransactionEntry.fromJson(
+          (json.decode(jsonString) as Map).cast(),
+        );
 
         // Check for duplicates
-        final storedTx = await mainDB.isar.transactionV2s
-            .where()
-            .txidWalletIdEqualTo(transactionEntry.hash, walletId)
-            .findFirst();
+        final storedTx =
+            await mainDB.isar.transactionV2s
+                .where()
+                .txidWalletIdEqualTo(transactionEntry.hash, walletId)
+                .findFirst();
 
-        if (storedTx != null && 
-            storedTx.height != null && 
+        if (storedTx != null &&
+            storedTx.height != null &&
             storedTx.height! > 0) {
           continue; // Skip already processed transactions
         }
@@ -305,140 +286,150 @@ class XelisWallet extends LibXelisWallet {
         final List<OutputV2> outputs = [];
         final List<InputV2> inputs = [];
         TransactionType? txType;
-        TransactionSubType txSubType = TransactionSubType.none;
+        const TransactionSubType txSubType = TransactionSubType.none;
         int? nonce;
         Amount fee = Amount(
-            rawValue: BigInt.zero, 
-            fractionDigits: cryptoCurrency.fractionDigits
+          rawValue: BigInt.zero,
+          fractionDigits: cryptoCurrency.fractionDigits,
         );
-        Map<String, dynamic> otherData = {};
+        final Map<String, dynamic> otherData = {};
 
         final entryType = transactionEntry.txEntryType;
 
         if (entryType is xelis_sdk.CoinbaseEntry) {
-            final coinbase = entryType;
-            txType = TransactionType.incoming;
+          final coinbase = entryType;
+          txType = TransactionType.incoming;
 
+          final int decimals = await libXelisWallet!.getAssetDecimals(
+            asset: xelis_sdk.xelisAsset,
+          );
+
+          fee = Amount(rawValue: BigInt.zero, fractionDigits: decimals);
+
+          outputs.add(
+            OutputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptPubKeyHex: "",
+              valueStringSats: coinbase.reward.toString(),
+              addresses: [thisAddress],
+              walletOwns: true,
+            ),
+          );
+        } else if (entryType is xelis_sdk.BurnEntry) {
+          final burn = entryType;
+          txType = TransactionType.outgoing;
+
+          final int decimals = await libXelisWallet!.getAssetDecimals(
+            asset: burn.asset,
+          );
+
+          fee = Amount(
+            rawValue: BigInt.from(burn.fee),
+            fractionDigits: decimals,
+          );
+
+          inputs.add(
+            InputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptSigAsm: null,
+              scriptSigHex: null,
+              sequence: null,
+              outpoint: null,
+              valueStringSats: burn.amount.toString(),
+              addresses: [thisAddress],
+              witness: null,
+              innerRedeemScriptAsm: null,
+              coinbase: null,
+              walletOwns: true,
+            ),
+          );
+
+          outputs.add(
+            OutputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptPubKeyHex: "",
+              valueStringSats: burn.amount.toString(),
+              addresses: ['burn'],
+              walletOwns: false,
+            ),
+          );
+
+          otherData['burnAsset'] = burn.asset;
+        } else if (entryType is xelis_sdk.IncomingEntry) {
+          final incoming = entryType;
+          txType =
+              incoming.from == thisAddress
+                  ? TransactionType.sentToSelf
+                  : TransactionType.incoming;
+
+          for (final transfer in incoming.transfers) {
             final int decimals = await libXelisWallet!.getAssetDecimals(
-                asset: xelis_sdk.xelisAsset
+              asset: transfer.asset,
             );
 
-            fee = Amount(
-                rawValue: BigInt.zero, 
-                fractionDigits: decimals
-            );
+            fee = Amount(rawValue: BigInt.zero, fractionDigits: decimals);
 
-            outputs.add(OutputV2.isarCantDoRequiredInDefaultConstructor(
+            outputs.add(
+              OutputV2.isarCantDoRequiredInDefaultConstructor(
                 scriptPubKeyHex: "",
-                valueStringSats: coinbase.reward.toString(),
+                valueStringSats: transfer.amount.toString(),
                 addresses: [thisAddress],
                 walletOwns: true,
-            ));
-        } else if (entryType is xelis_sdk.BurnEntry) {
-            final burn = entryType;
-            txType = TransactionType.outgoing;
+              ),
+            );
 
+            otherData['asset_${transfer.asset}'] = transfer.amount.toString();
+            if (transfer.extraData != null) {
+              otherData['extraData_${transfer.asset}'] =
+                  transfer.extraData!.toJson();
+            }
+          }
+        } else if (entryType is xelis_sdk.OutgoingEntry) {
+          final outgoing = entryType;
+          txType = TransactionType.outgoing;
+          nonce = outgoing.nonce;
+
+          for (final transfer in outgoing.transfers) {
             final int decimals = await libXelisWallet!.getAssetDecimals(
-                asset: burn.asset
+              asset: transfer.asset,
             );
 
             fee = Amount(
-                rawValue: BigInt.from(burn.fee), 
-                fractionDigits: decimals
+              rawValue: BigInt.from(outgoing.fee),
+              fractionDigits: decimals,
             );
 
-            inputs.add(InputV2.isarCantDoRequiredInDefaultConstructor(
-                scriptSigAsm: null,
+            inputs.add(
+              InputV2.isarCantDoRequiredInDefaultConstructor(
                 scriptSigHex: null,
+                scriptSigAsm: null,
                 sequence: null,
                 outpoint: null,
-                valueStringSats: burn.amount.toString(),
                 addresses: [thisAddress],
+                valueStringSats: (transfer.amount + outgoing.fee).toString(),
                 witness: null,
                 innerRedeemScriptAsm: null,
                 coinbase: null,
                 walletOwns: true,
-            ));
+              ),
+            );
 
-            outputs.add(OutputV2.isarCantDoRequiredInDefaultConstructor(
+            outputs.add(
+              OutputV2.isarCantDoRequiredInDefaultConstructor(
                 scriptPubKeyHex: "",
-                valueStringSats: burn.amount.toString(),
-                addresses: ['burn'],
+                valueStringSats: transfer.amount.toString(),
+                addresses: [transfer.destination],
                 walletOwns: false,
-            ));
+              ),
+            );
 
-            otherData['burnAsset'] = burn.asset;
-        } else if (entryType is xelis_sdk.IncomingEntry) {
-            final incoming = entryType;
-            txType = incoming.from == thisAddress 
-                ? TransactionType.sentToSelf 
-                : TransactionType.incoming;
-            
-            for (final transfer in incoming.transfers) {
-                final int decimals = await libXelisWallet!.getAssetDecimals(
-                    asset: transfer.asset
-                );
-
-                fee = Amount(
-                    rawValue: BigInt.zero, 
-                    fractionDigits: decimals
-                );
-
-                outputs.add(OutputV2.isarCantDoRequiredInDefaultConstructor(
-                    scriptPubKeyHex: "",
-                    valueStringSats: transfer.amount.toString(),
-                    addresses: [thisAddress],
-                    walletOwns: true,
-                ));
-
-                otherData['asset_${transfer.asset}'] = transfer.amount.toString();
-                if (transfer.extraData != null) {
-                    otherData['extraData_${transfer.asset}'] = transfer.extraData!.toJson();
-                }
+            otherData['asset_${transfer.asset}_amount'] =
+                transfer.amount.toString();
+            otherData['asset_${transfer.asset}_fee'] = fee.toString();
+            if (transfer.extraData != null) {
+              otherData['extraData_${transfer.asset}'] =
+                  transfer.extraData!.toJson();
             }
-        } else if (entryType is xelis_sdk.OutgoingEntry) {
-            final outgoing = entryType;
-            txType = TransactionType.outgoing;
-            nonce = outgoing.nonce;
-
-            for (final transfer in outgoing.transfers) {
-                final int decimals = await libXelisWallet!.getAssetDecimals(
-                    asset: transfer.asset
-                );
-
-                fee = Amount(
-                    rawValue: BigInt.from(outgoing.fee), 
-                    fractionDigits: decimals
-                );
-
-                inputs.add(InputV2.isarCantDoRequiredInDefaultConstructor(
-                    scriptSigHex: null,
-                    scriptSigAsm: null,
-                    sequence: null,
-                    outpoint: null,
-                    addresses: [thisAddress],
-                    valueStringSats: (transfer.amount + outgoing.fee).toString(),
-                    witness: null,
-                    innerRedeemScriptAsm: null,
-                    coinbase: null,
-                    walletOwns: true,
-                ));
-
-                outputs.add(OutputV2.isarCantDoRequiredInDefaultConstructor(
-                    scriptPubKeyHex: "",
-                    valueStringSats: transfer.amount.toString(),
-                    addresses: [transfer.destination],
-                    walletOwns: false,
-                ));
-
-                otherData['asset_${transfer.asset}_amount'] = transfer.amount.toString();
-                otherData['asset_${transfer.asset}_fee'] = fee.toString();
-                if (transfer.extraData != null) {
-                    otherData['extraData_${transfer.asset}'] = transfer.extraData!.toJson();
-                }
-            }
+          }
         } else {
-            // Skip unknown entry types
+          // Skip unknown entry types
         }
 
         final txn = TransactionV2(
@@ -446,8 +437,9 @@ class XelisWallet extends LibXelisWallet {
           blockHash: "", // Not provided in Xelis data
           hash: transactionEntry.hash,
           txid: transactionEntry.hash,
-          timestamp: (transactionEntry.timestamp?.millisecondsSinceEpoch ?? 0) ~/ 1000,
-          height: transactionEntry?.topoheight,
+          timestamp:
+              (transactionEntry.timestamp?.millisecondsSinceEpoch ?? 0) ~/ 1000,
+          height: transactionEntry.topoheight,
           inputs: List.unmodifiable(inputs),
           outputs: List.unmodifiable(outputs),
           version: -1, // Version not provided
@@ -456,7 +448,7 @@ class XelisWallet extends LibXelisWallet {
           otherData: jsonEncode({
             ...otherData,
             if (nonce != null) 'nonce': nonce,
-            if (fee != null) 'overrideFee': fee.toJsonString(),
+            'overrideFee': fee.toJsonString(),
           }),
         );
 
@@ -465,9 +457,8 @@ class XelisWallet extends LibXelisWallet {
         //   level: LogLevel.Debug,
         // );
 
-
         txns.add(txn);
-      } catch (e, s) {
+      } catch (_) {
         // Logging.instance.log(
         //   "Error handling tx $jsonString: $e\n$s",
         //   level: LogLevel.Warning,
@@ -518,22 +509,29 @@ class XelisWallet extends LibXelisWallet {
       checkInitialized();
 
       // Use default address if recipients list is empty
-      final recipients = txData.recipients?.isNotEmpty == true 
-          ? txData.recipients!
-          : [(
-              address: 'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m', 
-              amount: Amount.zeroWith(
-                fractionDigits: cryptoCurrency.fractionDigits,
-              ),
-              isChange: false
-            )];
+      final recipients =
+          txData.recipients?.isNotEmpty == true
+              ? txData.recipients!
+              : [
+                (
+                  address:
+                      'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m',
+                  amount: Amount.zeroWith(
+                    fractionDigits: cryptoCurrency.fractionDigits,
+                  ),
+                  isChange: false,
+                ),
+              ];
 
       final asset = assetId ?? xelis_sdk.xelisAsset;
 
       // Calculate total send amount
       final totalSendAmount = recipients.fold<Amount>(
-        Amount(rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits),
-        (sum, recipient) => sum + recipient.amount
+        Amount(
+          rawValue: BigInt.zero,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ),
+        (sum, recipient) => sum + recipient.amount,
       );
 
       // Check balance using raw method
@@ -555,28 +553,26 @@ class XelisWallet extends LibXelisWallet {
       // Check if we have enough for both transfers and fee
       if (totalSendAmount + boostedFee > balance) {
         final requiredAmt = await libXelisWallet!.formatCoin(
-          atomicAmount: (totalSendAmount + boostedFee).raw, 
-          assetHash: asset
+          atomicAmount: (totalSendAmount + boostedFee).raw,
+          assetHash: asset,
         );
 
         final availableAmt = await libXelisWallet!.formatCoin(
-          atomicAmount: xelBalance, 
-          assetHash: asset
+          atomicAmount: xelBalance,
+          assetHash: asset,
         );
 
         throw Exception(
           "Insufficient balance to cover transfers and fees. "
-          "Required: $requiredAmt, Available: $availableAmt"
+          "Required: $requiredAmt, Available: $availableAmt",
         );
       }
 
       return txData.copyWith(
         fee: boostedFee,
-        otherData: jsonEncode({
-          'asset': asset,
-        }),
+        otherData: jsonEncode({'asset': asset}),
       );
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Exception rethrown from prepareSend(): $e\n$s",
       //   level: LogLevel.Error,
@@ -587,39 +583,43 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<Amount> estimateFeeFor(
-    Amount amount, 
-    int feeRate,
-    {
-      double? feeMultiplier,
-      List<TxRecipient> recipients = const [],
-      String? assetId
-    }
-  ) async {
+    Amount amount,
+    int feeRate, {
+    double? feeMultiplier,
+    List<TxRecipient> recipients = const [],
+    String? assetId,
+  }) async {
     try {
       checkInitialized();
       final asset = assetId ?? xelis_sdk.xelisAsset;
 
       // Default values for a new wallet or when estimation fails
-      final defaultDecimals = 8;
+      final defaultDecimals = cryptoCurrency.fractionDigits;
       final defaultFee = BigInt.from(0);
-      
+
       // Use default address if recipients list is empty
-      final effectiveRecipients = recipients.isNotEmpty 
-          ? recipients
-          : [(
-              address: 'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m', 
-              amount: amount, 
-              isChange: false
-            )];
+      final effectiveRecipients =
+          recipients.isNotEmpty
+              ? recipients
+              : [
+                (
+                  address:
+                      'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m',
+                  amount: amount,
+                  isChange: false,
+                ),
+              ];
 
       try {
         final transfers = await Future.wait(
           effectiveRecipients.map((recipient) async {
             try {
-              final amt = double.parse(await libXelisWallet!.formatCoin(
-                atomicAmount: recipient.amount.raw,
-                assetHash: asset
-              ));
+              final amt = double.parse(
+                await libXelisWallet!.formatCoin(
+                  atomicAmount: recipient.amount.raw,
+                  assetHash: asset,
+                ),
+              );
               return x_wallet.Transfer(
                 floatAmount: amt,
                 strAddress: recipient.address,
@@ -630,7 +630,8 @@ class XelisWallet extends LibXelisWallet {
               // Handle formatCoin error - use default conversion
               debugPrint("formatCoin failed: $e, using fallback conversion");
               final rawAmount = recipient.amount.raw;
-              final floatAmount = rawAmount / BigInt.from(10).pow(defaultDecimals);
+              final floatAmount =
+                  rawAmount / BigInt.from(10).pow(defaultDecimals);
               return x_wallet.Transfer(
                 floatAmount: floatAmount.toDouble(),
                 strAddress: recipient.address,
@@ -638,28 +639,30 @@ class XelisWallet extends LibXelisWallet {
                 extraData: null,
               );
             }
-          })
+          }),
         );
 
-        final decimals = await libXelisWallet!.getAssetDecimals(
-          asset: asset
+        final decimals = await libXelisWallet!.getAssetDecimals(asset: asset);
+        final estimatedFee = double.parse(
+          await libXelisWallet!.estimateFees(transfers: transfers),
         );
-        final estimatedFee = double.parse(await libXelisWallet!.estimateFees(transfers: transfers));
         final rawFee = (estimatedFee * pow(10, decimals)).round();
         return Amount(
           rawValue: BigInt.from(rawFee),
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       } catch (e, s) {
-        debugPrint("Fee estimation failed: $e\n$s");
-        
-        debugPrint("Using fallback fee: $defaultFee");
+        Logging.instance.d(
+          "Fee estimation failed. Using fallback fee: $defaultFee",
+          error: e,
+          stackTrace: s,
+        );
         return Amount(
           rawValue: defaultFee,
           fractionDigits: cryptoCurrency.fractionDigits,
         );
       }
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Exception rethrown from estimateFeeFor(): $e\n$s",
       //   level: LogLevel.Error,
@@ -681,12 +684,19 @@ class XelisWallet extends LibXelisWallet {
       final recipient = txData.recipients!.first;
       final Amount sendAmount = recipient.amount;
 
-      final asset = (txData.otherData != null ? jsonDecode(txData.otherData!) : null)?['asset'] ?? xelis_sdk.xelisAsset;
+      final asset =
+          (txData.otherData != null
+                  ? jsonDecode(txData.otherData!)
+                  : null)?['asset']
+              as String? ??
+          xelis_sdk.xelisAsset;
 
-      final amt = double.parse(await libXelisWallet!.formatCoin(
-        atomicAmount: sendAmount.raw, 
-        assetHash: asset
-      ));
+      final amt = double.parse(
+        await libXelisWallet!.formatCoin(
+          atomicAmount: sendAmount.raw,
+          assetHash: asset,
+        ),
+      );
 
       // Create a transfer transaction
       final txJson = await libXelisWallet!.createTransfersTransaction(
@@ -696,8 +706,8 @@ class XelisWallet extends LibXelisWallet {
             strAddress: recipient.address,
             assetHash: asset,
             extraData: null, // Add extra data if needed
-          )
-        ]
+          ),
+        ],
       );
 
       final txMap = jsonDecode(txJson);
@@ -706,10 +716,10 @@ class XelisWallet extends LibXelisWallet {
       // Broadcast the transaction
       await libXelisWallet!.broadcastTransaction(txHash: txHash);
 
-      return await updateSentCachedTxData(txData: txData.copyWith(
-        txid: txHash,
-      ));
-    } catch (e, s) {
+      return await updateSentCachedTxData(
+        txData: txData.copyWith(txid: txHash),
+      );
+    } catch (_) {
       // Logging.instance.log(
       //   "Exception rethrown from confirmSend(): $e\n$s",
       //   level: LogLevel.Error,
@@ -739,7 +749,7 @@ class XelisWallet extends LibXelisWallet {
         case HistorySynced(:final topoheight):
           await handleHistorySynced(topoheight);
       }
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Error handling wallet event: $e\n$s",
       //   level: LogLevel.Error,
@@ -749,10 +759,7 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<void> handleNewTopoHeight(int height) async {
-    await info.updateCachedChainHeight(
-      newHeight: height,
-      isar: mainDB.isar,
-    );
+    await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
   }
 
   @override
@@ -765,12 +772,12 @@ class XelisWallet extends LibXelisWallet {
       );
 
       await updateBalance();
-      
+
       // Logging.instance.log(
       //   "New transaction processed: ${newTxIds.first}",
       //   level: LogLevel.Info,
       // );
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Error handling new transaction: $e\n$s",
       //   level: LogLevel.Warning,
@@ -785,9 +792,9 @@ class XelisWallet extends LibXelisWallet {
       if (asset == xelis_sdk.xelisAsset) {
         await updateBalance(newBalance: event.balance);
       }
-      
+
       // TODO: Update asset balances if needed
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Error handling balance change: $e\n$s",
       //   level: LogLevel.Warning,
@@ -869,7 +876,7 @@ class XelisWallet extends LibXelisWallet {
             ),
           );
         }
-      } catch (e, s) {
+      } catch (_) {
         // Logging.instance.log(
         //   "Error in refresh(): $e\n$s",
         //   level: LogLevel.Warning,

@@ -1,46 +1,19 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
+import 'package:mutex/mutex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
+import 'package:xelis_flutter/src/api/network.dart' as x_network;
+import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
+
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/intermediate/electrum_currency.dart';
 import '../wallet.dart';
 import '../wallet_mixin_interfaces/mnemonic_interface.dart';
-
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:json_annotation/json_annotation.dart';
-
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:decimal/decimal.dart';
-import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
-
-import 'package:xelis_flutter/src/api/network.dart' as x_network;
-import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
-import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
-
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
-
-import '../../../utilities/stack_file_system.dart';
-import '../../../models/isar/models/blockchain_data/transaction.dart';
-import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
-import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
-import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-
-import '../../../models/node_model.dart';
-import '../../../models/paymint/fee_object_model.dart';
-import '../../../models/balance.dart';
-import '../../../utilities/amount/amount.dart';
-import '../../../utilities/logger.dart';
-import '../../crypto_currency/crypto_currency.dart';
-import '../../models/tx_data.dart';
-
-import 'package:isar/isar.dart';
-import 'package:mutex/mutex.dart';
-import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
 import 'external_wallet.dart';
 
 enum XelisTableSize {
@@ -48,7 +21,7 @@ enum XelisTableSize {
   full;
 
   bool get isLow => this == XelisTableSize.low;
-  
+
   static XelisTableSize get platformDefault {
     if (kIsWeb) {
       return XelisTableSize.low;
@@ -83,7 +56,7 @@ class XelisTableState {
     return XelisTableState(
       isGenerating: isGenerating ?? this.isGenerating,
       currentSize: currentSize ?? this.currentSize,
-      desiredSize: kIsWeb ? XelisTableSize.low : (desiredSize ?? this._desiredSize),
+      desiredSize: kIsWeb ? XelisTableSize.low : (desiredSize ?? _desiredSize),
     );
   }
 
@@ -170,14 +143,14 @@ final class HistorySynced extends Event {
   const HistorySynced(this.topoheight);
 }
 
-abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet<T>
+abstract class LibXelisWallet<T extends ElectrumCurrency>
+    extends ExternalWallet<T>
     with MnemonicInterface {
   LibXelisWallet(super.currency);
 
   static const String _kHasFullTablesKey = 'xelis_has_full_tables';
   static const String _kGeneratingTablesKey = 'xelis_generating_tables';
   static const String _kWantsFullTablesKey = 'xelis_wants_full_tables';
-  static bool _isAnyWalletGeneratingTables = false;
   static final _initMutex = Mutex();
   static final _tableGenerationMutex = Mutex();
   static Completer<void>? _tableGenerationCompleter;
@@ -200,7 +173,6 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
   }
 
   final syncMutex = Mutex();
-  NodeModel? _xelisNode;
   Timer? timer;
   String? tablePath;
 
@@ -216,9 +188,12 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
   }
 
   Future<XelisTableState> getTableState() async {
-    final hasFullTables = await secureStorageInterface.read(key: _kHasFullTablesKey) == 'true';
-    final isGenerating = await secureStorageInterface.read(key: _kGeneratingTablesKey) == 'true';
-    final wantsFull = await secureStorageInterface.read(key: _kWantsFullTablesKey) != 'false';
+    final hasFullTables =
+        await secureStorageInterface.read(key: _kHasFullTablesKey) == 'true';
+    final isGenerating =
+        await secureStorageInterface.read(key: _kGeneratingTablesKey) == 'true';
+    final wantsFull =
+        await secureStorageInterface.read(key: _kWantsFullTablesKey) != 'false';
 
     return XelisTableState(
       isGenerating: isGenerating,
@@ -249,21 +224,30 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
     await for (final rawData in rawEventStream) {
       final json = jsonDecode(rawData);
       try {
-        final eventType = xelis_sdk.WalletEvent.fromStr(json['event'] as String);
+        final eventType = xelis_sdk.WalletEvent.fromStr(
+          json['event'] as String,
+        );
         switch (eventType) {
           case xelis_sdk.WalletEvent.newTopoHeight:
             yield NewTopoheight(json['data']['topoheight'] as int);
           case xelis_sdk.WalletEvent.newAsset:
             yield NewAsset(
-                xelis_sdk.AssetData.fromJson(json['data'] as Map<String, dynamic>));
+              xelis_sdk.AssetData.fromJson(
+                json['data'] as Map<String, dynamic>,
+              ),
+            );
           case xelis_sdk.WalletEvent.newTransaction:
             yield NewTransaction(
-                xelis_sdk.TransactionEntry.fromJson(
-                    json['data'] as Map<String, dynamic>));
+              xelis_sdk.TransactionEntry.fromJson(
+                json['data'] as Map<String, dynamic>,
+              ),
+            );
           case xelis_sdk.WalletEvent.balanceChanged:
             yield BalanceChanged(
-                xelis_sdk.BalanceChangedEvent.fromJson(
-                    json['data'] as Map<String, dynamic>));
+              xelis_sdk.BalanceChangedEvent.fromJson(
+                json['data'] as Map<String, dynamic>,
+              ),
+            );
           case xelis_sdk.WalletEvent.rescan:
             yield Rescan(json['data']['start_topoheight'] as int);
           case xelis_sdk.WalletEvent.online:
@@ -273,7 +257,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
           case xelis_sdk.WalletEvent.historySynced:
             yield HistorySynced(json['data']['topoheight'] as int);
         }
-      } catch (e, s) {
+      } catch (_) {
         // Logging.instance.log(
         //   "Error processing wallet event: $e\n$s",
         //   level: LogLevel.Error,
@@ -293,12 +277,12 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
   Future<void> handleHistorySynced(int topoheight) async {}
   Future<void> handleNewAsset(xelis_sdk.AssetData asset) async {}
 
+  @override
   Future<void> refresh({int? topoheight});
 
   Future<void> connect() async {
     try {
-      _eventSubscription =
-        convertRawEvents().listen(handleEvent);
+      _eventSubscription = convertRawEvents().listen(handleEvent);
 
       final node = getCurrentNode();
       // Logging.instance.log(
@@ -306,10 +290,10 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
       //   level: LogLevel.Info,
       // );
       await libXelisWallet!.onlineMode(
-        daemonAddress: "${node.host}:${node.port}"
+        daemonAddress: "${node.host}:${node.port}",
       );
       await super.refresh();
-    } catch (e, s) {
+    } catch (_) {
       // Logging.instance.log(
       //   "Error connecting to node: $e\n$s",
       //   level: LogLevel.Error,
@@ -319,26 +303,20 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
   }
 
   List<FilterOperation> get standardReceivingAddressFilters => [
-        FilterCondition.equalTo(
-          property: r"type",
-          value: info.mainAddressType,
-        ),
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: AddressSubType.receiving,
-        ),
-      ];
+    FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: AddressSubType.receiving,
+    ),
+  ];
 
   List<FilterOperation> get standardChangeAddressFilters => [
-        FilterCondition.equalTo(
-          property: r"type",
-          value: info.mainAddressType,
-        ),
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: AddressSubType.change,
-        ),
-      ];
+    FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: AddressSubType.change,
+    ),
+  ];
 
   @override
   Future<void> open() async {
@@ -374,7 +352,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
                 password: password!,
                 network: cryptoCurrency.network.xelisNetwork,
                 precomputedTablesPath: tablePath,
-                l1Low: tableState.currentSize.isLow
+                l1Low: tableState.currentSize.isLow,
               );
 
               final mnemonic = await wallet.getSeed();
@@ -382,7 +360,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
                 key: Wallet.mnemonicKey(walletId: walletId),
                 value: mnemonic.trim(),
               );
-              
+
               await secureStorageInterface.delete(
                 key: '_${walletId}_needs_creation',
               );
@@ -402,14 +380,14 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
                 seed: mnemonic.trim(),
                 network: cryptoCurrency.network.xelisNetwork,
                 precomputedTablesPath: tablePath,
-                l1Low: tableState.currentSize.isLow
+                l1Low: tableState.currentSize.isLow,
               );
 
               await secureStorageInterface.write(
                 key: Wallet.mnemonicKey(walletId: walletId),
                 value: mnemonic.trim(),
               );
-              
+
               await secureStorageInterface.delete(
                 key: '_${walletId}_needs_restoration',
               );
@@ -427,7 +405,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
               );
             }
           });
-        } catch (e, s) {
+        } catch (_) {
           // Logging.instance.log(
           //   "Failed to open/create wallet: $e\n$s",
           //   level: LogLevel.Error,
@@ -435,7 +413,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
           rethrow;
         }
       });
-    
+
       debugPrint("Checking for upgradability");
       if (await isTableUpgradeAvailable()) {
         debugPrint("Generating large tables in background");
@@ -443,16 +421,17 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
       }
     }
 
-    final newReceivingAddress = await getCurrentReceivingAddress() ??
-      Address(
-        walletId: walletId,
-        derivationIndex: 0,
-        derivationPath: null,
-        value: libXelisWallet!.getAddressStr(),
-        publicKey: [],
-        type: AddressType.xelis,
-        subType: AddressSubType.receiving,
-      );
+    final newReceivingAddress =
+        await getCurrentReceivingAddress() ??
+        Address(
+          walletId: walletId,
+          derivationIndex: 0,
+          derivationPath: null,
+          value: libXelisWallet!.getAddressStr(),
+          publicKey: [],
+          type: AddressType.xelis,
+          subType: AddressSubType.receiving,
+        );
     await mainDB.updateOrPutAddresses([newReceivingAddress]);
 
     if (info.cachedReceivingAddress != newReceivingAddress.value) {
@@ -490,7 +469,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
       await libXelisWallet?.close();
       libXelisWallet?.dispose();
       libXelisWallet = null;
-      
+
       await super.exit();
     });
   }
@@ -505,15 +484,15 @@ abstract class LibXelisWallet<T extends ElectrumCurrency> extends ExternalWallet
 extension XelisTableManagement on LibXelisWallet {
   Future<bool> isTableUpgradeAvailable() async {
     if (kIsWeb) return false;
-    
+
     final state = await getTableState();
     return state.currentSize != state.desiredSize;
   }
 
   Future<void> updateTablesToDesiredSize() async {
     if (kIsWeb) return;
-    
-    await Future.delayed(const Duration(seconds: 1));
+
+    await Future<void>.delayed(const Duration(seconds: 1));
     if (LibXelisWallet._tableGenerationCompleter != null) {
       try {
         await LibXelisWallet._tableGenerationCompleter!.future;
@@ -522,7 +501,7 @@ extension XelisTableManagement on LibXelisWallet {
         // Previous generation failed, we'll try again
       }
     }
-    
+
     await LibXelisWallet._tableGenerationMutex.protect(() async {
       // Check again after acquiring mutex
       if (LibXelisWallet._tableGenerationCompleter != null) {
@@ -533,7 +512,7 @@ extension XelisTableManagement on LibXelisWallet {
           // Previous generation failed, we'll try again
         }
       }
-      
+
       final state = await getTableState();
       if (state.currentSize == state.desiredSize) return;
 
@@ -547,26 +526,28 @@ extension XelisTableManagement on LibXelisWallet {
           l1Low: state.desiredSize.isLow,
         );
 
-        await setTableState(XelisTableState(
-          isGenerating: false,
-          currentSize: state.desiredSize,
-          desiredSize: state.desiredSize,
-        ));
+        await setTableState(
+          XelisTableState(
+            isGenerating: false,
+            currentSize: state.desiredSize,
+            desiredSize: state.desiredSize,
+          ),
+        );
 
         debugPrint("Table upgrade done");
         LibXelisWallet._tableGenerationCompleter!.complete();
-      } catch (e, s) {
+      } catch (e) {
         // Logging.instance.log(
         //   "Failed to update tables: $e\n$s",
         //   level: LogLevel.Error,
         // );
         await setTableState(state.copyWith(isGenerating: false));
-        
+
         LibXelisWallet._tableGenerationCompleter!.completeError(e);
       } finally {
         if (!LibXelisWallet._tableGenerationCompleter!.isCompleted) {
           LibXelisWallet._tableGenerationCompleter!.completeError(
-            Exception('Table generation abandoned')
+            Exception('Table generation abandoned'),
           );
         }
         LibXelisWallet._tableGenerationCompleter = null;
