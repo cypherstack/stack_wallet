@@ -1350,11 +1350,31 @@ class _SendViewState extends ConsumerState<SendView> {
                                   selectAll: false,
                                 ),
                                 onChanged: (newValue) {
-                                  _address = newValue.trim();
+                                  final trimmed = newValue.trim();
+
+                                  if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
+                                    if (coin is Monero && Uri.parse(trimmed).scheme == "monero") {
+                                      final parsedUri = Uri.parse(trimmed);
+                                      final addr = parsedUri.path;
+                                      sendToController.text = addr;
+                                      _address = addr;
+                                      cryptoAmountController.text = parsedUri.queryParameters["tx_amount"] ?? "";
+                                    } else if (coin is Bitcoin && Uri.parse(trimmed).scheme == "bitcoin") {
+                                      final parsedUri = Uri.parse(trimmed);
+                                      final addr = parsedUri.path;
+                                      sendToController.text = addr;
+                                      _address = addr;
+                                      cryptoAmountController.text = parsedUri.queryParameters["amount"] ?? "";
+                                    }
+                                  } else {
+                                    sendToController.text = trimmed;
+                                    _address = trimmed;
+                                  }
+
                                   _setValidAddressProviders(_address);
 
                                   setState(() {
-                                    _addressToggleFlag = newValue.isNotEmpty;
+                                    _addressToggleFlag = trimmed.isNotEmpty;
                                   });
                                 },
                                 focusNode: _addressFocusNode,
@@ -1433,13 +1453,28 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           content,
                                                         );
                                                       }
-                                                      sendToController.text =
-                                                          content.trim();
-                                                      _address = content.trim();
 
-                                                      _setValidAddressProviders(
-                                                        _address,
-                                                      );
+                                                      final trimmed = content.trim();
+
+                                                      if (coin is Monero && Uri.parse(trimmed).scheme == "monero") {
+                                                        final parsedUri = Uri.parse(trimmed);
+                                                        final addr = parsedUri.path;
+                                                        sendToController.text = addr;
+                                                        _address = addr;
+                                                        cryptoAmountController.text = parsedUri.queryParameters["tx_amount"] ?? "";
+                                                      } else if (coin is Bitcoin && Uri.parse(trimmed).scheme == "bitcoin") {
+                                                        final parsedUri = Uri.parse(trimmed);
+                                                        final addr = parsedUri.path;
+                                                        sendToController.text = addr;
+                                                        _address = addr;
+                                                        cryptoAmountController.text = parsedUri.queryParameters["amount"] ?? "";
+                                                      } else {
+                                                        sendToController.text = trimmed;
+                                                        _address = trimmed;
+                                                      }
+
+                                                      _setValidAddressProviders(_address,);
+
                                                       setState(() {
                                                         _addressToggleFlag =
                                                             sendToController
