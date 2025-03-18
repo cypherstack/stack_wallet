@@ -1367,7 +1367,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                       cryptoAmountController.text = parsedUri.queryParameters["amount"] ?? "";
                                     }
                                   } else {
-                                    sendToController.text = trimmed;
                                     _address = trimmed;
                                   }
 
