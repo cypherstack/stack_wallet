@@ -319,6 +319,15 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
     ),
   ];
 
+  static Future<bool> checkWalletExists(String walletId) async {
+    final xelisDir = await StackFileSystem.applicationXelisDirectory();
+    final walletDir = Directory(
+      "${xelisDir.path}${Platform.pathSeparator}$walletId",
+    );
+    // TODO: should we check for certain files within the dir?
+    return await walletDir.exists();
+  }
+
   @override
   Future<void> open() async {
     bool wasNull = false;
