@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
@@ -183,7 +184,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
       return "";
     } else {
       final appDir = await StackFileSystem.applicationXelisTableDirectory();
-      return "${appDir.path}/";
+      return "${appDir.path}${Platform.pathSeparator}";
     }
   }
 

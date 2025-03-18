@@ -151,7 +151,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationXelisDirectory() async {
     final root = await applicationRootDirectory();
-    final dir = Directory("${root.path}/xelis");
+    final dir = Directory("${root.path}${Platform.pathSeparator}xelis");
     if (!dir.existsSync()) {
       await dir.create();
     }
@@ -160,7 +160,7 @@ abstract class StackFileSystem {
 
   static Future<Directory> applicationXelisTableDirectory() async {
     final xelis = await applicationXelisDirectory();
-    final dir = Directory("${xelis.path}/table");
+    final dir = Directory("${xelis.path}${Platform.pathSeparator}table");
     if (!dir.existsSync()) {
       await dir.create();
     }
