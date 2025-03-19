@@ -305,11 +305,14 @@ Future<bool> testNodeConnection({
         final daemon = xelis_sdk.DaemonClient(
           endPoint: "${formData.host!}:${formData.port!}",
           secureWebSocket: formData.useSSL ?? false,
+          timeout: 5000
         );
         daemon.connect();
 
         final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
         testPassed = networkInfo.height != null;
+
+        daemon.disconnect();
 
         Logging.instance.i(
           "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",

@@ -50,7 +50,7 @@ import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
-import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
@@ -391,7 +391,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
           await wallet.recover(isRescan: false);
 
-          if (wallet is LibMoneroWallet) {
+          if (wallet is ExternalWallet) {
             await wallet.exit();
           }
 
