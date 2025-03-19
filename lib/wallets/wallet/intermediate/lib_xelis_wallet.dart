@@ -32,6 +32,11 @@ enum XelisTableSize {
   }
 }
 
+enum XelisWalletOpenType {
+  create,
+  restore
+}
+
 class XelisTableState {
   final bool isGenerating;
   final XelisTableSize currentSize;
@@ -329,7 +334,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   }
 
   @override
-  Future<void> open() async {
+  Future<void> open({XelisWalletOpenType? openType}) async {
     bool wasNull = false;
 
     if (libXelisWallet == null) {
@@ -345,80 +350,66 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
       await LibXelisWallet._initMutex.protect(() async {
         try {
-          final needsCreation = await secureStorageInterface.read(
-            key: '_${walletId}_needs_creation',
-          );
-
-          final needsRestoration = await secureStorageInterface.read(
-            key: '_${walletId}_needs_restoration',
-          );
-
           libXelisWallet = await syncMutex.protect(() async {
-            if (needsCreation == 'true') {
-              Logging.instance.i("Xelis: creating new wallet");
-              final wallet = await x_wallet.createXelisWallet(
-                name: name,
-                directory: directory,
-                password: password!,
-                network: cryptoCurrency.network.xelisNetwork,
-                precomputedTablesPath: tablePath,
-                l1Low: tableState.currentSize.isLow,
-              );
+            switch (openType) {
+              case XelisWalletOpenType.create:
+                Logging.instance.i("Xelis: creating new wallet");
+                final wallet = await x_wallet.createXelisWallet(
+                  name: name,
+                  directory: directory,
+                  password: password!,
+                  network: cryptoCurrency.network.xelisNetwork,
+                  precomputedTablesPath: tablePath,
+                  l1Low: tableState.currentSize.isLow,
+                );
 
-              final mnemonic = await wallet.getSeed();
-              await secureStorageInterface.write(
-                key: Wallet.mnemonicKey(walletId: walletId),
-                value: mnemonic.trim(),
-              );
+                final mnemonic = await wallet.getSeed();
+                await secureStorageInterface.write(
+                  key: Wallet.mnemonicKey(walletId: walletId),
+                  value: mnemonic.trim(),
+                );
 
-              await secureStorageInterface.delete(
-                key: '_${walletId}_needs_creation',
-              );
+                return wallet;
+                
+              case XelisWalletOpenType.restore:
+                final mnemonic = await getMnemonic();
+                final seedLength = mnemonic.trim().split(" ").length;
 
-              return wallet;
-            } else if (needsRestoration == 'true') {
-              final mnemonic = await getMnemonic();
-              final seedLength = mnemonic.trim().split(" ").length;
+                invalidSeedLengthCheck(seedLength);
 
-              invalidSeedLengthCheck(seedLength);
+                Logging.instance.i("Xelis: recovering wallet");
+                final wallet = await x_wallet.createXelisWallet(
+                  name: name,
+                  directory: directory,
+                  password: password!,
+                  seed: mnemonic.trim(),
+                  network: cryptoCurrency.network.xelisNetwork,
+                  precomputedTablesPath: tablePath,
+                  l1Low: tableState.currentSize.isLow,
+                );
 
-              Logging.instance.i("Xelis: recovering wallet");
-              final wallet = await x_wallet.createXelisWallet(
-                name: name,
-                directory: directory,
-                password: password!,
-                seed: mnemonic.trim(),
-                network: cryptoCurrency.network.xelisNetwork,
-                precomputedTablesPath: tablePath,
-                l1Low: tableState.currentSize.isLow,
-              );
+                await secureStorageInterface.write(
+                  key: Wallet.mnemonicKey(walletId: walletId),
+                  value: mnemonic.trim(),
+                );
 
-              await secureStorageInterface.write(
-                key: Wallet.mnemonicKey(walletId: walletId),
-                value: mnemonic.trim(),
-              );
-
-              await secureStorageInterface.delete(
-                key: '_${walletId}_needs_restoration',
-              );
-
-              return wallet;
-            } else {
-              Logging.instance.i("Xelis: opening existing wallet");
-              return await x_wallet.openXelisWallet(
-                name: name,
-                directory: directory,
-                password: password!,
-                network: cryptoCurrency.network.xelisNetwork,
-                precomputedTablesPath: tablePath,
-                l1Low: tableState.currentSize.isLow,
-              );
+                return wallet;
+              
+              case null:
+                Logging.instance.i("Xelis: opening existing wallet");
+                return await x_wallet.openXelisWallet(
+                  name: name,
+                  directory: directory,
+                  password: password!,
+                  network: cryptoCurrency.network.xelisNetwork,
+                  precomputedTablesPath: tablePath,
+                  l1Low: tableState.currentSize.isLow,
+                );
             }
           });
         } catch (_) {
-          // Logging.instance.log(
+          // Logging.instance.e(
           //   "Failed to open/create wallet: $e\n$s",
-          //   level: LogLevel.Error,
           // );
           rethrow;
         }

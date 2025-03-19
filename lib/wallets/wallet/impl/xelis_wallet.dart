@@ -4,9 +4,9 @@ import 'dart:math';
 
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
 import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
+import 'package:stack_wallet_backup/generate_password.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -31,28 +31,6 @@ class XelisWallet extends LibXelisWallet {
   @override
   int get isarTransactionVersion => 2;
 
-  @override
-  Future<void> init({bool? isRestore}) async {
-    Logging.instance.d("Xelis: init");
-
-    if (isRestore == true) {
-      await _restoreWallet();
-      return await super.init();
-    }
-
-    final String? walletExists = await secureStorageInterface.read(
-      key: "${walletId}_wallet",
-    );
-
-    if (walletExists == null) {
-      await _createNewWallet();
-    }
-
-    await open();
-
-    return await super.init();
-  }
-
   Future<void> _createNewWallet() async {
     final String password = generatePassword();
 
@@ -61,39 +39,24 @@ class XelisWallet extends LibXelisWallet {
       key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
       value: password,
     );
-
-    await secureStorageInterface.write(
-      key: '${walletId}_wallet',
-      value: 'true',
-    );
-
-    await secureStorageInterface.write(
-      key: '_${walletId}_needs_creation',
-      value: 'true',
-    );
   }
 
-  Future<void> _restoreWallet() async {
-    final String password = generatePassword();
+  @override
+  Future<void> init({bool? isRestore}) async {
+    Logging.instance.d("Xelis: init");
 
-    await secureStorageInterface.write(
-      key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
-      value: password,
-    );
-
-    await secureStorageInterface.write(
-      key: '${walletId}_wallet',
-      value: 'true',
-    );
-
-    await secureStorageInterface.write(
-      key: '_${walletId}_needs_restoration',
-      value: 'true',
-    );
-
-    if (libXelisWallet != null) {
-      await super.exit();
+    if (isRestore == true) {
+      await super.init();
+      return await open(openType: XelisWalletOpenType.restore);
     }
+
+    final bool walletExists = await LibXelisWallet.checkWalletExists(walletId);
+    if (!walletExists) {
+      await _createNewWallet();
+      await open(openType: XelisWalletOpenType.create);
+    }
+
+    return await super.init();
   }
 
   @override
@@ -507,20 +470,10 @@ class XelisWallet extends LibXelisWallet {
     try {
       checkInitialized();
 
-      // Use default address if recipients list is empty
       final recipients =
           txData.recipients?.isNotEmpty == true
               ? txData.recipients!
-              : [
-                (
-                  address:
-                      'xel:xz9574c80c4xegnvurazpmxhw5dlg2n0g9qm60uwgt75uqyx3pcsqzzra9m',
-                  amount: Amount.zeroWith(
-                    fractionDigits: cryptoCurrency.fractionDigits,
-                  ),
-                  isChange: false,
-                ),
-              ];
+              : throw ArgumentError('Address cannot be empty.'); // in the future, support for multiple recipients will work.
 
       final asset = assetId ?? xelis_sdk.xelisAsset;
 
@@ -596,7 +549,7 @@ class XelisWallet extends LibXelisWallet {
       final defaultDecimals = cryptoCurrency.fractionDigits;
       final defaultFee = BigInt.from(0);
 
-      // Use default address if recipients list is empty
+      // Use default address if recipients list is empty to ensure basic fee estimates are readily available
       final effectiveRecipients =
           recipients.isNotEmpty
               ? recipients
@@ -816,6 +769,9 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<void> handleOnline() async {
+    await updateChainHeight();
+    await updateBalance();
+    await updateTransactions();
     GlobalEventBus.instance.fire(
       WalletSyncStatusChangedEvent(
         WalletSyncStatus.synced,
