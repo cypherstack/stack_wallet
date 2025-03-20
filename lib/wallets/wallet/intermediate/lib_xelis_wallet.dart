@@ -331,119 +331,15 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
   @override
   Future<void> open({XelisWalletOpenType? openType}) async {
-    bool wasNull = false;
-
-    if (libXelisWallet == null) {
-      wasNull = true;
-      final tablePath = await getPrecomputedTablesPath();
-      final tableState = await getTableState();
-      final xelisDir = await StackFileSystem.applicationXelisDirectory();
-      final String name = walletId;
-      final String directory = xelisDir.path;
-      final password = await secureStorageInterface.read(
-        key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
-      );
-
-      await LibXelisWallet._initMutex.protect(() async {
-        try {
-          libXelisWallet = await syncMutex.protect(() async {
-            switch (openType) {
-              case XelisWalletOpenType.create:
-                Logging.instance.i("Xelis: creating new wallet");
-                final wallet = await x_wallet.createXelisWallet(
-                  name: name,
-                  directory: directory,
-                  password: password!,
-                  network: cryptoCurrency.network.xelisNetwork,
-                  precomputedTablesPath: tablePath,
-                  l1Low: tableState.currentSize.isLow,
-                );
-
-                final mnemonic = await wallet.getSeed();
-                await secureStorageInterface.write(
-                  key: Wallet.mnemonicKey(walletId: walletId),
-                  value: mnemonic.trim(),
-                );
-
-                return wallet;
-
-              case XelisWalletOpenType.restore:
-                final mnemonic = await getMnemonic();
-                final seedLength = mnemonic.trim().split(" ").length;
-
-                invalidSeedLengthCheck(seedLength);
-
-                Logging.instance.i("Xelis: recovering wallet");
-                final wallet = await x_wallet.createXelisWallet(
-                  name: name,
-                  directory: directory,
-                  password: password!,
-                  seed: mnemonic.trim(),
-                  network: cryptoCurrency.network.xelisNetwork,
-                  precomputedTablesPath: tablePath,
-                  l1Low: tableState.currentSize.isLow,
-                );
-
-                await secureStorageInterface.write(
-                  key: Wallet.mnemonicKey(walletId: walletId),
-                  value: mnemonic.trim(),
-                );
-
-                return wallet;
-
-              case null:
-                Logging.instance.i("Xelis: opening existing wallet");
-                return await x_wallet.openXelisWallet(
-                  name: name,
-                  directory: directory,
-                  password: password!,
-                  network: cryptoCurrency.network.xelisNetwork,
-                  precomputedTablesPath: tablePath,
-                  l1Low: tableState.currentSize.isLow,
-                );
-            }
-          });
-        } catch (e, s) {
-          Logging.instance.e(
-            "Rethrowing failed $runtimeType open(openType: $openType)",
-            error: e,
-            stackTrace: s,
-          );
-          rethrow;
-        }
-      });
-
-      Logging.instance.i("Xelis: Checking for upgradability");
-      if (await isTableUpgradeAvailable()) {
-        Logging.instance.i("Xelis: Generating large tables in background");
-        unawaited(updateTablesToDesiredSize());
-      }
-    }
-
-    final newReceivingAddress =
-        await getCurrentReceivingAddress() ??
-        Address(
-          walletId: walletId,
-          derivationIndex: 0,
-          derivationPath: null,
-          value: libXelisWallet!.getAddressStr(),
-          publicKey: [],
-          type: AddressType.xelis,
-          subType: AddressSubType.receiving,
-        );
-    await mainDB.updateOrPutAddresses([newReceivingAddress]);
-
-    if (info.cachedReceivingAddress != newReceivingAddress.value) {
-      await info.updateReceivingAddress(
-        newAddress: newReceivingAddress.value,
-        isar: mainDB.isar,
-      );
-    }
-
-    if (wasNull) {
+    try {
       await connect();
+    } catch (e) {
+      // Logging.instance.log(
+      //   "Failed to start sync: $e",
+      //   level: LogLevel.Error,
+      // );
+      rethrow;
     }
-
     unawaited(refresh());
   }
 
@@ -457,10 +353,6 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
       _eventSubscription = null;
 
       await libXelisWallet?.offlineMode();
-      await libXelisWallet?.close();
-      libXelisWallet?.dispose();
-      libXelisWallet = null;
-
       await super.exit();
     });
   }
@@ -511,6 +403,8 @@ extension XelisTableManagement on LibXelisWallet {
       await setTableState(state.copyWith(isGenerating: true));
 
       try {
+        Logging.instance.i("Xelis: Generating large tables in background");
+
         final tablePath = await getPrecomputedTablesPath();
         await x_wallet.updateTables(
           precomputedTablesPath: tablePath,
