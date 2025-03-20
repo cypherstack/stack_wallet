@@ -260,11 +260,12 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
           case xelis_sdk.WalletEvent.historySynced:
             yield HistorySynced(json['data']['topoheight'] as int);
         }
-      } catch (_) {
-        // Logging.instance.log(
-        //   "Error processing wallet event: $e\n$s",
-        //   level: LogLevel.Error,
-        // );
+      } catch (e, s) {
+        Logging.instance.e(
+          "Error processing xelis wallet event: $rawData",
+          error: e,
+          stackTrace: s,
+        );
         continue;
       }
     }
@@ -284,23 +285,21 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   Future<void> refresh({int? topoheight});
 
   Future<void> connect() async {
+    final node = getCurrentNode();
     try {
       _eventSubscription = convertRawEvents().listen(handleEvent);
 
-      final node = getCurrentNode();
-      // Logging.instance.log(
-      //   "Connecting to node: ${node.host}:${node.port}",
-      //   level: LogLevel.Info,
-      // );
+      Logging.instance.i("Connecting to node: ${node.host}:${node.port}");
       await libXelisWallet!.onlineMode(
         daemonAddress: "${node.host}:${node.port}",
       );
       await super.refresh();
-    } catch (_) {
-      // Logging.instance.log(
-      //   "Error connecting to node: $e\n$s",
-      //   level: LogLevel.Error,
-      // );
+    } catch (e, s) {
+      Logging.instance.e(
+        "rethrowing error connecting to node: $node",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -404,10 +403,12 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
                 );
             }
           });
-        } catch (_) {
-          // Logging.instance.e(
-          //   "Failed to open/create wallet: $e\n$s",
-          // );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Rethrowing failed $runtimeType open(openType: $openType)",
+            error: e,
+            stackTrace: s,
+          );
           rethrow;
         }
       });
@@ -440,15 +441,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
     }
 
     if (wasNull) {
-      try {
-        await connect();
-      } catch (e) {
-        // Logging.instance.log(
-        //   "Failed to start sync: $e",
-        //   level: LogLevel.Error,
-        // );
-        rethrow;
-      }
+      await connect();
     }
 
     unawaited(refresh());
