@@ -32,10 +32,7 @@ enum XelisTableSize {
   }
 }
 
-enum XelisWalletOpenType {
-  create,
-  restore
-}
+enum XelisWalletOpenType { create, restore }
 
 class XelisTableState {
   final bool isGenerating;
@@ -370,7 +367,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
                 );
 
                 return wallet;
-                
+
               case XelisWalletOpenType.restore:
                 final mnemonic = await getMnemonic();
                 final seedLength = mnemonic.trim().split(" ").length;
@@ -394,7 +391,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
                 );
 
                 return wallet;
-              
+
               case null:
                 Logging.instance.i("Xelis: opening existing wallet");
                 return await x_wallet.openXelisWallet(

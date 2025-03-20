@@ -4,9 +4,9 @@ import 'dart:math';
 
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
+import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
 import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
-import 'package:stack_wallet_backup/generate_password.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -384,7 +384,7 @@ class XelisWallet extends LibXelisWallet {
 
             otherData['asset_${transfer.asset}_amount'] =
                 transfer.amount.toString();
-            otherData['asset_${transfer.asset}_fee'] = fee.toString();
+            otherData['asset_${transfer.asset}_fee'] = fee.raw.toString();
             if (transfer.extraData != null) {
               otherData['extraData_${transfer.asset}'] =
                   transfer.extraData!.toJson();
@@ -473,7 +473,9 @@ class XelisWallet extends LibXelisWallet {
       final recipients =
           txData.recipients?.isNotEmpty == true
               ? txData.recipients!
-              : throw ArgumentError('Address cannot be empty.'); // in the future, support for multiple recipients will work.
+              : throw ArgumentError(
+                'Address cannot be empty.',
+              ); // in the future, support for multiple recipients will work.
 
       final asset = assetId ?? xelis_sdk.xelisAsset;
 
