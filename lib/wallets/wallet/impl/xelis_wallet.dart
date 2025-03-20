@@ -19,6 +19,8 @@ import '../../../services/event_bus/events/global/wallet_sync_status_changed_eve
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/stack_file_system.dart';
+
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/lib_xelis_wallet.dart';
@@ -31,7 +33,46 @@ class XelisWallet extends LibXelisWallet {
   @override
   int get isarTransactionVersion => 2;
 
+  Future<void> _restoreWallet() async {
+    final tablePath = await getPrecomputedTablesPath();
+    final tableState = await getTableState();
+    final xelisDir = await StackFileSystem.applicationXelisDirectory();
+    final String name = walletId;
+    final String directory = xelisDir.path;
+    final password = await secureStorageInterface.read(
+      key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
+    );
+
+    final mnemonic = await getMnemonic();
+    final seedLength = mnemonic.trim().split(" ").length;
+
+    invalidSeedLengthCheck(seedLength);
+
+    Logging.instance.i("Xelis: recovering wallet");
+    final wallet = await x_wallet.createXelisWallet(
+      name: name,
+      directory: directory,
+      password: password!,
+      seed: mnemonic.trim(),
+      network: cryptoCurrency.network.xelisNetwork,
+      precomputedTablesPath: tablePath,
+      l1Low: tableState.currentSize.isLow,
+    );
+
+    await secureStorageInterface.write(
+      key: Wallet.mnemonicKey(walletId: walletId),
+      value: mnemonic.trim(),
+    );
+
+    libXelisWallet = wallet;
+  }
+
   Future<void> _createNewWallet() async {
+    final tablePath = await getPrecomputedTablesPath();
+    final tableState = await getTableState();
+    final xelisDir = await StackFileSystem.applicationXelisDirectory();
+    final String name = walletId;
+    final String directory = xelisDir.path;
     final String password = generatePassword();
 
     Logging.instance.d("Xelis: storing password");
@@ -39,21 +80,84 @@ class XelisWallet extends LibXelisWallet {
       key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
       value: password,
     );
+
+    final wallet = await x_wallet.createXelisWallet(
+      name: name,
+      directory: directory,
+      password: password!,
+      network: cryptoCurrency.network.xelisNetwork,
+      precomputedTablesPath: tablePath,
+      l1Low: tableState.currentSize.isLow,
+    );
+
+    final mnemonic = await wallet.getSeed();
+    await secureStorageInterface.write(
+      key: Wallet.mnemonicKey(walletId: walletId),
+      value: mnemonic.trim(),
+    );
+
+    libXelisWallet = wallet;
   }
 
   @override
   Future<void> init({bool? isRestore}) async {
     Logging.instance.d("Xelis: init");
 
-    if (isRestore == true) {
-      await super.init();
-      return await open(openType: XelisWalletOpenType.restore);
-    }
+    if (libXelisWallet == null) {
+      if (isRestore == true) {
+        await _restoreWallet();
+      } else {
+        final bool walletExists = await LibXelisWallet.checkWalletExists(walletId);
+        if (!walletExists) {
+          await _createNewWallet();
+        } else {
+          Logging.instance.i("Xelis: opening existing wallet");
+          final tablePath = await getPrecomputedTablesPath();
+          final tableState = await getTableState();
+          final xelisDir = await StackFileSystem.applicationXelisDirectory();
+          final String name = walletId;
+          final String directory = xelisDir.path;
+          final password = await secureStorageInterface.read(
+            key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
+          );
 
-    final bool walletExists = await LibXelisWallet.checkWalletExists(walletId);
-    if (!walletExists) {
-      await _createNewWallet();
-      await open(openType: XelisWalletOpenType.create);
+          libXelisWallet = await x_wallet.openXelisWallet(
+            name: name,
+            directory: directory,
+            password: password!,
+            network: cryptoCurrency.network.xelisNetwork,
+            precomputedTablesPath: tablePath,
+            l1Low: tableState.currentSize.isLow,
+          );
+
+          print("Assigned wallet");
+        }
+      }
+
+      if (await isTableUpgradeAvailable()) {
+        unawaited(updateTablesToDesiredSize());
+      }
+
+      final newReceivingAddress =
+        await getCurrentReceivingAddress() ??
+        Address(
+          walletId: walletId,
+          derivationIndex: 0,
+          derivationPath: null,
+          value: libXelisWallet!.getAddressStr(),
+          publicKey: [],
+          type: AddressType.xelis,
+          subType: AddressSubType.receiving,
+        );
+
+      await mainDB.updateOrPutAddresses([newReceivingAddress]);
+
+      if (info.cachedReceivingAddress != newReceivingAddress.value) {
+        await info.updateReceivingAddress(
+          newAddress: newReceivingAddress.value,
+          isar: mainDB.isar,
+        );
+      }
     }
 
     return await super.init();
@@ -88,15 +192,37 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<bool> pingCheck() async {
-    checkInitialized();
     try {
-      await libXelisWallet!.getDaemonInfo();
-      await handleOnline();
-      return true;
+      final node = getCurrentNode();
+      final daemon = xelis_sdk.DaemonClient(
+        endPoint: "${node.host!}:${node.port!}",
+        secureWebSocket: node.useSSL ?? false,
+        timeout: 5000
+      );
+      daemon.connect();
+
+      final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
+      bool testPassed = networkInfo.height != null;
+
+      daemon.disconnect();
+
+      if (testPassed) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.synced,
+            walletId,
+            info.coin,
+          ),
+        );
+      } else {
+        await handleOffline();
+      }
+
+      return testPassed;
     } catch (_) {
       await handleOffline();
       return false;
-    }
+    }    
   }
 
   final _balanceUpdateMutex = Mutex();
