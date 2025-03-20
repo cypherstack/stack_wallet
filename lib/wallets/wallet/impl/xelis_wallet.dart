@@ -395,6 +395,7 @@ class XelisWallet extends LibXelisWallet {
           }
         } else {
           // Skip unknown entry types
+          continue;
         }
 
         final txn = TransactionV2(
