@@ -4,9 +4,9 @@ import 'dart:math';
 
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
+import 'package:stack_wallet_backup/generate_password.dart';
 import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
 import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
-import 'package:stack_wallet_backup/generate_password.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -179,11 +179,12 @@ class XelisWallet extends LibXelisWallet {
 
     try {
       await open();
-    } catch (_) {
-      // Logging.instance.log(
-      //   "Exception rethrown from recoverFromMnemonic(): $e\n$s",
-      //   level: LogLevel.Error,
-      // );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error rethrown from $runtimeType recover(isRescan: $isRescan)",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -231,11 +232,12 @@ class XelisWallet extends LibXelisWallet {
           );
           await info.updateBalance(newBalance: balance, isar: mainDB.isar);
         }
-      } catch (_) {
-        // Logging.instance.log(
-        //   "Error in updateBalance(): $e\n$s",
-        //   level: LogLevel.Warning,
-        // );
+      } catch (e, s) {
+        Logging.instance.e(
+          "Error in $runtimeType updateBalance()",
+          error: e,
+          stackTrace: s,
+        );
       }
     });
   }
@@ -258,28 +260,29 @@ class XelisWallet extends LibXelisWallet {
         newHeight: height.toInt(),
         isar: mainDB.isar,
       );
-    } catch (_) {
-      // Logging.instance.log(
-      //   "Error in updateChainHeight(): $e\n$s",
-      //   level: LogLevel.Warning,
-      // );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error in $runtimeType updateChainHeight()",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
   @override
   Future<void> updateNode() async {
     try {
-      final node = getCurrentNode();
       final bool online = await libXelisWallet!.isOnline();
       if (online == true) {
         await libXelisWallet!.offlineMode();
       }
       await super.connect();
-    } catch (_) {
-      // Logging.instance.log(
-      //   "Error updating node: $e\n$s",
-      //   level: LogLevel.Error,
-      // );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error rethrown from $runtimeType updateNode()",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -486,7 +489,7 @@ class XelisWallet extends LibXelisWallet {
 
             otherData['asset_${transfer.asset}_amount'] =
                 transfer.amount.toString();
-            otherData['asset_${transfer.asset}_fee'] = fee.toString();
+            otherData['asset_${transfer.asset}_fee'] = fee.raw.toString();
             if (transfer.extraData != null) {
               otherData['extraData_${transfer.asset}'] =
                   transfer.extraData!.toJson();
@@ -494,6 +497,7 @@ class XelisWallet extends LibXelisWallet {
           }
         } else {
           // Skip unknown entry types
+          continue;
         }
 
         final txn = TransactionV2(
@@ -522,11 +526,12 @@ class XelisWallet extends LibXelisWallet {
         // );
 
         txns.add(txn);
-      } catch (_) {
-        // Logging.instance.log(
-        //   "Error handling tx $jsonString: $e\n$s",
-        //   level: LogLevel.Warning,
-        // );
+      } catch (e, s) {
+        Logging.instance.w(
+          "Error in $runtimeType handling transaction: $jsonString",
+          error: e,
+          stackTrace: s,
+        );
       }
     }
     await updateBalance();
@@ -575,7 +580,9 @@ class XelisWallet extends LibXelisWallet {
       final recipients =
           txData.recipients?.isNotEmpty == true
               ? txData.recipients!
-              : throw ArgumentError('Address cannot be empty.'); // in the future, support for multiple recipients will work.
+              : throw ArgumentError(
+                'Address cannot be empty.',
+              ); // in the future, support for multiple recipients will work.
 
       final asset = assetId ?? xelis_sdk.xelisAsset;
 
@@ -807,11 +814,12 @@ class XelisWallet extends LibXelisWallet {
         case HistorySynced(:final topoheight):
           await handleHistorySynced(topoheight);
       }
-    } catch (_) {
-      // Logging.instance.log(
-      //   "Error handling wallet event: $e\n$s",
-      //   level: LogLevel.Error,
-      // );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error in $runtimeType handleEvent($event)",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -835,11 +843,12 @@ class XelisWallet extends LibXelisWallet {
       //   "New transaction processed: ${newTxIds.first}",
       //   level: LogLevel.Info,
       // );
-    } catch (_) {
-      // Logging.instance.log(
-      //   "Error handling new transaction: $e\n$s",
-      //   level: LogLevel.Warning,
-      // );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error in $runtimeType handleNewTransaction($tx)",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -852,11 +861,12 @@ class XelisWallet extends LibXelisWallet {
       }
 
       // TODO: Update asset balances if needed
-    } catch (_) {
-      // Logging.instance.log(
-      //   "Error handling balance change: $e\n$s",
-      //   level: LogLevel.Warning,
-      // );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error in $runtimeType handleBalanceChanged($event)",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -913,10 +923,7 @@ class XelisWallet extends LibXelisWallet {
   Future<void> handleNewAsset(xelis_sdk.AssetData asset) async {
     // TODO: Store asset information if needed
     // TODO: Update UI/state for new asset
-    // Logging.instance.log(
-    //   "New asset detected: ${asset}",
-    //   level: LogLevel.Info,
-    // );
+    Logging.instance.d("New xelis asset detected: $asset");
   }
 
   @override
@@ -937,11 +944,12 @@ class XelisWallet extends LibXelisWallet {
             ),
           );
         }
-      } catch (_) {
-        // Logging.instance.log(
-        //   "Error in refresh(): $e\n$s",
-        //   level: LogLevel.Warning,
-        // );
+      } catch (e, s) {
+        Logging.instance.e(
+          "Error in $runtimeType refresh()",
+          error: e,
+          stackTrace: s,
+        );
       }
     });
   }
