@@ -129,8 +129,6 @@ class XelisWallet extends LibXelisWallet {
             precomputedTablesPath: tablePath,
             l1Low: tableState.currentSize.isLow,
           );
-
-          print("Assigned wallet");
         }
       }
 
@@ -192,33 +190,11 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<bool> pingCheck() async {
+    checkInitialized();
     try {
-      final node = getCurrentNode();
-      final daemon = xelis_sdk.DaemonClient(
-        endPoint: "${node.host!}:${node.port!}",
-        secureWebSocket: node.useSSL ?? false,
-        timeout: 5000
-      );
-      daemon.connect();
-
-      final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
-      bool testPassed = networkInfo.height != null;
-
-      daemon.disconnect();
-
-      if (testPassed) {
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(
-            WalletSyncStatus.synced,
-            walletId,
-            info.coin,
-          ),
-        );
-      } else {
-        await handleOffline();
-      }
-
-      return testPassed;
+      await libXelisWallet!.getDaemonInfo();
+      await handleOnline();
+      return true;
     } catch (_) {
       await handleOffline();
       return false;
