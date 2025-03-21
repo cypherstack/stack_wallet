@@ -221,9 +221,6 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<bool> pingCheck() async {
-    if (libXelisWallet == null) {
-      return false;
-    }
     try {
       await libXelisWallet!.getDaemonInfo();
       await handleOnline();
@@ -960,7 +957,6 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<void> refresh({int? topoheight}) async {
-    if (libXelisWallet == null) { return; }
     await refreshMutex.protect(() async {
       try {
         final bool online = await libXelisWallet!.isOnline();
