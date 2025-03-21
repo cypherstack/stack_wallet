@@ -27,6 +27,8 @@ import '../intermediate/lib_xelis_wallet.dart';
 import '../wallet.dart';
 
 class XelisWallet extends LibXelisWallet {
+  Completer<void>? _initCompleter;
+
   XelisWallet(CryptoCurrencyNetwork network) : super(Xelis(network));
   // ==================== Overrides ============================================
 
@@ -65,6 +67,8 @@ class XelisWallet extends LibXelisWallet {
     );
 
     libXelisWallet = wallet;
+
+    await _finishInit();
   }
 
   Future<void> _createNewWallet() async {
@@ -97,68 +101,94 @@ class XelisWallet extends LibXelisWallet {
     );
 
     libXelisWallet = wallet;
+
+    await _finishInit();
+  }
+
+  Future<void> _existingWallet() async {
+    print("EXISTING");
+    Logging.instance.i("Xelis: opening existing wallet");
+    final tablePath = await getPrecomputedTablesPath();
+    final tableState = await getTableState();
+    final xelisDir = await StackFileSystem.applicationXelisDirectory();
+    final String name = walletId;
+    final String directory = xelisDir.path;
+    final password = await secureStorageInterface.read(
+      key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
+    );
+
+    libXelisWallet = await x_wallet.openXelisWallet(
+      name: name,
+      directory: directory,
+      password: password!,
+      network: cryptoCurrency.network.xelisNetwork,
+      precomputedTablesPath: tablePath,
+      l1Low: tableState.currentSize.isLow,
+    );
+
+    await _finishInit();
+  }
+
+  Future<void> _finishInit() async {
+    if (await isTableUpgradeAvailable()) {
+      unawaited(updateTablesToDesiredSize());
+    }
+
+    final newReceivingAddress =
+      await getCurrentReceivingAddress() ??
+      Address(
+        walletId: walletId,
+        derivationIndex: 0,
+        derivationPath: null,
+        value: libXelisWallet!.getAddressStr(),
+        publicKey: [],
+        type: AddressType.xelis,
+        subType: AddressSubType.receiving,
+      );
+
+    await mainDB.updateOrPutAddresses([newReceivingAddress]);
+
+    if (info.cachedReceivingAddress != newReceivingAddress.value) {
+      await info.updateReceivingAddress(
+        newAddress: newReceivingAddress.value,
+        isar: mainDB.isar,
+      );
+    }
   }
 
   @override
   Future<void> init({bool? isRestore}) async {
     Logging.instance.d("Xelis: init");
 
-    if (libXelisWallet == null) {
-      if (isRestore == true) {
-        await _restoreWallet();
-      } else {
-        final bool walletExists = await LibXelisWallet.checkWalletExists(walletId);
-        if (!walletExists) {
-          await _createNewWallet();
-        } else {
-          Logging.instance.i("Xelis: opening existing wallet");
-          final tablePath = await getPrecomputedTablesPath();
-          final tableState = await getTableState();
-          final xelisDir = await StackFileSystem.applicationXelisDirectory();
-          final String name = walletId;
-          final String directory = xelisDir.path;
-          final password = await secureStorageInterface.read(
-            key: Wallet.mnemonicPassphraseKey(walletId: info.walletId),
-          );
-
-          libXelisWallet = await x_wallet.openXelisWallet(
-            name: name,
-            directory: directory,
-            password: password!,
-            network: cryptoCurrency.network.xelisNetwork,
-            precomputedTablesPath: tablePath,
-            l1Low: tableState.currentSize.isLow,
-          );
-        }
-      }
-
-      if (await isTableUpgradeAvailable()) {
-        unawaited(updateTablesToDesiredSize());
-      }
-
-      final newReceivingAddress =
-        await getCurrentReceivingAddress() ??
-        Address(
-          walletId: walletId,
-          derivationIndex: 0,
-          derivationPath: null,
-          value: libXelisWallet!.getAddressStr(),
-          publicKey: [],
-          type: AddressType.xelis,
-          subType: AddressSubType.receiving,
-        );
-
-      await mainDB.updateOrPutAddresses([newReceivingAddress]);
-
-      if (info.cachedReceivingAddress != newReceivingAddress.value) {
-        await info.updateReceivingAddress(
-          newAddress: newReceivingAddress.value,
-          isar: mainDB.isar,
-        );
-      }
+    if (_initCompleter != null) {
+      await _initCompleter!.future;
+      return super.init();
     }
 
-    return await super.init();
+    _initCompleter = Completer<void>();
+
+    try {
+      final bool walletExists = await LibXelisWallet.checkWalletExists(walletId);
+
+      if (libXelisWallet == null) {
+        if (isRestore == true) {
+          await _restoreWallet();
+        } else {
+          if (!walletExists) {
+            await _createNewWallet();
+          } else {
+            await _existingWallet();
+          }
+        }
+      }
+    } catch (e) {
+      _initCompleter!.completeError(e);
+      rethrow;
+    } finally {
+      _initCompleter!.complete();
+    }
+
+    return super.init();
   }
 
   @override
@@ -191,7 +221,9 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<bool> pingCheck() async {
-    checkInitialized();
+    if (libXelisWallet == null) {
+      return false;
+    }
     try {
       await libXelisWallet!.getDaemonInfo();
       await handleOnline();
@@ -247,7 +279,7 @@ class XelisWallet extends LibXelisWallet {
     final Map<String, dynamic> nodeInfo =
         (json.decode(infoString) as Map).cast();
 
-    pruningHeight = int.parse(nodeInfo['pruned_topoheight'].toString());
+    pruningHeight = int.tryParse(nodeInfo['pruned_topoheight']?.toString() ?? '0') ?? 0;
     return int.parse(nodeInfo['topoheight'].toString());
   }
 
@@ -928,6 +960,7 @@ class XelisWallet extends LibXelisWallet {
 
   @override
   Future<void> refresh({int? topoheight}) async {
+    if (libXelisWallet == null) { return; }
     await refreshMutex.protect(() async {
       try {
         final bool online = await libXelisWallet!.isOnline();
