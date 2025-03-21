@@ -106,7 +106,6 @@ class XelisWallet extends LibXelisWallet {
   }
 
   Future<void> _existingWallet() async {
-    print("EXISTING");
     Logging.instance.i("Xelis: opening existing wallet");
     final tablePath = await getPrecomputedTablesPath();
     final tableState = await getTableState();
