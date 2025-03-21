@@ -181,11 +181,10 @@ class XelisWallet extends LibXelisWallet {
           }
         }
       }
+      _initCompleter!.complete();
     } catch (e) {
       _initCompleter!.completeError(e);
       rethrow;
-    } finally {
-      _initCompleter!.complete();
     }
 
     return super.init();
