@@ -32,8 +32,6 @@ enum XelisTableSize {
   }
 }
 
-enum XelisWalletOpenType { create, restore }
-
 class XelisTableState {
   final bool isGenerating;
   final XelisTableSize currentSize;
@@ -330,7 +328,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   }
 
   @override
-  Future<void> open({XelisWalletOpenType? openType}) async {
+  Future<void> open() async {
     try {
       await connect();
     } catch (e) {
