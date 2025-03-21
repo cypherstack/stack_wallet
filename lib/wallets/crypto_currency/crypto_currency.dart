@@ -23,6 +23,7 @@ export 'coins/solana.dart';
 export 'coins/stellar.dart';
 export 'coins/tezos.dart';
 export 'coins/wownero.dart';
+export 'coins/xelis.dart';
 
 enum CryptoCurrencyNetwork {
   main,

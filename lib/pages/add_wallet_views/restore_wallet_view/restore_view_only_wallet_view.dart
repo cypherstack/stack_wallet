@@ -31,6 +31,7 @@ import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -262,6 +263,10 @@ class _RestoreViewOnlyWalletViewState
 
           case const (WowneroWallet):
             await (wallet as WowneroWallet).init(isRestore: true);
+            break;
+
+          case const (XelisWallet):
+            await (wallet as XelisWallet).init(isRestore: true);
             break;
 
           default:

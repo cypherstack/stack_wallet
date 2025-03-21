@@ -1366,13 +1366,17 @@ class _TransactionV2DetailsViewState
                                 ],
                               ),
                             ),
-                            if (coin is! NanoCurrency)
+                            if (coin is! NanoCurrency &&
+                              !(coin is Xelis && _transaction.type == TransactionType.incoming)
+                            )
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(
                                       height: 12,
                                     ),
-                            if (coin is! NanoCurrency)
+                            if (coin is! NanoCurrency &&
+                              !(coin is Xelis && _transaction.type == TransactionType.incoming)
+                            )
                               RoundedWhiteContainer(
                                 padding: isDesktop
                                     ? const EdgeInsets.all(16)

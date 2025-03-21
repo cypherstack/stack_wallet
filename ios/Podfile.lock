@@ -109,6 +109,8 @@ PODS:
     - Flutter
   - wakelock_plus (0.0.1):
     - Flutter
+  - xelis_flutter (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - barcode_scan2 (from `.symlinks/plugins/barcode_scan2/ios`)
@@ -138,6 +140,7 @@ DEPENDENCIES:
   - tor_ffi_plugin (from `.symlinks/plugins/tor_ffi_plugin/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
+  - xelis_flutter (from `.symlinks/plugins/xelis_flutter/ios`)
 
 SPEC REPOS:
   trunk:
@@ -205,6 +208,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   wakelock_plus:
     :path: ".symlinks/plugins/wakelock_plus/ios"
+  xelis_flutter:
+    :path: ".symlinks/plugins/xelis_flutter/ios"
 
 SPEC CHECKSUMS:
   barcode_scan2: 0af2bb63c81b4565aab6cd78278e4c0fa136dbb0
