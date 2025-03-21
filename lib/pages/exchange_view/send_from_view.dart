@@ -35,7 +35,7 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
-import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -277,7 +277,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       // access to this screen but this is needed to get past an error that
       // would occur only to lead to another error which is why xmr/wow wallets
       // don't have access to this screen currently
-      if (wallet is LibMoneroWallet) {
+      if (wallet is ExternalWallet) {
         await wallet.init();
         await wallet.open();
       }

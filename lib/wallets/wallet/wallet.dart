@@ -47,6 +47,7 @@ import 'impl/stellar_wallet.dart';
 import 'impl/sub_wallets/eth_token_wallet.dart';
 import 'impl/tezos_wallet.dart';
 import 'impl/wownero_wallet.dart';
+import 'impl/xelis_wallet.dart';
 import 'intermediate/cryptonote_wallet.dart';
 import 'wallet_mixin_interfaces/electrumx_interface.dart';
 import 'wallet_mixin_interfaces/lelantus_interface.dart';
@@ -172,8 +173,8 @@ abstract class Wallet<T extends CryptoCurrency> {
         value: viewOnlyData!.toJsonEncodedString(),
       );
     } else if (wallet is MnemonicInterface) {
-      if (wallet is CryptonoteWallet) {
-        // currently a special case due to the xmr/wow libraries handling their
+      if (wallet is CryptonoteWallet || wallet is XelisWallet) { // 
+        // currently a special case due to the xmr/wow/xelis libraries handling their
         // own mnemonic generation on new wallet creation
         // if its a restore we must set them
         if (mnemonic != null) {
@@ -405,6 +406,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Wownero):
         return WowneroWallet(net);
+
+      case const (Xelis):
+        return XelisWallet(net);
 
       default:
         // should never hit in reality

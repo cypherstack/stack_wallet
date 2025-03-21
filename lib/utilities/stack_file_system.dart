@@ -39,8 +39,9 @@ abstract class StackFileSystem {
     // todo: can merge and do same as regular linux home dir?
     if (Util.isArmLinux) {
       appDirectory = await getApplicationDocumentsDirectory();
-      appDirectory =
-          Directory("${appDirectory.path}/.${AppConfig.appDefaultDataDirName}");
+      appDirectory = Directory(
+        "${appDirectory.path}/.${AppConfig.appDefaultDataDirName}",
+      );
     } else if (Platform.isLinux) {
       if (_overrideDesktopDirPath != null) {
         appDirectory = Directory(_overrideDesktopDirPath!);
@@ -146,6 +147,24 @@ abstract class StackFileSystem {
     } else {
       return root;
     }
+  }
+
+  static Future<Directory> applicationXelisDirectory() async {
+    final root = await applicationRootDirectory();
+    final dir = Directory("${root.path}${Platform.pathSeparator}xelis");
+    if (!dir.existsSync()) {
+      await dir.create();
+    }
+    return dir;
+  }
+
+  static Future<Directory> applicationXelisTableDirectory() async {
+    final xelis = await applicationXelisDirectory();
+    final dir = Directory("${xelis.path}${Platform.pathSeparator}table");
+    if (!dir.existsSync()) {
+      await dir.create();
+    }
+    return dir;
   }
 
   static Future<void> initThemesDir() async {

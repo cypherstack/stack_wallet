@@ -29,7 +29,7 @@ import '../../utilities/show_loading.dart';
 import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
@@ -119,7 +119,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         }
 
         final Future<void> loadFuture;
-        if (wallet is LibMoneroWallet) {
+        if (wallet is ExternalWallet) {
           loadFuture =
               wallet.init().then((value) async => await (wallet).open());
         } else {

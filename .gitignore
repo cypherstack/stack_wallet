@@ -59,8 +59,6 @@ coverage
 scripts/**/build
 /lib/external_api_keys.dart
 
-libcw_monero.dll
-libcw_wownero.dll
 libepic_cash_wallet.dll
 libmobileliblelantus.dll
 libtor_ffi.dll
@@ -69,6 +67,10 @@ secp256k1.dll
 /libisar.so
 /lib/app_config.g.dart
 /android/app/src/main/app_icon-playstore.png
+
+# Dart generated files (Freezed, Riverpod, GoRouter etc..)
+lib/**/*.g.dart
+lib/**/*.freezed.dart
 
 ## other generated project files
 
@@ -106,3 +108,4 @@ scripts/linux/build/libsecret/subprojects/gi-docgen/.meson-subproject-wrap-hash.
 
 crypto_plugins/cs_monero/built_outputs
 crypto_plugins/cs_monero/build
+crypto_plugins/*.diff

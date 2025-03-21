@@ -25,7 +25,7 @@ import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/dialogs/tor_warning_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../wallet_view/wallet_view.dart';
@@ -99,7 +99,7 @@ class WalletListItem extends ConsumerWidget {
             }
 
             final Future<void> loadFuture;
-            if (wallet is LibMoneroWallet) {
+            if (wallet is ExternalWallet) {
               loadFuture =
                   wallet.init().then((value) async => await (wallet).open());
             } else {
