@@ -135,6 +135,44 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Set<UTXO> selectedUTXOs = {};
 
+  void _applyUri(PaymentUriData paymentData) {
+    try {
+      // auto fill address
+      _address = paymentData.address.trim();
+      sendToController.text = _address!;
+
+      // autofill notes field
+      if (paymentData.message != null) {
+        noteController.text = paymentData.message!;
+      } else if (paymentData.label != null) {
+        noteController.text = paymentData.label!;
+      }
+
+      // autofill amount field
+      if (paymentData.amount != null) {
+        final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
+          fractionDigits: coin.fractionDigits,
+        );
+        cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+          amount,
+          withUnitName: false,
+        );
+        ref.read(pSendAmount.notifier).state = amount;
+      }
+
+      _setValidAddressProviders(_address);
+      setState(() {
+        _addressToggleFlag = sendToController.text.isNotEmpty;
+      });
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to apply uri in SendView: ",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
   Future<void> _scanQr() async {
     try {
       // ref
@@ -167,35 +205,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
-        // auto fill address
-        _address = paymentData.address.trim();
-        sendToController.text = _address!;
-
-        // autofill notes field
-        if (paymentData.message != null) {
-          noteController.text = paymentData.message!;
-        } else if (paymentData.label != null) {
-          noteController.text = paymentData.label!;
-        }
-
-        // autofill amount field
-        if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
-            fractionDigits: coin.fractionDigits,
-          );
-          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
-                amount,
-                withUnitName: false,
-              );
-          ref.read(pSendAmount.notifier).state = amount;
-        }
-
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
-
-        // now check for non standard encoded basic address
+        _applyUri(paymentData);
       } else {
         _address = qrResult.rawContent.split("\n").first.trim();
         sendToController.text = _address ?? "";
@@ -1350,7 +1360,23 @@ class _SendViewState extends ConsumerState<SendView> {
                                   selectAll: false,
                                 ),
                                 onChanged: (newValue) {
-                                  _address = newValue.trim();
+                                  final trimmed = newValue.trim();
+
+                                  if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
+                                    final parsed = AddressUtils.parsePaymentUri(
+                                      trimmed,
+                                      logging: Logging.instance,
+                                    );
+                                    if (parsed != null) {
+                                      _applyUri(parsed);
+                                    } else {
+                                      _address = newValue;
+                                      sendToController.text = newValue;
+                                    }
+                                  } else {
+                                    _address = newValue;
+                                  }
+
                                   _setValidAddressProviders(_address);
 
                                   setState(() {
@@ -1433,19 +1459,28 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           content,
                                                         );
                                                       }
-                                                      sendToController.text =
-                                                          content.trim();
-                                                      _address = content.trim();
 
-                                                      _setValidAddressProviders(
-                                                        _address,
+                                                      final trimmed = content.trim();
+                                                      final parsed = AddressUtils.parsePaymentUri(
+                                                        trimmed,
+                                                        logging: Logging.instance,
                                                       );
-                                                      setState(() {
-                                                        _addressToggleFlag =
-                                                            sendToController
-                                                                .text
-                                                                .isNotEmpty;
-                                                      });
+                                                      if (parsed != null) {
+                                                        _applyUri(parsed);
+                                                      } else {
+                                                        sendToController.text =
+                                                            content;
+                                                        _address = content;
+
+                                                        _setValidAddressProviders(_address,);
+
+                                                        setState(() {
+                                                          _addressToggleFlag =
+                                                              sendToController
+                                                                  .text
+                                                                  .isNotEmpty;
+                                                        });
+                                                      }
                                                     }
                                                   },
                                                   child: sendToController
