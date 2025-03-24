@@ -4,9 +4,8 @@ set -x -e
 
 # todo: revisit following at some point
 
-# libepiccash requires old rust
 source ../rust_version.sh
-set_rust_to_1671
+set_rust_to_181
 
 (cd ../../crypto_plugins/flutter_liblelantus/scripts/macos && ./build_all.sh )
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/macos && ./build_all.sh )
