@@ -7,7 +7,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eth",
@@ -17,7 +17,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ethbsc",
@@ -27,7 +27,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdt",
@@ -37,7 +37,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdterc20",
@@ -48,7 +48,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdttrc20",
@@ -59,7 +59,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtbsc",
@@ -69,7 +69,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdc",
@@ -79,7 +79,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcmatic",
@@ -90,7 +90,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnbmainnet",
@@ -101,7 +101,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnbbsc",
@@ -111,7 +111,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busd",
@@ -121,7 +121,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busdbsc",
@@ -131,7 +131,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xrp",
@@ -141,7 +141,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xrpbsc",
@@ -151,7 +151,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ada",
@@ -161,7 +161,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "adabsc",
@@ -171,7 +171,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sol",
@@ -181,7 +181,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "doge",
@@ -191,7 +191,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dot",
@@ -201,7 +201,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dotbsc",
@@ -211,7 +211,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dai",
@@ -221,7 +221,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "matic",
@@ -231,7 +231,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "maticmainnet",
@@ -242,7 +242,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shib",
@@ -252,7 +252,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shibbsc",
@@ -262,7 +262,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trx",
@@ -272,7 +272,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avax",
@@ -282,7 +282,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaxc",
@@ -292,7 +292,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wbtc",
@@ -302,7 +302,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "leo",
@@ -312,7 +312,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uni",
@@ -322,7 +322,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "etc",
@@ -332,7 +332,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ltc",
@@ -342,7 +342,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ltcbsc",
@@ -352,7 +352,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftt",
@@ -362,7 +362,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "atom",
@@ -372,7 +372,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "link",
@@ -382,7 +382,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cro",
@@ -392,7 +392,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "near",
@@ -402,7 +402,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xmr",
@@ -412,7 +412,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xlm",
@@ -422,7 +422,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bch",
@@ -432,7 +432,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "algo",
@@ -442,7 +442,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flow",
@@ -452,7 +452,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vet",
@@ -462,7 +462,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "icp",
@@ -472,7 +472,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fil",
@@ -482,7 +482,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ape",
@@ -492,7 +492,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eos",
@@ -502,7 +502,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mana",
@@ -512,7 +512,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sand",
@@ -522,7 +522,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hbar",
@@ -532,7 +532,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xtz",
@@ -542,7 +542,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xtzbsc",
@@ -552,7 +552,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chz",
@@ -562,7 +562,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qnt",
@@ -572,7 +572,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "egld",
@@ -582,7 +582,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aave",
@@ -592,7 +592,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "theta",
@@ -602,7 +602,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "axs",
@@ -612,7 +612,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tusd",
@@ -622,7 +622,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bsv",
@@ -632,7 +632,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "okb",
@@ -642,7 +642,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "galabsc",
@@ -652,7 +652,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zec",
@@ -662,7 +662,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdp",
@@ -672,7 +672,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttbsc",
@@ -682,7 +682,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iota",
@@ -692,7 +692,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mkr",
@@ -702,7 +702,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hnt",
@@ -712,7 +712,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ht",
@@ -722,7 +722,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snx",
@@ -732,7 +732,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "grt",
@@ -742,7 +742,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftm",
@@ -752,7 +752,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftmmainnet",
@@ -762,7 +762,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klay",
@@ -772,7 +772,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "neo",
@@ -782,7 +782,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rune",
@@ -792,7 +792,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "paxg",
@@ -802,7 +802,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ldo",
@@ -812,7 +812,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cake",
@@ -822,7 +822,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "crv",
@@ -832,7 +832,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nexo",
@@ -842,7 +842,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bat",
@@ -852,7 +852,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dash",
@@ -862,7 +862,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "waves",
@@ -872,7 +872,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zil",
@@ -882,7 +882,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lrc",
@@ -892,7 +892,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "enj",
@@ -902,7 +902,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ksm",
@@ -912,7 +912,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dcr",
@@ -922,7 +922,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btg",
@@ -932,7 +932,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gmt",
@@ -942,7 +942,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "twt",
@@ -952,7 +952,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gno",
@@ -962,7 +962,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xem",
@@ -972,7 +972,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "1inch",
@@ -982,7 +982,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "1inchbsc",
@@ -992,7 +992,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celo",
@@ -1002,7 +1002,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hot",
@@ -1012,7 +1012,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ust",
@@ -1023,7 +1023,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "galaerc20",
@@ -1034,7 +1034,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ankr",
@@ -1044,7 +1044,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "comp",
@@ -1054,7 +1054,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gt",
@@ -1064,7 +1064,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "cvx",
@@ -1074,7 +1074,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qtum",
@@ -1084,7 +1084,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfi",
@@ -1094,7 +1094,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xdc",
@@ -1104,7 +1104,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kda",
@@ -1114,7 +1114,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "iotx",
@@ -1124,7 +1124,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cel",
@@ -1134,7 +1134,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gusd",
@@ -1144,7 +1144,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tfuel",
@@ -1154,7 +1154,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rvn",
@@ -1164,7 +1164,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flux",
@@ -1174,7 +1174,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bal",
@@ -1184,7 +1184,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "amp",
@@ -1194,7 +1194,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "op",
@@ -1204,7 +1204,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "omg",
@@ -1214,7 +1214,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "one",
@@ -1224,7 +1224,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zrx",
@@ -1234,7 +1234,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rsr",
@@ -1244,7 +1244,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "jst",
@@ -1254,7 +1254,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "icx",
@@ -1264,7 +1264,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xym",
@@ -1274,7 +1274,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iost",
@@ -1284,7 +1284,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ens",
@@ -1294,7 +1294,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lpt",
@@ -1304,7 +1304,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "glm",
@@ -1314,7 +1314,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "audio",
@@ -1324,7 +1324,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "storj",
@@ -1334,7 +1334,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ont",
@@ -1344,7 +1344,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ontbsc",
@@ -1354,7 +1354,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "waxp",
@@ -1364,7 +1364,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "srm",
@@ -1374,7 +1374,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sc",
@@ -1384,7 +1384,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "imx",
@@ -1394,7 +1394,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zen",
@@ -1404,7 +1404,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uma",
@@ -1414,7 +1414,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "scrt",
@@ -1424,7 +1424,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mxc",
@@ -1434,7 +1434,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "btrst",
@@ -1444,7 +1444,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "skl",
@@ -1454,7 +1454,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poly",
@@ -1464,7 +1464,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "slp",
@@ -1474,7 +1474,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "woobsc",
@@ -1484,7 +1484,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "woo",
@@ -1494,7 +1494,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chsb",
@@ -1504,7 +1504,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cspr",
@@ -1514,7 +1514,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dgb",
@@ -1524,7 +1524,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eur",
@@ -1534,7 +1534,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "elon",
@@ -1544,7 +1544,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dao",
@@ -1554,7 +1554,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pla",
@@ -1564,7 +1564,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cvc",
@@ -1574,7 +1574,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ceek",
@@ -1584,7 +1584,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "spell",
@@ -1594,7 +1594,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rndr",
@@ -1604,7 +1604,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sushi",
@@ -1614,7 +1614,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btcst",
@@ -1624,7 +1624,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lsk",
@@ -1634,7 +1634,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eps",
@@ -1644,7 +1644,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pundix",
@@ -1654,7 +1654,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celr",
@@ -1664,7 +1664,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ren",
@@ -1674,7 +1674,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xyo",
@@ -1684,7 +1684,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nano",
@@ -1694,7 +1694,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "win",
@@ -1704,7 +1704,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ong",
@@ -1714,7 +1714,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uos",
@@ -1724,7 +1724,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "people",
@@ -1734,7 +1734,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cfx",
@@ -1744,7 +1744,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "req",
@@ -1754,7 +1754,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tribe",
@@ -1764,7 +1764,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dydx",
@@ -1774,7 +1774,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ardr",
@@ -1784,7 +1784,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rly",
@@ -1794,7 +1794,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "coti",
@@ -1804,7 +1804,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mx",
@@ -1814,7 +1814,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "rlc",
@@ -1824,7 +1824,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "powr",
@@ -1834,7 +1834,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nmr",
@@ -1844,7 +1844,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snt",
@@ -1854,7 +1854,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ocean",
@@ -1864,7 +1864,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chr",
@@ -1874,7 +1874,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "api3",
@@ -1884,7 +1884,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dent",
@@ -1894,7 +1894,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnt",
@@ -1904,7 +1904,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fxs",
@@ -1914,7 +1914,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hex",
@@ -1924,7 +1924,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "steth",
@@ -1934,7 +1934,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btcb",
@@ -1944,7 +1944,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "frax",
@@ -1954,7 +1954,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lunc",
@@ -1964,7 +1964,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dfi",
@@ -1974,7 +1974,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnx",
@@ -1984,7 +1984,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rpl",
@@ -1994,7 +1994,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "luna",
@@ -2004,7 +2004,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "husd",
@@ -2014,7 +2014,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "babydoge",
@@ -2024,7 +2024,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "metis",
@@ -2034,7 +2034,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "raca",
@@ -2044,7 +2044,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "prom",
@@ -2054,7 +2054,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sys",
@@ -2064,7 +2064,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gal",
@@ -2074,7 +2074,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bico",
@@ -2084,7 +2084,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "steem",
@@ -2094,7 +2094,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "c98",
@@ -2104,7 +2104,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "susd",
@@ -2114,7 +2114,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ctsi",
@@ -2124,7 +2124,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hxro",
@@ -2134,7 +2134,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rep",
@@ -2144,7 +2144,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fun",
@@ -2154,7 +2154,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pyr",
@@ -2164,7 +2164,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "strax",
@@ -2174,7 +2174,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bsw",
@@ -2184,7 +2184,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lyxe",
@@ -2194,7 +2194,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mtl",
@@ -2204,7 +2204,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "stmx",
@@ -2214,7 +2214,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "stpt",
@@ -2224,7 +2224,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "elf",
@@ -2234,7 +2234,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ufo",
@@ -2244,7 +2244,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "oxt",
@@ -2254,7 +2254,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ach",
@@ -2264,7 +2264,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ogn",
@@ -2274,7 +2274,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfund",
@@ -2284,7 +2284,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tlm",
@@ -2294,7 +2294,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "loom",
@@ -2304,7 +2304,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ant",
@@ -2314,7 +2314,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alice",
@@ -2324,7 +2324,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fet",
@@ -2334,7 +2334,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ygg",
@@ -2344,7 +2344,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ark",
@@ -2354,7 +2354,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "utk",
@@ -2364,7 +2364,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "super",
@@ -2374,7 +2374,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dusk",
@@ -2384,7 +2384,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ilv",
@@ -2394,7 +2394,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mbox",
@@ -2404,7 +2404,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sun",
@@ -2414,7 +2414,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vra",
@@ -2424,7 +2424,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aergo",
@@ -2434,7 +2434,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bake",
@@ -2444,7 +2444,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xvg",
@@ -2454,7 +2454,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dpi",
@@ -2464,7 +2464,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pols",
@@ -2474,7 +2474,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mln",
@@ -2484,7 +2484,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xcad",
@@ -2494,7 +2494,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "divi",
@@ -2504,7 +2504,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "divierc20",
@@ -2515,7 +2515,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sfp",
@@ -2525,7 +2525,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tomo",
@@ -2535,7 +2535,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "arpa",
@@ -2545,7 +2545,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "band",
@@ -2555,7 +2555,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bandmainnet",
@@ -2566,7 +2566,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sps",
@@ -2576,7 +2576,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ava",
@@ -2586,7 +2586,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaerc20",
@@ -2596,7 +2596,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avabsc",
@@ -2606,7 +2606,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "jasmy",
@@ -2616,7 +2616,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cult",
@@ -2626,7 +2626,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "starl",
@@ -2636,7 +2636,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aioz",
@@ -2646,7 +2646,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "alpaca",
@@ -2656,7 +2656,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "blz",
@@ -2666,7 +2666,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alcx",
@@ -2676,7 +2676,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kmd",
@@ -2686,7 +2686,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfii",
@@ -2696,7 +2696,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "unfi",
@@ -2706,7 +2706,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bel",
@@ -2716,7 +2716,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mc",
@@ -2726,7 +2726,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dia",
@@ -2736,7 +2736,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tko",
@@ -2746,7 +2746,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bcd",
@@ -2756,7 +2756,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "anc",
@@ -2766,7 +2766,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "farm",
@@ -2776,7 +2776,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bifi",
@@ -2786,7 +2786,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ata",
@@ -2796,7 +2796,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fio",
@@ -2806,7 +2806,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ubt",
@@ -2816,7 +2816,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pit",
@@ -2826,7 +2826,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dnt",
@@ -2836,7 +2836,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "burger",
@@ -2846,7 +2846,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "om",
@@ -2856,7 +2856,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "grs",
@@ -2866,7 +2866,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gas",
@@ -2876,7 +2876,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hoge",
@@ -2886,7 +2886,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fox",
@@ -2896,7 +2896,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "firo",
@@ -2906,7 +2906,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aion",
@@ -2916,7 +2916,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "adx",
@@ -2926,7 +2926,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nwc",
@@ -2937,7 +2937,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "solve",
@@ -2947,7 +2947,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cudos",
@@ -2957,7 +2957,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rook",
@@ -2967,7 +2967,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klv",
@@ -2977,7 +2977,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "front",
@@ -2987,7 +2987,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wtc",
@@ -2997,7 +2997,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "beam",
@@ -3007,7 +3007,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gto",
@@ -3017,7 +3017,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "akro",
@@ -3027,7 +3027,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mdt",
@@ -3037,7 +3037,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hez",
@@ -3047,7 +3047,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pnk",
@@ -3057,7 +3057,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ast",
@@ -3067,7 +3067,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snm",
@@ -3077,7 +3077,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qsp",
@@ -3087,7 +3087,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "xdb",
@@ -3097,7 +3097,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pivx",
@@ -3107,7 +3107,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mir",
@@ -3117,7 +3117,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "perl",
@@ -3127,7 +3127,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "go",
@@ -3137,7 +3137,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "urus",
@@ -3147,7 +3147,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cell",
@@ -3157,7 +3157,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "arv",
@@ -3167,7 +3167,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "caps",
@@ -3177,7 +3177,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wabi",
@@ -3187,7 +3187,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "swftc",
@@ -3197,7 +3197,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "shr",
@@ -3207,7 +3207,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "san",
@@ -3217,7 +3217,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dobo",
@@ -3227,7 +3227,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "hc",
@@ -3237,7 +3237,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fuse",
@@ -3247,7 +3247,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dogedash",
@@ -3257,7 +3257,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "poolz",
@@ -3267,7 +3267,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vib",
@@ -3277,7 +3277,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "now",
@@ -3287,7 +3287,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "muse",
@@ -3297,7 +3297,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mint",
@@ -3307,7 +3307,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xor",
@@ -3317,7 +3317,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mtv",
@@ -3327,7 +3327,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spi",
@@ -3337,7 +3337,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "belt",
@@ -3347,7 +3347,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ppt",
@@ -3357,7 +3357,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "awc",
@@ -3367,7 +3367,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "defit",
@@ -3377,7 +3377,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "srk",
@@ -3387,7 +3387,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "swrv",
@@ -3397,7 +3397,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pay",
@@ -3407,7 +3407,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lgcy",
@@ -3417,7 +3417,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nftb",
@@ -3427,7 +3427,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "open",
@@ -3437,7 +3437,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "hotcross",
@@ -3447,7 +3447,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bin",
@@ -3457,7 +3457,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rcn",
@@ -3467,7 +3467,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "srn",
@@ -3477,7 +3477,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "tking",
@@ -3487,7 +3487,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mph",
@@ -3497,7 +3497,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mda",
@@ -3507,7 +3507,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "skill",
@@ -3517,7 +3517,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xio",
@@ -3527,7 +3527,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zoon",
@@ -3537,7 +3537,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "naft",
@@ -3547,7 +3547,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lxt",
@@ -3557,7 +3557,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "rainbow",
@@ -3567,7 +3567,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "marsh",
@@ -3577,7 +3577,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spo",
@@ -3587,7 +3587,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "brd",
@@ -3597,7 +3597,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "eved",
@@ -3607,7 +3607,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lead",
@@ -3617,7 +3617,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cns",
@@ -3627,7 +3627,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfuel",
@@ -3637,7 +3637,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bunny",
@@ -3647,7 +3647,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "leash",
@@ -3657,7 +3657,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flokibsc",
@@ -3667,7 +3667,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "floki",
@@ -3677,7 +3677,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "volt",
@@ -3687,7 +3687,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "brise",
@@ -3697,7 +3697,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kishu",
@@ -3707,7 +3707,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shinja",
@@ -3717,7 +3717,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ntvrk",
@@ -3727,7 +3727,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "akita",
@@ -3737,7 +3737,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zinu",
@@ -3747,7 +3747,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gafa",
@@ -3757,7 +3757,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rbif",
@@ -3767,7 +3767,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "trvl",
@@ -3777,7 +3777,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kibabsc",
@@ -3787,7 +3787,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kiba",
@@ -3797,7 +3797,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "guard",
@@ -3807,7 +3807,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "feg",
@@ -3817,7 +3817,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fegbsc",
@@ -3827,7 +3827,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "blocks",
@@ -3837,7 +3837,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "copi",
@@ -3847,7 +3847,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dogecoin",
@@ -3857,7 +3857,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klee",
@@ -3867,7 +3867,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lblock",
@@ -3877,7 +3877,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gspi",
@@ -3887,7 +3887,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "asia",
@@ -3897,7 +3897,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wise",
@@ -3907,7 +3907,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gmr",
@@ -3917,7 +3917,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "knc",
@@ -3927,7 +3927,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fjb",
@@ -3937,7 +3937,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tenfi",
@@ -3947,7 +3947,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btfa",
@@ -3957,7 +3957,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aquagoat",
@@ -3967,7 +3967,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "titano",
@@ -3977,7 +3977,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sanshu",
@@ -3987,7 +3987,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "avn",
@@ -3997,7 +3997,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "geth",
@@ -4007,7 +4007,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tenshi",
@@ -4017,7 +4017,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poodl",
@@ -4027,7 +4027,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pika",
@@ -4037,7 +4037,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "defc",
@@ -4047,7 +4047,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "keanu",
@@ -4057,7 +4057,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "rxcg",
@@ -4067,7 +4067,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dgmoon",
@@ -4077,7 +4077,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "koromaru",
@@ -4087,7 +4087,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "nsh",
@@ -4097,7 +4097,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fluf",
@@ -4107,7 +4107,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lof",
@@ -4117,7 +4117,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hmc",
@@ -4127,7 +4127,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "nyxt",
@@ -4137,7 +4137,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usd",
@@ -4147,7 +4147,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "gbp",
@@ -4157,7 +4157,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "cad",
@@ -4167,7 +4167,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "jpy",
@@ -4177,7 +4177,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "rub",
@@ -4187,7 +4187,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "aud",
@@ -4197,7 +4197,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "chf",
@@ -4207,7 +4207,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "czk",
@@ -4217,7 +4217,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dkk",
@@ -4227,7 +4227,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "nok",
@@ -4237,7 +4237,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "nzd",
@@ -4247,7 +4247,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pln",
@@ -4257,7 +4257,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sek",
@@ -4267,7 +4267,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "try",
@@ -4277,7 +4277,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "zar",
@@ -4287,7 +4287,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "huf",
@@ -4297,7 +4297,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ils",
@@ -4307,7 +4307,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "brl",
@@ -4317,7 +4317,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fetbsc",
@@ -4327,7 +4327,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mononoke",
@@ -4338,7 +4338,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "daibsc",
@@ -4348,7 +4348,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "miota",
@@ -4358,7 +4358,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "luffy",
@@ -4368,7 +4368,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vgx",
@@ -4378,7 +4378,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtsol",
@@ -4389,7 +4389,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nearbsc",
@@ -4399,7 +4399,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iotxbsc",
@@ -4409,7 +4409,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "metiserc20",
@@ -4419,7 +4419,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nowbep2",
@@ -4429,7 +4429,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "saitamav2",
@@ -4439,7 +4439,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "vlxbsc",
@@ -4449,7 +4449,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dfibsc",
@@ -4459,7 +4459,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "usdcsol",
@@ -4469,7 +4469,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "clear",
@@ -4479,7 +4479,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcbsc",
@@ -4489,7 +4489,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttcbsc",
@@ -4499,7 +4499,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "maticbsc",
@@ -4509,7 +4509,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaxbsc",
@@ -4519,7 +4519,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ppm",
@@ -4529,7 +4529,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttc",
@@ -4539,7 +4539,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trxbsc",
@@ -4549,7 +4549,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "etcbsc",
@@ -4559,7 +4559,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "atombsc",
@@ -4569,7 +4569,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bchbsc",
@@ -4579,7 +4579,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vetbsc",
@@ -4589,7 +4589,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "filbsc",
@@ -4599,7 +4599,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "egldbsc",
@@ -4609,7 +4609,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "axsbsc",
@@ -4619,7 +4619,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tusdbsc",
@@ -4629,7 +4629,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eosbsc",
@@ -4639,7 +4639,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mkrbsc",
@@ -4649,7 +4649,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdpbsc",
@@ -4659,7 +4659,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "daimatic",
@@ -4669,7 +4669,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "zecbsc",
@@ -4679,7 +4679,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftmbsc",
@@ -4689,7 +4689,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "manabsc",
@@ -4699,7 +4699,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "batbsc",
@@ -4709,7 +4709,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sxpmainnet",
@@ -4720,7 +4720,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "zilbsc",
@@ -4730,7 +4730,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "compbsc",
@@ -4740,7 +4740,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snxbsc",
@@ -4750,7 +4750,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "solbsc",
@@ -4760,7 +4760,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ceekerc20",
@@ -4771,7 +4771,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfibsc",
@@ -4781,7 +4781,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kncbsc",
@@ -4791,7 +4791,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chrbsc",
@@ -4801,7 +4801,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sushibsc",
@@ -4811,7 +4811,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtmatic",
@@ -4821,7 +4821,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ankrbsc",
@@ -4831,7 +4831,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celrbsc",
@@ -4841,7 +4841,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sandmatic",
@@ -4852,7 +4852,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busdbnb",
@@ -4862,7 +4862,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "xcnbsc",
@@ -4872,7 +4872,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "plamatic",
@@ -4882,7 +4882,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fluxerc20",
@@ -4892,7 +4892,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "c98erc20",
@@ -4902,7 +4902,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "krw",
@@ -4912,7 +4912,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "world",
@@ -4922,7 +4922,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "all",
@@ -4932,7 +4932,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "amd",
@@ -4942,7 +4942,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ang",
@@ -4952,7 +4952,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bam",
@@ -4962,7 +4962,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bbd",
@@ -4972,7 +4972,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bdt",
@@ -4982,7 +4982,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bmd",
@@ -4992,7 +4992,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bnd",
@@ -5002,7 +5002,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bob",
@@ -5012,7 +5012,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bwp",
@@ -5022,7 +5022,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "byn",
@@ -5032,7 +5032,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "cny",
@@ -5042,7 +5042,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "djf",
@@ -5052,7 +5052,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "egp",
@@ -5062,7 +5062,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ghs",
@@ -5072,7 +5072,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "gtq",
@@ -5082,7 +5082,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "hnl",
@@ -5092,7 +5092,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "hrk",
@@ -5102,7 +5102,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "isk",
@@ -5112,7 +5112,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "jmd",
@@ -5122,7 +5122,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "kes",
@@ -5132,7 +5132,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "kgs",
@@ -5142,7 +5142,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "khr",
@@ -5152,7 +5152,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "kyd",
@@ -5162,7 +5162,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lbp",
@@ -5172,7 +5172,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lkr",
@@ -5182,7 +5182,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mkd",
@@ -5192,7 +5192,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mnt",
@@ -5202,7 +5202,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mop",
@@ -5212,7 +5212,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mur",
@@ -5222,7 +5222,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mzn",
@@ -5232,7 +5232,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pab",
@@ -5242,7 +5242,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pgk",
@@ -5252,7 +5252,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pkr",
@@ -5262,7 +5262,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pyg",
@@ -5272,7 +5272,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "rsd",
@@ -5282,7 +5282,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sos",
@@ -5292,7 +5292,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "thb",
@@ -5302,7 +5302,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ttd",
@@ -5312,7 +5312,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "tzs",
@@ -5322,7 +5322,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ugx",
@@ -5332,7 +5332,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "xaf",
@@ -5342,7 +5342,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "xof",
@@ -5352,7 +5352,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "zmw",
@@ -5362,7 +5362,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "momento",
@@ -5372,7 +5372,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fire",
@@ -5382,7 +5382,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ghc",
@@ -5392,7 +5392,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSON = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   }
 ];
 
@@ -5405,7 +5405,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eth",
@@ -5415,7 +5415,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ethbsc",
@@ -5425,7 +5425,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdt",
@@ -5435,7 +5435,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdterc20",
@@ -5446,7 +5446,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdttrc20",
@@ -5457,7 +5457,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtbsc",
@@ -5467,7 +5467,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdc",
@@ -5477,7 +5477,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcmatic",
@@ -5488,7 +5488,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnbmainnet",
@@ -5499,7 +5499,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnbbsc",
@@ -5509,7 +5509,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busd",
@@ -5519,7 +5519,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busdbsc",
@@ -5529,7 +5529,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xrp",
@@ -5539,7 +5539,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xrpbsc",
@@ -5549,7 +5549,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ada",
@@ -5559,7 +5559,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "adabsc",
@@ -5569,7 +5569,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sol",
@@ -5579,7 +5579,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "doge",
@@ -5589,7 +5589,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dot",
@@ -5599,7 +5599,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dotbsc",
@@ -5609,7 +5609,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dai",
@@ -5619,7 +5619,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "matic",
@@ -5629,7 +5629,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "maticmainnet",
@@ -5640,7 +5640,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shib",
@@ -5650,7 +5650,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shibbsc",
@@ -5660,7 +5660,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trx",
@@ -5670,7 +5670,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avax",
@@ -5680,7 +5680,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaxc",
@@ -5690,7 +5690,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wbtc",
@@ -5700,7 +5700,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "leo",
@@ -5710,7 +5710,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uni",
@@ -5720,7 +5720,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "etc",
@@ -5730,7 +5730,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ltc",
@@ -5740,7 +5740,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ltcbsc",
@@ -5750,7 +5750,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftt",
@@ -5760,7 +5760,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "link",
@@ -5770,7 +5770,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "atom",
@@ -5780,7 +5780,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cro",
@@ -5790,7 +5790,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "near",
@@ -5800,7 +5800,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xmr",
@@ -5810,7 +5810,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xlm",
@@ -5820,7 +5820,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bch",
@@ -5830,7 +5830,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "algo",
@@ -5840,7 +5840,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flow",
@@ -5850,7 +5850,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vet",
@@ -5860,7 +5860,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "icp",
@@ -5870,7 +5870,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fil",
@@ -5880,7 +5880,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ape",
@@ -5890,7 +5890,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eos",
@@ -5900,7 +5900,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mana",
@@ -5910,7 +5910,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sand",
@@ -5920,7 +5920,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hbar",
@@ -5930,7 +5930,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xtz",
@@ -5940,7 +5940,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xtzbsc",
@@ -5950,7 +5950,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chz",
@@ -5960,7 +5960,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qnt",
@@ -5970,7 +5970,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "egld",
@@ -5980,7 +5980,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aave",
@@ -5990,7 +5990,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "theta",
@@ -6000,7 +6000,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "axs",
@@ -6010,7 +6010,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tusd",
@@ -6020,7 +6020,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bsv",
@@ -6030,7 +6030,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "okb",
@@ -6040,7 +6040,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "galabsc",
@@ -6050,7 +6050,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zec",
@@ -6060,7 +6060,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdp",
@@ -6070,7 +6070,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttbsc",
@@ -6080,7 +6080,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iota",
@@ -6090,7 +6090,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mkr",
@@ -6100,7 +6100,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hnt",
@@ -6110,7 +6110,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ht",
@@ -6120,7 +6120,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snx",
@@ -6130,7 +6130,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "grt",
@@ -6140,7 +6140,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klay",
@@ -6150,7 +6150,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftm",
@@ -6160,7 +6160,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftmmainnet",
@@ -6170,7 +6170,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "neo",
@@ -6180,7 +6180,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rune",
@@ -6190,7 +6190,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "paxg",
@@ -6200,7 +6200,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ldo",
@@ -6210,7 +6210,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cake",
@@ -6220,7 +6220,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "crv",
@@ -6230,7 +6230,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nexo",
@@ -6240,7 +6240,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bat",
@@ -6250,7 +6250,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dash",
@@ -6260,7 +6260,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "waves",
@@ -6270,7 +6270,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zil",
@@ -6280,7 +6280,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lrc",
@@ -6290,7 +6290,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "enj",
@@ -6300,7 +6300,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ksm",
@@ -6310,7 +6310,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dcr",
@@ -6320,7 +6320,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btg",
@@ -6330,7 +6330,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gmt",
@@ -6340,7 +6340,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gno",
@@ -6350,7 +6350,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "twt",
@@ -6360,7 +6360,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xem",
@@ -6370,7 +6370,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "1inch",
@@ -6380,7 +6380,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "1inchbsc",
@@ -6390,7 +6390,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celo",
@@ -6400,7 +6400,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hot",
@@ -6410,7 +6410,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "galaerc20",
@@ -6421,7 +6421,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ankr",
@@ -6431,7 +6431,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "comp",
@@ -6441,7 +6441,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gt",
@@ -6451,7 +6451,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "cvx",
@@ -6461,7 +6461,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qtum",
@@ -6471,7 +6471,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfi",
@@ -6481,7 +6481,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xdc",
@@ -6491,7 +6491,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iotx",
@@ -6501,7 +6501,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cel",
@@ -6511,7 +6511,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gusd",
@@ -6521,7 +6521,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tfuel",
@@ -6531,7 +6531,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rvn",
@@ -6541,7 +6541,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flux",
@@ -6551,7 +6551,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bal",
@@ -6561,7 +6561,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "amp",
@@ -6571,7 +6571,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "omg",
@@ -6581,7 +6581,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zrx",
@@ -6591,7 +6591,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rsr",
@@ -6601,7 +6601,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "one",
@@ -6611,7 +6611,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "jst",
@@ -6621,7 +6621,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "icx",
@@ -6631,7 +6631,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xym",
@@ -6641,7 +6641,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iost",
@@ -6651,7 +6651,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ens",
@@ -6661,7 +6661,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lpt",
@@ -6671,7 +6671,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "glm",
@@ -6681,7 +6681,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "audio",
@@ -6691,7 +6691,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "storj",
@@ -6701,7 +6701,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ont",
@@ -6711,7 +6711,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ontbsc",
@@ -6721,7 +6721,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "waxp",
@@ -6731,7 +6731,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "srm",
@@ -6741,7 +6741,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sc",
@@ -6751,7 +6751,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "imx",
@@ -6761,7 +6761,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zen",
@@ -6771,7 +6771,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uma",
@@ -6781,7 +6781,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "scrt",
@@ -6791,7 +6791,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mxc",
@@ -6801,7 +6801,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "btrst",
@@ -6811,7 +6811,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "skl",
@@ -6821,7 +6821,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poly",
@@ -6831,7 +6831,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "slp",
@@ -6841,7 +6841,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "woobsc",
@@ -6851,7 +6851,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "woo",
@@ -6861,7 +6861,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chsb",
@@ -6871,7 +6871,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cspr",
@@ -6881,7 +6881,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dgb",
@@ -6891,7 +6891,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eur",
@@ -6901,7 +6901,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "elon",
@@ -6911,7 +6911,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dao",
@@ -6921,7 +6921,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pla",
@@ -6931,7 +6931,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cvc",
@@ -6941,7 +6941,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ceek",
@@ -6951,7 +6951,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "spell",
@@ -6961,7 +6961,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rndr",
@@ -6971,7 +6971,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sushi",
@@ -6981,7 +6981,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btcst",
@@ -6991,7 +6991,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lsk",
@@ -7001,7 +7001,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eps",
@@ -7011,7 +7011,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pundix",
@@ -7021,7 +7021,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celr",
@@ -7031,7 +7031,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ren",
@@ -7041,7 +7041,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nano",
@@ -7051,7 +7051,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xyo",
@@ -7061,7 +7061,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "win",
@@ -7071,7 +7071,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ong",
@@ -7081,7 +7081,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "people",
@@ -7091,7 +7091,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uos",
@@ -7101,7 +7101,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cfx",
@@ -7111,7 +7111,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "req",
@@ -7121,7 +7121,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tribe",
@@ -7131,7 +7131,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dydx",
@@ -7141,7 +7141,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ardr",
@@ -7151,7 +7151,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rly",
@@ -7161,7 +7161,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "coti",
@@ -7171,7 +7171,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mx",
@@ -7181,7 +7181,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "rlc",
@@ -7191,7 +7191,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "powr",
@@ -7201,7 +7201,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nmr",
@@ -7211,7 +7211,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snt",
@@ -7221,7 +7221,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ocean",
@@ -7231,7 +7231,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chr",
@@ -7241,7 +7241,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "api3",
@@ -7251,7 +7251,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dent",
@@ -7261,7 +7261,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnt",
@@ -7271,7 +7271,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fxs",
@@ -7281,7 +7281,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hex",
@@ -7291,7 +7291,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "steth",
@@ -7301,7 +7301,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btcb",
@@ -7311,7 +7311,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lunc",
@@ -7321,7 +7321,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dfi",
@@ -7331,7 +7331,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnx",
@@ -7341,7 +7341,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rpl",
@@ -7351,7 +7351,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "luna",
@@ -7361,7 +7361,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "husd",
@@ -7371,7 +7371,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "babydoge",
@@ -7381,7 +7381,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "metis",
@@ -7391,7 +7391,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "raca",
@@ -7401,7 +7401,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "prom",
@@ -7411,7 +7411,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sys",
@@ -7421,7 +7421,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gal",
@@ -7431,7 +7431,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bico",
@@ -7441,7 +7441,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "steem",
@@ -7451,7 +7451,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "c98",
@@ -7461,7 +7461,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "susd",
@@ -7471,7 +7471,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ctsi",
@@ -7481,7 +7481,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hxro",
@@ -7491,7 +7491,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rep",
@@ -7501,7 +7501,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fun",
@@ -7511,7 +7511,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pyr",
@@ -7521,7 +7521,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "strax",
@@ -7531,7 +7531,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bsw",
@@ -7541,7 +7541,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lyxe",
@@ -7551,7 +7551,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mtl",
@@ -7561,7 +7561,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "stmx",
@@ -7571,7 +7571,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "stpt",
@@ -7581,7 +7581,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "elf",
@@ -7591,7 +7591,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "oxt",
@@ -7601,7 +7601,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ufo",
@@ -7611,7 +7611,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ach",
@@ -7621,7 +7621,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ogn",
@@ -7631,7 +7631,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfund",
@@ -7641,7 +7641,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tlm",
@@ -7651,7 +7651,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "loom",
@@ -7661,7 +7661,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ant",
@@ -7671,7 +7671,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alice",
@@ -7681,7 +7681,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fet",
@@ -7691,7 +7691,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ygg",
@@ -7701,7 +7701,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ark",
@@ -7711,7 +7711,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "utk",
@@ -7721,7 +7721,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "super",
@@ -7731,7 +7731,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dusk",
@@ -7741,7 +7741,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ilv",
@@ -7751,7 +7751,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mbox",
@@ -7761,7 +7761,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sun",
@@ -7771,7 +7771,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aergo",
@@ -7781,7 +7781,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vra",
@@ -7791,7 +7791,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bake",
@@ -7801,7 +7801,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xvg",
@@ -7811,7 +7811,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dpi",
@@ -7821,7 +7821,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pols",
@@ -7831,7 +7831,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mln",
@@ -7841,7 +7841,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xcad",
@@ -7851,7 +7851,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "divi",
@@ -7861,7 +7861,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "divierc20",
@@ -7872,7 +7872,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sfp",
@@ -7882,7 +7882,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tomo",
@@ -7892,7 +7892,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "arpa",
@@ -7902,7 +7902,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "band",
@@ -7912,7 +7912,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bandmainnet",
@@ -7923,7 +7923,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sps",
@@ -7933,7 +7933,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ava",
@@ -7943,7 +7943,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaerc20",
@@ -7953,7 +7953,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avabsc",
@@ -7963,7 +7963,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "jasmy",
@@ -7973,7 +7973,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cult",
@@ -7983,7 +7983,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "starl",
@@ -7993,7 +7993,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aioz",
@@ -8003,7 +8003,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "alpaca",
@@ -8013,7 +8013,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "blz",
@@ -8023,7 +8023,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kmd",
@@ -8033,7 +8033,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alcx",
@@ -8043,7 +8043,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfii",
@@ -8053,7 +8053,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "unfi",
@@ -8063,7 +8063,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bel",
@@ -8073,7 +8073,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mc",
@@ -8083,7 +8083,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dia",
@@ -8093,7 +8093,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tko",
@@ -8103,7 +8103,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bcd",
@@ -8113,7 +8113,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "farm",
@@ -8123,7 +8123,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bifi",
@@ -8133,7 +8133,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ata",
@@ -8143,7 +8143,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fio",
@@ -8153,7 +8153,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ubt",
@@ -8163,7 +8163,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pit",
@@ -8173,7 +8173,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dnt",
@@ -8183,7 +8183,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "burger",
@@ -8193,7 +8193,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "grs",
@@ -8203,7 +8203,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "om",
@@ -8213,7 +8213,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gas",
@@ -8223,7 +8223,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hoge",
@@ -8233,7 +8233,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fox",
@@ -8243,7 +8243,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "firo",
@@ -8253,7 +8253,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aion",
@@ -8263,7 +8263,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "adx",
@@ -8273,7 +8273,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nwc",
@@ -8284,7 +8284,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cudos",
@@ -8294,7 +8294,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "solve",
@@ -8304,7 +8304,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klv",
@@ -8314,7 +8314,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rook",
@@ -8324,7 +8324,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "front",
@@ -8334,7 +8334,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wtc",
@@ -8344,7 +8344,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "beam",
@@ -8354,7 +8354,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gto",
@@ -8364,7 +8364,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "akro",
@@ -8374,7 +8374,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mdt",
@@ -8384,7 +8384,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hez",
@@ -8394,7 +8394,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pnk",
@@ -8404,7 +8404,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ast",
@@ -8414,7 +8414,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snm",
@@ -8424,7 +8424,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qsp",
@@ -8434,7 +8434,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pivx",
@@ -8444,7 +8444,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xdb",
@@ -8454,7 +8454,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mir",
@@ -8464,7 +8464,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "perl",
@@ -8474,7 +8474,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "go",
@@ -8484,7 +8484,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "urus",
@@ -8494,7 +8494,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "arv",
@@ -8504,7 +8504,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cell",
@@ -8514,7 +8514,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "caps",
@@ -8524,7 +8524,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wabi",
@@ -8534,7 +8534,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "swftc",
@@ -8544,7 +8544,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "shr",
@@ -8554,7 +8554,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "san",
@@ -8564,7 +8564,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dobo",
@@ -8574,7 +8574,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "hc",
@@ -8584,7 +8584,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fuse",
@@ -8594,7 +8594,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dogedash",
@@ -8604,7 +8604,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "poolz",
@@ -8614,7 +8614,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vib",
@@ -8624,7 +8624,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "now",
@@ -8634,7 +8634,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "muse",
@@ -8644,7 +8644,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mint",
@@ -8654,7 +8654,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xor",
@@ -8664,7 +8664,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mtv",
@@ -8674,7 +8674,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spi",
@@ -8684,7 +8684,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "belt",
@@ -8694,7 +8694,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ppt",
@@ -8704,7 +8704,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "awc",
@@ -8714,7 +8714,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "defit",
@@ -8724,7 +8724,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "srk",
@@ -8734,7 +8734,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "swrv",
@@ -8744,7 +8744,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pay",
@@ -8754,7 +8754,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lgcy",
@@ -8764,7 +8764,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nftb",
@@ -8774,7 +8774,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "open",
@@ -8784,7 +8784,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "hotcross",
@@ -8794,7 +8794,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bin",
@@ -8804,7 +8804,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rcn",
@@ -8814,7 +8814,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "srn",
@@ -8824,7 +8824,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "tking",
@@ -8834,7 +8834,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mph",
@@ -8844,7 +8844,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mda",
@@ -8854,7 +8854,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "skill",
@@ -8864,7 +8864,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xio",
@@ -8874,7 +8874,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zoon",
@@ -8884,7 +8884,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lxt",
@@ -8894,7 +8894,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "naft",
@@ -8904,7 +8904,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rainbow",
@@ -8914,7 +8914,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "marsh",
@@ -8924,7 +8924,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spo",
@@ -8934,7 +8934,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "brd",
@@ -8944,7 +8944,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "eved",
@@ -8954,7 +8954,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lead",
@@ -8964,7 +8964,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cns",
@@ -8974,7 +8974,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfuel",
@@ -8984,7 +8984,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bunny",
@@ -8994,7 +8994,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "leash",
@@ -9004,7 +9004,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flokibsc",
@@ -9014,7 +9014,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "floki",
@@ -9024,7 +9024,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "volt",
@@ -9034,7 +9034,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "brise",
@@ -9044,7 +9044,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kishu",
@@ -9054,7 +9054,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shinja",
@@ -9064,7 +9064,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ntvrk",
@@ -9074,7 +9074,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "akita",
@@ -9084,7 +9084,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zinu",
@@ -9094,7 +9094,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gafa",
@@ -9104,7 +9104,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rbif",
@@ -9114,7 +9114,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "trvl",
@@ -9124,7 +9124,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kibabsc",
@@ -9134,7 +9134,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kiba",
@@ -9144,7 +9144,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "guard",
@@ -9154,7 +9154,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "feg",
@@ -9164,7 +9164,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fegbsc",
@@ -9174,7 +9174,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "blocks",
@@ -9184,7 +9184,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "copi",
@@ -9194,7 +9194,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dogecoin",
@@ -9204,7 +9204,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klee",
@@ -9214,7 +9214,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lblock",
@@ -9224,7 +9224,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gspi",
@@ -9234,7 +9234,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "asia",
@@ -9244,7 +9244,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wise",
@@ -9254,7 +9254,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gmr",
@@ -9264,7 +9264,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "knc",
@@ -9274,7 +9274,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fjb",
@@ -9284,7 +9284,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tenfi",
@@ -9294,7 +9294,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btfa",
@@ -9304,7 +9304,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aquagoat",
@@ -9314,7 +9314,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "titano",
@@ -9324,7 +9324,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sanshu",
@@ -9334,7 +9334,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "avn",
@@ -9344,7 +9344,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tenshi",
@@ -9354,7 +9354,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poodl",
@@ -9364,7 +9364,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pika",
@@ -9374,7 +9374,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "geth",
@@ -9384,7 +9384,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "defc",
@@ -9394,7 +9394,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "keanu",
@@ -9404,7 +9404,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dgmoon",
@@ -9414,7 +9414,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "koromaru",
@@ -9424,7 +9424,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "nsh",
@@ -9434,7 +9434,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fluf",
@@ -9444,7 +9444,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lof",
@@ -9454,7 +9454,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hmc",
@@ -9464,7 +9464,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "nyxt",
@@ -9474,7 +9474,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usd",
@@ -9484,7 +9484,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "gbp",
@@ -9494,7 +9494,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "cad",
@@ -9504,7 +9504,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "jpy",
@@ -9514,7 +9514,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "rub",
@@ -9524,7 +9524,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "aud",
@@ -9534,7 +9534,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "chf",
@@ -9544,7 +9544,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "czk",
@@ -9554,7 +9554,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dkk",
@@ -9564,7 +9564,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "nok",
@@ -9574,7 +9574,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "nzd",
@@ -9584,7 +9584,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pln",
@@ -9594,7 +9594,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sek",
@@ -9604,7 +9604,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "try",
@@ -9614,7 +9614,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "zar",
@@ -9624,7 +9624,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "huf",
@@ -9634,7 +9634,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ils",
@@ -9644,7 +9644,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "brl",
@@ -9654,7 +9654,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "fetbsc",
@@ -9664,7 +9664,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mononoke",
@@ -9675,7 +9675,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "daibsc",
@@ -9685,7 +9685,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "miota",
@@ -9695,7 +9695,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "luffy",
@@ -9705,7 +9705,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vgx",
@@ -9715,7 +9715,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtsol",
@@ -9726,7 +9726,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nearbsc",
@@ -9736,7 +9736,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iotxbsc",
@@ -9746,7 +9746,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "metiserc20",
@@ -9756,7 +9756,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nowbep2",
@@ -9766,7 +9766,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "saitamav2",
@@ -9776,7 +9776,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "vlxbsc",
@@ -9786,7 +9786,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "dfibsc",
@@ -9796,7 +9796,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "usdcsol",
@@ -9806,7 +9806,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "clear",
@@ -9816,7 +9816,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcbsc",
@@ -9826,7 +9826,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttcbsc",
@@ -9836,7 +9836,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "maticbsc",
@@ -9846,7 +9846,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaxbsc",
@@ -9856,7 +9856,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ppm",
@@ -9866,7 +9866,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttc",
@@ -9876,7 +9876,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trxbsc",
@@ -9886,7 +9886,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "etcbsc",
@@ -9896,7 +9896,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "atombsc",
@@ -9906,7 +9906,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bchbsc",
@@ -9916,7 +9916,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vetbsc",
@@ -9926,7 +9926,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "filbsc",
@@ -9936,7 +9936,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "egldbsc",
@@ -9946,7 +9946,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "axsbsc",
@@ -9956,7 +9956,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tusdbsc",
@@ -9966,7 +9966,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eosbsc",
@@ -9976,7 +9976,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mkrbsc",
@@ -9986,7 +9986,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdpbsc",
@@ -9996,7 +9996,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "daimatic",
@@ -10006,7 +10006,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "zecbsc",
@@ -10016,7 +10016,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftmbsc",
@@ -10026,7 +10026,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "manabsc",
@@ -10036,7 +10036,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "batbsc",
@@ -10046,7 +10046,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sxpmainnet",
@@ -10057,7 +10057,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "zilbsc",
@@ -10067,7 +10067,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "compbsc",
@@ -10077,7 +10077,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snxbsc",
@@ -10087,7 +10087,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "solbsc",
@@ -10097,7 +10097,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ceekerc20",
@@ -10108,7 +10108,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfibsc",
@@ -10118,7 +10118,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kncbsc",
@@ -10128,7 +10128,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chrbsc",
@@ -10138,7 +10138,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sushibsc",
@@ -10148,7 +10148,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtmatic",
@@ -10158,7 +10158,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ankrbsc",
@@ -10168,7 +10168,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celrbsc",
@@ -10178,7 +10178,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sandmatic",
@@ -10189,7 +10189,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xcnbsc",
@@ -10199,7 +10199,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "plamatic",
@@ -10209,7 +10209,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fluxerc20",
@@ -10219,7 +10219,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "c98erc20",
@@ -10229,7 +10229,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "krw",
@@ -10239,7 +10239,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "world",
@@ -10249,7 +10249,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "all",
@@ -10259,7 +10259,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "amd",
@@ -10269,7 +10269,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ang",
@@ -10279,7 +10279,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bam",
@@ -10289,7 +10289,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bbd",
@@ -10299,7 +10299,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bdt",
@@ -10309,7 +10309,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bmd",
@@ -10319,7 +10319,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bnd",
@@ -10329,7 +10329,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bob",
@@ -10339,7 +10339,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "bwp",
@@ -10349,7 +10349,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "byn",
@@ -10359,7 +10359,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "cny",
@@ -10369,7 +10369,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "djf",
@@ -10379,7 +10379,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "egp",
@@ -10389,7 +10389,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ghs",
@@ -10399,7 +10399,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "gtq",
@@ -10409,7 +10409,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "hnl",
@@ -10419,7 +10419,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "hrk",
@@ -10429,7 +10429,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "isk",
@@ -10439,7 +10439,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "jmd",
@@ -10449,7 +10449,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "kes",
@@ -10459,7 +10459,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "kgs",
@@ -10469,7 +10469,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "khr",
@@ -10479,7 +10479,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "kyd",
@@ -10489,7 +10489,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lbp",
@@ -10499,7 +10499,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "lkr",
@@ -10509,7 +10509,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mkd",
@@ -10519,7 +10519,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mnt",
@@ -10529,7 +10529,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mop",
@@ -10539,7 +10539,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mur",
@@ -10549,7 +10549,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "mzn",
@@ -10559,7 +10559,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pab",
@@ -10569,7 +10569,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pgk",
@@ -10579,7 +10579,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pkr",
@@ -10589,7 +10589,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "pyg",
@@ -10599,7 +10599,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "rsd",
@@ -10609,7 +10609,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "sos",
@@ -10619,7 +10619,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "thb",
@@ -10629,7 +10629,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ttd",
@@ -10639,7 +10639,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "tzs",
@@ -10649,7 +10649,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "ugx",
@@ -10659,7 +10659,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "xaf",
@@ -10669,7 +10669,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "xof",
@@ -10679,7 +10679,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "zmw",
@@ -10689,7 +10689,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": true,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": false
+    "supportsFixedRate": false,
   },
   {
     "ticker": "momento",
@@ -10699,7 +10699,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fire",
@@ -10709,7 +10709,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ghc",
@@ -10719,7 +10719,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActive = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   }
 ];
 
@@ -10732,7 +10732,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eth",
@@ -10742,7 +10742,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ethbsc",
@@ -10752,7 +10752,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdt",
@@ -10762,7 +10762,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdterc20",
@@ -10773,7 +10773,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdttrc20",
@@ -10784,7 +10784,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtbsc",
@@ -10794,7 +10794,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdc",
@@ -10804,7 +10804,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcmatic",
@@ -10815,7 +10815,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnbmainnet",
@@ -10826,7 +10826,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnbbsc",
@@ -10836,7 +10836,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busd",
@@ -10846,7 +10846,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busdbsc",
@@ -10856,7 +10856,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xrp",
@@ -10866,7 +10866,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xrpbsc",
@@ -10876,7 +10876,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ada",
@@ -10886,7 +10886,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "adabsc",
@@ -10896,7 +10896,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sol",
@@ -10906,7 +10906,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "doge",
@@ -10916,7 +10916,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dot",
@@ -10926,7 +10926,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dotbsc",
@@ -10936,7 +10936,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dai",
@@ -10946,7 +10946,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "matic",
@@ -10956,7 +10956,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "maticmainnet",
@@ -10967,7 +10967,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shib",
@@ -10977,7 +10977,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shibbsc",
@@ -10987,7 +10987,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trx",
@@ -10997,7 +10997,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avax",
@@ -11007,7 +11007,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaxc",
@@ -11017,7 +11017,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wbtc",
@@ -11027,7 +11027,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "leo",
@@ -11037,7 +11037,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uni",
@@ -11047,7 +11047,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "etc",
@@ -11057,7 +11057,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ltc",
@@ -11067,7 +11067,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ltcbsc",
@@ -11077,7 +11077,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftt",
@@ -11087,7 +11087,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "link",
@@ -11097,7 +11097,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "atom",
@@ -11107,7 +11107,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cro",
@@ -11117,7 +11117,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "near",
@@ -11127,7 +11127,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xmr",
@@ -11137,7 +11137,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xlm",
@@ -11147,7 +11147,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bch",
@@ -11157,7 +11157,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "algo",
@@ -11167,7 +11167,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flow",
@@ -11177,7 +11177,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vet",
@@ -11187,7 +11187,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "icp",
@@ -11197,7 +11197,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fil",
@@ -11207,7 +11207,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ape",
@@ -11217,7 +11217,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eos",
@@ -11227,7 +11227,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mana",
@@ -11237,7 +11237,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sand",
@@ -11247,7 +11247,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hbar",
@@ -11257,7 +11257,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xtz",
@@ -11267,7 +11267,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xtzbsc",
@@ -11277,7 +11277,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chz",
@@ -11287,7 +11287,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qnt",
@@ -11297,7 +11297,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "egld",
@@ -11307,7 +11307,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aave",
@@ -11317,7 +11317,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "theta",
@@ -11327,7 +11327,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "axs",
@@ -11337,7 +11337,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tusd",
@@ -11347,7 +11347,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bsv",
@@ -11357,7 +11357,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "okb",
@@ -11367,7 +11367,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "galabsc",
@@ -11377,7 +11377,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zec",
@@ -11387,7 +11387,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdp",
@@ -11397,7 +11397,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttbsc",
@@ -11407,7 +11407,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iota",
@@ -11417,7 +11417,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mkr",
@@ -11427,7 +11427,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hnt",
@@ -11437,7 +11437,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ht",
@@ -11447,7 +11447,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snx",
@@ -11457,7 +11457,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "grt",
@@ -11467,7 +11467,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klay",
@@ -11477,7 +11477,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftm",
@@ -11487,7 +11487,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftmmainnet",
@@ -11497,7 +11497,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "neo",
@@ -11507,7 +11507,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "paxg",
@@ -11517,7 +11517,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ldo",
@@ -11527,7 +11527,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cake",
@@ -11537,7 +11537,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "crv",
@@ -11547,7 +11547,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nexo",
@@ -11557,7 +11557,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bat",
@@ -11567,7 +11567,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dash",
@@ -11577,7 +11577,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "waves",
@@ -11587,7 +11587,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zil",
@@ -11597,7 +11597,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lrc",
@@ -11607,7 +11607,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "enj",
@@ -11617,7 +11617,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ksm",
@@ -11627,7 +11627,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dcr",
@@ -11637,7 +11637,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btg",
@@ -11647,7 +11647,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gmt",
@@ -11657,7 +11657,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gno",
@@ -11667,7 +11667,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "twt",
@@ -11677,7 +11677,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xem",
@@ -11687,7 +11687,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "1inch",
@@ -11697,7 +11697,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "1inchbsc",
@@ -11707,7 +11707,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celo",
@@ -11717,7 +11717,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hot",
@@ -11727,7 +11727,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "galaerc20",
@@ -11738,7 +11738,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ankr",
@@ -11748,7 +11748,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "comp",
@@ -11758,7 +11758,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cvx",
@@ -11768,7 +11768,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qtum",
@@ -11778,7 +11778,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfi",
@@ -11788,7 +11788,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xdc",
@@ -11798,7 +11798,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iotx",
@@ -11808,7 +11808,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cel",
@@ -11818,7 +11818,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gusd",
@@ -11828,7 +11828,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tfuel",
@@ -11838,7 +11838,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rvn",
@@ -11848,7 +11848,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flux",
@@ -11858,7 +11858,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bal",
@@ -11868,7 +11868,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "amp",
@@ -11878,7 +11878,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "omg",
@@ -11888,7 +11888,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zrx",
@@ -11898,7 +11898,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rsr",
@@ -11908,7 +11908,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "one",
@@ -11918,7 +11918,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "jst",
@@ -11928,7 +11928,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "icx",
@@ -11938,7 +11938,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xym",
@@ -11948,7 +11948,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iost",
@@ -11958,7 +11958,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ens",
@@ -11968,7 +11968,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lpt",
@@ -11978,7 +11978,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "glm",
@@ -11988,7 +11988,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "audio",
@@ -11998,7 +11998,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "storj",
@@ -12008,7 +12008,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ont",
@@ -12018,7 +12018,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ontbsc",
@@ -12028,7 +12028,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "waxp",
@@ -12038,7 +12038,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "srm",
@@ -12048,7 +12048,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sc",
@@ -12058,7 +12058,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "imx",
@@ -12068,7 +12068,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zen",
@@ -12078,7 +12078,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uma",
@@ -12088,7 +12088,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "scrt",
@@ -12098,7 +12098,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "skl",
@@ -12108,7 +12108,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poly",
@@ -12118,7 +12118,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "slp",
@@ -12128,7 +12128,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "woobsc",
@@ -12138,7 +12138,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "woo",
@@ -12148,7 +12148,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chsb",
@@ -12158,7 +12158,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dgb",
@@ -12168,7 +12168,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "elon",
@@ -12178,7 +12178,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dao",
@@ -12188,7 +12188,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pla",
@@ -12198,7 +12198,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cvc",
@@ -12208,7 +12208,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spell",
@@ -12218,7 +12218,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rndr",
@@ -12228,7 +12228,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sushi",
@@ -12238,7 +12238,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btcst",
@@ -12248,7 +12248,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lsk",
@@ -12258,7 +12258,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eps",
@@ -12268,7 +12268,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pundix",
@@ -12278,7 +12278,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celr",
@@ -12288,7 +12288,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ren",
@@ -12298,7 +12298,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nano",
@@ -12308,7 +12308,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xyo",
@@ -12318,7 +12318,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "win",
@@ -12328,7 +12328,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ong",
@@ -12338,7 +12338,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "people",
@@ -12348,7 +12348,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uos",
@@ -12358,7 +12358,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cfx",
@@ -12368,7 +12368,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "req",
@@ -12378,7 +12378,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dydx",
@@ -12388,7 +12388,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ardr",
@@ -12398,7 +12398,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rly",
@@ -12408,7 +12408,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "coti",
@@ -12418,7 +12418,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rlc",
@@ -12428,7 +12428,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "powr",
@@ -12438,7 +12438,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nmr",
@@ -12448,7 +12448,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snt",
@@ -12458,7 +12458,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ocean",
@@ -12468,7 +12468,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chr",
@@ -12478,7 +12478,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "api3",
@@ -12488,7 +12488,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dent",
@@ -12498,7 +12498,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnt",
@@ -12508,7 +12508,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fxs",
@@ -12518,7 +12518,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hex",
@@ -12528,7 +12528,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "steth",
@@ -12538,7 +12538,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btcb",
@@ -12548,7 +12548,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lunc",
@@ -12558,7 +12558,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dfi",
@@ -12568,7 +12568,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnx",
@@ -12578,7 +12578,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rpl",
@@ -12588,7 +12588,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "luna",
@@ -12598,7 +12598,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "babydoge",
@@ -12608,7 +12608,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "raca",
@@ -12618,7 +12618,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sys",
@@ -12628,7 +12628,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gal",
@@ -12638,7 +12638,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bico",
@@ -12648,7 +12648,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "steem",
@@ -12658,7 +12658,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "c98",
@@ -12668,7 +12668,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "susd",
@@ -12678,7 +12678,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ctsi",
@@ -12688,7 +12688,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hxro",
@@ -12698,7 +12698,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rep",
@@ -12708,7 +12708,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fun",
@@ -12718,7 +12718,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pyr",
@@ -12728,7 +12728,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "strax",
@@ -12738,7 +12738,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bsw",
@@ -12748,7 +12748,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lyxe",
@@ -12758,7 +12758,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mtl",
@@ -12768,7 +12768,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "stmx",
@@ -12778,7 +12778,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "stpt",
@@ -12788,7 +12788,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "elf",
@@ -12798,7 +12798,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "oxt",
@@ -12808,7 +12808,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ufo",
@@ -12818,7 +12818,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ach",
@@ -12828,7 +12828,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ogn",
@@ -12838,7 +12838,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfund",
@@ -12848,7 +12848,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tlm",
@@ -12858,7 +12858,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "loom",
@@ -12868,7 +12868,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ant",
@@ -12878,7 +12878,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alice",
@@ -12888,7 +12888,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fet",
@@ -12898,7 +12898,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ygg",
@@ -12908,7 +12908,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ark",
@@ -12918,7 +12918,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "utk",
@@ -12928,7 +12928,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "super",
@@ -12938,7 +12938,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dusk",
@@ -12948,7 +12948,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ilv",
@@ -12958,7 +12958,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mbox",
@@ -12968,7 +12968,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sun",
@@ -12978,7 +12978,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aergo",
@@ -12988,7 +12988,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vra",
@@ -12998,7 +12998,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bake",
@@ -13008,7 +13008,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xvg",
@@ -13018,7 +13018,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dpi",
@@ -13028,7 +13028,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pols",
@@ -13038,7 +13038,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mln",
@@ -13048,7 +13048,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xcad",
@@ -13058,7 +13058,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "divi",
@@ -13068,7 +13068,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfp",
@@ -13078,7 +13078,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tomo",
@@ -13088,7 +13088,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "arpa",
@@ -13098,7 +13098,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "band",
@@ -13108,7 +13108,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bandmainnet",
@@ -13119,7 +13119,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sps",
@@ -13129,7 +13129,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ava",
@@ -13139,7 +13139,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaerc20",
@@ -13149,7 +13149,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avabsc",
@@ -13159,7 +13159,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "jasmy",
@@ -13169,7 +13169,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cult",
@@ -13179,7 +13179,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "starl",
@@ -13189,7 +13189,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alpaca",
@@ -13199,7 +13199,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "blz",
@@ -13209,7 +13209,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kmd",
@@ -13219,7 +13219,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alcx",
@@ -13229,7 +13229,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfii",
@@ -13239,7 +13239,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bel",
@@ -13249,7 +13249,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mc",
@@ -13259,7 +13259,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dia",
@@ -13269,7 +13269,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tko",
@@ -13279,7 +13279,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bcd",
@@ -13289,7 +13289,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "farm",
@@ -13299,7 +13299,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ata",
@@ -13309,7 +13309,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fio",
@@ -13319,7 +13319,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ubt",
@@ -13329,7 +13329,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dnt",
@@ -13339,7 +13339,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "grs",
@@ -13349,7 +13349,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "om",
@@ -13359,7 +13359,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gas",
@@ -13369,7 +13369,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fox",
@@ -13379,7 +13379,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "firo",
@@ -13389,7 +13389,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aion",
@@ -13399,7 +13399,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "adx",
@@ -13409,7 +13409,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nwc",
@@ -13420,7 +13420,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cudos",
@@ -13430,7 +13430,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "solve",
@@ -13440,7 +13440,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klv",
@@ -13450,7 +13450,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rook",
@@ -13460,7 +13460,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "front",
@@ -13470,7 +13470,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wtc",
@@ -13480,7 +13480,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "beam",
@@ -13490,7 +13490,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gto",
@@ -13500,7 +13500,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "akro",
@@ -13510,7 +13510,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mdt",
@@ -13520,7 +13520,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hez",
@@ -13530,7 +13530,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pnk",
@@ -13540,7 +13540,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ast",
@@ -13550,7 +13550,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snm",
@@ -13560,7 +13560,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pivx",
@@ -13570,7 +13570,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xdb",
@@ -13580,7 +13580,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mir",
@@ -13590,7 +13590,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "perl",
@@ -13600,7 +13600,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "go",
@@ -13610,7 +13610,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "urus",
@@ -13620,7 +13620,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "arv",
@@ -13630,7 +13630,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cell",
@@ -13640,7 +13640,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "caps",
@@ -13650,7 +13650,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wabi",
@@ -13660,7 +13660,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shr",
@@ -13670,7 +13670,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "san",
@@ -13680,7 +13680,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fuse",
@@ -13690,7 +13690,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poolz",
@@ -13700,7 +13700,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vib",
@@ -13710,7 +13710,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "now",
@@ -13720,7 +13720,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "muse",
@@ -13730,7 +13730,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mint",
@@ -13740,7 +13740,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xor",
@@ -13750,7 +13750,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mtv",
@@ -13760,7 +13760,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spi",
@@ -13770,7 +13770,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "belt",
@@ -13780,7 +13780,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ppt",
@@ -13790,7 +13790,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "awc",
@@ -13800,7 +13800,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "defit",
@@ -13810,7 +13810,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "srk",
@@ -13820,7 +13820,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lgcy",
@@ -13830,7 +13830,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nftb",
@@ -13840,7 +13840,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hotcross",
@@ -13850,7 +13850,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bin",
@@ -13860,7 +13860,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tking",
@@ -13870,7 +13870,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mph",
@@ -13880,7 +13880,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "skill",
@@ -13890,7 +13890,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xio",
@@ -13900,7 +13900,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zoon",
@@ -13910,7 +13910,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "naft",
@@ -13920,7 +13920,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "marsh",
@@ -13930,7 +13930,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spo",
@@ -13940,7 +13940,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eved",
@@ -13950,7 +13950,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lead",
@@ -13960,7 +13960,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cns",
@@ -13970,7 +13970,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfuel",
@@ -13980,7 +13980,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "leash",
@@ -13990,7 +13990,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flokibsc",
@@ -14000,7 +14000,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "floki",
@@ -14010,7 +14010,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "volt",
@@ -14020,7 +14020,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "brise",
@@ -14030,7 +14030,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kishu",
@@ -14040,7 +14040,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shinja",
@@ -14050,7 +14050,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ntvrk",
@@ -14060,7 +14060,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "akita",
@@ -14070,7 +14070,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zinu",
@@ -14080,7 +14080,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gafa",
@@ -14090,7 +14090,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trvl",
@@ -14100,7 +14100,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kibabsc",
@@ -14110,7 +14110,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kiba",
@@ -14120,7 +14120,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "guard",
@@ -14130,7 +14130,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "blocks",
@@ -14140,7 +14140,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "copi",
@@ -14150,7 +14150,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dogecoin",
@@ -14160,7 +14160,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lblock",
@@ -14170,7 +14170,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gspi",
@@ -14180,7 +14180,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "asia",
@@ -14190,7 +14190,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wise",
@@ -14200,7 +14200,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gmr",
@@ -14210,7 +14210,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "knc",
@@ -14220,7 +14220,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fjb",
@@ -14230,7 +14230,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tenfi",
@@ -14240,7 +14240,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btfa",
@@ -14250,7 +14250,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aquagoat",
@@ -14260,7 +14260,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avn",
@@ -14270,7 +14270,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tenshi",
@@ -14280,7 +14280,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poodl",
@@ -14290,7 +14290,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "geth",
@@ -14300,7 +14300,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fluf",
@@ -14310,7 +14310,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lof",
@@ -14320,7 +14320,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nyxt",
@@ -14330,7 +14330,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fetbsc",
@@ -14340,7 +14340,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mononoke",
@@ -14351,7 +14351,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "luffy",
@@ -14361,7 +14361,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vgx",
@@ -14371,7 +14371,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtsol",
@@ -14382,7 +14382,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nearbsc",
@@ -14392,7 +14392,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iotxbsc",
@@ -14402,7 +14402,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "metiserc20",
@@ -14412,7 +14412,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcsol",
@@ -14422,7 +14422,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "clear",
@@ -14432,7 +14432,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcbsc",
@@ -14442,7 +14442,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttcbsc",
@@ -14452,7 +14452,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "maticbsc",
@@ -14462,7 +14462,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaxbsc",
@@ -14472,7 +14472,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ppm",
@@ -14482,7 +14482,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttc",
@@ -14492,7 +14492,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trxbsc",
@@ -14502,7 +14502,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "etcbsc",
@@ -14512,7 +14512,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "atombsc",
@@ -14522,7 +14522,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bchbsc",
@@ -14532,7 +14532,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vetbsc",
@@ -14542,7 +14542,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "filbsc",
@@ -14552,7 +14552,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "egldbsc",
@@ -14562,7 +14562,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "axsbsc",
@@ -14572,7 +14572,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tusdbsc",
@@ -14582,7 +14582,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eosbsc",
@@ -14592,7 +14592,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mkrbsc",
@@ -14602,7 +14602,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdpbsc",
@@ -14612,7 +14612,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zecbsc",
@@ -14622,7 +14622,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftmbsc",
@@ -14632,7 +14632,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "manabsc",
@@ -14642,7 +14642,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "batbsc",
@@ -14652,7 +14652,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zilbsc",
@@ -14662,7 +14662,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "compbsc",
@@ -14672,7 +14672,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snxbsc",
@@ -14682,7 +14682,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "solbsc",
@@ -14692,7 +14692,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ceekerc20",
@@ -14703,7 +14703,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfibsc",
@@ -14713,7 +14713,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kncbsc",
@@ -14723,7 +14723,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chrbsc",
@@ -14733,7 +14733,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sushibsc",
@@ -14743,7 +14743,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ankrbsc",
@@ -14753,7 +14753,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celrbsc",
@@ -14763,7 +14763,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sandmatic",
@@ -14774,7 +14774,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xcnbsc",
@@ -14784,7 +14784,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "plamatic",
@@ -14794,7 +14794,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "c98erc20",
@@ -14804,7 +14804,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "momento",
@@ -14814,7 +14814,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fire",
@@ -14824,7 +14824,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ghc",
@@ -14834,7 +14834,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   }
 ];
 
@@ -14847,7 +14847,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eth",
@@ -14857,7 +14857,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ethbsc",
@@ -14867,7 +14867,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdt",
@@ -14877,7 +14877,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdterc20",
@@ -14888,7 +14888,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdttrc20",
@@ -14899,7 +14899,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtbsc",
@@ -14909,7 +14909,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdc",
@@ -14919,7 +14919,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcmatic",
@@ -14930,7 +14930,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnbmainnet",
@@ -14941,7 +14941,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnbbsc",
@@ -14951,7 +14951,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busd",
@@ -14961,7 +14961,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "busdbsc",
@@ -14971,7 +14971,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xrp",
@@ -14981,7 +14981,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xrpbsc",
@@ -14991,7 +14991,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ada",
@@ -15001,7 +15001,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "adabsc",
@@ -15011,7 +15011,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sol",
@@ -15021,7 +15021,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "doge",
@@ -15031,7 +15031,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dot",
@@ -15041,7 +15041,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dotbsc",
@@ -15051,7 +15051,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dai",
@@ -15061,7 +15061,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "matic",
@@ -15071,7 +15071,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "maticmainnet",
@@ -15082,7 +15082,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shib",
@@ -15092,7 +15092,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shibbsc",
@@ -15102,7 +15102,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trx",
@@ -15112,7 +15112,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avax",
@@ -15122,7 +15122,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaxc",
@@ -15132,7 +15132,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wbtc",
@@ -15142,7 +15142,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "leo",
@@ -15152,7 +15152,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uni",
@@ -15162,7 +15162,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "etc",
@@ -15172,7 +15172,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ltc",
@@ -15182,7 +15182,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ltcbsc",
@@ -15192,7 +15192,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftt",
@@ -15202,7 +15202,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "link",
@@ -15212,7 +15212,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "atom",
@@ -15222,7 +15222,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cro",
@@ -15232,7 +15232,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "near",
@@ -15242,7 +15242,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xmr",
@@ -15252,7 +15252,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xlm",
@@ -15262,7 +15262,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bch",
@@ -15272,7 +15272,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "algo",
@@ -15282,7 +15282,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flow",
@@ -15292,7 +15292,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vet",
@@ -15302,7 +15302,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "icp",
@@ -15312,7 +15312,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fil",
@@ -15322,7 +15322,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ape",
@@ -15332,7 +15332,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eos",
@@ -15342,7 +15342,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mana",
@@ -15352,7 +15352,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sand",
@@ -15362,7 +15362,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hbar",
@@ -15372,7 +15372,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xtz",
@@ -15382,7 +15382,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xtzbsc",
@@ -15392,7 +15392,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chz",
@@ -15402,7 +15402,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qnt",
@@ -15412,7 +15412,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "egld",
@@ -15422,7 +15422,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aave",
@@ -15432,7 +15432,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "theta",
@@ -15442,7 +15442,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "axs",
@@ -15452,7 +15452,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tusd",
@@ -15462,7 +15462,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bsv",
@@ -15472,7 +15472,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "okb",
@@ -15482,7 +15482,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "galabsc",
@@ -15492,7 +15492,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zec",
@@ -15502,7 +15502,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdp",
@@ -15512,7 +15512,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttbsc",
@@ -15522,7 +15522,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iota",
@@ -15532,7 +15532,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mkr",
@@ -15542,7 +15542,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hnt",
@@ -15552,7 +15552,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ht",
@@ -15562,7 +15562,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snx",
@@ -15572,7 +15572,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "grt",
@@ -15582,7 +15582,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klay",
@@ -15592,7 +15592,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftm",
@@ -15602,7 +15602,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftmmainnet",
@@ -15612,7 +15612,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "neo",
@@ -15622,7 +15622,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "paxg",
@@ -15632,7 +15632,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ldo",
@@ -15642,7 +15642,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cake",
@@ -15652,7 +15652,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "crv",
@@ -15662,7 +15662,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nexo",
@@ -15672,7 +15672,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bat",
@@ -15682,7 +15682,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dash",
@@ -15692,7 +15692,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "waves",
@@ -15702,7 +15702,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zil",
@@ -15712,7 +15712,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": true,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lrc",
@@ -15722,7 +15722,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "enj",
@@ -15732,7 +15732,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ksm",
@@ -15742,7 +15742,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dcr",
@@ -15752,7 +15752,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btg",
@@ -15762,7 +15762,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gmt",
@@ -15772,7 +15772,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gno",
@@ -15782,7 +15782,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "twt",
@@ -15792,7 +15792,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xem",
@@ -15802,7 +15802,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "1inch",
@@ -15812,7 +15812,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "1inchbsc",
@@ -15822,7 +15822,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celo",
@@ -15832,7 +15832,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hot",
@@ -15842,7 +15842,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "galaerc20",
@@ -15853,7 +15853,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ankr",
@@ -15863,7 +15863,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "comp",
@@ -15873,7 +15873,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cvx",
@@ -15883,7 +15883,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "qtum",
@@ -15893,7 +15893,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfi",
@@ -15903,7 +15903,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xdc",
@@ -15913,7 +15913,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iotx",
@@ -15923,7 +15923,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cel",
@@ -15933,7 +15933,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gusd",
@@ -15943,7 +15943,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": true,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tfuel",
@@ -15953,7 +15953,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rvn",
@@ -15963,7 +15963,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flux",
@@ -15973,7 +15973,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bal",
@@ -15983,7 +15983,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "amp",
@@ -15993,7 +15993,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "omg",
@@ -16003,7 +16003,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zrx",
@@ -16013,7 +16013,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rsr",
@@ -16023,7 +16023,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "one",
@@ -16033,7 +16033,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "jst",
@@ -16043,7 +16043,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "icx",
@@ -16053,7 +16053,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xym",
@@ -16063,7 +16063,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iost",
@@ -16073,7 +16073,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ens",
@@ -16083,7 +16083,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lpt",
@@ -16093,7 +16093,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "glm",
@@ -16103,7 +16103,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "audio",
@@ -16113,7 +16113,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "storj",
@@ -16123,7 +16123,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ont",
@@ -16133,7 +16133,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ontbsc",
@@ -16143,7 +16143,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "waxp",
@@ -16153,7 +16153,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "srm",
@@ -16163,7 +16163,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sc",
@@ -16173,7 +16173,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "imx",
@@ -16183,7 +16183,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zen",
@@ -16193,7 +16193,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uma",
@@ -16203,7 +16203,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "scrt",
@@ -16213,7 +16213,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "skl",
@@ -16223,7 +16223,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poly",
@@ -16233,7 +16233,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "slp",
@@ -16243,7 +16243,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "woobsc",
@@ -16253,7 +16253,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "woo",
@@ -16263,7 +16263,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chsb",
@@ -16273,7 +16273,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dgb",
@@ -16283,7 +16283,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "elon",
@@ -16293,7 +16293,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dao",
@@ -16303,7 +16303,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pla",
@@ -16313,7 +16313,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cvc",
@@ -16323,7 +16323,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spell",
@@ -16333,7 +16333,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rndr",
@@ -16343,7 +16343,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sushi",
@@ -16353,7 +16353,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btcst",
@@ -16363,7 +16363,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lsk",
@@ -16373,7 +16373,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eps",
@@ -16383,7 +16383,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pundix",
@@ -16393,7 +16393,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celr",
@@ -16403,7 +16403,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ren",
@@ -16413,7 +16413,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nano",
@@ -16423,7 +16423,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xyo",
@@ -16433,7 +16433,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "win",
@@ -16443,7 +16443,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ong",
@@ -16453,7 +16453,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "people",
@@ -16463,7 +16463,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "uos",
@@ -16473,7 +16473,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cfx",
@@ -16483,7 +16483,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "req",
@@ -16493,7 +16493,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dydx",
@@ -16503,7 +16503,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ardr",
@@ -16513,7 +16513,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rly",
@@ -16523,7 +16523,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "coti",
@@ -16533,7 +16533,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rlc",
@@ -16543,7 +16543,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "powr",
@@ -16553,7 +16553,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nmr",
@@ -16563,7 +16563,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snt",
@@ -16573,7 +16573,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ocean",
@@ -16583,7 +16583,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chr",
@@ -16593,7 +16593,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "api3",
@@ -16603,7 +16603,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dent",
@@ -16613,7 +16613,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnt",
@@ -16623,7 +16623,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fxs",
@@ -16633,7 +16633,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hex",
@@ -16643,7 +16643,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "steth",
@@ -16653,7 +16653,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btcb",
@@ -16663,7 +16663,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lunc",
@@ -16673,7 +16673,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dfi",
@@ -16683,7 +16683,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bnx",
@@ -16693,7 +16693,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rpl",
@@ -16703,7 +16703,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "luna",
@@ -16713,7 +16713,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "babydoge",
@@ -16723,7 +16723,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "raca",
@@ -16733,7 +16733,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sys",
@@ -16743,7 +16743,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gal",
@@ -16753,7 +16753,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bico",
@@ -16763,7 +16763,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "steem",
@@ -16773,7 +16773,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "c98",
@@ -16783,7 +16783,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "susd",
@@ -16793,7 +16793,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ctsi",
@@ -16803,7 +16803,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hxro",
@@ -16813,7 +16813,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rep",
@@ -16823,7 +16823,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fun",
@@ -16833,7 +16833,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pyr",
@@ -16843,7 +16843,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "strax",
@@ -16853,7 +16853,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bsw",
@@ -16863,7 +16863,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lyxe",
@@ -16873,7 +16873,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mtl",
@@ -16883,7 +16883,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "stmx",
@@ -16893,7 +16893,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "stpt",
@@ -16903,7 +16903,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "elf",
@@ -16913,7 +16913,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "oxt",
@@ -16923,7 +16923,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ufo",
@@ -16933,7 +16933,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ach",
@@ -16943,7 +16943,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ogn",
@@ -16953,7 +16953,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfund",
@@ -16963,7 +16963,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tlm",
@@ -16973,7 +16973,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "loom",
@@ -16983,7 +16983,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ant",
@@ -16993,7 +16993,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alice",
@@ -17003,7 +17003,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fet",
@@ -17013,7 +17013,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ygg",
@@ -17023,7 +17023,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ark",
@@ -17033,7 +17033,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "utk",
@@ -17043,7 +17043,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "super",
@@ -17053,7 +17053,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dusk",
@@ -17063,7 +17063,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ilv",
@@ -17073,7 +17073,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mbox",
@@ -17083,7 +17083,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sun",
@@ -17093,7 +17093,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aergo",
@@ -17103,7 +17103,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vra",
@@ -17113,7 +17113,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bake",
@@ -17123,7 +17123,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xvg",
@@ -17133,7 +17133,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dpi",
@@ -17143,7 +17143,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pols",
@@ -17153,7 +17153,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mln",
@@ -17163,7 +17163,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xcad",
@@ -17173,7 +17173,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "divi",
@@ -17183,7 +17183,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfp",
@@ -17193,7 +17193,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tomo",
@@ -17203,7 +17203,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "arpa",
@@ -17213,7 +17213,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "band",
@@ -17223,7 +17223,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bandmainnet",
@@ -17234,7 +17234,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sps",
@@ -17244,7 +17244,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ava",
@@ -17254,7 +17254,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaerc20",
@@ -17264,7 +17264,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avabsc",
@@ -17274,7 +17274,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "jasmy",
@@ -17284,7 +17284,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cult",
@@ -17294,7 +17294,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "starl",
@@ -17304,7 +17304,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alpaca",
@@ -17314,7 +17314,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "blz",
@@ -17324,7 +17324,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kmd",
@@ -17334,7 +17334,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "alcx",
@@ -17344,7 +17344,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfii",
@@ -17354,7 +17354,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bel",
@@ -17364,7 +17364,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mc",
@@ -17374,7 +17374,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dia",
@@ -17384,7 +17384,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tko",
@@ -17394,7 +17394,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bcd",
@@ -17404,7 +17404,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "farm",
@@ -17414,7 +17414,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ata",
@@ -17424,7 +17424,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fio",
@@ -17434,7 +17434,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ubt",
@@ -17444,7 +17444,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dnt",
@@ -17454,7 +17454,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "grs",
@@ -17464,7 +17464,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "om",
@@ -17474,7 +17474,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gas",
@@ -17484,7 +17484,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fox",
@@ -17494,7 +17494,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "firo",
@@ -17504,7 +17504,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aion",
@@ -17514,7 +17514,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "adx",
@@ -17524,7 +17524,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nwc",
@@ -17535,7 +17535,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cudos",
@@ -17545,7 +17545,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "solve",
@@ -17555,7 +17555,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "klv",
@@ -17565,7 +17565,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "rook",
@@ -17575,7 +17575,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "front",
@@ -17585,7 +17585,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wtc",
@@ -17595,7 +17595,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "beam",
@@ -17605,7 +17605,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gto",
@@ -17615,7 +17615,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "akro",
@@ -17625,7 +17625,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mdt",
@@ -17635,7 +17635,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hez",
@@ -17645,7 +17645,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pnk",
@@ -17655,7 +17655,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ast",
@@ -17665,7 +17665,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snm",
@@ -17675,7 +17675,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "pivx",
@@ -17685,7 +17685,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xdb",
@@ -17695,7 +17695,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mir",
@@ -17705,7 +17705,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "perl",
@@ -17715,7 +17715,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "go",
@@ -17725,7 +17725,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "urus",
@@ -17735,7 +17735,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "arv",
@@ -17745,7 +17745,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cell",
@@ -17755,7 +17755,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "caps",
@@ -17765,7 +17765,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wabi",
@@ -17775,7 +17775,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shr",
@@ -17785,7 +17785,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "san",
@@ -17795,7 +17795,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fuse",
@@ -17805,7 +17805,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poolz",
@@ -17815,7 +17815,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vib",
@@ -17825,7 +17825,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "now",
@@ -17835,7 +17835,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "muse",
@@ -17845,7 +17845,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mint",
@@ -17855,7 +17855,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xor",
@@ -17865,7 +17865,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mtv",
@@ -17875,7 +17875,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spi",
@@ -17885,7 +17885,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "belt",
@@ -17895,7 +17895,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ppt",
@@ -17905,7 +17905,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "awc",
@@ -17915,7 +17915,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "defit",
@@ -17925,7 +17925,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "srk",
@@ -17935,7 +17935,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lgcy",
@@ -17945,7 +17945,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nftb",
@@ -17955,7 +17955,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "hotcross",
@@ -17965,7 +17965,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bin",
@@ -17975,7 +17975,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tking",
@@ -17985,7 +17985,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mph",
@@ -17995,7 +17995,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "skill",
@@ -18005,7 +18005,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xio",
@@ -18015,7 +18015,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zoon",
@@ -18025,7 +18025,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "naft",
@@ -18035,7 +18035,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "marsh",
@@ -18045,7 +18045,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "spo",
@@ -18055,7 +18055,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eved",
@@ -18065,7 +18065,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lead",
@@ -18075,7 +18075,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "cns",
@@ -18085,7 +18085,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sfuel",
@@ -18095,7 +18095,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "leash",
@@ -18105,7 +18105,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "flokibsc",
@@ -18115,7 +18115,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "floki",
@@ -18125,7 +18125,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "volt",
@@ -18135,7 +18135,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "brise",
@@ -18145,7 +18145,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kishu",
@@ -18155,7 +18155,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "shinja",
@@ -18165,7 +18165,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ntvrk",
@@ -18175,7 +18175,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "akita",
@@ -18185,7 +18185,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zinu",
@@ -18195,7 +18195,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gafa",
@@ -18205,7 +18205,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trvl",
@@ -18215,7 +18215,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kibabsc",
@@ -18225,7 +18225,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kiba",
@@ -18235,7 +18235,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "guard",
@@ -18245,7 +18245,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "blocks",
@@ -18255,7 +18255,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "copi",
@@ -18265,7 +18265,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "dogecoin",
@@ -18275,7 +18275,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lblock",
@@ -18285,7 +18285,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gspi",
@@ -18295,7 +18295,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "asia",
@@ -18305,7 +18305,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "wise",
@@ -18315,7 +18315,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "gmr",
@@ -18325,7 +18325,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "knc",
@@ -18335,7 +18335,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fjb",
@@ -18345,7 +18345,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tenfi",
@@ -18355,7 +18355,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "btfa",
@@ -18365,7 +18365,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "aquagoat",
@@ -18375,7 +18375,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avn",
@@ -18385,7 +18385,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tenshi",
@@ -18395,7 +18395,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "poodl",
@@ -18405,7 +18405,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "geth",
@@ -18415,7 +18415,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fluf",
@@ -18425,7 +18425,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "lof",
@@ -18435,7 +18435,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nyxt",
@@ -18445,7 +18445,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fetbsc",
@@ -18455,7 +18455,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mononoke",
@@ -18466,7 +18466,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "luffy",
@@ -18476,7 +18476,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vgx",
@@ -18486,7 +18486,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdtsol",
@@ -18497,7 +18497,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "nearbsc",
@@ -18507,7 +18507,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "iotxbsc",
@@ -18517,7 +18517,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "metiserc20",
@@ -18527,7 +18527,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcsol",
@@ -18537,7 +18537,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "clear",
@@ -18547,7 +18547,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdcbsc",
@@ -18557,7 +18557,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttcbsc",
@@ -18567,7 +18567,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "maticbsc",
@@ -18577,7 +18577,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "avaxbsc",
@@ -18587,7 +18587,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ppm",
@@ -18597,7 +18597,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bttc",
@@ -18607,7 +18607,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "trxbsc",
@@ -18617,7 +18617,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "etcbsc",
@@ -18627,7 +18627,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "atombsc",
@@ -18637,7 +18637,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "bchbsc",
@@ -18647,7 +18647,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "vetbsc",
@@ -18657,7 +18657,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "filbsc",
@@ -18667,7 +18667,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "egldbsc",
@@ -18677,7 +18677,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "axsbsc",
@@ -18687,7 +18687,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "tusdbsc",
@@ -18697,7 +18697,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "eosbsc",
@@ -18707,7 +18707,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "mkrbsc",
@@ -18717,7 +18717,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "usdpbsc",
@@ -18727,7 +18727,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zecbsc",
@@ -18737,7 +18737,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ftmbsc",
@@ -18747,7 +18747,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "manabsc",
@@ -18757,7 +18757,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "batbsc",
@@ -18767,7 +18767,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "zilbsc",
@@ -18777,7 +18777,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "compbsc",
@@ -18787,7 +18787,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "snxbsc",
@@ -18797,7 +18797,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "solbsc",
@@ -18807,7 +18807,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ceekerc20",
@@ -18818,7 +18818,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "yfibsc",
@@ -18828,7 +18828,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "kncbsc",
@@ -18838,7 +18838,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "chrbsc",
@@ -18848,7 +18848,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sushibsc",
@@ -18858,7 +18858,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ankrbsc",
@@ -18868,7 +18868,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "celrbsc",
@@ -18878,7 +18878,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "sandmatic",
@@ -18889,7 +18889,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "xcnbsc",
@@ -18899,7 +18899,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "plamatic",
@@ -18909,7 +18909,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "c98erc20",
@@ -18919,7 +18919,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "momento",
@@ -18929,7 +18929,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "fire",
@@ -18939,7 +18939,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   },
   {
     "ticker": "ghc",
@@ -18949,7 +18949,7 @@ const List<Map<String, dynamic>> availableCurrenciesJSONActiveFixedRate = [
     "isFiat": false,
     "featured": false,
     "isStable": false,
-    "supportsFixedRate": true
+    "supportsFixedRate": true,
   }
 ];
 
@@ -18963,7 +18963,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eth",
@@ -18974,7 +18974,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ethbsc",
@@ -18985,7 +18985,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdt",
@@ -18996,7 +18996,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdterc20",
@@ -19008,7 +19008,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdttrc20",
@@ -19020,7 +19020,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdtbsc",
@@ -19031,7 +19031,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdc",
@@ -19042,7 +19042,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdcmatic",
@@ -19054,7 +19054,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bnbmainnet",
@@ -19066,7 +19066,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bnbbsc",
@@ -19077,7 +19077,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "busd",
@@ -19088,7 +19088,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "busdbsc",
@@ -19099,7 +19099,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xrp",
@@ -19110,7 +19110,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xrpbsc",
@@ -19121,7 +19121,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ada",
@@ -19132,7 +19132,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "adabsc",
@@ -19143,7 +19143,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sol",
@@ -19154,7 +19154,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "doge",
@@ -19165,7 +19165,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dot",
@@ -19176,7 +19176,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dotbsc",
@@ -19187,7 +19187,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dai",
@@ -19198,7 +19198,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "matic",
@@ -19209,7 +19209,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "maticmainnet",
@@ -19221,7 +19221,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "shib",
@@ -19232,7 +19232,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "shibbsc",
@@ -19243,7 +19243,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "trx",
@@ -19254,7 +19254,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avax",
@@ -19265,7 +19265,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avaxc",
@@ -19276,7 +19276,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "wbtc",
@@ -19287,7 +19287,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "leo",
@@ -19298,7 +19298,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "uni",
@@ -19309,7 +19309,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "etc",
@@ -19320,7 +19320,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ltc",
@@ -19331,7 +19331,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ltcbsc",
@@ -19342,7 +19342,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ftt",
@@ -19353,7 +19353,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "link",
@@ -19364,7 +19364,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "atom",
@@ -19375,7 +19375,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cro",
@@ -19386,7 +19386,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "near",
@@ -19397,7 +19397,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xlm",
@@ -19408,7 +19408,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bch",
@@ -19419,7 +19419,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "algo",
@@ -19430,7 +19430,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "flow",
@@ -19441,7 +19441,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vet",
@@ -19452,7 +19452,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "icp",
@@ -19463,7 +19463,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fil",
@@ -19474,7 +19474,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ape",
@@ -19485,7 +19485,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eos",
@@ -19496,7 +19496,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mana",
@@ -19507,7 +19507,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sand",
@@ -19518,7 +19518,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hbar",
@@ -19529,7 +19529,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xtz",
@@ -19540,7 +19540,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xtzbsc",
@@ -19551,7 +19551,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "chz",
@@ -19562,7 +19562,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "qnt",
@@ -19573,7 +19573,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "egld",
@@ -19584,7 +19584,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aave",
@@ -19595,7 +19595,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "theta",
@@ -19606,7 +19606,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "axs",
@@ -19617,7 +19617,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tusd",
@@ -19628,7 +19628,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bsv",
@@ -19639,7 +19639,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "okb",
@@ -19650,7 +19650,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "galabsc",
@@ -19661,7 +19661,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zec",
@@ -19672,7 +19672,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdp",
@@ -19683,7 +19683,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bttbsc",
@@ -19694,7 +19694,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "iota",
@@ -19705,7 +19705,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mkr",
@@ -19716,7 +19716,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hnt",
@@ -19727,7 +19727,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "snx",
@@ -19738,7 +19738,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ht",
@@ -19749,7 +19749,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "grt",
@@ -19760,7 +19760,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ftm",
@@ -19771,7 +19771,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ftmmainnet",
@@ -19782,7 +19782,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "klay",
@@ -19793,7 +19793,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "neo",
@@ -19804,7 +19804,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rune",
@@ -19815,7 +19815,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "paxg",
@@ -19826,7 +19826,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ldo",
@@ -19837,7 +19837,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cake",
@@ -19848,7 +19848,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "crv",
@@ -19859,7 +19859,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nexo",
@@ -19870,7 +19870,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bat",
@@ -19881,7 +19881,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dash",
@@ -19892,7 +19892,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "waves",
@@ -19903,7 +19903,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zil",
@@ -19914,7 +19914,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lrc",
@@ -19925,7 +19925,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "enj",
@@ -19936,7 +19936,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ksm",
@@ -19947,7 +19947,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dcr",
@@ -19958,7 +19958,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "btg",
@@ -19969,7 +19969,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gmt",
@@ -19980,7 +19980,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "twt",
@@ -19991,7 +19991,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gno",
@@ -20002,7 +20002,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xem",
@@ -20013,7 +20013,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "1inch",
@@ -20024,7 +20024,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "1inchbsc",
@@ -20035,7 +20035,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "celo",
@@ -20046,7 +20046,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hot",
@@ -20057,7 +20057,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ust",
@@ -20069,7 +20069,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "galaerc20",
@@ -20081,7 +20081,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ankr",
@@ -20092,7 +20092,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "comp",
@@ -20103,7 +20103,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gt",
@@ -20114,7 +20114,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cvx",
@@ -20125,7 +20125,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "qtum",
@@ -20136,7 +20136,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "yfi",
@@ -20147,7 +20147,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xdc",
@@ -20158,7 +20158,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kda",
@@ -20169,7 +20169,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "iotx",
@@ -20180,7 +20180,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cel",
@@ -20191,7 +20191,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gusd",
@@ -20202,7 +20202,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tfuel",
@@ -20213,7 +20213,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rvn",
@@ -20224,7 +20224,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "flux",
@@ -20235,7 +20235,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bal",
@@ -20246,7 +20246,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "amp",
@@ -20257,7 +20257,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "op",
@@ -20268,7 +20268,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "omg",
@@ -20279,7 +20279,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zrx",
@@ -20290,7 +20290,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "one",
@@ -20301,7 +20301,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rsr",
@@ -20312,7 +20312,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "icx",
@@ -20323,7 +20323,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ens",
@@ -20334,7 +20334,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "jst",
@@ -20345,7 +20345,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xym",
@@ -20356,7 +20356,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "iost",
@@ -20367,7 +20367,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lpt",
@@ -20378,7 +20378,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "glm",
@@ -20389,7 +20389,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "audio",
@@ -20400,7 +20400,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "storj",
@@ -20411,7 +20411,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ont",
@@ -20422,7 +20422,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ontbsc",
@@ -20433,7 +20433,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "waxp",
@@ -20444,7 +20444,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "srm",
@@ -20455,7 +20455,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sc",
@@ -20466,7 +20466,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "imx",
@@ -20477,7 +20477,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zen",
@@ -20488,7 +20488,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "uma",
@@ -20499,7 +20499,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "scrt",
@@ -20510,7 +20510,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mxc",
@@ -20521,7 +20521,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "btrst",
@@ -20532,7 +20532,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "skl",
@@ -20543,7 +20543,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "poly",
@@ -20554,7 +20554,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "slp",
@@ -20565,7 +20565,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "woobsc",
@@ -20576,7 +20576,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "woo",
@@ -20587,7 +20587,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "chsb",
@@ -20598,7 +20598,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cspr",
@@ -20609,7 +20609,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dgb",
@@ -20620,7 +20620,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eur",
@@ -20631,7 +20631,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "elon",
@@ -20642,7 +20642,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dao",
@@ -20653,7 +20653,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pla",
@@ -20664,7 +20664,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cvc",
@@ -20675,7 +20675,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ceek",
@@ -20686,7 +20686,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "spell",
@@ -20697,7 +20697,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sushi",
@@ -20708,7 +20708,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rndr",
@@ -20719,7 +20719,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lsk",
@@ -20730,7 +20730,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "btcst",
@@ -20741,7 +20741,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eps",
@@ -20752,7 +20752,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pundix",
@@ -20763,7 +20763,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "celr",
@@ -20774,7 +20774,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ren",
@@ -20785,7 +20785,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nano",
@@ -20796,7 +20796,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xyo",
@@ -20807,7 +20807,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "win",
@@ -20818,7 +20818,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ong",
@@ -20829,7 +20829,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "people",
@@ -20840,7 +20840,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "uos",
@@ -20851,7 +20851,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cfx",
@@ -20862,7 +20862,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "req",
@@ -20873,7 +20873,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tribe",
@@ -20884,7 +20884,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dydx",
@@ -20895,7 +20895,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ardr",
@@ -20906,7 +20906,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rly",
@@ -20917,7 +20917,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "powr",
@@ -20928,7 +20928,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rlc",
@@ -20939,7 +20939,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "coti",
@@ -20950,7 +20950,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mx",
@@ -20961,7 +20961,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nmr",
@@ -20972,7 +20972,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "snt",
@@ -20983,7 +20983,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ocean",
@@ -20994,7 +20994,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "api3",
@@ -21005,7 +21005,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "chr",
@@ -21016,7 +21016,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dent",
@@ -21027,7 +21027,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bnt",
@@ -21038,7 +21038,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fxs",
@@ -21049,7 +21049,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hex",
@@ -21060,7 +21060,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "steth",
@@ -21071,7 +21071,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "btcb",
@@ -21082,7 +21082,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "frax",
@@ -21093,7 +21093,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "lunc",
@@ -21104,7 +21104,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dfi",
@@ -21115,7 +21115,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bnx",
@@ -21126,7 +21126,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rpl",
@@ -21137,7 +21137,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "luna",
@@ -21148,7 +21148,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "husd",
@@ -21159,7 +21159,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "babydoge",
@@ -21170,7 +21170,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "metis",
@@ -21181,7 +21181,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "raca",
@@ -21192,7 +21192,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "prom",
@@ -21203,7 +21203,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sys",
@@ -21214,7 +21214,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gal",
@@ -21225,7 +21225,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bico",
@@ -21236,7 +21236,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "c98",
@@ -21247,7 +21247,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "steem",
@@ -21258,7 +21258,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "susd",
@@ -21269,7 +21269,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ctsi",
@@ -21280,7 +21280,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hxro",
@@ -21291,7 +21291,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rep",
@@ -21302,7 +21302,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fun",
@@ -21313,7 +21313,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pyr",
@@ -21324,7 +21324,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bsw",
@@ -21335,7 +21335,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "strax",
@@ -21346,7 +21346,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lyxe",
@@ -21357,7 +21357,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mtl",
@@ -21368,7 +21368,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "stmx",
@@ -21379,7 +21379,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "stpt",
@@ -21390,7 +21390,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "elf",
@@ -21401,7 +21401,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "oxt",
@@ -21412,7 +21412,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ufo",
@@ -21423,7 +21423,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ach",
@@ -21434,7 +21434,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ogn",
@@ -21445,7 +21445,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sfund",
@@ -21456,7 +21456,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tlm",
@@ -21467,7 +21467,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "loom",
@@ -21478,7 +21478,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ant",
@@ -21489,7 +21489,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "alice",
@@ -21500,7 +21500,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fet",
@@ -21511,7 +21511,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ygg",
@@ -21522,7 +21522,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ark",
@@ -21533,7 +21533,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "utk",
@@ -21544,7 +21544,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "super",
@@ -21555,7 +21555,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dusk",
@@ -21566,7 +21566,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ilv",
@@ -21577,7 +21577,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mbox",
@@ -21588,7 +21588,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sun",
@@ -21599,7 +21599,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aergo",
@@ -21610,7 +21610,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vra",
@@ -21621,7 +21621,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bake",
@@ -21632,7 +21632,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xvg",
@@ -21643,7 +21643,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dpi",
@@ -21654,7 +21654,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pols",
@@ -21665,7 +21665,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mln",
@@ -21676,7 +21676,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xcad",
@@ -21687,7 +21687,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "divi",
@@ -21698,7 +21698,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "divierc20",
@@ -21710,7 +21710,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tomo",
@@ -21721,7 +21721,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sfp",
@@ -21732,7 +21732,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "arpa",
@@ -21743,7 +21743,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "band",
@@ -21754,7 +21754,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bandmainnet",
@@ -21766,7 +21766,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sps",
@@ -21777,7 +21777,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ava",
@@ -21788,7 +21788,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avaerc20",
@@ -21799,7 +21799,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avabsc",
@@ -21810,7 +21810,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "jasmy",
@@ -21821,7 +21821,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cult",
@@ -21832,7 +21832,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kmd",
@@ -21843,7 +21843,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "starl",
@@ -21854,7 +21854,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aioz",
@@ -21865,7 +21865,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "alpaca",
@@ -21876,7 +21876,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "blz",
@@ -21887,7 +21887,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "alcx",
@@ -21898,7 +21898,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "yfii",
@@ -21909,7 +21909,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "unfi",
@@ -21920,7 +21920,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bel",
@@ -21931,7 +21931,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mc",
@@ -21942,7 +21942,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dia",
@@ -21953,7 +21953,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tko",
@@ -21964,7 +21964,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bcd",
@@ -21975,7 +21975,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "anc",
@@ -21986,7 +21986,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "farm",
@@ -21997,7 +21997,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bifi",
@@ -22008,7 +22008,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "ata",
@@ -22019,7 +22019,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fio",
@@ -22030,7 +22030,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ubt",
@@ -22041,7 +22041,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dnt",
@@ -22052,7 +22052,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pit",
@@ -22063,7 +22063,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "burger",
@@ -22074,7 +22074,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "om",
@@ -22085,7 +22085,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "grs",
@@ -22096,7 +22096,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gas",
@@ -22107,7 +22107,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hoge",
@@ -22118,7 +22118,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fox",
@@ -22129,7 +22129,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "firo",
@@ -22140,7 +22140,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aion",
@@ -22151,7 +22151,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "adx",
@@ -22162,7 +22162,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "solve",
@@ -22173,7 +22173,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nwc",
@@ -22185,7 +22185,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rook",
@@ -22196,7 +22196,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cudos",
@@ -22207,7 +22207,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "klv",
@@ -22218,7 +22218,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "front",
@@ -22229,7 +22229,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "wtc",
@@ -22240,7 +22240,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "beam",
@@ -22251,7 +22251,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gto",
@@ -22262,7 +22262,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "akro",
@@ -22273,7 +22273,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mdt",
@@ -22284,7 +22284,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hez",
@@ -22295,7 +22295,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pnk",
@@ -22306,7 +22306,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ast",
@@ -22317,7 +22317,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "snm",
@@ -22328,7 +22328,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "qsp",
@@ -22339,7 +22339,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pivx",
@@ -22350,7 +22350,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xdb",
@@ -22361,7 +22361,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mir",
@@ -22372,7 +22372,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "perl",
@@ -22383,7 +22383,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "go",
@@ -22394,7 +22394,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "urus",
@@ -22405,7 +22405,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "arv",
@@ -22416,7 +22416,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cell",
@@ -22427,7 +22427,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "caps",
@@ -22438,7 +22438,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "wabi",
@@ -22449,7 +22449,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "swftc",
@@ -22460,7 +22460,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "shr",
@@ -22471,7 +22471,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "san",
@@ -22482,7 +22482,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dobo",
@@ -22493,7 +22493,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hc",
@@ -22504,7 +22504,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fuse",
@@ -22515,7 +22515,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dogedash",
@@ -22526,7 +22526,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "poolz",
@@ -22537,7 +22537,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vib",
@@ -22548,7 +22548,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "now",
@@ -22559,7 +22559,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "muse",
@@ -22570,7 +22570,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mint",
@@ -22581,7 +22581,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xor",
@@ -22592,7 +22592,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mtv",
@@ -22603,7 +22603,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "spi",
@@ -22614,7 +22614,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "belt",
@@ -22625,7 +22625,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ppt",
@@ -22636,7 +22636,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "awc",
@@ -22647,7 +22647,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "defit",
@@ -22658,7 +22658,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "srk",
@@ -22669,7 +22669,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "swrv",
@@ -22680,7 +22680,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "pay",
@@ -22691,7 +22691,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lgcy",
@@ -22702,7 +22702,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nftb",
@@ -22713,7 +22713,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "open",
@@ -22724,7 +22724,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hotcross",
@@ -22735,7 +22735,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bin",
@@ -22746,7 +22746,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rcn",
@@ -22757,7 +22757,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "srn",
@@ -22768,7 +22768,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tking",
@@ -22779,7 +22779,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mph",
@@ -22790,7 +22790,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "skill",
@@ -22801,7 +22801,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mda",
@@ -22812,7 +22812,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xio",
@@ -22823,7 +22823,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zoon",
@@ -22834,7 +22834,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "naft",
@@ -22845,7 +22845,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lxt",
@@ -22856,7 +22856,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "marsh",
@@ -22867,7 +22867,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rainbow",
@@ -22878,7 +22878,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "spo",
@@ -22889,7 +22889,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "brd",
@@ -22900,7 +22900,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eved",
@@ -22911,7 +22911,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lead",
@@ -22922,7 +22922,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cns",
@@ -22933,7 +22933,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sfuel",
@@ -22944,7 +22944,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bunny",
@@ -22955,7 +22955,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "leash",
@@ -22966,7 +22966,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "flokibsc",
@@ -22977,7 +22977,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "floki",
@@ -22988,7 +22988,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "volt",
@@ -22999,7 +22999,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "brise",
@@ -23010,7 +23010,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kishu",
@@ -23021,7 +23021,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "shinja",
@@ -23032,7 +23032,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ntvrk",
@@ -23043,7 +23043,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "akita",
@@ -23054,7 +23054,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zinu",
@@ -23065,7 +23065,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gafa",
@@ -23076,7 +23076,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rbif",
@@ -23087,7 +23087,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "trvl",
@@ -23098,7 +23098,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kibabsc",
@@ -23109,7 +23109,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kiba",
@@ -23120,7 +23120,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "guard",
@@ -23131,7 +23131,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "feg",
@@ -23142,7 +23142,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fegbsc",
@@ -23153,7 +23153,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "blocks",
@@ -23164,7 +23164,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "copi",
@@ -23175,7 +23175,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dogecoin",
@@ -23186,7 +23186,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "klee",
@@ -23197,7 +23197,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "lblock",
@@ -23208,7 +23208,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gspi",
@@ -23219,7 +23219,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gmr",
@@ -23230,7 +23230,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "asia",
@@ -23241,7 +23241,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "knc",
@@ -23252,7 +23252,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fjb",
@@ -23263,7 +23263,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "wise",
@@ -23274,7 +23274,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tenfi",
@@ -23285,7 +23285,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "btfa",
@@ -23296,7 +23296,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aquagoat",
@@ -23307,7 +23307,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "titano",
@@ -23318,7 +23318,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sanshu",
@@ -23329,7 +23329,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avn",
@@ -23340,7 +23340,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tenshi",
@@ -23351,7 +23351,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "poodl",
@@ -23362,7 +23362,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pika",
@@ -23373,7 +23373,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "geth",
@@ -23384,7 +23384,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "defc",
@@ -23395,7 +23395,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "keanu",
@@ -23406,7 +23406,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rxcg",
@@ -23417,7 +23417,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "dgmoon",
@@ -23428,7 +23428,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "koromaru",
@@ -23439,7 +23439,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nsh",
@@ -23450,7 +23450,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fluf",
@@ -23461,7 +23461,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hmc",
@@ -23472,7 +23472,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nyxt",
@@ -23483,7 +23483,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lof",
@@ -23494,7 +23494,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usd",
@@ -23505,7 +23505,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "gbp",
@@ -23516,7 +23516,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "cad",
@@ -23527,7 +23527,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "jpy",
@@ -23538,7 +23538,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "rub",
@@ -23549,7 +23549,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "aud",
@@ -23560,7 +23560,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "chf",
@@ -23571,7 +23571,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "czk",
@@ -23582,7 +23582,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "dkk",
@@ -23593,7 +23593,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "nok",
@@ -23604,7 +23604,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "nzd",
@@ -23615,7 +23615,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "pln",
@@ -23626,7 +23626,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "sek",
@@ -23637,7 +23637,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "try",
@@ -23648,7 +23648,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "zar",
@@ -23659,7 +23659,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "huf",
@@ -23670,7 +23670,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "ils",
@@ -23681,7 +23681,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "brl",
@@ -23692,7 +23692,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "fetbsc",
@@ -23703,7 +23703,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mononoke",
@@ -23715,7 +23715,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "daibsc",
@@ -23726,7 +23726,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "miota",
@@ -23737,7 +23737,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "luffy",
@@ -23748,7 +23748,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vgx",
@@ -23759,7 +23759,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdtsol",
@@ -23771,7 +23771,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nearbsc",
@@ -23782,7 +23782,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "iotxbsc",
@@ -23793,7 +23793,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "metiserc20",
@@ -23804,7 +23804,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nowbep2",
@@ -23815,7 +23815,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "saitamav2",
@@ -23826,7 +23826,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vlxbsc",
@@ -23837,7 +23837,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dfibsc",
@@ -23848,7 +23848,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdcsol",
@@ -23859,7 +23859,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "clear",
@@ -23870,7 +23870,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdcbsc",
@@ -23881,7 +23881,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bttcbsc",
@@ -23892,7 +23892,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "maticbsc",
@@ -23903,7 +23903,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avaxbsc",
@@ -23914,7 +23914,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ppm",
@@ -23925,7 +23925,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bttc",
@@ -23936,7 +23936,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "trxbsc",
@@ -23947,7 +23947,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "etcbsc",
@@ -23958,7 +23958,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "atombsc",
@@ -23969,7 +23969,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bchbsc",
@@ -23980,7 +23980,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vetbsc",
@@ -23991,7 +23991,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "filbsc",
@@ -24002,7 +24002,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "egldbsc",
@@ -24013,7 +24013,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "axsbsc",
@@ -24024,7 +24024,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tusdbsc",
@@ -24035,7 +24035,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eosbsc",
@@ -24046,7 +24046,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mkrbsc",
@@ -24057,7 +24057,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdpbsc",
@@ -24068,7 +24068,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "daimatic",
@@ -24079,7 +24079,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "zecbsc",
@@ -24090,7 +24090,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ftmbsc",
@@ -24101,7 +24101,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "manabsc",
@@ -24112,7 +24112,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "batbsc",
@@ -24123,7 +24123,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sxpmainnet",
@@ -24135,7 +24135,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "zilbsc",
@@ -24146,7 +24146,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "compbsc",
@@ -24157,7 +24157,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "snxbsc",
@@ -24168,7 +24168,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "solbsc",
@@ -24179,7 +24179,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ceekerc20",
@@ -24191,7 +24191,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "yfibsc",
@@ -24202,7 +24202,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kncbsc",
@@ -24213,7 +24213,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "chrbsc",
@@ -24224,7 +24224,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sushibsc",
@@ -24235,7 +24235,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdtmatic",
@@ -24246,7 +24246,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ankrbsc",
@@ -24257,7 +24257,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "celrbsc",
@@ -24268,7 +24268,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sandmatic",
@@ -24280,7 +24280,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "busdbnb",
@@ -24291,7 +24291,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "xcnbsc",
@@ -24302,7 +24302,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "plamatic",
@@ -24313,7 +24313,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fluxerc20",
@@ -24324,7 +24324,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "c98erc20",
@@ -24335,7 +24335,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "krw",
@@ -24346,7 +24346,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "world",
@@ -24357,7 +24357,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "all",
@@ -24368,7 +24368,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "amd",
@@ -24379,7 +24379,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "ang",
@@ -24390,7 +24390,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "bam",
@@ -24401,7 +24401,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "bbd",
@@ -24412,7 +24412,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "bdt",
@@ -24423,7 +24423,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "bmd",
@@ -24434,7 +24434,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "bnd",
@@ -24445,7 +24445,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "bob",
@@ -24456,7 +24456,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "bwp",
@@ -24467,7 +24467,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "byn",
@@ -24478,7 +24478,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "cny",
@@ -24489,7 +24489,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "djf",
@@ -24500,7 +24500,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "egp",
@@ -24511,7 +24511,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "ghs",
@@ -24522,7 +24522,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "gtq",
@@ -24533,7 +24533,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "hnl",
@@ -24544,7 +24544,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "hrk",
@@ -24555,7 +24555,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "isk",
@@ -24566,7 +24566,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "jmd",
@@ -24577,7 +24577,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "kes",
@@ -24588,7 +24588,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "kgs",
@@ -24599,7 +24599,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "khr",
@@ -24610,7 +24610,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "kyd",
@@ -24621,7 +24621,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "lbp",
@@ -24632,7 +24632,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "lkr",
@@ -24643,7 +24643,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "mkd",
@@ -24654,7 +24654,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "mnt",
@@ -24665,7 +24665,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "mop",
@@ -24676,7 +24676,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "mur",
@@ -24687,7 +24687,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "mzn",
@@ -24698,7 +24698,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "pab",
@@ -24709,7 +24709,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "pgk",
@@ -24720,7 +24720,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "pkr",
@@ -24731,7 +24731,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "pyg",
@@ -24742,7 +24742,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "rsd",
@@ -24753,7 +24753,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "sos",
@@ -24764,7 +24764,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "thb",
@@ -24775,7 +24775,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "ttd",
@@ -24786,7 +24786,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "tzs",
@@ -24797,7 +24797,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "ugx",
@@ -24808,7 +24808,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "xaf",
@@ -24819,7 +24819,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "xof",
@@ -24830,7 +24830,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "zmw",
@@ -24841,7 +24841,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": false,
-    "isAvailable": false
+    "isAvailable": false,
   },
   {
     "ticker": "momento",
@@ -24852,7 +24852,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fire",
@@ -24863,7 +24863,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ghc",
@@ -24874,7 +24874,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSON = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   }
 ];
 
@@ -24888,7 +24888,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eth",
@@ -24899,7 +24899,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ethbsc",
@@ -24910,7 +24910,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdt",
@@ -24921,7 +24921,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdterc20",
@@ -24933,7 +24933,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdttrc20",
@@ -24945,7 +24945,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdtbsc",
@@ -24956,7 +24956,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdc",
@@ -24967,7 +24967,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdcmatic",
@@ -24979,7 +24979,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bnbmainnet",
@@ -24991,7 +24991,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bnbbsc",
@@ -25002,7 +25002,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "busd",
@@ -25013,7 +25013,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "busdbsc",
@@ -25024,7 +25024,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xrp",
@@ -25035,7 +25035,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xrpbsc",
@@ -25046,7 +25046,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ada",
@@ -25057,7 +25057,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "adabsc",
@@ -25068,7 +25068,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sol",
@@ -25079,7 +25079,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "doge",
@@ -25090,7 +25090,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dot",
@@ -25101,7 +25101,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dotbsc",
@@ -25112,7 +25112,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dai",
@@ -25123,7 +25123,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "matic",
@@ -25134,7 +25134,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "maticmainnet",
@@ -25146,7 +25146,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "shib",
@@ -25157,7 +25157,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "shibbsc",
@@ -25168,7 +25168,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "trx",
@@ -25179,7 +25179,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avax",
@@ -25190,7 +25190,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avaxc",
@@ -25201,7 +25201,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "leo",
@@ -25212,7 +25212,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "wbtc",
@@ -25223,7 +25223,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "uni",
@@ -25234,7 +25234,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "etc",
@@ -25245,7 +25245,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ltc",
@@ -25256,7 +25256,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ltcbsc",
@@ -25267,7 +25267,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ftt",
@@ -25278,7 +25278,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "link",
@@ -25289,7 +25289,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "atom",
@@ -25300,7 +25300,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cro",
@@ -25311,7 +25311,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "near",
@@ -25322,7 +25322,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xlm",
@@ -25333,7 +25333,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bch",
@@ -25344,7 +25344,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "algo",
@@ -25355,7 +25355,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "flow",
@@ -25366,7 +25366,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vet",
@@ -25377,7 +25377,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "icp",
@@ -25388,7 +25388,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fil",
@@ -25399,7 +25399,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ape",
@@ -25410,7 +25410,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eos",
@@ -25421,7 +25421,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mana",
@@ -25432,7 +25432,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sand",
@@ -25443,7 +25443,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hbar",
@@ -25454,7 +25454,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xtz",
@@ -25465,7 +25465,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xtzbsc",
@@ -25476,7 +25476,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "chz",
@@ -25487,7 +25487,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "qnt",
@@ -25498,7 +25498,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "egld",
@@ -25509,7 +25509,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aave",
@@ -25520,7 +25520,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "theta",
@@ -25531,7 +25531,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "axs",
@@ -25542,7 +25542,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tusd",
@@ -25553,7 +25553,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bsv",
@@ -25564,7 +25564,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "okb",
@@ -25575,7 +25575,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "galabsc",
@@ -25586,7 +25586,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zec",
@@ -25597,7 +25597,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdp",
@@ -25608,7 +25608,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "snx",
@@ -25619,7 +25619,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bttbsc",
@@ -25630,7 +25630,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "iota",
@@ -25641,7 +25641,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mkr",
@@ -25652,7 +25652,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hnt",
@@ -25663,7 +25663,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ht",
@@ -25674,7 +25674,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "grt",
@@ -25685,7 +25685,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "klay",
@@ -25696,7 +25696,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ftm",
@@ -25707,7 +25707,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ftmmainnet",
@@ -25718,7 +25718,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "neo",
@@ -25729,7 +25729,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "paxg",
@@ -25740,7 +25740,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ldo",
@@ -25751,7 +25751,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cake",
@@ -25762,7 +25762,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "crv",
@@ -25773,7 +25773,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nexo",
@@ -25784,7 +25784,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bat",
@@ -25795,7 +25795,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dash",
@@ -25806,7 +25806,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "waves",
@@ -25817,7 +25817,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zil",
@@ -25828,7 +25828,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": true,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lrc",
@@ -25839,7 +25839,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "enj",
@@ -25850,7 +25850,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ksm",
@@ -25861,7 +25861,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dcr",
@@ -25872,7 +25872,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "btg",
@@ -25883,7 +25883,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gmt",
@@ -25894,7 +25894,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gno",
@@ -25905,7 +25905,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xem",
@@ -25916,7 +25916,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "twt",
@@ -25927,7 +25927,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "1inch",
@@ -25938,7 +25938,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "1inchbsc",
@@ -25949,7 +25949,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "celo",
@@ -25960,7 +25960,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hot",
@@ -25971,7 +25971,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "galaerc20",
@@ -25983,7 +25983,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ankr",
@@ -25994,7 +25994,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "comp",
@@ -26005,7 +26005,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cvx",
@@ -26016,7 +26016,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "qtum",
@@ -26027,7 +26027,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "yfi",
@@ -26038,7 +26038,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xdc",
@@ -26049,7 +26049,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "iotx",
@@ -26060,7 +26060,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cel",
@@ -26071,7 +26071,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gusd",
@@ -26082,7 +26082,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": true,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tfuel",
@@ -26093,7 +26093,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rvn",
@@ -26104,7 +26104,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "flux",
@@ -26115,7 +26115,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bal",
@@ -26126,7 +26126,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "amp",
@@ -26137,7 +26137,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "omg",
@@ -26148,7 +26148,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zrx",
@@ -26159,7 +26159,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "one",
@@ -26170,7 +26170,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rsr",
@@ -26181,7 +26181,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "icx",
@@ -26192,7 +26192,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ens",
@@ -26203,7 +26203,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "jst",
@@ -26214,7 +26214,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xym",
@@ -26225,7 +26225,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "iost",
@@ -26236,7 +26236,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lpt",
@@ -26247,7 +26247,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "glm",
@@ -26258,7 +26258,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "audio",
@@ -26269,7 +26269,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "storj",
@@ -26280,7 +26280,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ont",
@@ -26291,7 +26291,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ontbsc",
@@ -26302,7 +26302,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "waxp",
@@ -26313,7 +26313,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sc",
@@ -26324,7 +26324,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "srm",
@@ -26335,7 +26335,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zen",
@@ -26346,7 +26346,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "imx",
@@ -26357,7 +26357,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "uma",
@@ -26368,7 +26368,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "scrt",
@@ -26379,7 +26379,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "skl",
@@ -26390,7 +26390,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "poly",
@@ -26401,7 +26401,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "slp",
@@ -26412,7 +26412,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "woobsc",
@@ -26423,7 +26423,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "woo",
@@ -26434,7 +26434,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "chsb",
@@ -26445,7 +26445,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "elon",
@@ -26456,7 +26456,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dgb",
@@ -26467,7 +26467,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dao",
@@ -26478,7 +26478,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pla",
@@ -26489,7 +26489,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cvc",
@@ -26500,7 +26500,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "spell",
@@ -26511,7 +26511,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sushi",
@@ -26522,7 +26522,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rndr",
@@ -26533,7 +26533,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lsk",
@@ -26544,7 +26544,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "btcst",
@@ -26555,7 +26555,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eps",
@@ -26566,7 +26566,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pundix",
@@ -26577,7 +26577,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "celr",
@@ -26588,7 +26588,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ren",
@@ -26599,7 +26599,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nano",
@@ -26610,7 +26610,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xyo",
@@ -26621,7 +26621,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "win",
@@ -26632,7 +26632,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ong",
@@ -26643,7 +26643,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "people",
@@ -26654,7 +26654,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "uos",
@@ -26665,7 +26665,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cfx",
@@ -26676,7 +26676,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "req",
@@ -26687,7 +26687,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dydx",
@@ -26698,7 +26698,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ardr",
@@ -26709,7 +26709,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rly",
@@ -26720,7 +26720,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "powr",
@@ -26731,7 +26731,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nmr",
@@ -26742,7 +26742,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "coti",
@@ -26753,7 +26753,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rlc",
@@ -26764,7 +26764,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "snt",
@@ -26775,7 +26775,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ocean",
@@ -26786,7 +26786,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "chr",
@@ -26797,7 +26797,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "api3",
@@ -26808,7 +26808,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dent",
@@ -26819,7 +26819,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bnt",
@@ -26830,7 +26830,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fxs",
@@ -26841,7 +26841,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hex",
@@ -26852,7 +26852,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "steth",
@@ -26863,7 +26863,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "btcb",
@@ -26874,7 +26874,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lunc",
@@ -26885,7 +26885,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dfi",
@@ -26896,7 +26896,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bnx",
@@ -26907,7 +26907,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rpl",
@@ -26918,7 +26918,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "luna",
@@ -26929,7 +26929,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "babydoge",
@@ -26940,7 +26940,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "raca",
@@ -26951,7 +26951,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "prom",
@@ -26962,7 +26962,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sys",
@@ -26973,7 +26973,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "c98",
@@ -26984,7 +26984,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gal",
@@ -26995,7 +26995,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bico",
@@ -27006,7 +27006,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "steem",
@@ -27017,7 +27017,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "susd",
@@ -27028,7 +27028,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ctsi",
@@ -27039,7 +27039,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hxro",
@@ -27050,7 +27050,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fun",
@@ -27061,7 +27061,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rep",
@@ -27072,7 +27072,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "strax",
@@ -27083,7 +27083,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pyr",
@@ -27094,7 +27094,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bsw",
@@ -27105,7 +27105,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lyxe",
@@ -27116,7 +27116,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mtl",
@@ -27127,7 +27127,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "stmx",
@@ -27138,7 +27138,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "stpt",
@@ -27149,7 +27149,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ufo",
@@ -27160,7 +27160,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "elf",
@@ -27171,7 +27171,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "oxt",
@@ -27182,7 +27182,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ach",
@@ -27193,7 +27193,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ogn",
@@ -27204,7 +27204,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sfund",
@@ -27215,7 +27215,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tlm",
@@ -27226,7 +27226,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "loom",
@@ -27237,7 +27237,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ant",
@@ -27248,7 +27248,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "alice",
@@ -27259,7 +27259,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fet",
@@ -27270,7 +27270,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ygg",
@@ -27281,7 +27281,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ark",
@@ -27292,7 +27292,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "utk",
@@ -27303,7 +27303,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "super",
@@ -27314,7 +27314,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dusk",
@@ -27325,7 +27325,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ilv",
@@ -27336,7 +27336,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mbox",
@@ -27347,7 +27347,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sun",
@@ -27358,7 +27358,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aergo",
@@ -27369,7 +27369,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vra",
@@ -27380,7 +27380,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xvg",
@@ -27391,7 +27391,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bake",
@@ -27402,7 +27402,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dpi",
@@ -27413,7 +27413,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pols",
@@ -27424,7 +27424,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mln",
@@ -27435,7 +27435,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xcad",
@@ -27446,7 +27446,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "divi",
@@ -27457,7 +27457,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tomo",
@@ -27468,7 +27468,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "arpa",
@@ -27479,7 +27479,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sfp",
@@ -27490,7 +27490,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "band",
@@ -27501,7 +27501,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bandmainnet",
@@ -27513,7 +27513,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sps",
@@ -27524,7 +27524,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ava",
@@ -27535,7 +27535,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avaerc20",
@@ -27546,7 +27546,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avabsc",
@@ -27557,7 +27557,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "jasmy",
@@ -27568,7 +27568,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cult",
@@ -27579,7 +27579,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "starl",
@@ -27590,7 +27590,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kmd",
@@ -27601,7 +27601,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "alpaca",
@@ -27612,7 +27612,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "blz",
@@ -27623,7 +27623,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "alcx",
@@ -27634,7 +27634,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "yfii",
@@ -27645,7 +27645,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bel",
@@ -27656,7 +27656,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mc",
@@ -27667,7 +27667,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dia",
@@ -27678,7 +27678,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tko",
@@ -27689,7 +27689,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bcd",
@@ -27700,7 +27700,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "farm",
@@ -27711,7 +27711,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ata",
@@ -27722,7 +27722,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fio",
@@ -27733,7 +27733,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ubt",
@@ -27744,7 +27744,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dnt",
@@ -27755,7 +27755,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "om",
@@ -27766,7 +27766,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "grs",
@@ -27777,7 +27777,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gas",
@@ -27788,7 +27788,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fox",
@@ -27799,7 +27799,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "firo",
@@ -27810,7 +27810,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aion",
@@ -27821,7 +27821,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "adx",
@@ -27832,7 +27832,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cudos",
@@ -27843,7 +27843,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nwc",
@@ -27855,7 +27855,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "rook",
@@ -27866,7 +27866,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "solve",
@@ -27877,7 +27877,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "klv",
@@ -27888,7 +27888,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "front",
@@ -27899,7 +27899,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "wtc",
@@ -27910,7 +27910,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "beam",
@@ -27921,7 +27921,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gto",
@@ -27932,7 +27932,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "akro",
@@ -27943,7 +27943,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hez",
@@ -27954,7 +27954,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mdt",
@@ -27965,7 +27965,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pnk",
@@ -27976,7 +27976,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ast",
@@ -27987,7 +27987,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "snm",
@@ -27998,7 +27998,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xdb",
@@ -28009,7 +28009,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "pivx",
@@ -28020,7 +28020,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mir",
@@ -28031,7 +28031,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "perl",
@@ -28042,7 +28042,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "go",
@@ -28053,7 +28053,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "urus",
@@ -28064,7 +28064,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "arv",
@@ -28075,7 +28075,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cell",
@@ -28086,7 +28086,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "caps",
@@ -28097,7 +28097,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "wabi",
@@ -28108,7 +28108,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "shr",
@@ -28119,7 +28119,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "san",
@@ -28130,7 +28130,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fuse",
@@ -28141,7 +28141,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "poolz",
@@ -28152,7 +28152,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vib",
@@ -28163,7 +28163,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "now",
@@ -28174,7 +28174,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "muse",
@@ -28185,7 +28185,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mint",
@@ -28196,7 +28196,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xor",
@@ -28207,7 +28207,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mtv",
@@ -28218,7 +28218,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ppt",
@@ -28229,7 +28229,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "spi",
@@ -28240,7 +28240,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "belt",
@@ -28251,7 +28251,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "awc",
@@ -28262,7 +28262,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "defit",
@@ -28273,7 +28273,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "srk",
@@ -28284,7 +28284,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lgcy",
@@ -28295,7 +28295,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nftb",
@@ -28306,7 +28306,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "hotcross",
@@ -28317,7 +28317,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bin",
@@ -28328,7 +28328,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tking",
@@ -28339,7 +28339,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mph",
@@ -28350,7 +28350,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "skill",
@@ -28361,7 +28361,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xio",
@@ -28372,7 +28372,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zoon",
@@ -28383,7 +28383,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "naft",
@@ -28394,7 +28394,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "marsh",
@@ -28405,7 +28405,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "spo",
@@ -28416,7 +28416,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eved",
@@ -28427,7 +28427,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lead",
@@ -28438,7 +28438,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "cns",
@@ -28449,7 +28449,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sfuel",
@@ -28460,7 +28460,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "leash",
@@ -28471,7 +28471,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "flokibsc",
@@ -28482,7 +28482,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "floki",
@@ -28493,7 +28493,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "volt",
@@ -28504,7 +28504,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "brise",
@@ -28515,7 +28515,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kishu",
@@ -28526,7 +28526,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "shinja",
@@ -28537,7 +28537,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ntvrk",
@@ -28548,7 +28548,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "akita",
@@ -28559,7 +28559,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zinu",
@@ -28570,7 +28570,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gafa",
@@ -28581,7 +28581,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "trvl",
@@ -28592,7 +28592,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kibabsc",
@@ -28603,7 +28603,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kiba",
@@ -28614,7 +28614,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "guard",
@@ -28625,7 +28625,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "blocks",
@@ -28636,7 +28636,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "copi",
@@ -28647,7 +28647,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "dogecoin",
@@ -28658,7 +28658,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lblock",
@@ -28669,7 +28669,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "asia",
@@ -28680,7 +28680,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gspi",
@@ -28691,7 +28691,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "gmr",
@@ -28702,7 +28702,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "knc",
@@ -28713,7 +28713,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "btfa",
@@ -28724,7 +28724,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fjb",
@@ -28735,7 +28735,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "wise",
@@ -28746,7 +28746,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tenfi",
@@ -28757,7 +28757,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "aquagoat",
@@ -28768,7 +28768,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avn",
@@ -28779,7 +28779,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "geth",
@@ -28790,7 +28790,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tenshi",
@@ -28801,7 +28801,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "poodl",
@@ -28812,7 +28812,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fluf",
@@ -28823,7 +28823,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nyxt",
@@ -28834,7 +28834,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "lof",
@@ -28845,7 +28845,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fetbsc",
@@ -28856,7 +28856,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mononoke",
@@ -28868,7 +28868,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "luffy",
@@ -28879,7 +28879,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vgx",
@@ -28890,7 +28890,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdtsol",
@@ -28902,7 +28902,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "nearbsc",
@@ -28913,7 +28913,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "iotxbsc",
@@ -28924,7 +28924,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "metiserc20",
@@ -28935,7 +28935,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdcsol",
@@ -28946,7 +28946,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "clear",
@@ -28957,7 +28957,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdcbsc",
@@ -28968,7 +28968,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bttcbsc",
@@ -28979,7 +28979,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "maticbsc",
@@ -28990,7 +28990,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "avaxbsc",
@@ -29001,7 +29001,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ppm",
@@ -29012,7 +29012,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bttc",
@@ -29023,7 +29023,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "trxbsc",
@@ -29034,7 +29034,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "etcbsc",
@@ -29045,7 +29045,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "atombsc",
@@ -29056,7 +29056,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "bchbsc",
@@ -29067,7 +29067,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "vetbsc",
@@ -29078,7 +29078,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "filbsc",
@@ -29089,7 +29089,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "egldbsc",
@@ -29100,7 +29100,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "axsbsc",
@@ -29111,7 +29111,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "tusdbsc",
@@ -29122,7 +29122,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "eosbsc",
@@ -29133,7 +29133,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "mkrbsc",
@@ -29144,7 +29144,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "usdpbsc",
@@ -29155,7 +29155,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zecbsc",
@@ -29166,7 +29166,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ftmbsc",
@@ -29177,7 +29177,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "manabsc",
@@ -29188,7 +29188,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "batbsc",
@@ -29199,7 +29199,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "zilbsc",
@@ -29210,7 +29210,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "compbsc",
@@ -29221,7 +29221,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "snxbsc",
@@ -29232,7 +29232,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "solbsc",
@@ -29243,7 +29243,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ceekerc20",
@@ -29255,7 +29255,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "yfibsc",
@@ -29266,7 +29266,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "kncbsc",
@@ -29277,7 +29277,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "chrbsc",
@@ -29288,7 +29288,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sushibsc",
@@ -29299,7 +29299,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ankrbsc",
@@ -29310,7 +29310,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "celrbsc",
@@ -29321,7 +29321,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "sandmatic",
@@ -29333,7 +29333,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "xcnbsc",
@@ -29344,7 +29344,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "plamatic",
@@ -29355,7 +29355,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "c98erc20",
@@ -29366,7 +29366,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "momento",
@@ -29377,7 +29377,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "fire",
@@ -29388,7 +29388,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   },
   {
     "ticker": "ghc",
@@ -29399,7 +29399,7 @@ const List<Map<String, dynamic>> getPairedCurrenciesJSONFixedRate = [
     "featured": false,
     "isStable": false,
     "supportsFixedRate": true,
-    "isAvailable": true
+    "isAvailable": true,
   }
 ];
 
@@ -29409,7 +29409,7 @@ const Map<String, dynamic> estFixedRateExchangeAmountJSON = {
   "transactionSpeedForecast": "10-60",
   "warningMessage": null,
   "rateId": "1t2W5KBPqhycSJVYpaNZzYWLfMr0kSFe",
-  "validUntil": "2022-08-29T18:42:12.940Z"
+  "validUntil": "2022-08-29T18:42:12.940Z",
 };
 
 const List<Map<String, dynamic>> fixedRateMarketsJSON = [
@@ -29419,7 +29419,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.978,
     "minerFee": 0.00032,
     "min": 0.0880393,
-    "max": 83.33363733
+    "max": 83.33363733,
   },
   {
     "from": "btg",
@@ -29427,7 +29427,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.14941302599839185,
     "minerFee": 0.0010244438488340927,
     "min": 0.09442316,
-    "max": 83.339702
+    "max": 83.339702,
   },
   {
     "from": "btg",
@@ -29435,7 +29435,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.00111492,
     "minerFee": 0.0000339324,
     "min": 0.09972141,
-    "max": 83.34848533
+    "max": 83.34848533,
   },
   {
     "from": "btg",
@@ -29443,7 +29443,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.35757536882617064,
     "minerFee": 0.0001584990378447723,
     "min": 0.08815272,
-    "max": 83.33374508
+    "max": 83.33374508,
   },
   {
     "from": "btg",
@@ -29451,7 +29451,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.6819082568807339,
     "minerFee": 0.0009035596330275229,
     "min": 0.08901381,
-    "max": 83.33456311
+    "max": 83.33456311,
   },
   {
     "from": "btg",
@@ -29459,7 +29459,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 7587.544889696968,
     "minerFee": 1.5413161373737372,
     "min": 0.08791797,
-    "max": 83.33352206
+    "max": 83.33352206,
   },
   {
     "from": "btg",
@@ -29467,7 +29467,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 50.35772357723577,
     "minerFee": 0.40823848238482385,
     "min": 0.09564422,
-    "max": 83.340862
+    "max": 83.340862,
   },
   {
     "from": "btg",
@@ -29475,7 +29475,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.4083956043956044,
     "minerFee": 0.0008668131868131869,
     "min": 0.08979579,
-    "max": 83.335306
+    "max": 83.335306,
   },
   {
     "from": "btg",
@@ -29483,7 +29483,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.1899352640545145,
     "minerFee": 0.0001314752538330494,
     "min": 0.08839629,
-    "max": 83.33397646
+    "max": 83.33397646,
   },
   {
     "from": "btg",
@@ -29491,7 +29491,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 7.1099066615678765,
     "minerFee": 0.011163174913957935,
     "min": 0.08925485,
-    "max": 83.3347921
+    "max": 83.3347921,
   },
   {
     "from": "btg",
@@ -29499,7 +29499,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.4807761966364812,
     "minerFee": 0.00017865459249676583,
     "min": 0.08808272,
-    "max": 83.33367858
+    "max": 83.33367858,
   },
   {
     "from": "btg",
@@ -29507,7 +29507,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 215.27520369124952,
     "minerFee": 0.05521884722965227,
     "min": 0.08797014,
-    "max": 83.33357162
+    "max": 83.33357162,
   },
   {
     "from": "btg",
@@ -29515,7 +29515,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 68.61046153846155,
     "minerFee": 0.3112246153846154,
     "min": 0.09215562,
-    "max": 83.33754783
+    "max": 83.33754783,
   },
   {
     "from": "btg",
@@ -29523,7 +29523,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 506.7818181818181,
     "minerFee": 0.33290909090909093,
     "min": 0.08807229,
-    "max": 83.33394366
+    "max": 83.33394366,
   },
   {
     "from": "btg",
@@ -29531,7 +29531,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 12.238419319429198,
     "minerFee": 1.5140897553896817,
     "min": 0.19528785,
-    "max": 83.43552345
+    "max": 83.43552345,
   },
   {
     "from": "btg",
@@ -29539,7 +29539,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2144.076923076923,
     "minerFee": 0.35776923076923073,
     "min": 0.0878825,
-    "max": 83.33348836
+    "max": 83.33348836,
   },
   {
     "from": "btg",
@@ -29547,7 +29547,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 217.71801333333332,
     "minerFee": 2.035618488888889,
     "min": 0.0968634,
-    "max": 83.34202022
+    "max": 83.34202022,
   },
   {
     "from": "btg",
@@ -29555,7 +29555,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 107.9303000968054,
     "minerFee": 12.200577818809293,
     "min": 0.18600747,
-    "max": 83.42670709
+    "max": 83.42670709,
   },
   {
     "from": "btg",
@@ -29563,7 +29563,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 153.35900962861072,
     "minerFee": 18.1227649785282,
     "min": 0.19046837,
-    "max": 83.43094494
+    "max": 83.43094494,
   },
   {
     "from": "btg",
@@ -29571,7 +29571,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 166.4059701492537,
     "minerFee": 1.0272238805970149,
     "min": 0.0937565,
-    "max": 83.33906866
+    "max": 83.33906866,
   },
   {
     "from": "btg",
@@ -29579,7 +29579,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 41.2170055452865,
     "minerFee": 4.792601348391867,
     "min": 0.18882058,
-    "max": 83.42937954
+    "max": 83.42937954,
   },
   {
     "from": "btg",
@@ -29587,7 +29587,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 774.2499999999999,
     "minerFee": 282.42956266666664,
     "min": 0.40485075,
-    "max": 83.63460821
+    "max": 83.63460821,
   },
   {
     "from": "btg",
@@ -29595,7 +29595,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 74.59896160535116,
     "minerFee": 8.56401184909699,
     "min": 0.18755538,
-    "max": 83.4281776
+    "max": 83.4281776,
   },
   {
     "from": "btg",
@@ -29603,7 +29603,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 21.37588053215926,
     "minerFee": 0.10349707656967841,
     "min": 0.09245448,
-    "max": 83.33783174
+    "max": 83.33783174,
   },
   {
     "from": "btg",
@@ -29611,7 +29611,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.7817253376313944,
     "minerFee": 0.0002278896257883672,
     "min": 0.08800441,
-    "max": 83.33360418
+    "max": 83.33360418,
   },
   {
     "from": "btg",
@@ -29619,7 +29619,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 356.2044728434505,
     "minerFee": 14.058274760383387,
     "min": 0.1263179,
-    "max": 83.370002
+    "max": 83.370002,
   },
   {
     "from": "btg",
@@ -29627,7 +29627,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 357.3461538461538,
     "minerFee": 0.15846153846153846,
     "min": 0.08815299,
-    "max": 83.33374533
+    "max": 83.33374533,
   },
   {
     "from": "btg",
@@ -29635,7 +29635,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 81.91917707567963,
     "minerFee": 0.015901910360029387,
     "min": 0.08790941,
-    "max": 83.33351393
+    "max": 83.33351393,
   },
   {
     "from": "btg",
@@ -29643,7 +29643,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 62.286033519553065,
     "minerFee": 7.322690224134078,
     "min": 0.18994093,
-    "max": 83.43044388
+    "max": 83.43044388,
   },
   {
     "from": "btg",
@@ -29651,7 +29651,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 511.4311926605504,
     "minerFee": 181.11263586477062,
     "min": 0.39559318,
-    "max": 83.62581351
+    "max": 83.62581351,
   },
   {
     "from": "btg",
@@ -29659,7 +29659,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 141.1291139240506,
     "minerFee": 23.490017377594935,
     "min": 0.23316384,
-    "max": 83.47150564
+    "max": 83.47150564,
   },
   {
     "from": "btg",
@@ -29667,7 +29667,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2.913641091298667,
     "minerFee": 0.43348143929919,
     "min": 0.2171297,
-    "max": 8.4562732
+    "max": 8.4562732,
   },
   {
     "from": "btg",
@@ -29675,7 +29675,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 49.07218309859154,
     "minerFee": 4.7917473090140845,
     "min": 0.1726251,
-    "max": 83.41399383
+    "max": 83.41399383,
   },
   {
     "from": "btg",
@@ -29683,7 +29683,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.14445518155384615,
     "minerFee": 0.017155832749538462,
     "min": 0.19090617,
-    "max": 8.43136085
+    "max": 8.43136085,
   },
   {
     "from": "btg",
@@ -29691,7 +29691,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 65.47258041103933,
     "minerFee": 7.542106490598943,
     "min": 0.18776946,
-    "max": 83.42838098
+    "max": 83.42838098,
   },
   {
     "from": "btg",
@@ -29699,7 +29699,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 18.0982949469242,
     "minerFee": 2.2297705262489855,
     "min": 0.19484193,
-    "max": 83.43509983
+    "max": 83.43509983,
   },
   {
     "from": "btg",
@@ -29707,7 +29707,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 15.314835164835165,
     "minerFee": 0.0025054945054945057,
     "min": 0.0878793,
-    "max": 83.33348533
+    "max": 83.33348533,
   },
   {
     "from": "btg",
@@ -29715,7 +29715,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 78.34996486296556,
     "minerFee": 0.5128179901616303,
     "min": 0.9276065,
-    "max": 83.3394145
+    "max": 83.3394145,
   },
   {
     "from": "btg",
@@ -29723,7 +29723,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 28.6464542651593,
     "minerFee": 3.5423108464850976,
     "min": 0.19520763,
-    "max": 83.43544724
+    "max": 83.43544724,
   },
   {
     "from": "btg",
@@ -29731,7 +29731,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 5591.813479503722,
     "minerFee": 1.0148161111662533,
     "min": 0.08789679,
-    "max": 83.33350194
+    "max": 83.33350194,
   },
   {
     "from": "btg",
@@ -29739,7 +29739,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 54.12233009708737,
     "minerFee": 0.10885436893203884,
     "min": 0.08968632,
-    "max": 83.335202
+    "max": 83.335202,
   },
   {
     "from": "btg",
@@ -29747,7 +29747,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 64.0758620689655,
     "minerFee": 6.101253498620689,
     "min": 0.17046022,
-    "max": 83.4119372
+    "max": 83.4119372,
   },
   {
     "from": "btg",
@@ -29755,7 +29755,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 4.952998667258995,
     "minerFee": 0.0018103065304309195,
     "min": 0.08807676,
-    "max": 83.33367291
+    "max": 83.33367291,
   },
   {
     "from": "btg",
@@ -29763,7 +29763,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 122.65346534653465,
     "minerFee": 0.22006600660066009,
     "min": 0.08947404,
-    "max": 83.33500033
+    "max": 83.33500033,
   },
   {
     "from": "btg",
@@ -29771,7 +29771,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 25.127789046653138,
     "minerFee": 0.004110885733603786,
     "min": 0.0878793,
-    "max": 83.33348533
+    "max": 83.33348533,
   },
   {
     "from": "btg",
@@ -29779,7 +29779,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.531585517999996,
     "minerFee": 3.32270418896,
     "min": 0.21594896,
-    "max": 83.4551515
+    "max": 83.4551515,
   },
   {
     "from": "btg",
@@ -29787,7 +29787,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 913.8688524590164,
     "minerFee": 3.1495081967213117,
     "min": 0.09108983,
-    "max": 83.33653533
+    "max": 83.33653533,
   },
   {
     "from": "btg",
@@ -29795,7 +29795,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1.4220918367346935,
     "minerFee": 0.0003326530612244898,
     "min": 0.08794808,
-    "max": 83.33355066
+    "max": 83.33355066,
   },
   {
     "from": "btg",
@@ -29803,7 +29803,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 66.9421016826923,
     "minerFee": 0.011451673076923076,
     "min": 0.08788656,
-    "max": 83.33349223
+    "max": 83.33349223,
   },
   {
     "from": "btg",
@@ -29811,7 +29811,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2831.0311962814067,
     "minerFee": 512.7883001779396,
     "min": 0.24360594,
-    "max": 83.48142563
+    "max": 83.48142563,
   },
   {
     "from": "btg",
@@ -29819,7 +29819,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2.4237391304347824,
     "minerFee": 0.0003965217391304348,
     "min": 0.0878793,
-    "max": 83.33348533
+    "max": 83.33348533,
   },
   {
     "from": "btg",
@@ -29827,7 +29827,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 478.5064377682403,
     "minerFee": 0.17828326180257512,
     "min": 0.08808369,
-    "max": 83.33367949
+    "max": 83.33367949,
   },
   {
     "from": "btg",
@@ -29835,7 +29835,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 9.138688524590162,
     "minerFee": 0.022855081967213114,
     "min": 0.11150935,
-    "max": 83.33565693
+    "max": 83.33565693,
   },
   {
     "from": "btg",
@@ -29843,7 +29843,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.4225770628636363,
     "minerFee": 0.00026913326181818184,
     "min": 0.08834211,
-    "max": 83.333925
+    "max": 83.333925,
   },
   {
     "from": "btg",
@@ -29851,7 +29851,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.533179853599997,
     "minerFee": 2.281977409792,
     "min": 0.17577619,
-    "max": 83.41698737
+    "max": 83.41698737,
   },
   {
     "from": "btg",
@@ -29859,7 +29859,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1664.059701492537,
     "minerFee": 344.29837234597017,
     "min": 0.2900701,
-    "max": 83.52556659
+    "max": 83.52556659,
   },
   {
     "from": "btg",
@@ -29867,7 +29867,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.9460540857430729,
     "minerFee": 0.22812232367455917,
     "min": 0.29734157,
-    "max": 8.53247448
+    "max": 8.53247448,
   },
   {
     "from": "btg",
@@ -29875,7 +29875,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 13.894815553339976,
     "minerFee": 1.6320535804586243,
     "min": 0.18986001,
-    "max": 83.430367
+    "max": 83.430367,
   },
   {
     "from": "btg",
@@ -29883,7 +29883,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1.3132155477031802,
     "minerFee": 0.1431611909893993,
     "min": 0.18250796,
-    "max": 41.75671589
+    "max": 41.75671589,
   },
   {
     "from": "btg",
@@ -29891,7 +29891,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 92.44776119402984,
     "minerFee": 0.015124378109452736,
     "min": 0.0878793,
-    "max": 83.33348533
+    "max": 83.33348533,
   },
   {
     "from": "btg",
@@ -29899,7 +29899,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 14.913322632423755,
     "minerFee": 0.0074398073836276085,
     "min": 0.08820715,
-    "max": 83.33379679
+    "max": 83.33379679,
   },
   {
     "from": "btg",
@@ -29907,7 +29907,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 23400.83937943925,
     "minerFee": 2345.177409170685,
     "min": 0.17503259,
-    "max": 8.41628095
+    "max": 8.41628095,
   },
   {
     "from": "btg",
@@ -29915,7 +29915,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 157.2524682651622,
     "minerFee": 18.869392025176303,
     "min": 0.19205238,
-    "max": 83.43244975
+    "max": 83.43244975,
   },
   {
     "from": "btg",
@@ -29923,7 +29923,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2658.445121688583,
     "minerFee": 0.44491944731101574,
     "min": 0.08788298,
-    "max": 83.33348882
+    "max": 83.33348882,
   },
   {
     "from": "btg",
@@ -29931,7 +29931,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1161.375,
     "minerFee": 280.20967087,
     "min": 0.88734432,
-    "max": 8.53261043
+    "max": 8.53261043,
   },
   {
     "from": "btg",
@@ -29939,7 +29939,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 10729.367205683944,
     "minerFee": 1270.1233723482715,
     "min": 0.1906056,
-    "max": 83.43107531
+    "max": 83.43107531,
   },
   {
     "from": "btg",
@@ -29947,7 +29947,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 81.91917707567966,
     "minerFee": 0.014651910360029392,
     "min": 0.08789423,
-    "max": 83.33349951
+    "max": 83.33349951,
   },
   {
     "from": "btg",
@@ -29955,7 +29955,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 667.6167664670658,
     "minerFee": 0.11922155688622754,
     "min": 0.08789395,
-    "max": 83.33349924
+    "max": 83.33349924,
   },
   {
     "from": "btg",
@@ -29963,7 +29963,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 13.291845493562231,
     "minerFee": 1.8319124050500715,
     "min": 0.20750763,
-    "max": 83.44713224
+    "max": 83.44713224,
   },
   {
     "from": "btg",
@@ -29971,7 +29971,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3.4347504621072082,
     "minerFee": 0.4073198423659889,
     "min": 0.19079756,
-    "max": 83.43125767
+    "max": 83.43125767,
   },
   {
     "from": "btg",
@@ -29979,7 +29979,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 453.2195121951219,
     "minerFee": 39.28528055146341,
     "min": 2.90652983,
-    "max": 83.40493666
+    "max": 83.40493666,
   },
   {
     "from": "btg",
@@ -29987,7 +29987,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 774.2499999999999,
     "minerFee": 0.13666666666666666,
     "min": 0.08789193,
-    "max": 83.33349733
+    "max": 83.33349733,
   },
   {
     "from": "btg",
@@ -29995,7 +29995,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 271.2700729927007,
     "minerFee": 27.484418842043794,
     "min": 0.17581551,
-    "max": 83.41702472
+    "max": 83.41702472,
   },
   {
     "from": "btg",
@@ -30003,7 +30003,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 62.460504201680656,
     "minerFee": 0.010218487394957981,
     "min": 0.0878793,
-    "max": 83.33348533
+    "max": 83.33348533,
   },
   {
     "from": "btg",
@@ -30011,7 +30011,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 43.36522753792299,
     "minerFee": 5.322881865752626,
     "min": 0.19444359,
-    "max": 83.4347214
+    "max": 83.4347214,
   },
   {
     "from": "btg",
@@ -30019,7 +30019,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 118.48246546227416,
     "minerFee": 13.629062924431457,
     "min": 0.18784309,
-    "max": 83.42845093
+    "max": 83.42845093,
   },
   {
     "from": "btg",
@@ -30027,7 +30027,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.08000287026406429,
     "minerFee": 0.00041308840413318025,
     "min": 0.09277544,
-    "max": 83.33813666
+    "max": 83.33813666,
   },
   {
     "from": "btg",
@@ -30035,7 +30035,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 19.067057233715165,
     "minerFee": 1.784705334966661,
     "min": 0.1691243,
-    "max": 18.41066808
+    "max": 18.41066808,
   },
   {
     "from": "btg",
@@ -30043,7 +30043,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 952.9230769230768,
     "minerFee": 79.44165195589743,
     "min": 0.16021002,
-    "max": 83.40219951
+    "max": 83.40219951,
   },
   {
     "from": "btg",
@@ -30051,7 +30051,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 100.62454873646209,
     "minerFee": 0.026462093862815887,
     "min": 0.0879765,
-    "max": 83.33357766
+    "max": 83.33357766,
   },
   {
     "from": "btg",
@@ -30059,7 +30059,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3454.707273038916,
     "minerFee": 1092.0153549739327,
     "min": 0.36241721,
-    "max": 8.59429634
+    "max": 8.59429634,
   },
   {
     "from": "btg",
@@ -30067,7 +30067,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 211.1590909090909,
     "minerFee": 24.591947434545457,
     "min": 0.1889809,
-    "max": 83.42953184
+    "max": 83.42953184,
   },
   {
     "from": "btg",
@@ -30075,7 +30075,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 138.47908622587357,
     "minerFee": 0.023055065231226766,
     "min": 0.08788213,
-    "max": 8.33348801
+    "max": 8.33348801,
   },
   {
     "from": "btg",
@@ -30083,7 +30083,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 282.56551392615404,
     "minerFee": 37.998834916940886,
     "min": 0.20448872,
-    "max": 83.44426427
+    "max": 83.44426427,
   },
   {
     "from": "btg",
@@ -30091,7 +30091,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 83.82857142857142,
     "minerFee": 4.098232985714286,
     "min": 0.13546036,
-    "max": 83.37868734
+    "max": 83.37868734,
   },
   {
     "from": "btg",
@@ -30099,7 +30099,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.535008322399996,
     "minerFee": 0.0037365089279999997,
     "min": 10.1861435,
-    "max": 83.33348738
+    "max": 83.33348738,
   },
   {
     "from": "btg",
@@ -30107,7 +30107,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2.0135813617482388,
     "minerFee": 0.0028294202636806936,
     "min": 0.08909487,
-    "max": 83.33464012
+    "max": 83.33464012,
   },
   {
     "from": "btg",
@@ -30115,7 +30115,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.535543483999994,
     "minerFee": 2.2802294764799997,
     "min": 0.17570083,
-    "max": 83.41691578
+    "max": 83.41691578,
   },
   {
     "from": "btg",
@@ -30123,7 +30123,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 184.10954511764703,
     "minerFee": 23.178051790980394,
     "min": 0.19717028,
-    "max": 83.43731176
+    "max": 83.43731176,
   },
   {
     "from": "btg",
@@ -30131,7 +30131,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.534116386399997,
     "minerFee": 2.616215373008,
     "min": 0.18866975,
-    "max": 83.42923625
+    "max": 83.42923625,
   },
   {
     "from": "btg",
@@ -30139,7 +30139,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 344.1111111111111,
     "minerFee": 0.0762962962962963,
     "min": 0.08793615,
-    "max": 83.33353933
+    "max": 83.33353933,
   },
   {
     "from": "btg",
@@ -30147,7 +30147,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 4.621101729931549,
     "minerFee": 0.4417639784629745,
     "min": 0.17093561,
-    "max": 83.41238882
+    "max": 83.41238882,
   },
   {
     "from": "btg",
@@ -30155,7 +30155,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 300.7639445822102,
     "minerFee": 32.60671772530997,
     "min": 0.18198388,
-    "max": 83.42288468
+    "max": 83.42288468,
   },
   {
     "from": "btg",
@@ -30163,7 +30163,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1041.981308411215,
     "minerFee": 77.64060070971962,
     "min": 0.15251296,
-    "max": 83.3948873
+    "max": 83.3948873,
   },
   {
     "from": "btg",
@@ -30171,7 +30171,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 27.866033491627093,
     "minerFee": 3.484827340284929,
     "min": 0.19637156,
-    "max": 83.43655298
+    "max": 83.43655298,
   },
   {
     "from": "btg",
@@ -30179,7 +30179,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 23.179209979209976,
     "minerFee": 2.7973248197920997,
     "min": 0.19260661,
-    "max": 83.43297627
+    "max": 83.43297627,
   },
   {
     "from": "btg",
@@ -30187,7 +30187,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 4.283407778445163,
     "minerFee": 1.0327226920087436,
     "min": 0.29731381,
-    "max": 8.53244811
+    "max": 8.53244811,
   },
   {
     "from": "btg",
@@ -30195,7 +30195,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 17.982528521739127,
     "minerFee": 4.801996926956522,
     "min": 0.31988055,
-    "max": 83.55388651
+    "max": 83.55388651,
   },
   {
     "from": "btg",
@@ -30203,7 +30203,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 138.6744152238806,
     "minerFee": 0.12268702089552239,
     "min": 0.08858457,
-    "max": 83.33415533
+    "max": 83.33415533,
   },
   {
     "from": "btg",
@@ -30211,7 +30211,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.534172132400002,
     "minerFee": 3.728100272128,
     "min": 0.23156118,
-    "max": 83.46998311
+    "max": 83.46998311,
   },
   {
     "from": "btg",
@@ -30219,7 +30219,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1252.7191011235952,
     "minerFee": 161.49473712022473,
     "min": 0.1998075,
-    "max": 83.43981712
+    "max": 83.43981712,
   },
   {
     "from": "btg",
@@ -30227,7 +30227,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 187.38151260504202,
     "minerFee": 25.017766722184874,
     "min": 0.20380376,
-    "max": 83.44361357
+    "max": 83.44361357,
   },
   {
     "from": "btg",
@@ -30235,7 +30235,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 208.39626168224297,
     "minerFee": 19.992346607943926,
     "min": 0.1711361,
-    "max": 83.41257929
+    "max": 83.41257929,
   },
   {
     "from": "btg",
@@ -30243,7 +30243,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 6277.161092590528,
     "minerFee": 1513.8717569700557,
     "min": 0.29737728,
-    "max": 83.53250841
+    "max": 83.53250841,
   },
   {
     "from": "btg",
@@ -30251,7 +30251,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 193.610890625,
     "minerFee": 17.569255633333334,
     "min": 1.60631329,
-    "max": 83.40829371
+    "max": 83.40829371,
   },
   {
     "from": "btg",
@@ -30259,7 +30259,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2933.9999999999995,
     "minerFee": 368.58142651000003,
     "min": 0.1969461,
-    "max": 83.43709878
+    "max": 83.43709878,
   },
   {
     "from": "btg",
@@ -30267,7 +30267,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 76.46913580246914,
     "minerFee": 0.013510288065843624,
     "min": 0.0878921,
-    "max": 83.33349749
+    "max": 83.33349749,
   },
   {
     "from": "btg",
@@ -30275,7 +30275,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 229.24728710478126,
     "minerFee": 5.037504668646999,
     "min": 0.10920813,
-    "max": 41.68708105
+    "max": 41.68708105,
   },
   {
     "from": "btg",
@@ -30283,7 +30283,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.535008322399996,
     "minerFee": 0.453686708928,
     "min": 0.10740723,
-    "max": 83.35203685
+    "max": 83.35203685,
   },
   {
     "from": "btg",
@@ -30291,7 +30291,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.46281444582814446,
     "minerFee": 0.06113932606475716,
     "min": 0.20267429,
-    "max": 83.44254056
+    "max": 83.44254056,
   },
   {
     "from": "btg",
@@ -30299,7 +30299,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 884.8571428571428,
     "minerFee": 93.37321282476191,
     "min": 0.17947232,
-    "max": 83.42049869
+    "max": 83.42049869,
   },
   {
     "from": "btg",
@@ -30307,7 +30307,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 506.7818181818181,
     "minerFee": 52.515960910909094,
     "min": 0.17782294,
-    "max": 83.41893178
+    "max": 83.41893178,
   },
   {
     "from": "btg",
@@ -30315,7 +30315,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 6.367332952598514,
     "minerFee": 1.9260347304625927,
     "min": 0.35174955,
-    "max": 83.58416206
+    "max": 83.58416206,
   },
   {
     "from": "btg",
@@ -30323,7 +30323,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.8354698343649306,
     "minerFee": 0.0885791221814912,
     "min": 0.1799284,
-    "max": 83.42093197
+    "max": 83.42093197,
   },
   {
     "from": "btg",
@@ -30331,7 +30331,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.8335616,
     "minerFee": 3.9672583620000004,
     "min": 0.23870754,
-    "max": 16.81010549
+    "max": 16.81010549,
   },
   {
     "from": "btg",
@@ -30339,7 +30339,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3.138851351351351,
     "minerFee": 0.016413513513513514,
     "min": 0.09283341,
-    "max": 83.33819173
+    "max": 83.33819173,
   },
   {
     "from": "btg",
@@ -30347,7 +30347,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.4608931852561984,
     "minerFee": 0.010075401748099174,
     "min": 2.21766809,
-    "max": 83.35363967
+    "max": 83.35363967,
   },
   {
     "from": "btg",
@@ -30355,7 +30355,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 247.21064301552101,
     "minerFee": 26.831382298980042,
     "min": 0.18209172,
-    "max": 83.42298712
+    "max": 83.42298712,
   },
   {
     "from": "btg",
@@ -30363,7 +30363,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 19.18967297762478,
     "minerFee": 0.021139414802065402,
     "min": 0.08879667,
-    "max": 83.33435683
+    "max": 83.33435683,
   },
   {
     "from": "btg",
@@ -30371,7 +30371,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 130.5526932084309,
     "minerFee": 12.39344039381733,
     "min": 0.17026368,
-    "max": 83.41175049
+    "max": 83.41175049,
   },
   {
     "from": "btg",
@@ -30379,7 +30379,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 27.597029702970296,
     "minerFee": 0.018714851485148516,
     "min": 0.08838241,
-    "max": 83.33396328
+    "max": 83.33396328,
   },
   {
     "from": "btg",
@@ -30387,7 +30387,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 17.982528521739127,
     "minerFee": 0.005441926956521739,
     "min": 0.08801527,
-    "max": 83.3336145
+    "max": 83.3336145,
   },
   {
     "from": "btg",
@@ -30395,7 +30395,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3.509348441926345,
     "minerFee": 0.3667472365344665,
     "min": 0.17861615,
-    "max": 83.41968533
+    "max": 83.41968533,
   },
   {
     "from": "btg",
@@ -30403,7 +30403,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.0025110810810810807,
     "minerFee": 0.0002959808108108108,
     "min": 0.19011354,
-    "max": 83.43060785
+    "max": 83.43060785,
   },
   {
     "from": "btg",
@@ -30411,7 +30411,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 496.19390719999996,
     "minerFee": 5.081176917333333,
     "min": 0.09773432,
-    "max": 83.3428476
+    "max": 83.3428476,
   },
   {
     "from": "btg",
@@ -30419,7 +30419,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.02820440172021249,
     "minerFee": 0.0035042742170503416,
     "min": 0.19577529,
-    "max": 83.43598652
+    "max": 83.43598652,
   },
   {
     "from": "btg",
@@ -30427,7 +30427,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.024726546906187623,
     "minerFee": 0.002459945242847638,
     "min": 0.17412814,
-    "max": 83.41542172
+    "max": 83.41542172,
   },
   {
     "from": "btg",
@@ -30435,7 +30435,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 20.878651685393255,
     "minerFee": 2.4370465303370787,
     "min": 0.18920965,
-    "max": 83.42974916
+    "max": 83.42974916,
   },
   {
     "from": "btg",
@@ -30443,7 +30443,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 59.39904102290889,
     "minerFee": 6.174845094523175,
     "min": 0.17830277,
-    "max": 83.41938762
+    "max": 83.41938762,
   },
   {
     "from": "btg",
@@ -30451,7 +30451,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 28.36946564885496,
     "minerFee": 4.275159711374045,
     "min": 0.21907466,
-    "max": 83.45812092
+    "max": 83.45812092,
   },
   {
     "from": "btg",
@@ -30459,7 +30459,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 13.750920382230898,
     "minerFee": 0.022249639326336345,
     "min": 0.08930041,
-    "max": 8.33483538
+    "max": 8.33483538,
   },
   {
     "from": "btg",
@@ -30467,7 +30467,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 796.3714285714286,
     "minerFee": 50.13028571428571,
     "min": 0.14928281,
-    "max": 16.725152
+    "max": 16.725152,
   },
   {
     "from": "btg",
@@ -30475,7 +30475,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.0011144742103158737,
     "minerFee": 0.00014126232706917233,
     "min": 0.1979233,
-    "max": 83.43802713
+    "max": 83.43802713,
   },
   {
     "from": "btg",
@@ -30483,7 +30483,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3.612832145171743,
     "minerFee": 0.4919526463836682,
     "min": 0.20603589,
-    "max": 83.44573408
+    "max": 83.44573408,
   },
   {
     "from": "btg",
@@ -30491,7 +30491,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 19.266102637415788,
     "minerFee": 4.643757508631888,
     "min": 0.2972747,
-    "max": 83.53241095
+    "max": 83.53241095,
   },
   {
     "from": "btg",
@@ -30499,7 +30499,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3898.7903671972317,
     "minerFee": 3.637838914878893,
     "min": 0.08863178,
-    "max": 8.33420018
+    "max": 8.33420018,
   },
   {
     "from": "btg",
@@ -30507,7 +30507,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 381.8219178082191,
     "minerFee": 0.36246575342465753,
     "min": 0.08864772,
-    "max": 83.33421533
+    "max": 83.33421533,
   },
   {
     "from": "btg",
@@ -30515,7 +30515,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3.818219178082191,
     "minerFee": 0.0031246575342465752,
     "min": 0.08851965,
-    "max": 83.33409366
+    "max": 83.33409366,
   },
   {
     "from": "btg",
@@ -30523,7 +30523,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.26596374045801524,
     "minerFee": 0.11600931145038167,
     "min": 0.46683669,
-    "max": 83.69349485
+    "max": 83.69349485,
   },
   {
     "from": "btg",
@@ -30531,7 +30531,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1093.0588235294117,
     "minerFee": 0.2288235294117647,
     "min": 0.08792404,
-    "max": 83.33352783
+    "max": 83.33352783,
   },
   {
     "from": "btg",
@@ -30539,7 +30539,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 404.870747019408,
     "minerFee": 43.251741243029755,
     "min": 0.18056873,
-    "max": 83.42154028
+    "max": 83.42154028,
   },
   {
     "from": "btg",
@@ -30547,7 +30547,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1.3869350444572706,
     "minerFee": 0.16101662143876602,
     "min": 0.18862802,
-    "max": 83.42919661
+    "max": 83.42919661,
   },
   {
     "from": "btg",
@@ -30555,7 +30555,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 95.08442330126582,
     "minerFee": 0.02180573387341772,
     "min": 0.08794361,
-    "max": 83.33354642
+    "max": 83.33354642,
   },
   {
     "from": "btg",
@@ -30563,7 +30563,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3737.1489755223874,
     "minerFee": 413.0672189554229,
     "min": 0.18397532,
-    "max": 83.42477654
+    "max": 83.42477654,
   },
   {
     "from": "btg",
@@ -30571,7 +30571,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 140.24150943396225,
     "minerFee": 13.650713756226414,
     "min": 0.17224921,
-    "max": 83.41363674
+    "max": 83.41363674,
   },
   {
     "from": "btg",
@@ -30579,7 +30579,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.4314705882352941,
     "minerFee": 0.00012058823529411766,
     "min": 0.0879925,
-    "max": 83.33359287
+    "max": 83.33359287,
   },
   {
     "from": "btg",
@@ -30587,7 +30587,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1.6517333333333333,
     "minerFee": 0.18282373222222223,
     "min": 0.18381776,
-    "max": 83.42462686
+    "max": 83.42462686,
   },
   {
     "from": "btg",
@@ -30595,7 +30595,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 38.20713660801095,
     "minerFee": 0.007250656295789113,
     "min": 0.08790493,
-    "max": 83.33350968
+    "max": 83.33350968,
   },
   {
     "from": "btg",
@@ -30603,7 +30603,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.2544187300242379,
     "minerFee": 0.026577112696118482,
     "min": 0.17851233,
-    "max": 41.75292004
+    "max": 41.75292004,
   },
   {
     "from": "btg",
@@ -30611,7 +30611,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 16.868962584,
     "minerFee": 2.03397511848,
     "min": 0.19251378,
-    "max": 41.76622141
+    "max": 41.76622141,
   },
   {
     "from": "btg",
@@ -30619,7 +30619,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 6.083403995128442,
     "minerFee": 1.4697898999174033,
     "min": 0.29768826,
-    "max": 41.86613717
+    "max": 41.86613717,
   },
   {
     "from": "btg",
@@ -30627,7 +30627,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.5307810974973711,
     "minerFee": 0.038952535353373806,
     "min": 0.15150883,
-    "max": 41.72726671
+    "max": 41.72726671,
   },
   {
     "from": "btg",
@@ -30635,7 +30635,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 21.923439825429888,
     "minerFee": 5.241758686822156,
     "min": 0.2955048,
-    "max": 41.86406288
+    "max": 41.86406288,
   },
   {
     "from": "btg",
@@ -30643,7 +30643,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 7.784757829577479,
     "minerFee": 0.7385709600130188,
     "min": 0.17018079,
-    "max": 41.74500507
+    "max": 41.74500507,
   },
   {
     "from": "btg",
@@ -30651,7 +30651,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 532.2547783127123,
     "minerFee": 60.112871576349725,
     "min": 0.18592609,
-    "max": 41.75996311
+    "max": 41.75996311,
   },
   {
     "from": "btg",
@@ -30659,7 +30659,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 41665.08538469991,
     "minerFee": 4084.9677050170676,
     "min": 0.17293476,
-    "max": 41.74762135
+    "max": 41.74762135,
   },
   {
     "from": "btg",
@@ -30667,7 +30667,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.6118044872481201,
     "minerFee": 0.14782887071366022,
     "min": 0.29770663,
-    "max": 8.53282129
+    "max": 8.53282129,
   },
   {
     "from": "btg",
@@ -30675,7 +30675,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.996192336510844,
     "minerFee": 0.07963596625137191,
     "min": 0.15720383,
-    "max": 41.73267696
+    "max": 41.73267696,
   },
   {
     "from": "btg",
@@ -30683,7 +30683,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 45.30923006034302,
     "minerFee": 4.192996272975107,
     "min": 0.16815405,
-    "max": 41.74307967
+    "max": 41.74307967,
   },
   {
     "from": "btg",
@@ -30691,7 +30691,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 7.805272065534172,
     "minerFee": 0.8042204261252407,
     "min": 0.1772731,
-    "max": 41.75174277
+    "max": 41.75174277,
   },
   {
     "from": "btg",
@@ -30699,7 +30699,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 60316.30294623652,
     "minerFee": 5047.749709763515,
     "min": 0.16046023,
-    "max": 41.73577054
+    "max": 41.73577054,
   },
   {
     "from": "btg",
@@ -30707,7 +30707,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 70.009326310896,
     "minerFee": 7.92499520851712,
     "min": 0.18610492,
-    "max": 12.59346633
+    "max": 12.59346633,
   },
   {
     "from": "btg",
@@ -30715,7 +30715,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 131.2824883268124,
     "minerFee": 33.47929173770173,
     "min": 0.30934212,
-    "max": 41.87720834
+    "max": 41.87720834,
   },
   {
     "from": "btg",
@@ -30723,7 +30723,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 123.11994828693237,
     "minerFee": 25.595069842828128,
     "min": 0.26838725,
-    "max": 41.83830121
+    "max": 41.83830121,
   },
   {
     "from": "btg",
@@ -30731,7 +30731,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 7.742499999999999,
     "minerFee": 3.1125799666666665,
     "min": 0.43721974,
-    "max": 83.66535875
+    "max": 83.66535875,
   },
   {
     "from": "btg",
@@ -30739,7 +30739,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 219.46838781925342,
     "minerFee": 17.069634938722984,
     "min": 0.15535109,
-    "max": 83.39758353
+    "max": 83.39758353,
   },
   {
     "from": "btg",
@@ -30747,7 +30747,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 21.176068376068375,
     "minerFee": 2.0092964074643875,
     "min": 0.17025534,
-    "max": 8.41174256
+    "max": 8.41174256,
   },
   {
     "from": "btg",
@@ -30755,7 +30755,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 612.5934065934065,
     "minerFee": 59.01474506021978,
     "min": 0.1714848,
-    "max": 12.57957722
+    "max": 12.57957722,
   },
   {
     "from": "btg",
@@ -30763,7 +30763,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 80.90856313497822,
     "minerFee": 10.475728664746008,
     "min": 0.20037674,
-    "max": 83.44035789
+    "max": 83.44035789,
   },
   {
     "from": "btg",
@@ -30771,7 +30771,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 45.39679365500407,
     "minerFee": 10.967275788307568,
     "min": 0.29768343,
-    "max": 8.53279925
+    "max": 8.53279925,
   },
   {
     "from": "btg",
@@ -30779,7 +30779,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1023.9303787475625,
     "minerFee": 108.08245980239225,
     "min": 0.17946355,
-    "max": 41.7538237
+    "max": 41.7538237,
   },
   {
     "from": "btg",
@@ -30787,7 +30787,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 845.2681353944778,
     "minerFee": 204.27068066552465,
     "min": 0.29773803,
-    "max": 41.86618445
+    "max": 41.86618445,
   },
   {
     "from": "btg",
@@ -30795,7 +30795,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.22476236914651365,
     "minerFee": 0.02690367093973767,
     "min": 0.19175252,
-    "max": 41.76549822
+    "max": 41.76549822,
   },
   {
     "from": "btg",
@@ -30803,7 +30803,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 91.6875,
     "minerFee": 22.121816120000002,
     "min": 0.29748467,
-    "max": 8.53261043
+    "max": 8.53261043,
   },
   {
     "from": "btg",
@@ -30811,7 +30811,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 10.699808061420343,
     "minerFee": 0.0019504798464491364,
     "min": 0.08789758,
-    "max": 83.3335027
+    "max": 83.3335027,
   },
   {
     "from": "btg",
@@ -30819,7 +30819,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 107437.37372137688,
     "minerFee": 12888.999709777485,
     "min": 0.19198681,
-    "max": 41.76572079
+    "max": 41.76572079,
   },
   {
     "from": "btg",
@@ -30827,7 +30827,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 175.85488958990535,
     "minerFee": 42.38823344608833,
     "min": 0.29728203,
-    "max": 83.53241792
+    "max": 83.53241792,
   },
   {
     "from": "btg",
@@ -30835,7 +30835,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 12.645703012657657,
     "minerFee": 1.2157302866687374,
     "min": 0.17127865,
-    "max": 41.74604804
+    "max": 41.74604804,
   },
   {
     "from": "btg",
@@ -30843,7 +30843,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 99.72450805008945,
     "minerFee": 24.051843297942757,
     "min": 0.29740539,
-    "max": 83.53253511
+    "max": 83.53253511,
   },
   {
     "from": "btg",
@@ -30851,7 +30851,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 972.5725973521215,
     "minerFee": 231.4808729713664,
     "min": 0.29456204,
-    "max": 41.86316726
+    "max": 41.86316726,
   },
   {
     "from": "btg",
@@ -30859,7 +30859,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 8205.7777524,
     "minerFee": 1376.043255978,
     "min": 0.23345847,
-    "max": 41.80511887
+    "max": 41.80511887,
   },
   {
     "from": "btg",
@@ -30867,7 +30867,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 23.0498242712425,
     "minerFee": 2.6009864423961133,
     "min": 0.18581415,
-    "max": 83.42652343
+    "max": 83.42652343,
   },
   {
     "from": "btg",
@@ -30875,7 +30875,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 106.08182683158896,
     "minerFee": 14.361561920095149,
     "min": 0.20554102,
-    "max": 83.44526396
+    "max": 83.44526396,
   },
   {
     "from": "btg",
@@ -30883,7 +30883,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 63.351092304,
     "minerFee": 6.15465636688,
     "min": 0.17216011,
-    "max": 8.41355209
+    "max": 8.41355209,
   },
   {
     "from": "btg",
@@ -30891,7 +30891,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1.1763832478840275,
     "minerFee": 0.11332311533707713,
     "min": 0.17144766,
-    "max": 41.74620861
+    "max": 41.74620861,
   },
   {
     "from": "btg",
@@ -30899,7 +30899,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.015022024360411204,
     "minerFee": 0.003612937590897409,
     "min": 0.29673517,
-    "max": 8.53189841
+    "max": 8.53189841,
   },
   {
     "from": "btg",
@@ -30907,7 +30907,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 5.682568807339449,
     "minerFee": 0.04301919360856269,
     "min": 0.09512682,
-    "max": 83.34037047
+    "max": 83.34037047,
   },
   {
     "from": "btg",
@@ -30915,7 +30915,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 136.46511627906975,
     "minerFee": 29.59897541139535,
     "min": 0.27629352,
-    "max": 83.51247883
+    "max": 83.51247883,
   },
   {
     "from": "btg",
@@ -30923,7 +30923,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 464.2112197964683,
     "minerFee": 112.00700295583582,
     "min": 0.29740852,
-    "max": 8.53253808
+    "max": 8.53253808,
   },
   {
     "from": "btg",
@@ -30931,7 +30931,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3471.9626303199416,
     "minerFee": 0.5680102462691111,
     "min": 0.0878793,
-    "max": 83.33348533
+    "max": 83.33348533,
   },
   {
     "from": "btg",
@@ -30939,7 +30939,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.017095917447858364,
     "minerFee": 0.002113616878110079,
     "min": 0.19517191,
-    "max": 8.4354133
+    "max": 8.4354133,
   },
   {
     "from": "btg",
@@ -30947,7 +30947,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.7097640416503936,
     "minerFee": 0.0011161168166299214,
     "min": 0.08925667,
-    "max": 83.33479383
+    "max": 83.33479383,
   },
   {
     "from": "btg",
@@ -30955,7 +30955,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 158.1446808510638,
     "minerFee": 12.124159390425532,
     "min": 0.15428995,
-    "max": 83.39657544
+    "max": 83.39657544,
   },
   {
     "from": "btg",
@@ -30963,7 +30963,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 227.55283266759034,
     "minerFee": 25.64287931728713,
     "min": 0.18566249,
-    "max": 53.42637936
+    "max": 53.42637936,
   },
   {
     "from": "btg",
@@ -30971,7 +30971,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 5633.752080599999,
     "minerFee": 1361.8708393220002,
     "min": 0.29786654,
-    "max": 8.53297321
+    "max": 8.53297321,
   },
   {
     "from": "btg",
@@ -30979,7 +30979,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1827193.2965347187,
     "minerFee": 218035.50092333645,
     "min": 0.19141369,
-    "max": 83.43184299
+    "max": 83.43184299,
   },
   {
     "from": "btg",
@@ -30987,7 +30987,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3.4336926393594087,
     "minerFee": 0.001561749307052664,
     "min": 0.08816395,
-    "max": 83.33375575
+    "max": 83.33375575,
   },
   {
     "from": "btg",
@@ -30995,7 +30995,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 47704658766.10275,
     "minerFee": 101208911269.9956,
     "min": 0.37427568,
-    "max": 85.27056189
+    "max": 85.27056189,
   },
   {
     "from": "btg",
@@ -31003,7 +31003,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 612.5934065934065,
     "minerFee": 0.2002197802197802,
     "min": 0.08803895,
-    "max": 83.333637
+    "max": 83.333637,
   },
   {
     "from": "btg",
@@ -31011,7 +31011,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 184.89552238805967,
     "minerFee": 44.6104948562189,
     "min": 0.29748467,
-    "max": 83.53261043
+    "max": 83.53261043,
   },
   {
     "from": "btg",
@@ -31019,7 +31019,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 160.65129682997116,
     "minerFee": 13.33209866074928,
     "min": 0.1597774,
-    "max": 83.40178852
+    "max": 83.40178852,
   },
   {
     "from": "btg",
@@ -31027,7 +31027,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 80.90856313497822,
     "minerFee": 0.048236584746008705,
     "min": 0.08797608,
-    "max": 83.33357726
+    "max": 83.33357726,
   },
   {
     "from": "btg",
@@ -31035,7 +31035,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 164.42060350642885,
     "minerFee": 39.73910784623827,
     "min": 0.29776237,
-    "max": 83.53287424
+    "max": 83.53287424,
   },
   {
     "from": "btg",
@@ -31043,7 +31043,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 131.78723404255317,
     "minerFee": 12.519967913687944,
     "min": 0.17032487,
-    "max": 83.41180861
+    "max": 83.41180861,
   },
   {
     "from": "btg",
@@ -31051,7 +31051,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 498.7152768934262,
     "minerFee": 2.0815894113527076,
     "min": 0.09180146,
-    "max": 83.33721138
+    "max": 83.33721138,
   },
   {
     "from": "btg",
@@ -31059,7 +31059,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.08000287026406429,
     "minerFee": 0.0003481184041331802,
     "min": 0.09198019,
-    "max": 83.33738117
+    "max": 83.33738117,
   },
   {
     "from": "btg",
@@ -31067,7 +31067,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 89.11854948873689,
     "minerFee": 0.6111676217977483,
     "min": 0.0944301,
-    "max": 3.33970858
+    "max": 3.33970858,
   },
   {
     "from": "btg",
@@ -31075,7 +31075,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 92.44776119402984,
     "minerFee": 0.6723596881094528,
     "min": 0.09483216,
-    "max": 83.34009054
+    "max": 83.34009054,
   },
   {
     "from": "btg",
@@ -31083,7 +31083,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.534406265599998,
     "minerFee": 0.244898820432,
     "min": 0.09834693,
-    "max": 83.34342957
+    "max": 83.34342957,
   },
   {
     "from": "btg",
@@ -31091,7 +31091,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 153.07227367150617,
     "minerFee": 36.342140058760165,
     "min": 0.2957292,
-    "max": 16.86427607
+    "max": 16.86427607,
   },
   {
     "from": "btg",
@@ -31099,7 +31099,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1.1826880237615356,
     "minerFee": 0.010193486793253421,
     "min": 0.09615562,
-    "max": 83.34134783
+    "max": 83.34134783,
   },
   {
     "from": "btg",
@@ -31107,7 +31107,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 215.23552123552122,
     "minerFee": 24.542612145212356,
     "min": 0.1868645,
-    "max": 83.42752127
+    "max": 83.42752127,
   },
   {
     "from": "btg",
@@ -31115,7 +31115,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 0.014632648240018899,
     "minerFee": 0.0013523938892826208,
     "min": 0.16468619,
-    "max": 83.40962433
+    "max": 83.40962433,
   },
   {
     "from": "btg",
@@ -31123,7 +31123,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 11.819357574472594,
     "minerFee": 0.011933637230997562,
     "min": 0.23192767,
-    "max": 83.33427225
+    "max": 83.33427225,
   },
   {
     "from": "btg",
@@ -31131,7 +31131,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 23126390.835414965,
     "minerFee": 1655052.6969984109,
     "min": 0.15775047,
-    "max": 12.56652961
+    "max": 12.56652961,
   },
   {
     "from": "btg",
@@ -31139,7 +31139,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2839.115528846205,
     "minerFee": 287.82718733813437,
     "min": 0.17583358,
-    "max": 8.41704189
+    "max": 8.41704189,
   },
   {
     "from": "btg",
@@ -31147,7 +31147,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 22.535543483999994,
     "minerFee": 0.24498456648,
     "min": 0.09835134,
-    "max": 83.34343376
+    "max": 83.34343376,
   },
   {
     "from": "btg",
@@ -31155,7 +31155,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 26679.282835897662,
     "minerFee": 195.69592369840862,
     "min": 0.09489708,
-    "max": 8.34015221
+    "max": 8.34015221,
   },
   {
     "from": "btg",
@@ -31163,7 +31163,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 27.86603349162709,
     "minerFee": 0.010798860284928768,
     "min": 0.08809814,
-    "max": 83.33369322
+    "max": 83.33369322,
   },
   {
     "from": "btg",
@@ -31171,7 +31171,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 3.6662939822426828,
     "minerFee": 0.05059980269648142,
     "min": 0.83376746,
-    "max": 41.67948949
+    "max": 41.67948949,
   },
   {
     "from": "btg",
@@ -31179,7 +31179,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 5.67331569305923,
     "minerFee": 0.04632814980663546,
     "min": 0.09570443,
-    "max": 8.3409192
+    "max": 8.3409192,
   },
   {
     "from": "btg",
@@ -31187,7 +31187,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 51299.297206563795,
     "minerFee": 6560.880224620378,
     "min": 0.19887458,
-    "max": 8.43893084
+    "max": 8.43893084,
   },
   {
     "from": "btg",
@@ -31195,7 +31195,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 2234.966119881007,
     "minerFee": 19.921217139019387,
     "min": 0.09644154,
-    "max": 8.34161945
+    "max": 8.34161945,
   },
   {
     "from": "btg",
@@ -31203,7 +31203,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 5458.751231330335,
     "minerFee": 54.51949997620946,
     "min": 0.09749263,
-    "max": 8.34261799
+    "max": 8.34261799,
   },
   {
     "from": "btg",
@@ -31211,7 +31211,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 59.383655060680816,
     "minerFee": 0.6014325873923404,
     "min": 0.09763,
-    "max": 8.34274849
+    "max": 8.34274849,
   },
   {
     "from": "btg",
@@ -31219,7 +31219,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 20009.571409609012,
     "minerFee": 199.91039097486447,
     "min": 0.09749576,
-    "max": 8.34262096
+    "max": 8.34262096,
   },
   {
     "from": "btg",
@@ -31227,7 +31227,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 18.444033614780405,
     "minerFee": 0.182008368812234,
     "min": 0.09737579,
-    "max": 8.34250699
+    "max": 8.34250699,
   },
   {
     "from": "btg",
@@ -31235,7 +31235,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1806.094478793519,
     "minerFee": 16.983146009352723,
     "min": 0.09692086,
-    "max": 8.34207481
+    "max": 8.34207481,
   },
   {
     "from": "btg",
@@ -31243,7 +31243,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 54.38559116685567,
     "minerFee": 0.5737179582277065,
     "min": 0.09804213,
-    "max": 83.34314002
+    "max": 83.34314002,
   },
   {
     "from": "btg",
@@ -31251,7 +31251,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 26453.452494334324,
     "minerFee": 272.19687938925716,
     "min": 0.09778827,
-    "max": 8.34289884
+    "max": 8.34289884,
   },
   {
     "from": "btg",
@@ -31259,7 +31259,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 84.36554911793039,
     "minerFee": 0.9320547548250192,
     "min": 0.09853017,
-    "max": 8.34360365
+    "max": 8.34360365,
   },
   {
     "from": "btg",
@@ -31267,7 +31267,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 23.430113978958218,
     "minerFee": 0.24127752748122017,
     "min": 0.09779619,
-    "max": 41.67623971
+    "max": 41.67623971,
   },
   {
     "from": "btg",
@@ -31275,7 +31275,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 35.98522107076894,
     "minerFee": 0.26028537273141417,
     "min": 0.09479726,
-    "max": 66.67339072
+    "max": 66.67339072,
   },
   {
     "from": "btg",
@@ -31283,7 +31283,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 57997.80585040937,
     "minerFee": 453.837920195159,
     "min": 0.09537655,
-    "max": 8.34060771
+    "max": 8.34060771,
   },
   {
     "from": "btg",
@@ -31291,7 +31291,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 271.50612436626506,
     "minerFee": 2.6064851398554216,
     "min": 0.09711852,
-    "max": 8.34226258
+    "max": 8.34226258,
   },
   {
     "from": "btg",
@@ -31299,7 +31299,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 14.240899220845574,
     "minerFee": 5.822829629463533,
     "min": 0.44314537,
-    "max": 83.67098809
+    "max": 83.67098809,
   },
   {
     "from": "btg",
@@ -31307,7 +31307,7 @@ const List<Map<String, dynamic>> fixedRateMarketsJSON = [
     "rate": 1639.5882352941173,
     "minerFee": 163.23764397411765,
     "min": 0.17428818,
-    "max": 83.41557376
+    "max": 83.41557376,
   },
 ];
 
@@ -31322,5 +31322,5 @@ const Map<String, dynamic> createStandardTransactionResponse = {
       "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H",
   "refundExtraId": "",
   "id": "6d2f9280dacab3",
-  "amount": 0.0021936
+  "amount": 0.0021936,
 };

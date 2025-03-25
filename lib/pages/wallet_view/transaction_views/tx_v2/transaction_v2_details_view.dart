@@ -1494,7 +1494,7 @@ class _TransactionV2DetailsViewState
                                   final confirmed = _transaction.isConfirmed(
                                       currentHeight,
                                       minConfirms,
-                                      coin.minCoinbaseConfirms);
+                                      coin.minCoinbaseConfirms,);
                                   if (widget.coin is! Epiccash && confirmed) {
                                     height =
                                         "${_transaction.height == 0 ? "Unknown" : _transaction.height}";
@@ -1547,7 +1547,7 @@ class _TransactionV2DetailsViewState
                                                           context,
                                                         ).copyWith(
                                                           color: Theme.of(
-                                                                  context)
+                                                                  context,)
                                                               .extension<
                                                                   StackColors>()!
                                                               .textDark,
@@ -1624,7 +1624,7 @@ class _TransactionV2DetailsViewState
                                                           context,
                                                         ).copyWith(
                                                           color: Theme.of(
-                                                                  context)
+                                                                  context,)
                                                               .extension<
                                                                   StackColors>()!
                                                               .textDark,
@@ -2178,7 +2178,7 @@ class OutputCard extends ConsumerWidget {
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider({super.key});
+  const _Divider();
 
   @override
   Widget build(BuildContext context) {

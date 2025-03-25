@@ -94,28 +94,23 @@ class _RecipientState extends ConsumerState<Recipient> {
       Amount? cryptoAmount = ref.read(pAmountFormatter(widget.coin)).tryParse(
             amountController.text,
           );
-      if (cryptoAmount != null) {
-        if (ref.read(pRecipient(widget.index))?.amount != null &&
-            ref.read(pRecipient(widget.index))?.amount == cryptoAmount) {
-          return;
-        }
-
-        // final price = ref.read(_pPrice(widget.coin));
-        //
-        // if (price > Decimal.zero) {
-        //   baseController.text = (cryptoAmount.decimal * price)
-        //       .toAmount(
-        //         fractionDigits: 2,
-        //       )
-        //       .fiatString(
-        //         locale: ref.read(localeServiceChangeNotifierProvider).locale,
-        //       );
-        // }
-      } else {
-        cryptoAmount = null;
-        // baseController.text = "";
+      if (ref.read(pRecipient(widget.index))?.amount != null &&
+          ref.read(pRecipient(widget.index))?.amount == cryptoAmount) {
+        return;
       }
 
+      // final price = ref.read(_pPrice(widget.coin));
+      //
+      // if (price > Decimal.zero) {
+      //   baseController.text = (cryptoAmount.decimal * price)
+      //       .toAmount(
+      //         fractionDigits: 2,
+      //       )
+      //       .fiatString(
+      //         locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      //       );
+      // }
+    
       _updateRecipientData();
     }
   }

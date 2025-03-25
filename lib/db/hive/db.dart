@@ -149,7 +149,7 @@ class DB {
     _boxTradeNotes = await hive.openBox<String>(boxNameTradeNotes);
     _boxTradeLookup = await hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
     _walletInfoSource = await hive.openBox<lib_monero_compat.WalletInfo>(
-        lib_monero_compat.WalletInfo.boxName);
+        lib_monero_compat.WalletInfo.boxName,);
     _boxFavoriteWallets = await hive.openBox<String>(boxNameFavoriteWallets);
 
     await Future.wait([
@@ -165,7 +165,7 @@ class DB {
       try {
         AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
-      } catch (e, s) {
+      } catch (e) {
         Logging.instance.log(
           "Error, ${jsonObject["coin"]} does not exist, $name wallet cannot be loaded",
           level: LogLevel.Error,

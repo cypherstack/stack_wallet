@@ -92,7 +92,7 @@ class WalletsService extends ChangeNotifier {
       try {
         AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
         return false;
-      } catch (e, s) {
+      } catch (e) {
         Logging.instance.log(
           "Error, ${jsonObject["coin"]} does not exist",
           level: LogLevel.Error,

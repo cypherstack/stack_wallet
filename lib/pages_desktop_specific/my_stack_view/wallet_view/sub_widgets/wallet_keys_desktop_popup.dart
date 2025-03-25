@@ -229,9 +229,7 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
 
 class _Mnemonic extends StatelessWidget {
   const _Mnemonic({
-    super.key,
     required this.words,
-    this.clipboardInterface = const ClipboardWrapper(),
   });
 
   final List<String> words;

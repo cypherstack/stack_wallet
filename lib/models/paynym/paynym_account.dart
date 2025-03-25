@@ -46,13 +46,13 @@ class PaynymAccount {
         followers = (map["followers"] as List<dynamic>)
             .map(
               (e) => PaynymAccountLite.fromMap(
-                  Map<String, dynamic>.from(e as Map)),
+                  Map<String, dynamic>.from(e as Map),),
             )
             .toList(),
         following = (map["following"] as List<dynamic>)
             .map(
               (e) => PaynymAccountLite.fromMap(
-                  Map<String, dynamic>.from(e as Map)),
+                  Map<String, dynamic>.from(e as Map),),
             )
             .toList();
 

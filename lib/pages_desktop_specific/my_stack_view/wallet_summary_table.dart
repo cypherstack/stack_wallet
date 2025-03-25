@@ -122,7 +122,7 @@ class _DesktopWalletSummaryRowState
 
       if (mounted) {
         final wallet = ref.read(pWallets).wallets.firstWhere(
-            (e) => e.cryptoCurrency.identifier == widget.coin.identifier);
+            (e) => e.cryptoCurrency.identifier == widget.coin.identifier,);
 
         final canContinue = await checkShowNodeTorSettingsMismatch(
           context: context,

@@ -7,14 +7,14 @@ final Map<String, List<Map<String, dynamic>>> batchGetUTXOResponse0 = {
       "value": 7000000,
       "tx_hash":
           "61fedb3cb994917d2852191785ab59cb0d177d55d860bf10fd671f6a0a83247c",
-      "height": 756720
+      "height": 756720,
     },
     {
       "tx_pos": 0,
       "value": 3000000,
       "tx_hash":
           "9765cc2efa42ffdfb5ec86e6ae043de4cf2158a00ed19a182c4244bc548334ba",
-      "height": 756732
+      "height": 756732,
     },
   ],
   "some id 1": [
@@ -23,7 +23,7 @@ final Map<String, List<Map<String, dynamic>>> batchGetUTXOResponse0 = {
       "value": 2000000,
       "tx_hash":
           "070b45d901243b5856a0cccce8c5f5f548c19aaa00cb0059b37a6a9a3632288a",
-      "height": 756738
+      "height": 756738,
     },
   ],
   "some id 2": [],

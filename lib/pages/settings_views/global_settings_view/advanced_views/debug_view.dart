@@ -409,69 +409,67 @@ class _DebugViewState extends ConsumerState<DebugView> {
                                     );
                                   }
 
-                                  if (path != null) {
-                                    final eventBus = EventBus();
-                                    bool shouldPop = false;
-                                    unawaited(
-                                      showDialog<dynamic>(
-                                        barrierDismissible: false,
-                                        context: context,
-                                        builder: (_) => WillPopScope(
-                                          onWillPop: () async {
-                                            return shouldPop;
-                                          },
-                                          child: CustomLoadingOverlay(
-                                            message:
-                                                "Generating ${AppConfig.prefix} logs file",
-                                            eventBus: eventBus,
-                                          ),
+                                  final eventBus = EventBus();
+                                  bool shouldPop = false;
+                                  unawaited(
+                                    showDialog<dynamic>(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder: (_) => WillPopScope(
+                                        onWillPop: () async {
+                                          return shouldPop;
+                                        },
+                                        child: CustomLoadingOverlay(
+                                          message:
+                                              "Generating ${AppConfig.prefix} logs file",
+                                          eventBus: eventBus,
                                         ),
                                       ),
-                                    );
+                                    ),
+                                  );
 
-                                    bool logsSaved = true;
-                                    String? filename;
-                                    try {
-                                      filename = await ref
-                                          .read(debugServiceProvider)
-                                          .exportToFile(path, eventBus);
-                                    } catch (e, s) {
-                                      logsSaved = false;
-                                      Logging.instance
-                                          .log("$e $s", level: LogLevel.Error);
-                                    }
+                                  bool logsSaved = true;
+                                  String? filename;
+                                  try {
+                                    filename = await ref
+                                        .read(debugServiceProvider)
+                                        .exportToFile(path, eventBus);
+                                  } catch (e, s) {
+                                    logsSaved = false;
+                                    Logging.instance
+                                        .log("$e $s", level: LogLevel.Error);
+                                  }
 
-                                    shouldPop = true;
+                                  shouldPop = true;
 
-                                    if (mounted) {
-                                      Navigator.pop(context);
+                                  if (mounted) {
+                                    Navigator.pop(context);
 
-                                      if (Platform.isAndroid) {
-                                        unawaited(
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => StackOkDialog(
-                                              title: logsSaved
-                                                  ? "Logs saved to"
-                                                  : "Error Saving Logs",
-                                              message: "${path!}/$filename",
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        unawaited(
-                                          showFloatingFlushBar(
-                                            type: FlushBarType.info,
-                                            context: context,
-                                            message: logsSaved
-                                                ? 'Logs file saved'
+                                    if (Platform.isAndroid) {
+                                      unawaited(
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => StackOkDialog(
+                                            title: logsSaved
+                                                ? "Logs saved to"
                                                 : "Error Saving Logs",
+                                            message: "${path!}/$filename",
                                           ),
-                                        );
-                                      }
+                                        ),
+                                      );
+                                    } else {
+                                      unawaited(
+                                        showFloatingFlushBar(
+                                          type: FlushBarType.info,
+                                          context: context,
+                                          message: logsSaved
+                                              ? 'Logs file saved'
+                                              : "Error Saving Logs",
+                                        ),
+                                      );
                                     }
                                   }
-                                },
+                                                                },
                               ),
                             ],
                           ),

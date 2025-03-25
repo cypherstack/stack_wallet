@@ -103,7 +103,7 @@ class _FrostStepFieldState extends State<FrostStepField> {
                   _changed(widget.controller.text);
                 } catch (e, s) {
                   Logging.instance.log("Error processing QR code data: $e\n$s",
-                      level: LogLevel.Error);
+                      level: LogLevel.Error,);
                 }
               },
             );

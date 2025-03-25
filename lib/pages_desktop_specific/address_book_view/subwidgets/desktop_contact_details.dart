@@ -95,7 +95,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
       return Container();
     }
 
-    final contact = _contact!;
+    final contact = _contact;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

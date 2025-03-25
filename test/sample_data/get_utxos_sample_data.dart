@@ -11,14 +11,14 @@ abstract class GetUtxoSampleData {
       "value": 45318048,
       "tx_hash":
           "9f2c45a12db0144909b5db269415f7319179105982ac70ed80d76ea79d923ebf",
-      "height": 437146
+      "height": 437146,
     },
     {
       "tx_pos": 0,
       "value": 919195,
       "tx_hash":
           "3d2290c93436a3e964cfc2f0950174d8847b1fbe3946432c4784e168da0f019f",
-      "height": 441696
+      "height": 441696,
     }
   ];
 }

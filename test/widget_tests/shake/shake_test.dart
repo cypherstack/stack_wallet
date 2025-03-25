@@ -28,7 +28,7 @@ void main() {
               children: [
                 Center(
                   child: Text("Enter Pin"),
-                )
+                ),
               ],
             ),
           ),

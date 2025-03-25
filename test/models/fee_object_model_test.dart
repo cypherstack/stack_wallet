@@ -12,7 +12,7 @@ void main() {
       numberOfBlocksAverage: 10,
     );
     expect(feeObject.toString(),
-        "{fast: 3, medium: 2, slow: 1, numberOfBlocksFast: 4, numberOfBlocksAverage: 10, numberOfBlocksSlow: 5}");
+        "{fast: 3, medium: 2, slow: 1, numberOfBlocksFast: 4, numberOfBlocksAverage: 10, numberOfBlocksSlow: 5}",);
   });
 
   test("FeeObject.fromJson factory", () {
@@ -25,6 +25,6 @@ void main() {
       "numberOfBlocksAverage": 6,
     });
     expect(feeObject.toString(),
-        "{fast: 3, medium: 2, slow: 1, numberOfBlocksFast: 4, numberOfBlocksAverage: 6, numberOfBlocksSlow: 5}");
+        "{fast: 3, medium: 2, slow: 1, numberOfBlocksFast: 4, numberOfBlocksAverage: 6, numberOfBlocksSlow: 5}",);
   });
 }

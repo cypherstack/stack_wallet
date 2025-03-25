@@ -25,7 +25,7 @@ import 'package:stackwallet/services/locale_service.dart';
 @GenerateMocks([], customMocks: [
   MockSpec<AddressBookService>(),
   MockSpec<LocaleService>(),
-])
+],)
 void main() {
 //   testWidgets("AddressBookDetailsView builds correctly", (tester) async {
 //     final wallet =  MockManager();

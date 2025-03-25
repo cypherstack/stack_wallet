@@ -238,7 +238,7 @@ class _RestoreFromFileViewState extends State<CreateBackupView> {
                         ),
                       ),
                       key: const Key(
-                          "createBackupSaveToFileLocationTextFieldKey"),
+                          "createBackupSaveToFileLocationTextFieldKey",),
                       readOnly: true,
                       toolbarOptions: const ToolbarOptions(
                         copy: true,

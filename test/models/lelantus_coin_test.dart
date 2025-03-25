@@ -6,6 +6,6 @@ void main() {
     final lCoin =
         LelantusCoin(1, 1000, "publicCoin string", "some txid", 1, true);
     expect(lCoin.toString(),
-        "{index: 1, value: 1000, publicCoin: publicCoin string, txId: some txid, anonymitySetId: 1, isUsed: true}");
+        "{index: 1, value: 1000, publicCoin: publicCoin string, txId: some txid, anonymitySetId: 1, isUsed: true}",);
   });
 }

@@ -52,7 +52,7 @@ class Cardano extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return Uri.parse(
-            "https://explorer.cardano.org/en/transaction?id=$txid");
+            "https://explorer.cardano.org/en/transaction?id=$txid",);
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",

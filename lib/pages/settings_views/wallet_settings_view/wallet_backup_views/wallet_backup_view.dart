@@ -130,10 +130,8 @@ class WalletBackupView extends ConsumerWidget {
 
 class _Mnemonic extends ConsumerWidget {
   const _Mnemonic({
-    super.key,
     required this.walletId,
     required this.mnemonic,
-    this.clipboardInterface = const ClipboardWrapper(),
   });
 
   final String walletId;
@@ -294,7 +292,6 @@ class _Mnemonic extends ConsumerWidget {
 
 class _FrostKeys extends StatelessWidget {
   const _FrostKeys({
-    super.key,
     required this.walletId,
     this.frostWalletData,
   });

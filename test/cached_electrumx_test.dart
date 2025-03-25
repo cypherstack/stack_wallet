@@ -134,7 +134,7 @@ void main() {
                   CryptoCurrencyNetwork.main,
                 ),
               ),
-          throwsA(isA<Exception>()));
+          throwsA(isA<Exception>()),);
     });
 
     test("clearSharedTransactionCache", () async {

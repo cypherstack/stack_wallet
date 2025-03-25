@@ -16,7 +16,7 @@ import 'package:stackwallet/services/wallets_service.dart';
 @GenerateMocks([], customMocks: [
   MockSpec<WalletsService>(),
   MockSpec<LocaleService>(),
-])
+],)
 void main() {
 //   testWidgets("tap receive", (tester) async {
 //     final walletsService = MockWalletsService();

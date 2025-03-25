@@ -90,7 +90,7 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
         selectedTxFeeRate: rates.medium,
         targetPaymentCodeString: widget.accountLite.code,
       );
-    } on InsufficientBalanceException catch (e) {
+    } on InsufficientBalanceException {
       if (mounted) {
         canPop = true;
         Navigator.of(context, rootNavigator: true).pop();

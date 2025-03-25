@@ -71,7 +71,7 @@ class ChangeNowAPI {
         final parsed = jsonDecode(data);
 
         return parsed;
-      } on FormatException catch (e) {
+      } on FormatException {
         return {
           "error": "Dart format exception",
           "message": data,

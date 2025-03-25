@@ -5,12 +5,12 @@ void main() {
   group("extractDateFrom", () {
     test("1614578400", () {
       expect(Format.extractDateFrom(1614578400, localized: false),
-          "1 Mar 2021, 6:00");
+          "1 Mar 2021, 6:00",);
     });
 
     test("1641589563", () {
       expect(Format.extractDateFrom(1641589563, localized: false),
-          "7 Jan 2022, 21:06");
+          "7 Jan 2022, 21:06",);
     });
   });
 

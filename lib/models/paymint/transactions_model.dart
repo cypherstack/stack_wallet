@@ -409,7 +409,7 @@ class Output {
         scriptpubkeyAddress: address,
         value: _parse((json["value"] ?? 0).toString()),
       );
-    } catch (s, e) {
+    } catch (s) {
       return Output(
         // Return output object with null values; allows wallet history to be built
         scriptpubkey: "",

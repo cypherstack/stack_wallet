@@ -25,7 +25,7 @@ import 'package:stackwallet/utilities/biometrics.dart';
   Biometrics,
 ], customMocks: [
   MockSpec<WalletsService>(),
-])
+],)
 void main() {
 //   testWidgets("WalletSettingsView builds correctly", (tester) async {
 //     final wallet =  MockManager();

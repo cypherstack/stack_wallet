@@ -81,7 +81,6 @@ class FusionProgress extends ConsumerWidget {
 
 class _ProgressItem extends StatelessWidget {
   const _ProgressItem({
-    super.key,
     required this.iconAsset,
     required this.label,
     required this.state,

@@ -146,7 +146,7 @@ class _TokenViewState extends ConsumerState<TokenView> {
                         arguments: Tuple2(
                           ref.watch(
                             pCurrentTokenWallet.select(
-                                (value) => value!.tokenContract.address),
+                                (value) => value!.tokenContract.address,),
                           ),
                           widget.walletId,
                         ),

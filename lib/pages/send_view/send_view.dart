@@ -294,7 +294,7 @@ class _SendViewState extends ConsumerState<SendView> {
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          baseAmountController.text = (amount!.decimal * price)
+          baseAmountController.text = (amount.decimal * price)
               .toAmount(
                 fractionDigits: 2,
               )
@@ -316,7 +316,7 @@ class _SendViewState extends ConsumerState<SendView> {
             _calculateFeesFuture = calculateFees(
               amount == null
                   ? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits)
-                  : amount!,
+                  : amount,
             );
           });
         }
@@ -369,7 +369,7 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   String? _updateInvalidAddressText(String address) {
-    if (_data != null && _data!.contactLabel == address) {
+    if (_data != null && _data.contactLabel == address) {
       return null;
     }
 
@@ -695,8 +695,7 @@ class _SendViewState extends ConsumerState<SendView> {
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos: (wallet is CoinControlInterface &&
-                          coinControlEnabled &&
+                  utxos: (coinControlEnabled &&
                           selectedUTXOs.isNotEmpty)
                       ? selectedUTXOs
                       : null,
@@ -714,8 +713,7 @@ class _SendViewState extends ConsumerState<SendView> {
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos: (wallet is CoinControlInterface &&
-                          coinControlEnabled &&
+                  utxos: (coinControlEnabled &&
                           selectedUTXOs.isNotEmpty)
                       ? selectedUTXOs
                       : null,
@@ -960,9 +958,9 @@ class _SendViewState extends ConsumerState<SendView> {
     baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
+      if (_data.amount != null) {
         final amount = Amount.fromDecimal(
-          _data!.amount!,
+          _data.amount!,
           fractionDigits: coin.fractionDigits,
         );
 
@@ -971,8 +969,8 @@ class _SendViewState extends ConsumerState<SendView> {
               withUnitName: false,
             );
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address.trim();
+      sendToController.text = _data.contactLabel;
+      _address = _data.address.trim();
       _addressToggleFlag = true;
 
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -1602,9 +1600,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ) ==
                                     FiroType.lelantus) {
                                   if (_data != null &&
-                                      _data!.contactLabel == _address) {
+                                      _data.contactLabel == _address) {
                                     error = SparkInterface.validateSparkAddress(
-                                      address: _data!.address,
+                                      address: _data.address,
                                       isTestNet: coin.network ==
                                           CryptoCurrencyNetwork.test,
                                     )
@@ -1620,7 +1618,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   }
                                 } else {
                                   if (_data != null &&
-                                      _data!.contactLabel == _address) {
+                                      _data.contactLabel == _address) {
                                     error = null;
                                   } else if (!ref.watch(pValidSendToAddress) &&
                                       !ref.watch(pValidSparkSendToAddress)) {
@@ -1631,7 +1629,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 }
                               } else {
                                 if (_data != null &&
-                                    _data!.contactLabel == _address) {
+                                    _data.contactLabel == _address) {
                                   error = null;
                                 } else if (!ref.watch(pValidSendToAddress)) {
                                   error = "Invalid address";
@@ -1815,7 +1813,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               if (coin is! Ethereum && coin is! Tezos)
                                 CustomTextButton(
                                   text: _getSendAllTitle(
-                                      showCoinControl, selectedUTXOs),
+                                      showCoinControl, selectedUTXOs,),
                                   onTap: () => _sendAllTapped(showCoinControl),
                                 ),
                             ],

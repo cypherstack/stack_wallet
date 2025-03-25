@@ -33,7 +33,7 @@ Future<void> showOneTimeTorHasBeenAddedDialogIfRequired(
 }
 
 class _TorHasBeenAddedDialog extends StatefulWidget {
-  const _TorHasBeenAddedDialog({super.key});
+  const _TorHasBeenAddedDialog();
 
   @override
   State<_TorHasBeenAddedDialog> createState() => _TorHasBeenAddedDialogState();

@@ -3,24 +3,9 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  cs_monero_flutter_libs_linux
-  desktop_drop
-  devicelocale
-  flutter_libepiccash
-  flutter_secure_storage_linux
-  isar_flutter_libs
-  sqlite3_flutter_libs
-  stack_wallet_backup
-  url_launcher_linux
-  window_size
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  camera_linux
-  coinlib_flutter
-  flutter_libsparkmobile
-  frostdart
-  tor_ffi_plugin
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

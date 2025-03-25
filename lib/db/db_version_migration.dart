@@ -307,16 +307,9 @@ class DbVersionMigrator with WalletDB {
                   .where()
                   .addressStringWalletIdEqualTo(address.value, address.walletId)
                   .findFirst();
-              if (label == null) {
-                label = isar_models.AddressLabel(
-                  walletId: address.walletId,
-                  value: "",
-                  addressString: address.value,
-                  tags: tags,
-                );
-              } else if (label.tags == null) {
-                label = label.copyWith(tags: tags);
-              }
+              if (label.tags == null) {
+              label = label.copyWith(tags: tags);
+            }
               labels.add(label);
             }
           }

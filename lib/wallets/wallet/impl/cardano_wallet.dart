@@ -190,7 +190,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       }
 
       final bip32 = CardanoIcarusBip32.fromSeed(
-          CardanoIcarusSeedGenerator(await getMnemonic()).generate());
+          CardanoIcarusSeedGenerator(await getMnemonic()).generate(),);
       final spend = bip32.derivePath("1852'/1815'/0'/0/0");
       final privateKey = AdaPrivateKey.fromBytes(spend.privateKey.raw);
 
@@ -198,18 +198,18 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       final exampleFee = ADAHelper.toLovelaces("0.10");
       final change = TransactionOutput(
           address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
-          amount: Value(coin: totalBalance - (txData.amount!.raw)));
+          amount: Value(coin: totalBalance - (txData.amount!.raw)),);
       final body = TransactionBody(
         inputs: listOfUtxosToBeUsed
             .map((e) => TransactionInput(
                 transactionId: TransactionHash.fromHex(e.txHash),
-                index: e.outputIndex))
+                index: e.outputIndex,),)
             .toList(),
         outputs: [
           change,
           TransactionOutput(
               address: ADABaseAddress(txData.recipients!.first.address),
-              amount: Value(coin: txData.amount!.raw - exampleFee))
+              amount: Value(coin: txData.amount!.raw - exampleFee),),
         ],
         fee: exampleFee,
       );
@@ -253,7 +253,7 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
         if (totalBalance - (txData.amount!.raw + fee) <
             ADAHelper.toLovelaces("1")) {
           throw Exception(
-              "Not enough balance for change. By network rules, please either send all balance or leave at least 1 ADA change.");
+              "Not enough balance for change. By network rules, please either send all balance or leave at least 1 ADA change.",);
         }
 
         return txData.copyWith(
@@ -305,34 +305,34 @@ class CardanoWallet extends Bip39Wallet<Cardano> {
       }
 
       final bip32 = CardanoIcarusBip32.fromSeed(
-          CardanoIcarusSeedGenerator(await getMnemonic()).generate());
+          CardanoIcarusSeedGenerator(await getMnemonic()).generate(),);
       final spend = bip32.derivePath("1852'/1815'/0'/0/0");
       final privateKey = AdaPrivateKey.fromBytes(spend.privateKey.raw);
 
       final change = TransactionOutput(
           address: ADABaseAddress((await getCurrentReceivingAddress())!.value),
           amount: Value(
-              coin: totalUtxoAmount - (txData.amount!.raw + txData.fee!.raw)));
+              coin: totalUtxoAmount - (txData.amount!.raw + txData.fee!.raw),),);
       List<TransactionOutput> outputs = [];
       if (totalBalance == (txData.amount!.raw + txData.fee!.raw)) {
         outputs = [
           TransactionOutput(
               address: ADABaseAddress(txData.recipients!.first.address),
-              amount: Value(coin: txData.amount!.raw))
+              amount: Value(coin: txData.amount!.raw),),
         ];
       } else {
         outputs = [
           change,
           TransactionOutput(
               address: ADABaseAddress(txData.recipients!.first.address),
-              amount: Value(coin: txData.amount!.raw))
+              amount: Value(coin: txData.amount!.raw),),
         ];
       }
       final body = TransactionBody(
         inputs: listOfUtxosToBeUsed
             .map((e) => TransactionInput(
                 transactionId: TransactionHash.fromHex(e.txHash),
-                index: e.outputIndex))
+                index: e.outputIndex,),)
             .toList(),
         outputs: outputs,
         fee: txData.fee!.raw,

@@ -15,7 +15,7 @@ import 'package:stackwallet/services/address_book_service.dart';
 
 @GenerateMocks([], customMocks: [
   MockSpec<AddressBookService>(),
-])
+],)
 void main() {
 //   testWidgets("TransactionSearchView builds correctly", (tester) async {
 //     final addressBookService = MockAddressBookService();

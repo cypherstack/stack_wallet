@@ -88,7 +88,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // await _cameraWindowsPlugin!.onCameraInitialized(_cameraId).first;
         // TODO [prio=low]: Make this work. ^^^
         Logging.instance.log("Windows Camera initialized with ID: $_cameraId",
-            level: LogLevel.Info);
+            level: LogLevel.Info,);
       } else if (Platform.isMacOS) {
         final List<CameraMacOSDevice> videoDevices = await CameraMacOS.instance
             .listDevices(deviceType: CameraMacOSDeviceType.video);
@@ -105,7 +105,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
         Logging.instance.log(
             "macOS Camera initialized with ID: $_macOSDeviceId",
-            level: LogLevel.Info);
+            level: LogLevel.Info,);
       }
       if (mounted) {
         setState(() {
@@ -135,7 +135,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // if (_cameraId >= 0) {
         await _cameraWindowsPlugin!.dispose(_cameraId);
         Logging.instance.log("Windows Camera stopped with ID: $_cameraId",
-            level: LogLevel.Info);
+            level: LogLevel.Info,);
         // } else {
         //   Logging.instance.log("Windows Camera ID is null. Cannot dispose.",
         //       level: LogLevel.Error);
@@ -144,7 +144,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // if (_macOSDeviceId != null) {
         await CameraMacOS.instance.stopImageStream();
         Logging.instance.log("macOS Camera stopped with ID: $_macOSDeviceId",
-            level: LogLevel.Info);
+            level: LogLevel.Info,);
         // } else {
         //   Logging.instance.log("macOS Camera ID is null. Cannot stop.",
         //       level: LogLevel.Error);
@@ -234,7 +234,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         }
 
         await Future.delayed(Duration(milliseconds: _imageDelayInMs));
-      } catch (e, s) {
+      } catch (e) {
         // Logging.instance.log("Failed to capture and scan image: $e\n$s", level: LogLevel.Error);
         // Spammy.
 
@@ -266,7 +266,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         return null;
       }
       return qrDecode.text;
-    } catch (e, s) {
+    } catch (e) {
       // Logging.instance.log("Failed to decode QR code: $e\n$s", level: LogLevel.Error);
       // Spammy.
       return null;
@@ -369,7 +369,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                       }
                     } catch (e, s) {
                       Logging.instance.log("Failed to decode image: $e\n$s",
-                          level: LogLevel.Error);
+                          level: LogLevel.Error,);
                       await showFloatingFlushBar(
                         type: FlushBarType.info,
                         message:

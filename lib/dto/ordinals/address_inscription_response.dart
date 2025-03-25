@@ -18,7 +18,7 @@ class AddressInscriptionResponse
       status: json['status'] as int,
       message: json['message'] as String,
       result: AddressInscriptionResult.fromJson(
-          json['result'] as Map<String, dynamic>),
+          json['result'] as Map<String, dynamic>,),
     );
   }
 }

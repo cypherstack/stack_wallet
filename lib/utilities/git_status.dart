@@ -161,7 +161,7 @@ abstract class GitStatus {
         Logging.instance
             .log("isThereCommit $isThereCommit", level: LogLevel.Info);
         return isThereCommit;
-      } catch (e, s) {
+      } catch (e) {
         return false;
       }
     } catch (e, s) {
@@ -198,7 +198,7 @@ abstract class GitStatus {
         isHead = response['sha'] == commit;
         Logging.instance.log("isHead $isHead", level: LogLevel.Info);
         return isHead;
-      } catch (e, s) {
+      } catch (e) {
         return false;
       }
     } catch (e, s) {

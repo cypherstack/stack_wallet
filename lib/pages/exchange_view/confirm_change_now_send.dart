@@ -601,7 +601,7 @@ class _ConfirmChangeNowSendViewState
                             return Text(
                               " | ${value.fiatString(locale: locale)} $currency",
                               style: STextStyles.desktopTextExtraExtraSmall(
-                                      context)
+                                      context,)
                                   .copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!

@@ -10,10 +10,10 @@ final Map<String, List<dynamic>> historyBatchArgs0 = {
   "k_0_8": ["3b3b2b6991a62c9651a3ec8e2d73f713a726e66fd58e3bf58f580ef6718fb242"],
   "k_0_9": ["9d9e3b8c2d6c208277d08f61fec9d906240a83f262037edfceb3e5d908633684"],
   "k_0_10": [
-    "48e6d933004af6f7e73774fc307a1c9499a306e42ebb99f2a34ee473c68edd3a"
+    "48e6d933004af6f7e73774fc307a1c9499a306e42ebb99f2a34ee473c68edd3a",
   ],
   "k_0_11": [
-    "dc4503aead8df4d5eb26ab6c6640447eec2c5ba99290833604b3fad7f87d0518"
+    "dc4503aead8df4d5eb26ab6c6640447eec2c5ba99290833604b3fad7f87d0518",
   ],
 };
 final Map<String, List<dynamic>> historyBatchArgs1 = {
@@ -28,10 +28,10 @@ final Map<String, List<dynamic>> historyBatchArgs1 = {
   "k_0_8": ["73905aa27cb917a52d063a60ac01a730716c82f6833321404097e31d02309dd8"],
   "k_0_9": ["dda7e2ae45b7a301d080987e623f7912628fd9d610f7f963ebea8804992afc58"],
   "k_0_10": [
-    "ae18346440f349961c3bbc30f8a3ea261f219216268df40d481b98372009493d"
+    "ae18346440f349961c3bbc30f8a3ea261f219216268df40d481b98372009493d",
   ],
   "k_0_11": [
-    "a5f83d752eaa44cc7c09c04986ec8dd4ae514aec055060b7703d3fa218e8c4ad"
+    "a5f83d752eaa44cc7c09c04986ec8dd4ae514aec055060b7703d3fa218e8c4ad",
   ],
 };
 
@@ -47,7 +47,7 @@ final Map<String, List<Map<String, dynamic>>> historyBatchResponse = {
   "k_0_8": [],
   "k_0_9": [],
   "k_0_10": [],
-  "k_0_11": []
+  "k_0_11": [],
 };
 
 final Map<String, List<Map<String, dynamic>>> emptyHistoryBatchResponse = {
@@ -62,5 +62,5 @@ final Map<String, List<Map<String, dynamic>>> emptyHistoryBatchResponse = {
   "k_0_8": [],
   "k_0_9": [],
   "k_0_10": [],
-  "k_0_11": []
+  "k_0_11": [],
 };

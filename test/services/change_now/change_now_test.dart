@@ -27,8 +27,8 @@ void main() {
         url: Uri.parse("https://api.ChangeNow.io/v1/currencies"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode(jsonEncode(availableCurrenciesJSON)), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode(jsonEncode(availableCurrenciesJSON)), 200),);
 
       final result = await instance.getAvailableCurrencies();
 
@@ -45,8 +45,8 @@ void main() {
         url: Uri.parse("https://api.ChangeNow.io/v1/currencies?active=true"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
-          utf8.encode(jsonEncode(availableCurrenciesJSONActive)), 200));
+      ),).thenAnswer((realInvocation) async => Response(
+          utf8.encode(jsonEncode(availableCurrenciesJSONActive)), 200,),);
 
       final result = await instance.getAvailableCurrencies(active: true);
 
@@ -63,8 +63,8 @@ void main() {
         url: Uri.parse("https://api.ChangeNow.io/v1/currencies?fixedRate=true"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
-          utf8.encode(jsonEncode(availableCurrenciesJSONFixedRate)), 200));
+      ),).thenAnswer((realInvocation) async => Response(
+          utf8.encode(jsonEncode(availableCurrenciesJSONFixedRate)), 200,),);
 
       final result = await instance.getAvailableCurrencies(fixedRate: true);
 
@@ -80,12 +80,12 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/currencies?fixedRate=true&active=true"),
+            "https://api.ChangeNow.io/v1/currencies?fixedRate=true&active=true",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
+      ),).thenAnswer((realInvocation) async => Response(
           utf8.encode(jsonEncode(availableCurrenciesJSONActiveFixedRate)),
-          200));
+          200,),);
 
       final result =
           await instance.getAvailableCurrencies(active: true, fixedRate: true);
@@ -105,13 +105,13 @@ void main() {
         url: Uri.parse("https://api.ChangeNow.io/v1/currencies"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
-          utf8.encode('{"some unexpected": "but valid json data"}'), 200));
+      ),).thenAnswer((realInvocation) async => Response(
+          utf8.encode('{"some unexpected": "but valid json data"}'), 200,),);
 
       final result = await instance.getAvailableCurrencies();
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
 
@@ -123,12 +123,12 @@ void main() {
         url: Uri.parse("https://api.ChangeNow.io/v1/currencies"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(""), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(""), 400));
 
       final result = await instance.getAvailableCurrencies();
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
   });
@@ -142,8 +142,8 @@ void main() {
         url: Uri.parse("https://api.ChangeNow.io/v1/currencies-to/XMR"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode(jsonEncode(getPairedCurrenciesJSON)), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode(jsonEncode(getPairedCurrenciesJSON)), 200),);
 
       final result = await instance.getPairedCurrencies(ticker: "XMR");
 
@@ -158,11 +158,11 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/currencies-to/XMR?fixedRate=true"),
+            "https://api.ChangeNow.io/v1/currencies-to/XMR?fixedRate=true",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
-          utf8.encode(jsonEncode(getPairedCurrenciesJSONFixedRate)), 200));
+      ),).thenAnswer((realInvocation) async => Response(
+          utf8.encode(jsonEncode(getPairedCurrenciesJSONFixedRate)), 200,),);
 
       final result =
           await instance.getPairedCurrencies(ticker: "XMR", fixedRate: true);
@@ -182,13 +182,13 @@ void main() {
         url: Uri.parse("https://api.ChangeNow.io/v1/currencies-to/XMR"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
-          utf8.encode('[{"some unexpected": "but valid json data"}]'), 200));
+      ),).thenAnswer((realInvocation) async => Response(
+          utf8.encode('[{"some unexpected": "but valid json data"}]'), 200,),);
 
       final result = await instance.getPairedCurrencies(ticker: "XMR");
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
 
@@ -200,7 +200,7 @@ void main() {
         url: Uri.parse("https://api.ChangeNow.io/v1/currencies"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(""), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(""), 400));
 
       final result =
           await instance.getPairedCurrencies(ticker: "XMR", fixedRate: true);
@@ -217,11 +217,11 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode('{"minAmount": 42}'), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode('{"minAmount": 42}'), 200),);
 
       final result = await instance.getMinimalExchangeAmount(
         fromTicker: "xmr",
@@ -242,11 +242,11 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode('{"error": 42}'), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode('{"error": 42}'), 200),);
 
       final result = await instance.getMinimalExchangeAmount(
         fromTicker: "xmr",
@@ -255,7 +255,7 @@ void main() {
       );
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
 
@@ -265,10 +265,10 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
 
       final result = await instance.getMinimalExchangeAmount(
         fromTicker: "xmr",
@@ -277,7 +277,7 @@ void main() {
       );
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
   });
@@ -289,13 +289,13 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
+      ),).thenAnswer((realInvocation) async => Response(
           utf8.encode(
-              '{"estimatedAmount": 58.4142873, "transactionSpeedForecast": "10-60", "warningMessage": null}'),
-          200));
+              '{"estimatedAmount": 58.4142873, "transactionSpeedForecast": "10-60", "warningMessage": null}',),
+          200,),);
 
       final result = await instance.getEstimatedExchangeAmount(
         fromTicker: "xmr",
@@ -317,11 +317,11 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode('{"error": 42}'), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode('{"error": 42}'), 200),);
 
       final result = await instance.getEstimatedExchangeAmount(
         fromTicker: "xmr",
@@ -331,7 +331,7 @@ void main() {
       );
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
 
@@ -341,10 +341,10 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY"),
+            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
 
       final result = await instance.getEstimatedExchangeAmount(
         fromTicker: "xmr",
@@ -443,11 +443,11 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode(jsonEncode(fixedRateMarketsJSON)), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode(jsonEncode(fixedRateMarketsJSON)), 200),);
 
       final result = await instance.getAvailableFixedRateMarkets(
         apiKey: "testAPIKEY",
@@ -466,18 +466,18 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode('{"error": 42}'), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode('{"error": 42}'), 200),);
 
       final result = await instance.getAvailableFixedRateMarkets(
         apiKey: "testAPIKEY",
       );
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
 
@@ -487,17 +487,17 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/market-info/fixed-rate/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
 
       final result = await instance.getAvailableFixedRateMarkets(
         apiKey: "testAPIKEY",
       );
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
   });
@@ -514,8 +514,8 @@ void main() {
         body:
             '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
         encoding: null,
-      )).thenAnswer((realInvocation) async => Response(
-          utf8.encode(jsonEncode(createStandardTransactionResponse)), 200));
+      ),).thenAnswer((realInvocation) async => Response(
+          utf8.encode(jsonEncode(createStandardTransactionResponse)), 200,),);
 
       final result = await instance.createStandardExchangeTransaction(
         fromTicker: "xmr",
@@ -545,8 +545,8 @@ void main() {
         body:
             '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
         encoding: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode('{"error": 42}'), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode('{"error": 42}'), 200),);
 
       final result = await instance.createStandardExchangeTransaction(
         fromTicker: "xmr",
@@ -559,7 +559,7 @@ void main() {
       );
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
 
@@ -575,7 +575,7 @@ void main() {
         body:
             '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
         encoding: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
 
       final result = await instance.createStandardExchangeTransaction(
         fromTicker: "xmr",
@@ -599,20 +599,20 @@ void main() {
 
       when(client.post(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
         body:
             '{"from":"btc","to":"eth","address":"0x57f31ad4b64095347F87eDB1675566DAfF5EC886","flow":"fixed-rate","extraId":"","userId":"","contactEmail":"","refundAddress":"","refundExtraId":"","rateId":"","amount":"0.3"}',
         encoding: null,
-      )).thenAnswer((realInvocation) async => Response(
+      ),).thenAnswer((realInvocation) async => Response(
           utf8.encode(
               '{"payinAddress": "33eFX2jfeWbXMSmRe9ewUUTrmSVSxZi5cj", "payoutAddress":'
               ' "0x57f31ad4b64095347F87eDB1675566DAfF5EC886","payoutExtraId": "",'
               ' "fromCurrency": "btc", "toCurrency": "eth", "refundAddress": "",'
               '"refundExtraId": "","validUntil": "2019-09-09T14:01:04.921Z","id":'
               ' "a5c73e2603f40d","amount": 62.9737711}'),
-          200));
+          200,),);
 
       final result = await instance.createFixedRateExchangeTransaction(
         fromTicker: "btc",
@@ -638,14 +638,14 @@ void main() {
 
       when(client.post(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
         body:
             '{"from":"btc","to":"eth","address":"0x57f31ad4b64095347F87eDB1675566DAfF5EC886","amount":"0.3","flow":"fixed-rate","extraId":"","userId":"","contactEmail":"","refundAddress":"","refundExtraId":"","rateId":""}',
         encoding: null,
-      )).thenAnswer((realInvocation) async => Response(
-          utf8.encode('{"id": "a5c73e2603f40d","amount": 62.9737711}'), 200));
+      ),).thenAnswer((realInvocation) async => Response(
+          utf8.encode('{"id": "a5c73e2603f40d","amount": 62.9737711}'), 200,),);
 
       final result = await instance.createFixedRateExchangeTransaction(
         fromTicker: "btc",
@@ -669,13 +669,13 @@ void main() {
 
       when(client.post(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
         body:
             '{"from": "btc","to": "eth","address": "0x57f31ad4b64095347F87eDB1675566DAfF5EC886", "amount": "1.12345","extraId": "", "userId": "","contactEmail": "","refundAddress": "", "refundExtraId": "", "rateId": "" }',
         encoding: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
 
       final result = await instance.createFixedRateExchangeTransaction(
         fromTicker: "xmr",
@@ -701,10 +701,10 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
+      ),).thenAnswer((realInvocation) async => Response(
           utf8.encode(
               '{"status": "waiting", "payinAddress": "32Ge2ci26rj1sRGw2NjiQa9L7Xvxtgzhrj", '
               '"payoutAddress": "0x57f31ad4b64095347F87eDB1675566DAfF5EC886", '
@@ -712,7 +712,7 @@ void main() {
               '"updatedAt": "2019-08-22T14:47:49.943Z", "expectedSendAmount": 1, '
               '"expectedReceiveAmount": 52.31667, "createdAt": "2019-08-22T14:47:49.943Z",'
               ' "isPartner": false}'),
-          200));
+          200,),);
 
       final result = await instance.getTransactionStatus(
         id: "47F87eDB1675566DAfF5EC886",
@@ -732,11 +732,11 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode('{"error": 42}'), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode('{"error": 42}'), 200),);
 
       final result = await instance.getTransactionStatus(
         id: "47F87eDB1675566DAfF5EC886",
@@ -744,7 +744,7 @@ void main() {
       );
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
 
@@ -754,10 +754,10 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY"),
+            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
 
       final result = await instance.getTransactionStatus(
         id: "47F87eDB1675566DAfF5EC886",
@@ -765,7 +765,7 @@ void main() {
       );
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
   });
@@ -777,11 +777,11 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false"),
+            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(
-          utf8.encode('["btc_xmr","btc_firo","btc_doge","eth_ltc"]'), 200));
+      ),).thenAnswer((realInvocation) async => Response(
+          utf8.encode('["btc_xmr","btc_firo","btc_doge","eth_ltc"]'), 200,),);
 
       final result = await instance.getAvailableFloatingRatePairs();
 
@@ -798,16 +798,16 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false"),
+            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async =>
-          Response(utf8.encode('{"error": 42}'), 200));
+      ),).thenAnswer((realInvocation) async =>
+          Response(utf8.encode('{"error": 42}'), 200),);
 
       final result = await instance.getAvailableFloatingRatePairs();
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
 
@@ -817,15 +817,15 @@ void main() {
 
       when(client.get(
         url: Uri.parse(
-            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false"),
+            "https://api.ChangeNow.io/v1/market-info/available-pairs?includePartners=false",),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: null,
-      )).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ),).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
 
       final result = await instance.getAvailableFloatingRatePairs();
 
       expect(
-          result.exception!.type, ExchangeExceptionType.serializeResponseError);
+          result.exception!.type, ExchangeExceptionType.serializeResponseError,);
       expect(result.value == null, true);
     });
   });

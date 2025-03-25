@@ -68,7 +68,7 @@ void main() {
     );
 
     await tester.drag(find.byKey(const Key("draggableSwitchButtonSwitch")),
-        const Offset(-800, 0));
+        const Offset(-800, 0),);
     await tester.pumpAndSettle();
 
     expect(isButtonOn, false);
@@ -104,7 +104,7 @@ void main() {
     );
 
     await tester.drag(find.byKey(const Key("draggableSwitchButtonSwitch")),
-        const Offset(800, 0));
+        const Offset(800, 0),);
     await tester.pumpAndSettle();
 
     expect(isButtonOn, true);

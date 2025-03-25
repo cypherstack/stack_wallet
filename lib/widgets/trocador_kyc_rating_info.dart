@@ -151,7 +151,6 @@ class TrocadorKYCRatingInfo extends StatelessWidget {
 
 class _Rating extends StatelessWidget {
   const _Rating({
-    super.key,
     required this.kycType,
     required this.text,
   });

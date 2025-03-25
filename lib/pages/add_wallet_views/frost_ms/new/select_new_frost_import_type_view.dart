@@ -200,7 +200,6 @@ enum _ImportOption {
 
 class _ImportOptionCard extends StatefulWidget {
   const _ImportOptionCard({
-    super.key,
     required this.onPressed,
     required this.title,
     required this.description,
@@ -285,7 +284,7 @@ class _ImportOptionCardState extends State<_ImportOptionCard> {
 }
 
 class _FrostJoinInfoDialog extends StatelessWidget {
-  const _FrostJoinInfoDialog({super.key});
+  const _FrostJoinInfoDialog();
 
   @override
   Widget build(BuildContext context) {

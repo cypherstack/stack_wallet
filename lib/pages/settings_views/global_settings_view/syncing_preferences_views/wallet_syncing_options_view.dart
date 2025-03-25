@@ -153,7 +153,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                           Text(
                                             info.name,
                                             style: STextStyles.titleBold12(
-                                                context),
+                                                context,),
                                           ),
                                           const SizedBox(
                                             height: 2,
@@ -173,7 +173,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                                       .total,
                                                 ),
                                             style: STextStyles.itemSubtitle(
-                                                context),
+                                                context,),
                                           ),
                                         ],
                                       ),
@@ -197,7 +197,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                             //     .syncType;
                                             final ids = ref
                                                 .read(
-                                                    prefsChangeNotifierProvider)
+                                                    prefsChangeNotifierProvider,)
                                                 .walletIdsSyncOnStartup
                                                 .toList();
                                             if (value) {
@@ -228,7 +228,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
 
                                             ref
                                                 .read(
-                                                    prefsChangeNotifierProvider)
+                                                    prefsChangeNotifierProvider,)
                                                 .walletIdsSyncOnStartup = ids;
                                           },
                                         ),

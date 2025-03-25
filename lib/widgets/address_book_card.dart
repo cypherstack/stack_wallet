@@ -69,7 +69,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
       return Container();
     }
 
-    final contact = _contact!;
+    final contact = _contact;
 
     final List<CryptoCurrency> coins = [];
 

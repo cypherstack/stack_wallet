@@ -226,7 +226,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                   message: fileToSave,
                 )
               : const StackOkDialog(
-                  title: "${AppConfig.prefix} Auto Backup saved"),
+                  title: "${AppConfig.prefix} Auto Backup saved",),
         );
         if (mounted) {
           passwordController.text = "";

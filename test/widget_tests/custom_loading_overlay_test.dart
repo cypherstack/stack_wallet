@@ -42,7 +42,7 @@ void main() {
           ),
           home: Material(
             child: CustomLoadingOverlay(
-                message: "Updating exchange rate", eventBus: eventBus),
+                message: "Updating exchange rate", eventBus: eventBus,),
           ),
         ),
       ),

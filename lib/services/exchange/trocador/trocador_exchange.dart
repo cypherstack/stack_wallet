@@ -62,7 +62,7 @@ class TrocadorExchange extends Exchange {
             receivingMemo: null,
             refundAddress: addressRefund,
             refundMemo: null,
-            exchangeProvider: estimate!.exchangeProvider!,
+            exchangeProvider: estimate!.exchangeProvider,
             isFixedRate: fixedRate,
           )
         : await TrocadorAPI.createNewStandardRateTrade(
@@ -77,7 +77,7 @@ class TrocadorExchange extends Exchange {
             receivingMemo: null,
             refundAddress: addressRefund,
             refundMemo: null,
-            exchangeProvider: estimate!.exchangeProvider!,
+            exchangeProvider: estimate!.exchangeProvider,
             isFixedRate: fixedRate,
           );
 
