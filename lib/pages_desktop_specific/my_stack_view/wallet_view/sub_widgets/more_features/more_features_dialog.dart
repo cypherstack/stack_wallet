@@ -67,6 +67,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onFusionPressed,
     required this.onChurnPressed,
     required this.onNamesPressed,
+    required this.onSparkNamesPressed,
   });
 
   final String walletId;
@@ -82,6 +83,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   final VoidCallback? onFusionPressed;
   final VoidCallback? onChurnPressed;
   final VoidCallback? onNamesPressed;
+  final VoidCallback? onSparkNamesPressed;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -491,6 +493,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               detail: "Namecoin DNS",
               iconAsset: Assets.svg.robotHead,
               onPressed: () async => widget.onNamesPressed?.call(),
+            ),
+          if (wallet is SparkInterface)
+            _MoreFeaturesItem(
+              label: "Names",
+              detail: "Spark names",
+              iconAsset: Assets.svg.robotHead,
+              onPressed: () async => widget.onSparkNamesPressed?.call(),
             ),
           if (wallet is SparkInterface && !isViewOnly)
             _MoreFeaturesClearSparkCacheItem(

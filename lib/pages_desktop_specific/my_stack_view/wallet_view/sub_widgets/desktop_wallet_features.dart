@@ -21,6 +21,7 @@ import '../../../../pages/monkey/monkey_view.dart';
 import '../../../../pages/namecoin_names/namecoin_names_home_view.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
+import '../../../../pages/spark_names/spark_names_home_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
@@ -99,6 +100,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             onFusionPressed: _onFusionPressed,
             onChurnPressed: _onChurnPressed,
             onNamesPressed: _onNamesPressed,
+            onSparkNamesPressed: _onSparkNamesPressed,
           ),
     );
   }
@@ -369,6 +371,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     Navigator.of(
       context,
     ).pushNamed(NamecoinNamesHomeView.routeName, arguments: widget.walletId);
+  }
+
+  void _onSparkNamesPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(
+      context,
+    ).pushNamed(SparkNamesHomeView.routeName, arguments: widget.walletId);
   }
 
   @override

@@ -26,6 +26,7 @@ import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/prefs.dart';
+import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/spark_coin.dart';
 import '../../isar/models/wallet_info.dart';
@@ -639,6 +640,26 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     }
 
     extractedTx.setPayload(spend.serializedSpendPayload);
+
+    if (txData.sparkNameInfo != null) {
+      // this is name reg tx
+
+      final nameScript = LibSpark.createSparkNameScript(
+        sparkNameValidityBlocks: txData.sparkNameInfo!.validBlocks,
+        name: txData.sparkNameInfo!.name,
+        additionalInfo: txData.sparkNameInfo!.additionalInfo,
+        scalarHex: extractedTx.getHash().toHex,
+        privateKeyHex: privateKey.toHex,
+        spendKeyIndex: kDefaultSparkIndex,
+        diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
+        isTestNet: cryptoCurrency.network != CryptoCurrencyNetwork.main,
+      );
+
+      extractedTx.setPayload(
+        Uint8List.fromList([...spend.serializedSpendPayload, ...nameScript]),
+      );
+    }
+
     final rawTxHex = extractedTx.toHex();
 
     if (isSendAll) {
@@ -1973,6 +1994,80 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   Future<TxData> confirmSparkMintTransactions({required TxData txData}) async {
     final futures = txData.sparkMints!.map((e) => confirmSend(txData: e));
     return txData.copyWith(sparkMints: await Future.wait(futures));
+  }
+
+  Future<TxData> prepareSparkNameTransaction({
+    required String name,
+    required String address,
+    required int years,
+    required String additionalInfo,
+  }) async {
+    if (years < 1 || years > kMaxNameRegistrationLengthYears) {
+      throw Exception("Invalid spark name registration period years: $years");
+    }
+
+    if (name.isEmpty || name.length > kMaxNameLength) {
+      throw Exception("Invalid spark name length: ${name.length}");
+    }
+    if (!RegExp(kNameRegexString).hasMatch(name)) {
+      throw Exception("Invalid symbols found in spark name: $name");
+    }
+
+    if (additionalInfo.toUint8ListFromUtf8.length >
+        kMaxAdditionalInfoLengthBytes) {
+      throw Exception(
+        "Additional info exceeds $kMaxAdditionalInfoLengthBytes bytes.",
+      );
+    }
+
+    final sparkAddress = await mainDB.getAddress(walletId, address);
+    if (sparkAddress == null) {
+      throw Exception("Address '$address' not found in local DB.");
+    }
+    if (sparkAddress.type != AddressType.spark) {
+      throw Exception("Address '$address' is not a spark address.");
+    }
+
+    final data = (
+      name: name,
+      additionalInfo: additionalInfo,
+      validBlocks: years * 365 * 24 * 24,
+      sparkAddress: sparkAddress,
+    );
+
+    final String destinationAddress;
+    switch (cryptoCurrency.network) {
+      case CryptoCurrencyNetwork.main:
+        destinationAddress = kStage3DevelopmentFundAddressMainNet;
+        break;
+
+      case CryptoCurrencyNetwork.test:
+        destinationAddress = kStage3DevelopmentFundAddressTestNet;
+        break;
+
+      default:
+        throw Exception(
+          "Invalid network '${cryptoCurrency.network}' for spark name registration.",
+        );
+    }
+
+    final txData = await prepareSendSpark(
+      txData: TxData(
+        sparkNameInfo: data,
+        recipients: [
+          (
+            address: destinationAddress,
+            amount: Amount.fromDecimal(
+              Decimal.fromInt(kStandardSparkNamesFee[name.length] * years),
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            isChange: false,
+          ),
+        ],
+      ),
+    );
+
+    return txData;
   }
 
   @override
