@@ -4,9 +4,8 @@ set -x -e
 
 # todo: revisit following at some point
 
-# libepiccash requires old rust
 source ../rust_version.sh
-set_rust_to_1671
+set_rust_to_181
 
 # ensure ios rust triples are there
 rustup target add aarch64-apple-ios

@@ -2,9 +2,8 @@
 
 set -x -e
 
-# libepiccash requires old rust
 source ../rust_version.sh
-set_rust_to_1671
+set_rust_to_181
 
 mkdir -p build
 (cd ../../crypto_plugins/flutter_libepiccash/scripts/windows && ./build_all.sh )
