@@ -38,7 +38,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: ca0c72cecc40fc0bfbafc0d26af675d973ab516b
+      ref: 33e1034911b842c57bdf6ddaa825cbf635a0c9db
 
   # cs_monero compat (unpublished)
   compat:
@@ -176,12 +176,7 @@ dependencies:
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
-#  coinlib_flutter: ^2.1.0-rc.1
-  coinlib_flutter:
-    git:
-      url: https://github.com/julian-CStack/coinlib.git
-      ref: 0acacfd17eacf72135c693a7b862bd9b7cc56739
-      path: coinlib_flutter
+  coinlib_flutter: ^3.0.0
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -261,18 +256,9 @@ dependency_overrides:
   # needed for dart 3.5+ (at least for now)
   win32: ^5.5.4
 
-  # coin lib git for testing while waiting for publishing
-  coinlib:
-    git:
-      url: https://github.com/julian-CStack/coinlib.git
-      ref: 0acacfd17eacf72135c693a7b862bd9b7cc56739
-      path: coinlib
-
-  coinlib_flutter:
-    git:
-      url: https://github.com/julian-CStack/coinlib.git
-      ref: 0acacfd17eacf72135c693a7b862bd9b7cc56739
-      path: coinlib_flutter
+  # namecoin names lib needs to be updated
+  coinlib: ^3.0.0
+  coinlib_flutter: ^3.0.0
 
   bip47:
     git:
