@@ -317,7 +317,7 @@ class XelisWallet extends LibXelisWallet {
   @override
   Future<List<String>> updateTransactions({
     bool isRescan = false,
-    List<String>? rawTransactions,
+    List<xelis_sdk.TransactionEntry>? objTransactions,
     int? topoheight,
   }) async {
     checkInitialized();
@@ -354,16 +354,17 @@ class XelisWallet extends LibXelisWallet {
       await libXelisWallet!.rescan(topoheight: BigInt.from(pruningHeight));
     }
 
-    final txListJson = rawTransactions ?? await libXelisWallet!.allHistory();
+    final txList = objTransactions ??
+      (await libXelisWallet!.allHistory())
+        .map((jsonStr) => xelis_sdk.TransactionEntry.fromJson(
+            json.decode(jsonStr),
+          ) as xelis_sdk.TransactionEntry)
+        .toList();
 
     final List<TransactionV2> txns = [];
 
-    for (final jsonString in txListJson) {
+    for (final transactionEntry in txList) {
       try {
-        final transactionEntry = xelis_sdk.TransactionEntry.fromJson(
-          (json.decode(jsonString) as Map).cast(),
-        );
-
         // Check for duplicates
         final storedTx =
             await mainDB.isar.transactionV2s
@@ -555,7 +556,7 @@ class XelisWallet extends LibXelisWallet {
         txns.add(txn);
       } catch (e, s) {
         Logging.instance.w(
-          "Error in $runtimeType handling transaction: $jsonString",
+          "Error in $runtimeType handling transaction: $transactionEntry",
           error: e,
           stackTrace: s,
         );
@@ -858,10 +859,10 @@ class XelisWallet extends LibXelisWallet {
   @override
   Future<void> handleNewTransaction(xelis_sdk.TransactionEntry tx) async {
     try {
-      final txListJson = [jsonEncode(tx.toString())];
+      final txList = [tx];
       final newTxIds = await updateTransactions(
         isRescan: false,
-        rawTransactions: txListJson,
+        objTransactions: txList,
       );
 
       await updateBalance();
