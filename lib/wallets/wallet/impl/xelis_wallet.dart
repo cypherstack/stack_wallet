@@ -361,12 +361,22 @@ class XelisWallet extends LibXelisWallet {
       await libXelisWallet!.rescan(topoheight: BigInt.from(pruningHeight));
     }
 
-    final txList = objTransactions ??
-      (await libXelisWallet!.allHistory())
-        .map((jsonStr) => xelis_sdk.TransactionEntry.fromJson(
-            json.decode(jsonStr),
-          ) as xelis_sdk.TransactionEntry)
-        .toList();
+    xelis_sdk.TransactionEntry _checkDecodeJsonStringTxEntry(
+      String jsonString,
+    ) {
+      final json = jsonDecode(jsonString);
+      if (json is Map) {
+        return xelis_sdk.TransactionEntry.fromJson(json.cast());
+      }
+
+      throw Exception("Not a Map on jsonDecode($jsonString)");
+    }
+
+    final txList =
+        objTransactions ??
+        (await libXelisWallet!.allHistory())
+            .map(_checkDecodeJsonStringTxEntry)
+            .toList();
 
     final List<TransactionV2> txns = [];
 
