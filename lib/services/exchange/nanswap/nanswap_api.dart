@@ -33,12 +33,11 @@ class NanswapAPI {
     try {
       final response = await _client.get(
         url: uri,
-        headers: {
-          'Accept': 'application/json',
-        },
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        headers: {'Accept': 'application/json'},
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       code = response.code;
@@ -56,10 +55,7 @@ class NanswapAPI {
     }
   }
 
-  Future<dynamic> _makePostRequest(
-    Uri uri,
-    Map<String, dynamic> body,
-  ) async {
+  Future<dynamic> _makePostRequest(Uri uri, Map<String, dynamic> body) async {
     int code = -1;
     try {
       final response = await _client.post(
@@ -70,9 +66,10 @@ class NanswapAPI {
           'Accept': 'application/json',
         },
         body: jsonEncode(body),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       code = response.code;
@@ -117,9 +114,7 @@ class NanswapAPI {
   //
   // application/json
   Future<ExchangeResponse<List<NCurrency>>> getSupportedCurrencies() async {
-    final uri = _buildUri(
-      endpoint: "all-currencies",
-    );
+    final uri = _buildUri(endpoint: "all-currencies");
 
     try {
       final json = await _makeGetRequest(uri);
@@ -128,11 +123,7 @@ class NanswapAPI {
       for (final key in (json as Map).keys) {
         final _map = json[key] as Map;
         _map["id"] = key;
-        result.add(
-          NCurrency.fromJson(
-            Map<String, dynamic>.from(_map),
-          ),
-        );
+        result.add(NCurrency.fromJson(Map<String, dynamic>.from(_map)));
       }
 
       return ExchangeResponse(value: result);
@@ -196,11 +187,7 @@ class NanswapAPI {
         map["to"] ??= to.toUpperCase();
         map["from"] ??= from.toUpperCase();
 
-        return ExchangeResponse(
-          value: NEstimate.fromJson(
-            map,
-          ),
-        );
+        return ExchangeResponse(value: NEstimate.fromJson(map));
       } catch (e, s) {
         Logging.instance.e(
           "Nanswap.getEstimate() response was: $json",
@@ -270,11 +257,7 @@ class NanswapAPI {
       map["to"] ??= to.toUpperCase();
       map["from"] ??= from.toUpperCase();
 
-      return ExchangeResponse(
-        value: NEstimate.fromJson(
-          map,
-        ),
-      );
+      return ExchangeResponse(value: NEstimate.fromJson(map));
     } catch (e, s) {
       Logging.instance.e(
         "Nanswap.getEstimateReverse() exception: ",
@@ -312,20 +295,14 @@ class NanswapAPI {
   }) async {
     final uri = _buildUri(
       endpoint: "get-limits",
-      params: {
-        "to": to.toUpperCase(),
-        "from": from.toUpperCase(),
-      },
+      params: {"to": to.toUpperCase(), "from": from.toUpperCase()},
     );
 
     try {
       final json = await _makeGetRequest(uri);
 
       return ExchangeResponse(
-        value: (
-          minFrom: json["min"] as num,
-          maxFrom: json["max"] as num,
-        ),
+        value: (minFrom: json["min"] as num, maxFrom: json["max"] as num),
       );
     } catch (e, s) {
       Logging.instance.e(
@@ -397,9 +374,7 @@ class NanswapAPI {
     required String toAddress,
     String? extraIdOrMemo,
   }) async {
-    final uri = _buildUri(
-      endpoint: "create-order",
-    );
+    final uri = _buildUri(endpoint: "create-order");
 
     final body = {
       "from": from.toUpperCase(),
@@ -417,9 +392,7 @@ class NanswapAPI {
 
       try {
         return ExchangeResponse(
-          value: NTrade.fromJson(
-            Map<String, dynamic>.from(json as Map),
-          ),
+          value: NTrade.fromJson(Map<String, dynamic>.from(json as Map)),
         );
       } catch (_) {
         debugPrint(json.toString());
@@ -489,21 +462,14 @@ class NanswapAPI {
   //
   // The order id
   Future<ExchangeResponse<NTrade>> getOrder({required String id}) async {
-    final uri = _buildUri(
-      endpoint: "get-order",
-      params: {
-        "id": id,
-      },
-    );
+    final uri = _buildUri(endpoint: "get-order", params: {"id": id});
 
     try {
       final json = await _makeGetRequest(uri);
 
       try {
         return ExchangeResponse(
-          value: NTrade.fromJson(
-            Map<String, dynamic>.from(json as Map),
-          ),
+          value: NTrade.fromJson(Map<String, dynamic>.from(json as Map)),
         );
       } catch (_) {
         debugPrint(json.toString());
