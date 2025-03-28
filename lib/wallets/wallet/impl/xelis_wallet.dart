@@ -20,7 +20,6 @@ import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
-
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/lib_xelis_wallet.dart';
@@ -88,7 +87,7 @@ class XelisWallet extends LibXelisWallet {
     final wallet = await x_wallet.createXelisWallet(
       name: name,
       directory: directory,
-      password: password!,
+      password: password,
       network: cryptoCurrency.network.xelisNetwork,
       precomputedTablesPath: tablePath,
       l1Low: tableState.currentSize.isLow,
@@ -134,16 +133,16 @@ class XelisWallet extends LibXelisWallet {
     }
 
     final newReceivingAddress =
-      await getCurrentReceivingAddress() ??
-      Address(
-        walletId: walletId,
-        derivationIndex: 0,
-        derivationPath: null,
-        value: libXelisWallet!.getAddressStr(),
-        publicKey: [],
-        type: AddressType.xelis,
-        subType: AddressSubType.receiving,
-      );
+        await getCurrentReceivingAddress() ??
+        Address(
+          walletId: walletId,
+          derivationIndex: 0,
+          derivationPath: null,
+          value: libXelisWallet!.getAddressStr(),
+          publicKey: [],
+          type: AddressType.xelis,
+          subType: AddressSubType.receiving,
+        );
 
     await mainDB.updateOrPutAddresses([newReceivingAddress]);
 
@@ -167,7 +166,9 @@ class XelisWallet extends LibXelisWallet {
     _initCompleter = Completer<void>();
 
     try {
-      final bool walletExists = await LibXelisWallet.checkWalletExists(walletId);
+      final bool walletExists = await LibXelisWallet.checkWalletExists(
+        walletId,
+      );
 
       if (libXelisWallet == null) {
         if (isRestore == true) {
@@ -181,8 +182,13 @@ class XelisWallet extends LibXelisWallet {
         }
       }
       _initCompleter!.complete();
-    } catch (e) {
+    } catch (e, s) {
       _initCompleter!.completeError(e);
+      Logging.instance.e(
+        "Xelis init() rethrowing error",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
 
@@ -226,7 +232,7 @@ class XelisWallet extends LibXelisWallet {
     } catch (_) {
       await handleOffline();
       return false;
-    }    
+    }
   }
 
   final _balanceUpdateMutex = Mutex();
@@ -274,7 +280,8 @@ class XelisWallet extends LibXelisWallet {
     final Map<String, dynamic> nodeInfo =
         (json.decode(infoString) as Map).cast();
 
-    pruningHeight = int.tryParse(nodeInfo['pruned_topoheight']?.toString() ?? '0') ?? 0;
+    pruningHeight =
+        int.tryParse(nodeInfo['pruned_topoheight']?.toString() ?? '0') ?? 0;
     return int.parse(nodeInfo['topoheight'].toString());
   }
 
@@ -539,7 +546,7 @@ class XelisWallet extends LibXelisWallet {
           inputs: List.unmodifiable(inputs),
           outputs: List.unmodifiable(outputs),
           version: -1, // Version not provided
-          type: txType!,
+          type: txType,
           subType: txSubType,
           otherData: jsonEncode({
             ...otherData,

@@ -660,33 +660,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
-        // Auto fill address.
-        _address = paymentData.address.trim();
-        sendToController.text = _address!;
-
-        // Amount.
-        if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
-            fractionDigits: coin.fractionDigits,
-          );
-          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
-                amount,
-                withUnitName: false,
-              );
-          ref.read(pSendAmount.notifier).state = amount;
-        }
-
-        // Note/message.
-        if (paymentData.message != null) {
-          _note = paymentData.message;
-        } else if (paymentData.label != null) {
-          _note = paymentData.label;
-        }
-
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
+        _applyUri(paymentData);
       } else {
         _address = qrCodeData.split("\n").first.trim();
         sendToController.text = _address ?? "";
@@ -736,6 +710,40 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  void _applyUri(PaymentUriData paymentData) {
+    try {
+      // auto fill address
+      _address = paymentData.address;
+      sendToController.text = _address!;
+
+      // autofill notes field.
+      if (paymentData.message != null) {
+        _note = paymentData.message;
+      } else if (paymentData.label != null) {
+        _note = paymentData.label;
+      }
+
+      // autofill amount field
+      if (paymentData.amount != null) {
+        final amount = Decimal.parse(paymentData.amount!).toAmount(
+          fractionDigits: coin.fractionDigits,
+        );
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .format(amount, withUnitName: false);
+        ref.read(pSendAmount.notifier).state = amount;
+      }
+
+      // Trigger validation after pasting.
+      _setValidAddressProviders(_address);
+      setState(() {
+        _addressToggleFlag = sendToController.text.isNotEmpty;
+      });
+    } catch (e, s) {
+      Logging.instance.e("Error applying URI", error: e, stackTrace: s);
+    }
+  }
+
   Future<void> pasteAddress() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
     if (data?.text != null && data!.text!.isNotEmpty) {
@@ -751,33 +759,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
-          // auto fill address
-          _address = paymentData.address;
-          sendToController.text = _address!;
-
-          // autofill notes field.
-          if (paymentData.message != null) {
-            _note = paymentData.message;
-          } else if (paymentData.label != null) {
-            _note = paymentData.label;
-          }
-
-          // autofill amoutn field
-          if (paymentData.amount != null) {
-            final amount = Decimal.parse(paymentData.amount!).toAmount(
-              fractionDigits: coin.fractionDigits,
-            );
-            cryptoAmountController.text = ref
-                .read(pAmountFormatter(coin))
-                .format(amount, withUnitName: false);
-            ref.read(pSendAmount.notifier).state = amount;
-          }
-
-          // Trigger validation after pasting.
-          _setValidAddressProviders(_address);
-          setState(() {
-            _addressToggleFlag = sendToController.text.isNotEmpty;
-          });
+          _applyUri(paymentData);
         } else {
           content = content.split("\n").first.trim();
           if (coin is Epiccash) {
@@ -1439,7 +1421,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 selectAll: false,
               ),
               onChanged: (newValue) {
-                _address = newValue;
+                final trimmed = newValue;
+
+                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
+                  final parsed = AddressUtils.parsePaymentUri(trimmed, logging: Logging.instance);
+                  if (parsed != null) {
+                    _applyUri(parsed);
+                  } else {
+                    _address = newValue;
+                    sendToController.text = newValue;
+                  }
+                } else {
+                  _address = newValue;
+                }
+
                 _setValidAddressProviders(_address);
 
                 setState(() {

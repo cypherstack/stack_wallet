@@ -14,7 +14,6 @@ import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/intermediate/electrum_currency.dart';
-import '../wallet.dart';
 import '../wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'external_wallet.dart';
 
@@ -153,7 +152,6 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   static const String _kHasFullTablesKey = 'xelis_has_full_tables';
   static const String _kGeneratingTablesKey = 'xelis_generating_tables';
   static const String _kWantsFullTablesKey = 'xelis_wants_full_tables';
-  static final _initMutex = Mutex();
   static final _tableGenerationMutex = Mutex();
   static Completer<void>? _tableGenerationCompleter;
 

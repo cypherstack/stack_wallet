@@ -15,7 +15,7 @@ android {
     namespace "com.place.holder"
     compileSdk flutter.compileSdkVersion
 //    ndkVersion flutter.ndkVersion
-    ndkVersion = "26.1.10909125"
+    ndkVersion = "28.0.13004108"
 
     packagingOptions {
         pickFirst 'lib/x86/libc++_shared.so'
@@ -90,6 +90,7 @@ android {
             task.doFirst {
                 println "The compileSdkVersion is $flutter.compileSdkVersion"
                 println "The targetSdkVersion is $flutter.targetSdkVersion"
+                println "The ndkVersion is $ndkVersion"
             }
         }
     }

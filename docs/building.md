@@ -72,8 +72,8 @@ Install [Rust](https://www.rust-lang.org/tools/install) via [rustup.rs](https://
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc
-rustup install 1.67.1 1.71.0 1.72.0 1.73.0
-rustup default 1.67.1
+rustup install 1.85.1 1.81.0
+rustup default 1.85.1
 cargo install cargo-ndk --version 2.12.7 --locked
 ```
 
@@ -209,12 +209,12 @@ brew install brotli cairo coreutils gdbm gettext glib gmp libevent libidn2 libng
 ```
 <!-- TODO: determine which of the above list are not needed at all. -->
 
-Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.67.1 and 1.72.0 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
+Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.81.0 and 1.85.1 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.67.1 1.71.0 1.72.0 1.73.0
-rustup default 1.67.1
+rustup install 1.85.1 1.81.0
+rustup default 1.85.1
 cargo install cargo-ndk --version 2.12.7 --locked
 cargo install cbindgen cargo-lipo
 rustup target add aarch64-apple-ios aarch64-apple-darwin
@@ -306,8 +306,8 @@ Run `flutter doctor` in PowerShell to confirm its installation.
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
 ```
-rustup install 1.67.1 1.71.0 1.72.0 1.73.0
-rustup default 1.67.1
+rustup install 1.85.1 1.81.0
+rustup default 1.85.1
 cargo install cargo-ndk --version 2.12.7 --locked
 ```
 
