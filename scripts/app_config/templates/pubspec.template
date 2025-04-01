@@ -38,7 +38,7 @@ dependencies:
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: 33e1034911b842c57bdf6ddaa825cbf635a0c9db
+      ref: 32e529f9f6b06a12f9d98cbeed9d2270012a14a0
 
   # cs_monero compat (unpublished)
   compat:
@@ -257,8 +257,19 @@ dependency_overrides:
   win32: ^5.5.4
 
   # namecoin names lib needs to be updated
-  coinlib: ^3.0.0
-  coinlib_flutter: ^3.0.0
+  #coinlib: ^3.0.0
+  #coinlib_flutter: ^3.0.0
+  coinlib:
+    git:
+      url: https://www.github.com/julian-CStack/coinlib
+      path: coinlib
+      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+
+  coinlib_flutter:
+    git:
+      url: https://www.github.com/julian-CStack/coinlib
+      path: coinlib_flutter
+      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
 
   bip47:
     git:

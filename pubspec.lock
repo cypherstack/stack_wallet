@@ -352,18 +352,20 @@ packages:
   coinlib:
     dependency: "direct overridden"
     description:
-      name: coinlib
-      sha256: f99c090ca300b6c9b5414dc100f7f36f49a5a2af31d477b3ce04a605c5f1103c
-      url: "https://pub.dev"
-    source: hosted
+      path: coinlib
+      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      url: "https://www.github.com/julian-CStack/coinlib"
+    source: git
     version: "3.1.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
-      name: coinlib_flutter
-      sha256: "185c622986d12d2ccda98f151ce047360464dd7a6cbb6877781a9816d14bb8c4"
-      url: "https://pub.dev"
-    source: hosted
+      path: coinlib_flutter
+      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      url: "https://www.github.com/julian-CStack/coinlib"
+    source: git
     version: "3.0.0"
   collection:
     dependency: transitive
@@ -830,8 +832,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "33e1034911b842c57bdf6ddaa825cbf635a0c9db"
-      resolved-ref: "33e1034911b842c57bdf6ddaa825cbf635a0c9db"
+      ref: "32e529f9f6b06a12f9d98cbeed9d2270012a14a0"
+      resolved-ref: "32e529f9f6b06a12f9d98cbeed9d2270012a14a0"
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.0.2"
