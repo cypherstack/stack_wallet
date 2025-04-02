@@ -203,6 +203,7 @@ import 'pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
+import 'pages_desktop_specific/silent_payments/silent_payments_view.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'utilities/amount/amount.dart';
@@ -2736,6 +2737,20 @@ class RouteGenerator {
             builder: (_) => TokenView(
               walletId: args.walletId,
               popPrevious: args.popPrevious,
+            ),
+            settings: RouteSettings(
+              name: settings.name,
+            ),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SilentPaymentsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SilentPaymentsView(
+              walletId: args,
             ),
             settings: RouteSettings(
               name: settings.name,

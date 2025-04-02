@@ -51,6 +51,7 @@ import '../../../desktop_menu.dart';
 import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
+import '../../../silent_payments/silent_payments_view.dart';
 import '../desktop_wallet_view.dart';
 import 'more_features/more_features_dialog.dart';
 
@@ -99,6 +100,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             onFusionPressed: _onFusionPressed,
             onChurnPressed: _onChurnPressed,
             onNamesPressed: _onNamesPressed,
+            onSilentPaymentsPressed: _onSilentPaymentsPressed,
           ),
     );
   }
@@ -369,6 +371,13 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     Navigator.of(
       context,
     ).pushNamed(NamecoinNamesHomeView.routeName, arguments: widget.walletId);
+  }
+
+  void _onSilentPaymentsPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+    Navigator.of(
+      context,
+    ).pushNamed(SilentPaymentsView.routeName, arguments: widget.walletId);
   }
 
   @override
