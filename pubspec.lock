@@ -353,20 +353,20 @@ packages:
     dependency: "direct overridden"
     description:
       path: coinlib
-      ref: "0acacfd17eacf72135c693a7b862bd9b7cc56739"
-      resolved-ref: "0acacfd17eacf72135c693a7b862bd9b7cc56739"
-      url: "https://github.com/julian-CStack/coinlib.git"
+      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      url: "https://www.github.com/julian-CStack/coinlib"
     source: git
-    version: "2.2.0"
+    version: "3.1.0"
   coinlib_flutter:
     dependency: "direct main"
     description:
       path: coinlib_flutter
-      ref: "0acacfd17eacf72135c693a7b862bd9b7cc56739"
-      resolved-ref: "0acacfd17eacf72135c693a7b862bd9b7cc56739"
-      url: "https://github.com/julian-CStack/coinlib.git"
+      ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      resolved-ref: fd5f658320f00a2e281ccaee97c2d2a77b4aa966
+      url: "https://www.github.com/julian-CStack/coinlib"
     source: git
-    version: "2.2.0"
+    version: "3.0.0"
   collection:
     dependency: transitive
     description:
@@ -832,8 +832,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ca0c72cecc40fc0bfbafc0d26af675d973ab516b
-      resolved-ref: ca0c72cecc40fc0bfbafc0d26af675d973ab516b
+      ref: e8c502652da7836cd1a22893339838553675b464
+      resolved-ref: e8c502652da7836cd1a22893339838553675b464
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.0.2"
@@ -1247,7 +1247,7 @@ packages:
       path: "crypto_plugins/flutter_liblelantus"
       relative: true
     source: path
-    version: "0.0.2"
+    version: "0.0.3"
   lints:
     dependency: transitive
     description:
