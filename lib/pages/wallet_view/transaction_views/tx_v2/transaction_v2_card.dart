@@ -136,6 +136,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
         case TransactionType.outgoing:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           break;
 
@@ -167,6 +168,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
         case TransactionType.unknown:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           break;
       }

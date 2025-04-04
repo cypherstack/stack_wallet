@@ -233,6 +233,7 @@ class _TransactionV2DetailsViewState
         case TransactionType.unknown:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           break;
 
@@ -277,6 +278,7 @@ class _TransactionV2DetailsViewState
         case TransactionType.outgoing:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           data =
               _transaction.outputs
@@ -363,6 +365,7 @@ class _TransactionV2DetailsViewState
         case TransactionType.unknown:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           data =
               _transaction.inputs

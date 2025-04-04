@@ -33,6 +33,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
@@ -931,6 +932,7 @@ class _DesktopTransactionCardRowState
         case TransactionType.outgoing:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           break;
 
@@ -962,6 +964,7 @@ class _DesktopTransactionCardRowState
         case TransactionType.unknown:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
+            subtractFee: coin is! Ethereum,
           );
           break;
       }
