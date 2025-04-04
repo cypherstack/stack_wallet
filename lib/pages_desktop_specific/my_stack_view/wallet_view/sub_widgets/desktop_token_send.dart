@@ -33,7 +33,6 @@ import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/logger.dart';
-import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
@@ -109,16 +108,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     final tokenWallet = ref.read(pCurrentTokenWallet)!;
 
     final Amount amount = _amountToSend!;
-    final Amount availableBalance = ref
-        .read(
-          pTokenBalance(
-            (
-              walletId: walletId,
-              contractAddress: tokenWallet.tokenContract.address
-            ),
-          ),
-        )
-        .spendable;
+    final Amount availableBalance =
+        ref
+            .read(
+              pTokenBalance((
+                walletId: walletId,
+                contractAddress: tokenWallet.tokenContract.address,
+              )),
+            )
+            .spendable;
 
     // confirm send all
     if (amount == availableBalance) {
@@ -131,10 +129,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             maxWidth: 450,
             maxHeight: double.infinity,
             child: Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                bottom: 32,
-              ),
+              padding: const EdgeInsets.only(left: 32, bottom: 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -148,29 +143,20 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                       const DesktopDialogCloseButton(),
                     ],
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                   Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
+                    padding: const EdgeInsets.only(right: 32),
                     child: Text(
                       "You are about to send your entire balance. Would you like to continue?",
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(context)
-                          .copyWith(
-                        fontSize: 18,
-                      ),
+                      style: STextStyles.desktopTextExtraExtraSmall(
+                        context,
+                      ).copyWith(fontSize: 18),
                     ),
                   ),
-                  const SizedBox(
-                    height: 40,
-                  ),
+                  const SizedBox(height: 40),
                   Padding(
-                    padding: const EdgeInsets.only(
-                      right: 32,
-                    ),
+                    padding: const EdgeInsets.only(right: 32),
                     child: Row(
                       children: [
                         Expanded(
@@ -182,9 +168,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                             },
                           ),
                         ),
-                        const SizedBox(
-                          width: 16,
-                        ),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: PrimaryButton(
                             buttonHeight: ButtonHeight.l,
@@ -241,71 +225,51 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         );
       }
 
-      final time = Future<dynamic>.delayed(
-        const Duration(
-          milliseconds: 2500,
-        ),
-      );
+      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       TxData txData;
       Future<TxData> txDataFuture;
 
       txDataFuture = tokenWallet.prepareSend(
         txData: TxData(
-          recipients: [
-            (
-              address: _address!,
-              amount: amount,
-              isChange: false,
-            ),
-          ],
+          recipients: [(address: _address!, amount: amount, isChange: false)],
           feeRateType: ref.read(feeRateTypeStateProvider),
           nonce: int.tryParse(nonceController.text),
         ),
       );
 
-      final results = await Future.wait([
-        txDataFuture,
-        time,
-      ]);
+      final results = await Future.wait([txDataFuture, time]);
 
       txData = results.first as TxData;
 
       if (!wasCancelled && mounted) {
-        txData = txData.copyWith(
-          note: _note ?? "",
-        );
+        txData = txData.copyWith(note: _note ?? "");
 
         // pop building dialog
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pop();
+        Navigator.of(context, rootNavigator: true).pop();
 
         unawaited(
           showDialog(
             context: context,
-            builder: (context) => DesktopDialog(
-              maxHeight: MediaQuery.of(context).size.height - 64,
-              maxWidth: 580,
-              child: ConfirmTransactionView(
-                txData: txData,
-                walletId: walletId,
-                onSuccess: clearSendForm,
-                isTokenTx: true,
-                routeOnSuccessName: DesktopHomeView.routeName,
-              ),
-            ),
+            builder:
+                (context) => DesktopDialog(
+                  maxHeight: MediaQuery.of(context).size.height - 64,
+                  maxWidth: 580,
+                  child: ConfirmTransactionView(
+                    txData: txData,
+                    walletId: walletId,
+                    onSuccess: clearSendForm,
+                    isTokenTx: true,
+                    routeOnSuccessName: DesktopHomeView.routeName,
+                  ),
+                ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         // pop building dialog
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pop();
+        Navigator.of(context, rootNavigator: true).pop();
 
         unawaited(
           showDialog<void>(
@@ -315,10 +279,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 maxWidth: 450,
                 maxHeight: double.infinity,
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                    bottom: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32, bottom: 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -332,25 +293,18 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                           const DesktopDialogCloseButton(),
                         ],
                       ),
-                      const SizedBox(
-                        height: 12,
-                      ),
+                      const SizedBox(height: 12),
                       Padding(
-                        padding: const EdgeInsets.only(
-                          right: 32,
-                        ),
+                        padding: const EdgeInsets.only(right: 32),
                         child: SelectableText(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                            fontSize: 18,
-                          ),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ).copyWith(fontSize: 18),
                         ),
                       ),
-                      const SizedBox(
-                        height: 40,
-                      ),
+                      const SizedBox(height: 40),
                       Row(
                         children: [
                           Expanded(
@@ -365,9 +319,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                               },
                             ),
                           ),
-                          const SizedBox(
-                            width: 32,
-                          ),
+                          const SizedBox(width: 32),
                         ],
                       ),
                     ],
@@ -395,7 +347,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
+      final cryptoAmount = ref
+          .read(pAmountFormatter(coin))
+          .tryParse(
             cryptoAmountController.text,
             ethContract: ref.read(pCurrentTokenWallet)!.tokenContract,
           );
@@ -408,14 +362,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         }
         _cachedAmountToSend = _amountToSend;
 
-        final price = ref
-            .read(priceAnd24hChangeNotifierProvider)
-            .getTokenPrice(
-              ref.read(pCurrentTokenWallet)!.tokenContract.address,
-            )
-            .item1;
+        final price =
+            ref
+                .read(priceAnd24hChangeNotifierProvider)
+                .getTokenPrice(
+                  ref.read(pCurrentTokenWallet)!.tokenContract.address,
+                )
+                ?.value;
 
-        if (price > Decimal.zero) {
+        if (price != null && price > Decimal.zero) {
           final String fiatAmountString = Amount.fromDecimal(
             _amountToSend!.decimal * price,
             fractionDigits: 2,
@@ -495,10 +450,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             fractionDigits:
                 ref.read(pCurrentTokenWallet)!.tokenContract.decimals,
           );
-          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
-                amount,
-                withUnitName: false,
-              );
+          cryptoAmountController.text = ref
+              .read(pAmountFormatter(coin))
+              .format(amount, withUnitName: false);
 
           _amountToSend = amount;
         }
@@ -554,33 +508,39 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     if (baseAmountString.isNotEmpty &&
         baseAmountString != "." &&
         baseAmountString != ",") {
-      final baseAmount = baseAmountString.contains(",")
-          ? Decimal.parse(baseAmountString.replaceFirst(",", "."))
-              .toAmount(fractionDigits: 2)
-          : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
+      final baseAmount =
+          baseAmountString.contains(",")
+              ? Decimal.parse(
+                baseAmountString.replaceFirst(",", "."),
+              ).toAmount(fractionDigits: 2)
+              : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
 
-      final Decimal _price = ref
-          .read(priceAnd24hChangeNotifierProvider)
-          .getTokenPrice(
-            ref.read(pCurrentTokenWallet)!.tokenContract.address,
-          )
-          .item1;
+      final Decimal? _price =
+          ref
+              .read(priceAnd24hChangeNotifierProvider)
+              .getTokenPrice(
+                ref.read(pCurrentTokenWallet)!.tokenContract.address,
+              )
+              ?.value;
 
-      if (_price == Decimal.zero) {
+      if (_price == null || _price == Decimal.zero) {
         _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
       } else {
-        _amountToSend = baseAmount <= Amount.zero
-            ? Decimal.zero.toAmount(fractionDigits: tokenDecimals)
-            : (baseAmount.decimal / _price)
-                .toDecimal(scaleOnInfinitePrecision: tokenDecimals)
-                .toAmount(fractionDigits: tokenDecimals);
+        _amountToSend =
+            baseAmount <= Amount.zero
+                ? Decimal.zero.toAmount(fractionDigits: tokenDecimals)
+                : (baseAmount.decimal / _price)
+                    .toDecimal(scaleOnInfinitePrecision: tokenDecimals)
+                    .toAmount(fractionDigits: tokenDecimals);
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
         return;
       }
       _cachedAmountToSend = _amountToSend;
 
-      final amountString = ref.read(pAmountFormatter(coin)).format(
+      final amountString = ref
+          .read(pAmountFormatter(coin))
+          .format(
             _amountToSend!,
             withUnitName: false,
             ethContract: ref.read(pCurrentTokenWallet)!.tokenContract,
@@ -602,19 +562,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   Future<void> sendAllTapped() async {
     cryptoAmountController.text = ref
         .read(
-          pTokenBalance(
-            (
-              walletId: walletId,
-              contractAddress:
-                  ref.read(pCurrentTokenWallet)!.tokenContract.address
-            ),
-          ),
+          pTokenBalance((
+            walletId: walletId,
+            contractAddress:
+                ref.read(pCurrentTokenWallet)!.tokenContract.address,
+          )),
         )
         .spendable
         .decimal
-        .toStringAsFixed(
-          ref.read(pCurrentTokenWallet)!.tokenContract.decimals,
-        );
+        .toStringAsFixed(ref.read(pCurrentTokenWallet)!.tokenContract.decimals);
   }
 
   @override
@@ -702,16 +658,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(
-          height: 4,
-        ),
+        const SizedBox(height: 4),
         if (coin is Firo)
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveSearchIconRight,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -721,9 +676,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconRight,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
@@ -733,9 +689,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             ),
           ],
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         TextField(
           autocorrect: Util.isDesktop ? false : true,
           enableSuggestions: Util.isDesktop ? false : true,
@@ -745,20 +699,22 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           key: const Key("amountInputFieldCryptoTextFieldKey"),
           controller: cryptoAmountController,
           focusNode: _cryptoFocus,
-          keyboardType: Util.isDesktop
-              ? null
-              : const TextInputType.numberWithOptions(
-                  signed: false,
-                  decimal: true,
-                ),
+          keyboardType:
+              Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                    signed: false,
+                    decimal: true,
+                  ),
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
               decimals: tokenContract.decimals,
               unit: ref.watch(pAmountUnit(coin)),
               locale: ref.watch(
-                localeServiceChangeNotifierProvider
-                    .select((value) => value.locale),
+                localeServiceChangeNotifierProvider.select(
+                  (value) => value.locale,
+                ),
               ),
             ),
             // regex to validate a crypto amount with 8 decimal places
@@ -780,9 +736,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultText,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -791,20 +748,23 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 child: Text(
                   ref.watch(pAmountUnit(coin)).unitForContract(tokenContract),
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
                   ),
                 ),
               ),
             ),
           ),
         ),
-        if (Prefs.instance.externalCalls)
-          const SizedBox(
-            height: 10,
-          ),
-        if (Prefs.instance.externalCalls)
+        if (ref.watch(
+          prefsChangeNotifierProvider.select((s) => s.externalCalls),
+        ))
+          const SizedBox(height: 10),
+        if (ref.watch(
+          prefsChangeNotifierProvider.select((s) => s.externalCalls),
+        ))
           TextField(
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
@@ -814,19 +774,21 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             key: const Key("amountInputFieldFiatTextFieldKey"),
             controller: baseAmountController,
             focusNode: _baseFocus,
-            keyboardType: Util.isDesktop
-                ? null
-                : const TextInputType.numberWithOptions(
-                    signed: false,
-                    decimal: true,
-                  ),
+            keyboardType:
+                Util.isDesktop
+                    ? null
+                    : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
                 decimals: 2,
                 locale: ref.watch(
-                  localeServiceChangeNotifierProvider
-                      .select((value) => value.locale),
+                  localeServiceChangeNotifierProvider.select(
+                    (value) => value.locale,
+                  ),
                 ),
               ),
               // // regex to validate a fiat amount with 2 decimal places
@@ -845,9 +807,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultText,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -855,34 +818,33 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                   padding: const EdgeInsets.all(12),
                   child: Text(
                     ref.watch(
-                      prefsChangeNotifierProvider
-                          .select((value) => value.currency),
+                      prefsChangeNotifierProvider.select(
+                        (value) => value.currency,
+                      ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         Text(
           "Send to",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconRight,
+            color:
+                Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
           ),
           textAlign: TextAlign.left,
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
@@ -915,9 +877,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             },
             focusNode: _addressFocusNode,
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveText,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveText,
               height: 1.8,
             ),
             decoration: standardInputDecoration(
@@ -933,78 +896,83 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 right: 5,
               ),
               suffixIcon: Padding(
-                padding: sendToController.text.isEmpty
-                    ? const EdgeInsets.only(right: 8)
-                    : const EdgeInsets.only(right: 0),
+                padding:
+                    sendToController.text.isEmpty
+                        ? const EdgeInsets.only(right: 8)
+                        : const EdgeInsets.only(right: 0),
                 child: UnconstrainedBox(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _addressToggleFlag
                           ? TextFieldIconButton(
-                              key: const Key(
-                                "sendTokenViewClearAddressFieldButtonKey",
-                              ),
-                              onTap: () {
-                                sendToController.text = "";
-                                _address = "";
-                                _updatePreviewButtonState(
-                                  _address,
-                                  _amountToSend,
-                                );
-                                setState(() {
-                                  _addressToggleFlag = false;
-                                });
-                              },
-                              child: const XIcon(),
-                            )
-                          : TextFieldIconButton(
-                              key: const Key(
-                                "sendTokenViewPasteAddressFieldButtonKey",
-                              ),
-                              onTap: pasteAddress,
-                              child: sendToController.text.isEmpty
-                                  ? const ClipboardIcon()
-                                  : const XIcon(),
+                            key: const Key(
+                              "sendTokenViewClearAddressFieldButtonKey",
                             ),
+                            onTap: () {
+                              sendToController.text = "";
+                              _address = "";
+                              _updatePreviewButtonState(
+                                _address,
+                                _amountToSend,
+                              );
+                              setState(() {
+                                _addressToggleFlag = false;
+                              });
+                            },
+                            child: const XIcon(),
+                          )
+                          : TextFieldIconButton(
+                            key: const Key(
+                              "sendTokenViewPasteAddressFieldButtonKey",
+                            ),
+                            onTap: pasteAddress,
+                            child:
+                                sendToController.text.isEmpty
+                                    ? const ClipboardIcon()
+                                    : const XIcon(),
+                          ),
                       if (sendToController.text.isEmpty)
                         TextFieldIconButton(
                           key: const Key("sendTokenViewAddressBookButtonKey"),
                           onTap: () async {
-                            final entry =
-                                await showDialog<ContactAddressEntry?>(
+                            final entry = await showDialog<
+                              ContactAddressEntry?
+                            >(
                               context: context,
-                              builder: (context) => DesktopDialog(
-                                maxWidth: 696,
-                                maxHeight: 600,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                              builder:
+                                  (context) => DesktopDialog(
+                                    maxWidth: 696,
+                                    maxHeight: 600,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 32,
-                                          ),
-                                          child: Text(
-                                            "Address book",
-                                            style:
-                                                STextStyles.desktopH3(context),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 32,
+                                              ),
+                                              child: Text(
+                                                "Address book",
+                                                style: STextStyles.desktopH3(
+                                                  context,
+                                                ),
+                                              ),
+                                            ),
+                                            const DesktopDialogCloseButton(),
+                                          ],
+                                        ),
+                                        Expanded(
+                                          child: AddressBookAddressChooser(
+                                            coin: coin,
                                           ),
                                         ),
-                                        const DesktopDialogCloseButton(),
                                       ],
                                     ),
-                                    Expanded(
-                                      child: AddressBookAddressChooser(
-                                        coin: coin,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                  ),
                             );
 
                             if (entry != null) {
@@ -1034,9 +1002,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         ),
         Builder(
           builder: (_) {
-            final error = _updateInvalidAddressText(
-              _address ?? "",
-            );
+            final error = _updateInvalidAddressText(_address ?? "");
 
             if (error == null || error.isEmpty) {
               return Container();
@@ -1044,10 +1010,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               return Align(
                 alignment: Alignment.topLeft,
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12.0,
-                    top: 4.0,
-                  ),
+                  padding: const EdgeInsets.only(left: 12.0, top: 4.0),
                   child: Text(
                     error,
                     textAlign: TextAlign.left,
@@ -1061,40 +1024,31 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             }
           },
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         Text(
           "Transaction fee (max)",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconRight,
+            color:
+                Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
           ),
           textAlign: TextAlign.left,
         ),
-        const SizedBox(
-          height: 10,
-        ),
-        DesktopFeeDropDown(
-          walletId: walletId,
-          isToken: true,
-        ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 10),
+        DesktopFeeDropDown(walletId: walletId, isToken: true),
+        const SizedBox(height: 20),
         Text(
           "Nonce",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconRight,
+            color:
+                Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
           ),
           textAlign: TextAlign.left,
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
@@ -1110,9 +1064,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             keyboardType: const TextInputType.numberWithOptions(),
             focusNode: _nonceFocusNode,
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveText,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveText,
               height: 1.8,
             ),
             decoration: standardInputDecoration(
@@ -1130,16 +1085,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             ),
           ),
         ),
-        const SizedBox(
-          height: 36,
-        ),
+        const SizedBox(height: 36),
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
           label: "Preview send",
           enabled: ref.watch(previewTokenTxButtonStateProvider.state).state,
-          onPressed: ref.watch(previewTokenTxButtonStateProvider.state).state
-              ? previewSend
-              : null,
+          onPressed:
+              ref.watch(previewTokenTxButtonStateProvider.state).state
+                  ? previewSend
+                  : null,
         ),
       ],
     );

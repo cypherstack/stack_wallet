@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -588,6 +589,20 @@ class _TransactionV2DetailsViewState
       coin.minCoinbaseConfirms,
     );
 
+    Decimal? price;
+    if (ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.externalCalls),
+    )) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) =>
+              isTokenTx
+                  ? value.getTokenPrice(_transaction.contractAddress!)?.value
+                  : value.getPrice(coin)?.value,
+        ),
+      );
+    }
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(child: child),
@@ -743,21 +758,42 @@ class _TransactionV2DetailsViewState
                                                     ),
                                           ),
                                           const SizedBox(height: 2),
-                                          if (ref.watch(
-                                            prefsChangeNotifierProvider.select(
-                                              (value) => value.externalCalls,
-                                            ),
-                                          ))
-                                            SelectableText(
-                                              "$amountPrefix${(amount.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                              style:
-                                                  isDesktop
-                                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                                        context,
-                                                      )
-                                                      : STextStyles.itemSubtitle(
-                                                        context,
+                                          if (price != null)
+                                            Builder(
+                                              builder: (context) {
+                                                final total = (amount.decimal *
+                                                        price!)
+                                                    .toAmount(
+                                                      fractionDigits: 2,
+                                                    );
+                                                final formatted = total.fiatString(
+                                                  locale: ref.watch(
+                                                    localeServiceChangeNotifierProvider
+                                                        .select(
+                                                          (value) =>
+                                                              value.locale,
+                                                        ),
+                                                  ),
+                                                );
+                                                final ticker = ref.watch(
+                                                  prefsChangeNotifierProvider
+                                                      .select(
+                                                        (value) =>
+                                                            value.currency,
                                                       ),
+                                                );
+                                                return SelectableText(
+                                                  "$amountPrefix$formatted $ticker",
+                                                  style:
+                                                      isDesktop
+                                                          ? STextStyles.desktopTextExtraExtraSmall(
+                                                            context,
+                                                          )
+                                                          : STextStyles.itemSubtitle(
+                                                            context,
+                                                          ),
+                                                );
+                                              },
                                             ),
                                         ],
                                       ),
@@ -1893,7 +1929,7 @@ class _TransactionV2DetailsViewState
                                                           .externalApplication,
                                                 );
                                               } catch (_) {
-                                                if (mounted) {
+                                                if (context.mounted) {
                                                   unawaited(
                                                     showDialog<void>(
                                                       context: context,
@@ -2143,7 +2179,7 @@ class _TransactionV2DetailsViewState
 
                           final result = await wallet
                               .cancelPendingTransactionAndPost(id);
-                          if (mounted) {
+                          if (context.mounted) {
                             // pop progress dialog
                             Navigator.of(context).pop();
 

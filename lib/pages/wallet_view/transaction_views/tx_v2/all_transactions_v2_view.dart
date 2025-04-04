@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,11 +52,8 @@ import '../transaction_search_filter_view.dart';
 import 'transaction_v2_card.dart';
 import 'transaction_v2_details_view.dart';
 
-typedef _GroupedTransactions = ({
-  String label,
-  DateTime startDate,
-  List<TransactionV2> transactions
-});
+typedef _GroupedTransactions =
+    ({String label, DateTime startDate, List<TransactionV2> transactions});
 
 class AllTransactionsV2View extends ConsumerStatefulWidget {
   const AllTransactionsV2View({
@@ -108,13 +106,14 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     // debugPrint("FILTER: $filter");
 
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes = ref
-        .read(mainDBProvider)
-        .isar
-        .transactionNotes
-        .where()
-        .walletIdEqualTo(walletId)
-        .findAllSync();
+    final notes =
+        ref
+            .read(mainDBProvider)
+            .isar
+            .transactionNotes
+            .where()
+            .walletIdEqualTo(walletId)
+            .findAllSync();
 
     return transactions.where((tx) {
       if (!filter.sent && !filter.received) {
@@ -160,23 +159,25 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     bool contains = false;
 
     // check if address book name contains
-    contains |= contacts
-        .where(
-          (e) =>
-              e.addresses
-                  .map((e) => e.address)
-                  .toSet()
-                  .intersection(tx.associatedAddresses())
-                  .isNotEmpty &&
-              e.name.toLowerCase().contains(keyword),
-        )
-        .isNotEmpty;
+    contains |=
+        contacts
+            .where(
+              (e) =>
+                  e.addresses
+                      .map((e) => e.address)
+                      .toSet()
+                      .intersection(tx.associatedAddresses())
+                      .isNotEmpty &&
+                  e.name.toLowerCase().contains(keyword),
+            )
+            .isNotEmpty;
 
     // check if address contains
-    contains |= tx
-        .associatedAddresses()
-        .where((e) => e.toLowerCase().contains(keyword))
-        .isNotEmpty;
+    contains |=
+        tx
+            .associatedAddresses()
+            .where((e) => e.toLowerCase().contains(keyword))
+            .isNotEmpty;
 
     TransactionNote? note;
     final matchingNotes = notes.where((e) => e.txid == tx.txid);
@@ -197,8 +198,9 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     contains |= tx.type.name.toLowerCase().contains(keyword);
 
     // check if date contains
-    contains |=
-        Format.extractDateFrom(tx.timestamp).toLowerCase().contains(keyword);
+    contains |= Format.extractDateFrom(
+      tx.timestamp,
+    ).toLowerCase().contains(keyword);
 
     return contains;
   }
@@ -212,13 +214,14 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     }
     text = text.toLowerCase();
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes = ref
-        .read(mainDBProvider)
-        .isar
-        .transactionNotes
-        .where()
-        .walletIdEqualTo(walletId)
-        .findAllSync();
+    final notes =
+        ref
+            .read(mainDBProvider)
+            .isar
+            .transactionNotes
+            .where()
+            .walletIdEqualTo(walletId)
+            .findAllSync();
 
     return transactions
         .where((tx) => _isKeywordMatch(tx, text, contacts, notes))
@@ -234,8 +237,11 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
       final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
       final monthYear = "${Constants.monthMap[date.month]} ${date.year}";
       if (map[monthYear] == null) {
-        map[monthYear] =
-            (label: monthYear, startDate: date, transactions: [tx]);
+        map[monthYear] = (
+          label: monthYear,
+          startDate: date,
+          transactions: [tx],
+        );
       } else {
         map[monthYear]!.transactions.add(tx);
       }
@@ -252,96 +258,94 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     return MasterScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
       isDesktop: isDesktop,
-      appBar: isDesktop
-          ? DesktopAppBar(
-              isCompactHeight: true,
-              background: Theme.of(context).extension<StackColors>()!.popupBG,
-              leading: Row(
-                children: [
-                  const SizedBox(
-                    width: 32,
-                  ),
-                  AppBarIconButton(
-                    size: 32,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                    shadows: const [],
-                    icon: SvgPicture.asset(
-                      Assets.svg.arrowLeft,
-                      width: 18,
-                      height: 18,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
+      appBar:
+          isDesktop
+              ? DesktopAppBar(
+                isCompactHeight: true,
+                background: Theme.of(context).extension<StackColors>()!.popupBG,
+                leading: Row(
+                  children: [
+                    const SizedBox(width: 32),
+                    AppBarIconButton(
+                      size: 32,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
+                      shadows: const [],
+                      icon: SvgPicture.asset(
+                        Assets.svg.arrowLeft,
+                        width: 18,
+                        height: 18,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.topNavIconPrimary,
+                      ),
+                      onPressed: Navigator.of(context).pop,
                     ),
-                    onPressed: Navigator.of(context).pop,
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Text(
-                    "Transactions",
-                    style: STextStyles.desktopH3(context),
+                    const SizedBox(width: 12),
+                    Text("Transactions", style: STextStyles.desktopH3(context)),
+                  ],
+                ),
+              )
+              : AppBar(
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.background,
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 75),
+                      );
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+                title: Text(
+                  "Transactions",
+                  style: STextStyles.navBarTitle(context),
+                ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 20,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        key: const Key("transactionSearchFilterViewButton"),
+                        size: 36,
+                        shadows: const [],
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
+                        icon: SvgPicture.asset(
+                          Assets.svg.filter,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorDark,
+                          width: 20,
+                          height: 20,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            TransactionSearchFilterView.routeName,
+                            arguments: ref.read(pWalletCoin(walletId)),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
-            )
-          : AppBar(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              leading: AppBarBackButton(
-                onPressed: () async {
-                  if (FocusScope.of(context).hasFocus) {
-                    FocusScope.of(context).unfocus();
-                    await Future<void>.delayed(
-                      const Duration(milliseconds: 75),
-                    );
-                  }
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-              title: Text(
-                "Transactions",
-                style: STextStyles.navBarTitle(context),
-              ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 20,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("transactionSearchFilterViewButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.filter,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          TransactionSearchFilterView.routeName,
-                          arguments: ref.read(pWalletCoin(walletId)),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
       body: Padding(
         padding: EdgeInsets.only(
           left: isDesktop ? 20 : 12,
@@ -356,15 +360,10 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                 children: [
                   ConditionalParent(
                     condition: isDesktop,
-                    builder: (child) => SizedBox(
-                      width: 570,
-                      child: child,
-                    ),
+                    builder: (child) => SizedBox(width: 570, child: child),
                     child: ConditionalParent(
                       condition: !isDesktop,
-                      builder: (child) => Expanded(
-                        child: child,
-                      ),
+                      builder: (child) => Expanded(child: child),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -379,15 +378,18 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                               _searchString = value;
                             });
                           },
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraSmall(context)
-                                  .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveText,
-                                  height: 1.8,
-                                )
-                              : STextStyles.field(context),
+                          style:
+                              isDesktop
+                                  ? STextStyles.desktopTextExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textFieldActiveText,
+                                    height: 1.8,
+                                  )
+                                  : STextStyles.field(context),
                           decoration: standardInputDecoration(
                             "Search...",
                             searchFieldFocusNode,
@@ -405,35 +407,33 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                                 height: isDesktop ? 20 : 16,
                               ),
                             ),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _searchController.text = "";
-                                                _searchString = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
+                            suffixIcon:
+                                _searchController.text.isNotEmpty
+                                    ? Padding(
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(() {
+                                                  _searchController.text = "";
+                                                  _searchString = "";
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                : null,
+                                    )
+                                    : null,
                           ),
                         ),
                       ),
                     ),
                   ),
-                  if (isDesktop)
-                    const SizedBox(
-                      width: 20,
-                    ),
+                  if (isDesktop) const SizedBox(width: 20),
                   if (isDesktop)
                     SecondaryButton(
                       buttonHeight: ButtonHeight.l,
@@ -441,9 +441,10 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                       label: "Filter",
                       icon: SvgPicture.asset(
                         Assets.svg.filter,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorDark,
                         width: 20,
                         height: 20,
                       ),
@@ -468,25 +469,14 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                 ],
               ),
             ),
-            if (isDesktop)
-              const SizedBox(
-                height: 8,
-              ),
+            if (isDesktop) const SizedBox(height: 8),
             if (isDesktop &&
                 ref.watch(transactionFilterProvider.state).state != null)
               const Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    TransactionFilterOptionBar(),
-                  ],
-                ),
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Row(children: [TransactionFilterOptionBar()]),
               ),
-            const SizedBox(
-              height: 8,
-            ),
+            const SizedBox(height: 8),
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
@@ -494,33 +484,35 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                       ref.watch(transactionFilterProvider.state).state;
 
                   return FutureBuilder(
-                    future: ref
-                        .watch(mainDBProvider)
-                        .isar
-                        .transactionV2s
-                        .buildQuery<TransactionV2>(
-                          whereClauses: [
-                            IndexWhereClause.equalTo(
-                              indexName: 'walletId',
-                              value: [widget.walletId],
-                            ),
-                          ],
-                          filter: widget.contractAddress == null
-                              ? ref
-                                  .watch(pWallets)
-                                  .getWallet(widget.walletId)
-                                  .transactionFilterOperation
-                              : ref
-                                  .read(pCurrentTokenWallet)!
-                                  .transactionFilterOperation,
-                          sortBy: [
-                            const SortProperty(
-                              property: "timestamp",
-                              sort: Sort.desc,
-                            ),
-                          ],
-                        )
-                        .findAll(),
+                    future:
+                        ref
+                            .watch(mainDBProvider)
+                            .isar
+                            .transactionV2s
+                            .buildQuery<TransactionV2>(
+                              whereClauses: [
+                                IndexWhereClause.equalTo(
+                                  indexName: 'walletId',
+                                  value: [widget.walletId],
+                                ),
+                              ],
+                              filter:
+                                  widget.contractAddress == null
+                                      ? ref
+                                          .watch(pWallets)
+                                          .getWallet(widget.walletId)
+                                          .transactionFilterOperation
+                                      : ref
+                                          .read(pCurrentTokenWallet)!
+                                          .transactionFilterOperation,
+                              sortBy: [
+                                const SortProperty(
+                                  property: "timestamp",
+                                  sort: Sort.desc,
+                                ),
+                              ],
+                            )
+                            .findAll(),
                     builder: (_, AsyncSnapshot<List<TransactionV2>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
@@ -549,43 +541,39 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (index != 0)
-                                    const SizedBox(
-                                      height: 12,
-                                    ),
+                                  if (index != 0) const SizedBox(height: 12),
                                   Text(
                                     month.label,
                                     style: STextStyles.smallMed12(context),
                                   ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
+                                  const SizedBox(height: 12),
                                   if (isDesktop)
                                     RoundedWhiteContainer(
                                       padding: const EdgeInsets.all(0),
                                       child: ListView.separated(
                                         shrinkWrap: true,
                                         primary: false,
-                                        separatorBuilder: (context, _) =>
-                                            Container(
-                                          height: 1,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .background,
-                                        ),
-                                        itemCount: month.transactions.length,
-                                        itemBuilder: (context, index) =>
-                                            Padding(
-                                          padding: const EdgeInsets.all(4),
-                                          child: DesktopTransactionCardRow(
-                                            key: Key(
-                                              "transactionCard_key_${month.transactions[index].txid}",
+                                        separatorBuilder:
+                                            (context, _) => Container(
+                                              height: 1,
+                                              color:
+                                                  Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .background,
                                             ),
-                                            transaction:
-                                                month.transactions[index],
-                                            walletId: walletId,
-                                          ),
-                                        ),
+                                        itemCount: month.transactions.length,
+                                        itemBuilder:
+                                            (context, index) => Padding(
+                                              padding: const EdgeInsets.all(4),
+                                              child: DesktopTransactionCardRow(
+                                                key: Key(
+                                                  "transactionCard_key_${month.transactions[index].txid}",
+                                                ),
+                                                transaction:
+                                                    month.transactions[index],
+                                                walletId: walletId,
+                                              ),
+                                            ),
                                       ),
                                     ),
                                   if (!isDesktop)
@@ -652,10 +640,10 @@ class _TransactionFilterOptionBarState
             if (items.isEmpty) {
               ref.read(transactionFilterProvider.state).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state =
-                  ref.read(transactionFilterProvider.state).state?.copyWith(
-                        sent: false,
-                      );
+              ref.read(transactionFilterProvider.state).state = ref
+                  .read(transactionFilterProvider.state)
+                  .state
+                  ?.copyWith(sent: false);
               setState(() {});
             }
           },
@@ -671,10 +659,10 @@ class _TransactionFilterOptionBarState
             if (items.isEmpty) {
               ref.read(transactionFilterProvider.state).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state =
-                  ref.read(transactionFilterProvider.state).state?.copyWith(
-                        received: false,
-                      );
+              ref.read(transactionFilterProvider.state).state = ref
+                  .read(transactionFilterProvider.state)
+                  .state
+                  ?.copyWith(received: false);
               setState(() {});
             }
           },
@@ -691,10 +679,10 @@ class _TransactionFilterOptionBarState
             if (items.isEmpty) {
               ref.read(transactionFilterProvider.state).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state =
-                  ref.read(transactionFilterProvider.state).state?.copyWith(
-                        to: null,
-                      );
+              ref.read(transactionFilterProvider.state).state = ref
+                  .read(transactionFilterProvider.state)
+                  .state
+                  ?.copyWith(to: null);
               setState(() {});
             }
           },
@@ -710,10 +698,10 @@ class _TransactionFilterOptionBarState
             if (items.isEmpty) {
               ref.read(transactionFilterProvider.state).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state =
-                  ref.read(transactionFilterProvider.state).state?.copyWith(
-                        from: null,
-                      );
+              ref.read(transactionFilterProvider.state).state = ref
+                  .read(transactionFilterProvider.state)
+                  .state
+                  ?.copyWith(from: null);
               setState(() {});
             }
           },
@@ -730,10 +718,10 @@ class _TransactionFilterOptionBarState
             if (items.isEmpty) {
               ref.read(transactionFilterProvider.state).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state =
-                  ref.read(transactionFilterProvider.state).state?.copyWith(
-                        amount: null,
-                      );
+              ref.read(transactionFilterProvider.state).state = ref
+                  .read(transactionFilterProvider.state)
+                  .state
+                  ?.copyWith(amount: null);
               setState(() {});
             }
           },
@@ -749,10 +737,10 @@ class _TransactionFilterOptionBarState
             if (items.isEmpty) {
               ref.read(transactionFilterProvider.state).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state =
-                  ref.read(transactionFilterProvider.state).state?.copyWith(
-                        keyword: "",
-                      );
+              ref.read(transactionFilterProvider.state).state = ref
+                  .read(transactionFilterProvider.state)
+                  .state
+                  ?.copyWith(keyword: "");
               setState(() {});
             }
           },
@@ -773,9 +761,7 @@ class _TransactionFilterOptionBarState
         scrollDirection: Axis.horizontal,
         shrinkWrap: true,
         itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(
-          width: 16,
-        ),
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
         itemBuilder: (context, index) => items[index],
       ),
     );
@@ -804,9 +790,7 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(1000),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -824,9 +808,7 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 10,
-              ),
+              const SizedBox(width: 10),
               XIcon(
                 width: 16,
                 height: 16,
@@ -865,23 +847,25 @@ class _DesktopTransactionCardRowState
   bool get isTokenTx => ethContract != null;
 
   String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
-        currentChainHeight: height,
-        minConfirms: minConfirms,
-        minCoinbaseConfirms: ref
+    currentChainHeight: height,
+    minConfirms: minConfirms,
+    minCoinbaseConfirms:
+        ref
             .read(pWallets)
             .getWallet(widget.walletId)
             .cryptoCurrency
             .minCoinbaseConfirms,
-      );
+  );
 
   @override
   void initState() {
     walletId = widget.walletId;
-    minConfirms = ref
-        .read(pWallets)
-        .getWallet(widget.walletId)
-        .cryptoCurrency
-        .minConfirms;
+    minConfirms =
+        ref
+            .read(pWallets)
+            .getWallet(widget.walletId)
+            .cryptoCurrency
+            .minConfirms;
     _transaction = widget.transaction;
 
     if (_transaction.subType == TransactionSubType.ethToken) {
@@ -901,17 +885,25 @@ class _DesktopTransactionCardRowState
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
-    final baseCurrency = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+    final baseCurrency = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.currency),
+    );
 
     final coin = ref.watch(pWalletCoin(walletId));
 
-    final price = ref
-        .watch(
-          priceAnd24hChangeNotifierProvider
-              .select((value) => value.getPrice(coin)),
-        )
-        .item1;
+    Decimal? price;
+    if (ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.externalCalls),
+    )) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) =>
+              isTokenTx
+                  ? value.getTokenPrice(_transaction.contractAddress!)?.value
+                  : value.getPrice(coin)?.value,
+        ),
+      );
+    }
 
     late final String prefix;
     if (Util.isDesktop) {
@@ -979,8 +971,9 @@ class _DesktopTransactionCardRowState
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(Constants.size.circularBorderRadius),
+        borderRadius: BorderRadius.circular(
+          Constants.size.circularBorderRadius,
+        ),
       ),
       child: RawMaterialButton(
         shape: RoundedRectangleBorder(
@@ -992,34 +985,28 @@ class _DesktopTransactionCardRowState
           if (Util.isDesktop) {
             await showDialog<void>(
               context: context,
-              builder: (context) => DesktopDialog(
-                maxHeight: MediaQuery.of(context).size.height - 64,
-                maxWidth: 580,
-                child: TransactionV2DetailsView(
-                  transaction: _transaction,
-                  coin: coin,
-                  walletId: walletId,
-                ),
-              ),
+              builder:
+                  (context) => DesktopDialog(
+                    maxHeight: MediaQuery.of(context).size.height - 64,
+                    maxWidth: 580,
+                    child: TransactionV2DetailsView(
+                      transaction: _transaction,
+                      coin: coin,
+                      walletId: walletId,
+                    ),
+                  ),
             );
           } else {
             unawaited(
               Navigator.of(context).pushNamed(
                 TransactionV2DetailsView.routeName,
-                arguments: (
-                  tx: _transaction,
-                  coin: coin,
-                  walletId: walletId,
-                ),
+                arguments: (tx: _transaction, coin: coin, walletId: walletId),
               ),
             );
           }
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: 16,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           child: Row(
             children: [
               TxIcon(
@@ -1027,18 +1014,14 @@ class _DesktopTransactionCardRowState
                 currentHeight: currentHeight,
                 coin: coin,
               ),
-              const SizedBox(
-                width: 12,
-              ),
+              const SizedBox(width: 12),
               Expanded(
                 flex: 3,
                 child: Text(
-                  whatIsIt(
-                    _transaction,
-                    currentHeight,
-                  ),
-                  style:
-                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  whatIsIt(_transaction, currentHeight),
+                  style: STextStyles.desktopTextExtraExtraSmall(
+                    context,
+                  ).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
                 ),
@@ -1062,24 +1045,18 @@ class _DesktopTransactionCardRowState
                 flex: 6,
                 child: Text(
                   "$prefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: ethContract)}",
-                  style:
-                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  style: STextStyles.desktopTextExtraExtraSmall(
+                    context,
+                  ).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
                 ),
               ),
-              if (ref.watch(
-                prefsChangeNotifierProvider
-                    .select((value) => value.externalCalls),
-              ))
+              if (price != null)
                 Expanded(
                   flex: 4,
                   child: Text(
-                    "$prefix${(amount.decimal * price).toAmount(
-                          fractionDigits: 2,
-                        ).fiatString(
-                          locale: locale,
-                        )} $baseCurrency",
+                    "$prefix${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
                 ),

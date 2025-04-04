@@ -183,10 +183,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
         // autofill amount field
         if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
-            fractionDigits: tokenContract.decimals,
-          );
-          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+          final Amount amount = Decimal.parse(
+            paymentData.amount!,
+          ).toAmount(fractionDigits: tokenContract.decimals);
+          cryptoAmountController.text = ref
+              .read(pAmountFormatter(coin))
+              .format(
                 amount,
                 withUnitName: false,
                 indicatePrecisionLoss: false,
@@ -231,22 +233,24 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       locale: ref.read(localeServiceChangeNotifierProvider).locale,
     );
     if (baseAmount != null) {
-      final _price = ref
-          .read(priceAnd24hChangeNotifierProvider)
-          .getTokenPrice(tokenContract.address)
-          .item1;
+      final _price =
+          ref
+              .read(priceAnd24hChangeNotifierProvider)
+              .getTokenPrice(tokenContract.address)
+              ?.value;
 
-      if (_price == Decimal.zero) {
+      if (_price == null || _price == Decimal.zero) {
         _amountToSend = Amount.zero;
       } else {
-        _amountToSend = baseAmount <= Amount.zero
-            ? Amount.zero
-            : Amount.fromDecimal(
-                (baseAmount.decimal / _price).toDecimal(
-                  scaleOnInfinitePrecision: tokenContract.decimals,
-                ),
-                fractionDigits: tokenContract.decimals,
-              );
+        _amountToSend =
+            baseAmount <= Amount.zero
+                ? Amount.zero
+                : Amount.fromDecimal(
+                  (baseAmount.decimal / _price).toDecimal(
+                    scaleOnInfinitePrecision: tokenContract.decimals,
+                  ),
+                  fractionDigits: tokenContract.decimals,
+                );
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
         return;
@@ -254,10 +258,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       _cachedAmountToSend = _amountToSend;
 
       _cryptoAmountChangeLock = true;
-      cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
-            _amountToSend!,
-            withUnitName: false,
-          );
+      cryptoAmountController.text = ref
+          .read(pAmountFormatter(coin))
+          .format(_amountToSend!, withUnitName: false);
       _cryptoAmountChangeLock = false;
     } else {
       _amountToSend = Amount.zero;
@@ -275,10 +278,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref.read(pAmountFormatter(coin)).tryParse(
-            cryptoAmountController.text,
-            ethContract: tokenContract,
-          );
+      final cryptoAmount = ref
+          .read(pAmountFormatter(coin))
+          .tryParse(cryptoAmountController.text, ethContract: tokenContract);
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
@@ -287,16 +289,15 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         }
         _cachedAmountToSend = _amountToSend;
 
-        final price = ref
-            .read(priceAnd24hChangeNotifierProvider)
-            .getTokenPrice(tokenContract.address)
-            .item1;
+        final price =
+            ref
+                .read(priceAnd24hChangeNotifierProvider)
+                .getTokenPrice(tokenContract.address)
+                ?.value;
 
-        if (price > Decimal.zero) {
+        if (price != null && price > Decimal.zero) {
           baseAmountController.text = (_amountToSend!.decimal * price)
-              .toAmount(
-                fractionDigits: 2,
-              )
+              .toAmount(fractionDigits: 2)
               .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
               );
@@ -376,11 +377,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     }
 
     final Amount fee = await wallet.estimateFeeFor(Amount.zero, feeRate);
-    cachedFees = ref.read(pAmountFormatter(coin)).format(
-          fee,
-          withUnitName: true,
-          indicatePrecisionLoss: false,
-        );
+    cachedFees = ref
+        .read(pAmountFormatter(coin))
+        .format(fee, withUnitName: true, indicatePrecisionLoss: false);
 
     return cachedFees;
   }
@@ -388,9 +387,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   Future<void> _previewTransaction() async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
-    await Future<void>.delayed(
-      const Duration(milliseconds: 100),
-    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     final wallet = ref.read(pWallets).getWallet(walletId);
     final tokenWallet = ref.read(pCurrentTokenWallet)!;
 
@@ -471,33 +468,20 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         );
       }
 
-      final time = Future<dynamic>.delayed(
-        const Duration(
-          milliseconds: 2500,
-        ),
-      );
+      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       TxData txData;
       Future<TxData> txDataFuture;
 
       txDataFuture = tokenWallet.prepareSend(
         txData: TxData(
-          recipients: [
-            (
-              address: _address!,
-              amount: amount,
-              isChange: false,
-            ),
-          ],
+          recipients: [(address: _address!, amount: amount, isChange: false)],
           feeRateType: ref.read(feeRateTypeStateProvider),
           note: noteController.text,
         ),
       );
 
-      final results = await Future.wait([
-        txDataFuture,
-        time,
-      ]);
+      final results = await Future.wait([txDataFuture, time]);
 
       txData = results.first as TxData;
 
@@ -509,13 +493,14 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           Navigator.of(context).push(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-              builder: (_) => ConfirmTransactionView(
-                txData: txData,
-                walletId: walletId,
-                isTokenTx: true,
-                onSuccess: clearSendForm,
-                routeOnSuccessName: TokenView.routeName,
-              ),
+              builder:
+                  (_) => ConfirmTransactionView(
+                    txData: txData,
+                    walletId: walletId,
+                    isTokenTx: true,
+                    onSuccess: clearSendForm,
+                    routeOnSuccessName: TokenView.routeName,
+                  ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
               ),
@@ -545,9 +530,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -637,6 +623,15 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
+    Decimal? price;
+    if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) => value.getTokenPrice(tokenContract.address)?.value,
+        ),
+      );
+    }
+
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -660,11 +655,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         body: LayoutBuilder(
           builder: (builderContext, constraints) {
             return Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                top: 12,
-                right: 12,
-              ),
+              padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
               child: SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
@@ -679,9 +670,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                         children: [
                           Container(
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .popupBG,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.popupBG,
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
                               ),
@@ -693,24 +685,24 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                   EthTokenIcon(
                                     contractAddress: tokenContract.address,
                                   ),
-                                  const SizedBox(
-                                    width: 6,
-                                  ),
+                                  const SizedBox(width: 6),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         ref.watch(pWalletName(walletId)),
-                                        style: STextStyles.titleBold12(context)
-                                            .copyWith(fontSize: 14),
+                                        style: STextStyles.titleBold12(
+                                          context,
+                                        ).copyWith(fontSize: 14),
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
                                       ),
                                       Text(
                                         "Available balance",
-                                        style: STextStyles.label(context)
-                                            .copyWith(fontSize: 10),
+                                        style: STextStyles.label(
+                                          context,
+                                        ).copyWith(fontSize: 10),
                                       ),
                                     ],
                                   ),
@@ -722,13 +714,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           .format(
                                             ref
                                                 .read(
-                                                  pTokenBalance(
-                                                    (
-                                                      walletId: widget.walletId,
-                                                      contractAddress:
-                                                          tokenContract.address,
-                                                    ),
-                                                  ),
+                                                  pTokenBalance((
+                                                    walletId: widget.walletId,
+                                                    contractAddress:
+                                                        tokenContract.address,
+                                                  )),
                                                 )
                                                 .spendable,
                                             ethContract: tokenContract,
@@ -748,48 +738,30 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                 .format(
                                                   ref
                                                       .watch(
-                                                        pTokenBalance(
-                                                          (
-                                                            walletId:
-                                                                widget.walletId,
-                                                            contractAddress:
-                                                                tokenContract
-                                                                    .address,
-                                                          ),
-                                                        ),
-                                                      )
-                                                      .spendable,
-                                                  ethContract: tokenContract,
-                                                ),
-                                            style:
-                                                STextStyles.titleBold12(context)
-                                                    .copyWith(
-                                              fontSize: 10,
-                                            ),
-                                            textAlign: TextAlign.right,
-                                          ),
-                                          Text(
-                                            "${(ref.watch(
-                                                      pTokenBalance(
-                                                        (
+                                                        pTokenBalance((
                                                           walletId:
                                                               widget.walletId,
                                                           contractAddress:
                                                               tokenContract
                                                                   .address,
-                                                        ),
-                                                      ),
-                                                    ).spendable.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getTokenPrice(tokenContract.address).item1))).toAmount(
-                                                  fractionDigits: 2,
-                                                ).fiatString(
-                                                  locale: locale,
-                                                )} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                            style: STextStyles.subtitle(context)
-                                                .copyWith(
-                                              fontSize: 8,
-                                            ),
+                                                        )),
+                                                      )
+                                                      .spendable,
+                                                  ethContract: tokenContract,
+                                                ),
+                                            style: STextStyles.titleBold12(
+                                              context,
+                                            ).copyWith(fontSize: 10),
                                             textAlign: TextAlign.right,
                                           ),
+                                          if (price != null)
+                                            Text(
+                                              "${(ref.watch(pTokenBalance((walletId: widget.walletId, contractAddress: tokenContract.address))).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                              style: STextStyles.subtitle(
+                                                context,
+                                              ).copyWith(fontSize: 8),
+                                              textAlign: TextAlign.right,
+                                            ),
                                         ],
                                       ),
                                     ),
@@ -798,17 +770,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            height: 16,
-                          ),
+                          const SizedBox(height: 16),
                           Text(
                             "Send to",
                             style: STextStyles.smallMed12(context),
                             textAlign: TextAlign.left,
                           ),
-                          const SizedBox(
-                            height: 8,
-                          ),
+                          const SizedBox(height: 8),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(
                               Constants.size.circularBorderRadius,
@@ -850,9 +818,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                   right: 5,
                                 ),
                                 suffixIcon: Padding(
-                                  padding: sendToController.text.isEmpty
-                                      ? const EdgeInsets.only(right: 8)
-                                      : const EdgeInsets.only(right: 0),
+                                  padding:
+                                      sendToController.text.isEmpty
+                                          ? const EdgeInsets.only(right: 8)
+                                          : const EdgeInsets.only(right: 0),
                                   child: UnconstrainedBox(
                                     child: Row(
                                       mainAxisAlignment:
@@ -860,33 +829,33 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                       children: [
                                         _addressToggleFlag
                                             ? TextFieldIconButton(
-                                                key: const Key(
-                                                  "tokenSendViewClearAddressFieldButtonKey",
-                                                ),
-                                                onTap: () {
-                                                  sendToController.text = "";
-                                                  _address = "";
-                                                  _updatePreviewButtonState(
-                                                    _address,
-                                                    _amountToSend,
-                                                  );
-                                                  setState(() {
-                                                    _addressToggleFlag = false;
-                                                  });
-                                                },
-                                                child: const XIcon(),
-                                              )
-                                            : TextFieldIconButton(
-                                                key: const Key(
-                                                  "tokenSendViewPasteAddressFieldButtonKey",
-                                                ),
-                                                onTap:
-                                                    _onTokenSendViewPasteAddressFieldButtonPressed,
-                                                child: sendToController
-                                                        .text.isEmpty
-                                                    ? const ClipboardIcon()
-                                                    : const XIcon(),
+                                              key: const Key(
+                                                "tokenSendViewClearAddressFieldButtonKey",
                                               ),
+                                              onTap: () {
+                                                sendToController.text = "";
+                                                _address = "";
+                                                _updatePreviewButtonState(
+                                                  _address,
+                                                  _amountToSend,
+                                                );
+                                                setState(() {
+                                                  _addressToggleFlag = false;
+                                                });
+                                              },
+                                              child: const XIcon(),
+                                            )
+                                            : TextFieldIconButton(
+                                              key: const Key(
+                                                "tokenSendViewPasteAddressFieldButtonKey",
+                                              ),
+                                              onTap:
+                                                  _onTokenSendViewPasteAddressFieldButtonPressed,
+                                              child:
+                                                  sendToController.text.isEmpty
+                                                      ? const ClipboardIcon()
+                                                      : const XIcon(),
+                                            ),
                                         if (sendToController.text.isEmpty)
                                           TextFieldIconButton(
                                             key: const Key(
@@ -935,11 +904,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     child: Text(
                                       error,
                                       textAlign: TextAlign.left,
-                                      style:
-                                          STextStyles.label(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textError,
+                                      style: STextStyles.label(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textError,
                                       ),
                                     ),
                                   ),
@@ -947,9 +918,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               }
                             },
                           ),
-                          const SizedBox(
-                            height: 12,
-                          ),
+                          const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -972,27 +941,28 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               // ),
                             ],
                           ),
-                          const SizedBox(
-                            height: 8,
-                          ),
+                          const SizedBox(height: 8),
                           TextField(
                             autocorrect: Util.isDesktop ? false : true,
                             enableSuggestions: Util.isDesktop ? false : true,
                             style: STextStyles.smallMed14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark,
                             ),
-                            key:
-                                const Key("amountInputFieldCryptoTextFieldKey"),
+                            key: const Key(
+                              "amountInputFieldCryptoTextFieldKey",
+                            ),
                             controller: cryptoAmountController,
                             focusNode: _cryptoFocus,
-                            keyboardType: Util.isDesktop
-                                ? null
-                                : const TextInputType.numberWithOptions(
-                                    signed: false,
-                                    decimal: true,
-                                  ),
+                            keyboardType:
+                                Util.isDesktop
+                                    ? null
+                                    : const TextInputType.numberWithOptions(
+                                      signed: false,
+                                      decimal: true,
+                                    ),
                             textAlign: TextAlign.right,
                             inputFormatters: [
                               AmountInputFormatter(
@@ -1014,10 +984,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                 right: 12,
                               ),
                               hintText: "0",
-                              hintStyle:
-                                  STextStyles.fieldLabel(context).copyWith(
-                                fontSize: 14,
-                              ),
+                              hintStyle: STextStyles.fieldLabel(
+                                context,
+                              ).copyWith(fontSize: 14),
                               prefixIcon: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Padding(
@@ -1026,11 +995,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     ref
                                         .watch(pAmountUnit(coin))
                                         .unitForContract(tokenContract),
-                                    style: STextStyles.smallMed14(context)
-                                        .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
+                                    style: STextStyles.smallMed14(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorDark,
                                     ),
                                   ),
                                 ),
@@ -1038,28 +1009,29 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             ),
                           ),
                           if (Prefs.instance.externalCalls)
-                            const SizedBox(
-                              height: 8,
-                            ),
+                            const SizedBox(height: 8),
                           if (Prefs.instance.externalCalls)
                             TextField(
                               autocorrect: Util.isDesktop ? false : true,
                               enableSuggestions: Util.isDesktop ? false : true,
                               style: STextStyles.smallMed14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
                               ),
-                              key:
-                                  const Key("amountInputFieldFiatTextFieldKey"),
+                              key: const Key(
+                                "amountInputFieldFiatTextFieldKey",
+                              ),
                               controller: baseAmountController,
                               focusNode: _baseFocus,
-                              keyboardType: Util.isDesktop
-                                  ? null
-                                  : const TextInputType.numberWithOptions(
-                                      signed: false,
-                                      decimal: true,
-                                    ),
+                              keyboardType:
+                                  Util.isDesktop
+                                      ? null
+                                      : const TextInputType.numberWithOptions(
+                                        signed: false,
+                                        decimal: true,
+                                      ),
                               textAlign: TextAlign.right,
                               inputFormatters: [
                                 AmountInputFormatter(
@@ -1081,41 +1053,39 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                   right: 12,
                                 ),
                                 hintText: "0",
-                                hintStyle:
-                                    STextStyles.fieldLabel(context).copyWith(
-                                  fontSize: 14,
-                                ),
+                                hintStyle: STextStyles.fieldLabel(
+                                  context,
+                                ).copyWith(fontSize: 14),
                                 prefixIcon: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Text(
                                       ref.watch(
-                                        prefsChangeNotifierProvider
-                                            .select((value) => value.currency),
+                                        prefsChangeNotifierProvider.select(
+                                          (value) => value.currency,
+                                        ),
                                       ),
-                                      style: STextStyles.smallMed14(context)
-                                          .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark,
+                                      style: STextStyles.smallMed14(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          const SizedBox(
-                            height: 12,
-                          ),
+                          const SizedBox(height: 12),
                           Text(
                             "Note (optional)",
                             style: STextStyles.smallMed12(context),
                             textAlign: TextAlign.left,
                           ),
-                          const SizedBox(
-                            height: 8,
-                          ),
+                          const SizedBox(height: 8),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(
                               Constants.size.circularBorderRadius,
@@ -1132,41 +1102,39 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                 _noteFocusNode,
                                 context,
                               ).copyWith(
-                                suffixIcon: noteController.text.isNotEmpty
-                                    ? Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 0),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            children: [
-                                              TextFieldIconButton(
-                                                child: const XIcon(),
-                                                onTap: () async {
-                                                  setState(() {
-                                                    noteController.text = "";
-                                                  });
-                                                },
-                                              ),
-                                            ],
+                                suffixIcon:
+                                    noteController.text.isNotEmpty
+                                        ? Padding(
+                                          padding: const EdgeInsets.only(
+                                            right: 0,
                                           ),
-                                        ),
-                                      )
-                                    : null,
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              children: [
+                                                TextFieldIconButton(
+                                                  child: const XIcon(),
+                                                  onTap: () async {
+                                                    setState(() {
+                                                      noteController.text = "";
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                        : null,
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            height: 12,
-                          ),
+                          const SizedBox(height: 12),
                           if (coin is! Epiccash)
                             Text(
                               "Transaction fee (estimated)",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          const SizedBox(
-                            height: 8,
-                          ),
+                          const SizedBox(height: 8),
                           Stack(
                             children: [
                               TextField(
@@ -1182,9 +1150,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                   horizontal: 12,
                                 ),
                                 child: RawMaterialButton(
-                                  splashColor: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .highlight,
+                                  splashColor:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.highlight,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
                                       Constants.size.circularBorderRadius,
@@ -1199,25 +1168,27 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           top: Radius.circular(20),
                                         ),
                                       ),
-                                      builder: (_) =>
-                                          TransactionFeeSelectionSheet(
-                                        walletId: walletId,
-                                        isToken: true,
-                                        amount: (Decimal.tryParse(
-                                                  cryptoAmountController.text,
-                                                ) ??
-                                                Decimal.zero)
-                                            .toAmount(
-                                          fractionDigits:
-                                              tokenContract.decimals,
-                                        ),
-                                        updateChosen: (String fee) {
-                                          setState(() {
-                                            _calculateFeesFuture =
-                                                Future(() => fee);
-                                          });
-                                        },
-                                      ),
+                                      builder:
+                                          (_) => TransactionFeeSelectionSheet(
+                                            walletId: walletId,
+                                            isToken: true,
+                                            amount: (Decimal.tryParse(
+                                                      cryptoAmountController
+                                                          .text,
+                                                    ) ??
+                                                    Decimal.zero)
+                                                .toAmount(
+                                                  fractionDigits:
+                                                      tokenContract.decimals,
+                                                ),
+                                            updateChosen: (String fee) {
+                                              setState(() {
+                                                _calculateFeesFuture = Future(
+                                                  () => fee,
+                                                );
+                                              });
+                                            },
+                                          ),
                                     );
                                   },
                                   child: Row(
@@ -1238,9 +1209,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                               context,
                                             ),
                                           ),
-                                          const SizedBox(
-                                            width: 10,
-                                          ),
+                                          const SizedBox(width: 10),
                                           FutureBuilder(
                                             future: _calculateFeesFuture,
                                             builder: (context, snapshot) {
@@ -1251,8 +1220,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                   "~${snapshot.data!}",
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                                        context,
+                                                      ),
                                                 );
                                               } else {
                                                 return AnimatedText(
@@ -1264,8 +1233,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                   ],
                                                   style:
                                                       STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
+                                                        context,
+                                                      ),
                                                 );
                                               }
                                             },
@@ -1276,9 +1245,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         Assets.svg.chevronDown,
                                         width: 8,
                                         height: 4,
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle2,
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle2,
                                       ),
                                     ],
                                   ),
@@ -1287,36 +1257,36 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             ],
                           ),
                           const Spacer(),
-                          const SizedBox(
-                            height: 12,
-                          ),
+                          const SizedBox(height: 12),
                           TextButton(
-                            onPressed: ref
-                                    .watch(
-                                      previewTokenTxButtonStateProvider.state,
-                                    )
-                                    .state
-                                ? _previewTransaction
-                                : null,
-                            style: ref
-                                    .watch(
-                                      previewTokenTxButtonStateProvider.state,
-                                    )
-                                    .state
-                                ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .getPrimaryEnabledButtonStyle(context)
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .getPrimaryDisabledButtonStyle(context),
+                            onPressed:
+                                ref
+                                        .watch(
+                                          previewTokenTxButtonStateProvider
+                                              .state,
+                                        )
+                                        .state
+                                    ? _previewTransaction
+                                    : null,
+                            style:
+                                ref
+                                        .watch(
+                                          previewTokenTxButtonStateProvider
+                                              .state,
+                                        )
+                                        .state
+                                    ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryEnabledButtonStyle(context)
+                                    : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryDisabledButtonStyle(context),
                             child: Text(
                               "Preview",
                               style: STextStyles.button(context),
                             ),
                           ),
-                          const SizedBox(
-                            height: 4,
-                          ),
+                          const SizedBox(height: 4),
                         ],
                       ),
                     ),
