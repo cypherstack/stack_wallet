@@ -33,6 +33,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
@@ -136,7 +137,9 @@ class _ConfirmNameTransactionViewState
       ]);
 
       txids.add(txData.txid!);
-      ref.refresh(desktopUseUTXOs);
+      if (coin is! Ethereum) {
+        ref.refresh(desktopUseUTXOs);
+      }
 
       // save note
       for (final txid in txids) {

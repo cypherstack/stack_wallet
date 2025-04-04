@@ -33,6 +33,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/coins/epiccash.dart';
+import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -181,7 +182,9 @@ class _ConfirmTransactionViewState
       } else {
         txids.add((results.first as TxData).txid!);
       }
-      ref.refresh(desktopUseUTXOs);
+      if (coin is! Ethereum) {
+        ref.refresh(desktopUseUTXOs);
+      }
 
       // save note
       for (final txid in txids) {
