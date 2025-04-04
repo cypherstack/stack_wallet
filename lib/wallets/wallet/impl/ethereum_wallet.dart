@@ -59,7 +59,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   Amount estimateEthFee(int feeRate, int gasLimit, int decimals) {
     final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
-    final fee = gasLimit.toDecimal() *
+    final fee =
+        gasLimit.toDecimal() *
         gweiAmount.toDecimal(
           scaleOnInfinitePrecision: cryptoCurrency.fractionDigits,
         );
@@ -95,9 +96,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
       scriptPubKeyHex: "00",
       valueStringSats: amount.raw.toString(),
-      addresses: [
-        addressTo,
-      ],
+      addresses: [addressTo],
       walletOwns: addressTo == myAddress,
     );
     final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -132,16 +131,15 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       inputs: List.unmodifiable(inputs),
       outputs: List.unmodifiable(outputs),
       version: -1,
-      type: addressTo == myAddress
-          ? TransactionType.sentToSelf
-          : TransactionType.outgoing,
+      type:
+          addressTo == myAddress
+              ? TransactionType.sentToSelf
+              : TransactionType.outgoing,
       subType: TransactionSubType.none,
       otherData: jsonEncode(otherData),
     );
 
-    return txData.copyWith(
-      tempTx: txn,
-    );
+    return txData.copyWith(tempTx: txn);
   }
 
   // ==================== Overrides ============================================
@@ -151,11 +149,11 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   @override
   FilterOperation? get transactionFilterOperation => FilterGroup.not(
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: TransactionSubType.ethToken,
-        ),
-      );
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: TransactionSubType.ethToken,
+    ),
+  );
 
   @override
   FilterOperation? get changeAddressFilterOperation =>
@@ -235,10 +233,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
       );
-      await info.updateBalance(
-        newBalance: balance,
-        isar: mainDB.isar,
-      );
+      await info.updateBalance(newBalance: balance, isar: mainDB.isar);
     } catch (e, s) {
       Logging.instance.w(
         "$runtimeType wallet failed to update balance: ",
@@ -254,10 +249,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       final client = getEthClient();
       final height = await client.getBlockNumber();
 
-      await info.updateCachedChainHeight(
-        newHeight: height,
-        isar: mainDB.isar,
-      );
+      await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
     } catch (e, s) {
       Logging.instance.w(
         "$runtimeType Exception caught in chainHeight: ",
@@ -279,7 +271,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     int firstBlock = 0;
 
     if (!isRescan) {
-      firstBlock = await mainDB.isar.transactionV2s
+      firstBlock =
+          await mainDB.isar.transactionV2s
               .where()
               .walletIdEqualTo(walletId)
               .heightProperty()
@@ -311,8 +304,9 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       return;
     }
 
-    final txsResponse =
-        await EthereumAPI.getEthTransactionNonces(response.value!);
+    final txsResponse = await EthereumAPI.getEthTransactionNonces(
+      response.value!,
+    );
 
     if (txsResponse.value != null) {
       final allTxs = txsResponse.value!;
@@ -351,9 +345,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "00",
           valueStringSats: transactionAmount.raw.toString(),
-          addresses: [
-            addressTo,
-          ],
+          addresses: [addressTo],
           walletOwns: addressTo == thisAddress,
         );
         final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -424,7 +416,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     final int
-        rate; // TODO: use BigInt for feeObject whenever FeeObject gets redone
+    rate; // TODO: use BigInt for feeObject whenever FeeObject gets redone
     final feeObject = await fees;
     switch (txData.feeRateType!) {
       case FeeRateType.fast:
@@ -472,7 +464,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     //   value: web3.EtherAmount.inWei(amount.raw),
     // );
 
-    final nonce = txData.nonce ??
+    final nonce =
+        txData.nonce ??
         await client.getTransactionCount(
           myWeb3Address,
           atBlock: const web3.BlockNum.pending(),
@@ -488,10 +481,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     final tx = web3.Transaction(
       to: web3.EthereumAddress.fromHex(address),
-      gasPrice: web3.EtherAmount.fromUnitAndValue(
-        web3.EtherUnit.wei,
-        rate,
-      ),
+      gasPrice: web3.EtherAmount.fromInt(web3.EtherUnit.wei, rate),
       maxGas: (cryptoCurrency as Ethereum).gasLimit,
       value: web3.EtherAmount.inWei(amount.raw),
       nonce: nonce,
@@ -523,10 +513,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     );
 
     final data = (prepareTempTx ?? _prepareTempTx)(
-      txData.copyWith(
-        txid: txid,
-        txHash: txid,
-      ),
+      txData.copyWith(txid: txid, txHash: txid),
       (await getCurrentReceivingAddress())!.value,
     );
 

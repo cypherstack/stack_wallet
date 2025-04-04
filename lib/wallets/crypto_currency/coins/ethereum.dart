@@ -48,18 +48,18 @@ class Ethereum extends Bip39Currency {
 
   @override
   NodeModel get defaultNode => NodeModel(
-        host: "https://eth.stackwallet.com",
-        port: 443,
-        name: DefaultNodes.defaultName,
-        id: DefaultNodes.buildId(this),
-        useSSL: true,
-        enabled: true,
-        coinName: identifier,
-        isFailover: true,
-        isDown: false,
-        torEnabled: true,
-        clearnetEnabled: true,
-      );
+    host: "https://eth.stackwallet.com",
+    port: 443,
+    name: DefaultNodes.defaultName,
+    id: DefaultNodes.buildId(this),
+    useSSL: true,
+    enabled: true,
+    coinName: identifier,
+    isFailover: true,
+    isDown: false,
+    torEnabled: true,
+    clearnetEnabled: true,
+  );
 
   @override
   // Not used for eth
