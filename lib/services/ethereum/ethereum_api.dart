@@ -10,18 +10,14 @@
 
 import 'dart:convert';
 
-import 'package:tuple/tuple.dart';
-
 import '../../dto/ethereum/eth_token_tx_dto.dart';
 import '../../dto/ethereum/eth_token_tx_extra_dto.dart';
 import '../../dto/ethereum/eth_tx_dto.dart';
-import '../../dto/ethereum/pending_eth_tx_dto.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/paymint/fee_object_model.dart';
 import '../../networking/http.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/eth_commons.dart';
-import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -99,119 +95,6 @@ abstract class EthereumAPI {
       Logging.instance.e("getEthTransactions()", error: e);
       Logging.instance.d(
         "getEthTransactions($address)",
-        error: e,
-        stackTrace: s,
-      );
-      return EthereumResponse(null, EthApiException(e.toString()));
-    }
-  }
-
-  static Future<EthereumResponse<PendingEthTxDto>> getEthTransactionByHash(
-    String txid,
-  ) async {
-    try {
-      final response = await client.post(
-        url: Uri.parse("$stackBaseServer/v1/mainnet"),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          "jsonrpc": "2.0",
-          "method": "eth_getTransactionByHash",
-          "params": [txid],
-          "id": DateTime.now().millisecondsSinceEpoch,
-        }),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
-      );
-
-      if (response.code == 200) {
-        if (response.body.isNotEmpty) {
-          try {
-            final json = jsonDecode(response.body) as Map;
-            final result = json["result"] as Map;
-            return EthereumResponse(
-              PendingEthTxDto.fromMap(Map<String, dynamic>.from(result)),
-              null,
-            );
-          } catch (_) {
-            throw EthApiException(
-              "getEthTransactionByHash($txid) failed with response: "
-              "${response.body}",
-            );
-          }
-        } else {
-          throw EthApiException(
-            "getEthTransactionByHash($txid) response is empty but status code is "
-            "${response.code}",
-          );
-        }
-      } else {
-        throw EthApiException(
-          "getEthTransactionByHash($txid) failed with status code: "
-          "${response.code}",
-        );
-      }
-    } on EthApiException catch (e) {
-      return EthereumResponse(null, e);
-    } catch (e, s) {
-      Logging.instance.e("getEthTransactionByHash()", error: e);
-      Logging.instance.d(
-        "getEthTransactionByHash($txid)",
-        error: e,
-        stackTrace: s,
-      );
-      return EthereumResponse(null, EthApiException(e.toString()));
-    }
-  }
-
-  static Future<EthereumResponse<List<Tuple2<EthTxDTO, int?>>>>
-  getEthTransactionNonces(List<EthTxDTO> txns) async {
-    try {
-      final response = await client.get(
-        url: Uri.parse(
-          "$stackBaseServer/transactions?transactions=${txns.map((e) => e.hash).join(" ")}&raw=true",
-        ),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
-      );
-
-      if (response.code == 200) {
-        if (response.body.isNotEmpty) {
-          final json = jsonDecode(response.body) as Map;
-          final list = List<Map<String, dynamic>>.from(json["data"] as List);
-
-          final List<Tuple2<EthTxDTO, int?>> result = [];
-
-          for (final dto in txns) {
-            final data = list.firstWhere(
-              (e) => e["hash"] == dto.hash,
-              orElse: () => {},
-            );
-
-            final nonce = (data["nonce"] as String?)?.toBigIntFromHex.toInt();
-            result.add(Tuple2(dto, nonce));
-          }
-          return EthereumResponse(result, null);
-        } else {
-          // nice that the api returns an empty body instead of being
-          // consistent and returning a json object with no transactions
-          return EthereumResponse([], null);
-        }
-      } else {
-        throw EthApiException(
-          "getEthTransactionNonces($txns) failed with status code: "
-          "${response.code}",
-        );
-      }
-    } on EthApiException catch (e) {
-      return EthereumResponse(null, e);
-    } catch (e, s) {
-      Logging.instance.e("getEthTransactionNonces()", error: e);
-      Logging.instance.d(
-        "getEthTransactionNonces($txns)",
         error: e,
         stackTrace: s,
       );

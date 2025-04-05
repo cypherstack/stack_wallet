@@ -7,6 +7,7 @@ import 'package:http/http.dart';
 import 'package:isar/isar.dart';
 import 'package:web3dart/web3dart.dart' as web3;
 
+import '../../../dto/ethereum/eth_tx_dto.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -293,8 +294,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     if (response.value == null) {
       Logging.instance.w(
-        "Failed to refresh transactions for ${cryptoCurrency.prettyName} ${info.name} "
-        "$walletId: ${response.exception}",
+        "Failed to refresh transactions for ${cryptoCurrency.prettyName}"
+        " ${info.name} $walletId: ${response.exception}",
       );
       return;
     }
@@ -304,107 +305,114 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       return;
     }
 
-    final txsResponse = await EthereumAPI.getEthTransactionNonces(
-      response.value!,
-    );
-
-    if (txsResponse.value != null) {
-      final allTxs = txsResponse.value!;
-      final List<TransactionV2> txns = [];
-      for (final tuple in allTxs) {
-        final element = tuple.item1;
-
-        if (element.hasToken && !element.isError) {
-          continue;
-        }
-
-        //Calculate fees (GasLimit * gasPrice)
-        // int txFee = element.gasPrice * element.gasUsed;
-        final Amount txFee = element.gasCost;
-        final transactionAmount = element.value;
-        final addressFrom = checksumEthereumAddress(element.from);
-        final addressTo = checksumEthereumAddress(element.to);
-
-        bool isIncoming;
-        bool txFailed = false;
-        if (addressFrom == thisAddress) {
-          if (element.isError) {
-            txFailed = true;
-          }
-          isIncoming = false;
-        } else if (addressTo == thisAddress) {
-          isIncoming = true;
+    web3.Web3Client? client;
+    final List<EthTxDTO> allTxs = [];
+    for (final dto in response.value!) {
+      if (dto.nonce == null) {
+        client ??= getEthClient();
+        final txInfo = await client.getTransactionByHash(dto.hash);
+        if (txInfo == null) {
+          // Something strange is happening
+          Logging.instance.w(
+            "Could not find transaction via RPC that was found use TrueBlocks "
+            "API.\nOffending tx: $dto",
+          );
         } else {
-          continue;
+          final updated = dto.copyWith(nonce: txInfo.nonce);
+          allTxs.add(updated);
         }
-
-        // hack eth tx data into inputs and outputs
-        final List<OutputV2> outputs = [];
-        final List<InputV2> inputs = [];
-
-        final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptPubKeyHex: "00",
-          valueStringSats: transactionAmount.raw.toString(),
-          addresses: [addressTo],
-          walletOwns: addressTo == thisAddress,
-        );
-        final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: null,
-          scriptSigAsm: null,
-          sequence: null,
-          outpoint: null,
-          addresses: [addressFrom],
-          valueStringSats: transactionAmount.raw.toString(),
-          witness: null,
-          innerRedeemScriptAsm: null,
-          coinbase: null,
-          walletOwns: addressFrom == thisAddress,
-        );
-
-        final TransactionType txType;
-        if (isIncoming) {
-          if (addressFrom == addressTo) {
-            txType = TransactionType.sentToSelf;
-          } else {
-            txType = TransactionType.incoming;
-          }
-        } else {
-          txType = TransactionType.outgoing;
-        }
-
-        outputs.add(output);
-        inputs.add(input);
-
-        final otherData = {
-          "nonce": tuple.item2,
-          "isCancelled": txFailed,
-          "overrideFee": txFee.toJsonString(),
-        };
-
-        final txn = TransactionV2(
-          walletId: walletId,
-          blockHash: element.blockHash,
-          hash: element.hash,
-          txid: element.hash,
-          timestamp: element.timestamp,
-          height: element.blockNumber,
-          inputs: List.unmodifiable(inputs),
-          outputs: List.unmodifiable(outputs),
-          version: -1,
-          type: txType,
-          subType: TransactionSubType.none,
-          otherData: jsonEncode(otherData),
-        );
-
-        txns.add(txn);
+      } else {
+        allTxs.add(dto);
       }
-      await mainDB.updateOrPutTransactionV2s(txns);
-    } else {
-      Logging.instance.w(
-        "Failed to refresh transactions with nonces for ${cryptoCurrency.prettyName} "
-        "${info.name} $walletId: ${txsResponse.exception}",
-      );
     }
+
+    final List<TransactionV2> txns = [];
+    for (final element in allTxs) {
+      if (element.hasToken && !element.isError) {
+        continue;
+      }
+
+      //Calculate fees (GasLimit * gasPrice)
+      // int txFee = element.gasPrice * element.gasUsed;
+      final Amount txFee = element.gasCost;
+      final transactionAmount = element.value;
+      final addressFrom = checksumEthereumAddress(element.from);
+      final addressTo = checksumEthereumAddress(element.to);
+
+      bool isIncoming;
+      bool txFailed = false;
+      if (addressFrom == thisAddress) {
+        if (element.isError) {
+          txFailed = true;
+        }
+        isIncoming = false;
+      } else if (addressTo == thisAddress) {
+        isIncoming = true;
+      } else {
+        continue;
+      }
+
+      // hack eth tx data into inputs and outputs
+      final List<OutputV2> outputs = [];
+      final List<InputV2> inputs = [];
+
+      final OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptPubKeyHex: "00",
+        valueStringSats: transactionAmount.raw.toString(),
+        addresses: [addressTo],
+        walletOwns: addressTo == thisAddress,
+      );
+      final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
+        scriptSigHex: null,
+        scriptSigAsm: null,
+        sequence: null,
+        outpoint: null,
+        addresses: [addressFrom],
+        valueStringSats: transactionAmount.raw.toString(),
+        witness: null,
+        innerRedeemScriptAsm: null,
+        coinbase: null,
+        walletOwns: addressFrom == thisAddress,
+      );
+
+      final TransactionType txType;
+      if (isIncoming) {
+        if (addressFrom == addressTo) {
+          txType = TransactionType.sentToSelf;
+        } else {
+          txType = TransactionType.incoming;
+        }
+      } else {
+        txType = TransactionType.outgoing;
+      }
+
+      outputs.add(output);
+      inputs.add(input);
+
+      final otherData = {
+        "nonce": element.nonce,
+        "isCancelled": txFailed,
+        "overrideFee": txFee.toJsonString(),
+      };
+
+      final txn = TransactionV2(
+        walletId: walletId,
+        blockHash: element.blockHash,
+        hash: element.hash,
+        txid: element.hash,
+        timestamp: element.timestamp,
+        height: element.blockNumber,
+        inputs: List.unmodifiable(inputs),
+        outputs: List.unmodifiable(outputs),
+        version: -1,
+        type: txType,
+        subType: TransactionSubType.none,
+        otherData: jsonEncode(otherData),
+      );
+
+      txns.add(txn);
+    }
+    await mainDB.updateOrPutTransactionV2s(txns);
   }
 
   @override
