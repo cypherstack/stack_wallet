@@ -5,7 +5,6 @@ import 'package:isar/isar.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 import '../../../../dto/ethereum/eth_token_tx_dto.dart';
-import '../../../../dto/ethereum/eth_token_tx_extra_dto.dart';
 import '../../../../models/balance.dart';
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -395,45 +394,38 @@ class EthTokenWallet extends Wallet {
         return;
       }
 
-      final response2 = await EthereumAPI.getEthTokenTransactionsByTxids(
-        response.value!.map((e) => e.transactionHash).toSet().toList(),
-      );
-
-      if (response2.value == null) {
-        throw response2.exception ??
-            Exception("Failed to fetch token transactions");
-      }
-      final List<({EthTokenTxDto tx, EthTokenTxExtraDTO extra})> data = [];
-      for (final tokenDto in response.value!) {
-        try {
-          final txExtra = response2.value!.firstWhere(
-            (e) => e.hash == tokenDto.transactionHash,
-          );
-          data.add((tx: tokenDto, extra: txExtra));
-        } catch (e, s) {
-          // Server indexing failed for some reason. Instead of hard crashing or
-          // showing no transactions we just skip it here. Not ideal but better
-          // than nothing showing up
-          Logging.instance.e(
-            "Server error: Transaction hash not found.",
-            error: e,
-            stackTrace: s,
-          );
-          Logging.instance.d(
-            "Server error: Transaction ${tokenDto.transactionHash} not found.",
-            error: e,
-            stackTrace: s,
-          );
+      web3dart.Web3Client? client;
+      final List<EthTokenTxDto> allTxs = [];
+      for (final dto in response.value!) {
+        if (dto.nonce == null) {
+          client ??= ethWallet.getEthClient();
+          final txInfo = await client.getTransactionByHash(dto.transactionHash);
+          if (txInfo == null) {
+            // Something strange is happening
+            Logging.instance.w(
+              "Could not find token transaction via RPC that was found use "
+              "TrueBlocks API.\nOffending tx: $dto",
+            );
+          } else {
+            final updated = dto.copyWith(
+              nonce: txInfo.nonce,
+              gasPrice: txInfo.gasPrice.getInWei,
+              gasUsed: txInfo.gas,
+            );
+            allTxs.add(updated);
+          }
+        } else {
+          allTxs.add(dto);
         }
       }
 
       final List<TransactionV2> txns = [];
 
-      for (final tuple in data) {
+      for (final tx in allTxs) {
         // ignore all non Transfer events (for now)
-        if (tuple.tx.topics[0] == kTransferEventSignature) {
+        if (tx.topics[0] == kTransferEventSignature) {
           final amount = Amount(
-            rawValue: tuple.tx.data.toBigIntFromHex,
+            rawValue: tx.data.toBigIntFromHex,
             fractionDigits: tokenContract.decimals,
           );
 
@@ -442,9 +434,12 @@ class EthTokenWallet extends Wallet {
             continue;
           }
 
-          final Amount txFee = tuple.extra.gasUsed * tuple.extra.gasPrice;
-          final addressFrom = _addressFromTopic(tuple.tx.topics[1]);
-          final addressTo = _addressFromTopic(tuple.tx.topics[2]);
+          final txFee = Amount(
+            rawValue: BigInt.from(tx.gasUsed!) * tx.gasPrice!,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          );
+          final addressFrom = _addressFromTopic(tx.topics[1]);
+          final addressTo = _addressFromTopic(tx.topics[2]);
 
           final TransactionType txType;
           if (addressTo == addressString) {
@@ -466,10 +461,10 @@ class EthTokenWallet extends Wallet {
           }
 
           final otherData = {
-            "nonce": tuple.extra.nonce,
+            "nonce": tx.nonce,
             "isCancelled": false,
             "overrideFee": txFee.toJsonString(),
-            "contractAddress": tuple.tx.address,
+            "contractAddress": tx.address,
           };
 
           // hack eth tx data into inputs and outputs
@@ -500,11 +495,11 @@ class EthTokenWallet extends Wallet {
 
           final txn = TransactionV2(
             walletId: walletId,
-            blockHash: tuple.extra.blockHash,
-            hash: tuple.tx.transactionHash,
-            txid: tuple.tx.transactionHash,
-            timestamp: tuple.extra.timestamp,
-            height: tuple.tx.blockNumber,
+            blockHash: tx.blockHash,
+            hash: tx.transactionHash,
+            txid: tx.transactionHash,
+            timestamp: tx.timestamp,
+            height: tx.blockNumber,
             inputs: List.unmodifiable(inputs),
             outputs: List.unmodifiable(outputs),
             version: -1,

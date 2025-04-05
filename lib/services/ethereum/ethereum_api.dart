@@ -11,7 +11,6 @@
 import 'dart:convert';
 
 import '../../dto/ethereum/eth_token_tx_dto.dart';
-import '../../dto/ethereum/eth_token_tx_extra_dto.dart';
 import '../../dto/ethereum/eth_tx_dto.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/paymint/fee_object_model.dart';
@@ -102,58 +101,6 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<EthereumResponse<List<EthTokenTxExtraDTO>>>
-  getEthTokenTransactionsByTxids(List<String> txids) async {
-    try {
-      final response = await client.get(
-        url: Uri.parse(
-          "$stackBaseServer/transactions?transactions=${txids.join(" ")}",
-        ),
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
-      );
-
-      if (response.code == 200) {
-        if (response.body.isNotEmpty) {
-          final json = jsonDecode(response.body) as Map;
-          final list = json["data"] as List?;
-
-          final List<EthTokenTxExtraDTO> txns = [];
-          for (final map in list!) {
-            final txn = EthTokenTxExtraDTO.fromMap(
-              Map<String, dynamic>.from(map as Map),
-            );
-
-            txns.add(txn);
-          }
-          return EthereumResponse(txns, null);
-        } else {
-          throw EthApiException(
-            "getEthTokenTransactionsByTxids($txids) response is empty but status code is "
-            "${response.code}",
-          );
-        }
-      } else {
-        throw EthApiException(
-          "getEthTokenTransactionsByTxids($txids) failed with status code: "
-          "${response.code}",
-        );
-      }
-    } on EthApiException catch (e) {
-      return EthereumResponse(null, e);
-    } catch (e, s) {
-      Logging.instance.e("getEthTokenTransactionsByTxids()", error: e);
-      Logging.instance.d(
-        "getEthTokenTransactionsByTxids($txids)",
-        error: e,
-        stackTrace: s,
-      );
-      return EthereumResponse(null, EthApiException(e.toString()));
-    }
-  }
-
   static Future<EthereumResponse<List<EthTokenTxDto>>> getTokenTransactions({
     required String address,
     required String tokenContractAddress,
@@ -207,79 +154,6 @@ abstract class EthereumAPI {
     }
   }
 
-  // ONLY FETCHES WALLET TOKENS WITH A NON ZERO BALANCE
-  // static Future<EthereumResponse<List<EthToken>>> getWalletTokens({
-  //   required String address,
-  // }) async {
-  //   try {
-  //     final uri = Uri.parse(
-  //       "$blockExplorer?module=account&action=tokenlist&address=$address",
-  //     );
-  //     final response = await get(uri);
-  //
-  //     if (response.statusCode == 200) {
-  //       final json = jsonDecode(response.body);
-  //       if (json["message"] == "OK") {
-  //         final result =
-  //             List<Map<String, dynamic>>.from(json["result"] as List);
-  //         final List<EthToken> tokens = [];
-  //         for (final map in result) {
-  //           if (map["type"] == "ERC-20") {
-  //             tokens.add(
-  //               Erc20Token(
-  //                 balance: int.parse(map["balance"] as String),
-  //                 contractAddress: map["contractAddress"] as String,
-  //                 decimals: int.parse(map["decimals"] as String),
-  //                 name: map["name"] as String,
-  //                 symbol: map["symbol"] as String,
-  //               ),
-  //             );
-  //           } else if (map["type"] == "ERC-721") {
-  //             tokens.add(
-  //               Erc721Token(
-  //                 balance: int.parse(map["balance"] as String),
-  //                 contractAddress: map["contractAddress"] as String,
-  //                 decimals: int.parse(map["decimals"] as String),
-  //                 name: map["name"] as String,
-  //                 symbol: map["symbol"] as String,
-  //               ),
-  //             );
-  //           } else {
-  //             throw EthApiException(
-  //                 "Unsupported token type found: ${map["type"]}");
-  //           }
-  //         }
-  //
-  //         return EthereumResponse(
-  //           tokens,
-  //           null,
-  //         );
-  //       } else {
-  //         throw EthApiException(json["message"] as String);
-  //       }
-  //     } else {
-  //       throw EthApiException(
-  //         "getWalletTokens($address) failed with status code: "
-  //         "${response.statusCode}",
-  //       );
-  //     }
-  //   } on EthApiException catch (e) {
-  //     return EthereumResponse(
-  //       null,
-  //       e,
-  //     );
-  //   } catch (e, s) {
-  //     Logging.instance.log(
-  //       "getWalletTokens(): $e\n$s",
-  //       level: LogLevel.Error,
-  //     );
-  //     return EthereumResponse(
-  //       null,
-  //       EthApiException(e.toString()),
-  //     );
-  //   }
-  // }
-
   static Future<EthereumResponse<Amount>> getWalletTokenBalance({
     required String address,
     required String contractAddress,
@@ -321,44 +195,6 @@ abstract class EthereumAPI {
       return EthereumResponse(null, e);
     } catch (e, s) {
       Logging.instance.e("getWalletTokenBalance()", error: e, stackTrace: s);
-      return EthereumResponse(null, EthApiException(e.toString()));
-    }
-  }
-
-  static Future<EthereumResponse<int>> getAddressNonce({
-    required String address,
-  }) async {
-    try {
-      final uri = Uri.parse("$stackBaseServer/state?addrs=$address&parts=all");
-      final response = await client.get(
-        url: uri,
-        proxyInfo:
-            Prefs.instance.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
-      );
-
-      if (response.code == 200) {
-        final json = jsonDecode(response.body);
-        if (json["data"] is List) {
-          final map = json["data"].first as Map;
-
-          final nonce = map["nonce"] as int;
-
-          return EthereumResponse(nonce, null);
-        } else {
-          throw EthApiException(json["message"] as String);
-        }
-      } else {
-        throw EthApiException(
-          "getAddressNonce($address) failed with status code: "
-          "${response.code}",
-        );
-      }
-    } on EthApiException catch (e) {
-      return EthereumResponse(null, e);
-    } catch (e, s) {
-      Logging.instance.e("getAddressNonce()", error: e, stackTrace: s);
       return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
