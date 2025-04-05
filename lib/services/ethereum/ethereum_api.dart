@@ -62,9 +62,10 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/export?addrs=$address&firstBlock=$firstBlock",
         ),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -80,17 +81,11 @@ abstract class EthereumAPI {
               txns.add(txn);
             }
           }
-          return EthereumResponse(
-            txns,
-            null,
-          );
+          return EthereumResponse(txns, null);
         } else {
           // nice that the api returns an empty body instead of being
           // consistent and returning a json object with no transactions
-          return EthereumResponse(
-            [],
-            null,
-          );
+          return EthereumResponse([], null);
         }
       } else {
         throw EthApiException(
@@ -99,10 +94,7 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
       Logging.instance.e("getEthTransactions()", error: e);
       Logging.instance.d(
@@ -110,10 +102,7 @@ abstract class EthereumAPI {
         error: e,
         stackTrace: s,
       );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
@@ -122,21 +111,18 @@ abstract class EthereumAPI {
   ) async {
     try {
       final response = await client.post(
-        url: Uri.parse(
-          "$stackBaseServer/v1/mainnet",
-        ),
+        url: Uri.parse("$stackBaseServer/v1/mainnet"),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           "jsonrpc": "2.0",
           "method": "eth_getTransactionByHash",
-          "params": [
-            txid,
-          ],
+          "params": [txid],
           "id": DateTime.now().millisecondsSinceEpoch,
         }),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -167,39 +153,29 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
-      Logging.instance.e(
-        "getEthTransactionByHash()",
-        error: e,
-      );
+      Logging.instance.e("getEthTransactionByHash()", error: e);
       Logging.instance.d(
         "getEthTransactionByHash($txid)",
         error: e,
         stackTrace: s,
       );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
   static Future<EthereumResponse<List<Tuple2<EthTxDTO, int?>>>>
-      getEthTransactionNonces(
-    List<EthTxDTO> txns,
-  ) async {
+  getEthTransactionNonces(List<EthTxDTO> txns) async {
     try {
       final response = await client.get(
         url: Uri.parse(
           "$stackBaseServer/transactions?transactions=${txns.map((e) => e.hash).join(" ")}&raw=true",
         ),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -210,23 +186,19 @@ abstract class EthereumAPI {
           final List<Tuple2<EthTxDTO, int?>> result = [];
 
           for (final dto in txns) {
-            final data =
-                list.firstWhere((e) => e["hash"] == dto.hash, orElse: () => {});
+            final data = list.firstWhere(
+              (e) => e["hash"] == dto.hash,
+              orElse: () => {},
+            );
 
             final nonce = (data["nonce"] as String?)?.toBigIntFromHex.toInt();
             result.add(Tuple2(dto, nonce));
           }
-          return EthereumResponse(
-            result,
-            null,
-          );
+          return EthereumResponse(result, null);
         } else {
           // nice that the api returns an empty body instead of being
           // consistent and returning a json object with no transactions
-          return EthereumResponse(
-            [],
-            null,
-          );
+          return EthereumResponse([], null);
         }
       } else {
         throw EthApiException(
@@ -235,37 +207,29 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
-      Logging.instance.e(
-        "getEthTransactionNonces()",
-        error: e,
-      );
+      Logging.instance.e("getEthTransactionNonces()", error: e);
       Logging.instance.d(
         "getEthTransactionNonces($txns)",
         error: e,
         stackTrace: s,
       );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
   static Future<EthereumResponse<List<EthTokenTxExtraDTO>>>
-      getEthTokenTransactionsByTxids(List<String> txids) async {
+  getEthTokenTransactionsByTxids(List<String> txids) async {
     try {
       final response = await client.get(
         url: Uri.parse(
           "$stackBaseServer/transactions?transactions=${txids.join(" ")}",
         ),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -281,10 +245,7 @@ abstract class EthereumAPI {
 
             txns.add(txn);
           }
-          return EthereumResponse(
-            txns,
-            null,
-          );
+          return EthereumResponse(txns, null);
         } else {
           throw EthApiException(
             "getEthTokenTransactionsByTxids($txids) response is empty but status code is "
@@ -298,24 +259,15 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
-      Logging.instance.e(
-        "getEthTokenTransactionsByTxids()",
-        error: e,
-      );
+      Logging.instance.e("getEthTokenTransactionsByTxids()", error: e);
       Logging.instance.d(
         "getEthTokenTransactionsByTxids($txids)",
         error: e,
         stackTrace: s,
       );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
@@ -328,9 +280,10 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/export?addrs=$address&emitter=$tokenContractAddress&logs=true",
         ),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -340,22 +293,17 @@ abstract class EthereumAPI {
 
           final List<EthTokenTxDto> txns = [];
           for (final map in list!) {
-            final txn =
-                EthTokenTxDto.fromMap(Map<String, dynamic>.from(map as Map));
+            final txn = EthTokenTxDto.fromMap(
+              Map<String, dynamic>.from(map as Map),
+            );
 
             txns.add(txn);
           }
-          return EthereumResponse(
-            txns,
-            null,
-          );
+          return EthereumResponse(txns, null);
         } else {
           // nice that the api returns an empty body instead of being
           // consistent and returning a json object with no transactions
-          return EthereumResponse(
-            [],
-            null,
-          );
+          return EthereumResponse([], null);
         }
       } else {
         throw EthApiException(
@@ -364,28 +312,19 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
-      Logging.instance.e(
-        "getTokenTransactions()",
-        error: e,
-      );
+      Logging.instance.e("getTokenTransactions()", error: e);
       Logging.instance.d(
         "getTokenTransactions($address, $tokenContractAddress)",
         error: e,
         stackTrace: s,
       );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
-// ONLY FETCHES WALLET TOKENS WITH A NON ZERO BALANCE
+  // ONLY FETCHES WALLET TOKENS WITH A NON ZERO BALANCE
   // static Future<EthereumResponse<List<EthToken>>> getWalletTokens({
   //   required String address,
   // }) async {
@@ -468,9 +407,10 @@ abstract class EthereumAPI {
       );
       final response = await client.get(
         url: uri,
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -495,20 +435,10 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
-      Logging.instance.e(
-        "getWalletTokenBalance()",
-        error: e,
-        stackTrace: s,
-      );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      Logging.instance.e("getWalletTokenBalance()", error: e, stackTrace: s);
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
@@ -516,14 +446,13 @@ abstract class EthereumAPI {
     required String address,
   }) async {
     try {
-      final uri = Uri.parse(
-        "$stackBaseServer/state?addrs=$address&parts=all",
-      );
+      final uri = Uri.parse("$stackBaseServer/state?addrs=$address&parts=all");
       final response = await client.get(
         url: uri,
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -533,10 +462,7 @@ abstract class EthereumAPI {
 
           final nonce = map["nonce"] as int;
 
-          return EthereumResponse(
-            nonce,
-            null,
-          );
+          return EthereumResponse(nonce, null);
         } else {
           throw EthApiException(json["message"] as String);
         }
@@ -547,32 +473,21 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
-      Logging.instance.e(
-        "getAddressNonce()",
-        error: e,
-        stackTrace: s,
-      );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      Logging.instance.e("getAddressNonce()", error: e, stackTrace: s);
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
   static Future<EthereumResponse<GasTracker>> getGasOracle() async {
     try {
       final response = await client.get(
-        url: Uri.parse(
-          "$stackBaseServer/gas-prices",
-        ),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        url: Uri.parse("$stackBaseServer/gas-prices"),
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -604,20 +519,10 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
-      Logging.instance.e(
-        "getGasOracle()",
-        error: e,
-        stackTrace: s,
-      );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      Logging.instance.e("getGasOracle()", error: e, stackTrace: s);
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
@@ -642,9 +547,10 @@ abstract class EthereumAPI {
       url: Uri.parse(
         "$stackBaseServer/names?terms=$contractAddress&autoname=$contractAddress&all",
       ),
-      proxyInfo: Prefs.instance.useTor
-          ? TorService.sharedInstance.getProxyInfo()
-          : null,
+      proxyInfo:
+          Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null,
     );
   }
 
@@ -658,9 +564,10 @@ abstract class EthereumAPI {
           // "$stackBaseServer/tokens?addrs=$contractAddress&parts=all",
           "$stackBaseServer/names?terms=$contractAddress&all",
         ),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
@@ -713,10 +620,7 @@ abstract class EthereumAPI {
             );
           }
 
-          return EthereumResponse(
-            token,
-            null,
-          );
+          return EthereumResponse(token, null);
         } else {
           throw EthApiException(response.body);
         }
@@ -727,20 +631,14 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
       Logging.instance.e(
         "getTokenByContractAddress()",
         error: e,
         stackTrace: s,
       );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
@@ -753,18 +651,16 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/abis?addrs=$contractAddress&verbose=true",
         ),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       if (response.code == 200) {
         final json = jsonDecode(response.body)["data"] as List;
 
-        return EthereumResponse(
-          jsonEncode(json),
-          null,
-        );
+        return EthereumResponse(jsonEncode(json), null);
       } else {
         throw EthApiException(
           "getTokenAbi($name, $contractAddress) failed with status code: "
@@ -772,20 +668,14 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
       Logging.instance.e(
         "getTokenAbi($name, $contractAddress)",
         error: e,
         stackTrace: s,
       );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 
@@ -798,19 +688,17 @@ abstract class EthereumAPI {
         url: Uri.parse(
           "$stackBaseServer/state?addrs=$contractAddress&parts=proxy",
         ),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
       if (response.code == 200) {
         final json = jsonDecode(response.body);
         final list = json["data"] as List;
         final map = Map<String, dynamic>.from(list.first as Map);
 
-        return EthereumResponse(
-          map["proxy"] as String,
-          null,
-        );
+        return EthereumResponse(map["proxy"] as String, null);
       } else {
         throw EthApiException(
           "getProxyTokenImplementationAddress($contractAddress) failed with"
@@ -818,20 +706,14 @@ abstract class EthereumAPI {
         );
       }
     } on EthApiException catch (e) {
-      return EthereumResponse(
-        null,
-        e,
-      );
+      return EthereumResponse(null, e);
     } catch (e, s) {
       Logging.instance.e(
         "getProxyTokenImplementationAddress($contractAddress)",
         error: e,
         stackTrace: s,
       );
-      return EthereumResponse(
-        null,
-        EthApiException(e.toString()),
-      );
+      return EthereumResponse(null, EthApiException(e.toString()));
     }
   }
 }
