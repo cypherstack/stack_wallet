@@ -247,9 +247,9 @@ abstract class EthereumAPI {
 
   static Future<FeeObject> getFees() async {
     final fees = (await getGasOracle()).value!;
-    final feesFast = fees.fast.shift(9).toBigInt();
+    final feesFast = fees.high.shift(9).toBigInt();
     final feesStandard = fees.average.shift(9).toBigInt();
-    final feesSlow = fees.slow.shift(9).toBigInt();
+    final feesSlow = fees.low.shift(9).toBigInt();
 
     return FeeObject(
       numberOfBlocksFast: fees.numberOfBlocksFast,
