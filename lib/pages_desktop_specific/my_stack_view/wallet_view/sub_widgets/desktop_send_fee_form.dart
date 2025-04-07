@@ -11,13 +11,14 @@ import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_fee_dialog.dart';
+import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/fee_slider.dart';
 
 class DesktopSendFeeForm extends ConsumerStatefulWidget {
@@ -59,20 +60,20 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
 
   @override
   Widget build(BuildContext context) {
+    final canEditFees =
+        isEth ||
+        (cryptoCurrency is ElectrumXCurrencyInterface &&
+            !(((cryptoCurrency is Firo) &&
+                (ref.watch(publicPrivateBalanceStateProvider.state).state ==
+                        FiroType.lelantus ||
+                    ref.watch(publicPrivateBalanceStateProvider.state).state ==
+                        FiroType.spark))));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ConditionalParent(
-          condition:
-              ref.watch(pWallets).getWallet(widget.walletId)
-                  is ElectrumXInterface &&
-              !(((cryptoCurrency is Firo) &&
-                  (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                          FiroType.lelantus ||
-                      ref
-                              .watch(publicPrivateBalanceStateProvider.state)
-                              .state ==
-                          FiroType.spark))),
+          condition: canEditFees,
           builder:
               (child) => Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -283,7 +284,13 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                       ],
                     ),
           ),
-        if (isCustomFee)
+        if (isCustomFee && isEth)
+          EthFeeForm(
+            stateChanged: (updatedFeeModel) {
+              print(updatedFeeModel);
+            },
+          ),
+        if (isCustomFee && !isEth)
           Padding(
             padding: const EdgeInsets.only(bottom: 12, top: 16),
             child: FeeSlider(
