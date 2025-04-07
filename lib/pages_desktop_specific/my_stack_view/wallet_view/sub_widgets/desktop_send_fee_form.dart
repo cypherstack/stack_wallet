@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
+import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -12,6 +13,7 @@ import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../widgets/animated_text.dart';
@@ -25,11 +27,13 @@ class DesktopSendFeeForm extends ConsumerStatefulWidget {
   const DesktopSendFeeForm({
     super.key,
     required this.walletId,
+    required this.isToken,
     required this.onCustomFeeSliderChanged,
     required this.onCustomFeeOptionChanged,
   });
 
   final String walletId;
+  final bool isToken;
   final void Function(int) onCustomFeeSliderChanged;
   final void Function(bool) onCustomFeeOptionChanged;
 
@@ -86,8 +90,10 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                           await showDialog<(FeeRateType, String?, String?)?>(
                             context: context,
                             builder:
-                                (_) =>
-                                    DesktopFeeDialog(walletId: widget.walletId),
+                                (_) => DesktopFeeDialog(
+                                  walletId: widget.walletId,
+                                  isToken: widget.isToken,
+                                ),
                           );
 
                       if (feeSelectionResult != null) {
@@ -144,69 +150,90 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                               required CryptoCurrency coin,
                             }) async {
                               if (ref
-                                      .read(feeSheetSessionCacheProvider)
+                                      .read(
+                                        widget.isToken
+                                            ? tokenFeeSessionCacheProvider
+                                            : feeSheetSessionCacheProvider,
+                                      )
                                       .average[amount] ==
                                   null) {
-                                final wallet = ref
-                                    .read(pWallets)
-                                    .getWallet(widget.walletId);
+                                if (widget.isToken == false) {
+                                  final wallet = ref
+                                      .read(pWallets)
+                                      .getWallet(widget.walletId);
 
-                                if (coin is Monero || coin is Wownero) {
-                                  final fee = await wallet.estimateFeeFor(
-                                    amount,
-                                    BigInt.from(
-                                      lib_monero
-                                          .TransactionPriority
-                                          .medium
-                                          .value,
-                                    ),
-                                  );
-                                  ref
-                                          .read(feeSheetSessionCacheProvider)
-                                          .average[amount] =
-                                      fee;
-                                } else if ((coin is Firo) &&
+                                  if (coin is Monero || coin is Wownero) {
+                                    final fee = await wallet.estimateFeeFor(
+                                      amount,
+                                      BigInt.from(
+                                        lib_monero
+                                            .TransactionPriority
+                                            .medium
+                                            .value,
+                                      ),
+                                    );
                                     ref
+                                            .read(feeSheetSessionCacheProvider)
+                                            .average[amount] =
+                                        fee;
+                                  } else if ((coin is Firo) &&
+                                      ref
+                                              .read(
+                                                publicPrivateBalanceStateProvider
+                                                    .state,
+                                              )
+                                              .state !=
+                                          FiroType.public) {
+                                    final firoWallet = wallet as FiroWallet;
+
+                                    if (ref
                                             .read(
                                               publicPrivateBalanceStateProvider
                                                   .state,
                                             )
-                                            .state !=
-                                        FiroType.public) {
-                                  final firoWallet = wallet as FiroWallet;
-
-                                  if (ref
-                                          .read(
-                                            publicPrivateBalanceStateProvider
-                                                .state,
-                                          )
-                                          .state ==
-                                      FiroType.lelantus) {
+                                            .state ==
+                                        FiroType.lelantus) {
+                                      ref
+                                          .read(feeSheetSessionCacheProvider)
+                                          .average[amount] = await firoWallet
+                                          .estimateFeeForLelantus(amount);
+                                    } else if (ref
+                                            .read(
+                                              publicPrivateBalanceStateProvider
+                                                  .state,
+                                            )
+                                            .state ==
+                                        FiroType.spark) {
+                                      ref
+                                          .read(feeSheetSessionCacheProvider)
+                                          .average[amount] = await firoWallet
+                                          .estimateFeeForSpark(amount);
+                                    }
+                                  } else {
                                     ref
                                         .read(feeSheetSessionCacheProvider)
-                                        .average[amount] = await firoWallet
-                                        .estimateFeeForLelantus(amount);
-                                  } else if (ref
-                                          .read(
-                                            publicPrivateBalanceStateProvider
-                                                .state,
-                                          )
-                                          .state ==
-                                      FiroType.spark) {
-                                    ref
-                                        .read(feeSheetSessionCacheProvider)
-                                        .average[amount] = await firoWallet
-                                        .estimateFeeForSpark(amount);
+                                        .average[amount] = await wallet
+                                        .estimateFeeFor(amount, feeRate);
                                   }
                                 } else {
+                                  final tokenWallet =
+                                      ref.read(pCurrentTokenWallet)!;
+                                  final fee = await tokenWallet.estimateFeeFor(
+                                    amount,
+                                    feeRate,
+                                  );
                                   ref
-                                      .read(feeSheetSessionCacheProvider)
-                                      .average[amount] = await wallet
-                                      .estimateFeeFor(amount, feeRate);
+                                          .read(tokenFeeSessionCacheProvider)
+                                          .average[amount] =
+                                      fee;
                                 }
                               }
                               return ref
-                                  .read(feeSheetSessionCacheProvider)
+                                  .read(
+                                    widget.isToken
+                                        ? tokenFeeSessionCacheProvider
+                                        : feeSheetSessionCacheProvider,
+                                  )
                                   .average[amount]!;
                             },
                             isSelected: true,

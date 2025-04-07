@@ -1632,6 +1632,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
           DesktopSendFeeForm(
             walletId: walletId,
+            isToken: false,
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
             onCustomFeeOptionChanged: (value) => isCustomFee = value,
           ),

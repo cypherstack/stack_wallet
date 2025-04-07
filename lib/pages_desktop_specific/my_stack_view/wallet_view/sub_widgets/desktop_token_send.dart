@@ -1026,6 +1026,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         const SizedBox(height: 20),
         DesktopSendFeeForm(
           walletId: walletId,
+          isToken: true,
           onCustomFeeSliderChanged: (value) => {},
           onCustomFeeOptionChanged: (value) {},
         ),
