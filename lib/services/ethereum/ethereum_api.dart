@@ -20,6 +20,7 @@ import '../../utilities/eth_commons.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/eth_fee_form.dart';
 import '../tor_service.dart';
 
 class EthApiException implements Exception {
@@ -258,6 +259,49 @@ abstract class EthereumAPI {
       fast: feesFast.toInt(),
       medium: feesStandard.toInt(),
       slow: feesSlow.toInt(),
+    );
+  }
+
+  static Future<
+    ({EthEIP1559Fee low, EthEIP1559Fee average, EthEIP1559Fee high})
+  >
+  getEip1559Fees(EthContractType? contractType) async {
+    final response = await getGasOracle();
+    if (response.exception != null) {
+      throw response.exception!;
+    }
+
+    final int gasLimit;
+    switch (contractType) {
+      case null:
+      case EthContractType.unknown:
+        // actually unknown or just normal eth
+        gasLimit = kEthereumMinGasLimit;
+        break;
+
+      case EthContractType.erc20:
+      case EthContractType.erc721:
+        // can vary
+        gasLimit = kEthereumTokenMinGasLimit;
+        break;
+    }
+
+    return (
+      low: EthEIP1559Fee(
+        maxBaseFeeGwei: response.value!.suggestBaseFee,
+        priorityFeeGwei: response.value!.lowPriority,
+        gasLimit: gasLimit,
+      ),
+      average: EthEIP1559Fee(
+        maxBaseFeeGwei: response.value!.suggestBaseFee,
+        priorityFeeGwei: response.value!.averagePriority,
+        gasLimit: gasLimit,
+      ),
+      high: EthEIP1559Fee(
+        maxBaseFeeGwei: response.value!.suggestBaseFee,
+        priorityFeeGwei: response.value!.highPriority,
+        gasLimit: gasLimit,
+      ),
     );
   }
 

@@ -38,8 +38,6 @@ class EthTokenWallet extends Wallet {
   late web3dart.DeployedContract _deployedContract;
   late web3dart.ContractFunction _sendFunction;
 
-  static const gasLimit = 65000;
-
   // ===========================================================================
 
   // ===========================================================================
@@ -259,7 +257,7 @@ class EthTokenWallet extends Wallet {
       contract: _deployedContract,
       function: _sendFunction,
       parameters: [web3dart.EthereumAddress.fromHex(address), amount.raw],
-      maxGas: gasLimit,
+      maxGas: kEthereumTokenMinGasLimit,
       gasPrice: web3dart.EtherAmount.fromInt(web3dart.EtherUnit.wei, fee),
       nonce: nonce,
     );
@@ -290,7 +288,7 @@ class EthTokenWallet extends Wallet {
   Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
     return ethWallet.estimateEthFee(
       feeRate,
-      gasLimit,
+      kEthereumTokenMinGasLimit,
       cryptoCurrency.fractionDigits,
     );
   }
