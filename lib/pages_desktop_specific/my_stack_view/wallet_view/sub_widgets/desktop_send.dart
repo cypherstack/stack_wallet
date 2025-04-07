@@ -27,6 +27,7 @@ import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
@@ -67,7 +68,6 @@ import '../../../../widgets/textfield_icon_button.dart';
 import '../../../coin_control/desktop_coin_control_use_dialog.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
-import 'desktop_fee_dropdown.dart';
 import 'desktop_send_fee_form.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
@@ -99,8 +99,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
-  // late TextEditingController feeController;
   late TextEditingController memoController;
+  late TextEditingController nonceController;
 
   late final SendViewAutoFillData? _data;
 
@@ -108,6 +108,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
   final _memoFocus = FocusNode();
+  final _nonceFocusNode = FocusNode();
 
   late final bool isStellar;
 
@@ -408,6 +409,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             memo: memo,
             feeRateType: ref.read(feeRateTypeStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
+            nonce:
+                wallet.cryptoCurrency is Ethereum
+                    ? int.tryParse(nonceController.text)
+                    : null,
             utxos:
                 (wallet is CoinControlInterface &&
                         coinControlEnabled &&
@@ -528,6 +533,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.text = "";
     baseAmountController.text = "";
     memoController.text = "";
+    nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
     if (mounted) {
@@ -864,7 +870,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
     memoController = TextEditingController();
-    // feeController = TextEditingController();
+    nonceController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
@@ -918,12 +924,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     memoController.dispose();
-    // feeController.dispose();
+    nonceController.dispose();
 
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
     _memoFocus.dispose();
+    _nonceFocusNode.dispose();
     super.dispose();
   }
 
@@ -1627,6 +1634,56 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             walletId: walletId,
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
             onCustomFeeOptionChanged: (value) => isCustomFee = value,
+          ),
+        if (coin is Ethereum) const SizedBox(height: 20),
+        if (coin is Ethereum)
+          Text(
+            "Nonce",
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            ),
+            textAlign: TextAlign.left,
+          ),
+        if (coin is Ethereum) const SizedBox(height: 10),
+        if (coin is Ethereum)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              minLines: 1,
+              maxLines: 1,
+              key: const Key("sendViewNonceFieldKey"),
+              controller: nonceController,
+              readOnly: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              keyboardType: const TextInputType.numberWithOptions(),
+              focusNode: _nonceFocusNode,
+              style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
+                height: 1.8,
+              ),
+              decoration: standardInputDecoration(
+                "Leave empty to auto select nonce",
+                _nonceFocusNode,
+                context,
+                desktopMed: true,
+              ).copyWith(
+                contentPadding: const EdgeInsets.only(
+                  left: 16,
+                  top: 11,
+                  bottom: 12,
+                  right: 5,
+                ),
+              ),
+            ),
           ),
         const SizedBox(height: 36),
         PrimaryButton(

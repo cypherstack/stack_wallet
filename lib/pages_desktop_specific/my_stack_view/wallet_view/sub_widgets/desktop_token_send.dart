@@ -23,6 +23,7 @@ import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -51,9 +52,7 @@ import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
-import 'desktop_fee_dropdown.dart';
-
-// const _kCryptoAmountRegex = r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$';
+import 'desktop_send_fee_form.dart';
 
 class DesktopTokenSend extends ConsumerStatefulWidget {
   const DesktopTokenSend({
@@ -1025,18 +1024,11 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           },
         ),
         const SizedBox(height: 20),
-        Text(
-          "Transaction fee (max)",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color:
-                Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-          ),
-          textAlign: TextAlign.left,
+        DesktopSendFeeForm(
+          walletId: walletId,
+          onCustomFeeSliderChanged: (value) => {},
+          onCustomFeeOptionChanged: (value) {},
         ),
-        const SizedBox(height: 10),
-        DesktopFeeDropDown(walletId: walletId, isToken: true),
         const SizedBox(height: 20),
         Text(
           "Nonce",

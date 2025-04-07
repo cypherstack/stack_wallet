@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/models.dart';
 import '../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
-import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_fee_dropdown.dart';
 import '../../providers/global/wallets_provider.dart';
+import '../../providers/wallet/desktop_fee_providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -69,19 +69,23 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
-                  fee =
-                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
+                    amount,
+                  );
                 case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeForLelantus(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
+                    amount,
+                  );
                 case FiroType.public:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeFor(amount, feeRate);
+                  fee = await (wallet as FiroWallet).estimateFeeFor(
+                    amount,
+                    feeRate,
+                  );
               }
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else {
-              ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                  await wallet.estimateFeeFor(amount, feeRate);
+              ref.read(feeSheetSessionCacheProvider).fast[amount] = await wallet
+                  .estimateFeeFor(amount, feeRate);
             }
           } else {
             final tokenWallet = ref.read(pCurrentTokenWallet)!;
@@ -119,14 +123,18 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
-                  fee =
-                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
+                    amount,
+                  );
                 case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeForLelantus(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
+                    amount,
+                  );
                 case FiroType.public:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeFor(amount, feeRate);
+                  fee = await (wallet as FiroWallet).estimateFeeFor(
+                    amount,
+                    feeRate,
+                  );
               }
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else {
@@ -169,19 +177,23 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
-                  fee =
-                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
+                    amount,
+                  );
                 case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeForLelantus(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
+                    amount,
+                  );
                 case FiroType.public:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeFor(amount, feeRate);
+                  fee = await (wallet as FiroWallet).estimateFeeFor(
+                    amount,
+                    feeRate,
+                  );
               }
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else {
-              ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                  await wallet.estimateFeeFor(amount, feeRate);
+              ref.read(feeSheetSessionCacheProvider).slow[amount] = await wallet
+                  .estimateFeeFor(amount, feeRate);
             }
           } else {
             final tokenWallet = ref.read(pCurrentTokenWallet)!;
@@ -214,9 +226,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
       maxHeight: double.infinity,
       child: FutureBuilder(
         future: ref.watch(
-          pWallets.select(
-            (value) => value.getWallet(walletId).fees,
-          ),
+          pWallets.select((value) => value.getWallet(walletId).fees),
         ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done &&
@@ -255,9 +265,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 16,
-              ),
+              const SizedBox(height: 16),
             ],
           );
         },
@@ -285,7 +293,8 @@ class DesktopFeeItem extends ConsumerStatefulWidget {
     required FeeRateType feeRateType,
     required int feeRate,
     required CryptoCurrency coin,
-  }) feeFor;
+  })
+  feeFor;
   final bool isSelected;
   final bool isButton;
 
@@ -337,19 +346,16 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
 
     return ConditionalParent(
       condition: widget.isButton,
-      builder: (child) => MaterialButton(
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        onPressed: () {
-          Navigator.of(context).pop(
-            (
-              widget.feeRateType,
-              feeString,
-              timeString,
-            ),
-          );
-        },
-        child: child,
-      ),
+      builder:
+          (child) => MaterialButton(
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).pop((widget.feeRateType, feeString, timeString));
+            },
+            child: child,
+          ),
       child: Builder(
         builder: (_) {
           if (!widget.isButton) {
@@ -362,17 +368,12 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
                 ref.watch(publicPrivateBalanceStateProvider.state).state ==
                     "Private") {
               return Text(
-                "~${ref.watch(pAmountFormatter(coin)).format(
-                      Amount(
-                        rawValue: BigInt.parse("3794"),
-                        fractionDigits: coin.fractionDigits,
-                      ),
-                      indicatePrecisionLoss: false,
-                    )}",
+                "~${ref.watch(pAmountFormatter(coin)).format(Amount(rawValue: BigInt.parse("3794"), fractionDigits: coin.fractionDigits), indicatePrecisionLoss: false)}",
                 style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldActiveText,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldActiveText,
                 ),
                 textAlign: TextAlign.left,
               );
@@ -385,11 +386,13 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
               children: [
                 Text(
                   widget.feeRateType.prettyName,
-                  style:
-                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldActiveText,
+                  style: STextStyles.desktopTextExtraExtraSmall(
+                    context,
+                  ).copyWith(
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldActiveText,
                   ),
                   textAlign: TextAlign.left,
                 ),
@@ -405,9 +408,10 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
             return AnimatedText(
               stringsToLoopThrough: stringsToLoopThrough,
               style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveText,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveText,
               ),
             );
           } else {
@@ -415,9 +419,10 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
               future: widget.feeFor(
                 coin: wallet.info.coin,
                 feeRateType: widget.feeRateType,
-                feeRate: widget.feeRateType == FeeRateType.fast
-                    ? widget.feeObject!.fast
-                    : widget.feeRateType == FeeRateType.slow
+                feeRate:
+                    widget.feeRateType == FeeRateType.fast
+                        ? widget.feeObject!.fast
+                        : widget.feeRateType == FeeRateType.slow
                         ? widget.feeObject!.slow
                         : widget.feeObject!.medium,
                 amount: ref.watch(sendAmountProvider.state).state,
@@ -425,44 +430,47 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
               builder: (_, AsyncSnapshot<Amount> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.hasData) {
-                  feeString = "${widget.feeRateType.prettyName} "
-                      "(~${ref.watch(pAmountFormatter(wallet.info.coin)).format(
-                            snapshot.data!,
-                            indicatePrecisionLoss: false,
-                          )})";
+                  feeString =
+                      "${widget.feeRateType.prettyName} "
+                      "(~${ref.watch(pAmountFormatter(wallet.info.coin)).format(snapshot.data!, indicatePrecisionLoss: false)})";
 
-                  timeString = wallet.info.coin is Ethereum
-                      ? ""
-                      : estimatedTimeToBeIncludedInNextBlock(
-                          wallet.info.coin.targetBlockTimeSeconds,
-                          widget.feeRateType == FeeRateType.fast
-                              ? widget.feeObject!.numberOfBlocksFast
-                              : widget.feeRateType == FeeRateType.slow
-                                  ? widget.feeObject!.numberOfBlocksSlow
-                                  : widget.feeObject!.numberOfBlocksAverage,
-                        );
+                  timeString =
+                      wallet.info.coin is Ethereum
+                          ? ""
+                          : estimatedTimeToBeIncludedInNextBlock(
+                            wallet.info.coin.targetBlockTimeSeconds,
+                            widget.feeRateType == FeeRateType.fast
+                                ? widget.feeObject!.numberOfBlocksFast
+                                : widget.feeRateType == FeeRateType.slow
+                                ? widget.feeObject!.numberOfBlocksSlow
+                                : widget.feeObject!.numberOfBlocksAverage,
+                          );
 
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         feeString!,
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveText,
+                        style: STextStyles.desktopTextExtraExtraSmall(
+                          context,
+                        ).copyWith(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldActiveText,
                         ),
                         textAlign: TextAlign.left,
                       ),
                       if (widget.feeObject != null)
                         Text(
                           timeString!,
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveSearchIconRight,
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ).copyWith(
+                            color:
+                                Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldActiveSearchIconRight,
                           ),
                         ),
                     ],
@@ -470,11 +478,13 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
                 } else {
                   return AnimatedText(
                     stringsToLoopThrough: stringsToLoopThrough,
-                    style: STextStyles.desktopTextExtraExtraSmall(context)
-                        .copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldActiveText,
+                    style: STextStyles.desktopTextExtraExtraSmall(
+                      context,
+                    ).copyWith(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldActiveText,
                     ),
                   );
                 }

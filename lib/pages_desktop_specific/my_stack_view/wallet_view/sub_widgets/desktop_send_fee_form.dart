@@ -46,6 +46,8 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
 
   late final CryptoCurrency cryptoCurrency;
 
+  bool get isEth => cryptoCurrency is Ethereum;
+
   bool isCustomFee = false;
   (FeeRateType, String?, String?)? feeSelectionResult;
 
@@ -58,6 +60,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ConditionalParent(
           condition:
@@ -103,7 +106,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
               ),
           child: Text(
             "Transaction fee"
-            "${isCustomFee ? "" : " (${cryptoCurrency is Ethereum ? "max" : "estimated"})"}",
+            "${isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color:
                   Theme.of(
