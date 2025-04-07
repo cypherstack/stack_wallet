@@ -140,7 +140,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                             feeFor: ({
                               required Amount amount,
                               required FeeRateType feeRateType,
-                              required int feeRate,
+                              required BigInt feeRate,
                               required CryptoCurrency coin,
                             }) async {
                               if (ref
@@ -154,7 +154,12 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                                 if (coin is Monero || coin is Wownero) {
                                   final fee = await wallet.estimateFeeFor(
                                     amount,
-                                    lib_monero.TransactionPriority.medium.value,
+                                    BigInt.from(
+                                      lib_monero
+                                          .TransactionPriority
+                                          .medium
+                                          .value,
+                                    ),
                                   );
                                   ref
                                           .read(feeSheetSessionCacheProvider)

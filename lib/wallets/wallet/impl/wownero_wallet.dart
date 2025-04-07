@@ -11,23 +11,18 @@ import '../intermediate/lib_monero_wallet.dart';
 
 class WowneroWallet extends LibMoneroWallet {
   WowneroWallet(CryptoCurrencyNetwork network)
-      : super(
-          Wownero(network),
-          lib_monero_compat.WalletType.wownero,
-        );
+    : super(Wownero(network), lib_monero_compat.WalletType.wownero);
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     if (libMoneroWallet == null ||
         syncStatus is! lib_monero_compat.SyncedSyncStatus) {
-      return Amount.zeroWith(
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
+      return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
     lib_monero.TransactionPriority priority;
     FeeRateType feeRateType = FeeRateType.slow;
-    switch (feeRate) {
+    switch (feeRate.toInt()) {
       case 1:
         priority = lib_monero.TransactionPriority.low;
         feeRateType = FeeRateType.average;
@@ -141,13 +136,12 @@ class WowneroWallet extends LibMoneroWallet {
     required String password,
     required String mnemonic,
     int height = 0,
-  }) async =>
-      await lib_monero.WowneroWallet.restoreWalletFromSeed(
-        path: path,
-        password: password,
-        seed: mnemonic,
-        restoreHeight: height,
-      );
+  }) async => await lib_monero.WowneroWallet.restoreWalletFromSeed(
+    path: path,
+    password: password,
+    seed: mnemonic,
+    restoreHeight: height,
+  );
 
   @override
   Future<lib_monero.Wallet> getRestoredFromViewKeyWallet({
@@ -156,14 +150,13 @@ class WowneroWallet extends LibMoneroWallet {
     required String address,
     required String privateViewKey,
     int height = 0,
-  }) async =>
-      lib_monero.WowneroWallet.createViewOnlyWallet(
-        path: path,
-        password: password,
-        address: address,
-        viewKey: privateViewKey,
-        restoreHeight: height,
-      );
+  }) async => lib_monero.WowneroWallet.createViewOnlyWallet(
+    path: path,
+    password: password,
+    address: address,
+    viewKey: privateViewKey,
+    restoreHeight: height,
+  );
 
   @override
   void invalidSeedLengthCheck(int length) {

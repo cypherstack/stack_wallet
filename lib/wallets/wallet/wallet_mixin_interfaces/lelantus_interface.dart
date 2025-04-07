@@ -48,46 +48,50 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
   }
 
   Future<List<lelantus.DartLelantusEntry>> _getLelantusEntry() async {
-    final List<LelantusCoin> lelantusCoins = await mainDB.isar.lelantusCoins
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .isUsedEqualTo(false)
-        .not()
-        .group(
-          (q) => q
-              .valueEqualTo("0")
-              .or()
-              .anonymitySetIdEqualTo(LelantusFfiWrapper.ANONYMITY_SET_EMPTY_ID),
-        )
-        .findAll();
+    final List<LelantusCoin> lelantusCoins =
+        await mainDB.isar.lelantusCoins
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .isUsedEqualTo(false)
+            .not()
+            .group(
+              (q) => q
+                  .valueEqualTo("0")
+                  .or()
+                  .anonymitySetIdEqualTo(
+                    LelantusFfiWrapper.ANONYMITY_SET_EMPTY_ID,
+                  ),
+            )
+            .findAll();
 
     final root = await getRootHDNode();
 
-    final waitLelantusEntries = lelantusCoins.map((coin) async {
-      final derivePath = cryptoCurrency.constructDerivePath(
-        derivePathType: DerivePathType.bip44,
-        chain: LelantusFfiWrapper.MINT_INDEX,
-        index: coin.mintIndex,
-      );
+    final waitLelantusEntries =
+        lelantusCoins.map((coin) async {
+          final derivePath = cryptoCurrency.constructDerivePath(
+            derivePathType: DerivePathType.bip44,
+            chain: LelantusFfiWrapper.MINT_INDEX,
+            index: coin.mintIndex,
+          );
 
-      try {
-        final keyPair = root.derivePath(derivePath);
-        final String privateKey = keyPair.privateKey.data.toHex;
-        return lelantus.DartLelantusEntry(
-          coin.isUsed ? 1 : 0,
-          0,
-          coin.anonymitySetId,
-          int.parse(coin.value),
-          coin.mintIndex,
-          privateKey,
-        );
-      } catch (e, s) {
-        Logging.instance.e("error bad key");
-        Logging.instance.t("error bad key", error: e, stackTrace: s);
-        return lelantus.DartLelantusEntry(1, 0, 0, 0, 0, '');
-      }
-    }).toList();
+          try {
+            final keyPair = root.derivePath(derivePath);
+            final String privateKey = keyPair.privateKey.data.toHex;
+            return lelantus.DartLelantusEntry(
+              coin.isUsed ? 1 : 0,
+              0,
+              coin.anonymitySetId,
+              int.parse(coin.value),
+              coin.mintIndex,
+              privateKey,
+            );
+          } catch (e, s) {
+            Logging.instance.e("error bad key");
+            Logging.instance.t("error bad key", error: e, stackTrace: s);
+            return lelantus.DartLelantusEntry(1, 0, 0, 0, 0, '');
+          }
+        }).toList();
 
     final lelantusEntries = await Future.wait(waitLelantusEntries);
 
@@ -100,13 +104,9 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     return lelantusEntries;
   }
 
-  Future<TxData> prepareSendLelantus({
-    required TxData txData,
-  }) async {
+  Future<TxData> prepareSendLelantus({required TxData txData}) async {
     if (txData.recipients!.length != 1) {
-      throw Exception(
-        "Lelantus send requires a single recipient",
-      );
+      throw Exception("Lelantus send requires a single recipient");
     }
 
     if (txData.recipients!.first.amount.raw >
@@ -125,8 +125,9 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
         isSendAll = true;
       }
 
-      final lastUsedIndex =
-          await mainDB.getHighestUsedMintIndex(walletId: walletId);
+      final lastUsedIndex = await mainDB.getHighestUsedMintIndex(
+        walletId: walletId,
+      );
       final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
 
       final root = await getRootHDNode();
@@ -174,18 +175,15 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<TxData> confirmSendLelantus({
-    required TxData txData,
-  }) async {
+  Future<TxData> confirmSendLelantus({required TxData txData}) async {
     final latestSetId = await electrumXClient.getLelantusLatestCoinId();
-    final txid = await electrumXClient.broadcastTransaction(
-      rawTx: txData.raw!,
-    );
+    final txid = await electrumXClient.broadcastTransaction(rawTx: txData.raw!);
 
     assert(txid == txData.txid!);
 
-    final lastUsedIndex =
-        await mainDB.getHighestUsedMintIndex(walletId: walletId);
+    final lastUsedIndex = await mainDB.getHighestUsedMintIndex(
+      walletId: walletId,
+    );
     final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
 
     if (txData.spendCoinIndexes != null) {
@@ -197,10 +195,11 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       // Update all of the coins that have been spent.
 
       for (final index in spentCoinIndexes) {
-        final possibleCoin = await mainDB.isar.lelantusCoins
-            .where()
-            .mintIndexWalletIdEqualTo(index, walletId)
-            .findFirst();
+        final possibleCoin =
+            await mainDB.isar.lelantusCoins
+                .where()
+                .mintIndexWalletIdEqualTo(index, walletId)
+                .findFirst();
 
         if (possibleCoin != null) {
           updatedCoins.add(possibleCoin.copyWith(isUsed: true));
@@ -232,11 +231,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           await mainDB.isar.lelantusCoins.put(jmint);
         });
       } catch (e, s) {
-        Logging.instance.e(
-          "",
-          error: e,
-          stackTrace: s,
-        );
+        Logging.instance.e("", error: e, stackTrace: s);
         rethrow;
       }
 
@@ -264,7 +259,8 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
         numberOfMessages: null,
       );
 
-      final transactionAddress = await mainDB
+      final transactionAddress =
+          await mainDB
               .getAddresses(walletId)
               .filter()
               .valueEqualTo(txData.recipients!.first.address)
@@ -311,18 +307,12 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           await mainDB.isar.lelantusCoins.putAll(updatedCoins);
         });
       } catch (e, s) {
-        Logging.instance.e(
-          "",
-          error: e,
-          stackTrace: s,
-        );
+        Logging.instance.e("", error: e, stackTrace: s);
         rethrow;
       }
     }
 
-    return txData.copyWith(
-      txid: txid,
-    );
+    return txData.copyWith(txid: txid);
   }
 
   Future<List<Map<String, dynamic>>> fastFetch(List<String> allTxHashes) async {
@@ -334,10 +324,10 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     for (final txHash in allTxHashes) {
       final Future<Map<String, dynamic>> transactionFuture =
           electrumXCachedClient.getTransaction(
-        txHash: txHash,
-        verbose: true,
-        cryptoCurrency: cryptoCurrency,
-      );
+            txHash: txHash,
+            verbose: true,
+            cryptoCurrency: cryptoCurrency,
+          );
       transactionFutures.add(transactionFuture);
       currentFutureCount++;
       if (currentFutureCount > futureLimit) {
@@ -373,8 +363,9 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
   ) async {
     try {
       final Map<Address, Transaction> txs = {};
-      final List<Map<String, dynamic>> allTransactions =
-          await fastFetch(transactions);
+      final List<Map<String, dynamic>> allTransactions = await fastFetch(
+        transactions,
+      );
 
       for (int i = 0; i < allTransactions.length; i++) {
         try {
@@ -397,16 +388,18 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           final txn = Transaction(
             walletId: walletId,
             txid: tx["txid"] as String,
-            timestamp: tx["time"] as int? ??
+            timestamp:
+                tx["time"] as int? ??
                 (DateTime.now().millisecondsSinceEpoch ~/ 1000),
             type: TransactionType.outgoing,
             subType: TransactionSubType.join,
             amount: amount.raw.toInt(),
             amountString: amount.toJsonString(),
-            fee: Amount.fromDecimal(
-              Decimal.parse(tx["fees"].toString()),
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ).raw.toInt(),
+            fee:
+                Amount.fromDecimal(
+                  Decimal.parse(tx["fees"].toString()),
+                  fractionDigits: cryptoCurrency.fractionDigits,
+                ).raw.toInt(),
             height: tx["height"] as int?,
             isCancelled: false,
             isLelantus: true,
@@ -418,7 +411,8 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
             numberOfMessages: null,
           );
 
-          final address = await mainDB
+          final address =
+              await mainDB
                   .getAddresses(walletId)
                   .filter()
                   .valueEqualTo(tx["address"] as String)
@@ -488,8 +482,10 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     final Map<int, dynamic> setDataMap = {};
     final anonymitySets = await fetchAnonymitySets();
     for (int setId = 1; setId <= latestSetId; setId++) {
-      final setData = anonymitySets
-          .firstWhere((element) => element["setId"] == setId, orElse: () => {});
+      final setData = anonymitySets.firstWhere(
+        (element) => element["setId"] == setId,
+        orElse: () => {},
+      );
 
       if (setData.isNotEmpty) {
         setDataMap[setId] = setData;
@@ -500,22 +496,22 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
   // TODO: verify this function does what we think it does
   Future<void> refreshLelantusData() async {
-    final lelantusCoins = await mainDB.isar.lelantusCoins
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .isUsedEqualTo(false)
-        .not()
-        .valueEqualTo(0.toString())
-        .findAll();
+    final lelantusCoins =
+        await mainDB.isar.lelantusCoins
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .isUsedEqualTo(false)
+            .not()
+            .valueEqualTo(0.toString())
+            .findAll();
 
     final List<LelantusCoin> updatedCoins = [];
 
     final usedSerialNumbersSet =
         (await electrumXCachedClient.getUsedCoinSerials(
-      cryptoCurrency: info.coin,
-    ))
-            .toSet();
+          cryptoCurrency: info.coin,
+        )).toSet();
 
     final root = await getRootHDNode();
 
@@ -563,11 +559,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           await mainDB.isar.lelantusCoins.putAll(updatedCoins);
         });
       } catch (e, s) {
-        Logging.instance.f(
-          " ",
-          error: e,
-          stackTrace: s,
-        );
+        Logging.instance.f(" ", error: e, stackTrace: s);
         rethrow;
       }
     }
@@ -607,13 +599,14 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
     final currentHeight = await chainHeight;
 
-    final txns = await mainDB
-        .getTransactions(walletId)
-        .filter()
-        .isLelantusIsNull()
-        .or()
-        .isLelantusEqualTo(false)
-        .findAll();
+    final txns =
+        await mainDB
+            .getTransactions(walletId)
+            .filter()
+            .isLelantusIsNull()
+            .or()
+            .isLelantusEqualTo(false)
+            .findAll();
 
     // TODO: [prio=high] shouldn't these be v2? If it doesn't matter than we can get rid of this logic
     // Edit the receive transactions with the mint fees.
@@ -663,10 +656,11 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           type: inputTx.type,
           subType: TransactionSubType.mint,
           amount: inputTx.amount,
-          amountString: Amount(
-            rawValue: BigInt.from(inputTx.amount),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          ).toJsonString(),
+          amountString:
+              Amount(
+                rawValue: BigInt.from(inputTx.amount),
+                fractionDigits: cryptoCurrency.fractionDigits,
+              ).toJsonString(),
           fee: sharedFee,
           height: inputTx.height,
           isCancelled: false,
@@ -706,11 +700,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
         await mainDB.isar.lelantusCoins.putAll(result.lelantusCoins);
       });
     } catch (e, s) {
-      Logging.instance.e(
-        "",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("", error: e, stackTrace: s);
       // don't just rethrow since isar likes to strip stack traces for some reason
       throw Exception("e=$e & s=$s");
     }
@@ -722,13 +712,12 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     }
 
     // Create the joinsplit transactions.
-    final spendTxs = await getJMintTransactions(
-      result.spendTxIds,
-    );
+    final spendTxs = await getJMintTransactions(result.spendTxIds);
     Logging.instance.d("lelantus spendTxs: $spendTxs");
 
     for (final element in spendTxs.entries) {
-      final address = element.value.address.value ??
+      final address =
+          element.value.address.value ??
           data[element.value.txid]?.item1 ??
           element.key;
       // Address(
@@ -747,8 +736,9 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
     for (final value in data.values) {
       final transactionAddress = value.item1!;
-      final outs =
-          value.item2.outputs.where((_) => true).toList(growable: false);
+      final outs = value.item2.outputs
+          .where((_) => true)
+          .toList(growable: false);
       final ins = value.item2.inputs.where((_) => true).toList(growable: false);
 
       txnsData.add(
@@ -778,9 +768,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       wif: cryptoCurrency.networkParams.wifPrefix,
     );
 
-    final txb = bitcoindart.TransactionBuilder(
-      network: convertedNetwork,
-    );
+    final txb = bitcoindart.TransactionBuilder(network: convertedNetwork);
     txb.setVersion(2);
 
     final int height = await chainHeight;
@@ -794,42 +782,40 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
       switch (signingData[i].derivePathType) {
         case DerivePathType.bip44:
-          data = bitcoindart
-              .P2PKH(
-                data: bitcoindart.PaymentData(
-                  pubkey: pubKey,
-                ),
-                network: convertedNetwork,
-              )
-              .data;
+          data =
+              bitcoindart
+                  .P2PKH(
+                    data: bitcoindart.PaymentData(pubkey: pubKey),
+                    network: convertedNetwork,
+                  )
+                  .data;
           break;
 
         case DerivePathType.bip49:
-          final p2wpkh = bitcoindart
-              .P2WPKH(
-                data: bitcoindart.PaymentData(
-                  pubkey: pubKey,
-                ),
-                network: convertedNetwork,
-              )
-              .data;
-          data = bitcoindart
-              .P2SH(
-                data: bitcoindart.PaymentData(redeem: p2wpkh),
-                network: convertedNetwork,
-              )
-              .data;
+          final p2wpkh =
+              bitcoindart
+                  .P2WPKH(
+                    data: bitcoindart.PaymentData(pubkey: pubKey),
+                    network: convertedNetwork,
+                  )
+                  .data;
+          data =
+              bitcoindart
+                  .P2SH(
+                    data: bitcoindart.PaymentData(redeem: p2wpkh),
+                    network: convertedNetwork,
+                  )
+                  .data;
           break;
 
         case DerivePathType.bip84:
-          data = bitcoindart
-              .P2WPKH(
-                data: bitcoindart.PaymentData(
-                  pubkey: pubKey,
-                ),
-                network: convertedNetwork,
-              )
-              .data;
+          data =
+              bitcoindart
+                  .P2WPKH(
+                    data: bitcoindart.PaymentData(pubkey: pubKey),
+                    network: convertedNetwork,
+                  )
+                  .data;
           break;
 
         case DerivePathType.bip86:
@@ -851,8 +837,9 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
     for (final mintsElement in txData.mintsMapLelantus!) {
       Logging.instance.d("using $mintsElement");
-      final Uint8List mintu8 =
-          Format.stringToUint8List(mintsElement['script'] as String);
+      final Uint8List mintu8 = Format.stringToUint8List(
+        mintsElement['script'] as String,
+      );
       txb.addOutput(mintu8, mintsElement['value'] as int);
     }
 
@@ -922,11 +909,12 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
   /// Returns the mint transaction hex to mint all of the available funds.
   Future<TxData> _mintSelection() async {
     final currentChainHeight = await chainHeight;
-    final List<UTXO> availableOutputs = await mainDB
-        .getUTXOs(walletId)
-        .filter()
-        .isBlockedEqualTo(false)
-        .findAll();
+    final List<UTXO> availableOutputs =
+        await mainDB
+            .getUTXOs(walletId)
+            .filter()
+            .isBlockedEqualTo(false)
+            .findAll();
     final List<UTXO?> spendableOutputs = [];
 
     // Build list of spendable outputs and totaling their satoshi amount
@@ -944,21 +932,23 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
-    final lelantusCoins = await mainDB.isar.lelantusCoins
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .not()
-        .valueEqualTo(0.toString())
-        .findAll();
+    final lelantusCoins =
+        await mainDB.isar.lelantusCoins
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .not()
+            .valueEqualTo(0.toString())
+            .findAll();
 
-    final data = await mainDB
-        .getTransactions(walletId)
-        .filter()
-        .isLelantusIsNull()
-        .or()
-        .isLelantusEqualTo(false)
-        .findAll();
+    final data =
+        await mainDB
+            .getTransactions(walletId)
+            .filter()
+            .isLelantusIsNull()
+            .or()
+            .isLelantusEqualTo(false)
+            .findAll();
 
     for (final value in data) {
       if (value.inputs.isNotEmpty) {
@@ -969,8 +959,9 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
                     orElse: () => null,
                   ) !=
                   null) {
-            spendableOutputs
-                .removeWhere((output) => output!.txid == element.txid);
+            spendableOutputs.removeWhere(
+              (output) => output!.txid == element.txid,
+            );
           }
         }
       }
@@ -1005,10 +996,11 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
     final feesObject = await fees;
 
-    final Decimal fastFee = Amount(
-      rawValue: BigInt.from(feesObject.fast),
-      fractionDigits: cryptoCurrency.fractionDigits,
-    ).decimal;
+    final Decimal fastFee =
+        Amount(
+          rawValue: feesObject.fast,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        ).decimal;
     int firoFee =
         (dvSize * fastFee * Decimal.fromInt(100000)).toDouble().ceil();
     // int firoFee = (vSize * feesObject.fast * (1 / 1000.0) * 100000000).ceil();
@@ -1022,9 +1014,7 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     final mintsWithFee = await _createMintsFromAmount(satoshiAmountToSend);
 
     txData = await buildMintTransaction(
-      txData: txData.copyWith(
-        mintsMapLelantus: mintsWithFee,
-      ),
+      txData: txData.copyWith(mintsMapLelantus: mintsWithFee),
     );
 
     return txData;
@@ -1039,8 +1029,9 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
 
     int tmpTotal = total;
     int counter = 0;
-    final lastUsedIndex =
-        await mainDB.getHighestUsedMintIndex(walletId: walletId);
+    final lastUsedIndex = await mainDB.getHighestUsedMintIndex(
+      walletId: walletId,
+    );
     final nextFreeMintIndex = (lastUsedIndex ?? 0) + 1;
 
     final isTestnet = cryptoCurrency.network.isTestNet;
@@ -1118,12 +1109,9 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
           isTestNet: isTestnet,
         );
 
-        mints.add({
-          "value": mintValue,
-          "script": mint,
-          "index": index,
-        });
-        tmpTotal = tmpTotal -
+        mints.add({"value": mintValue, "script": mint, "index": index});
+        tmpTotal =
+            tmpTotal -
             (isTestnet
                 ? LelantusFfiWrapper.MINT_LIMIT_TESTNET
                 : LelantusFfiWrapper.MINT_LIMIT);
@@ -1156,32 +1144,29 @@ mixin LelantusInterface<T extends ElectrumXCurrencyInterface>
     // call to super to update transparent balance
     final normalBalanceFuture = super.updateBalance();
 
-    final lelantusCoins = await mainDB.isar.lelantusCoins
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .isUsedEqualTo(false)
-        .not()
-        .valueEqualTo(0.toString())
-        .findAll();
+    final lelantusCoins =
+        await mainDB.isar.lelantusCoins
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .isUsedEqualTo(false)
+            .not()
+            .valueEqualTo(0.toString())
+            .findAll();
 
     final currentChainHeight = await chainHeight;
     int intLelantusBalance = 0;
     int unconfirmedLelantusBalance = 0;
 
     for (final lelantusCoin in lelantusCoins) {
-      final Transaction? txn = mainDB.isar.transactions
-          .where()
-          .txidWalletIdEqualTo(
-            lelantusCoin.txid,
-            walletId,
-          )
-          .findFirstSync();
+      final Transaction? txn =
+          mainDB.isar.transactions
+              .where()
+              .txidWalletIdEqualTo(lelantusCoin.txid, walletId)
+              .findFirstSync();
 
       if (txn == null) {
-        Logging.instance.e(
-          "Transaction not found in DB for lelantus coin",
-        );
+        Logging.instance.e("Transaction not found in DB for lelantus coin");
         Logging.instance.d(
           "Transaction not found in DB for lelantus coin: $lelantusCoin",
         );

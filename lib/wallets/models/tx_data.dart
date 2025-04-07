@@ -14,7 +14,7 @@ typedef TxRecipient = ({String address, Amount amount, bool isChange});
 
 class TxData {
   final FeeRateType? feeRateType;
-  final int? feeRateAmount;
+  final BigInt? feeRateAmount;
   final int? satsPerVByte;
 
   final Amount? fee;
@@ -64,13 +64,8 @@ class TxData {
   final tezart.OperationsList? tezosOperationsList;
 
   // firo spark specific
-  final List<
-      ({
-        String address,
-        Amount amount,
-        String memo,
-        bool isChange,
-      })>? sparkRecipients;
+  final List<({String address, Amount amount, String memo, bool isChange})>?
+  sparkRecipients;
   final List<TxData>? sparkMints;
   final List<SparkCoin>? usedSparkCoins;
 
@@ -201,13 +196,14 @@ class TxData {
     }
   }
 
-  int? get estimatedSatsPerVByte => fee != null && vSize != null
-      ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
-      : null;
+  int? get estimatedSatsPerVByte =>
+      fee != null && vSize != null
+          ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
+          : null;
 
   TxData copyWith({
     FeeRateType? feeRateType,
-    int? feeRateAmount,
+    BigInt? feeRateAmount,
     int? satsPerVByte,
     Amount? fee,
     int? vSize,
@@ -237,14 +233,8 @@ class TxData {
     TransactionSubType? txSubType,
     List<Map<String, dynamic>>? mintsMapLelantus,
     tezart.OperationsList? tezosOperationsList,
-    List<
-            ({
-              String address,
-              Amount amount,
-              String memo,
-              bool isChange,
-            })>?
-        sparkRecipients,
+    List<({String address, Amount amount, String memo, bool isChange})>?
+    sparkRecipients,
     List<TxData>? sparkMints,
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
@@ -294,7 +284,8 @@ class TxData {
   }
 
   @override
-  String toString() => 'TxData{'
+  String toString() =>
+      'TxData{'
       'feeRateType: $feeRateType, '
       'feeRateAmount: $feeRateAmount, '
       'satsPerVByte: $satsPerVByte, '

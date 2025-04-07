@@ -20,7 +20,6 @@ import '../../utilities/eth_commons.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../widgets/eth_fee_form.dart';
 import '../tor_service.dart';
 
 class EthApiException implements Exception {
@@ -200,7 +199,7 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<EthereumResponse<GasTracker>> getGasOracle() async {
+  static Future<EthereumResponse<GasTracker>> _getGasOracle() async {
     try {
       final response = await client.get(
         url: Uri.parse("$stackBaseServer/gas-prices"),
@@ -246,62 +245,20 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<FeeObject> getFees() async {
-    final fees = (await getGasOracle()).value!;
-    final feesFast = fees.high.shift(9).toBigInt();
-    final feesStandard = fees.average.shift(9).toBigInt();
-    final feesSlow = fees.low.shift(9).toBigInt();
-
-    return FeeObject(
-      numberOfBlocksFast: fees.numberOfBlocksFast,
-      numberOfBlocksAverage: fees.numberOfBlocksAverage,
-      numberOfBlocksSlow: fees.numberOfBlocksSlow,
-      fast: feesFast.toInt(),
-      medium: feesStandard.toInt(),
-      slow: feesSlow.toInt(),
-    );
-  }
-
-  static Future<
-    ({EthEIP1559Fee low, EthEIP1559Fee average, EthEIP1559Fee high})
-  >
-  getEip1559Fees(EthContractType? contractType) async {
-    final response = await getGasOracle();
+  static Future<EthFeeObject> getFees() async {
+    final response = await _getGasOracle();
     if (response.exception != null) {
       throw response.exception!;
     }
 
-    final int gasLimit;
-    switch (contractType) {
-      case null:
-      case EthContractType.unknown:
-        // actually unknown or just normal eth
-        gasLimit = kEthereumMinGasLimit;
-        break;
-
-      case EthContractType.erc20:
-      case EthContractType.erc721:
-        // can vary
-        gasLimit = kEthereumTokenMinGasLimit;
-        break;
-    }
-
-    return (
-      low: EthEIP1559Fee(
-        maxBaseFeeGwei: response.value!.suggestBaseFee,
-        priorityFeeGwei: response.value!.lowPriority,
-        gasLimit: gasLimit,
-      ),
-      average: EthEIP1559Fee(
-        maxBaseFeeGwei: response.value!.suggestBaseFee,
-        priorityFeeGwei: response.value!.averagePriority,
-        gasLimit: gasLimit,
-      ),
-      high: EthEIP1559Fee(
-        maxBaseFeeGwei: response.value!.suggestBaseFee,
-        priorityFeeGwei: response.value!.highPriority,
-        gasLimit: gasLimit,
-      ),
+    return EthFeeObject(
+      suggestBaseFee: response.value!.suggestBaseFee.shift(9).toBigInt(),
+      numberOfBlocksFast: response.value!.numberOfBlocksFast,
+      numberOfBlocksAverage: response.value!.numberOfBlocksAverage,
+      numberOfBlocksSlow: response.value!.numberOfBlocksSlow,
+      fast: response.value!.high.shift(9).toBigInt(),
+      medium: response.value!.average.shift(9).toBigInt(),
+      slow: response.value!.low.shift(9).toBigInt(),
     );
   }
 

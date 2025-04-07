@@ -207,7 +207,7 @@ class EthTokenWallet extends Wallet {
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     final feeRateType = txData.feeRateType!;
-    int fee = 0;
+    BigInt fee = BigInt.zero;
     final feeObject = await fees;
     switch (feeRateType) {
       case FeeRateType.fast:
@@ -258,13 +258,13 @@ class EthTokenWallet extends Wallet {
       function: _sendFunction,
       parameters: [web3dart.EthereumAddress.fromHex(address), amount.raw],
       maxGas: kEthereumTokenMinGasLimit,
-      gasPrice: web3dart.EtherAmount.fromInt(web3dart.EtherUnit.wei, fee),
+      gasPrice: web3dart.EtherAmount.fromBigInt(web3dart.EtherUnit.wei, fee),
       nonce: nonce,
     );
 
     return txData.copyWith(
       fee: feeEstimate,
-      feeInWei: BigInt.from(fee),
+      feeInWei: fee,
       web3dartTransaction: tx,
       chainId: await client.getChainId(),
       nonce: tx.nonce,
@@ -285,7 +285,7 @@ class EthTokenWallet extends Wallet {
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     return ethWallet.estimateEthFee(
       feeRate,
       kEthereumTokenMinGasLimit,

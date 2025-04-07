@@ -360,7 +360,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     final wallet = ref.read(pCurrentTokenWallet)!;
     final feeObject = await wallet.fees;
 
-    late final int feeRate;
+    late final BigInt feeRate;
 
     switch (ref.read(feeRateTypeStateProvider.state).state) {
       case FeeRateType.fast:
@@ -373,7 +373,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         feeRate = feeObject.slow;
         break;
       default:
-        feeRate = -1;
+        feeRate = BigInt.from(-1);
     }
 
     final Amount fee = await wallet.estimateFeeFor(Amount.zero, feeRate);

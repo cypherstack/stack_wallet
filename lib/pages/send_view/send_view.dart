@@ -450,7 +450,7 @@ class _SendViewState extends ConsumerState<SendView> {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final feeObject = await wallet.fees;
 
-    late final int feeRate;
+    late final BigInt feeRate;
 
     switch (ref.read(feeRateTypeStateProvider.state).state) {
       case FeeRateType.fast:
@@ -463,7 +463,7 @@ class _SendViewState extends ConsumerState<SendView> {
         feeRate = feeObject.slow;
         break;
       default:
-        feeRate = -1;
+        feeRate = BigInt.from(-1);
     }
 
     Amount fee;
@@ -483,7 +483,10 @@ class _SendViewState extends ConsumerState<SendView> {
           throw ArgumentError("custom fee not available for monero");
       }
 
-      fee = await wallet.estimateFeeFor(amount, specialMoneroId.value);
+      fee = await wallet.estimateFeeFor(
+        amount,
+        BigInt.from(specialMoneroId.value),
+      );
       cachedFees[amount] = ref
           .read(pAmountFormatter(coin))
           .format(fee, withUnitName: true, indicatePrecisionLoss: false);

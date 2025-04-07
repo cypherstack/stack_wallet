@@ -58,7 +58,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     return web3.Web3Client(node.host, client);
   }
 
-  Amount estimateEthFee(int feeRate, int gasLimit, int decimals) {
+  Amount estimateEthFee(BigInt feeRate, int gasLimit, int decimals) {
     final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
     final fee =
         gasLimit.toDecimal() *
@@ -188,7 +188,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     return estimateEthFee(
       feeRate,
       (cryptoCurrency as Ethereum).gasLimit,
@@ -197,7 +197,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   }
 
   @override
-  Future<FeeObject> get fees => EthereumAPI.getFees();
+  Future<EthFeeObject> get fees => EthereumAPI.getFees();
 
   @override
   Future<bool> pingCheck() async {
@@ -423,8 +423,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
-    final int
-    rate; // TODO: use BigInt for feeObject whenever FeeObject gets redone
+    final BigInt rate;
     final feeObject = await fees;
     switch (txData.feeRateType!) {
       case FeeRateType.fast:
@@ -489,7 +488,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     final tx = web3.Transaction(
       to: web3.EthereumAddress.fromHex(address),
-      gasPrice: web3.EtherAmount.fromInt(web3.EtherUnit.wei, rate),
+      gasPrice: web3.EtherAmount.fromBigInt(web3.EtherUnit.wei, rate),
       maxGas: (cryptoCurrency as Ethereum).gasLimit,
       value: web3.EtherAmount.inWei(amount.raw),
       nonce: nonce,
@@ -499,7 +498,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       nonce: tx.nonce,
       web3dartTransaction: tx,
       fee: feeEstimate,
-      feeInWei: BigInt.from(rate),
+      feeInWei: rate,
       chainId: (await client.getChainId()),
     );
   }

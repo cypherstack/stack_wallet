@@ -9,22 +9,17 @@ import '../intermediate/lib_monero_wallet.dart';
 
 class MoneroWallet extends LibMoneroWallet {
   MoneroWallet(CryptoCurrencyNetwork network)
-      : super(
-          Monero(network),
-          lib_monero_compat.WalletType.monero,
-        );
+    : super(Monero(network), lib_monero_compat.WalletType.monero);
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     if (libMoneroWallet == null ||
         syncStatus is! lib_monero_compat.SyncedSyncStatus) {
-      return Amount.zeroWith(
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
+      return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
     lib_monero.TransactionPriority priority;
-    switch (feeRate) {
+    switch (feeRate.toInt()) {
       case 1:
         priority = lib_monero.TransactionPriority.low;
         break;
@@ -104,13 +99,12 @@ class MoneroWallet extends LibMoneroWallet {
     required String password,
     required String mnemonic,
     int height = 0,
-  }) async =>
-      await lib_monero.MoneroWallet.restoreWalletFromSeed(
-        path: path,
-        password: password,
-        seed: mnemonic,
-        restoreHeight: height,
-      );
+  }) async => await lib_monero.MoneroWallet.restoreWalletFromSeed(
+    path: path,
+    password: password,
+    seed: mnemonic,
+    restoreHeight: height,
+  );
 
   @override
   Future<lib_monero.Wallet> getRestoredFromViewKeyWallet({
@@ -119,14 +113,13 @@ class MoneroWallet extends LibMoneroWallet {
     required String address,
     required String privateViewKey,
     int height = 0,
-  }) async =>
-      lib_monero.MoneroWallet.createViewOnlyWallet(
-        path: path,
-        password: password,
-        address: address,
-        viewKey: privateViewKey,
-        restoreHeight: height,
-      );
+  }) async => lib_monero.MoneroWallet.createViewOnlyWallet(
+    path: path,
+    password: password,
+    address: address,
+    viewKey: privateViewKey,
+    restoreHeight: height,
+  );
 
   @override
   void invalidSeedLengthCheck(int length) {

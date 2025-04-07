@@ -8,8 +8,8 @@
  *
  */
 
-import 'package:flutter/material.dart';
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/paymint/fee_object_model.dart';
@@ -32,8 +32,8 @@ import '../../../widgets/animated_text.dart';
 
 final feeSheetSessionCacheProvider =
     ChangeNotifierProvider<FeeSheetSessionCache>((ref) {
-  return FeeSheetSessionCache();
-});
+      return FeeSheetSessionCache();
+    });
 
 class FeeSheetSessionCache extends ChangeNotifier {
   final Map<Amount, Amount> fast = {};
@@ -79,7 +79,7 @@ class _TransactionFeeSelectionSheetState
   Future<Amount> feeFor({
     required Amount amount,
     required FeeRateType feeRateType,
-    required int feeRate,
+    required BigInt feeRate,
     required CryptoCurrency coin,
   }) async {
     switch (feeRateType) {
@@ -91,27 +91,31 @@ class _TransactionFeeSelectionSheetState
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                lib_monero.TransactionPriority.high.value,
+                BigInt.from(lib_monero.TransactionPriority.high.value),
               );
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
-                  fee =
-                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
+                    amount,
+                  );
                 case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeForLelantus(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
+                    amount,
+                  );
                 case FiroType.public:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeFor(amount, feeRate);
+                  fee = await (wallet as FiroWallet).estimateFeeFor(
+                    amount,
+                    feeRate,
+                  );
               }
 
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else {
-              ref.read(feeSheetSessionCacheProvider).fast[amount] =
-                  await wallet.estimateFeeFor(amount, feeRate);
+              ref.read(feeSheetSessionCacheProvider).fast[amount] = await wallet
+                  .estimateFeeFor(amount, feeRate);
             }
           } else {
             final tokenWallet = ref.read(pCurrentTokenWallet)!;
@@ -128,21 +132,25 @@ class _TransactionFeeSelectionSheetState
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                lib_monero.TransactionPriority.medium.value,
+                BigInt.from(lib_monero.TransactionPriority.medium.value),
               );
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
-                  fee =
-                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
+                    amount,
+                  );
                 case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeForLelantus(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
+                    amount,
+                  );
                 case FiroType.public:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeFor(amount, feeRate);
+                  fee = await (wallet as FiroWallet).estimateFeeFor(
+                    amount,
+                    feeRate,
+                  );
               }
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else {
@@ -164,26 +172,30 @@ class _TransactionFeeSelectionSheetState
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                lib_monero.TransactionPriority.normal.value,
+                BigInt.from(lib_monero.TransactionPriority.normal.value),
               );
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else if (coin is Firo) {
               final Amount fee;
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
-                  fee =
-                      await (wallet as FiroWallet).estimateFeeForSpark(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
+                    amount,
+                  );
                 case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeForLelantus(amount);
+                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
+                    amount,
+                  );
                 case FiroType.public:
-                  fee = await (wallet as FiroWallet)
-                      .estimateFeeFor(amount, feeRate);
+                  fee = await (wallet as FiroWallet).estimateFeeFor(
+                    amount,
+                    feeRate,
+                  );
               }
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else {
-              ref.read(feeSheetSessionCacheProvider).slow[amount] =
-                  await wallet.estimateFeeFor(amount, feeRate);
+              ref.read(feeSheetSessionCacheProvider).slow[amount] = await wallet
+                  .estimateFeeFor(amount, feeRate);
             }
           } else {
             final tokenWallet = ref.read(pCurrentTokenWallet)!;
@@ -243,17 +255,10 @@ class _TransactionFeeSelectionSheetState
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 10,
-          bottom: 0,
-        ),
+        padding: const EdgeInsets.only(left: 24, right: 24, top: 10, bottom: 0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,9 +266,10 @@ class _TransactionFeeSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -272,13 +278,12 @@ class _TransactionFeeSelectionSheetState
                 height: 4,
               ),
             ),
-            const SizedBox(
-              height: 36,
-            ),
+            const SizedBox(height: 36),
             FutureBuilder(
-              future: widget.isToken
-                  ? ref.read(pCurrentTokenWallet)!.fees
-                  : wallet.fees,
+              future:
+                  widget.isToken
+                      ? ref.read(pCurrentTokenWallet)!.fees
+                      : wallet.fees,
               builder: (context, AsyncSnapshot<FeeObject> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.hasData) {
@@ -293,9 +298,7 @@ class _TransactionFeeSelectionSheetState
                       style: STextStyles.pageTitleH2(context),
                       textAlign: TextAlign.left,
                     ),
-                    const SizedBox(
-                      height: 16,
-                    ),
+                    const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
                         final state =
@@ -304,8 +307,10 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.fast;
                         }
-                        final String? fee =
-                            getAmount(FeeRateType.fast, wallet.info.coin);
+                        final String? fee = getAmount(
+                          FeeRateType.fast,
+                          wallet.info.coin,
+                        );
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -323,13 +328,17 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
+                                    activeColor:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .radioButtonIconEnabled,
                                     value: FeeRateType.fast,
-                                    groupValue: ref
-                                        .watch(feeRateTypeStateProvider.state)
-                                        .state,
+                                    groupValue:
+                                        ref
+                                            .watch(
+                                              feeRateTypeStateProvider.state,
+                                            )
+                                            .state,
                                     onChanged: (x) {
                                       ref
                                           .read(feeRateTypeStateProvider.state)
@@ -341,9 +350,7 @@ class _TransactionFeeSelectionSheetState
                                 ),
                               ],
                             ),
-                            const SizedBox(
-                              width: 12,
-                            ),
+                            const SizedBox(width: 12),
                             Flexible(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,15 +362,14 @@ class _TransactionFeeSelectionSheetState
                                         style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
-                                      const SizedBox(
-                                        width: 2,
-                                      ),
+                                      const SizedBox(width: 2),
                                       if (feeObject == null)
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style:
-                                              STextStyles.itemSubtitle(context),
+                                          style: STextStyles.itemSubtitle(
+                                            context,
+                                          ),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -381,15 +387,7 @@ class _TransactionFeeSelectionSheetState
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
                                               return Text(
-                                                "(~${ref.watch(
-                                                      pAmountFormatter(
-                                                        coin,
-                                                      ),
-                                                    ).format(
-                                                      snapshot.data!,
-                                                      indicatePrecisionLoss:
-                                                          false,
-                                                    )})",
+                                                "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
                                                 style: STextStyles.itemSubtitle(
                                                   context,
                                                 ),
@@ -408,9 +406,7 @@ class _TransactionFeeSelectionSheetState
                                         ),
                                     ],
                                   ),
-                                  const SizedBox(
-                                    height: 2,
-                                  ),
+                                  const SizedBox(height: 2),
                                   if (feeObject == null && coin is! Ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
@@ -433,9 +429,7 @@ class _TransactionFeeSelectionSheetState
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 16,
-                    ),
+                    const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
                         final state =
@@ -444,8 +438,10 @@ class _TransactionFeeSelectionSheetState
                           ref.read(feeRateTypeStateProvider.state).state =
                               FeeRateType.average;
                         }
-                        final String? fee =
-                            getAmount(FeeRateType.average, coin);
+                        final String? fee = getAmount(
+                          FeeRateType.average,
+                          coin,
+                        );
                         if (fee != null) {
                           widget.updateChosen(fee);
                         }
@@ -462,13 +458,17 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
+                                    activeColor:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .radioButtonIconEnabled,
                                     value: FeeRateType.average,
-                                    groupValue: ref
-                                        .watch(feeRateTypeStateProvider.state)
-                                        .state,
+                                    groupValue:
+                                        ref
+                                            .watch(
+                                              feeRateTypeStateProvider.state,
+                                            )
+                                            .state,
                                     onChanged: (x) {
                                       ref
                                           .read(feeRateTypeStateProvider.state)
@@ -479,9 +479,7 @@ class _TransactionFeeSelectionSheetState
                                 ),
                               ],
                             ),
-                            const SizedBox(
-                              width: 12,
-                            ),
+                            const SizedBox(width: 12),
                             Flexible(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -493,15 +491,14 @@ class _TransactionFeeSelectionSheetState
                                         style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
-                                      const SizedBox(
-                                        width: 2,
-                                      ),
+                                      const SizedBox(width: 2),
                                       if (feeObject == null)
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style:
-                                              STextStyles.itemSubtitle(context),
+                                          style: STextStyles.itemSubtitle(
+                                            context,
+                                          ),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -519,15 +516,7 @@ class _TransactionFeeSelectionSheetState
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
                                               return Text(
-                                                "(~${ref.watch(
-                                                      pAmountFormatter(
-                                                        coin,
-                                                      ),
-                                                    ).format(
-                                                      snapshot.data!,
-                                                      indicatePrecisionLoss:
-                                                          false,
-                                                    )})",
+                                                "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
                                                 style: STextStyles.itemSubtitle(
                                                   context,
                                                 ),
@@ -546,9 +535,7 @@ class _TransactionFeeSelectionSheetState
                                         ),
                                     ],
                                   ),
-                                  const SizedBox(
-                                    height: 2,
-                                  ),
+                                  const SizedBox(height: 2),
                                   if (feeObject == null && coin is! Ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
@@ -571,9 +558,7 @@ class _TransactionFeeSelectionSheetState
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 16,
-                    ),
+                    const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
                         final state =
@@ -599,13 +584,17 @@ class _TransactionFeeSelectionSheetState
                                   width: 20,
                                   height: 20,
                                   child: Radio(
-                                    activeColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
+                                    activeColor:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .radioButtonIconEnabled,
                                     value: FeeRateType.slow,
-                                    groupValue: ref
-                                        .watch(feeRateTypeStateProvider.state)
-                                        .state,
+                                    groupValue:
+                                        ref
+                                            .watch(
+                                              feeRateTypeStateProvider.state,
+                                            )
+                                            .state,
                                     onChanged: (x) {
                                       ref
                                           .read(feeRateTypeStateProvider.state)
@@ -616,9 +605,7 @@ class _TransactionFeeSelectionSheetState
                                 ),
                               ],
                             ),
-                            const SizedBox(
-                              width: 12,
-                            ),
+                            const SizedBox(width: 12),
                             Flexible(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,15 +617,14 @@ class _TransactionFeeSelectionSheetState
                                         style: STextStyles.titleBold12(context),
                                         textAlign: TextAlign.left,
                                       ),
-                                      const SizedBox(
-                                        width: 2,
-                                      ),
+                                      const SizedBox(width: 2),
                                       if (feeObject == null)
                                         AnimatedText(
                                           stringsToLoopThrough:
                                               stringsToLoopThrough,
-                                          style:
-                                              STextStyles.itemSubtitle(context),
+                                          style: STextStyles.itemSubtitle(
+                                            context,
+                                          ),
                                         ),
                                       if (feeObject != null)
                                         FutureBuilder(
@@ -656,15 +642,7 @@ class _TransactionFeeSelectionSheetState
                                                     ConnectionState.done &&
                                                 snapshot.hasData) {
                                               return Text(
-                                                "(~${ref.watch(
-                                                      pAmountFormatter(
-                                                        coin,
-                                                      ),
-                                                    ).format(
-                                                      snapshot.data!,
-                                                      indicatePrecisionLoss:
-                                                          false,
-                                                    )})",
+                                                "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
                                                 style: STextStyles.itemSubtitle(
                                                   context,
                                                 ),
@@ -683,9 +661,7 @@ class _TransactionFeeSelectionSheetState
                                         ),
                                     ],
                                   ),
-                                  const SizedBox(
-                                    height: 2,
-                                  ),
+                                  const SizedBox(height: 2),
                                   if (feeObject == null && coin is! Ethereum)
                                     AnimatedText(
                                       stringsToLoopThrough:
@@ -708,9 +684,7 @@ class _TransactionFeeSelectionSheetState
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 24,
-                    ),
+                    const SizedBox(height: 24),
                     if (wallet is ElectrumXInterface)
                       GestureDetector(
                         onTap: () {
@@ -735,13 +709,17 @@ class _TransactionFeeSelectionSheetState
                                     width: 20,
                                     height: 20,
                                     child: Radio(
-                                      activeColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .radioButtonIconEnabled,
+                                      activeColor:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .radioButtonIconEnabled,
                                       value: FeeRateType.custom,
-                                      groupValue: ref
-                                          .watch(feeRateTypeStateProvider.state)
-                                          .state,
+                                      groupValue:
+                                          ref
+                                              .watch(
+                                                feeRateTypeStateProvider.state,
+                                              )
+                                              .state,
                                       onChanged: (x) {
                                         ref
                                             .read(
@@ -754,9 +732,7 @@ class _TransactionFeeSelectionSheetState
                                   ),
                                 ],
                               ),
-                              const SizedBox(
-                                width: 12,
-                              ),
+                              const SizedBox(width: 12),
                               Flexible(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -765,15 +741,14 @@ class _TransactionFeeSelectionSheetState
                                       children: [
                                         Text(
                                           FeeRateType.custom.prettyName,
-                                          style:
-                                              STextStyles.titleBold12(context),
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ),
                                           textAlign: TextAlign.left,
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(
-                                      height: 2,
-                                    ),
+                                    const SizedBox(height: 2),
                                   ],
                                 ),
                               ),
@@ -782,9 +757,7 @@ class _TransactionFeeSelectionSheetState
                         ),
                       ),
                     if (wallet is ElectrumXInterface)
-                      const SizedBox(
-                        height: 24,
-                      ),
+                      const SizedBox(height: 24),
                   ],
                 );
               },
@@ -800,7 +773,9 @@ class _TransactionFeeSelectionSheetState
       switch (feeRateType) {
         case FeeRateType.fast:
           if (ref.read(feeSheetSessionCacheProvider).fast[amount] != null) {
-            return ref.read(pAmountFormatter(coin)).format(
+            return ref
+                .read(pAmountFormatter(coin))
+                .format(
                   ref.read(feeSheetSessionCacheProvider).fast[amount]!,
                   indicatePrecisionLoss: false,
                   withUnitName: false,
@@ -810,7 +785,9 @@ class _TransactionFeeSelectionSheetState
 
         case FeeRateType.average:
           if (ref.read(feeSheetSessionCacheProvider).average[amount] != null) {
-            return ref.read(pAmountFormatter(coin)).format(
+            return ref
+                .read(pAmountFormatter(coin))
+                .format(
                   ref.read(feeSheetSessionCacheProvider).average[amount]!,
                   indicatePrecisionLoss: false,
                   withUnitName: false,
@@ -820,7 +797,9 @@ class _TransactionFeeSelectionSheetState
 
         case FeeRateType.slow:
           if (ref.read(feeSheetSessionCacheProvider).slow[amount] != null) {
-            return ref.read(pAmountFormatter(coin)).format(
+            return ref
+                .read(pAmountFormatter(coin))
+                .format(
                   ref.read(feeSheetSessionCacheProvider).slow[amount]!,
                   indicatePrecisionLoss: false,
                   withUnitName: false,
@@ -831,7 +810,7 @@ class _TransactionFeeSelectionSheetState
           return null;
       }
     } catch (e, s) {
-      Logging.instance.w("$e $s", error: e, stackTrace: s,);
+      Logging.instance.w("$e $s", error: e, stackTrace: s);
       return null;
     }
   }

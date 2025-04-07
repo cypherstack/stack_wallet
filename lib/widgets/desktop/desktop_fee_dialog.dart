@@ -43,7 +43,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
   Future<Amount> feeFor({
     required Amount amount,
     required FeeRateType feeRateType,
-    required int feeRate,
+    required BigInt feeRate,
     required CryptoCurrency coin,
   }) async {
     switch (feeRateType) {
@@ -62,7 +62,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                lib_monero.TransactionPriority.high.value,
+                BigInt.from(lib_monero.TransactionPriority.high.value),
               );
               ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
             } else if (coin is Firo) {
@@ -116,7 +116,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                lib_monero.TransactionPriority.medium.value,
+                BigInt.from(lib_monero.TransactionPriority.medium.value),
               );
               ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
             } else if (coin is Firo) {
@@ -170,7 +170,7 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
             if (coin is Monero || coin is Wownero) {
               final fee = await wallet.estimateFeeFor(
                 amount,
-                lib_monero.TransactionPriority.normal.value,
+                BigInt.from(lib_monero.TransactionPriority.normal.value),
               );
               ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
             } else if (coin is Firo) {
@@ -291,7 +291,7 @@ class DesktopFeeItem extends ConsumerStatefulWidget {
   final Future<Amount> Function({
     required Amount amount,
     required FeeRateType feeRateType,
-    required int feeRate,
+    required BigInt feeRate,
     required CryptoCurrency coin,
   })
   feeFor;
