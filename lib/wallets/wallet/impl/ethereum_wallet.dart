@@ -421,56 +421,35 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     return false;
   }
 
-  @override
-  Future<TxData> prepareSend({required TxData txData}) async {
-    final BigInt rate;
-    final feeObject = await fees;
-    switch (txData.feeRateType!) {
-      case FeeRateType.fast:
-        rate = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        rate = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        rate = feeObject.slow;
-        break;
-      case FeeRateType.custom:
-        throw UnimplementedError("custom eth fees");
-    }
-
-    final feeEstimate = await estimateFeeFor(Amount.zero, rate);
-
-    // bool isSendAll = false;
-    // final availableBalance = balance.spendable;
-    // if (satoshiAmount == availableBalance) {
-    //   isSendAll = true;
-    // }
-    //
-    // if (isSendAll) {
-    //   //Subtract fee amount from send amount
-    //   satoshiAmount -= feeEstimate;
-    // }
-
-    final client = getEthClient();
-
+  Future<web3.EthereumAddress> getMyWeb3Address() async {
     final myAddress = (await getCurrentReceivingAddress())!.value;
     final myWeb3Address = web3.EthereumAddress.fromHex(myAddress);
+    return myWeb3Address;
+  }
 
-    final amount = txData.recipients!.first.amount;
-    final address = txData.recipients!.first.address;
+  Future<
+    ({
+      int nonce,
+      BigInt chainId,
+      BigInt baseFee,
+      BigInt maxBaseFee,
+      BigInt priorityFee,
+    })
+  >
+  internalSharedPrepareSend({
+    required TxData txData,
+    required web3.EthereumAddress myWeb3Address,
+  }) async {
+    if (txData.feeRateType == null) throw Exception("Missing fee rate type.");
+    if (txData.feeRateType == FeeRateType.custom &&
+        txData.ethEIP1559Fee == null) {
+      throw Exception("Missing custom EIP-1559 values.");
+    }
 
-    // final est = await client.estimateGas(
-    //   sender: myWeb3Address,
-    //   to: web3.EthereumAddress.fromHex(address),
-    //   gasPrice: web3.EtherAmount.fromUnitAndValue(
-    //     web3.EtherUnit.wei,
-    //     rate,
-    //   ),
-    //   amountOfGas: BigInt.from((cryptoCurrency as Ethereum).gasLimit),
-    //   value: web3.EtherAmount.inWei(amount.raw),
-    // );
+    await updateBalance();
 
+    final client = getEthClient();
+    final chainId = await client.getChainId();
     final nonce =
         txData.nonce ??
         await client.getTransactionCount(
@@ -478,28 +457,92 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
           atBlock: const web3.BlockNum.pending(),
         );
 
-    // final nResponse = await EthereumAPI.getAddressNonce(address: myAddress);
-    // print("==============================================================");
-    // print("ETH client.estimateGas:  $est");
-    // print("ETH estimateFeeFor    :  $feeEstimate");
-    // print("ETH nonce custom response:  $nResponse");
-    // print("ETH actual nonce         :  $nonce");
-    // print("==============================================================");
+    final feeObject = await fees;
+    final baseFee = feeObject.suggestBaseFee;
+    BigInt maxBaseFee = baseFee;
+    BigInt priorityFee;
+
+    switch (txData.feeRateType!) {
+      case FeeRateType.fast:
+        priorityFee = feeObject.fast - baseFee;
+        if (priorityFee.isNegative) priorityFee = BigInt.zero;
+        break;
+
+      case FeeRateType.average:
+        priorityFee = feeObject.medium - baseFee;
+        if (priorityFee.isNegative) priorityFee = BigInt.zero;
+        break;
+
+      case FeeRateType.slow:
+        priorityFee = feeObject.slow - baseFee;
+        if (priorityFee.isNegative) priorityFee = BigInt.zero;
+        break;
+
+      case FeeRateType.custom:
+        priorityFee = txData.ethEIP1559Fee!.priorityFeeWei;
+        maxBaseFee = txData.ethEIP1559Fee!.maxBaseFeeWei;
+        break;
+    }
+
+    if (baseFee > maxBaseFee) {
+      throw Exception("Base cannot be greater than max base fee");
+    }
+    if (priorityFee > maxBaseFee) {
+      throw Exception("Priority fee cannot be greater than max base fee");
+    }
+
+    return (
+      nonce: nonce,
+      chainId: chainId,
+      baseFee: baseFee,
+      maxBaseFee: maxBaseFee,
+      priorityFee: priorityFee,
+    );
+  }
+
+  @override
+  Future<TxData> prepareSend({required TxData txData}) async {
+    final amount = txData.recipients!.first.amount;
+    final address = txData.recipients!.first.address;
+
+    final myWeb3Address = await getMyWeb3Address();
+
+    final prep = await internalSharedPrepareSend(
+      txData: txData,
+      myWeb3Address: myWeb3Address,
+    );
+
+    // double check balance after internalSharedPrepareSend call to ensure
+    // balance is up to date
+    if (amount > info.cachedBalance.spendable) {
+      throw Exception("Insufficient balance");
+    }
 
     final tx = web3.Transaction(
       to: web3.EthereumAddress.fromHex(address),
-      gasPrice: web3.EtherAmount.fromBigInt(web3.EtherUnit.wei, rate),
-      maxGas: (cryptoCurrency as Ethereum).gasLimit,
+      maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumMinGasLimit,
       value: web3.EtherAmount.inWei(amount.raw),
-      nonce: nonce,
+      nonce: prep.nonce,
+      maxFeePerGas: web3.EtherAmount.fromBigInt(
+        web3.EtherUnit.wei,
+        prep.maxBaseFee,
+      ),
+      maxPriorityFeePerGas: web3.EtherAmount.fromBigInt(
+        web3.EtherUnit.wei,
+        prep.priorityFee,
+      ),
+    );
+
+    final feeEstimate = await estimateFeeFor(
+      Amount.zero,
+      prep.maxBaseFee + prep.priorityFee,
     );
 
     return txData.copyWith(
       nonce: tx.nonce,
       web3dartTransaction: tx,
       fee: feeEstimate,
-      feeInWei: rate,
-      chainId: (await client.getChainId()),
+      chainId: prep.chainId,
     );
   }
 

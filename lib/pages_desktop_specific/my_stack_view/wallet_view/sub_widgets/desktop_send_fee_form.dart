@@ -10,6 +10,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/eth_commons.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
@@ -30,12 +31,14 @@ class DesktopSendFeeForm extends ConsumerStatefulWidget {
     required this.isToken,
     required this.onCustomFeeSliderChanged,
     required this.onCustomFeeOptionChanged,
+    this.onCustomEip1559FeeOptionChanged,
   });
 
   final String walletId;
   final bool isToken;
   final void Function(int) onCustomFeeSliderChanged;
   final void Function(bool) onCustomFeeOptionChanged;
+  final void Function(EthEIP1559Fee)? onCustomEip1559FeeOptionChanged;
 
   @override
   ConsumerState<DesktopSendFeeForm> createState() => _DesktopSendFeeFormState();
@@ -318,9 +321,12 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
           ),
         if (isCustomFee && isEth)
           EthFeeForm(
-            stateChanged: (updatedFeeModel) {
-              print(updatedFeeModel);
-            },
+            minGasLimit:
+                widget.isToken
+                    ? kEthereumTokenMinGasLimit
+                    : kEthereumMinGasLimit,
+            stateChanged:
+                (value) => widget.onCustomEip1559FeeOptionChanged?.call(value),
           ),
         if (isCustomFee && !isEth)
           Padding(

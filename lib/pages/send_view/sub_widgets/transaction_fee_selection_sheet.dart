@@ -302,9 +302,11 @@ class _TransactionFeeSelectionSheetState
                     GestureDetector(
                       onTap: () {
                         final state =
-                            ref.read(feeRateTypeStateProvider.state).state;
+                            ref
+                                .read(feeRateTypeMobileStateProvider.state)
+                                .state;
                         if (state != FeeRateType.fast) {
-                          ref.read(feeRateTypeStateProvider.state).state =
+                          ref.read(feeRateTypeMobileStateProvider.state).state =
                               FeeRateType.fast;
                         }
                         final String? fee = getAmount(
@@ -336,12 +338,16 @@ class _TransactionFeeSelectionSheetState
                                     groupValue:
                                         ref
                                             .watch(
-                                              feeRateTypeStateProvider.state,
+                                              feeRateTypeMobileStateProvider
+                                                  .state,
                                             )
                                             .state,
                                     onChanged: (x) {
                                       ref
-                                          .read(feeRateTypeStateProvider.state)
+                                          .read(
+                                            feeRateTypeMobileStateProvider
+                                                .state,
+                                          )
                                           .state = FeeRateType.fast;
 
                                       Navigator.of(context).pop();
@@ -433,9 +439,11 @@ class _TransactionFeeSelectionSheetState
                     GestureDetector(
                       onTap: () {
                         final state =
-                            ref.read(feeRateTypeStateProvider.state).state;
+                            ref
+                                .read(feeRateTypeMobileStateProvider.state)
+                                .state;
                         if (state != FeeRateType.average) {
-                          ref.read(feeRateTypeStateProvider.state).state =
+                          ref.read(feeRateTypeMobileStateProvider.state).state =
                               FeeRateType.average;
                         }
                         final String? fee = getAmount(
@@ -466,12 +474,16 @@ class _TransactionFeeSelectionSheetState
                                     groupValue:
                                         ref
                                             .watch(
-                                              feeRateTypeStateProvider.state,
+                                              feeRateTypeMobileStateProvider
+                                                  .state,
                                             )
                                             .state,
                                     onChanged: (x) {
                                       ref
-                                          .read(feeRateTypeStateProvider.state)
+                                          .read(
+                                            feeRateTypeMobileStateProvider
+                                                .state,
+                                          )
                                           .state = FeeRateType.average;
                                       Navigator.of(context).pop();
                                     },
@@ -562,9 +574,11 @@ class _TransactionFeeSelectionSheetState
                     GestureDetector(
                       onTap: () {
                         final state =
-                            ref.read(feeRateTypeStateProvider.state).state;
+                            ref
+                                .read(feeRateTypeMobileStateProvider.state)
+                                .state;
                         if (state != FeeRateType.slow) {
-                          ref.read(feeRateTypeStateProvider.state).state =
+                          ref.read(feeRateTypeMobileStateProvider.state).state =
                               FeeRateType.slow;
                         }
                         final String? fee = getAmount(FeeRateType.slow, coin);
@@ -592,12 +606,16 @@ class _TransactionFeeSelectionSheetState
                                     groupValue:
                                         ref
                                             .watch(
-                                              feeRateTypeStateProvider.state,
+                                              feeRateTypeMobileStateProvider
+                                                  .state,
                                             )
                                             .state,
                                     onChanged: (x) {
                                       ref
-                                          .read(feeRateTypeStateProvider.state)
+                                          .read(
+                                            feeRateTypeMobileStateProvider
+                                                .state,
+                                          )
                                           .state = FeeRateType.slow;
                                       Navigator.of(context).pop();
                                     },
@@ -689,10 +707,13 @@ class _TransactionFeeSelectionSheetState
                       GestureDetector(
                         onTap: () {
                           final state =
-                              ref.read(feeRateTypeStateProvider.state).state;
+                              ref
+                                  .read(feeRateTypeMobileStateProvider.state)
+                                  .state;
                           if (state != FeeRateType.custom) {
-                            ref.read(feeRateTypeStateProvider.state).state =
-                                FeeRateType.custom;
+                            ref
+                                .read(feeRateTypeMobileStateProvider.state)
+                                .state = FeeRateType.custom;
                           }
                           widget.updateChosen("custom");
 
@@ -717,13 +738,15 @@ class _TransactionFeeSelectionSheetState
                                       groupValue:
                                           ref
                                               .watch(
-                                                feeRateTypeStateProvider.state,
+                                                feeRateTypeMobileStateProvider
+                                                    .state,
                                               )
                                               .state,
                                       onChanged: (x) {
                                         ref
                                             .read(
-                                              feeRateTypeStateProvider.state,
+                                              feeRateTypeMobileStateProvider
+                                                  .state,
                                             )
                                             .state = FeeRateType.custom;
                                         Navigator.of(context).pop();

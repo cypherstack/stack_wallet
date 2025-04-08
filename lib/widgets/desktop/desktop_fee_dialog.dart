@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/models.dart';
 import '../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../providers/global/wallets_provider.dart';
+import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/wallet/desktop_fee_providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -350,6 +351,8 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
           (child) => MaterialButton(
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             onPressed: () {
+              ref.read(feeRateTypeDesktopStateProvider.state).state =
+                  widget.feeRateType;
               Navigator.of(
                 context,
               ).pop((widget.feeRateType, feeString, timeString));
@@ -366,7 +369,7 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
             );
             if ((coin is Firo) &&
                 ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                    "Private") {
+                    FiroType.lelantus) {
               return Text(
                 "~${ref.watch(pAmountFormatter(coin)).format(Amount(rawValue: BigInt.parse("3794"), fractionDigits: coin.fractionDigits), indicatePrecisionLoss: false)}",
                 style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(

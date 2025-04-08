@@ -18,11 +18,16 @@ class EthEIP1559Fee {
     required this.gasLimit,
   });
 
+  BigInt get maxBaseFeeWei => maxBaseFeeGwei.shift(9).toBigInt();
+  BigInt get priorityFeeWei => priorityFeeGwei.shift(9).toBigInt();
+
   @override
   String toString() =>
       "EthEIP1559Fee("
       "maxBaseFeeGwei: $maxBaseFeeGwei, "
       "priorityFeeGwei: $priorityFeeGwei, "
+      "maxBaseFeeWei: $maxBaseFeeWei, "
+      "priorityFeeWei: $priorityFeeWei, "
       "gasLimit: $gasLimit)";
 }
 
@@ -69,7 +74,6 @@ class _EthFeeFormState extends State<EthFeeForm> {
         widget.initialState?.priorityFeeGwei.toString() ?? "";
 
     gasLimit = widget.initialState?.gasLimit ?? widget.minGasLimit;
-    print("asgLimit: $gasLimit");
   }
 
   @override
@@ -87,10 +91,7 @@ class _EthFeeFormState extends State<EthFeeForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Max base fee (GWEI)",
-            style: STextStyles.smallMed12(context)
-        ),
+        Text("Max base fee (GWEI)", style: STextStyles.smallMed12(context)),
         const SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(
@@ -139,10 +140,7 @@ class _EthFeeFormState extends State<EthFeeForm> {
           ),
         ),
         const SizedBox(height: 20),
-        Text(
-          "Max base fee (GWEI)",
-            style: STextStyles.smallMed12(context)
-        ),
+        Text("Priority fee (GWEI)", style: STextStyles.smallMed12(context)),
         const SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(

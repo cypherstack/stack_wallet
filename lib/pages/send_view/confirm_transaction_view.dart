@@ -538,6 +538,21 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
+                  if (coin is Ethereum) const SizedBox(height: 12),
+                  if (coin is Ethereum)
+                    RoundedWhiteContainer(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Nonce", style: STextStyles.smallMed12(context)),
+                          SelectableText(
+                            widget.txData.nonce.toString(),
+                            style: STextStyles.itemSubtitle12(context),
+                            textAlign: TextAlign.right,
+                          ),
+                        ],
+                      ),
+                    ),
                   if (widget.txData.fee != null && widget.txData.vSize != null)
                     const SizedBox(height: 12),
                   if (widget.txData.fee != null && widget.txData.vSize != null)
@@ -829,6 +844,42 @@ class _ConfirmTransactionViewState
                               const SizedBox(height: 2),
                               SelectableText(
                                 ref.watch(pAmountFormatter(coin)).format(fee!),
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (coin is Ethereum)
+                        Container(
+                          height: 1,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
+                        ),
+                      if (coin is Ethereum)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Nonce",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              SelectableText(
+                                widget.txData.nonce.toString(),
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                   context,
                                 ).copyWith(

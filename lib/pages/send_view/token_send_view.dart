@@ -362,7 +362,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
     late final BigInt feeRate;
 
-    switch (ref.read(feeRateTypeStateProvider.state).state) {
+    switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
       case FeeRateType.fast:
         feeRate = feeObject.fast;
         break;
@@ -476,7 +476,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       txDataFuture = tokenWallet.prepareSend(
         txData: TxData(
           recipients: [(address: _address!, amount: amount, isChange: false)],
-          feeRateType: ref.read(feeRateTypeStateProvider),
+          feeRateType: ref.read(feeRateTypeMobileStateProvider),
           note: noteController.text,
         ),
       );
@@ -1200,7 +1200,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           Text(
                                             ref
                                                 .watch(
-                                                  feeRateTypeStateProvider
+                                                  feeRateTypeMobileStateProvider
                                                       .state,
                                                 )
                                                 .state

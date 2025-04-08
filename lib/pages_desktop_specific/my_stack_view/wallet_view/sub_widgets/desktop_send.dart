@@ -58,6 +58,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
+import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
@@ -129,6 +130,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool isCustomFee = false;
   int customFeeRate = 1;
+  EthEIP1559Fee? ethFee;
 
   Future<void> scanWebcam() async {
     try {
@@ -305,7 +307,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       if (isPaynymSend) {
         final paynymWallet = wallet as PaynymInterface;
 
-        final feeRate = ref.read(feeRateTypeStateProvider);
+        final feeRate = ref.read(feeRateTypeDesktopStateProvider);
         txDataFuture = paynymWallet.preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
@@ -340,7 +342,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled &&
@@ -355,7 +357,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   recipients: [
                     (address: _address!, amount: amount, isChange: false),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled &&
@@ -407,7 +409,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           txData: TxData(
             recipients: [(address: _address!, amount: amount, isChange: false)],
             memo: memo,
-            feeRateType: ref.read(feeRateTypeStateProvider),
+            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
             nonce:
                 wallet.cryptoCurrency is Ethereum
@@ -419,6 +421,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         ref.read(desktopUseUTXOs).isNotEmpty)
                     ? ref.read(desktopUseUTXOs)
                     : null,
+            ethEIP1559Fee: ethFee,
           ),
         );
       }
@@ -1634,7 +1637,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             walletId: walletId,
             isToken: false,
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
-            onCustomFeeOptionChanged: (value) => isCustomFee = value,
+            onCustomFeeOptionChanged: (value) {
+              isCustomFee = value;
+              ethFee = null;
+            },
+            onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
           ),
         if (coin is Ethereum) const SizedBox(height: 20),
         if (coin is Ethereum)

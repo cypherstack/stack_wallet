@@ -452,7 +452,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
     late final BigInt feeRate;
 
-    switch (ref.read(feeRateTypeStateProvider.state).state) {
+    switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
       case FeeRateType.fast:
         feeRate = feeObject.fast;
         break;
@@ -469,7 +469,7 @@ class _SendViewState extends ConsumerState<SendView> {
     Amount fee;
     if (coin is Monero) {
       lib_monero.TransactionPriority specialMoneroId;
-      switch (ref.read(feeRateTypeStateProvider.state).state) {
+      switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
         case FeeRateType.fast:
           specialMoneroId = lib_monero.TransactionPriority.high;
           break;
@@ -641,7 +641,7 @@ class _SendViewState extends ConsumerState<SendView> {
       Future<TxData> txDataFuture;
 
       if (isPaynymSend) {
-        final feeRate = ref.read(feeRateTypeStateProvider);
+        final feeRate = ref.read(feeRateTypeMobileStateProvider);
         txDataFuture = (wallet as PaynymInterface).preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
@@ -676,7 +676,7 @@ class _SendViewState extends ConsumerState<SendView> {
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  feeRateType: ref.read(feeRateTypeMobileStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled && selectedUTXOs.isNotEmpty)
@@ -690,7 +690,7 @@ class _SendViewState extends ConsumerState<SendView> {
                   recipients: [
                     (address: _address!, amount: amount, isChange: false),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  feeRateType: ref.read(feeRateTypeMobileStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled && selectedUTXOs.isNotEmpty)
@@ -741,7 +741,7 @@ class _SendViewState extends ConsumerState<SendView> {
           txData: TxData(
             recipients: [(address: _address!, amount: amount, isChange: false)],
             memo: memo,
-            feeRateType: ref.read(feeRateTypeStateProvider),
+            feeRateType: ref.read(feeRateTypeMobileStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
             utxos:
                 (wallet is CoinControlInterface &&
@@ -2300,7 +2300,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     Text(
                                                       ref
                                                           .watch(
-                                                            feeRateTypeStateProvider
+                                                            feeRateTypeMobileStateProvider
                                                                 .state,
                                                           )
                                                           .state

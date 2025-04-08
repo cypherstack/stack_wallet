@@ -45,6 +45,7 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
@@ -102,6 +103,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
+
+  EthEIP1559Fee? ethFee;
 
   Future<void> previewSend() async {
     final tokenWallet = ref.read(pCurrentTokenWallet)!;
@@ -232,8 +235,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       txDataFuture = tokenWallet.prepareSend(
         txData: TxData(
           recipients: [(address: _address!, amount: amount, isChange: false)],
-          feeRateType: ref.read(feeRateTypeStateProvider),
+          feeRateType: ref.read(feeRateTypeDesktopStateProvider),
           nonce: int.tryParse(nonceController.text),
+          ethEIP1559Fee: ethFee,
         ),
       );
 
@@ -1028,7 +1032,10 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           walletId: walletId,
           isToken: true,
           onCustomFeeSliderChanged: (value) => {},
-          onCustomFeeOptionChanged: (value) {},
+          onCustomFeeOptionChanged: (value) {
+            ethFee = null;
+          },
+          onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
         ),
         const SizedBox(height: 20),
         Text(

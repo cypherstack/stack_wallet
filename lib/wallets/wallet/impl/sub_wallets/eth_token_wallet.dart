@@ -14,7 +14,6 @@ import '../../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../../models/paymint/fee_object_model.dart';
 import '../../../../services/ethereum/ethereum_api.dart';
 import '../../../../utilities/amount/amount.dart';
-import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/eth_commons.dart';
 import '../../../../utilities/extensions/extensions.dart';
 import '../../../../utilities/logger.dart';
@@ -206,41 +205,18 @@ class EthTokenWallet extends Wallet {
 
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
-    final feeRateType = txData.feeRateType!;
-    BigInt fee = BigInt.zero;
-    final feeObject = await fees;
-    switch (feeRateType) {
-      case FeeRateType.fast:
-        fee = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        fee = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        fee = feeObject.slow;
-        break;
-      case FeeRateType.custom:
-        throw UnimplementedError("custom eth token fees");
-    }
-
-    final feeEstimate = await estimateFeeFor(Amount.zero, fee);
-
-    final client = ethWallet.getEthClient();
-
-    final myAddress = (await getCurrentReceivingAddress())!.value;
-    final myWeb3Address = web3dart.EthereumAddress.fromHex(myAddress);
-
-    final nonce =
-        txData.nonce ??
-        await client.getTransactionCount(
-          myWeb3Address,
-          atBlock: const web3dart.BlockNum.pending(),
-        );
-
     final amount = txData.recipients!.first.amount;
     final address = txData.recipients!.first.address;
 
-    await updateBalance();
+    final myWeb3Address = await ethWallet.getMyWeb3Address();
+
+    final prep = await ethWallet.internalSharedPrepareSend(
+      txData: txData,
+      myWeb3Address: myWeb3Address,
+    );
+
+    // double check balance after internalSharedPrepareSend call to ensure
+    // balance is up to date
     final info =
         await mainDB.isar.tokenWalletInfo
             .where()
@@ -257,16 +233,26 @@ class EthTokenWallet extends Wallet {
       contract: _deployedContract,
       function: _sendFunction,
       parameters: [web3dart.EthereumAddress.fromHex(address), amount.raw],
-      maxGas: kEthereumTokenMinGasLimit,
-      gasPrice: web3dart.EtherAmount.fromBigInt(web3dart.EtherUnit.wei, fee),
-      nonce: nonce,
+      maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumTokenMinGasLimit,
+      nonce: prep.nonce,
+      maxFeePerGas: web3dart.EtherAmount.fromBigInt(
+        web3dart.EtherUnit.wei,
+        prep.maxBaseFee,
+      ),
+      maxPriorityFeePerGas: web3dart.EtherAmount.fromBigInt(
+        web3dart.EtherUnit.wei,
+        prep.priorityFee,
+      ),
     );
 
+    final feeEstimate = await estimateFeeFor(
+      Amount.zero,
+      prep.maxBaseFee + prep.priorityFee,
+    );
     return txData.copyWith(
       fee: feeEstimate,
-      feeInWei: fee,
       web3dartTransaction: tx,
-      chainId: await client.getChainId(),
+      chainId: prep.chainId,
       nonce: tx.nonce,
     );
   }
@@ -294,7 +280,7 @@ class EthTokenWallet extends Wallet {
   }
 
   @override
-  Future<FeeObject> get fees => EthereumAPI.getFees();
+  Future<EthFeeObject> get fees => EthereumAPI.getFees();
 
   @override
   Future<bool> pingCheck() async {
