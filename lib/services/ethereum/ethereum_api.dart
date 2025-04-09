@@ -55,7 +55,7 @@ abstract class EthereumAPI {
     try {
       final response = await client.get(
         url: Uri.parse(
-          "$stackBaseServer/export?addrs=$address&firstBlock=$firstBlock",
+          "$stackBaseServer/export?addrs=$address&firstBlock=$firstBlock&unripe=true",
         ),
         proxyInfo:
             Prefs.instance.useTor
