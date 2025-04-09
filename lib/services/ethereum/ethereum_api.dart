@@ -176,7 +176,7 @@ abstract class EthereumAPI {
           final map = json["data"].first as Map;
 
           final balance =
-              BigInt.tryParse(map["units"].toString()) ?? BigInt.zero;
+              BigInt.tryParse(map["balance"].toString()) ?? BigInt.zero;
 
           return EthereumResponse(
             Amount(rawValue: balance, fractionDigits: map["decimals"] as int),
