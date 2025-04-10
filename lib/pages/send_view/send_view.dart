@@ -39,6 +39,7 @@ import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/eth_commons.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
@@ -57,6 +58,7 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
+import '../../widgets/eth_fee_form.dart';
 import '../../widgets/fee_slider.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
@@ -98,6 +100,13 @@ class SendView extends ConsumerStatefulWidget {
 }
 
 class _SendViewState extends ConsumerState<SendView> {
+  static const stringsToLoopThrough = [
+    "Calculating",
+    "Calculating.",
+    "Calculating..",
+    "Calculating...",
+  ];
+
   late final String walletId;
   late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
@@ -122,6 +131,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
   late final bool isStellar;
   late final bool isFiro;
+  late final bool isEth;
 
   Amount? _cachedAmountToSend;
   String? _address;
@@ -652,7 +662,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 isChange: false,
               ),
             ],
-            satsPerVByte: isCustomFee ? customFeeRate : null,
+            satsPerVByte: isCustomFee.value ? customFeeRate : null,
             feeRateType: feeRate,
             utxos:
                 (wallet is CoinControlInterface &&
@@ -677,7 +687,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     ),
                   ],
                   feeRateType: ref.read(feeRateTypeMobileStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  satsPerVByte: isCustomFee.value ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled && selectedUTXOs.isNotEmpty)
                           ? selectedUTXOs
@@ -691,7 +701,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     (address: _address!, amount: amount, isChange: false),
                   ],
                   feeRateType: ref.read(feeRateTypeMobileStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  satsPerVByte: isCustomFee.value ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled && selectedUTXOs.isNotEmpty)
                           ? selectedUTXOs
@@ -742,7 +752,8 @@ class _SendViewState extends ConsumerState<SendView> {
             recipients: [(address: _address!, amount: amount, isChange: false)],
             memo: memo,
             feeRateType: ref.read(feeRateTypeMobileStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
+            satsPerVByte: isCustomFee.value ? customFeeRate : null,
+            ethEIP1559Fee: ethFee,
             utxos:
                 (wallet is CoinControlInterface &&
                         coinControlEnabled &&
@@ -889,9 +900,80 @@ class _SendViewState extends ConsumerState<SendView> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
-  bool isCustomFee = false;
-
+  final isCustomFee = ValueNotifier(false);
   int customFeeRate = 1;
+  EthEIP1559Fee? ethFee;
+
+  late final bool hasFees;
+
+  void _onSendToAddressPasteButtonPressed() async {
+    final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      String content = data.text!.trim();
+      if (content.contains("\n")) {
+        content = content.substring(0, content.indexOf("\n"));
+      }
+
+      if (coin is Epiccash) {
+        // strip http:// and https:// if content contains @
+        content = AddressUtils().formatAddress(content);
+      }
+
+      final trimmed = content.trim();
+      final parsed = AddressUtils.parsePaymentUri(
+        trimmed,
+        logging: Logging.instance,
+      );
+      if (parsed != null) {
+        _applyUri(parsed);
+      } else {
+        sendToController.text = content;
+        _address = content;
+
+        _setValidAddressProviders(_address);
+
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
+      }
+    }
+  }
+
+  void _onFeeSelectPressed() {
+    showModalBottomSheet<dynamic>(
+      backgroundColor: Colors.transparent,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (_) => TransactionFeeSelectionSheet(
+            walletId: walletId,
+            amount: (Decimal.tryParse(cryptoAmountController.text) ??
+                    ref.watch(pSendAmount)?.decimal ??
+                    Decimal.zero)
+                .toAmount(fractionDigits: coin.fractionDigits),
+            updateChosen: (String fee) {
+              if (fee == "custom") {
+                if (!isCustomFee.value) {
+                  setState(() {
+                    isCustomFee.value = true;
+                  });
+                }
+                return;
+              }
+
+              _setCurrentFee(fee, true);
+              setState(() {
+                _calculateFeesFuture = Future(() => fee);
+                if (isCustomFee.value) {
+                  isCustomFee.value = false;
+                }
+              });
+            },
+          ),
+    );
+  }
 
   @override
   void initState() {
@@ -900,6 +982,10 @@ class _SendViewState extends ConsumerState<SendView> {
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
     });
+    isCustomFee.addListener(() {
+      if (!isCustomFee.value) ethFee = null;
+    });
+    hasFees = coin is! Epiccash && coin is! NanoCurrency && coin is! Tezos;
     _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
 
     _calculateFeesFuture = calculateFees(
@@ -911,6 +997,7 @@ class _SendViewState extends ConsumerState<SendView> {
     scanner = widget.barcodeScanner;
     isStellar = coin is Stellar;
     isFiro = coin is Firo;
+    isEth = coin is Ethereum;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1008,6 +1095,7 @@ class _SendViewState extends ConsumerState<SendView> {
     _cryptoFocus.dispose();
     _baseFocus.dispose();
     _memoFocus.dispose();
+    isCustomFee.dispose();
     super.dispose();
   }
 
@@ -1398,63 +1486,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 key: const Key(
                                                   "sendViewPasteAddressFieldButtonKey",
                                                 ),
-                                                onTap: () async {
-                                                  final ClipboardData? data =
-                                                      await clipboard.getData(
-                                                        Clipboard.kTextPlain,
-                                                      );
-                                                  if (data?.text != null &&
-                                                      data!.text!.isNotEmpty) {
-                                                    String content =
-                                                        data.text!.trim();
-                                                    if (content.contains(
-                                                      "\n",
-                                                    )) {
-                                                      content = content
-                                                          .substring(
-                                                            0,
-                                                            content.indexOf(
-                                                              "\n",
-                                                            ),
-                                                          );
-                                                    }
-
-                                                    if (coin is Epiccash) {
-                                                      // strip http:// and https:// if content contains @
-                                                      content = AddressUtils()
-                                                          .formatAddress(
-                                                            content,
-                                                          );
-                                                    }
-
-                                                    final trimmed =
-                                                        content.trim();
-                                                    final parsed =
-                                                        AddressUtils.parsePaymentUri(
-                                                          trimmed,
-                                                          logging:
-                                                              Logging.instance,
-                                                        );
-                                                    if (parsed != null) {
-                                                      _applyUri(parsed);
-                                                    } else {
-                                                      sendToController.text =
-                                                          content;
-                                                      _address = content;
-
-                                                      _setValidAddressProviders(
-                                                        _address,
-                                                      );
-
-                                                      setState(() {
-                                                        _addressToggleFlag =
-                                                            sendToController
-                                                                .text
-                                                                .isNotEmpty;
-                                                      });
-                                                    }
-                                                  }
-                                                },
+                                                onTap:
+                                                    _onSendToAddressPasteButtonPressed,
                                                 child:
                                                     sendToController
                                                             .text
@@ -2131,21 +2164,18 @@ class _SendViewState extends ConsumerState<SendView> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          if (coin is! Epiccash &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
+                          if (hasFees)
                             Text(
-                              "Transaction fee (estimated)",
+                              "Transaction fee ${isEth
+                                  ? isCustomFee.value
+                                      ? ""
+                                      : "(max)"
+                                  : "(estimated)"}",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          if (coin is! Epiccash &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
-                            const SizedBox(height: 8),
-                          if (coin is! Epiccash &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
+                          if (hasFees) const SizedBox(height: 8),
+                          if (hasFees)
                             Stack(
                               children: [
                                 TextField(
@@ -2180,68 +2210,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         .state !=
                                                     FiroType.public
                                             ? null
-                                            : () {
-                                              showModalBottomSheet<dynamic>(
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                context: context,
-                                                shape:
-                                                    const RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.vertical(
-                                                            top:
-                                                                Radius.circular(
-                                                                  20,
-                                                                ),
-                                                          ),
-                                                    ),
-                                                builder:
-                                                    (
-                                                      _,
-                                                    ) => TransactionFeeSelectionSheet(
-                                                      walletId: walletId,
-                                                      amount: (Decimal.tryParse(
-                                                                cryptoAmountController
-                                                                    .text,
-                                                              ) ??
-                                                              ref
-                                                                  .watch(
-                                                                    pSendAmount,
-                                                                  )
-                                                                  ?.decimal ??
-                                                              Decimal.zero)
-                                                          .toAmount(
-                                                            fractionDigits:
-                                                                coin.fractionDigits,
-                                                          ),
-                                                      updateChosen: (
-                                                        String fee,
-                                                      ) {
-                                                        if (fee == "custom") {
-                                                          if (!isCustomFee) {
-                                                            setState(() {
-                                                              isCustomFee =
-                                                                  true;
-                                                            });
-                                                          }
-                                                          return;
-                                                        }
-
-                                                        _setCurrentFee(
-                                                          fee,
-                                                          true,
-                                                        );
-                                                        setState(() {
-                                                          _calculateFeesFuture =
-                                                              Future(() => fee);
-                                                          if (isCustomFee) {
-                                                            isCustomFee = false;
-                                                          }
-                                                        });
-                                                      },
-                                                    ),
-                                              );
-                                            },
+                                            : _onFeeSelectPressed,
                                     child:
                                         (isFiro &&
                                                 ref
@@ -2274,12 +2243,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     } else {
                                                       return AnimatedText(
                                                         stringsToLoopThrough:
-                                                            const [
-                                                              "Calculating",
-                                                              "Calculating.",
-                                                              "Calculating..",
-                                                              "Calculating...",
-                                                            ],
+                                                            stringsToLoopThrough,
                                                         style:
                                                             STextStyles.itemSubtitle(
                                                               context,
@@ -2327,7 +2291,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                             false,
                                                           );
                                                           return Text(
-                                                            isCustomFee
+                                                            isCustomFee.value
                                                                 ? ""
                                                                 : "~${snapshot.data!}",
                                                             style:
@@ -2338,12 +2302,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         } else {
                                                           return AnimatedText(
                                                             stringsToLoopThrough:
-                                                                const [
-                                                                  "Calculating",
-                                                                  "Calculating.",
-                                                                  "Calculating..",
-                                                                  "Calculating...",
-                                                                ],
+                                                                stringsToLoopThrough,
                                                             style:
                                                                 STextStyles.itemSubtitle(
                                                                   context,
@@ -2371,7 +2330,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ],
                             ),
-                          if (isCustomFee)
+                          if (isCustomFee.value && !isEth)
                             Padding(
                               padding: const EdgeInsets.only(
                                 bottom: 12,
@@ -2383,6 +2342,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                   customFeeRate = rate;
                                 },
                               ),
+                            ),
+                          if (isCustomFee.value && isEth)
+                            const SizedBox(height: 12),
+                          if (isCustomFee.value && isEth)
+                            EthFeeForm(
+                              minGasLimit: kEthereumMinGasLimit,
+                              stateChanged: (fee) => ethFee = fee,
                             ),
                           const Spacer(),
                           const SizedBox(height: 12),
@@ -2404,7 +2370,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               style: STextStyles.button(context),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),

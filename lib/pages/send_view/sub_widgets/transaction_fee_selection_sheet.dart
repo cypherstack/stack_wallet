@@ -703,7 +703,7 @@ class _TransactionFeeSelectionSheetState
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (wallet is ElectrumXInterface)
+                    if (wallet is ElectrumXInterface || coin is Ethereum)
                       GestureDetector(
                         onTap: () {
                           final state =
@@ -779,7 +779,7 @@ class _TransactionFeeSelectionSheetState
                           ),
                         ),
                       ),
-                    if (wallet is ElectrumXInterface)
+                    if (wallet is ElectrumXInterface || coin is Ethereum)
                       const SizedBox(height: 24),
                   ],
                 );

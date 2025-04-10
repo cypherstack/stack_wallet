@@ -199,7 +199,7 @@ abstract class EthereumAPI {
     }
   }
 
-  static Future<EthereumResponse<GasTracker>> _getGasOracle() async {
+  static Future<EthereumResponse<GasTracker>> getGasOracle() async {
     try {
       final response = await client.get(
         url: Uri.parse("$stackBaseServer/gas-prices"),
@@ -246,7 +246,7 @@ abstract class EthereumAPI {
   }
 
   static Future<EthFeeObject> getFees() async {
-    final response = await _getGasOracle();
+    final response = await getGasOracle();
     if (response.exception != null) {
       throw response.exception!;
     }

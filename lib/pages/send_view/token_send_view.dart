@@ -33,6 +33,7 @@ import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/eth_commons.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/text_styles.dart';
@@ -45,6 +46,7 @@ import '../../wallets/models/tx_data.dart';
 import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/eth_fee_form.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/eth_token_icon.dart';
@@ -118,6 +120,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   Timer? _baseAmountChangedFeeUpdateTimer;
   late Future<String> _calculateFeesFuture;
   String cachedFees = "";
+
+  final isCustomFee = ValueNotifier(false);
+
+  EthEIP1559Fee? ethFee;
 
   void _onTokenSendViewPasteAddressFieldButtonPressed() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
@@ -332,7 +338,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   }
 
   String? _updateInvalidAddressText(String address) {
-    if (_data != null && _data!.contactLabel == address) {
+    if (_data != null && _data.contactLabel == address) {
       return null;
     }
     if (address.isNotEmpty &&
@@ -478,6 +484,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           recipients: [(address: _address!, amount: amount, isChange: false)],
           feeRateType: ref.read(feeRateTypeMobileStateProvider),
           note: noteController.text,
+          ethEIP1559Fee: ethFee,
         ),
       );
 
@@ -564,6 +571,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   @override
   void initState() {
     ref.refresh(feeSheetSessionCacheProvider);
+    isCustomFee.addListener(() {
+      if (!isCustomFee.value) ethFee = null;
+    });
 
     _calculateFeesFuture = calculateFees();
     _data = widget.autoFillData;
@@ -584,11 +594,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+      if (_data.amount != null) {
+        cryptoAmountController.text = _data.amount!.toString();
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address.trim();
+      sendToController.text = _data.contactLabel;
+      _address = _data.address.trim();
       _addressToggleFlag = true;
     }
 
@@ -613,6 +623,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
+    isCustomFee.dispose();
     super.dispose();
   }
 
@@ -1128,12 +1139,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          if (coin is! Epiccash)
-                            Text(
-                              "Transaction fee (estimated)",
-                              style: STextStyles.smallMed12(context),
-                              textAlign: TextAlign.left,
-                            ),
+                          Text(
+                            "Transaction fee ${isCustomFee.value ? "" : "(max)"}",
+                            style: STextStyles.smallMed12(context),
+                            textAlign: TextAlign.left,
+                          ),
                           const SizedBox(height: 8),
                           Stack(
                             children: [
@@ -1182,10 +1192,22 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                       tokenContract.decimals,
                                                 ),
                                             updateChosen: (String fee) {
+                                              if (fee == "custom") {
+                                                if (!isCustomFee.value) {
+                                                  setState(() {
+                                                    isCustomFee.value = true;
+                                                  });
+                                                }
+                                                return;
+                                              }
+
                                               setState(() {
                                                 _calculateFeesFuture = Future(
                                                   () => fee,
                                                 );
+                                                if (isCustomFee.value) {
+                                                  isCustomFee.value = false;
+                                                }
                                               });
                                             },
                                           ),
@@ -1217,7 +1239,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                       ConnectionState.done &&
                                                   snapshot.hasData) {
                                                 return Text(
-                                                  "~${snapshot.data!}",
+                                                  isCustomFee.value
+                                                      ? ""
+                                                      : "~${snapshot.data!}",
                                                   style:
                                                       STextStyles.itemSubtitle(
                                                         context,
@@ -1245,10 +1269,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         Assets.svg.chevronDown,
                                         width: 8,
                                         height: 4,
-                                        color:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textSubtitle2,
+                                        colorFilter: ColorFilter.mode(
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle2,
+                                          BlendMode.srcIn,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -1256,6 +1282,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               ),
                             ],
                           ),
+                          if (isCustomFee.value) const SizedBox(height: 12),
+                          if (isCustomFee.value)
+                            EthFeeForm(
+                              minGasLimit: kEthereumTokenMinGasLimit,
+                              stateChanged: (value) => ethFee = value,
+                            ),
                           const Spacer(),
                           const SizedBox(height: 12),
                           TextButton(
@@ -1286,7 +1318,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               style: STextStyles.button(context),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),

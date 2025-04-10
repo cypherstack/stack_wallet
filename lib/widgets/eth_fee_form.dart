@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 
+import '../services/ethereum/ethereum_api.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
+import '../utilities/util.dart';
 import 'stack_text_field.dart';
 
 @immutable
@@ -56,32 +60,72 @@ class EthFeeForm extends StatefulWidget {
 }
 
 class _EthFeeFormState extends State<EthFeeForm> {
+  static const _textFadeDuration = Duration(milliseconds: 300);
+
   final maxBaseController = TextEditingController();
   final priorityFeeController = TextEditingController();
+  final gasLimitController = TextEditingController();
   final maxBaseFocus = FocusNode();
   final priorityFeeFocus = FocusNode();
+  final gasLimitFocus = FocusNode();
 
-  late int gasLimit;
-  double _sliderValue = 0;
+  late int _gasLimitCache;
+
+  EthEIP1559Fee get _current => EthEIP1559Fee(
+    maxBaseFeeGwei: Decimal.tryParse(maxBaseController.text) ?? Decimal.zero,
+    priorityFeeGwei:
+        Decimal.tryParse(priorityFeeController.text) ?? Decimal.zero,
+    gasLimit: int.parse(gasLimitController.text),
+  );
+
+  String _currentBase = "Current: ";
+  String _currentPriority = "Current: ";
+
+  void _checkNetworkGas() async {
+    final gas = await EthereumAPI.getGasOracle();
+
+    if (mounted) {
+      setState(() {
+        _currentBase =
+            "Current: ${gas.value!.suggestBaseFee.toStringAsFixed(3)} GWEI";
+        _currentPriority =
+            "Current: ${gas.value!.lowPriority.toStringAsFixed(3)} - ${gas.value!.highPriority.toStringAsFixed(3)} GWEI";
+      });
+    }
+  }
+
+  Timer? _gasTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkNetworkGas();
+      _gasTimer = Timer.periodic(
+        const Duration(seconds: 5),
+        (_) => _checkNetworkGas(),
+      );
+    });
 
     maxBaseController.text =
         widget.initialState?.maxBaseFeeGwei.toString() ?? "";
     priorityFeeController.text =
         widget.initialState?.priorityFeeGwei.toString() ?? "";
 
-    gasLimit = widget.initialState?.gasLimit ?? widget.minGasLimit;
+    _gasLimitCache = widget.initialState?.gasLimit ?? widget.minGasLimit;
+    gasLimitController.text = _gasLimitCache.toString();
   }
 
   @override
   void dispose() {
+    _gasTimer?.cancel();
+    _gasTimer = null;
     maxBaseController.dispose();
     priorityFeeController.dispose();
+    gasLimitController.dispose();
     maxBaseFocus.dispose();
     priorityFeeFocus.dispose();
+    gasLimitFocus.dispose();
 
     super.dispose();
   }
@@ -107,36 +151,45 @@ class _EthFeeFormState extends State<EthFeeForm> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             focusNode: maxBaseFocus,
             onChanged: (value) {
-              widget.stateChanged(
-                EthEIP1559Fee(
-                  maxBaseFeeGwei: Decimal.tryParse(value) ?? Decimal.zero,
-                  priorityFeeGwei:
-                      Decimal.tryParse(priorityFeeController.text) ??
-                      Decimal.zero,
-                  gasLimit: gasLimit,
-                ),
-              );
+              widget.stateChanged(_current);
             },
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveText,
-              height: 1.8,
-            ),
+            style:
+                Util.isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldActiveText,
+                      height: 1.8,
+                    )
+                    : STextStyles.field(context),
             decoration: standardInputDecoration(
-              "Leave empty to auto select nonce",
+              null,
               maxBaseFocus,
               context,
-              desktopMed: true,
+              desktopMed: Util.isDesktop,
             ).copyWith(
-              contentPadding: const EdgeInsets.only(
+              contentPadding: EdgeInsets.only(
                 left: 16,
-                top: 11,
-                bottom: 12,
+                top: Util.isDesktop ? 11 : 6,
+                bottom: Util.isDesktop ? 12 : 8,
                 right: 5,
               ),
             ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        AnimatedSwitcher(
+          duration: _textFadeDuration,
+          transitionBuilder:
+              (child, animation) =>
+                  FadeTransition(opacity: animation, child: child),
+          child: Text(
+            _currentBase,
+            key: ValueKey(
+              _currentBase,
+            ), // Important: ensures AnimatedSwitcher sees the text change
+            style: STextStyles.smallMed12(context),
           ),
         ),
         const SizedBox(height: 20),
@@ -156,68 +209,98 @@ class _EthFeeFormState extends State<EthFeeForm> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             focusNode: priorityFeeFocus,
             onChanged: (value) {
-              widget.stateChanged(
-                EthEIP1559Fee(
-                  maxBaseFeeGwei:
-                      Decimal.tryParse(maxBaseController.text) ?? Decimal.zero,
-                  priorityFeeGwei: Decimal.tryParse(value) ?? Decimal.zero,
-                  gasLimit: gasLimit,
-                ),
-              );
+              widget.stateChanged(_current);
             },
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveText,
-              height: 1.8,
-            ),
+            style:
+                Util.isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldActiveText,
+                      height: 1.8,
+                    )
+                    : STextStyles.field(context),
             decoration: standardInputDecoration(
-              "Leave empty to auto select nonce",
+              null,
               priorityFeeFocus,
               context,
-              desktopMed: true,
+              desktopMed: Util.isDesktop,
             ).copyWith(
-              contentPadding: const EdgeInsets.only(
+              contentPadding: EdgeInsets.only(
                 left: 16,
-                top: 11,
-                bottom: 12,
+                top: Util.isDesktop ? 11 : 6,
+                bottom: Util.isDesktop ? 12 : 8,
                 right: 5,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("Gas limit", style: STextStyles.smallMed12(context)),
-            Text("$gasLimit", style: STextStyles.smallMed12(context)),
-          ],
+        const SizedBox(height: 6),
+        AnimatedSwitcher(
+          duration: _textFadeDuration,
+          transitionBuilder:
+              (child, animation) =>
+                  FadeTransition(opacity: animation, child: child),
+          child: Text(
+            _currentPriority,
+            key: ValueKey(
+              _currentPriority,
+            ), // Important: ensures AnimatedSwitcher sees the text change
+            style: STextStyles.smallMed12(context),
+          ),
         ),
-        Slider(
-          value: _sliderValue,
-          onChanged: (value) {
-            setState(() {
-              _sliderValue = value;
-              final number =
-                  (_sliderValue * (widget.maxGasLimit - widget.minGasLimit) +
-                          widget.minGasLimit)
-                      .toDouble();
+        const SizedBox(height: 20),
+        Text("Gas limit", style: STextStyles.smallMed12(context)),
+        const SizedBox(height: 10),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            minLines: 1,
+            maxLines: 1,
+            controller: gasLimitController,
+            readOnly: false,
+            autocorrect: false,
+            enableSuggestions: false,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            focusNode: gasLimitFocus,
+            onChanged: (value) {
+              final intValue = int.tryParse(value);
+              if (intValue == null) {
+                gasLimitController.text = _gasLimitCache.toString();
+                return;
+              }
 
-              gasLimit = number.toInt();
-            });
-            widget.stateChanged(
-              EthEIP1559Fee(
-                maxBaseFeeGwei:
-                    Decimal.tryParse(maxBaseController.text) ?? Decimal.zero,
-                priorityFeeGwei:
-                    Decimal.tryParse(priorityFeeController.text) ??
-                    Decimal.zero,
-                gasLimit: gasLimit,
+              _gasLimitCache = intValue;
+
+              widget.stateChanged(_current);
+            },
+            style:
+                Util.isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldActiveText,
+                      height: 1.8,
+                    )
+                    : STextStyles.field(context),
+            decoration: standardInputDecoration(
+              null,
+              gasLimitFocus,
+              context,
+              desktopMed: Util.isDesktop,
+            ).copyWith(
+              contentPadding: EdgeInsets.only(
+                left: 16,
+                top: Util.isDesktop ? 11 : 6,
+                bottom: Util.isDesktop ? 12 : 8,
+                right: 5,
               ),
-            );
-          },
+            ),
+          ),
         ),
       ],
     );
