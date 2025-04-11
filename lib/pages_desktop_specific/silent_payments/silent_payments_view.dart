@@ -383,451 +383,450 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top section: Enable scanning and generate keys
+      body: ConditionalParent(
+        condition: !isDesktop,
+        builder:
+            (child) => SafeArea(
+              child: Padding(padding: const EdgeInsets.all(16), child: child),
+            ),
+        child: Column(
+          crossAxisAlignment:
+              isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          children: [
+            RoundedWhiteContainer(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Switch(
+                              value: _enabled,
+                              onChanged: (value) {
+                                setState(() {
+                                  _enabled = value;
+                                });
+                              },
+                              activeColor: colors.accentColorGreen,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              "Scan for Silent Payments",
+                              style:
+                                  isDesktop
+                                      ? STextStyles.desktopTextMedium(context)
+                                      : STextStyles.titleBold12(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_silentPaymentAddress.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      "Your Silent Payment Address:",
+                      style: STextStyles.desktopTextSmall(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.textFieldDefaultBG,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _silentPaymentAddress,
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SecondaryButton(
+                          label: "Copy",
+                          buttonHeight: ButtonHeight.m,
+                          iconSpacing: 8,
+                          icon: CopyIcon(
+                            width: 12,
+                            height: 12,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonTextSecondary,
+                          ),
+                          onPressed: () async {
+                            await Clipboard.setData(
+                              ClipboardData(text: _silentPaymentAddress),
+                            );
+                            if (context.mounted) {
+                              await showFloatingFlushBar(
+                                type: FlushBarType.info,
+                                message: "Copied to clipboard",
+                                iconAsset: Assets.svg.copy,
+                                context: context,
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Main two-column layout
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left column: Send Silent Payment
+                Expanded(
+                  child: RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Send Silent Payment",
+                          style: STextStyles.desktopTextMedium(
+                            context,
+                          ).copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Recipient address
+                        Text(
+                          "Recipient Address:",
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _recipientAddressController,
+                          decoration: InputDecoration(
+                            hintText: "sp1...",
+                            filled: true,
+                            fillColor: colors.textFieldDefaultBG,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          style: STextStyles.desktopTextExtraSmall(context),
+                          minLines: 3,
+                          maxLines: 3,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Amount
+                        Text(
+                          "Amount (BTC):",
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _amountController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: "0.0001",
+                            filled: true,
+                            fillColor: colors.textFieldDefaultBG,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          style: STextStyles.desktopTextExtraSmall(context),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Send button
+                        Center(
+                          child: PrimaryButton(
+                            width: 150,
+                            label: "Send",
+                            onPressed: _sendSilentPayment,
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Send process explanation
+                        ExpansionTile(
+                          title: Text(
+                            "How Silent Payments Work (Sending)",
+                            style: STextStyles.desktopTextSmall(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                "1. Sender gets recipient's Silent Payment address (sp1...)\n"
+                                "2. Sender collects all input public keys (A1, A2, ..., An)\n"
+                                "3. Calculate sum of all input keys: A_sum = A1 + A2 + ... + An\n"
+                                "4. Compute T = SHA256(TaggedHash(lowest_outpoint || A_sum))\n"
+                                "5. Calculate sender partial secret: s = a_sum * T\n"
+                                "6. Extract B_scan from recipient address\n"
+                                "7. Calculate shared secret: S = B_scan * s\n"
+                                "8. For each output i, calculate outputTweak = TaggedHash(S || i)\n"
+                                "9. Generate output address: B_spend + outputTweak\n"
+                                "10. Send payment to derived address",
+                                style: STextStyles.desktopTextExtraSmall(
+                                  context,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 24),
+
+                // Right column: Receive Silent Payment
+                Expanded(
+                  child: RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Scan for Received Silent Payments",
+                          style: STextStyles.desktopTextMedium(
+                            context,
+                          ).copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Block height
+                        Text(
+                          "Block Height to Scan:",
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _blockHeightController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            hintText: "800000",
+                            filled: true,
+                            fillColor: colors.textFieldDefaultBG,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          style: STextStyles.desktopTextExtraSmall(context),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Scan button
+                        Center(
+                          child: PrimaryButton(
+                            width: 150,
+                            label: "Scan",
+                            onPressed: _scanForSilentPayments,
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Detected outputs
+                        if (_detectedOutputs.isNotEmpty) ...[
+                          Text(
+                            "Detected Silent Payment Outputs:",
+                            style: STextStyles.desktopTextSmall(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: colors.textFieldDefaultBG,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children:
+                                  _detectedOutputs.map((output) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              output,
+                                              style:
+                                                  STextStyles.desktopTextExtraExtraSmall(
+                                                    context,
+                                                  ),
+                                            ),
+                                          ),
+                                          SecondaryButton(
+                                            label: "Copy",
+                                            buttonHeight: ButtonHeight.s,
+                                            iconSpacing: 4,
+                                            icon: CopyIcon(
+                                              width: 10,
+                                              height: 10,
+                                              color:
+                                                  Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .buttonTextSecondary,
+                                            ),
+                                            onPressed: () async {
+                                              await Clipboard.setData(
+                                                ClipboardData(text: output),
+                                              );
+                                              if (context.mounted) {
+                                                await showFloatingFlushBar(
+                                                  type: FlushBarType.info,
+                                                  message:
+                                                      "Copied to clipboard",
+                                                  iconAsset: Assets.svg.copy,
+                                                  context: context,
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 16),
+
+                        // Receive process explanation
+                        ExpansionTile(
+                          title: Text(
+                            "How Silent Payments Work (Receiving)",
+                            style: STextStyles.desktopTextSmall(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                "1. Recipient scans each transaction in new blocks\n"
+                                "2. For each transaction, compute A_sum from input public keys\n"
+                                "3. Calculate T = SHA256(TaggedHash(lowest_outpoint || A_sum))\n"
+                                "4. Calculate receiver partial secret: r = T * b_scan\n"
+                                "5. Calculate shared secret: S = A_sum * r\n"
+                                "6. For each output i, calculate outputTweak = TaggedHash(S || i)\n"
+                                "7. Derive expected output: B_spend + outputTweak\n"
+                                "8. Check if any transaction outputs match expected addresses\n"
+                                "9. If match found, calculate private key: b_spend + outputTweak",
+                                style: STextStyles.desktopTextExtraSmall(
+                                  context,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Debug information section
+            if (_debugInfo.isNotEmpty)
               RoundedWhiteContainer(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Switch(
-                                value: _enabled,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _enabled = value;
-                                  });
-                                },
-                                activeColor: colors.accentColorGreen,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                "Scan for Silent Payments",
-                                style:
-                                    isDesktop
-                                        ? STextStyles.desktopTextMedium(context)
-                                        : STextStyles.titleBold12(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    Text(
+                      "Debug Information",
+                      style: STextStyles.desktopTextMedium(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.bold),
                     ),
-                    if (_silentPaymentAddress.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        "Your Silent Payment Address:",
-                        style: STextStyles.desktopTextSmall(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.bold),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colors.textFieldDefaultBG,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colors.textFieldDefaultBG,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                _silentPaymentAddress,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children:
+                            _debugInfo.entries.map((entry) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
                                 ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          SecondaryButton(
-                            label: "Copy",
-                            buttonHeight: ButtonHeight.m,
-                            iconSpacing: 8,
-                            icon: CopyIcon(
-                              width: 12,
-                              height: 12,
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .buttonTextSecondary,
-                            ),
-                            onPressed: () async {
-                              await Clipboard.setData(
-                                ClipboardData(text: _silentPaymentAddress),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 150,
+                                      child: Text(
+                                        "${entry.key}:",
+                                        style:
+                                            STextStyles.desktopTextExtraSmall(
+                                              context,
+                                            ).copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        entry.value,
+                                        style:
+                                            STextStyles.desktopTextExtraSmall(
+                                              context,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               );
-                              if (context.mounted) {
-                                await showFloatingFlushBar(
-                                  type: FlushBarType.info,
-                                  message: "Copied to clipboard",
-                                  iconAsset: Assets.svg.copy,
-                                  context: context,
-                                );
-                              }
-                            },
-                          ),
-                        ],
+                            }).toList(),
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // Main two-column layout
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left column: Send Silent Payment
-                  Expanded(
-                    child: RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Send Silent Payment",
-                            style: STextStyles.desktopTextMedium(
-                              context,
-                            ).copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Recipient address
-                          Text(
-                            "Recipient Address:",
-                            style: STextStyles.desktopTextSmall(context),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _recipientAddressController,
-                            decoration: InputDecoration(
-                              hintText: "sp1...",
-                              filled: true,
-                              fillColor: colors.textFieldDefaultBG,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                            style: STextStyles.desktopTextExtraSmall(context),
-                            minLines: 3,
-                            maxLines: 3,
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Amount
-                          Text(
-                            "Amount (BTC):",
-                            style: STextStyles.desktopTextSmall(context),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _amountController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: "0.0001",
-                              filled: true,
-                              fillColor: colors.textFieldDefaultBG,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                            style: STextStyles.desktopTextExtraSmall(context),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Send button
-                          Center(
-                            child: PrimaryButton(
-                              width: 150,
-                              label: "Send",
-                              onPressed: _sendSilentPayment,
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Send process explanation
-                          ExpansionTile(
-                            title: Text(
-                              "How Silent Payments Work (Sending)",
-                              style: STextStyles.desktopTextSmall(
-                                context,
-                              ).copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(
-                                  "1. Sender gets recipient's Silent Payment address (sp1...)\n"
-                                  "2. Sender collects all input public keys (A1, A2, ..., An)\n"
-                                  "3. Calculate sum of all input keys: A_sum = A1 + A2 + ... + An\n"
-                                  "4. Compute T = SHA256(TaggedHash(lowest_outpoint || A_sum))\n"
-                                  "5. Calculate sender partial secret: s = a_sum * T\n"
-                                  "6. Extract B_scan from recipient address\n"
-                                  "7. Calculate shared secret: S = B_scan * s\n"
-                                  "8. For each output i, calculate outputTweak = TaggedHash(S || i)\n"
-                                  "9. Generate output address: B_spend + outputTweak\n"
-                                  "10. Send payment to derived address",
-                                  style: STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 24),
-
-                  // Right column: Receive Silent Payment
-                  Expanded(
-                    child: RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Scan for Received Silent Payments",
-                            style: STextStyles.desktopTextMedium(
-                              context,
-                            ).copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Block height
-                          Text(
-                            "Block Height to Scan:",
-                            style: STextStyles.desktopTextSmall(context),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _blockHeightController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: "800000",
-                              filled: true,
-                              fillColor: colors.textFieldDefaultBG,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                            style: STextStyles.desktopTextExtraSmall(context),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Scan button
-                          Center(
-                            child: PrimaryButton(
-                              width: 150,
-                              label: "Scan",
-                              onPressed: _scanForSilentPayments,
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Detected outputs
-                          if (_detectedOutputs.isNotEmpty) ...[
-                            Text(
-                              "Detected Silent Payment Outputs:",
-                              style: STextStyles.desktopTextSmall(
-                                context,
-                              ).copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: colors.textFieldDefaultBG,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children:
-                                    _detectedOutputs.map((output) {
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 4,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                output,
-                                                style:
-                                                    STextStyles.desktopTextExtraExtraSmall(
-                                                      context,
-                                                    ),
-                                              ),
-                                            ),
-                                            SecondaryButton(
-                                              label: "Copy",
-                                              buttonHeight: ButtonHeight.s,
-                                              iconSpacing: 4,
-                                              icon: CopyIcon(
-                                                width: 10,
-                                                height: 10,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .buttonTextSecondary,
-                                              ),
-                                              onPressed: () async {
-                                                await Clipboard.setData(
-                                                  ClipboardData(text: output),
-                                                );
-                                                if (context.mounted) {
-                                                  await showFloatingFlushBar(
-                                                    type: FlushBarType.info,
-                                                    message:
-                                                        "Copied to clipboard",
-                                                    iconAsset: Assets.svg.copy,
-                                                    context: context,
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }).toList(),
-                              ),
-                            ),
-                          ],
-
-                          const SizedBox(height: 16),
-
-                          // Receive process explanation
-                          ExpansionTile(
-                            title: Text(
-                              "How Silent Payments Work (Receiving)",
-                              style: STextStyles.desktopTextSmall(
-                                context,
-                              ).copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(
-                                  "1. Recipient scans each transaction in new blocks\n"
-                                  "2. For each transaction, compute A_sum from input public keys\n"
-                                  "3. Calculate T = SHA256(TaggedHash(lowest_outpoint || A_sum))\n"
-                                  "4. Calculate receiver partial secret: r = T * b_scan\n"
-                                  "5. Calculate shared secret: S = A_sum * r\n"
-                                  "6. For each output i, calculate outputTweak = TaggedHash(S || i)\n"
-                                  "7. Derive expected output: B_spend + outputTweak\n"
-                                  "8. Check if any transaction outputs match expected addresses\n"
-                                  "9. If match found, calculate private key: b_spend + outputTweak",
-                                  style: STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Debug information section
-              if (_debugInfo.isNotEmpty)
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Debug Information",
-                        style: STextStyles.desktopTextMedium(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colors.textFieldDefaultBG,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children:
-                              _debugInfo.entries.map((entry) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      SizedBox(
-                                        width: 150,
-                                        child: Text(
-                                          "${entry.key}:",
-                                          style:
-                                              STextStyles.desktopTextExtraSmall(
-                                                context,
-                                              ).copyWith(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          entry.value,
-                                          style:
-                                              STextStyles.desktopTextExtraSmall(
-                                                context,
-                                              ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );
