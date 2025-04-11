@@ -393,104 +393,110 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
           crossAxisAlignment:
               isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
           children: [
-            RoundedWhiteContainer(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+            if (isDesktop)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: RoundedWhiteContainer(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Switch(
-                              value: _enabled,
-                              onChanged: (value) {
-                                setState(() {
-                                  _enabled = value;
-                                });
-                              },
-                              activeColor: colors.accentColorGreen,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Switch(
+                                  value: _enabled,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _enabled = value;
+                                    });
+                                  },
+                                  activeColor: colors.accentColorGreen,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  "Scan for Silent Payments",
+                                  style:
+                                      isDesktop
+                                          ? STextStyles.desktopTextMedium(
+                                            context,
+                                          )
+                                          : STextStyles.titleBold12(context),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              "Scan for Silent Payments",
-                              style:
-                                  isDesktop
-                                      ? STextStyles.desktopTextMedium(context)
-                                      : STextStyles.titleBold12(context),
+                          ),
+                        ],
+                      ),
+                      if (_silentPaymentAddress.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          "Your Silent Payment Address:",
+                          style: STextStyles.desktopTextSmall(
+                            context,
+                          ).copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colors.textFieldDefaultBG,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _silentPaymentAddress,
+                                  style: STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SecondaryButton(
+                              label: "Copy",
+                              buttonHeight: ButtonHeight.m,
+                              iconSpacing: 8,
+                              icon: CopyIcon(
+                                width: 12,
+                                height: 12,
+                                color:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
+                              ),
+                              onPressed: () async {
+                                await Clipboard.setData(
+                                  ClipboardData(text: _silentPaymentAddress),
+                                );
+                                if (context.mounted) {
+                                  await showFloatingFlushBar(
+                                    type: FlushBarType.info,
+                                    message: "Copied to clipboard",
+                                    iconAsset: Assets.svg.copy,
+                                    context: context,
+                                  );
+                                }
+                              },
                             ),
                           ],
                         ),
-                      ),
+                      ],
                     ],
                   ),
-                  if (_silentPaymentAddress.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      "Your Silent Payment Address:",
-                      style: STextStyles.desktopTextSmall(
-                        context,
-                      ).copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.textFieldDefaultBG,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              _silentPaymentAddress,
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SecondaryButton(
-                          label: "Copy",
-                          buttonHeight: ButtonHeight.m,
-                          iconSpacing: 8,
-                          icon: CopyIcon(
-                            width: 12,
-                            height: 12,
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonTextSecondary,
-                          ),
-                          onPressed: () async {
-                            await Clipboard.setData(
-                              ClipboardData(text: _silentPaymentAddress),
-                            );
-                            if (context.mounted) {
-                              await showFloatingFlushBar(
-                                type: FlushBarType.info,
-                                message: "Copied to clipboard",
-                                iconAsset: Assets.svg.copy,
-                                context: context,
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+            if (!isDesktop) const SizedBox(height: 24),
 
             // Main two-column layout
             Row(

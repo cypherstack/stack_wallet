@@ -21,6 +21,7 @@ import '../../../../pages/monkey/monkey_view.dart';
 import '../../../../pages/namecoin_names/namecoin_names_home_view.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
+import '../../../../pages/silent_payments/silent_payments_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
@@ -51,7 +52,6 @@ import '../../../desktop_menu.dart';
 import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
-import '../../../silent_payments/silent_payments_view.dart';
 import '../desktop_wallet_view.dart';
 import 'more_features/more_features_dialog.dart';
 
