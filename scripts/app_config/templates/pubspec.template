@@ -32,7 +32,7 @@ dependencies:
 
   xelis_flutter:
     git:
-      url: https://github.com/Tritonn204/xelis_flutter_ffi.git
+      url: https://github.com/xelis-project/xelis-flutter-ffi.git
       ref: v0.1.0
 
   flutter_libsparkmobile:
