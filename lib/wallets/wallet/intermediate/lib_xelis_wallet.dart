@@ -182,7 +182,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
       return "";
     } else {
       final appDir = await StackFileSystem.applicationXelisTableDirectory();
-      return "${appDir.path}${Platform.pathSeparator}";
+      return "${appDir.path}/";
     }
   }
 
@@ -319,7 +319,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   static Future<bool> checkWalletExists(String walletId) async {
     final xelisDir = await StackFileSystem.applicationXelisDirectory();
     final walletDir = Directory(
-      "${xelisDir.path}${Platform.pathSeparator}$walletId",
+      "${xelisDir.path}/$walletId",
     );
     // TODO: should we check for certain files within the dir?
     return await walletDir.exists();

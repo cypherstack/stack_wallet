@@ -498,14 +498,14 @@ class XelisWallet extends LibXelisWallet {
           txType = TransactionType.outgoing;
           nonce = outgoing.nonce;
 
+          fee = Amount(
+            rawValue: BigInt.from(outgoing.fee),
+            fractionDigits: decimals,
+          );
+
           for (final transfer in outgoing.transfers) {
             final int decimals = await libXelisWallet!.getAssetDecimals(
               asset: transfer.asset,
-            );
-
-            fee = Amount(
-              rawValue: BigInt.from(outgoing.fee),
-              fractionDigits: decimals,
             );
 
             inputs.add(
@@ -515,7 +515,7 @@ class XelisWallet extends LibXelisWallet {
                 sequence: null,
                 outpoint: null,
                 addresses: [thisAddress],
-                valueStringSats: (transfer.amount + outgoing.fee).toString(),
+                valueStringSats: (transfer.amount).toString(),
                 witness: null,
                 innerRedeemScriptAsm: null,
                 coinbase: null,
@@ -534,7 +534,6 @@ class XelisWallet extends LibXelisWallet {
 
             otherData['asset_${transfer.asset}_amount'] =
                 transfer.amount.toString();
-            otherData['asset_${transfer.asset}_fee'] = fee.raw.toString();
             if (transfer.extraData != null) {
               otherData['extraData_${transfer.asset}'] =
                   transfer.extraData!.toJson();
