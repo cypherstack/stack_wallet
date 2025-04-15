@@ -416,7 +416,7 @@ class XelisWallet extends LibXelisWallet {
             asset: xelis_sdk.xelisAsset,
           );
 
-          fee = Amount(rawValue: BigInt.zero, fractionDigits: decimals);
+          fee = Amount(rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits);
 
           outputs.add(
             OutputV2.isarCantDoRequiredInDefaultConstructor(
@@ -426,6 +426,7 @@ class XelisWallet extends LibXelisWallet {
               walletOwns: true,
             ),
           );
+          otherData['overrideFee'] = fee.toJsonString();
         } else if (entryType is xelis_sdk.BurnEntry) {
           final burn = entryType;
           txType = TransactionType.outgoing;
@@ -436,7 +437,7 @@ class XelisWallet extends LibXelisWallet {
 
           fee = Amount(
             rawValue: BigInt.from(burn.fee),
-            fractionDigits: decimals,
+            fractionDigits: cryptoCurrency.fractionDigits,
           );
 
           inputs.add(
@@ -476,7 +477,7 @@ class XelisWallet extends LibXelisWallet {
               asset: transfer.asset,
             );
 
-            fee = Amount(rawValue: BigInt.zero, fractionDigits: decimals);
+            fee = Amount(rawValue: BigInt.zero, fractionDigits: cryptoCurrency.fractionDigits);
 
             outputs.add(
               OutputV2.isarCantDoRequiredInDefaultConstructor(
@@ -492,6 +493,7 @@ class XelisWallet extends LibXelisWallet {
               otherData['extraData_${transfer.asset}'] =
                   transfer.extraData!.toJson();
             }
+            otherData['overrideFee'] = fee.toJsonString();
           }
         } else if (entryType is xelis_sdk.OutgoingEntry) {
           final outgoing = entryType;
@@ -500,14 +502,25 @@ class XelisWallet extends LibXelisWallet {
 
           fee = Amount(
             rawValue: BigInt.from(outgoing.fee),
-            fractionDigits: decimals,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          );
+
+          inputs.add(
+            InputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptSigHex: null,
+              scriptSigAsm: null,
+              sequence: null,
+              outpoint: null,
+              addresses: [thisAddress],
+              valueStringSats: (outgoing.fee).toString(),
+              witness: null,
+              innerRedeemScriptAsm: null,
+              coinbase: null,
+              walletOwns: true,
+            ),
           );
 
           for (final transfer in outgoing.transfers) {
-            final int decimals = await libXelisWallet!.getAssetDecimals(
-              asset: transfer.asset,
-            );
-
             inputs.add(
               InputV2.isarCantDoRequiredInDefaultConstructor(
                 scriptSigHex: null,
@@ -560,7 +573,6 @@ class XelisWallet extends LibXelisWallet {
           otherData: jsonEncode({
             ...otherData,
             if (nonce != null) 'nonce': nonce,
-            'overrideFee': fee.toJsonString(),
           }),
         );
 
