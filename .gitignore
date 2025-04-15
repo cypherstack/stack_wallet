@@ -21,7 +21,7 @@
 #.vscode/
 
 #CppWinRT manual install
-Microsoft.Windows*/
+Microsoft.Windows*
 
 # Flutter/Dart/Pub related
 **/doc/api/
