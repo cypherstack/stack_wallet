@@ -322,7 +322,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                                 )
                               : Semantics(
                                   label:
-                                      "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
+                                      "Clear Block Height Field Button. Clears the block height field.",
                                   excludeSemantics: true,
                                   child: XIcon(
                                     width: isDesktop ? 21 : 18,

@@ -17,8 +17,6 @@ import 'dart:math';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip39/src/wordlists/english.dart' as bip39wordlist;
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
-import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
-    as cs_monero_deprecated;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,7 +77,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.coin,
     required this.seedWordsLength,
     required this.mnemonicPassphrase,
-    required this.restoreFromDate,
+    required this.restoreBlockHeight,
     this.enableLelantusScanning = false,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
@@ -91,7 +89,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
   final String mnemonicPassphrase;
   final int seedWordsLength;
-  final DateTime? restoreFromDate;
+  final int restoreBlockHeight;
   final bool enableLelantusScanning;
 
   final BarcodeScannerInterface barcodeScanner;
@@ -233,42 +231,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
       mnemonic = mnemonic.trim();
 
-      int height = 0;
+      final int height = widget.restoreBlockHeight;
       String? otherDataJsonString;
-
-      if (widget.restoreFromDate != null) {
-        if (widget.coin is Monero) {
-          height = cs_monero_deprecated.getMoneroHeightByDate(
-            date: widget.restoreFromDate!,
-          );
-        }
-        if (widget.coin is Wownero) {
-          height = cs_monero_deprecated.getWowneroHeightByDate(
-            date: widget.restoreFromDate!,
-          );
-        }
-        if (height < 0) {
-          height = 0;
-        }
-      }
 
       // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
       if (widget.coin is Epiccash) {
-        if (widget.restoreFromDate != null) {
-          final int secondsSinceEpoch =
-              widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
-          const int epicCashFirstBlock = 1565370278;
-          const double overestimateSecondsPerBlock = 61;
-          final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-          final int approximateHeight =
-              chosenSeconds ~/ overestimateSecondsPerBlock;
-
-          height = approximateHeight;
-        }
-        if (height < 0) {
-          height = 0;
-        }
-
         otherDataJsonString = jsonEncode(
           {
             WalletInfoKeys.epiccashData: jsonEncode(
