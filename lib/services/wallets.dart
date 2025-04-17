@@ -62,7 +62,9 @@ class Wallets {
       );
     }
     _wallets[wallet.walletId] = wallet;
-    GlobalEventBus.instance.fire(WalletAddedEvent());
+    if (AppConfig.isSingleCoinApp) {
+      GlobalEventBus.instance.fire(WalletsChangedEvent());
+    }
   }
 
   Future<void> deleteWallet(
@@ -70,10 +72,7 @@ class Wallets {
     SecureStorageInterface secureStorage,
   ) async {
     final walletId = info.walletId;
-    Logging.instance.log(
-      "deleteWallet called with walletId=$walletId",
-      level: LogLevel.Warning,
-    );
+    Logging.instance.d("deleteWallet called with walletId=$walletId");
 
     final wallet = _wallets[walletId];
     _wallets.remove(walletId);
@@ -94,24 +93,21 @@ class Wallets {
         type: lib_monero_compat.WalletType.wownero,
         appRoot: await StackFileSystem.applicationRootDirectory(),
       );
-      Logging.instance
-          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+      Logging.instance.d("monero wallet: $walletId deleted");
     } else if (info.coin is Monero) {
       await lib_monero_compat.deleteWalletFiles(
         name: walletId,
         type: lib_monero_compat.WalletType.monero,
         appRoot: await StackFileSystem.applicationRootDirectory(),
       );
-      Logging.instance
-          .log("monero wallet: $walletId deleted", level: LogLevel.Info);
+      Logging.instance.d("monero wallet: $walletId deleted");
     } else if (info.coin is Epiccash) {
       final deleteResult = await deleteEpicWallet(
         walletId: walletId,
         secureStore: secureStorage,
       );
-      Logging.instance.log(
+      Logging.instance.d(
         "epic wallet: $walletId deleted with result: $deleteResult",
-        level: LogLevel.Info,
       );
     }
 
@@ -150,6 +146,10 @@ class Wallets {
     await mainDB.isar.writeTxn(() async {
       await mainDB.isar.walletInfo.deleteByWalletId(walletId);
     });
+
+    if (AppConfig.isSingleCoinApp) {
+      GlobalEventBus.instance.fire(WalletsChangedEvent());
+    }
   }
 
   Future<void> load(Prefs prefs, MainDB mainDB) async {
@@ -204,11 +204,9 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance.log(
-          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-          "IS VERIFIED: $isVerified",
-          level: LogLevel.Info,
-        );
+        Logging.instance
+            .d("LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
+                "IS VERIFIED: $isVerified");
 
         if (isVerified) {
           // TODO: integrate this into the new wallets somehow?
@@ -246,7 +244,7 @@ class Wallets {
           // await walletsService.deleteWallet(walletInfo.name, false);
         }
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Fatal);
+        Logging.instance.w("", error: e, stackTrace: s);
         continue;
       }
     }
@@ -311,11 +309,9 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance.log(
-          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-          "IS VERIFIED: $isVerified",
-          level: LogLevel.Info,
-        );
+        Logging.instance
+            .d("LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
+                "IS VERIFIED: $isVerified");
 
         if (isVerified) {
           // TODO: integrate this into the new wallets somehow?
@@ -349,7 +345,11 @@ class Wallets {
           deleteFutures.add(_deleteWallet(walletInfo.walletId));
         }
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Fatal);
+        Logging.instance.w(
+          "$e $s",
+          error: e,
+          stackTrace: s,
+        );
         continue;
       }
     }
@@ -441,11 +441,9 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance.log(
-          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-          "IS VERIFIED: $isVerified",
-          level: LogLevel.Info,
-        );
+        Logging.instance
+            .d("LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
+                "IS VERIFIED: $isVerified");
 
         if (isVerified) {
           // TODO: integrate this into the new wallets somehow?
@@ -479,7 +477,11 @@ class Wallets {
           deleteFutures.add(_deleteWallet(walletInfo.walletId));
         }
       } catch (e, s) {
-        Logging.instance.log("$e $s", level: LogLevel.Fatal);
+        Logging.instance.w(
+          "$e $s",
+          error: e,
+          stackTrace: s,
+        );
         continue;
       }
     }
@@ -503,9 +505,8 @@ class Wallets {
 
     Future<void> _refreshFutures(List<String> idsToRefresh) async {
       final start = DateTime.now();
-      Logging.instance.log(
+      Logging.instance.d(
         "Initial refresh start: ${start.toUtc()}",
-        level: LogLevel.Warning,
       );
       const groupCount = 3;
       for (int i = 0; i < idsToRefresh.length; i += groupCount) {
@@ -520,10 +521,8 @@ class Wallets {
         }
         await Future.wait(futures);
       }
-      Logging.instance.log(
-        "Initial refresh duration: ${DateTime.now().difference(start)}",
-        level: LogLevel.Warning,
-      );
+      Logging.instance
+          .d("Initial refresh duration: ${DateTime.now().difference(start)}");
     }
 
     if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
@@ -574,9 +573,8 @@ class Wallets {
 
     for (final wallet in wallets) {
       final isVerified = await wallet.info.isMnemonicVerified(mainDB.isar);
-      Logging.instance.log(
+      Logging.instance.d(
         "LOADING WALLET: ${wallet.info.name}:${wallet.walletId} IS VERIFIED: $isVerified",
-        level: LogLevel.Info,
       );
 
       if (isVerified) {

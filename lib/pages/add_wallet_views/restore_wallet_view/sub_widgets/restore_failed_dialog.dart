@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
@@ -72,11 +73,8 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
                     ref.read(secureStoreProvider),
                   );
             } catch (e, s) {
-              Logging.instance.log(
-                "Error while getting wallet info in restore failed dialog\n"
-                "Error: $e\nStack trace: $s",
-                level: LogLevel.Error,
-              );
+              Logging.instance.e("Error while getting wallet info in restore failed dialog\n"
+                "Error: $e\nStack trace: $s");
             } finally {
               if (mounted) {
                 Navigator.of(context).pop();

@@ -33,12 +33,11 @@ class NanswapAPI {
     try {
       final response = await _client.get(
         url: uri,
-        headers: {
-          'Accept': 'application/json',
-        },
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        headers: {'Accept': 'application/json'},
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       code = response.code;
@@ -47,18 +46,16 @@ class NanswapAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.log(
-        "NanswapAPI._makeRequest($uri) HTTP:$code threw: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "NanswapAPI._makeRequest($uri) HTTP:$code threw: ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
   }
 
-  Future<dynamic> _makePostRequest(
-    Uri uri,
-    Map<String, dynamic> body,
-  ) async {
+  Future<dynamic> _makePostRequest(Uri uri, Map<String, dynamic> body) async {
     int code = -1;
     try {
       final response = await _client.post(
@@ -69,9 +66,10 @@ class NanswapAPI {
           'Accept': 'application/json',
         },
         body: jsonEncode(body),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       code = response.code;
@@ -81,9 +79,10 @@ class NanswapAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.log(
-        "NanswapAPI._makePostRequest($uri) HTTP:$code threw: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "NanswapAPI._makePostRequest($uri) HTTP:$code threw: ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -115,9 +114,7 @@ class NanswapAPI {
   //
   // application/json
   Future<ExchangeResponse<List<NCurrency>>> getSupportedCurrencies() async {
-    final uri = _buildUri(
-      endpoint: "all-currencies",
-    );
+    final uri = _buildUri(endpoint: "all-currencies");
 
     try {
       final json = await _makeGetRequest(uri);
@@ -126,18 +123,15 @@ class NanswapAPI {
       for (final key in (json as Map).keys) {
         final _map = json[key] as Map;
         _map["id"] = key;
-        result.add(
-          NCurrency.fromJson(
-            Map<String, dynamic>.from(_map),
-          ),
-        );
+        result.add(NCurrency.fromJson(Map<String, dynamic>.from(_map)));
       }
 
       return ExchangeResponse(value: result);
     } catch (e, s) {
-      Logging.instance.log(
-        "Nanswap.getSupportedCurrencies() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getSupportedCurrencies() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -193,22 +187,20 @@ class NanswapAPI {
         map["to"] ??= to.toUpperCase();
         map["from"] ??= from.toUpperCase();
 
-        return ExchangeResponse(
-          value: NEstimate.fromJson(
-            map,
-          ),
-        );
-      } catch (_) {
-        Logging.instance.log(
+        return ExchangeResponse(value: NEstimate.fromJson(map));
+      } catch (e, s) {
+        Logging.instance.e(
           "Nanswap.getEstimate() response was: $json",
-          level: LogLevel.Error,
+          error: e,
+          stackTrace: s,
         );
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Nanswap.getEstimate() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getEstimate() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -265,15 +257,12 @@ class NanswapAPI {
       map["to"] ??= to.toUpperCase();
       map["from"] ??= from.toUpperCase();
 
-      return ExchangeResponse(
-        value: NEstimate.fromJson(
-          map,
-        ),
-      );
+      return ExchangeResponse(value: NEstimate.fromJson(map));
     } catch (e, s) {
-      Logging.instance.log(
-        "Nanswap.getEstimateReverse() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getEstimateReverse() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -306,25 +295,20 @@ class NanswapAPI {
   }) async {
     final uri = _buildUri(
       endpoint: "get-limits",
-      params: {
-        "to": to.toUpperCase(),
-        "from": from.toUpperCase(),
-      },
+      params: {"to": to.toUpperCase(), "from": from.toUpperCase()},
     );
 
     try {
       final json = await _makeGetRequest(uri);
 
       return ExchangeResponse(
-        value: (
-          minFrom: json["min"] as num,
-          maxFrom: json["max"] as num,
-        ),
+        value: (minFrom: json["min"] as num, maxFrom: json["max"] as num),
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "Nanswap.getOrderLimits() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getOrderLimits() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -390,9 +374,7 @@ class NanswapAPI {
     required String toAddress,
     String? extraIdOrMemo,
   }) async {
-    final uri = _buildUri(
-      endpoint: "create-order",
-    );
+    final uri = _buildUri(endpoint: "create-order");
 
     final body = {
       "from": from.toUpperCase(),
@@ -410,18 +392,17 @@ class NanswapAPI {
 
       try {
         return ExchangeResponse(
-          value: NTrade.fromJson(
-            Map<String, dynamic>.from(json as Map),
-          ),
+          value: NTrade.fromJson(Map<String, dynamic>.from(json as Map)),
         );
       } catch (_) {
         debugPrint(json.toString());
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Nanswap.createOrder() exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.createOrder() exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -481,30 +462,24 @@ class NanswapAPI {
   //
   // The order id
   Future<ExchangeResponse<NTrade>> getOrder({required String id}) async {
-    final uri = _buildUri(
-      endpoint: "get-order",
-      params: {
-        "id": id,
-      },
-    );
+    final uri = _buildUri(endpoint: "get-order", params: {"id": id});
 
     try {
       final json = await _makeGetRequest(uri);
 
       try {
         return ExchangeResponse(
-          value: NTrade.fromJson(
-            Map<String, dynamic>.from(json as Map),
-          ),
+          value: NTrade.fromJson(Map<String, dynamic>.from(json as Map)),
         );
       } catch (_) {
         debugPrint(json.toString());
         rethrow;
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Nanswap.getOrder($id) exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Nanswap.getOrder($id) exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(

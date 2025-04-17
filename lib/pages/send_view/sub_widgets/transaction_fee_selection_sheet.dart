@@ -831,7 +831,7 @@ class _TransactionFeeSelectionSheetState
           return null;
       }
     } catch (e, s) {
-      Logging.instance.log("$e $s", level: LogLevel.Warning);
+      Logging.instance.w("$e $s", error: e, stackTrace: s,);
       return null;
     }
   }

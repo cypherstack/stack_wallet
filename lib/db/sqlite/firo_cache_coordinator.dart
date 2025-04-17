@@ -6,6 +6,8 @@ typedef LTagPair = ({String tag, String txid});
 /// background isolate and [FiroCacheCoordinator] should manage that isolate
 abstract class FiroCacheCoordinator {
   static final Map<CryptoCurrencyNetwork, _FiroCacheWorker> _workers = {};
+  static final Map<CryptoCurrencyNetwork, Mutex> _tagLocks = {};
+  static final Map<CryptoCurrencyNetwork, Mutex> _setLocks = {};
 
   static bool _init = false;
   static Future<void> init() async {
@@ -15,6 +17,8 @@ abstract class FiroCacheCoordinator {
     _init = true;
     await _FiroCache.init();
     for (final network in _FiroCache.networks) {
+      _tagLocks[network] = Mutex();
+      _setLocks[network] = Mutex();
       _workers[network] = await _FiroCacheWorker.spawn(network);
     }
   }
@@ -31,11 +35,17 @@ abstract class FiroCacheCoordinator {
     final usedTagsCacheFile = File(
       "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName(network)}",
     );
-    final int bytes =
-        ((await setCacheFile.exists()) ? await setCacheFile.length() : 0) +
-            ((await usedTagsCacheFile.exists())
-                ? await usedTagsCacheFile.length()
-                : 0);
+
+    final setSize =
+        (await setCacheFile.exists()) ? await setCacheFile.length() : 0;
+    final tagsSize = (await usedTagsCacheFile.exists())
+        ? await usedTagsCacheFile.length()
+        : 0;
+
+    Logging.instance.d("Spark cache used tags size: $tagsSize");
+    Logging.instance.d("Spark cache anon set size: $setSize");
+
+    final int bytes = tagsSize + setSize;
 
     if (bytes < 1024) {
       return '$bytes B';
@@ -55,43 +65,93 @@ abstract class FiroCacheCoordinator {
     ElectrumXClient client,
     CryptoCurrencyNetwork network,
   ) async {
-    final count = await FiroCacheCoordinator.getUsedCoinTagsCount(network);
-    final unhashedTags = await client.getSparkUnhashedUsedCoinsTagsWithTxHashes(
-      startNumber: count,
-    );
-    if (unhashedTags.isNotEmpty) {
-      await _workers[network]!.runTask(
-        FCTask(
-          func: FCFuncName._updateSparkUsedTagsWith,
-          data: unhashedTags,
-        ),
+    await _tagLocks[network]!.protect(() async {
+      final count = await FiroCacheCoordinator.getUsedCoinTagsCount(network);
+      final unhashedTags =
+          await client.getSparkUnhashedUsedCoinsTagsWithTxHashes(
+        startNumber: count,
       );
-    }
+      if (unhashedTags.isNotEmpty) {
+        await _workers[network]!.runTask(
+          FCTask(
+            func: FCFuncName._updateSparkUsedTagsWith,
+            data: unhashedTags,
+          ),
+        );
+      }
+    });
   }
 
   static Future<void> runFetchAndUpdateSparkAnonSetCacheForGroupId(
     int groupId,
     ElectrumXClient client,
     CryptoCurrencyNetwork network,
+    void Function(int countFetched, int totalCount)? progressUpdated,
   ) async {
-    final blockhashResult =
-        await FiroCacheCoordinator.getLatestSetInfoForGroupId(
-      groupId,
-      network,
-    );
-    final blockHash = blockhashResult?.blockHash ?? "";
+    await _setLocks[network]!.protect(() async {
+      const sectorSize =
+          1500; // chosen as a somewhat decent value. Could be changed in the future if wanted/needed
+      final prevMeta = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
+        groupId,
+        network,
+      );
 
-    final json = await client.getSparkAnonymitySet(
-      coinGroupId: groupId.toString(),
-      startBlockHash: blockHash.toHexReversedFromBase64,
-    );
+      final prevSize = prevMeta?.size ?? 0;
 
-    await _workers[network]!.runTask(
-      FCTask(
-        func: FCFuncName._updateSparkAnonSetCoinsWith,
-        data: (groupId, json),
-      ),
-    );
+      final meta = await client.getSparkAnonymitySetMeta(
+        coinGroupId: groupId,
+      );
+
+      progressUpdated?.call(prevSize, meta.size);
+
+      if (prevMeta?.blockHash == meta.blockHash) {
+        Logging.instance.d("prevMeta?.blockHash == meta.blockHash");
+        return;
+      }
+
+      final numberOfCoinsToFetch = meta.size - prevSize;
+
+      final fullSectorCount = numberOfCoinsToFetch ~/ sectorSize;
+      final remainder = numberOfCoinsToFetch % sectorSize;
+
+      final List<dynamic> coins = [];
+
+      for (int i = 0; i < fullSectorCount; i++) {
+        final start = (i * sectorSize);
+        final data = await client.getSparkAnonymitySetBySector(
+          coinGroupId: groupId,
+          latestBlock: meta.blockHash,
+          startIndex: start,
+          endIndex: start + sectorSize,
+        );
+        progressUpdated?.call(start + sectorSize, numberOfCoinsToFetch);
+
+        coins.addAll(data);
+      }
+
+      if (remainder > 0) {
+        final data = await client.getSparkAnonymitySetBySector(
+          coinGroupId: groupId,
+          latestBlock: meta.blockHash,
+          startIndex: numberOfCoinsToFetch - remainder,
+          endIndex: numberOfCoinsToFetch,
+        );
+        progressUpdated?.call(numberOfCoinsToFetch, numberOfCoinsToFetch);
+
+        coins.addAll(data);
+      }
+
+      final result = coins
+          .map((e) => RawSparkCoin.fromRPCResponse(e as List, groupId))
+          .toList();
+
+      await _workers[network]!.runTask(
+        FCTask(
+          func: FCFuncName._updateSparkAnonSetCoinsWith,
+          data: (meta, result),
+        ),
+      );
+    });
   }
 
   // ===========================================================================
@@ -165,28 +225,29 @@ abstract class FiroCacheCoordinator {
     );
   }
 
-  static Future<
-      List<
-          ({
-            String serialized,
-            String txHash,
-            String context,
-          })>> getSetCoinsForGroupId(
+  static Future<List<RawSparkCoin>> getSetCoinsForGroupId(
     int groupId, {
-    int? newerThanTimeStamp,
+    String? afterBlockHash,
     required CryptoCurrencyNetwork network,
   }) async {
-    final resultSet = await _Reader._getSetCoinsForGroupId(
-      groupId,
-      db: _FiroCache.setCacheDB(network),
-      newerThanTimeStamp: newerThanTimeStamp,
-    );
+    final resultSet = afterBlockHash == null
+        ? await _Reader._getSetCoinsForGroupId(
+            groupId,
+            db: _FiroCache.setCacheDB(network),
+          )
+        : await _Reader._getSetCoinsForGroupIdAndBlockHash(
+            groupId,
+            afterBlockHash,
+            db: _FiroCache.setCacheDB(network),
+          );
+
     return resultSet
         .map(
-          (row) => (
+          (row) => RawSparkCoin(
             serialized: row["serialized"] as String,
             txHash: row["txHash"] as String,
             context: row["context"] as String,
+            groupId: groupId,
           ),
         )
         .toList()
@@ -194,12 +255,7 @@ abstract class FiroCacheCoordinator {
         .toList();
   }
 
-  static Future<
-      ({
-        String blockHash,
-        String setHash,
-        int timestampUTC,
-      })?> getLatestSetInfoForGroupId(
+  static Future<SparkAnonymitySetMeta?> getLatestSetInfoForGroupId(
     int groupId,
     CryptoCurrencyNetwork network,
   ) async {
@@ -212,10 +268,11 @@ abstract class FiroCacheCoordinator {
       return null;
     }
 
-    return (
+    return SparkAnonymitySetMeta(
+      coinGroupId: groupId,
       blockHash: result.first["blockHash"] as String,
       setHash: result.first["setHash"] as String,
-      timestampUTC: result.first["timestampUTC"] as int,
+      size: result.first["size"] as int,
     );
   }
 

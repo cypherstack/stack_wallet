@@ -145,9 +145,8 @@ class ExchangeDataLoadingService {
       if (_isar == null) {
         await initDB();
       }
-      Logging.instance.log(
+      Logging.instance.d(
         "ExchangeDataLoadingService.loadAll starting...",
-        level: LogLevel.Info,
       );
       final start = DateTime.now();
       try {
@@ -185,16 +184,16 @@ class ExchangeDataLoadingService {
         // wait for all loading futures to complete
         await Future.wait(futures);
 
-        Logging.instance.log(
+        Logging.instance.d(
           "ExchangeDataLoadingService.loadAll finished in ${DateTime.now().difference(start).inSeconds} seconds",
-          level: LogLevel.Info,
         );
         onLoadingComplete?.call();
         await _updateCurrentCacheVersion(cacheVersion);
       } catch (e, s) {
-        Logging.instance.log(
-          "ExchangeDataLoadingService.loadAll failed after ${DateTime.now().difference(start).inSeconds} seconds: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "ExchangeDataLoadingService.loadAll failed after ${DateTime.now().difference(start).inSeconds} seconds: ",
+          error: e,
+          stackTrace: s,
         );
         onLoadingError?.call();
       }
@@ -219,9 +218,8 @@ class ExchangeDataLoadingService {
         await isar.currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.log(
+      Logging.instance.w(
         "Failed to load changeNOW currencies: ${responseCurrencies.exception?.message}",
-        level: LogLevel.Error,
       );
       return;
     }
@@ -353,9 +351,8 @@ class ExchangeDataLoadingService {
         await isar.currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.log(
+      Logging.instance.w(
         "loadMajesticBankCurrencies: $responseCurrencies",
-        level: LogLevel.Warning,
       );
     }
   }
@@ -378,9 +375,8 @@ class ExchangeDataLoadingService {
         await isar.currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.log(
+      Logging.instance.w(
         "loadTrocadorCurrencies: $responseCurrencies",
-        level: LogLevel.Warning,
       );
     }
   }
@@ -403,9 +399,8 @@ class ExchangeDataLoadingService {
         await isar.currencies.putAll(responseCurrencies.value!);
       });
     } else {
-      Logging.instance.log(
+      Logging.instance.w(
         "loadNanswapCurrencies: $responseCurrencies",
-        level: LogLevel.Warning,
       );
     }
   }

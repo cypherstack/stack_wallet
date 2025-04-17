@@ -135,6 +135,44 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Set<UTXO> selectedUTXOs = {};
 
+  void _applyUri(PaymentUriData paymentData) {
+    try {
+      // auto fill address
+      _address = paymentData.address.trim();
+      sendToController.text = _address!;
+
+      // autofill notes field
+      if (paymentData.message != null) {
+        noteController.text = paymentData.message!;
+      } else if (paymentData.label != null) {
+        noteController.text = paymentData.label!;
+      }
+
+      // autofill amount field
+      if (paymentData.amount != null) {
+        final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
+          fractionDigits: coin.fractionDigits,
+        );
+        cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
+          amount,
+          withUnitName: false,
+        );
+        ref.read(pSendAmount.notifier).state = amount;
+      }
+
+      _setValidAddressProviders(_address);
+      setState(() {
+        _addressToggleFlag = sendToController.text.isNotEmpty;
+      });
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to apply uri in SendView: ",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
   Future<void> _scanQr() async {
     try {
       // ref
@@ -158,10 +196,7 @@ class _SendViewState extends ConsumerState<SendView> {
       //       .state = true,
       // );
 
-      Logging.instance.log(
-        "qrResult content: ${qrResult.rawContent}",
-        level: LogLevel.Info,
-      );
+      Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
@@ -170,35 +205,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
-        // auto fill address
-        _address = paymentData.address.trim();
-        sendToController.text = _address!;
-
-        // autofill notes field
-        if (paymentData.message != null) {
-          noteController.text = paymentData.message!;
-        } else if (paymentData.label != null) {
-          noteController.text = paymentData.label!;
-        }
-
-        // autofill amount field
-        if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
-            fractionDigits: coin.fractionDigits,
-          );
-          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
-                amount,
-                withUnitName: false,
-              );
-          ref.read(pSendAmount.notifier).state = amount;
-        }
-
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
-
-        // now check for non standard encoded basic address
+        _applyUri(paymentData);
       } else {
         _address = qrResult.rawContent.split("\n").first.trim();
         sendToController.text = _address ?? "";
@@ -216,9 +223,10 @@ class _SendViewState extends ConsumerState<SendView> {
       //     .state = true;
       // here we ignore the exception caused by not giving permission
       // to use the camera to scan a qr code
-      Logging.instance.log(
-        "Failed to get camera permissions while trying to scan qr code in SendView: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.e(
+        "Failed to get camera permissions while trying to scan qr code in SendView: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
@@ -248,8 +256,6 @@ class _SendViewState extends ConsumerState<SendView> {
         return;
       }
       _cachedAmountToSend = amount;
-      Logging.instance
-          .log("it changed $amount $_cachedAmountToSend", level: LogLevel.Info);
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
             amount,
@@ -285,16 +291,12 @@ class _SendViewState extends ConsumerState<SendView> {
           return;
         }
         _cachedAmountToSend = amount;
-        Logging.instance.log(
-          "it changed $amount $_cachedAmountToSend",
-          level: LogLevel.Info,
-        );
 
         final price =
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          baseAmountController.text = (amount!.decimal * price)
+          baseAmountController.text = (amount.decimal * price)
               .toAmount(
                 fractionDigits: 2,
               )
@@ -314,9 +316,7 @@ class _SendViewState extends ConsumerState<SendView> {
         if (coin is! Epiccash && !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees(
-              amount == null
-                  ? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits)
-                  : amount!,
+              amount ?? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
             );
           });
         }
@@ -369,7 +369,7 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   String? _updateInvalidAddressText(String address) {
-    if (_data != null && _data!.contactLabel == address) {
+    if (_data != null && _data.contactLabel == address) {
       return null;
     }
 
@@ -695,9 +695,7 @@ class _SendViewState extends ConsumerState<SendView> {
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos: (wallet is CoinControlInterface &&
-                          coinControlEnabled &&
-                          selectedUTXOs.isNotEmpty)
+                  utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
                       ? selectedUTXOs
                       : null,
                 ),
@@ -714,9 +712,7 @@ class _SendViewState extends ConsumerState<SendView> {
                   ],
                   feeRateType: ref.read(feeRateTypeStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos: (wallet is CoinControlInterface &&
-                          coinControlEnabled &&
-                          selectedUTXOs.isNotEmpty)
+                  utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
                       ? selectedUTXOs
                       : null,
                 ),
@@ -828,7 +824,7 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       }
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Error);
+      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
         // pop building dialog
         Navigator.of(context).pop();
@@ -960,9 +956,9 @@ class _SendViewState extends ConsumerState<SendView> {
     baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
+      if (_data.amount != null) {
         final amount = Amount.fromDecimal(
-          _data!.amount!,
+          _data.amount!,
           fractionDigits: coin.fractionDigits,
         );
 
@@ -971,8 +967,8 @@ class _SendViewState extends ConsumerState<SendView> {
               withUnitName: false,
             );
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address.trim();
+      sendToController.text = _data.contactLabel;
+      _address = _data.address.trim();
       _addressToggleFlag = true;
 
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -1364,7 +1360,23 @@ class _SendViewState extends ConsumerState<SendView> {
                                   selectAll: false,
                                 ),
                                 onChanged: (newValue) {
-                                  _address = newValue.trim();
+                                  final trimmed = newValue.trim();
+
+                                  if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
+                                    final parsed = AddressUtils.parsePaymentUri(
+                                      trimmed,
+                                      logging: Logging.instance,
+                                    );
+                                    if (parsed != null) {
+                                      _applyUri(parsed);
+                                    } else {
+                                      _address = newValue;
+                                      sendToController.text = newValue;
+                                    }
+                                  } else {
+                                    _address = newValue;
+                                  }
+
                                   _setValidAddressProviders(_address);
 
                                   setState(() {
@@ -1447,19 +1459,28 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           content,
                                                         );
                                                       }
-                                                      sendToController.text =
-                                                          content.trim();
-                                                      _address = content.trim();
 
-                                                      _setValidAddressProviders(
-                                                        _address,
+                                                      final trimmed = content.trim();
+                                                      final parsed = AddressUtils.parsePaymentUri(
+                                                        trimmed,
+                                                        logging: Logging.instance,
                                                       );
-                                                      setState(() {
-                                                        _addressToggleFlag =
-                                                            sendToController
-                                                                .text
-                                                                .isNotEmpty;
-                                                      });
+                                                      if (parsed != null) {
+                                                        _applyUri(parsed);
+                                                      } else {
+                                                        sendToController.text =
+                                                            content;
+                                                        _address = content;
+
+                                                        _setValidAddressProviders(_address,);
+
+                                                        setState(() {
+                                                          _addressToggleFlag =
+                                                              sendToController
+                                                                  .text
+                                                                  .isNotEmpty;
+                                                        });
+                                                      }
                                                     }
                                                   },
                                                   child: sendToController
@@ -1602,9 +1623,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ) ==
                                     FiroType.lelantus) {
                                   if (_data != null &&
-                                      _data!.contactLabel == _address) {
+                                      _data.contactLabel == _address) {
                                     error = SparkInterface.validateSparkAddress(
-                                      address: _data!.address,
+                                      address: _data.address,
                                       isTestNet: coin.network ==
                                           CryptoCurrencyNetwork.test,
                                     )
@@ -1620,7 +1641,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   }
                                 } else {
                                   if (_data != null &&
-                                      _data!.contactLabel == _address) {
+                                      _data.contactLabel == _address) {
                                     error = null;
                                   } else if (!ref.watch(pValidSendToAddress) &&
                                       !ref.watch(pValidSparkSendToAddress)) {
@@ -1631,7 +1652,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 }
                               } else {
                                 if (_data != null &&
-                                    _data!.contactLabel == _address) {
+                                    _data.contactLabel == _address) {
                                   error = null;
                                 } else if (!ref.watch(pValidSendToAddress)) {
                                   error = "Invalid address";
@@ -1815,7 +1836,9 @@ class _SendViewState extends ConsumerState<SendView> {
                               if (coin is! Ethereum && coin is! Tezos)
                                 CustomTextButton(
                                   text: _getSendAllTitle(
-                                      showCoinControl, selectedUTXOs),
+                                    showCoinControl,
+                                    selectedUTXOs,
+                                  ),
                                   onTap: () => _sendAllTapped(showCoinControl),
                                 ),
                             ],

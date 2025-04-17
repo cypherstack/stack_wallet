@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import '../utilities/logger.dart';
 import 'package:tor_ffi_plugin/tor_ffi_plugin.dart';
+
+import '../utilities/logger.dart';
 
 class FusionTorService {
   Tor? _tor;
@@ -61,10 +62,7 @@ class FusionTorService {
     try {
       await _tor!.start(torDataDirPath: _torDataDirPath!);
     } catch (e, s) {
-      Logging.instance.log(
-        "FusionTorService.start failed: $e\n$s",
-        level: LogLevel.Warning,
-      );
+      Logging.instance.w("FusionTorService.start failed: ", error: e, stackTrace: s);
       rethrow;
     }
   }

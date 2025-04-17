@@ -13,6 +13,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+
 import '../../app_config.dart';
 import '../../utilities/extensions/impl/box_shadow.dart';
 import '../../utilities/extensions/impl/gradient.dart';
@@ -1884,10 +1885,7 @@ class StackTheme {
           (map[mainNetId] as String).toBigIntFromHex.toInt(),
         );
       } else {
-        Logging.instance.log(
-          "Color not found in theme for $mainNetId",
-          level: LogLevel.Error,
-        );
+        Logging.instance.w("Color not found in theme for $mainNetId");
       }
     }
 

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:isar/isar.dart';
 
 part 'spark_coin.g.dart';
@@ -58,6 +60,19 @@ class SparkCoin {
 
   @ignore
   BigInt get diversifier => BigInt.parse(diversifierIntString);
+
+  int getConfirmations(int currentChainHeight) {
+    if (height == null || height! <= 0) return 0;
+    return max(0, currentChainHeight - (height! - 1));
+  }
+
+  bool isConfirmed(
+    int currentChainHeight,
+    int minimumConfirms,
+  ) {
+    final confirmations = getConfirmations(currentChainHeight);
+    return confirmations >= minimumConfirms;
+  }
 
   SparkCoin({
     required this.walletId,

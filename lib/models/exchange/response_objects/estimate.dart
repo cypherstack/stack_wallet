@@ -9,6 +9,7 @@
  */
 
 import 'package:decimal/decimal.dart';
+
 import '../../../utilities/logger.dart';
 
 class Estimate {
@@ -18,6 +19,7 @@ class Estimate {
   final String? warningMessage;
   final String? rateId;
   final String exchangeProvider;
+  final String? exchangeProviderLogo;
   final String? kycRating;
 
   Estimate({
@@ -27,6 +29,7 @@ class Estimate {
     this.warningMessage,
     this.rateId,
     required this.exchangeProvider,
+    this.exchangeProviderLogo,
     this.kycRating,
   });
 
@@ -46,7 +49,11 @@ class Estimate {
         kycRating: kycRating,
       );
     } catch (e, s) {
-      Logging.instance.log("Estimate.fromMap(): $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "Estimate.fromMap()",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }

@@ -47,6 +47,7 @@ import 'impl/stellar_wallet.dart';
 import 'impl/sub_wallets/eth_token_wallet.dart';
 import 'impl/tezos_wallet.dart';
 import 'impl/wownero_wallet.dart';
+import 'impl/xelis_wallet.dart';
 import 'intermediate/cryptonote_wallet.dart';
 import 'wallet_mixin_interfaces/electrumx_interface.dart';
 import 'wallet_mixin_interfaces/lelantus_interface.dart';
@@ -126,7 +127,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       await updateChainHeight();
     } catch (e, s) {
       // do nothing on failure (besides logging)
-      Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+      Logging.instance.w(
+        "$e\n$s",
+        error: e,
+        stackTrace: s,
+      );
     }
 
     // return regardless of whether it was updated or not as we want a
@@ -168,8 +173,8 @@ abstract class Wallet<T extends CryptoCurrency> {
         value: viewOnlyData!.toJsonEncodedString(),
       );
     } else if (wallet is MnemonicInterface) {
-      if (wallet is CryptonoteWallet) {
-        // currently a special case due to the xmr/wow libraries handling their
+      if (wallet is CryptonoteWallet || wallet is XelisWallet) { // 
+        // currently a special case due to the xmr/wow/xelis libraries handling their
         // own mnemonic generation on new wallet creation
         // if its a restore we must set them
         if (mnemonic != null) {
@@ -237,6 +242,13 @@ abstract class Wallet<T extends CryptoCurrency> {
         .where()
         .walletIdEqualTo(walletId)
         .findFirst();
+
+    Logging.instance.i(
+      "Wallet.load loading"
+      " $walletId "
+      "${walletInfo?.coin.identifier}"
+      " ${walletInfo?.name}",
+    );
 
     if (walletInfo == null) {
       throw Exception(
@@ -395,6 +407,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       case const (Wownero):
         return WowneroWallet(net);
 
+      case const (Xelis):
+        return XelisWallet(net);
+
       default:
         // should never hit in reality
         throw Exception("Unknown crypto currency: ${walletInfo.coin}");
@@ -415,6 +430,11 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   void _periodicPingCheck() async {
+    if (refreshMutex.isLocked) {
+      // should be active calls happening so no need to make extra work
+      return;
+    }
+
     final bool hasNetwork = await pingCheck();
 
     if (_isConnected != hasNetwork) {
@@ -532,7 +552,7 @@ abstract class Wallet<T extends CryptoCurrency> {
           });
         }
       },
-      onError: (Object error, StackTrace strace) {
+      onError: (Object e, StackTrace s) {
         GlobalEventBus.instance.fire(
           NodeConnectionStatusChangedEvent(
             NodeConnectionStatus.disconnected,
@@ -547,9 +567,10 @@ abstract class Wallet<T extends CryptoCurrency> {
             cryptoCurrency,
           ),
         );
-        Logging.instance.log(
-          "Caught exception in refreshWalletData(): $error\n$strace",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "Caught exception in refreshWalletData()",
+          error: e,
+          stackTrace: s,
         );
       },
     );
@@ -557,6 +578,13 @@ abstract class Wallet<T extends CryptoCurrency> {
     unawaited(_refresh(refreshCompleter));
 
     return future;
+  }
+
+  void _fireRefreshPercentChange(double percent) {
+    if (this is ElectrumXInterface) {
+      (this as ElectrumXInterface?)?.refreshingPercent = percent;
+    }
+    GlobalEventBus.instance.fire(RefreshPercentChangedEvent(percent, walletId));
   }
 
   // Should fire events
@@ -567,22 +595,6 @@ abstract class Wallet<T extends CryptoCurrency> {
       return;
     }
     final start = DateTime.now();
-
-    bool tAlive = true;
-    final t = Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (tAlive) {
-        final pingSuccess = await pingCheck();
-        if (!pingSuccess) {
-          tAlive = false;
-        }
-      } else {
-        timer.cancel();
-      }
-    });
-
-    void _checkAlive() {
-      if (!tAlive) throw Exception("refresh alive ping failure");
-    }
 
     final viewOnly = this is ViewOnlyOptionInterface &&
         (this as ViewOnlyOptionInterface).isViewOnly;
@@ -600,61 +612,47 @@ abstract class Wallet<T extends CryptoCurrency> {
         ),
       );
 
-      _checkAlive();
-
       // add some small buffer before making calls.
       // this can probably be removed in the future but was added as a
       // debugging feature
       await Future<void>.delayed(const Duration(milliseconds: 300));
-      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       final Set<String> codesToCheck = {};
-      _checkAlive();
       if (this is PaynymInterface && !viewOnly) {
         // isSegwit does not matter here at all
         final myCode =
             await (this as PaynymInterface).getPaymentCode(isSegwit: false);
-        _checkAlive();
 
         final nym = await PaynymIsApi().nym(myCode.toString());
-        _checkAlive();
         if (nym.value != null) {
           for (final follower in nym.value!.followers) {
             codesToCheck.add(follower.code);
           }
-          _checkAlive();
           for (final following in nym.value!.following) {
             codesToCheck.add(following.code);
           }
         }
-        _checkAlive();
       }
 
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
-      _checkAlive();
+      _fireRefreshPercentChange(0);
       await updateChainHeight();
 
-      _checkAlive();
       if (this is BitcoinFrostWallet) {
         await (this as BitcoinFrostWallet).lookAhead();
       }
-      _checkAlive();
 
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
+      _fireRefreshPercentChange(0.1);
 
-      _checkAlive();
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
           await (this as MultiAddressInterface)
               .checkReceivingAddressForTransactions();
         }
-        _checkAlive();
       }
 
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
-      _checkAlive();
+      _fireRefreshPercentChange(0.2);
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
@@ -663,67 +661,56 @@ abstract class Wallet<T extends CryptoCurrency> {
               .checkChangeAddressForTransactions();
         }
       }
-      _checkAlive();
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
+      _fireRefreshPercentChange(0.3);
       if (this is SparkInterface && !viewOnly) {
         // this should be called before updateTransactions()
-        await (this as SparkInterface).refreshSparkData();
+        await (this as SparkInterface).refreshSparkData((0.3, 0.6));
       }
-      _checkAlive();
 
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
-      _checkAlive();
-      final fetchFuture = updateTransactions();
-      _checkAlive();
-      final utxosRefreshFuture = updateUTXOs();
-      // if (currentHeight != storedHeight) {
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
-
-      _checkAlive();
-      await utxosRefreshFuture;
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
-
-      _checkAlive();
-      await fetchFuture;
+      if (this is NamecoinWallet) {
+        await updateUTXOs();
+        _fireRefreshPercentChange(0.6);
+        await (this as NamecoinWallet).checkAutoRegisterNameNewOutputs();
+        _fireRefreshPercentChange(0.70);
+        await updateTransactions();
+      } else {
+        final fetchFuture = updateTransactions();
+        _fireRefreshPercentChange(0.6);
+        final utxosRefreshFuture = updateUTXOs();
+        _fireRefreshPercentChange(0.65);
+        await utxosRefreshFuture;
+        _fireRefreshPercentChange(0.70);
+        await fetchFuture;
+      }
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
-        _checkAlive();
         await (this as PaynymInterface)
             .checkForNotificationTransactionsTo(codesToCheck);
         // check utxos again for notification outputs
-        _checkAlive();
         await updateUTXOs();
       }
-      _checkAlive();
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
+      _fireRefreshPercentChange(0.80);
 
       // await getAllTxsToWatch();
-      _checkAlive();
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is LelantusInterface && !viewOnly) {
         if (info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
             false) {
           await (this as LelantusInterface).refreshLelantusData();
-          _checkAlive();
         }
       }
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
+      _fireRefreshPercentChange(0.90);
 
-      _checkAlive();
       await updateBalance();
 
-      _checkAlive();
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
-
-      tAlive = false; // interrupt timer as its not needed anymore
+      _fireRefreshPercentChange(1.0);
 
       completer.complete();
     } catch (error, strace) {
       completer.completeError(error, strace);
     } finally {
-      t.cancel();
       refreshMutex.release();
       if (!completer.isCompleted) {
         completer.completeError(
@@ -732,15 +719,15 @@ abstract class Wallet<T extends CryptoCurrency> {
         );
       }
 
-      Logging.instance.log(
+      Logging.instance.i(
         "Refresh for "
-        "${info.name}: ${DateTime.now().difference(start)}",
-        level: LogLevel.Info,
+        "$walletId::${info.name}: ${DateTime.now().difference(start)}",
       );
     }
   }
 
   Future<void> exit() async {
+    Logging.instance.i("exit called on $walletId");
     _periodicRefreshTimer?.cancel();
     _networkAliveTimer?.cancel();
 

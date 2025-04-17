@@ -229,7 +229,7 @@ class Namecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   bool get hasMnemonicPassphraseSupport => true;
 
   @override
-  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 12];
+  List<int> get possibleMnemonicLengths => [defaultSeedPhraseLength, 24];
 
   @override
   AddressType get defaultAddressType => defaultDerivePathType.getAddressType();

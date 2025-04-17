@@ -204,10 +204,7 @@ class _FrostReshareStep1cState extends ConsumerState<FrostReshareStep1c> {
                   );
                 }
               } catch (e, s) {
-                Logging.instance.log(
-                  "$e\n$s",
-                  level: LogLevel.Fatal,
-                );
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
 
                 if (context.mounted) {
                   await showDialog<void>(

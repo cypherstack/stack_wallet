@@ -69,9 +69,10 @@ class ClientManager {
           _heightCompleters[key]!.complete(event.height);
         }
       },
-      onError: (Object err, StackTrace s) => Logging.instance.log(
-        "ClientManager listen: $err\n$s",
-        level: LogLevel.Error,
+      onError: (Object err, StackTrace s) => Logging.instance.e(
+        "ClientManager listen",
+        error: err,
+        stackTrace: s,
       ),
     );
   }

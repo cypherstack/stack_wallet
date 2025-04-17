@@ -31,9 +31,7 @@ final pThemeService = Provider<ThemeService>((ref) {
 });
 
 class ThemeService {
-  // dumb quick conditional based on name. Should really be done better
-  static const _currentDefaultThemeVersion =
-      AppConfig.appName == "Campfire" ? 17 : 16;
+  static const _currentDefaultThemeVersion = 17;
   ThemeService._();
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
@@ -61,9 +59,7 @@ class ThemeService {
     final jsonString = utf8.decode(themeJsonFiles.first.content as List<int>);
     final json = jsonDecode(jsonString) as Map;
 
-    final theme = StackTheme.fromJson(
-      json: Map<String, dynamic>.from(json),
-    );
+    final theme = StackTheme.fromJson(json: Map<String, dynamic>.from(json));
 
     try {
       theme.assets;
@@ -77,9 +73,9 @@ class ThemeService {
       if (file.isFile) {
         // TODO more sanitation?
         if (file.name.contains("..")) {
-          Logging.instance.log(
+          Logging.instance.e(
             "Bad theme asset file path: ${file.name}",
-            level: LogLevel.Error,
+            stackTrace: StackTrace.current,
           );
         } else {
           final os = OutputFileStream("$assetsPath/${file.name}");
@@ -96,11 +92,12 @@ class ThemeService {
 
   Future<void> remove({required String themeId}) async {
     final themesDir = StackFileSystem.themesDir!;
-    final isarId = await db.isar.stackThemes
-        .where()
-        .themeIdEqualTo(themeId)
-        .idProperty()
-        .findFirst();
+    final isarId =
+        await db.isar.stackThemes
+            .where()
+            .themeIdEqualTo(themeId)
+            .idProperty()
+            .findFirst();
     if (isarId != null) {
       await db.isar.writeTxn(() async {
         await db.isar.stackThemes.delete(isarId);
@@ -110,9 +107,9 @@ class ThemeService {
         await dir.delete(recursive: true);
       }
     } else {
-      Logging.instance.log(
+      Logging.instance.w(
         "Failed to delete theme $themeId",
-        level: LogLevel.Warning,
+        stackTrace: StackTrace.current,
       );
     }
   }
@@ -142,18 +139,12 @@ class ThemeService {
   }
 
   Future<void> _updateDefaultTheme(String name) async {
-    Logging.instance.log(
-      "Updating default $name theme...",
-      level: LogLevel.Info,
-    );
+    Logging.instance.w("Updating default $name theme...");
     final zip = await rootBundle.load("assets/default_themes/$name.zip");
     await ThemeService.instance.install(
       themeArchiveData: zip.buffer.asUint8List(),
     );
-    Logging.instance.log(
-      "Updating default $name theme... finished",
-      level: LogLevel.Info,
-    );
+    Logging.instance.w("Updating default $name theme... finished");
   }
 
   // TODO more thorough check/verification of theme
@@ -174,9 +165,9 @@ class ThemeService {
           await Directory("${themesDir.path}/$themeId/assets").exists();
 
       if (!jsonFileExists || !assetsDirExists) {
-        Logging.instance.log(
+        Logging.instance.w(
           "Theme $themeId found in DB but is missing files",
-          level: LogLevel.Warning,
+          stackTrace: StackTrace.current,
         );
       }
 
@@ -190,23 +181,26 @@ class ThemeService {
     try {
       final response = await client.get(
         url: Uri.parse("$baseServerUrl/themes"),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       final jsonList = jsonDecode(response.body) as List;
 
-      final result = List<Map<String, dynamic>>.from(jsonList)
-          .map((e) => StackThemeMetaData.fromMap(e))
-          .where((e) => e.id != "light" && e.id != "dark")
-          .toList();
+      final result =
+          List<Map<String, dynamic>>.from(jsonList)
+              .map((e) => StackThemeMetaData.fromMap(e))
+              .where((e) => e.id != "light" && e.id != "dark")
+              .toList();
 
       return result;
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to fetch themes list: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Failed to fetch themes list: ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -218,9 +212,10 @@ class ThemeService {
     try {
       final response = await client.get(
         url: Uri.parse("$baseServerUrl/theme/${themeMetaData.id}"),
-        proxyInfo: Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo:
+            Prefs.instance.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
       );
 
       final bytes = Uint8List.fromList(response.bodyBytes);
@@ -236,9 +231,10 @@ class ThemeService {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to fetch themes list: $e\n$s",
-        level: LogLevel.Warning,
+      Logging.instance.w(
+        "Failed to fetch themes list: ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -279,9 +275,10 @@ class StackThemeMetaData {
         previewImageUrl: map["previewImageUrl"] as String,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to create instance of StackThemeMetaData using $map: \n$e\n$s",
-        level: LogLevel.Fatal,
+      Logging.instance.f(
+        "Failed to create instance of StackThemeMetaData using $map",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }

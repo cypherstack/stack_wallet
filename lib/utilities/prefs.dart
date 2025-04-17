@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 
 import '../app_config.dart';
@@ -72,6 +73,9 @@ class Prefs extends ChangeNotifier {
       _fusionServerInfo = await _getFusionServerInfo();
       _autoPin = await _getAutoPin();
       _enableExchange = await _getEnableExchange();
+      _advancedFiroFeatures = await _getAdvancedFiroFeatures();
+      _logsPath = await _getLogsPath();
+      _logLevel = await _getLogLevel();
 
       _initialized = true;
     }
@@ -1157,5 +1161,79 @@ class Prefs extends ChangeNotifier {
           key: "showExchange",
         ) as bool? ??
         true;
+  }
+
+  // Show/hide lelantus and spark coins. Defaults to false
+  bool _advancedFiroFeatures = false;
+  bool get advancedFiroFeatures => _advancedFiroFeatures;
+  set advancedFiroFeatures(bool advancedFiroFeatures) {
+    if (_advancedFiroFeatures != advancedFiroFeatures) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "advancedFiroFeatures",
+        value: advancedFiroFeatures,
+      );
+      _advancedFiroFeatures = advancedFiroFeatures;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getAdvancedFiroFeatures() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "advancedFiroFeatures",
+        ) as bool? ??
+        false;
+  }
+
+  // Logs path. Null defaults to default as defined in stack_file_system.dart
+  String? _logsPath;
+  String? get logsPath => _logsPath;
+  set logsPath(String? logsPath) {
+    if (_logsPath != logsPath) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "logsPath",
+        value: logsPath,
+      );
+      _logsPath = logsPath;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> _getLogsPath() async {
+    return await DB.instance.get<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "logsPath",
+    ) as String?;
+  }
+
+  // log level pref
+  Level _logLevel = Level.warning;
+  Level get logLevel => _logLevel;
+  set logLevel(Level logLevel) {
+    if (_logLevel != logLevel) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "logLevel",
+        value: logLevel.value,
+      );
+      _logLevel = logLevel;
+      notifyListeners();
+    }
+  }
+
+  Future<Level> _getLogLevel() async {
+    final value = await DB.instance.get<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "logLevel",
+    ) as int?;
+
+    try {
+      return Level.values.firstWhere((e) => e.value == value);
+    } catch (_) {
+      // default to warning
+      return Level.warning;
+    }
   }
 }

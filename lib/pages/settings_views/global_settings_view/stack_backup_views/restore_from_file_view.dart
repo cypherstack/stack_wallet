@@ -172,7 +172,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                     });
                   }
                 } catch (e, s) {
-                  Logging.instance.log("$e\n$s", level: LogLevel.Error);
+                  Logging.instance.e("$e\n$s", error: e, stackTrace: s);
                 }
               },
               controller: fileLocationController,

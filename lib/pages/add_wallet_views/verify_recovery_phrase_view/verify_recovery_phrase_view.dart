@@ -40,6 +40,7 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
+import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
@@ -225,6 +226,10 @@ class _VerifyRecoveryPhraseViewState
           await (voWallet as WowneroWallet).init(isRestore: true);
           break;
 
+        case const (XelisWallet):
+          await (voWallet as XelisWallet).init(isRestore: true);
+          break;
+
         default:
           await voWallet.init();
       }
@@ -306,10 +311,7 @@ class _VerifyRecoveryPhraseViewState
             throw ex!;
           }
         } catch (e, s) {
-          Logging.instance.log(
-            "$e\n$s",
-            level: LogLevel.Fatal,
-          );
+          Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
 
           if (mounted) {
             await showDialog<void>(

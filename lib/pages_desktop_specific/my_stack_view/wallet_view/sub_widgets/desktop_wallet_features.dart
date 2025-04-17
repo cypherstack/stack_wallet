@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../../../app_config.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/monkey/monkey_view.dart';
+import '../../../../pages/namecoin_names/namecoin_names_home_view.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
@@ -26,7 +26,6 @@ import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/wallet/my_paynym_account_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
-import '../../../../themes/theme_providers.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
@@ -49,15 +48,14 @@ import '../../../cashfusion/desktop_cashfusion_view.dart';
 import '../../../churning/desktop_churning_view.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../desktop_menu.dart';
+import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
+import '../../../spark_coins/spark_coins_view.dart';
 import '../desktop_wallet_view.dart';
 import 'more_features/more_features_dialog.dart';
 
 class DesktopWalletFeatures extends ConsumerStatefulWidget {
-  const DesktopWalletFeatures({
-    super.key,
-    required this.walletId,
-  });
+  const DesktopWalletFeatures({super.key, required this.walletId});
 
   final String walletId;
 
@@ -77,6 +75,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   }
 
   Future<void> _onBuyPressed() async {
+    Navigator.of(context, rootNavigator: true).pop();
     ref.read(currentDesktopMenuItemProvider.state).state =
         DesktopMenuItemId.buy;
     ref.read(prevDesktopMenuItemProvider.state).state = DesktopMenuItemId.buy;
@@ -85,17 +84,22 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   Future<void> _onMorePressed() async {
     await showDialog<void>(
       context: context,
-      builder: (_) => MoreFeaturesDialog(
-        walletId: widget.walletId,
-        onPaynymPressed: _onPaynymPressed,
-        onCoinControlPressed: _onCoinControlPressed,
-        onAnonymizeAllPressed: _onAnonymizeAllPressed,
-        onWhirlpoolPressed: _onWhirlpoolPressed,
-        onOrdinalsPressed: _onOrdinalsPressed,
-        onMonkeyPressed: _onMonkeyPressed,
-        onFusionPressed: _onFusionPressed,
-        onChurnPressed: _onChurnPressed,
-      ),
+      builder:
+          (_) => MoreFeaturesDialog(
+            walletId: widget.walletId,
+            onPaynymPressed: _onPaynymPressed,
+            onBuyPressed: _onBuyPressed,
+            onCoinControlPressed: _onCoinControlPressed,
+            onLelantusCoinsPressed: _onLelantusCoinsPressed,
+            onSparkCoinsPressedPressed: _onSparkCoinsPressed,
+            // onAnonymizeAllPressed: _onAnonymizeAllPressed,
+            onWhirlpoolPressed: _onWhirlpoolPressed,
+            onOrdinalsPressed: _onOrdinalsPressed,
+            onMonkeyPressed: _onMonkeyPressed,
+            onFusionPressed: _onFusionPressed,
+            onChurnPressed: _onChurnPressed,
+            onNamesPressed: _onNamesPressed,
+          ),
     );
   }
 
@@ -106,64 +110,74 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   void _onCoinControlPressed() {
     Navigator.of(context, rootNavigator: true).pop();
 
-    Navigator.of(context).pushNamed(
-      DesktopCoinControlView.routeName,
-      arguments: widget.walletId,
-    );
+    Navigator.of(
+      context,
+    ).pushNamed(DesktopCoinControlView.routeName, arguments: widget.walletId);
+  }
+
+  void _onLelantusCoinsPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(
+      context,
+    ).pushNamed(LelantusCoinsView.routeName, arguments: widget.walletId);
+  }
+
+  void _onSparkCoinsPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(
+      context,
+    ).pushNamed(SparkCoinsView.routeName, arguments: widget.walletId);
   }
 
   Future<void> _onAnonymizeAllPressed() async {
-    Navigator.of(context, rootNavigator: true).pop();
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => DesktopDialog(
-        maxWidth: 500,
-        maxHeight: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-          child: Column(
-            children: [
-              Text(
-                "Attention!",
-                style: STextStyles.desktopH2(context),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "You're about to anonymize all of your public funds.",
-                style: STextStyles.desktopTextSmall(context),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      builder:
+          (context) => DesktopDialog(
+            maxWidth: 500,
+            maxHeight: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+              child: Column(
                 children: [
-                  SecondaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                  Text("Attention!", style: STextStyles.desktopH2(context)),
+                  const SizedBox(height: 16),
+                  Text(
+                    "You're about to anonymize all of your public funds.",
+                    style: STextStyles.desktopTextSmall(context),
                   ),
-                  const SizedBox(width: 20),
-                  PrimaryButton(
-                    width: 200,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Continue",
-                    onPressed: () {
-                      Navigator.of(context).pop();
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SecondaryButton(
+                        width: 200,
+                        buttonHeight: ButtonHeight.l,
+                        label: "Cancel",
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      const SizedBox(width: 20),
+                      PrimaryButton(
+                        width: 200,
+                        buttonHeight: ButtonHeight.l,
+                        label: "Continue",
+                        onPressed: () {
+                          Navigator.of(context).pop();
 
-                      unawaited(
-                        _attemptAnonymize(),
-                      );
-                    },
+                          unawaited(_attemptAnonymize());
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -172,13 +186,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     unawaited(
       showDialog(
         context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
-            message: "Anonymizing balance",
-            eventBus: null,
-          ),
-          onWillPop: () async => shouldPop,
-        ),
+        builder:
+            (context) => WillPopScope(
+              child: const CustomLoadingOverlay(
+                message: "Anonymizing balance",
+                eventBus: null,
+              ),
+              onWillPop: () async => shouldPop,
+            ),
       ),
     );
     final firoWallet =
@@ -189,9 +204,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       shouldPop = true;
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
+        Navigator.of(
+          context,
+        ).popUntil(ModalRoute.withName(DesktopWalletView.routeName));
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
@@ -209,9 +224,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
+        Navigator.of(
+          context,
+        ).popUntil(ModalRoute.withName(DesktopWalletView.routeName));
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
@@ -224,53 +239,51 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).popUntil(
-          ModalRoute.withName(DesktopWalletView.routeName),
-        );
+        Navigator.of(
+          context,
+        ).popUntil(ModalRoute.withName(DesktopWalletView.routeName));
         await showDialog<dynamic>(
           context: context,
-          builder: (_) => DesktopDialog(
-            maxWidth: 400,
-            maxHeight: 300,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Anonymize all failed",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  Text(
-                    "Reason: $e",
-                    style: STextStyles.desktopTextSmall(context),
-                  ),
-                  const Spacer(
-                    flex: 2,
-                  ),
-                  Row(
+          builder:
+              (_) => DesktopDialog(
+                maxWidth: 400,
+                maxHeight: 300,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Spacer(),
-                      const SizedBox(
-                        width: 16,
+                      Text(
+                        "Anonymize all failed",
+                        style: STextStyles.desktopH3(context),
                       ),
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Ok",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed:
-                              Navigator.of(context, rootNavigator: true).pop,
-                        ),
+                      const Spacer(flex: 1),
+                      Text(
+                        "Reason: $e",
+                        style: STextStyles.desktopTextSmall(context),
+                      ),
+                      const Spacer(flex: 2),
+                      Row(
+                        children: [
+                          const Spacer(),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Ok",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed:
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
         );
       }
     }
@@ -283,9 +296,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       showDialog(
         context: context,
         builder: (context) {
-          return const LoadingIndicator(
-            width: 100,
-          );
+          return const LoadingIndicator(width: 100);
         },
       ),
     );
@@ -297,30 +308,25 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final account = await ref.read(paynymAPIProvider).nym(code.toString());
 
-    Logging.instance.log(
-      "my nym account: $account",
-      level: LogLevel.Info,
-    );
+    Logging.instance.d("my nym account: $account");
 
     if (mounted) {
       Navigator.of(context, rootNavigator: true).pop();
 
       // check if account exists and for matching code to see if claimed
       if (account.value != null && account.value!.nonSegwitPaymentCode.claimed
-          // &&
-          // account.value!.segwit
-          ) {
+      // &&
+      // account.value!.segwit
+      ) {
         ref.read(myPaynymAccountStateProvider.state).state = account.value!;
 
-        await Navigator.of(context).pushNamed(
-          PaynymHomeView.routeName,
-          arguments: widget.walletId,
-        );
+        await Navigator.of(
+          context,
+        ).pushNamed(PaynymHomeView.routeName, arguments: widget.walletId);
       } else {
-        await Navigator.of(context).pushNamed(
-          PaynymClaimView.routeName,
-          arguments: widget.walletId,
-        );
+        await Navigator.of(
+          context,
+        ).pushNamed(PaynymClaimView.routeName, arguments: widget.walletId);
       }
     }
   }
@@ -328,37 +334,41 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   Future<void> _onMonkeyPressed() async {
     Navigator.of(context, rootNavigator: true).pop();
 
-    await (Navigator.of(context).pushNamed(
-      MonkeyView.routeName,
-      arguments: widget.walletId,
-    ));
+    await (Navigator.of(
+      context,
+    ).pushNamed(MonkeyView.routeName, arguments: widget.walletId));
   }
 
   void _onOrdinalsPressed() {
     Navigator.of(context, rootNavigator: true).pop();
 
-    Navigator.of(context).pushNamed(
-      DesktopOrdinalsView.routeName,
-      arguments: widget.walletId,
-    );
+    Navigator.of(
+      context,
+    ).pushNamed(DesktopOrdinalsView.routeName, arguments: widget.walletId);
   }
 
   void _onFusionPressed() {
     Navigator.of(context, rootNavigator: true).pop();
 
-    Navigator.of(context).pushNamed(
-      DesktopCashFusionView.routeName,
-      arguments: widget.walletId,
-    );
+    Navigator.of(
+      context,
+    ).pushNamed(DesktopCashFusionView.routeName, arguments: widget.walletId);
   }
 
   void _onChurnPressed() {
     Navigator.of(context, rootNavigator: true).pop();
 
-    Navigator.of(context).pushNamed(
-      DesktopChurningView.routeName,
-      arguments: widget.walletId,
-    );
+    Navigator.of(
+      context,
+    ).pushNamed(DesktopChurningView.routeName, arguments: widget.walletId);
+  }
+
+  void _onNamesPressed() {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.of(
+      context,
+    ).pushNamed(NamecoinNamesHomeView.routeName, arguments: widget.walletId);
   }
 
   @override
@@ -369,7 +379,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final prefs = ref.watch(prefsChangeNotifierProvider);
     final showExchange = prefs.enableExchange;
 
-    final showMore = wallet is PaynymInterface ||
+    final showMore =
+        wallet is PaynymInterface ||
         (wallet is CoinControlInterface &&
             ref.watch(
               prefsChangeNotifierProvider.select(
@@ -385,7 +396,25 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
+        if (!isViewOnly && wallet.info.coin is Firo)
+          SecondaryButton(
+            label: "Anonymize funds",
+            width: buttonWidth * 2,
+            buttonHeight: ButtonHeight.l,
+            icon: SvgPicture.asset(
+              Assets.svg.recycle,
+              height: 20,
+              width: 20,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
+            ),
+            onPressed: () => _onAnonymizeAllPressed(),
+          ),
+        if (!isViewOnly && wallet.info.coin is Firo) const SizedBox(width: 16),
         if (!isViewOnly &&
             Constants.enableExchange &&
             AppConfig.hasFeature(AppFeature.swap) &&
@@ -398,41 +427,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               Assets.svg.arrowRotate,
               height: 20,
               width: 20,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextSecondary,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
             ),
             onPressed: () => _onSwapPressed(),
           ),
-        if (Constants.enableExchange &&
-            AppConfig.hasFeature(AppFeature.buy) &&
-            showExchange)
-          const SizedBox(
-            width: 16,
-          ),
-        if (Constants.enableExchange &&
-            AppConfig.hasFeature(AppFeature.buy) &&
-            showExchange)
-          SecondaryButton(
-            label: "Buy",
-            width: buttonWidth,
-            buttonHeight: ButtonHeight.l,
-            icon: SvgPicture.file(
-              File(
-                ref.watch(themeProvider.select((value) => value.assets.buy)),
-              ),
-              height: 20,
-              width: 20,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextSecondary,
-            ),
-            onPressed: () => _onBuyPressed(),
-          ),
-        if (showMore)
-          const SizedBox(
-            width: 16,
-          ),
+
+        if (showMore) const SizedBox(width: 16),
         if (showMore)
           SecondaryButton(
             label: "More",
@@ -442,9 +445,10 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               Assets.svg.bars,
               height: 20,
               width: 20,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextSecondary,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
             ),
             onPressed: () => _onMorePressed(),
           ),

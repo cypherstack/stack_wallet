@@ -517,11 +517,12 @@ abstract class WalletInfoKeys {
   static const String epiccashData = "epiccashDataKey";
   static const String bananoMonkeyImageBytes = "monkeyImageBytesKey";
   static const String tezosDerivationPath = "tezosDerivationPathKey";
+  static const String xelisDerivationPath = "xelisDerivationPathKey";
   static const String lelantusCoinIsarRescanRequired =
       "lelantusCoinIsarRescanRequired";
   static const String enableLelantusScanning = "enableLelantusScanningKey";
-  static const String firoSparkCacheSetTimestampCache =
-      "firoSparkCacheSetTimestampCacheKey";
+  static const String firoSparkCacheSetBlockHashCache =
+      "firoSparkCacheSetBlockHashCacheKey";
   static const String enableOptInRbf = "enableOptInRbfKey";
   static const String reuseAddress = "reuseAddressKey";
   static const String isViewOnlyKey = "isViewOnlyKey";

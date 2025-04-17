@@ -104,9 +104,11 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getEthTransactions($address): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e("getEthTransactions()", error: e);
+      Logging.instance.d(
+        "getEthTransactions($address)",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -170,9 +172,14 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getEthTransactionByHash($txid): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getEthTransactionByHash()",
+        error: e,
+      );
+      Logging.instance.d(
+        "getEthTransactionByHash($txid)",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -233,9 +240,14 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getEthTransactionNonces($txns): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getEthTransactionNonces()",
+        error: e,
+      );
+      Logging.instance.d(
+        "getEthTransactionNonces($txns)",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -291,9 +303,14 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getEthTokenTransactionsByTxids($txids): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getEthTokenTransactionsByTxids()",
+        error: e,
+      );
+      Logging.instance.d(
+        "getEthTokenTransactionsByTxids($txids)",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -352,9 +369,14 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getTokenTransactions($address, $tokenContractAddress): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getTokenTransactions()",
+        error: e,
+      );
+      Logging.instance.d(
+        "getTokenTransactions($address, $tokenContractAddress)",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -478,9 +500,10 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getWalletTokenBalance(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getWalletTokenBalance()",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -529,9 +552,10 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getAddressNonce(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getAddressNonce()",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -585,9 +609,10 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getGasOracle(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getGasOracle()",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -643,17 +668,15 @@ abstract class EthereumAPI {
         if (json["data"] is List) {
           if ((json["data"] as List).isEmpty) {
             if (autoNameOnEmpty) {
-              Logging.instance.log(
+              Logging.instance.d(
                 "getTokenByContractAddress(): Adding token data to server",
-                level: LogLevel.Debug,
               );
               // this will add the missing data to server
               await _addContractInfoToServer(contractAddress);
 
-              Logging.instance.log(
+              Logging.instance.d(
                 "getTokenByContractAddress(): Adding to server threw so now"
                 "we try a normal fetch again",
-                level: LogLevel.Debug,
               );
 
               // now try again
@@ -709,9 +732,10 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getTokenByContractAddress(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getTokenByContractAddress()",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -753,9 +777,10 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getTokenAbi($name, $contractAddress): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getTokenAbi($name, $contractAddress)",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,
@@ -798,9 +823,10 @@ abstract class EthereumAPI {
         e,
       );
     } catch (e, s) {
-      Logging.instance.log(
-        "getProxyTokenImplementationAddress($contractAddress) : $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getProxyTokenImplementationAddress($contractAddress)",
+        error: e,
+        stackTrace: s,
       );
       return EthereumResponse(
         null,

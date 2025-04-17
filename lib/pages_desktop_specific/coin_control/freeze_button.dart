@@ -11,11 +11,12 @@
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
-import 'utxo_row.dart';
 import '../../utilities/logger.dart';
 import '../../widgets/desktop/primary_button.dart';
+import 'utxo_row.dart';
 
 class FreezeButton extends StatefulWidget {
   const FreezeButton({
@@ -78,10 +79,7 @@ class _FreezeButtonState extends State<FreezeButton> {
         break;
 
       default:
-        Logging.instance.log(
-          "Unknown utxo method name found in $runtimeType",
-          level: LogLevel.Fatal,
-        );
+        Logging.instance.f("Unknown utxo method name found in $runtimeType");
         return;
     }
 

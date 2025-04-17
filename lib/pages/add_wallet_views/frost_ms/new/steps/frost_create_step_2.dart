@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../../frost_route_generator.dart';
-import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../../services/frost.dart';
 import '../../../../../utilities/logger.dart';
@@ -15,6 +15,7 @@ import '../../../../../widgets/dialogs/frost/frost_error_dialog.dart';
 import '../../../../../widgets/frost_step_user_steps.dart';
 import '../../../../../widgets/stack_dialog.dart';
 import '../../../../../widgets/textfields/frost_step_field.dart';
+import '../../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart';
 
 class FrostCreateStep2 extends ConsumerStatefulWidget {
   const FrostCreateStep2({
@@ -177,10 +178,7 @@ class _FrostCreateStep2State extends ConsumerState<FrostCreateStep2> {
                       .routeName,
                 );
               } catch (e, s) {
-                Logging.instance.log(
-                  "$e\n$s",
-                  level: LogLevel.Fatal,
-                );
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
                 if (context.mounted) {
                   return await showDialog<void>(
                     context: context,

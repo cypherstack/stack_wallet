@@ -72,9 +72,10 @@ class SimplexAPI {
 
       return _parseSupportedCryptos(jsonArray);
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableCurrencies exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getAvailableCurrencies exception: ",
+        error: e,
+        stackTrace: s,
       );
       return BuyResponse(
         exception: BuyException(
@@ -106,8 +107,11 @@ class SimplexAPI {
 
       return BuyResponse(value: cryptos);
     } catch (e, s) {
-      Logging.instance
-          .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "_parseSupported exception",
+        error: e,
+        stackTrace: s,
+      );
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -143,10 +147,8 @@ class SimplexAPI {
 
       return _parseSupportedFiats(jsonArray);
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableCurrencies exception: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("getAvailableCurrencies exception: ", error: e, stackTrace: s);
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -179,8 +181,11 @@ class SimplexAPI {
 
       return BuyResponse(value: fiats);
     } catch (e, s) {
-      Logging.instance
-          .log("_parseSupported exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "_parseSupported exception",
+        error: e,
+        stackTrace: s,
+      );
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -236,7 +241,11 @@ class SimplexAPI {
 
       return _parseQuote(jsonArray);
     } catch (e, s) {
-      Logging.instance.log("getQuote exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getQuote exception",
+        error: e,
+        stackTrace: s,
+      );
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -280,8 +289,11 @@ class SimplexAPI {
 
       return BuyResponse(value: _quote);
     } catch (e, s) {
-      Logging.instance
-          .log("_parseQuote exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "_parseQuote exception",
+        error: e,
+        stackTrace: s,
+      );
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -350,7 +362,11 @@ class SimplexAPI {
 
       return BuyResponse(value: _order);
     } catch (e, s) {
-      Logging.instance.log("newOrder exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "newOrder exception",
+        error: e,
+        stackTrace: s,
+      );
       return BuyResponse(
         exception: BuyException(
           e.toString(),
@@ -378,7 +394,11 @@ class SimplexAPI {
 
       return BuyResponse(value: status);
     } catch (e, s) {
-      Logging.instance.log("newOrder exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "newOrder exception",
+        error: e,
+        stackTrace: s,
+      );
       return BuyResponse(
         exception: BuyException(
           e.toString(),

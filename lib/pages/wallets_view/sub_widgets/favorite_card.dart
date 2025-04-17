@@ -27,7 +27,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/coin_card.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../wallet_view/wallet_view.dart';
@@ -132,7 +132,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
           }
 
           final Future<void> loadFuture;
-          if (wallet is LibMoneroWallet) {
+          if (wallet is ExternalWallet) {
             loadFuture =
                 wallet.init().then((value) async => await (wallet).open());
           } else {

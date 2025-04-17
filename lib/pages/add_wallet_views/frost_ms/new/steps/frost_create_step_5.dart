@@ -219,10 +219,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                   );
                 }
               } catch (e, s) {
-                Logging.instance.log(
-                  "$e\n$s",
-                  level: LogLevel.Fatal,
-                );
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
 
                 // pop progress dialog
                 if (context.mounted && !progressPopped) {

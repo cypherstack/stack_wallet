@@ -13,12 +13,12 @@ Here you will find instructions on how to install the necessary tools for buildi
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Flutter
-Install Flutter 3.24.3 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.24.3` tag, and add its `flutter/bin` folder to your PATH as in
+Install Flutter 3.29.2 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.29.2` tag, and add its `flutter/bin` folder to your PATH as in
 ```sh
 FLUTTER_DIR="$HOME/development/flutter"
 git clone https://github.com/flutter/flutter.git "$FLUTTER_DIR"
 cd "$FLUTTER_DIR"
-git checkout 3.24.3
+git checkout 3.29.2
 echo 'export PATH="$PATH:'"$FLUTTER_DIR"'/bin"' >> "$HOME/.profile"
 source "$HOME/.profile"
 flutter precache
@@ -38,7 +38,7 @@ Use `Tools > SDK Manager` to install:
  - `SDK Tools > Android SDK command line tools`
  - `SDK Tools > CMake`
 and for Android builds,
- - `SDK Tools > Android SDK (API 30)`
+ - `SDK Tools > Android SDK (API 35)`
  - `SDK Tools > NDK`
 
 Then in `File > Settings > Plugins`, install the **Flutter** and **Dart** plugins and restart the IDE.  In `File > Settings > Languages & Frameworks > Flutter > Editor`, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`).  Run `flutter doctor` to install any missing dependencies and review and agree to any license agreements.
@@ -58,7 +58,7 @@ sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-con
 
 For Ubuntu 20.04,
 ```
-sudo apt-get install vapigen
+sudo apt-get install valac
 pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
@@ -68,20 +68,13 @@ sudo apt install pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
 pipx install meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
-Install `libtinfo5` (required by [monero_c](https://github.com/MrCyjaneK/monero_c), should be dropped in the future):
-```
-wget http://mirrors.kernel.org/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2ubuntu0.1_amd64.deb -O libtinfo5.deb \
-    && apt install ./libtinfo5.deb \
-    && rm libtinfo5.deb
-```
-
-Install [Rust](https://www.rust-lang.org/tools/install) via [rustup.rs](https://rustup.rs), the required Rust toolchains, and `cargo-ndk 2.12.7` with command:
+Install [Rust](https://www.rust-lang.org/tools/install) via [rustup.rs](https://rustup.rs), the required Rust toolchains, and `cargo-ndk` with command:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc
-rustup install 1.67.1 1.71.0 1.72.0 1.73.0
-rustup default 1.67.1
-cargo install cargo-ndk --version 2.12.7 --locked
+rustup install 1.85.1 1.81.0
+rustup default 1.85.1
+cargo install cargo-ndk
 ```
 
 Android specific dependencies:
@@ -162,19 +155,6 @@ cd scripts
 cd scripts
 ./build_app.sh -a stack_wallet -p linux
 ```
-<!--
-##### Remove system packages (may be needed for building flutter_libmonero)
-[`flutter_libmonero`](https://github.com/cypherstack/flutter_libmonero) may have issues building due to conflicts with system packages: if so, follow this section.
-
-Remove pre-installed system libraries for the following packages built by cryptography plugins in the crypto_plugins folder: `boost iconv libjson-dev libsecret openssl sodium unbound zmq`.  You can use
-```
-sudo apt list --installed | grep boost
-```
-for example to find which pre-installed packages you may need to remove with `sudo apt remove`.  Be careful, as some packages (especially boost) are linked to GNOME (GUI) packages: when in doubt, remove `-dev` packages first like with
-```
-sudo apt-get remove '^libboost.*-dev.*'
-```
-TODO: configure compiler to prefer built over system libraries. Should already use them? -->
 
 #### Building plugins and configure for Windows
 Install dependencies like MXE:
@@ -229,13 +209,13 @@ brew install brotli cairo coreutils gdbm gettext glib gmp libevent libidn2 libng
 ```
 <!-- TODO: determine which of the above list are not needed at all. -->
 
-Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.67.1 and 1.72.0 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
+Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.81.0 and 1.85.1 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.67.1 1.71.0 1.72.0 1.73.0
-rustup default 1.67.1
-cargo install cargo-ndk --version 2.12.7 --locked
+rustup install 1.85.1 1.81.0
+rustup default 1.85.1
+cargo install cargo-ndk
 cargo install cbindgen cargo-lipo
 rustup target add aarch64-apple-ios aarch64-apple-darwin
 ```
@@ -243,7 +223,7 @@ rustup target add aarch64-apple-ios aarch64-apple-darwin
 Optionally download [Android Studio](https://developer.android.com/studio) as an IDE and activate its Dart and Flutter plugins.  VS Code may work as an alternative, but this is not recommended.
 
 ### Flutter
-Install [Flutter](https://docs.flutter.dev/get-started/install) 3.24.3 on your Mac host by following [these instructions](https://docs.flutter.dev/get-started/install/macos).  Run `flutter doctor` in a terminal to confirm its installation.
+Install [Flutter](https://docs.flutter.dev/get-started/install) 3.29.2 on your Mac host by following [these instructions](https://docs.flutter.dev/get-started/install/macos).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Build plugins and configure
 #### Building plugins for iOS 
@@ -304,22 +284,19 @@ If the DLLs were built on the WSL filesystem instead of on Windows, copy the res
 
 - `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
 - `stack_wallet/crypto_plugins/flutter_liblelantus/scripts/windows/build/libmobileliblelantus.dll`
-<!--
-- `stack_wallet/crypto_plugins/flutter_libmonero/scripts/windows/build/libcw_monero.dll`
-- `stack_wallet/crypto_plugins/flutter_libmonero/scripts/windows/build/libcw_wownero.dll`
--->
+
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.24.3 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk) or by cloning https://github.com/flutter/flutter, checking out the `3.24.3` tag, and adding its `flutter/bin` folder to your PATH as in
+Install Flutter 3.29.2 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk) or by cloning https://github.com/flutter/flutter, checking out the `3.29.2` tag, and adding its `flutter/bin` folder to your PATH as in
 ```bat
 @echo off
 set "FLUTTER_DIR=%USERPROFILE%\development\flutter"
 git clone https://github.com/flutter/flutter.git "%FLUTTER_DIR%"
 cd /d "%FLUTTER_DIR%"
-git checkout 3.24.3
+git checkout 3.29.2
 setx PATH "%PATH%;%FLUTTER_DIR%\bin"
 echo Flutter setup completed. Please restart your command prompt.
 ```
@@ -329,9 +306,9 @@ Run `flutter doctor` in PowerShell to confirm its installation.
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
 ```
-rustup install 1.67.1 1.71.0 1.72.0 1.73.0
-rustup default 1.67.1
-cargo install cargo-ndk --version 2.12.7 --locked
+rustup install 1.85.1 1.81.0
+rustup default 1.85.1
+cargo install cargo-ndk
 ```
 
 ### Windows SDK and Developer Mode

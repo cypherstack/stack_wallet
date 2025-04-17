@@ -11,9 +11,10 @@
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../app_config.dart';
-import 'logger.dart';
+import 'prefs.dart';
 import 'util.dart';
 
 abstract class StackFileSystem {
@@ -36,10 +37,11 @@ abstract class StackFileSystem {
     Directory appDirectory;
 
     // todo: can merge and do same as regular linux home dir?
-    if (Logging.isArmLinux) {
+    if (Util.isArmLinux) {
       appDirectory = await getApplicationDocumentsDirectory();
-      appDirectory =
-          Directory("${appDirectory.path}/.${AppConfig.appDefaultDataDirName}");
+      appDirectory = Directory(
+        "${appDirectory.path}/.${AppConfig.appDefaultDataDirName}",
+      );
     } else if (Platform.isLinux) {
       if (_overrideDesktopDirPath != null) {
         appDirectory = Directory(_overrideDesktopDirPath!);
@@ -147,6 +149,24 @@ abstract class StackFileSystem {
     }
   }
 
+  static Future<Directory> applicationXelisDirectory() async {
+    final root = await applicationRootDirectory();
+    final dir = Directory("${root.path}${Platform.pathSeparator}xelis");
+    if (!dir.existsSync()) {
+      await dir.create();
+    }
+    return dir;
+  }
+
+  static Future<Directory> applicationXelisTableDirectory() async {
+    final xelis = await applicationXelisDirectory();
+    final dir = Directory("${xelis.path}${Platform.pathSeparator}table");
+    if (!dir.existsSync()) {
+      await dir.create();
+    }
+    return dir;
+  }
+
   static Future<void> initThemesDir() async {
     final root = await applicationRootDirectory();
 
@@ -158,4 +178,36 @@ abstract class StackFileSystem {
   }
 
   static Directory? themesDir;
+
+  static Future<Directory> applicationLogsDirectory(Prefs prefs) async {
+    // if prefs logs path is set, use that
+    if (prefs.logsPath != null) {
+      final dir = Directory(prefs.logsPath!);
+      if (await dir.exists()) {
+        return dir;
+      }
+    }
+
+    final appDocsDir = await getApplicationDocumentsDirectory();
+    const logsDirName = "${AppConfig.prefix}_Logs";
+    final Directory logsDir;
+
+    if (Platform.isIOS) {
+      logsDir = Directory("${appDocsDir.path}/logs");
+    } else if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+      // TODO check this is correct for macos
+      logsDir = Directory("${appDocsDir.path}/$logsDirName");
+    } else if (Platform.isAndroid) {
+      await Permission.storage.request();
+      logsDir = Directory("/storage/emulated/0/Documents/$logsDirName");
+    } else {
+      throw Exception("Unsupported Platform");
+    }
+
+    if (!logsDir.existsSync()) {
+      await logsDir.create(recursive: true);
+    }
+
+    return logsDir;
+  }
 }

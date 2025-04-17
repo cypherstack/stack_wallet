@@ -32,6 +32,49 @@ class NodeService extends ChangeNotifier {
   });
 
   Future<void> updateDefaults() async {
+    // hack
+    if (AppConfig.coins.where((e) => e.identifier == "firo").isNotEmpty) {
+      final others = [
+        "electrumx01.firo.org",
+        "electrumx02.firo.org",
+        "electrumx03.firo.org",
+        "electrumx.firo.org",
+      ];
+      const port = 50002;
+      const idPrefix = "not_a_real_default_but_temp";
+
+      for (final host in others) {
+        final _id = "${idPrefix}_$host";
+
+        NodeModel? node = DB.instance.get<NodeModel>(
+          boxName: DB.boxNameNodeModels,
+          key: _id,
+        );
+
+        if (node == null) {
+          node = NodeModel(
+            host: host,
+            port: port,
+            name: host,
+            id: _id,
+            useSSL: true,
+            enabled: true,
+            coinName: "firo",
+            isFailover: true,
+            isDown: false,
+            torEnabled: true,
+            clearnetEnabled: true,
+          );
+
+          await DB.instance.put<NodeModel>(
+            boxName: DB.boxNameNodeModels,
+            key: _id,
+            value: node,
+          );
+        }
+      }
+    }
+
     for (final defaultNode in AppConfig.coins.map(
       (e) => e.defaultNode,
     )) {
@@ -61,6 +104,7 @@ class NodeService extends ChangeNotifier {
             trusted: savedNode.trusted,
             torEnabled: savedNode.torEnabled,
             clearnetEnabled: savedNode.clearnetEnabled,
+            loginName: savedNode.loginName,
           ),
         );
       }
@@ -79,6 +123,7 @@ class NodeService extends ChangeNotifier {
             trusted: primaryNode.trusted,
             torEnabled: primaryNode.torEnabled,
             clearnetEnabled: primaryNode.clearnetEnabled,
+            loginName: primaryNode.loginName,
           ),
         );
       }
@@ -170,6 +215,8 @@ class NodeService extends ChangeNotifier {
         key: "${node.id}_nodePW",
         value: password,
       );
+    } else {
+      await secureStorageInterface.delete(key: "${node.id}_nodePW");
     }
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -197,7 +244,11 @@ class NodeService extends ChangeNotifier {
     await DB.instance.put<NodeModel>(
       boxName: DB.boxNameNodeModels,
       key: model.id,
-      value: model.copyWith(enabled: enabled),
+      value: model.copyWith(
+        enabled: enabled,
+        loginName: model.loginName,
+        trusted: model.trusted,
+      ),
     );
     if (shouldNotifyListeners) {
       notifyListeners();
@@ -242,7 +293,7 @@ class NodeService extends ChangeNotifier {
       final json = jsonDecode(response.body) as Map;
       final result = jsonDecode(json['result'] as String);
       final map = jsonDecode(result as String);
-      Logging.instance.log(map, level: LogLevel.Info);
+      Logging.instance.d(map);
 
       for (final coin in AppConfig.coins) {
         final nodeList = List<Map<String, dynamic>>.from(
@@ -271,14 +322,19 @@ class NodeService extends ChangeNotifier {
               useSSL: node.useSSL,
               coinName: node.coinName,
               isDown: node.isDown,
+              loginName: node.loginName,
+              trusted: node.trusted,
             );
           }
           await add(node, null, false);
         }
       }
     } catch (e, s) {
-      Logging.instance
-          .log("updateCommunityNodes() failed: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "updateCommunityNodes() failed",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 }

@@ -187,7 +187,7 @@ class ExchangeTransactionStatus {
   });
 
   factory ExchangeTransactionStatus.fromJson(Map<String, dynamic> json) {
-    Logging.instance.log(json, printFullLength: true, level: LogLevel.Info);
+    Logging.instance.d(json, stackTrace: StackTrace.current);
     try {
       return ExchangeTransactionStatus(
         status: changeNowTransactionStatusFromStringIgnoreCase(
@@ -228,7 +228,7 @@ class ExchangeTransactionStatus {
         payload: json["payload"] as Object?,
       );
     } catch (e, s) {
-      Logging.instance.log("$e\n$s", level: LogLevel.Fatal);
+      Logging.instance.f("", error: e, stackTrace: s);
       rethrow;
     }
   }

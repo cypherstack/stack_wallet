@@ -6,6 +6,7 @@ import 'package:isar/isar.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
@@ -33,14 +34,19 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     return coinlib.HDPrivateKey.fromSeed(seed);
   }
 
+  Future<coinlib.ECPrivateKey> getPrivateKey(Address address) async {
+    return (await getRootHDNode())
+        .derivePath(address.derivationPath!.value)
+        .privateKey;
+  }
+
   Future<String> getPrivateKeyWIF(Address address) async {
-    final keys =
-        (await getRootHDNode()).derivePath(address.derivationPath!.value);
+    final privateKey = await getPrivateKey(address);
 
     final List<int> data = [
       cryptoCurrency.networkParams.wifPrefix,
-      ...keys.privateKey.data,
-      if (keys.privateKey.compressed) 1,
+      ...privateKey.data,
+      if (privateKey.compressed) 1,
     ];
     final checksum =
         coinlib.sha256DoubleHash(Uint8List.fromList(data)).sublist(0, 4);
@@ -189,6 +195,9 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     return address;
   }
 
+  /// If this function returns true, the UTXO will be ignored in displayed balance
+  bool ignoreUtxoInBalance(UTXO utxo) => false;
+
   // ========== Private ========================================================
 
   Future<DerivePathType> _viewOnlyPathHelper() async {
@@ -324,6 +333,8 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     );
 
     for (final utxo in utxos) {
+      if (ignoreUtxoInBalance(utxo)) continue;
+
       final utxoAmount = Amount(
         rawValue: BigInt.from(utxo.value),
         fractionDigits: cryptoCurrency.fractionDigits,

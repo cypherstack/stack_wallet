@@ -26,6 +26,8 @@ import 'test_monero_node_connection.dart';
 import 'test_stellar_node_connection.dart';
 import 'tor_plain_net_option_enum.dart';
 
+import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
+
 Future<bool> _xmrHelper(
   NodeFormData nodeFormData,
   BuildContext context,
@@ -38,6 +40,8 @@ Future<bool> _xmrHelper(
   final data = nodeFormData;
   final url = data.host!;
   final port = data.port;
+  final username = data.login;
+  final password = data.password;
 
   final uri = Uri.parse(url);
 
@@ -51,6 +55,8 @@ Future<bool> _xmrHelper(
 
   final response = await testMoneroNodeConnection(
     Uri.parse(uriString),
+    username,
+    password,
     false,
     proxyInfo: proxyInfo,
   ).timeout(Duration(seconds: proxyInfo != null ? 30 : 10));
@@ -67,6 +73,8 @@ Future<bool> _xmrHelper(
       if (shouldAllowBadCert) {
         final response = await testMoneroNodeConnection(
           Uri.parse(uriString),
+          username,
+          password,
           true,
           proxyInfo: proxyInfo,
         );
@@ -94,17 +102,15 @@ Future<bool> testNodeConnection({
 
   if (ref.read(prefsChangeNotifierProvider).useTor) {
     if (formData.netOption! == TorPlainNetworkOption.clear) {
-      Logging.instance.log(
+      Logging.instance.w(
         "This node is configured for non-TOR only but TOR is enabled",
-        level: LogLevel.Warning,
       );
       return false;
     }
   } else {
     if (formData.netOption! == TorPlainNetworkOption.tor) {
-      Logging.instance.log(
+      Logging.instance.w(
         "This node is configured for TOR only but TOR is disabled",
-        level: LogLevel.Warning,
       );
       return false;
     }
@@ -122,7 +128,11 @@ Future<bool> testNodeConnection({
           onSuccess?.call(data);
         }
       } catch (e, s) {
-        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+        Logging.instance.w(
+          "$e\n$s",
+          error: e,
+          stackTrace: s,
+        );
       }
       break;
 
@@ -169,7 +179,11 @@ Future<bool> testNodeConnection({
           }
         }
       } catch (e, s) {
-        Logging.instance.log("$e\n$s", level: LogLevel.Warning);
+        Logging.instance.w(
+          "$e\n$s",
+          error: e,
+          stackTrace: s,
+        );
       }
 
       break;
@@ -245,9 +259,8 @@ Future<bool> testNodeConnection({
         );
 
         final health = await rpcClient.getHealth();
-        Logging.instance.log(
+        Logging.instance.i(
           "Solana testNodeConnection \"health=$health\"",
-          level: LogLevel.Info,
         );
         return true;
       } catch (_) {
@@ -277,13 +290,34 @@ Future<bool> testNodeConnection({
           BlockfrostRequestBackendHealthStatus(),
         );
 
-        Logging.instance.log(
+        Logging.instance.i(
           "Cardano testNodeConnection \"health=$health\"",
-          level: LogLevel.Info,
         );
 
         return health;
       } catch (_) {
+        testPassed = false;
+      }
+      break;
+
+    case Xelis():
+      try {
+        final daemon = xelis_sdk.DaemonClient(
+          endPoint: "${formData.host!}:${formData.port!}",
+          secureWebSocket: formData.useSSL ?? false,
+          timeout: 5000
+        );
+        daemon.connect();
+
+        final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
+        testPassed = networkInfo.height != null;
+
+        daemon.disconnect();
+
+        Logging.instance.i(
+          "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
+        );
+      } catch (e, s) {
         testPassed = false;
       }
       break;

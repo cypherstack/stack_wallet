@@ -100,17 +100,17 @@ class CachedElectrumXClient {
         }
         // save set to db
         await box.put(groupId, set);
-        Logging.instance.log(
+        Logging.instance.d(
           "Updated current anonymity set for ${cryptoCurrency.identifier} with group ID $groupId",
-          level: LogLevel.Info,
         );
       }
 
       return set;
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to process CachedElectrumX.getAnonymitySet(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Failed to process CachedElectrumX.getAnonymitySet(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -155,16 +155,17 @@ class CachedElectrumXClient {
           await box.put(txHash, result);
         }
 
-        // Logging.instance.log("using fetched result", level: LogLevel.Info);
+        // Logging.instance.log("using fetched result");
         return result;
       } else {
-        // Logging.instance.log("using cached result", level: LogLevel.Info);
+        // Logging.instance.log("using cached result");
         return Map<String, dynamic>.from(cachedTx);
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to process CachedElectrumX.getTransaction(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Failed to process CachedElectrumX.getTransaction(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }
@@ -212,9 +213,10 @@ class CachedElectrumXClient {
 
       return resultingList;
     } catch (e, s) {
-      Logging.instance.log(
-        "Failed to process CachedElectrumX.getUsedCoinSerials(): $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "Failed to process CachedElectrumX.getUsedCoinSerials(): ",
+        error: e,
+        stackTrace: s,
       );
       rethrow;
     }

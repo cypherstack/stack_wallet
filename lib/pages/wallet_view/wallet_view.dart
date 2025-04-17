@@ -22,6 +22,8 @@ import '../../app_config.dart';
 import '../../frost_route_generator.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../pages_desktop_specific/lelantus_coins/lelantus_coins_view.dart';
+import '../../pages_desktop_specific/spark_coins/spark_coins_view.dart';
 import '../../providers/global/active_wallet_provider.dart';
 import '../../providers/global/auto_swb_service_provider.dart';
 import '../../providers/global/paynym_api_provider.dart';
@@ -50,6 +52,7 @@ import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
+import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -85,6 +88,7 @@ import '../churning/churning_view.dart';
 import '../coin_control/coin_control_view.dart';
 import '../exchange_view/wallet_initiated_exchange_view.dart';
 import '../monkey/monkey_view.dart';
+import '../namecoin_names/namecoin_names_home_view.dart';
 import '../notification_views/notifications_view.dart';
 import '../ordinals/ordinals_view.dart';
 import '../paynym/paynym_claim_view.dart';
@@ -1138,6 +1142,49 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
+                  if (wallet is FiroWallet &&
+                      ref.watch(
+                        prefsChangeNotifierProvider.select(
+                          (value) => value.advancedFiroFeatures,
+                        ),
+                      ))
+                    WalletNavigationBarItemData(
+                      label: "Lelantus coins",
+                      icon: const CoinControlNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          LelantusCoinsView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
+                  if (wallet is FiroWallet &&
+                      ref.watch(
+                        prefsChangeNotifierProvider.select(
+                          (value) => value.advancedFiroFeatures,
+                        ),
+                      ))
+                    WalletNavigationBarItemData(
+                      label: "Spark coins",
+                      icon: const CoinControlNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          SparkCoinsView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
+                  if (wallet is NamecoinWallet)
+                    WalletNavigationBarItemData(
+                      label: "Domains",
+                      icon: const PaynymNavIcon(),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          NamecoinNamesHomeView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
                   if (!viewOnly && wallet is PaynymInterface)
                     WalletNavigationBarItemData(
                       label: "PayNym",
@@ -1165,10 +1212,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             .read(paynymAPIProvider)
                             .nym(code.toString());
 
-                        Logging.instance.log(
-                          "my nym account: $account",
-                          level: LogLevel.Info,
-                        );
+                        Logging.instance.d("my nym account: $account");
 
                         if (context.mounted) {
                           Navigator.of(context).pop();

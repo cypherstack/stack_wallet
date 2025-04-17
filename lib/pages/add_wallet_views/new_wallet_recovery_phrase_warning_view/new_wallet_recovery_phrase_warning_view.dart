@@ -26,18 +26,20 @@ import '../../../services/transaction_notification_tracker.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
+import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
-import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_dialog.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
 import '../new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'recovery_phrase_explanation_dialog.dart';
@@ -64,6 +66,218 @@ class _NewWalletRecoveryPhraseWarningViewState
   late final CryptoCurrency coin;
   late final String walletName;
   late final bool isDesktop;
+
+  Future<void> _initNewWallet() async {
+    Exception? ex;
+    final result = await showLoading(
+      whileFuture: _initNewFuture(),
+      context: context,
+      message: "Generating...",
+      onException: (e) => ex = e,
+    );
+
+    // on failure show error message
+    if (result == null) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: "Create Wallet Error",
+            message: ex?.toString() ?? "Unknown error",
+            maxWidth: 600,
+          ),
+        );
+      }
+      return;
+    } else {
+      if (mounted) {
+        final nav = Navigator.of(context);
+        unawaited(
+          nav.pushNamed(
+            NewWalletRecoveryPhraseView.routeName,
+            arguments: Tuple2(
+              result.$1,
+              result.$2,
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<(Wallet, List<String>)> _initNewFuture() async {
+    try {
+      String? otherDataJsonString;
+      if (widget.coin is Tezos) {
+        otherDataJsonString = jsonEncode({
+          WalletInfoKeys.tezosDerivationPath:
+              Tezos.standardDerivationPath.value,
+        });
+        //  }//todo: probably not needed (broken anyways)
+        // else if (widget.coin is Epiccash) {
+        //    final int secondsSinceEpoch =
+        //        DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        //    const int epicCashFirstBlock = 1565370278;
+        //    const double overestimateSecondsPerBlock = 61;
+        //    int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+        //    int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
+        //    /
+        //    // debugPrint(
+        //    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
+        //    height = approximateHeight;
+        //    if (height < 0) {
+        //      height = 0;
+        //    }
+        //
+        //    otherDataJsonString = jsonEncode(
+        //      {
+        //        WalletInfoKeys.epiccashData: jsonEncode(
+        //          ExtraEpiccashWalletInfo(
+        //            receivingIndex: 0,
+        //            changeIndex: 0,
+        //            slatesToAddresses: {},
+        //            slatesToCommits: {},
+        //            lastScannedBlock: epicCashFirstBlock,
+        //            restoreHeight: height,
+        //            creationHeight: height,
+        //          ).toMap(),
+        //        ),
+        //      },
+        //    );
+      } else if (widget.coin is Firo) {
+        otherDataJsonString = jsonEncode(
+          {
+            WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
+          },
+        );
+      }
+
+      final info = WalletInfo.createNew(
+        coin: widget.coin,
+        name: widget.walletName,
+        otherDataJsonString: otherDataJsonString,
+      );
+
+      var node = ref
+          .read(
+            nodeServiceChangeNotifierProvider,
+          )
+          .getPrimaryNodeFor(
+            currency: coin,
+          );
+
+      if (node == null) {
+        node = coin.defaultNode;
+        await ref
+            .read(
+              nodeServiceChangeNotifierProvider,
+            )
+            .setPrimaryNodeFor(
+              coin: coin,
+              node: node,
+            );
+      }
+
+      final txTracker = TransactionNotificationTracker(
+        walletId: info.walletId,
+      );
+
+      String? mnemonicPassphrase;
+      String? mnemonic;
+      String? privateKey;
+
+      // set some sane default
+      int wordCount = info.coin.defaultSeedPhraseLength;
+
+      // TODO: Refactor these to generate each coin in their respective classes
+      // This code should not be in a random view page file
+      if (coin is Monero || coin is Wownero || coin is Xelis) {
+        // currently a special case due to the
+        // xmr/wow libraries handling their
+        // own mnemonic generation
+        wordCount = ref.read(pNewWalletOptions)?.mnemonicWordsCount ??
+            info.coin.defaultSeedPhraseLength;
+      } else if (wordCount > 0) {
+        if (ref
+                .read(
+                  pNewWalletOptions.state,
+                )
+                .state !=
+            null) {
+          if (coin.hasMnemonicPassphraseSupport) {
+            mnemonicPassphrase = ref
+                .read(
+                  pNewWalletOptions.state,
+                )
+                .state!
+                .mnemonicPassphrase;
+          } else {
+            // this may not be epiccash specific?
+            if (coin is Epiccash) {
+              mnemonicPassphrase = "";
+            }
+          }
+
+          wordCount = ref
+              .read(
+                pNewWalletOptions.state,
+              )
+              .state!
+              .mnemonicWordsCount;
+        } else {
+          mnemonicPassphrase = "";
+        }
+
+        if (wordCount < 12 || 24 < wordCount || wordCount % 3 != 0) {
+          throw Exception(
+            "Invalid word count",
+          );
+        }
+
+        final strength = (wordCount ~/ 3) * 32;
+
+        mnemonic = bip39.generateMnemonic(
+          strength: strength,
+        );
+      }
+
+      final wallet = await Wallet.create(
+        walletInfo: info,
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(
+          nodeServiceChangeNotifierProvider,
+        ),
+        prefs: ref.read(
+          prefsChangeNotifierProvider,
+        ),
+        mnemonicPassphrase: mnemonicPassphrase,
+        mnemonic: mnemonic,
+        privateKey: privateKey,
+      );
+
+      if (wallet is LibMoneroWallet) {
+        await wallet.init(wordCount: wordCount);
+      } else {
+        await wallet.init();
+      }
+
+      // set checkbox back to unchecked to annoy users to agree again :P
+      ref
+          .read(
+            checkBoxStateProvider.state,
+          )
+          .state = false;
+
+      final fetchedMnemonic =
+          await (wallet as MnemonicInterface).getMnemonicAsWords();
+
+      return (wallet, fetchedMnemonic);
+    } catch (e, s) {
+      Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+      rethrow;
+    }
+  }
 
   @override
   void initState() {
@@ -454,222 +668,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                   onPressed: ref
                                           .read(checkBoxStateProvider.state)
                                           .state
-                                      ? () async {
-                                          try {
-                                            unawaited(
-                                              showDialog<dynamic>(
-                                                context: context,
-                                                barrierDismissible: false,
-                                                useSafeArea: true,
-                                                builder: (ctx) {
-                                                  return const Center(
-                                                    child: LoadingIndicator(
-                                                      width: 50,
-                                                      height: 50,
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            );
-                                            String? otherDataJsonString;
-                                            if (widget.coin is Tezos) {
-                                              otherDataJsonString = jsonEncode({
-                                                WalletInfoKeys
-                                                        .tezosDerivationPath:
-                                                    Tezos.standardDerivationPath
-                                                        .value,
-                                              });
-                                              //  }//todo: probably not needed (broken anyways)
-                                              // else if (widget.coin is Epiccash) {
-                                              //    final int secondsSinceEpoch =
-                                              //        DateTime.now().millisecondsSinceEpoch ~/ 1000;
-                                              //    const int epicCashFirstBlock = 1565370278;
-                                              //    const double overestimateSecondsPerBlock = 61;
-                                              //    int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-                                              //    int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-                                              //    /
-                                              //    // debugPrint(
-                                              //    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
-                                              //    height = approximateHeight;
-                                              //    if (height < 0) {
-                                              //      height = 0;
-                                              //    }
-                                              //
-                                              //    otherDataJsonString = jsonEncode(
-                                              //      {
-                                              //        WalletInfoKeys.epiccashData: jsonEncode(
-                                              //          ExtraEpiccashWalletInfo(
-                                              //            receivingIndex: 0,
-                                              //            changeIndex: 0,
-                                              //            slatesToAddresses: {},
-                                              //            slatesToCommits: {},
-                                              //            lastScannedBlock: epicCashFirstBlock,
-                                              //            restoreHeight: height,
-                                              //            creationHeight: height,
-                                              //          ).toMap(),
-                                              //        ),
-                                              //      },
-                                              //    );
-                                            } else if (widget.coin is Firo) {
-                                              otherDataJsonString = jsonEncode(
-                                                {
-                                                  WalletInfoKeys
-                                                          .lelantusCoinIsarRescanRequired:
-                                                      false,
-                                                },
-                                              );
-                                            }
-
-                                            final info = WalletInfo.createNew(
-                                              coin: widget.coin,
-                                              name: widget.walletName,
-                                              otherDataJsonString:
-                                                  otherDataJsonString,
-                                            );
-
-                                            var node = ref
-                                                .read(
-                                                  nodeServiceChangeNotifierProvider,
-                                                )
-                                                .getPrimaryNodeFor(
-                                                  currency: coin,
-                                                );
-
-                                            if (node == null) {
-                                              node = coin.defaultNode;
-                                              await ref
-                                                  .read(
-                                                    nodeServiceChangeNotifierProvider,
-                                                  )
-                                                  .setPrimaryNodeFor(
-                                                    coin: coin,
-                                                    node: node,
-                                                  );
-                                            }
-
-                                            final txTracker =
-                                                TransactionNotificationTracker(
-                                              walletId: info.walletId,
-                                            );
-
-                                            int? wordCount;
-                                            String? mnemonicPassphrase;
-                                            String? mnemonic;
-                                            String? privateKey;
-
-                                            wordCount = info
-                                                .coin.defaultSeedPhraseLength;
-
-                                            // TODO: Refactor these to generate each coin in their respective classes
-                                            // This code should not be in a random view page file
-                                            if (coin is Monero ||
-                                                coin is Wownero) {
-                                              // currently a special case due to the
-                                              // xmr/wow libraries handling their
-                                              // own mnemonic generation
-                                            } else if (wordCount > 0) {
-                                              if (ref
-                                                      .read(
-                                                        pNewWalletOptions.state,
-                                                      )
-                                                      .state !=
-                                                  null) {
-                                                if (coin
-                                                    .hasMnemonicPassphraseSupport) {
-                                                  mnemonicPassphrase = ref
-                                                      .read(
-                                                        pNewWalletOptions.state,
-                                                      )
-                                                      .state!
-                                                      .mnemonicPassphrase;
-                                                } else {
-                                                  // this may not be epiccash specific?
-                                                  if (coin is Epiccash) {
-                                                    mnemonicPassphrase = "";
-                                                  }
-                                                }
-
-                                                wordCount = ref
-                                                    .read(
-                                                      pNewWalletOptions.state,
-                                                    )
-                                                    .state!
-                                                    .mnemonicWordsCount;
-                                              } else {
-                                                mnemonicPassphrase = "";
-                                              }
-
-                                              if (wordCount < 12 ||
-                                                  24 < wordCount ||
-                                                  wordCount % 3 != 0) {
-                                                throw Exception(
-                                                  "Invalid word count",
-                                                );
-                                              }
-
-                                              final strength =
-                                                  (wordCount ~/ 3) * 32;
-
-                                              mnemonic = bip39.generateMnemonic(
-                                                strength: strength,
-                                              );
-                                            }
-
-                                            final wallet = await Wallet.create(
-                                              walletInfo: info,
-                                              mainDB: ref.read(mainDBProvider),
-                                              secureStorageInterface:
-                                                  ref.read(secureStoreProvider),
-                                              nodeService: ref.read(
-                                                nodeServiceChangeNotifierProvider,
-                                              ),
-                                              prefs: ref.read(
-                                                prefsChangeNotifierProvider,
-                                              ),
-                                              mnemonicPassphrase:
-                                                  mnemonicPassphrase,
-                                              mnemonic: mnemonic,
-                                              privateKey: privateKey,
-                                            );
-
-                                            await wallet.init();
-
-                                            // pop progress dialog
-                                            if (context.mounted) {
-                                              Navigator.pop(context);
-                                            }
-                                            // set checkbox back to unchecked to annoy users to agree again :P
-                                            ref
-                                                .read(
-                                                  checkBoxStateProvider.state,
-                                                )
-                                                .state = false;
-
-                                            if (context.mounted) {
-                                              final nav = Navigator.of(context);
-                                              unawaited(
-                                                nav.pushNamed(
-                                                  NewWalletRecoveryPhraseView
-                                                      .routeName,
-                                                  arguments: Tuple2(
-                                                    wallet,
-                                                    await (wallet
-                                                            as MnemonicInterface)
-                                                        .getMnemonicAsWords(),
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          } catch (e, s) {
-                                            Logging.instance.log(
-                                              "$e\n$s",
-                                              level: LogLevel.Fatal,
-                                            );
-                                            // TODO: handle gracefully
-                                            // any network/socket exception here will break new wallet creation
-                                            rethrow;
-                                          }
-                                        }
+                                      ? _initNewWallet
                                       : null,
                                   style: ref
                                           .read(checkBoxStateProvider.state)

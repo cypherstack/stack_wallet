@@ -278,6 +278,8 @@ const _AddresstypeEnumValueMap = {
   'frostMS': 13,
   'p2tr': 14,
   'solana': 15,
+  'cardanoShelley': 16,
+  'xelis': 17,
 };
 const _AddresstypeValueEnumMap = {
   0: AddressType.p2pkh,
@@ -296,6 +298,8 @@ const _AddresstypeValueEnumMap = {
   13: AddressType.frostMS,
   14: AddressType.p2tr,
   15: AddressType.solana,
+  16: AddressType.cardanoShelley,
+  17: AddressType.xelis,
 };
 
 Id _addressGetId(Address object) {

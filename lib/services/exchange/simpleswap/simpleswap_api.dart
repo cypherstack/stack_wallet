@@ -59,10 +59,8 @@ class SimpleSwapAPI {
 
       return parsed;
     } catch (e, s) {
-      Logging.instance.log(
-        "_makeRequest($uri) HTTP:$code threw: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("_makeRequest($uri) HTTP:$code threw: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -88,8 +86,11 @@ class SimpleSwapAPI {
 
       throw Exception("response: ${response.body}");
     } catch (e, s) {
-      Logging.instance
-          .log("_makeRequest($uri) threw: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "_makeRequest($uri) threw",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -149,10 +150,8 @@ class SimpleSwapAPI {
       );
       return ExchangeResponse(value: trade, exception: null);
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableCurrencies exception: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("getAvailableCurrencies exception: ", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -177,10 +176,8 @@ class SimpleSwapAPI {
 
       return await compute(_parseAvailableCurrenciesJson, jsonArray as List);
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableCurrencies exception: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("getAvailableCurrencies exception: ", error: e, stackTrace: s);
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -212,9 +209,10 @@ class SimpleSwapAPI {
 
       return ExchangeResponse(value: currencies);
     } catch (e, s) {
-      Logging.instance.log(
-        "_parseAvailableCurrenciesJson exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "_parseAvailableCurrenciesJson exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -246,8 +244,11 @@ class SimpleSwapAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance
-          .log("getCurrency exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getCurrency exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -279,8 +280,11 @@ class SimpleSwapAPI {
       );
       return result;
     } catch (e, s) {
-      Logging.instance
-          .log("getAllPairs exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getAllPairs exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -321,9 +325,10 @@ class SimpleSwapAPI {
 
       return ExchangeResponse(value: pairs);
     } catch (e, s) {
-      Logging.instance.log(
-        "_parseAvailableCurrenciesJson exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "_parseAvailableCurrenciesJson exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(
@@ -358,8 +363,11 @@ class SimpleSwapAPI {
 
       return ExchangeResponse(value: jsonObject as String);
     } catch (e, s) {
-      Logging.instance
-          .log("getEstimated exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getEstimated exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -415,8 +423,11 @@ class SimpleSwapAPI {
 
       return ExchangeResponse(value: trade);
     } catch (e, s) {
-      Logging.instance
-          .log("getExchange exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getExchange exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -454,7 +465,11 @@ class SimpleSwapAPI {
         ),
       );
     } catch (e, s) {
-      Logging.instance.log("getRange exception: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "getRange exception",
+        error: e,
+        stackTrace: s,
+      );
       return ExchangeResponse(
         exception: ExchangeException(
           e.toString(),
@@ -488,9 +503,10 @@ class SimpleSwapAPI {
         );
         return result;
       } catch (e, s) {
-        Logging.instance.log(
-          "getAvailableFixedRateMarkets exception: $e\n$s",
-          level: LogLevel.Error,
+        Logging.instance.e(
+          "getAvailableFixedRateMarkets exception: ",
+          error: e,
+          stackTrace: s,
         );
         return ExchangeResponse(
           exception: ExchangeException(
@@ -500,9 +516,10 @@ class SimpleSwapAPI {
         );
       }
     } catch (e, s) {
-      Logging.instance.log(
-        "getAvailableFixedRateMarkets exception: $e\n$s",
-        level: LogLevel.Error,
+      Logging.instance.e(
+        "getAvailableFixedRateMarkets exception: ",
+        error: e,
+        stackTrace: s,
       );
       return ExchangeResponse(
         exception: ExchangeException(

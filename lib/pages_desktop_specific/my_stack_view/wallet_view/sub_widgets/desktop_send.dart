@@ -145,28 +145,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   Future<void> scanWebcam() async {
     try {
-      await showDialog<void>(
+      final qrResult = await showDialog<String>(
         context: context,
-        builder: (context) {
-          return QrCodeScannerDialog(
-            onQrCodeDetected: (qrCodeData) {
-              try {
-                _processQrCodeData(qrCodeData);
-              } catch (e, s) {
-                Logging.instance.log(
-                  "Error processing QR code data: $e\n$s",
-                  level: LogLevel.Error,
-                );
-              }
-            },
-          );
-        },
+        builder: (context) => const QrCodeScannerDialog(),
       );
+      if (qrResult == null) {
+        Logging.instance.w("Qr scanning cancelled");
+      } else {
+        try {
+          _processQrCodeData(qrResult);
+        } catch (e, s) {
+          Logging.instance
+              .e("Error processing QR code data", error: e, stackTrace: s);
+        }
+      }
     } catch (e, s) {
-      Logging.instance.log(
-        "Error opening QR code scanner dialog: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance
+          .e("Error opening QR code scanner dialog", error: e, stackTrace: s);
     }
   }
 
@@ -511,7 +506,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
       }
     } catch (e, s) {
-      Logging.instance.log("Desktop send: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
       if (mounted) {
         // pop building dialog
         Navigator.of(
@@ -616,17 +611,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (_cachedAmountToSend != null && _cachedAmountToSend == amount) {
           return;
         }
-        Logging.instance.log(
-          "it changed $amount $_cachedAmountToSend",
-          level: LogLevel.Info,
-        );
+
         _cachedAmountToSend = amount;
 
         final price =
             ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
 
         if (price > Decimal.zero) {
-          final String fiatAmountString = (amount!.decimal * price)
+          final String fiatAmountString = (amount.decimal * price)
               .toAmount(fractionDigits: 2)
               .fiatString(
                 locale: ref.read(localeServiceChangeNotifierProvider).locale,
@@ -668,33 +660,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
-        // Auto fill address.
-        _address = paymentData.address.trim();
-        sendToController.text = _address!;
-
-        // Amount.
-        if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
-            fractionDigits: coin.fractionDigits,
-          );
-          cryptoAmountController.text = ref.read(pAmountFormatter(coin)).format(
-                amount,
-                withUnitName: false,
-              );
-          ref.read(pSendAmount.notifier).state = amount;
-        }
-
-        // Note/message.
-        if (paymentData.message != null) {
-          _note = paymentData.message;
-        } else if (paymentData.label != null) {
-          _note = paymentData.label;
-        }
-
-        _setValidAddressProviders(_address);
-        setState(() {
-          _addressToggleFlag = sendToController.text.isNotEmpty;
-        });
+        _applyUri(paymentData);
       } else {
         _address = qrCodeData.split("\n").first.trim();
         sendToController.text = _address ?? "";
@@ -705,8 +671,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         });
       }
     } catch (e, s) {
-      Logging.instance
-          .log("Error processing QR code data: $e\n$s", level: LogLevel.Error);
+      Logging.instance.e(
+        "Error processing QR code data",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -741,6 +710,40 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  void _applyUri(PaymentUriData paymentData) {
+    try {
+      // auto fill address
+      _address = paymentData.address;
+      sendToController.text = _address!;
+
+      // autofill notes field.
+      if (paymentData.message != null) {
+        _note = paymentData.message;
+      } else if (paymentData.label != null) {
+        _note = paymentData.label;
+      }
+
+      // autofill amount field
+      if (paymentData.amount != null) {
+        final amount = Decimal.parse(paymentData.amount!).toAmount(
+          fractionDigits: coin.fractionDigits,
+        );
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .format(amount, withUnitName: false);
+        ref.read(pSendAmount.notifier).state = amount;
+      }
+
+      // Trigger validation after pasting.
+      _setValidAddressProviders(_address);
+      setState(() {
+        _addressToggleFlag = sendToController.text.isNotEmpty;
+      });
+    } catch (e, s) {
+      Logging.instance.e("Error applying URI", error: e, stackTrace: s);
+    }
+  }
+
   Future<void> pasteAddress() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
     if (data?.text != null && data!.text!.isNotEmpty) {
@@ -756,33 +759,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
-          // auto fill address
-          _address = paymentData.address;
-          sendToController.text = _address!;
-
-          // autofill notes field.
-          if (paymentData.message != null) {
-            _note = paymentData.message;
-          } else if (paymentData.label != null) {
-            _note = paymentData.label;
-          }
-
-          // autofill amoutn field
-          if (paymentData.amount != null) {
-            final amount = Decimal.parse(paymentData.amount!).toAmount(
-              fractionDigits: coin.fractionDigits,
-            );
-            cryptoAmountController.text = ref
-                .read(pAmountFormatter(coin))
-                .format(amount, withUnitName: false);
-            ref.read(pSendAmount.notifier).state = amount;
-          }
-
-          // Trigger validation after pasting.
-          _setValidAddressProviders(_address);
-          setState(() {
-            _addressToggleFlag = sendToController.text.isNotEmpty;
-          });
+          _applyUri(paymentData);
         } else {
           content = content.split("\n").first.trim();
           if (coin is Epiccash) {
@@ -856,11 +833,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         return;
       }
       _cachedAmountToSend = amount;
-      Logging.instance
-          .log("it changed $amount $_cachedAmountToSend", level: LogLevel.Info);
 
       final amountString = ref.read(pAmountFormatter(coin)).format(
-            amount!,
+            amount,
             withUnitName: false,
           );
 
@@ -960,11 +935,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.addListener(onCryptoAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+      if (_data.amount != null) {
+        cryptoAmountController.text = _data.amount!.toString();
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address;
+      sendToController.text = _data.contactLabel;
+      _address = _data.address;
       _addressToggleFlag = true;
     }
 
@@ -1114,28 +1089,30 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ],
                   ),
                 ),
-                DropdownMenuItem(
-                  value: FiroType.lelantus,
-                  child: Row(
-                    children: [
-                      Text(
-                        "Lelantus balance",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        ref.watch(pAmountFormatter(coin)).format(
-                              ref
-                                  .watch(pWalletBalanceSecondary(walletId))
-                                  .spendable,
-                            ),
-                        style: STextStyles.itemSubtitle(context),
-                      ),
-                    ],
+                if (ref.watch(pWalletBalanceSecondary(walletId)).spendable.raw >
+                    BigInt.zero)
+                  DropdownMenuItem(
+                    value: FiroType.lelantus,
+                    child: Row(
+                      children: [
+                        Text(
+                          "Lelantus balance",
+                          style: STextStyles.itemSubtitle12(context),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          ref.watch(pAmountFormatter(coin)).format(
+                                ref
+                                    .watch(pWalletBalanceSecondary(walletId))
+                                    .spendable,
+                              ),
+                          style: STextStyles.itemSubtitle(context),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 DropdownMenuItem(
                   value: FiroType.public,
                   child: Row(
@@ -1444,7 +1421,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 selectAll: false,
               ),
               onChanged: (newValue) {
-                _address = newValue;
+                final trimmed = newValue;
+
+                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
+                  final parsed = AddressUtils.parsePaymentUri(trimmed, logging: Logging.instance);
+                  if (parsed != null) {
+                    _applyUri(parsed);
+                  } else {
+                    _address = newValue;
+                    sendToController.text = newValue;
+                  }
+                } else {
+                  _address = newValue;
+                }
+
                 _setValidAddressProviders(_address);
 
                 setState(() {
@@ -1584,9 +1574,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 error = null;
               } else if (coin is Firo) {
                 if (firoType == FiroType.lelantus) {
-                  if (_data != null && _data!.contactLabel == _address) {
+                  if (_data != null && _data.contactLabel == _address) {
                     error = SparkInterface.validateSparkAddress(
-                      address: _data!.address,
+                      address: _data.address,
                       isTestNet: coin.network.isTestNet,
                     )
                         ? "Lelantus to Spark not supported"
@@ -1599,7 +1589,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         : "Invalid address";
                   }
                 } else {
-                  if (_data != null && _data!.contactLabel == _address) {
+                  if (_data != null && _data.contactLabel == _address) {
                     error = null;
                   } else if (!ref.watch(pValidSendToAddress) &&
                       !ref.watch(pValidSparkSendToAddress)) {
@@ -1609,7 +1599,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   }
                 }
               } else {
-                if (_data != null && _data!.contactLabel == _address) {
+                if (_data != null && _data.contactLabel == _address) {
                   error = null;
                 } else if (!ref.watch(pValidSendToAddress)) {
                   error = "Invalid address";

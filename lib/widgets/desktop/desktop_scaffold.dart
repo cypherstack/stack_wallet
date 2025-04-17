@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../themes/stack_colors.dart';
 import '../background.dart';
 
@@ -70,8 +71,7 @@ class MasterScaffold extends StatelessWidget {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor: background ??
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: background ?? Colors.transparent,
           appBar: appBar as PreferredSizeWidget?,
           body: body,
         ),

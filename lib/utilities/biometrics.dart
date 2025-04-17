@@ -27,16 +27,14 @@ class Biometrics {
     required String title,
   }) async {
     if (!(Platform.isIOS || Platform.isAndroid)) {
-      Logging.instance.log(
+      Logging.instance.w(
         "Tried to use Biometrics.authenticate() on a platform that is not Android or iOS! ...returning false.",
-        level: LogLevel.Error,
       );
       return false;
     }
     if (integrationTestFlag) {
-      Logging.instance.log(
+      Logging.instance.w(
         "Tried to use Biometrics.authenticate() during integration testing. Returning false.",
-        level: LogLevel.Warning,
       );
       return false;
     }
@@ -50,12 +48,12 @@ class Biometrics {
     // debugPrint("isDeviceSupported: $isDeviceSupported");
 
     if (canCheckBiometrics && isDeviceSupported) {
-      List<BiometricType> availableSystems =
+      final List<BiometricType> availableSystems =
           await localAuth.getAvailableBiometrics();
 
-      Logging.instance.log(
+      Logging.instance.w(
         "Bio availableSystems: $availableSystems",
-        level: LogLevel.Info,
+        stackTrace: StackTrace.current,
       );
 
       //TODO properly handle caught exceptions
@@ -78,10 +76,11 @@ class Biometrics {
         if (didAuthenticate) {
           return true;
         }
-      } catch (e) {
-        Logging.instance.log(
+      } catch (e, s) {
+        Logging.instance.e(
           "local_auth exception caught in Biometrics.authenticate(), e: $e",
-          level: LogLevel.Error,
+          error: e,
+          stackTrace: s,
         );
       }
     }

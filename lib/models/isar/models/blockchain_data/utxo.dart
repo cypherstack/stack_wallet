@@ -77,17 +77,29 @@ class UTXO {
   int getConfirmations(int currentChainHeight) {
     if (blockTime == null || blockHash == null) return 0;
     if (blockHeight == null || blockHeight! <= 0) return 0;
-    return max(0, currentChainHeight - (blockHeight! - 1));
+    return _isMonero()
+        ? max(0, currentChainHeight - (blockHeight!))
+        : max(0, currentChainHeight - (blockHeight! - 1));
   }
 
   bool isConfirmed(
     int currentChainHeight,
     int minimumConfirms,
-    int minimumCoinbaseConfirms,
-  ) {
+    int minimumCoinbaseConfirms, {
+    int? overrideMinConfirms, // added to handle namecoin name op outputs
+  }) {
     final confirmations = getConfirmations(currentChainHeight);
+
+    if (overrideMinConfirms != null) {
+      return confirmations >= overrideMinConfirms;
+    }
     return confirmations >=
         (isCoinbase ? minimumCoinbaseConfirms : minimumConfirms);
+  }
+
+  // fuzzy
+  bool _isMonero() {
+    return keyImage != null;
   }
 
   @ignore
@@ -98,7 +110,7 @@ class UTXO {
 
     try {
       final map = jsonDecode(otherData!) as Map;
-      return map["keyImage"] as String;
+      return map[UTXOOtherDataKeys.keyImage] as String;
     } catch (_) {
       return null;
     }
@@ -168,4 +180,10 @@ class UTXO {
   @override
   @ignore
   int get hashCode => Object.hashAll([walletId, txid, vout]);
+}
+
+abstract final class UTXOOtherDataKeys {
+  static const keyImage = "keyImage";
+  static const spent = "spent";
+  static const nameOpData = "nameOpData";
 }

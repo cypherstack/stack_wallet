@@ -72,8 +72,12 @@ class AddressUtils {
           result["tx_description"] = Uri.decodeComponent(u.fragment);
         }
       }
-    } catch (e) {
-      print("Exception caught in parseUri($uri): $e");
+    } catch (e, s) {
+      Logging.instance.d(
+        "Exception caught in parseUri($uri): $e",
+        error: e,
+        stackTrace: s,
+      );
     }
     return result;
   }
@@ -151,7 +155,7 @@ class AddressUtils {
         additionalParams: filteredParams,
       );
     } catch (e, s) {
-      logging?.log("$e\n$s", level: LogLevel.Error);
+      logging?.e("", error: e, stackTrace: s);
       return null;
     }
   }
@@ -164,7 +168,14 @@ class AddressUtils {
   ) {
     // Filter unrecognized parameters.
     final filteredParams = _filterParams(params);
-    String uriString = "$scheme:$address";
+    String uriString;
+
+    // cashaddrs strike again
+    if (address.startsWith("$scheme:")) {
+      uriString = address;
+    } else {
+      uriString = "$scheme:$address";
+    }
 
     if (scheme.toLowerCase() == "monero") {
       // Handle Monero-specific formatting.
@@ -192,8 +203,12 @@ class AddressUtils {
     Map<String, dynamic> result = {};
     try {
       result = Map<String, dynamic>.from(jsonDecode(data) as Map);
-    } catch (e) {
-      print("Exception caught in parseQRSeedData($data): $e");
+    } catch (e, s) {
+      Logging.instance.d(
+        "Exception caught in parseQRSeedData($data)",
+        error: e,
+        stackTrace: s,
+      );
     }
     return result;
   }

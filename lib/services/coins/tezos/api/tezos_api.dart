@@ -25,10 +25,7 @@ abstract final class TezosAPI {
       final result = jsonDecode(response.body);
       return result as int;
     } catch (e, s) {
-      Logging.instance.log(
-        "Error occurred in TezosAPI while getting counter for $address: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Error occurred in TezosAPI while getting counter for $address: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -53,10 +50,7 @@ abstract final class TezosAPI {
 
       return account;
     } catch (e, s) {
-      Logging.instance.log(
-        "Error occurred in TezosAPI while getting account for $address: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Error occurred in TezosAPI while getting account for $address: ", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -109,10 +103,7 @@ abstract final class TezosAPI {
       }
       return txs;
     } catch (e, s) {
-      Logging.instance.log(
-        "Error occurred in TezosAPI while getting transactions for $address: $e\n$s",
-        level: LogLevel.Error,
-      );
+      Logging.instance.e("Error occurred in TezosAPI while getting transactions for $address: ", error: e, stackTrace: s);
       rethrow;
     }
   }

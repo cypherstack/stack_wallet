@@ -9,13 +9,14 @@
  */
 
 import 'package:isar/isar.dart';
+
 import '../../db/isar/main_db.dart';
 import '../../models/balance.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import 'ethereum_api.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/logger.dart';
 import '../../wallets/isar/models/token_wallet_info.dart';
+import 'ethereum_api.dart';
 
 class CachedEthTokenBalance {
   final String walletId;
@@ -54,9 +55,8 @@ class CachedEthTokenBalance {
         isar: mainDB.isar,
       );
     } else {
-      Logging.instance.log(
+      Logging.instance.w(
         "CachedEthTokenBalance.fetchAndUpdateCachedBalance failed: ${response.exception}",
-        level: LogLevel.Warning,
       );
     }
   }
