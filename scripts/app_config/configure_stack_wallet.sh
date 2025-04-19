@@ -63,6 +63,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Ecash(CryptoCurrencyNetwork.main),
   Epiccash(CryptoCurrencyNetwork.main),
   Ethereum(CryptoCurrencyNetwork.main),
+  Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
   Litecoin(CryptoCurrencyNetwork.main),
   Nano(CryptoCurrencyNetwork.main),

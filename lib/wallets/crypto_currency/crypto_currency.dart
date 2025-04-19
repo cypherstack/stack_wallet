@@ -12,6 +12,7 @@ export 'coins/dogecoin.dart';
 export 'coins/ecash.dart';
 export 'coins/epiccash.dart';
 export 'coins/ethereum.dart';
+export 'coins/fact0rn.dart';
 export 'coins/firo.dart';
 export 'coins/litecoin.dart';
 export 'coins/monero.dart';
