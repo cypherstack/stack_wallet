@@ -37,6 +37,7 @@ import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../widgets/background.dart';
@@ -118,11 +119,7 @@ class _ConfirmTransactionViewState
       ),
     );
 
-    final time = Future<dynamic>.delayed(
-      const Duration(
-        milliseconds: 2500,
-      ),
-    );
+    final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
     final List<String> txids = [];
     Future<TxData> txDataFuture;
@@ -131,11 +128,13 @@ class _ConfirmTransactionViewState
 
     try {
       if (widget.isTokenTx) {
-        txDataFuture =
-            ref.read(pCurrentTokenWallet)!.confirmSend(txData: widget.txData);
+        txDataFuture = ref
+            .read(pCurrentTokenWallet)!
+            .confirmSend(txData: widget.txData);
       } else if (widget.isPaynymNotificationTransaction) {
-        txDataFuture = (wallet as PaynymInterface)
-            .broadcastNotificationTx(txData: widget.txData);
+        txDataFuture = (wallet as PaynymInterface).broadcastNotificationTx(
+          txData: widget.txData,
+        );
       } else if (widget.isPaynymTransaction) {
         txDataFuture = wallet.confirmSend(txData: widget.txData);
       } else {
@@ -145,8 +144,9 @@ class _ConfirmTransactionViewState
               if (widget.txData.sparkMints == null) {
                 txDataFuture = wallet.confirmSend(txData: widget.txData);
               } else {
-                txDataFuture =
-                    wallet.confirmSparkMintTransactions(txData: widget.txData);
+                txDataFuture = wallet.confirmSparkMintTransactions(
+                  txData: widget.txData,
+                );
               }
               break;
 
@@ -171,10 +171,7 @@ class _ConfirmTransactionViewState
         }
       }
 
-      final results = await Future.wait([
-        txDataFuture,
-        time,
-      ]);
+      final results = await Future.wait([txDataFuture, time]);
 
       sendProgressController.triggerSuccess?.call();
       await Future<void>.delayed(const Duration(seconds: 5));
@@ -189,12 +186,10 @@ class _ConfirmTransactionViewState
 
       // save note
       for (final txid in txids) {
-        await ref.read(mainDBProvider).putTransactionNote(
-              TransactionNote(
-                walletId: walletId,
-                txid: txid,
-                value: note,
-              ),
+        await ref
+            .read(mainDBProvider)
+            .putTransactionNote(
+              TransactionNote(walletId: walletId, txid: txid, value: note),
             );
       }
 
@@ -209,8 +204,9 @@ class _ConfirmTransactionViewState
       // pop back to wallet
       if (mounted) {
         if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-          Navigator.of(context)
-              .popUntil(ModalRoute.withName(routeOnSuccessName));
+          Navigator.of(
+            context,
+          ).popUntil(ModalRoute.withName(routeOnSuccessName));
         } else {
           widget.onSuccessInsteadOfRouteOnSuccess!.call();
         }
@@ -253,9 +249,7 @@ class _ConfirmTransactionViewState
                       "Broadcast transaction failed",
                       style: STextStyles.desktopH3(context),
                     ),
-                    const SizedBox(
-                      height: 24,
-                    ),
+                    const SizedBox(height: 24),
                     Flexible(
                       child: SingleChildScrollView(
                         child: SelectableText(
@@ -264,9 +258,7 @@ class _ConfirmTransactionViewState
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 56,
-                    ),
+                    const SizedBox(height: 56),
                     Row(
                       children: [
                         const Spacer(),
@@ -294,9 +286,166 @@ class _ConfirmTransactionViewState
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            );
+          }
+        },
+      );
+    }
+  }
+
+  Future<void> _attemptCreateSlate(BuildContext context) async {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    final coin = wallet.info.coin;
+
+    final sendProgressController = ProgressAndSuccessController();
+
+    unawaited(
+      showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) {
+          return SendingTransactionDialog(
+            coin: coin,
+            controller: sendProgressController,
+            returnSlate: true,
+          );
+        },
+      ),
+    );
+
+    final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
+
+    final List<String> txids = [];
+    Future<TxData> txDataFuture;
+
+    final note = noteController.text;
+
+    try {
+      // Call createTransactionSlate instead of confirmSend.
+      txDataFuture = (wallet as EpiccashWallet).createTransactionSlate(
+        txData: widget.txData.copyWith(noteOnChain: onChainNoteController.text),
+      );
+
+      final results = await Future.wait([txDataFuture, time]);
+
+      sendProgressController.triggerSuccess?.call();
+      await Future<void>.delayed(const Duration(seconds: 5));
+
+      // txids.add((results.first as TxData).txid!);
+      ref.refresh(desktopUseUTXOs);
+
+      // save note
+      for (final txid in txids) {
+        await ref
+            .read(mainDBProvider)
+            .putTransactionNote(
+              TransactionNote(walletId: walletId, txid: txid, value: note),
+            );
+      }
+
+      // unawaited(wallet.refresh());
+
+      widget.onSuccess.call();
+
+      // pop back to wallet
+      if (mounted) {
+        if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+          Navigator.of(
+            context,
+          ).popUntil(ModalRoute.withName(routeOnSuccessName));
+        } else {
+          widget.onSuccessInsteadOfRouteOnSuccess!.call();
+        }
+      }
+    } on BadEpicHttpAddressException catch (_) {
+      if (mounted) {
+        // pop building dialog
+        Navigator.of(context).pop();
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message:
+                "Connection failed. Please check the address and try again.",
+            context: context,
+          ),
+        );
+        return;
+      }
+    } catch (e, s) {
+      debugPrint("$e\n$s");
+      // pop sending dialog
+      Navigator.of(context).pop();
+
+      await showDialog<void>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) {
+          if (isDesktop) {
+            return DesktopDialog(
+              maxWidth: 450,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Create slate failed",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                    const SizedBox(height: 24),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: SelectableText(
+                          e.toString(),
+                          style: STextStyles.smallMed14(context),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 56),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Expanded(
+                          child: PrimaryButton(
+                            buttonHeight: ButtonHeight.l,
+                            label: "Ok",
+                            onPressed: Navigator.of(context).pop,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return StackDialog(
+              title: "Create slate failed",
+              message: e.toString(),
+              rightButton: TextButton(
+                style: Theme.of(context)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(context),
+                child: Text(
+                  "Ok",
+                  style: STextStyles.button(context).copyWith(
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
                   ),
                 ),
                 onPressed: () {
@@ -377,7 +526,8 @@ class _ConfirmTransactionViewState
 
         case FiroType.spark:
           fee = widget.txData.fee;
-          amountWithoutChange = (widget.txData.amountWithoutChange ??
+          amountWithoutChange =
+              (widget.txData.amountWithoutChange ??
                   Amount.zeroWith(
                     fractionDigits: wallet.cryptoCurrency.fractionDigits,
                   )) +
@@ -394,82 +544,79 @@ class _ConfirmTransactionViewState
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            leading: AppBarBackButton(
-              onPressed: () async {
-                // if (FocusScope.of(context).hasFocus) {
-                //   FocusScope.of(context).unfocus();
-                //   await Future<void>.delayed(Duration(milliseconds: 50));
-                // }
-                Navigator.of(context).pop();
-              },
-            ),
-            title: Text(
-              "Confirm transaction",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: LayoutBuilder(
-            builder: (builderContext, constraints) {
-              return Padding(
-                padding: const EdgeInsets.only(
-                  left: 12,
-                  top: 12,
-                  right: 12,
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.background,
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    // if (FocusScope.of(context).hasFocus) {
+                    //   FocusScope.of(context).unfocus();
+                    //   await Future<void>.delayed(Duration(milliseconds: 50));
+                    // }
+                    Navigator.of(context).pop();
+                  },
                 ),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 24,
+                title: Text(
+                  "Confirm transaction",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: LayoutBuilder(
+                builder: (builderContext, constraints) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      top: 12,
+                      right: 12,
                     ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: child,
+                    child: SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 24,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: child,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-      child: ConditionalParent(
-        condition: isDesktop,
-        builder: (child) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                AppBarBackButton(
-                  size: 40,
-                  iconSize: 24,
-                  onPressed: () => Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pop(),
-                ),
-                Text(
-                  "Confirm $unit transaction",
-                  style: STextStyles.desktopH3(context),
-                ),
-              ],
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                child: child,
+                  );
+                },
               ),
             ),
-          ],
-        ),
+          ),
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder:
+            (child) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    AppBarBackButton(
+                      size: 40,
+                      iconSize: 24,
+                      onPressed:
+                          () =>
+                              Navigator.of(context, rootNavigator: true).pop(),
+                    ),
+                    Text(
+                      "Confirm $unit transaction",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ],
+                ),
+                Flexible(child: SingleChildScrollView(child: child)),
+              ],
+            ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
@@ -478,13 +625,8 @@ class _ConfirmTransactionViewState
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    "Send $unit",
-                    style: STextStyles.pageTitleH1(context),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  Text("Send $unit", style: STextStyles.pageTitleH1(context)),
+                  const SizedBox(height: 12),
                   RoundedWhiteContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -495,9 +637,7 @@ class _ConfirmTransactionViewState
                               : "Recipient",
                           style: STextStyles.smallMed12(context),
                         ),
-                        const SizedBox(
-                          height: 4,
-                        ),
+                        const SizedBox(height: 4),
                         Text(
                           widget.isPaynymTransaction
                               ? widget.txData.paynymAccountLite!.nymName
@@ -508,25 +648,23 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
                   RoundedWhiteContainer(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Amount",
-                          style: STextStyles.smallMed12(context),
-                        ),
+                        Text("Amount", style: STextStyles.smallMed12(context)),
                         SelectableText(
-                          ref.watch(pAmountFormatter(coin)).format(
+                          ref
+                              .watch(pAmountFormatter(coin))
+                              .format(
                                 amountWithoutChange,
-                                ethContract: widget.isTokenTx
-                                    ? ref
-                                        .watch(pCurrentTokenWallet)!
-                                        .tokenContract
-                                    : null,
+                                ethContract:
+                                    widget.isTokenTx
+                                        ? ref
+                                            .watch(pCurrentTokenWallet)!
+                                            .tokenContract
+                                        : null,
                               ),
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
@@ -534,10 +672,7 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
-                  if (coin is! NanoCurrency)
-                    const SizedBox(
-                      height: 12,
-                    ),
+                  if (coin is! NanoCurrency) const SizedBox(height: 12),
                   if (coin is! NanoCurrency)
                     RoundedWhiteContainer(
                       child: Row(
@@ -556,9 +691,7 @@ class _ConfirmTransactionViewState
                       ),
                     ),
                   if (widget.txData.fee != null && widget.txData.vSize != null)
-                    const SizedBox(
-                      height: 12,
-                    ),
+                    const SizedBox(height: 12),
                   if (widget.txData.fee != null && widget.txData.vSize != null)
                     RoundedWhiteContainer(
                       child: Row(
@@ -568,9 +701,7 @@ class _ConfirmTransactionViewState
                             "sats/vByte",
                             style: STextStyles.smallMed12(context),
                           ),
-                          const SizedBox(
-                            height: 4,
-                          ),
+                          const SizedBox(height: 4),
                           SelectableText(
                             "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
                             style: STextStyles.itemSubtitle12(context),
@@ -579,9 +710,7 @@ class _ConfirmTransactionViewState
                       ),
                     ),
                   if (coin is Epiccash && widget.txData.noteOnChain!.isNotEmpty)
-                    const SizedBox(
-                      height: 12,
-                    ),
+                    const SizedBox(height: 12),
                   if (coin is Epiccash && widget.txData.noteOnChain!.isNotEmpty)
                     RoundedWhiteContainer(
                       child: Column(
@@ -591,9 +720,7 @@ class _ConfirmTransactionViewState
                             "On chain note",
                             style: STextStyles.smallMed12(context),
                           ),
-                          const SizedBox(
-                            height: 4,
-                          ),
+                          const SizedBox(height: 4),
                           SelectableText(
                             widget.txData.noteOnChain!,
                             style: STextStyles.itemSubtitle12(context),
@@ -602,9 +729,7 @@ class _ConfirmTransactionViewState
                       ),
                     ),
                   if (widget.txData.note!.isNotEmpty)
-                    const SizedBox(
-                      height: 12,
-                    ),
+                    const SizedBox(height: 12),
                   if (widget.txData.note!.isNotEmpty)
                     RoundedWhiteContainer(
                       child: Column(
@@ -614,9 +739,7 @@ class _ConfirmTransactionViewState
                             (coin is Epiccash) ? "Local Note" : "Note",
                             style: STextStyles.smallMed12(context),
                           ),
-                          const SizedBox(
-                            height: 4,
-                          ),
+                          const SizedBox(height: 4),
                           SelectableText(
                             widget.txData.note!,
                             style: STextStyles.itemSubtitle12(context),
@@ -644,9 +767,10 @@ class _ConfirmTransactionViewState
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(
                               Constants.size.circularBorderRadius,
@@ -674,9 +798,7 @@ class _ConfirmTransactionViewState
                                 width: 32,
                                 height: 32,
                               ),
-                              const SizedBox(
-                                width: 16,
-                              ),
+                              const SizedBox(width: 16),
                               Text(
                                 "Send $unit",
                                 style: STextStyles.desktopTextMedium(context),
@@ -697,9 +819,7 @@ class _ConfirmTransactionViewState
                                 context,
                               ),
                             ),
-                            const SizedBox(
-                              height: 2,
-                            ),
+                            const SizedBox(height: 2),
                             Builder(
                               builder: (context) {
                                 final externalCalls = ref.watch(
@@ -710,77 +830,81 @@ class _ConfirmTransactionViewState
                                 String fiatAmount = "N/A";
 
                                 if (externalCalls) {
-                                  final price = widget.isTokenTx
-                                      ? ref
-                                          .read(
-                                            priceAnd24hChangeNotifierProvider,
-                                          )
-                                          .getTokenPrice(
-                                            ref
-                                                .read(pCurrentTokenWallet)!
-                                                .tokenContract
-                                                .address,
-                                          )
-                                          .item1
-                                      : ref
-                                          .read(
-                                            priceAnd24hChangeNotifierProvider,
-                                          )
-                                          .getPrice(coin)
-                                          .item1;
+                                  final price =
+                                      widget.isTokenTx
+                                          ? ref
+                                              .read(
+                                                priceAnd24hChangeNotifierProvider,
+                                              )
+                                              .getTokenPrice(
+                                                ref
+                                                    .read(pCurrentTokenWallet)!
+                                                    .tokenContract
+                                                    .address,
+                                              )
+                                              .item1
+                                          : ref
+                                              .read(
+                                                priceAnd24hChangeNotifierProvider,
+                                              )
+                                              .getPrice(coin)
+                                              .item1;
                                   if (price > Decimal.zero) {
-                                    fiatAmount =
-                                        (amountWithoutChange.decimal * price)
-                                            .toAmount(fractionDigits: 2)
-                                            .fiatString(
-                                              locale: ref
+                                    fiatAmount = (amountWithoutChange.decimal *
+                                            price)
+                                        .toAmount(fractionDigits: 2)
+                                        .fiatString(
+                                          locale:
+                                              ref
                                                   .read(
                                                     localeServiceChangeNotifierProvider,
                                                   )
                                                   .locale,
-                                            );
+                                        );
                                   }
                                 }
 
                                 return Row(
                                   children: [
                                     SelectableText(
-                                      ref.watch(pAmountFormatter(coin)).format(
+                                      ref
+                                          .watch(pAmountFormatter(coin))
+                                          .format(
                                             amountWithoutChange,
-                                            ethContract: widget.isTokenTx
-                                                ? ref
-                                                    .watch(pCurrentTokenWallet)!
-                                                    .tokenContract
-                                                : null,
+                                            ethContract:
+                                                widget.isTokenTx
+                                                    ? ref
+                                                        .watch(
+                                                          pCurrentTokenWallet,
+                                                        )!
+                                                        .tokenContract
+                                                    : null,
                                           ),
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(
-                                        context,
-                                      ).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark,
-                                      ),
+                                      style:
+                                          STextStyles.desktopTextExtraExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color:
+                                                Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark,
+                                          ),
                                     ),
                                     if (externalCalls)
                                       Text(
                                         " | ",
-                                        style: STextStyles
-                                            .desktopTextExtraExtraSmall(
-                                          context,
-                                        ),
+                                        style:
+                                            STextStyles.desktopTextExtraExtraSmall(
+                                              context,
+                                            ),
                                       ),
                                     if (externalCalls)
                                       SelectableText(
-                                        "~$fiatAmount ${ref.watch(
-                                          prefsChangeNotifierProvider.select(
-                                            (value) => value.currency,
-                                          ),
-                                        )}",
-                                        style: STextStyles
-                                            .desktopTextExtraExtraSmall(
-                                          context,
-                                        ),
+                                        "~$fiatAmount ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                        style:
+                                            STextStyles.desktopTextExtraExtraSmall(
+                                              context,
+                                            ),
                                       ),
                                   ],
                                 );
@@ -791,9 +915,10 @@ class _ConfirmTransactionViewState
                       ),
                       Container(
                         height: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
                       ),
                       Padding(
                         padding: const EdgeInsets.all(12),
@@ -809,22 +934,24 @@ class _ConfirmTransactionViewState
                                 context,
                               ),
                             ),
-                            const SizedBox(
-                              height: 2,
-                            ),
+                            const SizedBox(height: 2),
                             SelectableText(
                               // TODO: [prio=med] spark transaction specifics - better handling
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
                                   : widget.txData.recipients?.first.address ??
-                                      widget.txData.sparkRecipients!.first
+                                      widget
+                                          .txData
+                                          .sparkRecipients!
+                                          .first
                                           .address,
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
                               ),
                             ),
                           ],
@@ -833,9 +960,10 @@ class _ConfirmTransactionViewState
                       if (widget.isPaynymTransaction)
                         Container(
                           height: 1,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
                         ),
                       if (widget.isPaynymTransaction)
                         Padding(
@@ -850,17 +978,16 @@ class _ConfirmTransactionViewState
                                   context,
                                 ),
                               ),
-                              const SizedBox(
-                                height: 2,
-                              ),
+                              const SizedBox(height: 2),
                               SelectableText(
                                 ref.watch(pAmountFormatter(coin)).format(fee!),
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                   context,
                                 ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
                                 ),
                               ),
                             ],
@@ -905,10 +1032,7 @@ class _ConfirmTransactionViewState
               ),
             if (isDesktop)
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32, right: 32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -919,10 +1043,7 @@ class _ConfirmTransactionViewState
                         style: STextStyles.smallMed12(context),
                         textAlign: TextAlign.left,
                       ),
-                    if (coin is Epiccash)
-                      const SizedBox(
-                        height: 8,
-                      ),
+                    if (coin is Epiccash) const SizedBox(height: 8),
                     if (coin is Epiccash)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(
@@ -941,47 +1062,46 @@ class _ConfirmTransactionViewState
                             _onChainNoteFocusNode,
                             context,
                           ).copyWith(
-                            suffixIcon: onChainNoteController.text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                onChainNoteController.text = "";
-                                              });
-                                            },
-                                          ),
-                                        ],
+                            suffixIcon:
+                                onChainNoteController.text.isNotEmpty
+                                    ? Padding(
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(() {
+                                                  onChainNoteController.text =
+                                                      "";
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                : null,
+                                    )
+                                    : null,
                           ),
                         ),
                       ),
-                    if (coin is Epiccash)
-                      const SizedBox(
-                        height: 12,
-                      ),
+                    if (coin is Epiccash) const SizedBox(height: 12),
                     SelectableText(
                       (coin is Epiccash)
                           ? "Local Note (optional)"
                           : "Note (optional)",
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldActiveSearchIconRight,
+                      style: STextStyles.desktopTextExtraSmall(
+                        context,
+                      ).copyWith(
+                        color:
+                            Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveSearchIconRight,
                       ),
                       textAlign: TextAlign.left,
                     ),
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -993,11 +1113,13 @@ class _ConfirmTransactionViewState
                         enableSuggestions: isDesktop ? false : true,
                         controller: noteController,
                         focusNode: _noteFocusNode,
-                        style:
-                            STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveText,
+                        style: STextStyles.desktopTextExtraSmall(
+                          context,
+                        ).copyWith(
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldActiveText,
                           height: 1.8,
                         ),
                         onChanged: (_) => setState(() {}),
@@ -1013,39 +1135,36 @@ class _ConfirmTransactionViewState
                             bottom: 12,
                             right: 5,
                           ),
-                          suffixIcon: noteController.text.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(
-                                              () => noteController.text = "",
-                                            );
-                                          },
-                                        ),
-                                      ],
+                          suffixIcon:
+                              noteController.text.isNotEmpty
+                                  ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(
+                                                () => noteController.text = "",
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
-                              : null,
+                                  )
+                                  : null,
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             if (isDesktop && !widget.isPaynymTransaction)
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32),
                 child: Text(
                   "Transaction fee",
                   style: STextStyles.desktopTextExtraExtraSmall(context),
@@ -1053,19 +1172,16 @@ class _ConfirmTransactionViewState
               ),
             if (isDesktop && !widget.isPaynymTransaction)
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  left: 32,
-                  right: 32,
-                ),
+                padding: const EdgeInsets.only(top: 10, left: 32, right: 32),
                 child: RoundedContainer(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                   child: SelectableText(
                     ref.watch(pAmountFormatter(coin)).format(fee!),
                     style: STextStyles.itemSubtitle(context),
@@ -1077,9 +1193,7 @@ class _ConfirmTransactionViewState
                 widget.txData.fee != null &&
                 widget.txData.vSize != null)
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32),
                 child: Text(
                   "sats/vByte",
                   style: STextStyles.desktopTextExtraExtraSmall(context),
@@ -1090,19 +1204,16 @@ class _ConfirmTransactionViewState
                 widget.txData.fee != null &&
                 widget.txData.vSize != null)
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  left: 32,
-                  right: 32,
-                ),
+                padding: const EdgeInsets.only(top: 10, left: 32, right: 32),
                 child: RoundedContainer(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                   child: SelectableText(
                     "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
                     style: STextStyles.itemSubtitle(context),
@@ -1110,154 +1221,334 @@ class _ConfirmTransactionViewState
                 ),
               ),
             if (!isDesktop) const Spacer(),
-            SizedBox(
-              height: isDesktop ? 23 : 12,
-            ),
+            SizedBox(height: isDesktop ? 23 : 12),
             if (!widget.isTokenTx)
               Padding(
-                padding: isDesktop
-                    ? const EdgeInsets.symmetric(
-                        horizontal: 32,
-                      )
-                    : const EdgeInsets.all(0),
+                padding:
+                    isDesktop
+                        ? const EdgeInsets.symmetric(horizontal: 32)
+                        : const EdgeInsets.all(0),
                 child: RoundedContainer(
-                  padding: isDesktop
-                      ? const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 18,
-                        )
-                      : const EdgeInsets.all(12),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .snackBarBackSuccess,
+                  padding:
+                      isDesktop
+                          ? const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          )
+                          : const EdgeInsets.all(12),
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.snackBarBackSuccess,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         isDesktop ? "Total amount to send" : "Total amount",
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              )
-                            : STextStyles.titleBold12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              ),
+                        style:
+                            isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textConfirmTotalAmount,
+                                )
+                                : STextStyles.titleBold12(context).copyWith(
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textConfirmTotalAmount,
+                                ),
                       ),
                       SelectableText(
                         ref
                             .watch(pAmountFormatter(coin))
                             .format(amountWithoutChange + fee!),
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              )
-                            : STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              ),
+                        style:
+                            isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textConfirmTotalAmount,
+                                )
+                                : STextStyles.itemSubtitle12(context).copyWith(
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textConfirmTotalAmount,
+                                ),
                         textAlign: TextAlign.right,
                       ),
                     ],
                   ),
                 ),
               ),
-            SizedBox(
-              height: isDesktop ? 28 : 16,
-            ),
+            SizedBox(height: isDesktop ? 28 : 16),
+
             Padding(
-              padding: isDesktop
-                  ? const EdgeInsets.symmetric(
-                      horizontal: 32,
-                    )
-                  : const EdgeInsets.all(0),
-              child: PrimaryButton(
-                label: "Send",
-                buttonHeight: isDesktop ? ButtonHeight.l : null,
-                onPressed: () async {
-                  final dynamic unlocked;
+              padding:
+                  isDesktop
+                      ? const EdgeInsets.symmetric(horizontal: 32)
+                      : const EdgeInsets.all(0),
+              child:
+                  coin is Epiccash
+                      ? Row(
+                        children: [
+                          // Send button (half width)
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Send",
+                              buttonHeight: isDesktop ? ButtonHeight.l : null,
+                              onPressed: () async {
+                                final dynamic unlocked;
 
-                  if (isDesktop) {
-                    unlocked = await showDialog<bool?>(
-                      context: context,
-                      builder: (context) => DesktopDialog(
-                        maxWidth: 580,
-                        maxHeight: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                DesktopDialogCloseButton(),
-                              ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 32,
-                                right: 32,
-                                bottom: 32,
-                              ),
-                              child: DesktopAuthSend(
-                                coin: coin,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else {
-                    unlocked = await Navigator.push(
-                      context,
-                      RouteGenerator.getRoute(
-                        shouldUseMaterialRoute:
-                            RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
-                          showBackButton: true,
-                          popOnSuccess: true,
-                          routeOnSuccessArguments: true,
-                          routeOnSuccess: "",
-                          biometricsCancelButtonString: "CANCEL",
-                          biometricsLocalizedReason:
-                              "Authenticate to send transaction",
-                          biometricsAuthenticationTitle: "Confirm Transaction",
-                        ),
-                        settings:
-                            const RouteSettings(name: "/confirmsendlockscreen"),
-                      ),
-                    );
-                  }
+                                if (isDesktop) {
+                                  unlocked = await showDialog<bool?>(
+                                    context: context,
+                                    builder:
+                                        (context) => DesktopDialog(
+                                          maxWidth: 580,
+                                          maxHeight: double.infinity,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  DesktopDialogCloseButton(),
+                                                ],
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 32,
+                                                  right: 32,
+                                                  bottom: 32,
+                                                ),
+                                                child: DesktopAuthSend(
+                                                  coin: coin,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                  );
+                                } else {
+                                  unlocked = await Navigator.push(
+                                    context,
+                                    RouteGenerator.getRoute(
+                                      shouldUseMaterialRoute:
+                                          RouteGenerator.useMaterialPageRoute,
+                                      builder:
+                                          (_) => const LockscreenView(
+                                            showBackButton: true,
+                                            popOnSuccess: true,
+                                            routeOnSuccessArguments: true,
+                                            routeOnSuccess: "",
+                                            biometricsCancelButtonString:
+                                                "CANCEL",
+                                            biometricsLocalizedReason:
+                                                "Authenticate to send transaction",
+                                            biometricsAuthenticationTitle:
+                                                "Confirm Transaction",
+                                          ),
+                                      settings: const RouteSettings(
+                                        name: "/confirmsendlockscreen",
+                                      ),
+                                    ),
+                                  );
+                                }
 
-                  if (mounted) {
-                    if (unlocked == true) {
-                      unawaited(_attemptSend(context));
-                    } else {
-                      unawaited(
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: Util.isDesktop
-                              ? "Invalid passphrase"
-                              : "Invalid PIN",
-                          context: context,
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
+                                if (mounted) {
+                                  if (unlocked == true) {
+                                    unawaited(_attemptSend(context));
+                                  } else {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.warning,
+                                        message:
+                                            Util.isDesktop
+                                                ? "Invalid passphrase"
+                                                : "Invalid PIN",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Create slate",
+                              buttonHeight: isDesktop ? ButtonHeight.l : null,
+                              onPressed: () async {
+                                final dynamic unlocked;
+
+                                if (isDesktop) {
+                                  unlocked = await showDialog<bool?>(
+                                    context: context,
+                                    builder:
+                                        (context) => DesktopDialog(
+                                          maxWidth: 580,
+                                          maxHeight: double.infinity,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  DesktopDialogCloseButton(),
+                                                ],
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 32,
+                                                  right: 32,
+                                                  bottom: 32,
+                                                ),
+                                                child: DesktopAuthSend(
+                                                  coin: coin,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                  );
+                                } else {
+                                  unlocked = await Navigator.push(
+                                    context,
+                                    RouteGenerator.getRoute(
+                                      shouldUseMaterialRoute:
+                                          RouteGenerator.useMaterialPageRoute,
+                                      builder:
+                                          (_) => const LockscreenView(
+                                            showBackButton: true,
+                                            popOnSuccess: true,
+                                            routeOnSuccessArguments: true,
+                                            routeOnSuccess: "",
+                                            biometricsCancelButtonString:
+                                                "CANCEL",
+                                            biometricsLocalizedReason:
+                                                "Authenticate to create slate",
+                                            biometricsAuthenticationTitle:
+                                                "Create Slate",
+                                          ),
+                                      settings: const RouteSettings(
+                                        name: "/confirmsendlockscreen",
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                if (mounted) {
+                                  if (unlocked == true) {
+                                    unawaited(_attemptCreateSlate(context));
+                                  } else {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.warning,
+                                        message:
+                                            Util.isDesktop
+                                                ? "Invalid passphrase"
+                                                : "Invalid PIN",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      )
+                      : PrimaryButton(
+                        label: "Send",
+                        buttonHeight: isDesktop ? ButtonHeight.l : null,
+                        onPressed: () async {
+                          final dynamic unlocked;
+
+                          if (isDesktop) {
+                            unlocked = await showDialog<bool?>(
+                              context: context,
+                              builder:
+                                  (context) => DesktopDialog(
+                                    maxWidth: 580,
+                                    maxHeight: double.infinity,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            DesktopDialogCloseButton(),
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 32,
+                                            right: 32,
+                                            bottom: 32,
+                                          ),
+                                          child: DesktopAuthSend(coin: coin),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                            );
+                          } else {
+                            unlocked = await Navigator.push(
+                              context,
+                              RouteGenerator.getRoute(
+                                shouldUseMaterialRoute:
+                                    RouteGenerator.useMaterialPageRoute,
+                                builder:
+                                    (_) => const LockscreenView(
+                                      showBackButton: true,
+                                      popOnSuccess: true,
+                                      routeOnSuccessArguments: true,
+                                      routeOnSuccess: "",
+                                      biometricsCancelButtonString: "CANCEL",
+                                      biometricsLocalizedReason:
+                                          "Authenticate to send transaction",
+                                      biometricsAuthenticationTitle:
+                                          "Confirm Transaction",
+                                    ),
+                                settings: const RouteSettings(
+                                  name: "/confirmsendlockscreen",
+                                ),
+                              ),
+                            );
+                          }
+
+                          if (mounted) {
+                            if (unlocked == true) {
+                              unawaited(_attemptSend(context));
+                            } else {
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message:
+                                      Util.isDesktop
+                                          ? "Invalid passphrase"
+                                          : "Invalid PIN",
+                                  context: context,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
             ),
-            if (isDesktop)
-              const SizedBox(
-                height: 32,
-              ),
+            if (isDesktop) const SizedBox(height: 32),
           ],
         ),
       ),
