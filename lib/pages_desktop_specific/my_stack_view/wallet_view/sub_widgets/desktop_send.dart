@@ -147,6 +147,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   ];
 
   TransactionMethod _txMethod = TransactionMethod.epicbox;
+  late final TextEditingController slateController;
 
   Future<void> scanWebcam() async {
     try {
@@ -928,6 +929,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
 
+    slateController = TextEditingController();
+
     if (_data != null) {
       if (_data.amount != null) {
         cryptoAmountController.text = _data.amount!.toString();
@@ -978,6 +981,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     baseAmountController.dispose();
     memoController.dispose();
     // feeController.dispose();
+    slateController.dispose();
 
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
