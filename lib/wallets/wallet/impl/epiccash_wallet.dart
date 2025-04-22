@@ -703,6 +703,66 @@ class EpiccashWallet extends Bip39Wallet {
     }
   }
 
+  /// Receive a transaction slate.
+  ///
+  /// Takes the sender‑supplied `slateJson`, calls libepiccash `tx_receive`,
+  /// returns the *updated* slate JSON so the UI can hand it back to the sender.
+  Future<String> receiveTransactionSlate({required String slateJson}) async {
+    _hackedCheckTorNodePrefs();
+
+    final String wallet =
+        (await secureStorageInterface.read(key: '${walletId}_wallet'))!;
+
+    // Run the native call off the UI thread.
+    final String updatedSlate = await compute(_epicReceiveSlateWrapper, (
+      wallet: wallet,
+      slateJson: slateJson,
+    ));
+
+    // Try to cache the slate‑id ↔ commit mapping (non‑fatal if it fails).
+    try {
+      _recordSlateAddresses(
+        rawSlate: updatedSlate,
+        // We do *not* yet know the sender’s address; leave it blank.
+        fromAddress: "",
+        toAddress: (await getCurrentReceivingAddress())!.value,
+      );
+    } catch (_) {}
+
+    return updatedSlate; // Caller can QR / copy‑paste this.
+  }
+
+  /// Finalizer a transaction slate.
+  ///
+  /// Consumes the receiver‑modified `slateJson`, finalises/broadcasts on‑chain,
+  /// and returns an updated `TxData` with the unique slate‑id filled in.
+  Future<TxData> finalizeTransactionSlate({
+    required TxData txData,
+    required String slateJson,
+  }) async {
+    _hackedCheckTorNodePrefs();
+
+    final String wallet =
+        (await secureStorageInterface.read(key: '${walletId}_wallet'))!;
+
+    // High‑level wrapper gives us slate‑id + commit‑id.
+    final ({String slateId, String commitId}) result = await epiccash
+        .LibEpiccash.txFinalize(wallet: wallet, slateJson: slateJson);
+
+    // Ensure our internal slate→commit/address map is up‑to‑date.
+    // (If the entry already exists this just overwrites the commit‑id.)
+    unawaited(
+      _putSendToAddresses(result, {
+        'from': (await getCurrentReceivingAddress())!.value,
+        // The recipient is stored in the original TxData (single‑recipient only).
+        'to': txData.recipients?.first.address ?? "",
+      }),
+    );
+
+    // Return a copy so callers get the txid they expect.
+    return txData.copyWith(txid: result.slateId);
+  }
+
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
@@ -1312,4 +1372,20 @@ Future<String> _epicCreateSlateWrapper(
     p.note,
     returnSlate: true,
   );
+}
+
+/// Wrapper so we can `compute()` a tx_receive call and get back the full
+/// updated slate JSON.
+Future<String> _epicReceiveSlateWrapper(
+  ({String wallet, String slateJson}) p,
+) async {
+  return epic_native.txReceive(p.wallet, p.slateJson);
+}
+
+/// Wrapper so we can `compute()` a tx_finalize call and get back the full
+/// finalised slate JSON (unused by the public API, but handy for debugging).
+Future<String> _epicFinalizeSlateWrapper(
+  ({String wallet, String slateJson}) p,
+) async {
+  return epic_native.txFinalize(p.wallet, p.slateJson);
 }
