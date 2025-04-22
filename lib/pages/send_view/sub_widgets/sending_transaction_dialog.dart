@@ -28,12 +28,10 @@ class SendingTransactionDialog extends ConsumerStatefulWidget {
     super.key,
     required this.coin,
     required this.controller,
-    this.returnSlate = false,
   });
 
   final CryptoCurrency coin;
   final ProgressAndSuccessController controller;
-  final bool returnSlate;
 
   @override
   ConsumerState<SendingTransactionDialog> createState() =>
