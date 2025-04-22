@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_libepiccash/epic_cash.dart' as epic_native;
 import 'package:flutter_libepiccash/lib.dart' as epiccash;
 import 'package:flutter_libepiccash/models/transaction.dart' as epic_models;
 import 'package:isar/isar.dart';
@@ -627,6 +629,80 @@ class EpiccashWallet extends Bip39Wallet {
     }
   }
 
+  /// Build a transaction but return an unsigned slate instead of broadcasting.
+  ///
+  /// Returns the TxData with the raw slate string included so the UI can
+  /// display a QR, copy‑paste, etc.
+  Future<TxData> createTransactionSlate({required TxData txData}) async {
+    _hackedCheckTorNodePrefs();
+
+    if (txData.recipients?.length != 1) {
+      throw Exception(
+        "Epic Cash createTransactionSlate requires exactly one recipient",
+      );
+    }
+
+    final recipient = txData.recipients!.first;
+    final wallet =
+        (await secureStorageInterface.read(key: '${walletId}_wallet'))!;
+    final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
+
+    final String rawSlate = await compute(_epicCreateSlateWrapper, (
+      wallet: wallet,
+      amount: recipient.amount.raw.toInt(),
+      address: recipient.address,
+      secretKeyIndex: 0,
+      epicboxConfig: epicboxConfig.toString(),
+      minimumConfirmations: cryptoCurrency.minConfirms,
+      note: txData.noteOnChain ?? "",
+    ));
+
+    // Store slate<->commit/address mapping for later stages (non‑fatal if it fails).
+    _recordSlateAddresses(
+      rawSlate: rawSlate,
+      fromAddress: (await getCurrentReceivingAddress())!.value,
+      toAddress: recipient.address,
+    );
+
+    // Return the TxData with the raw slate included.
+    return txData.copyWith(
+      // raw: rawSlate, // This is a raw tx in hex, not the raw slate.
+      otherData: rawSlate, // Store in otherData.
+      // We may want to strip all backslashes from this output.
+    );
+  }
+
+  /// Helper. TODO expound
+  void _recordSlateAddresses({
+    required String rawSlate,
+    required String fromAddress,
+    required String toAddress,
+  }) {
+    try {
+      final slate0 = jsonDecode(rawSlate);
+      final slate = jsonDecode(slate0[0] as String);
+      final part1 = jsonDecode(slate[0] as String);
+      final part2 = jsonDecode(slate[1] as String);
+
+      final String slateId = part1[0]['tx_slate_id'] as String;
+      final List<dynamic> outputs =
+          part2['tx']?['body']?['outputs'] as List<dynamic>;
+      final String commitId =
+          outputs.isEmpty ? '' : outputs.first['commit'] as String;
+
+      _putSendToAddresses(
+        (slateId: slateId, commitId: commitId),
+        {'from': fromAddress, 'to': toAddress},
+      );
+    } catch (e, s) {
+      Logging.instance.w(
+        "_recordSlateAddresses(): could not parse raw slate",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
@@ -1211,4 +1287,29 @@ Future<String> deleteEpicWallet({
       return "deleteEpicWallet($walletId) failed...";
     }
   }
+}
+
+/// A wrapper so we can compute() a createTransaction with returnSlate.
+Future<String> _epicCreateSlateWrapper(
+  ({
+    String wallet,
+    int amount,
+    String address,
+    int secretKeyIndex,
+    String epicboxConfig,
+    int minimumConfirmations,
+    String note,
+  })
+  p,
+) async {
+  return epic_native.createTransaction(
+    p.wallet,
+    p.amount,
+    p.address,
+    p.secretKeyIndex,
+    p.epicboxConfig,
+    p.minimumConfirmations,
+    p.note,
+    returnSlate: true,
+  );
 }
