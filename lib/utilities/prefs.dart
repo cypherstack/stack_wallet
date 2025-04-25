@@ -459,7 +459,7 @@ class Prefs extends ChangeNotifier {
 
   // tor
 
-  bool _torKillswitch = true;
+  bool _torKillswitch = false;
 
   bool get torKillSwitch => _torKillswitch;
 
