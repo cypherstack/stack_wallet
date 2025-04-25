@@ -70,6 +70,10 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
 
               // Toggle the useTor preference on success.
               ref.read(prefsChangeNotifierProvider).useTor = true;
+
+              // Toggle the torKillswitch preference on success.
+              ref.read(prefsChangeNotifierProvider).torKillSwitch = true;
+              // TODO [prio=pup]: Only toggle this the first time the user connects to Tor.
             } catch (e, s) {
               Logging.instance.e("Error starting tor: ", error: e, stackTrace: s);
               // TODO: show dialog with error message
