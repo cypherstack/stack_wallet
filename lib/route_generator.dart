@@ -1554,14 +1554,14 @@ class RouteGenerator {
 
       case RestoreWalletView.routeName:
         if (args
-            is Tuple6<String, CryptoCurrency, int, DateTime?, String, bool>) {
+            is Tuple6<String, CryptoCurrency, int, int, String, bool>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => RestoreWalletView(
               walletName: args.item1,
               coin: args.item2,
               seedWordsLength: args.item3,
-              restoreFromDate: args.item4,
+              restoreBlockHeight: args.item4,
               mnemonicPassphrase: args.item5,
               enableLelantusScanning: args.item6 ?? false,
             ),
@@ -1576,7 +1576,7 @@ class RouteGenerator {
         if (args is ({
           String walletName,
           CryptoCurrency coin,
-          DateTime? restoreFromDate,
+          int restoreBlockHeight,
           bool enableLelantusScanning,
         })) {
           return getRoute(
@@ -1584,7 +1584,7 @@ class RouteGenerator {
             builder: (_) => RestoreViewOnlyWalletView(
               walletName: args.walletName,
               coin: args.coin,
-              restoreFromDate: args.restoreFromDate,
+              restoreBlockHeight: args.restoreBlockHeight,
               enableLelantusScanning: args.enableLelantusScanning,
             ),
             settings: RouteSettings(
