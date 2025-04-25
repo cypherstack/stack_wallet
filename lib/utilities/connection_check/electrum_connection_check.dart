@@ -20,25 +20,36 @@ Future<bool> checkElectrumServer({
   ({InternetAddress host, int port})? proxyInfo;
 
   try {
-    // If we're supposed to use Tor...
-    if (_prefs.useTor) {
-      // But Tor isn't running...
+    if (_prefs.torKillSwitch) {
+      // If the killswitch is set...
       if (_torService.status != TorConnectionStatus.connected) {
-        // And the killswitch isn't set...
+        // And Tor isn't connected, then we'll throw an exception.
+        throw Exception(
+          "Tor killswitch set but Tor is not connected, not connecting to Electrum adapter",
+        );
+      }
+    }
+
+    if (_prefs.useTor) {
+      // If we're supposed to use Tor...
+      if (_torService.status != TorConnectionStatus.connected) {
+        // But Tor isn't connected...
         if (!_prefs.torKillSwitch) {
+          // And the killswitch isn't set...
           // Then we'll just proceed and connect to ElectrumX through clearnet at the bottom of this function.
           Logging.instance.w(
             "Tor preference set but Tor is not enabled, killswitch not set, connecting to Electrum adapter through clearnet",
           );
         } else {
           // ... But if the killswitch is set, then we throw an exception.
+          // This should never be reached.
           throw Exception(
             "Tor preference and killswitch set but Tor is not enabled, not connecting to Electrum adapter",
           );
           // TODO [prio=low]: Try to start Tor.
         }
       } else {
-        // Get the proxy info from the TorService.
+        // If Tor is connected, get the proxy info from the TorService.
         proxyInfo = _torService.getProxyInfo();
       }
     }
