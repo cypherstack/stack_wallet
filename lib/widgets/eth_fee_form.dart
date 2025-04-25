@@ -268,7 +268,9 @@ class _EthFeeFormState extends State<EthFeeForm> {
             focusNode: gasLimitFocus,
             onChanged: (value) {
               final intValue = int.tryParse(value);
-              if (intValue == null) {
+              if (intValue == null ||
+                  intValue < widget.minGasLimit ||
+                  intValue > widget.maxGasLimit) {
                 gasLimitController.text = _gasLimitCache.toString();
                 return;
               }
