@@ -10,6 +10,7 @@
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
@@ -476,44 +477,52 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
             onTap: widget.dateChooserFunction,
             controller: widget.dateController,
           ) :
-              TextField(
-                focusNode: widget.blockHeightFocusNode,
-                controller: widget.blockHeightController,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-                style: Util.isDesktop
-                    ? STextStyles.desktopTextMedium(context).copyWith(
-                        height: 2,
-                      )
-                    : STextStyles.field(context),
-                onChanged: (value) {
-                  setState(() {
-                    _blockFieldEmpty = value.isEmpty;
-                  });
-                },
-                decoration: standardInputDecoration(
-                  "Start scanning from...",
-                  widget.blockHeightFocusNode,
-                  context,
-                ).copyWith(
-                  suffixIcon: UnconstrainedBox(
-                    child: TextFieldIconButton(child:
-                    Semantics(
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                child: TextField(
+                  focusNode: widget.blockHeightFocusNode,
+                  controller: widget.blockHeightController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  textInputAction: TextInputAction.done,
+                  style: Util.isDesktop
+                      ? STextStyles.desktopTextMedium(context).copyWith(
+                    height: 2,
+                  )
+                      : STextStyles.field(context),
+                  onChanged: (value) {
+                    setState(() {
+                      _blockFieldEmpty = value.isEmpty;
+                    });
+                  },
+                  decoration: standardInputDecoration(
+                    "Start scanning from...",
+                    widget.blockHeightFocusNode,
+                    context,
+                  ).copyWith(
+                    suffixIcon: UnconstrainedBox(
+                      child: TextFieldIconButton(child:
+                      Semantics(
                         label: "Clear Block Height Field Button. Clears the block height field",
                         excludeSemantics: true,
                         child: !_blockFieldEmpty
                             ? XIcon(
-                                width: Util.isDesktop ? 24 : 16,
-                                height: Util.isDesktop ? 24 : 16,
-                              )
+                          width: Util.isDesktop ? 24 : 16,
+                          height: Util.isDesktop ? 24 : 16,
+                        )
                             : const SizedBox.shrink(),
                       ),
-                    onTap: () {
-                      widget.blockHeightController.text = "";
-                      setState(() {
-                        _blockFieldEmpty = true;
-                      });
-                    },
+                        onTap: () {
+                          widget.blockHeightController.text = "";
+                          setState(() {
+                            _blockFieldEmpty = true;
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -778,9 +787,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
   void initState() {
     super.initState();
 
-    setState(() {
-      _blockFieldEmpty = widget.blockHeightController.text.isEmpty;
-    });
+    _blockFieldEmpty = widget.blockHeightController.text.isEmpty;
   }
 }
 
@@ -854,44 +861,57 @@ class _ViewOnlyRestoreOptionState extends State<ViewOnlyRestoreOption> {
                   onTap: widget.dateChooserFunction,
                   controller: widget.dateController,
                 )
-              : TextField(
-                  focusNode: widget.blockHeightFocusNode,
-                  controller: widget.blockHeightController,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.done,
-                  style: Util.isDesktop
-                      ? STextStyles.desktopTextMedium(context).copyWith(
-                          height: 2,
-                        )
-                      : STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    "Start scanning from...",
-                    widget.blockHeightFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon: UnconstrainedBox(
-                      child: TextFieldIconButton(
-                        child: Semantics(
-                          label:
-                              "Clear Block Height Field Button. Clears the block height field",
-                          excludeSemantics: true,
-                          child: !_blockFieldEmpty
-                              ? XIcon(
-                                  width: Util.isDesktop ? 24 : 16,
-                                  height: Util.isDesktop ? 24 : 16,
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                        onTap: () {
-                          widget.blockHeightController.text = "";
-                          setState(() {
-                            _blockFieldEmpty = true;
-                          });
-                        },
-                      ),
+              : ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              focusNode: widget.blockHeightFocusNode,
+              controller: widget.blockHeightController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              textInputAction: TextInputAction.done,
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextMedium(context).copyWith(
+                height: 2,
+              )
+                  : STextStyles.field(context),
+              onChanged: (value) {
+                setState(() {
+                  _blockFieldEmpty = value.isEmpty;
+                });
+              },
+              decoration: standardInputDecoration(
+                "Start scanning from...",
+                widget.blockHeightFocusNode,
+                context,
+              ).copyWith(
+                suffixIcon: UnconstrainedBox(
+                  child: TextFieldIconButton(
+                    child: Semantics(
+                      label:
+                      "Clear Block Height Field Button. Clears the block height field",
+                      excludeSemantics: true,
+                      child: !_blockFieldEmpty
+                          ? XIcon(
+                        width: Util.isDesktop ? 24 : 16,
+                        height: Util.isDesktop ? 24 : 16,
+                      )
+                          : const SizedBox.shrink(),
                     ),
+                    onTap: () {
+                      widget.blockHeightController.text = "";
+                      setState(() {
+                        _blockFieldEmpty = true;
+                      });
+                    },
                   ),
                 ),
+              ),
+            ),
+          ),
         if (showDateOption)
           const SizedBox(
             height: 8,
@@ -927,8 +947,6 @@ class _ViewOnlyRestoreOptionState extends State<ViewOnlyRestoreOption> {
   void initState() {
     super.initState();
 
-    setState(() {
-      _blockFieldEmpty = widget.blockHeightController.text.isEmpty;
-    });
+    _blockFieldEmpty = widget.blockHeightController.text.isEmpty;
   }
 }

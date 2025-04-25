@@ -322,7 +322,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                                 )
                               : Semantics(
                                   label:
-                                      "Clear Block Height Field Button. Clears the block height field.",
+                                      "Clear Wallet Name Field Button. Clears the wallet name field.",
                                   excludeSemantics: true,
                                   child: XIcon(
                                     width: isDesktop ? 21 : 18,
