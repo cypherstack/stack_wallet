@@ -40,13 +40,6 @@ Future<bool> checkElectrumServer({
           Logging.instance.w(
             "Tor preference set but Tor is not enabled, killswitch not set, connecting to Electrum adapter through clearnet",
           );
-        } else {
-          // ... But if the killswitch is set, then we throw an exception.
-          // This should never be reached.
-          throw Exception(
-            "Tor preference and killswitch set but Tor is not enabled, not connecting to Electrum adapter",
-          );
-          // TODO [prio=low]: Try to start Tor.
         }
       } else {
         // If Tor is connected, get the proxy info from the TorService.
