@@ -86,8 +86,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   DateTime? _restoreFromDate;
   bool hidePassword = true;
 
-  bool get supportsMnemonicPassphrase => coin.hasMnemonicPassphraseSupport;
-
   bool enableLelantusScanning = false;
   bool get supportsLelantus => coin is Firo;
 
@@ -352,7 +350,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     blockHeightFocusNode: _blockHeightFocusNode,
                     pwController: passwordController,
                     pwFocusNode: passwordFocusNode,
-                    supportsMnemonicPassphrase: supportsMnemonicPassphrase,
                     dateChooserFunction:
                         isDesktop ? chooseDesktopDate : chooseDate,
                     chooseMnemonicLength: chooseMnemonicLength,
@@ -387,7 +384,6 @@ class SeedRestoreOption extends ConsumerStatefulWidget {
     required this.blockHeightFocusNode,
     required this.pwController,
     required this.pwFocusNode,
-    required this.supportsMnemonicPassphrase,
     required this.dateChooserFunction,
     required this.chooseMnemonicLength,
     required this.lelScanChanged,
@@ -399,7 +395,6 @@ class SeedRestoreOption extends ConsumerStatefulWidget {
   final FocusNode blockHeightFocusNode;
   final TextEditingController pwController;
   final FocusNode pwFocusNode;
-  final bool supportsMnemonicPassphrase;
 
   final Future<void> Function() dateChooserFunction;
   final Future<void> Function() chooseMnemonicLength;
@@ -419,12 +414,21 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
   Widget build(BuildContext context) {
     final lengths = widget.coin.possibleMnemonicLengths;
 
-    final isMoneroAnd25 =
-        widget.coin is Monero &&
-        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
-    final isWowneroAnd25 =
-        widget.coin is Wownero &&
-        ref.watch(mnemonicWordCountStateProvider.state).state == 25;
+    final currentLength = ref.watch(mnemonicWordCountStateProvider);
+
+    final isMoneroAnd25 = widget.coin is Monero && currentLength == 25;
+    final isWowneroAnd25 = widget.coin is Wownero && currentLength == 25;
+
+    final bool supportsPassphrase;
+    if (widget.coin.hasMnemonicPassphraseSupport) {
+      supportsPassphrase = true;
+    } else if (widget.coin is CryptonoteCurrency) {
+      // partial see offset support. Currently only on restore
+      // and not wownero 14 word seeds
+      supportsPassphrase = currentLength == 16 || currentLength == 25;
+    } else {
+      supportsPassphrase = false;
+    }
 
     return Column(
       children: [
@@ -573,14 +577,22 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
               },
               isExpanded: true,
               iconStyleData: IconStyleData(
-                icon: SvgPicture.asset(
-                  Assets.svg.chevronDown,
-                  width: 12,
-                  height: 6,
-                  color:
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldActiveSearchIconRight,
+                icon: ConditionalParent(
+                  condition: Util.isDesktop,
+                  builder:
+                      (child) => Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: child,
+                      ),
+                  child: SvgPicture.asset(
+                    Assets.svg.chevronDown,
+                    width: 12,
+                    height: 6,
+                    color:
+                        Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveSearchIconRight,
+                  ),
                 ),
               ),
               dropdownStyleData: DropdownStyleData(
@@ -605,9 +617,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
           MobileMnemonicLengthSelector(
             chooseMnemonicLength: widget.chooseMnemonicLength,
           ),
-        if (widget.supportsMnemonicPassphrase)
-          SizedBox(height: Util.isDesktop ? 24 : 16),
-        if (widget.supportsMnemonicPassphrase)
+        if (supportsPassphrase) SizedBox(height: Util.isDesktop ? 24 : 16),
+        if (supportsPassphrase)
           Expandable(
             onExpandChanged: (state) {
               setState(() {
@@ -617,10 +628,11 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
             header: Container(
               color: Colors.transparent,
               child: Padding(
-                padding: const EdgeInsets.only(
+                padding: EdgeInsets.only(
                   top: 8.0,
                   bottom: 8.0,
                   right: 10,
+                  left: Util.isDesktop ? 16 : 0,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -689,7 +701,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                       enableSuggestions: false,
                       autocorrect: false,
                       decoration: standardInputDecoration(
-                        "BIP39 passphrase",
+                        widget.coin is CryptonoteCurrency
+                            ? "Seed Offset"
+                            : "BIP39 passphrase",
                         widget.pwFocusNode,
                         context,
                       ).copyWith(
@@ -734,9 +748,14 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                   RoundedWhiteContainer(
                     child: Center(
                       child: Text(
-                        "If the recovery phrase you are about to restore "
-                        "was created with an optional BIP39 passphrase "
-                        "you can enter it here.",
+                        widget.coin is CryptonoteCurrency
+                            ? "(Optional) An offset used to derive a different "
+                                "wallet from the given mnemonic, allowing recovery "
+                                "of a hidden or alternate wallet based on the same "
+                                "seed phrase."
+                            : "If the recovery phrase you are about to restore "
+                                "was created with an optional BIP39 passphrase "
+                                "you can enter it here.",
                         style:
                             Util.isDesktop
                                 ? STextStyles.desktopTextExtraSmall(
