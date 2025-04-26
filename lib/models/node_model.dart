@@ -43,6 +43,8 @@ class NodeModel {
   final bool torEnabled;
   // @HiveField(12)
   final bool clearnetEnabled;
+  // @HiveField(13)
+  final bool forceNoTor;
 
   NodeModel({
     required this.host,
@@ -56,6 +58,7 @@ class NodeModel {
     required this.isDown,
     required this.torEnabled,
     required this.clearnetEnabled,
+    this.forceNoTor = false,
     this.loginName,
     this.trusted,
   });
@@ -72,6 +75,7 @@ class NodeModel {
     bool? isDown,
     required bool? trusted,
     bool? torEnabled,
+    bool? forceNoTor,
     bool? clearnetEnabled,
   }) {
     return NodeModel(
@@ -88,6 +92,7 @@ class NodeModel {
       trusted: trusted,
       torEnabled: torEnabled ?? this.torEnabled,
       clearnetEnabled: clearnetEnabled ?? this.clearnetEnabled,
+      forceNoTor: forceNoTor ?? this.forceNoTor,
     );
   }
 
@@ -111,6 +116,7 @@ class NodeModel {
     map['trusted'] = trusted;
     map['torEnabled'] = torEnabled;
     map['clearEnabled'] = clearnetEnabled;
+    map['forceNoTor'] = forceNoTor;
     return map;
   }
 
