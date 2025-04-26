@@ -15,7 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../models/exchange/change_now/exchange_transaction_status.dart';
+import '../models/exchange/change_now/cn_exchange_transaction_status.dart';
 import '../models/exchange/response_objects/trade.dart';
 import '../models/isar/stack_theme.dart';
 import '../themes/theme_providers.dart';
@@ -26,11 +26,7 @@ import 'conditional_parent.dart';
 import 'rounded_white_container.dart';
 
 class TradeCard extends ConsumerWidget {
-  const TradeCard({
-    super.key,
-    required this.trade,
-    required this.onTap,
-  });
+  const TradeCard({super.key, required this.trade, required this.onTap});
 
   final Trade trade;
   final VoidCallback onTap;
@@ -78,10 +74,9 @@ class TradeCard extends ConsumerWidget {
 
     return ConditionalParent(
       condition: isDesktop,
-      builder: (child) => MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: child,
-      ),
+      builder:
+          (child) =>
+              MouseRegion(cursor: SystemMouseCursors.click, child: child),
       child: GestureDetector(
         onTap: onTap,
         child: RoundedWhiteContainer(
@@ -108,9 +103,7 @@ class TradeCard extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 12,
-              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   children: [
@@ -127,9 +120,7 @@ class TradeCard extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 2,
-                    ),
+                    const SizedBox(height: 2),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
