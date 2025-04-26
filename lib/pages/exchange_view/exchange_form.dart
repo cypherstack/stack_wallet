@@ -745,8 +745,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     });
     _receiveFocusNode.addListener(() {
-      if (_receiveFocusNode.hasFocus &&
-          ref.read(efExchangeProvider).name != ChangeNowExchange.exchangeName) {
+      if (_receiveFocusNode.hasFocus) {
         final reversed = ref.read(efReversedProvider);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref.read(efReversedProvider.notifier).state = true;
@@ -964,9 +963,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           background:
               Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
           onTap:
-              rateType == ExchangeRateType.estimated &&
-                      ref.watch(efExchangeProvider).name ==
-                          ChangeNowExchange.exchangeName
+              rateType == ExchangeRateType.estimated
                   ? null
                   : () {
                     if (_sendController.text == "-") {
@@ -979,10 +976,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           currency: ref.watch(
             efCurrencyPairProvider.select((value) => value.receive),
           ),
-          readOnly:
-              rateType == ExchangeRateType.estimated &&
-              ref.watch(efExchangeProvider).name ==
-                  ChangeNowExchange.exchangeName,
+          readOnly: rateType == ExchangeRateType.estimated,
         ),
         SizedBox(height: isDesktop ? 20 : 12),
         SizedBox(
