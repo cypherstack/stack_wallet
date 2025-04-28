@@ -109,111 +109,107 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         context: context,
         useSafeArea: true,
         barrierDismissible: true,
-        builder: (_) => isDesktop
-            ? DesktopDialog(
-                maxWidth: 440,
-                maxHeight: 300,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: 32,
-                      ),
-                      child: Row(
+        builder:
+            (_) =>
+                isDesktop
+                    ? DesktopDialog(
+                      maxWidth: 440,
+                      maxHeight: 300,
+                      child: Column(
                         children: [
-                          const SizedBox(
-                            width: 32,
-                          ),
-                          Text(
-                            "Server currently unreachable",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 32,
-                          right: 32,
-                          top: 16,
-                          bottom: 32,
-                        ),
-                        child: Column(
-                          children: [
-                            const Spacer(),
-                            Text(
-                              "Would you like to save this node anyways?",
-                              style: STextStyles.desktopTextMedium(context),
-                            ),
-                            const Spacer(
-                              flex: 2,
-                            ),
-                            Row(
+                          Padding(
+                            padding: const EdgeInsets.only(top: 32),
+                            child: Row(
                               children: [
-                                Expanded(
-                                  child: SecondaryButton(
-                                    label: "Cancel",
-                                    buttonHeight:
-                                        isDesktop ? ButtonHeight.l : null,
-                                    onPressed: () => Navigator.of(
-                                      context,
-                                      rootNavigator: true,
-                                    ).pop(false),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 16,
-                                ),
-                                Expanded(
-                                  child: PrimaryButton(
-                                    label: "Save",
-                                    buttonHeight:
-                                        isDesktop ? ButtonHeight.l : null,
-                                    onPressed: () => Navigator.of(
-                                      context,
-                                      rootNavigator: true,
-                                    ).pop(true),
-                                  ),
+                                const SizedBox(width: 32),
+                                Text(
+                                  "Server currently unreachable",
+                                  style: STextStyles.desktopH3(context),
                                 ),
                               ],
                             ),
-                          ],
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                left: 32,
+                                right: 32,
+                                top: 16,
+                                bottom: 32,
+                              ),
+                              child: Column(
+                                children: [
+                                  const Spacer(),
+                                  Text(
+                                    "Would you like to save this node anyways?",
+                                    style: STextStyles.desktopTextMedium(
+                                      context,
+                                    ),
+                                  ),
+                                  const Spacer(flex: 2),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: SecondaryButton(
+                                          label: "Cancel",
+                                          buttonHeight:
+                                              isDesktop ? ButtonHeight.l : null,
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                                rootNavigator: true,
+                                              ).pop(false),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: PrimaryButton(
+                                          label: "Save",
+                                          buttonHeight:
+                                              isDesktop ? ButtonHeight.l : null,
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                                rootNavigator: true,
+                                              ).pop(true),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    : StackDialog(
+                      title: "Server currently unreachable",
+                      message: "Would you like to save this node anyways?",
+                      leftButton: TextButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop(false);
+                        },
+                        child: Text(
+                          "Cancel",
+                          style: STextStyles.button(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.accentColorDark,
+                          ),
                         ),
                       ),
+                      rightButton: TextButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop(true);
+                        },
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonStyle(context),
+                        child: Text("Save", style: STextStyles.button(context)),
+                      ),
                     ),
-                  ],
-                ),
-              )
-            : StackDialog(
-                title: "Server currently unreachable",
-                message: "Would you like to save this node anyways?",
-                leftButton: TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop(false);
-                  },
-                  child: Text(
-                    "Cancel",
-                    style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                    ),
-                  ),
-                ),
-                rightButton: TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop(true);
-                  },
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context),
-                  child: Text(
-                    "Save",
-                    style: STextStyles.button(context),
-                  ),
-                ),
-              ),
       ).then((value) {
         if (value is bool && value) {
           shouldSave = true;
@@ -239,9 +235,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       }
     }
 
-    final torEnabled = formData.netOption == TorPlainNetworkOption.tor ||
+    final torEnabled =
+        formData.netOption == TorPlainNetworkOption.tor ||
         formData.netOption == TorPlainNetworkOption.both;
-    final plainEnabled = formData.netOption == TorPlainNetworkOption.clear ||
+    final plainEnabled =
+        formData.netOption == TorPlainNetworkOption.clear ||
         formData.netOption == TorPlainNetworkOption.both;
 
     switch (viewType) {
@@ -262,15 +260,14 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           clearnetEnabled: plainEnabled,
         );
 
-        await ref.read(nodeServiceChangeNotifierProvider).add(
-              node,
-              formData.password,
-              true,
-            );
+        await ref
+            .read(nodeServiceChangeNotifierProvider)
+            .add(node, formData.password, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
-          Navigator.of(context)
-              .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
+          Navigator.of(
+            context,
+          ).popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
         }
         break;
       case AddEditNodeViewType.edit:
@@ -290,23 +287,24 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           clearnetEnabled: plainEnabled,
         );
 
-        await ref.read(nodeServiceChangeNotifierProvider).add(
-              node,
-              formData.password,
-              true,
-            );
+        await ref
+            .read(nodeServiceChangeNotifierProvider)
+            .add(node, formData.password, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
-          Navigator.of(context)
-              .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
+          Navigator.of(
+            context,
+          ).popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
         }
         break;
     }
   }
 
   Future<void> _notifyWalletsOfUpdatedNode() async {
-    final wallets =
-        ref.read(pWallets).wallets.where((e) => e.info.coin == widget.coin);
+    final wallets = ref
+        .read(pWallets)
+        .wallets
+        .where((e) => e.info.coin == widget.coin);
     final prefs = ref.read(prefsChangeNotifierProvider);
 
     switch (prefs.syncType) {
@@ -356,24 +354,26 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             try {
               await _processQrData(qrResult);
             } catch (e, s) {
-              Logging.instance.e("Error processing QR code data: ",
-                  error: e, stackTrace: s);
+              Logging.instance.e(
+                "Error processing QR code data: ",
+                error: e,
+                stackTrace: s,
+              );
             }
           }
         } catch (e, s) {
-          Logging.instance.e("Error opening QR code scanner dialog: ",
-              error: e, stackTrace: s);
+          Logging.instance.e(
+            "Error opening QR code scanner dialog: ",
+            error: e,
+            stackTrace: s,
+          );
         }
       } else {
         try {
           final result = await BarcodeScanner.scan();
           await _processQrData(result.rawContent);
         } catch (e, s) {
-          Logging.instance.e(
-            "$runtimeType._scanQr()",
-            error: e,
-            stackTrace: s,
-          );
+          Logging.instance.e("$runtimeType._scanQr()", error: e, stackTrace: s);
         }
       }
     } finally {
@@ -401,16 +401,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               clearnetEnabled: !nodeQrData.host.endsWith(".onion"),
               loginName: (nodeQrData as LibMoneroNodeQrData?)?.user,
             ),
-            (nodeQrData as LibMoneroNodeQrData?)?.password ?? ""
+            (nodeQrData as LibMoneroNodeQrData?)?.password ?? "",
           );
         });
       }
     } catch (e, s) {
-      Logging.instance.w(
-        "$e\n$s",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.w("$e\n$s", error: e, stackTrace: s);
     }
   }
 
@@ -446,201 +442,202 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     final NodeModel? node =
         viewType == AddEditNodeViewType.edit && nodeId != null
             ? ref.watch(
-                nodeServiceChangeNotifierProvider
-                    .select((value) => value.getNodeById(id: nodeId!)),
-              )
+              nodeServiceChangeNotifierProvider.select(
+                (value) => value.getNodeById(id: nodeId!),
+              ),
+            )
             : null;
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            title: Text(
-              viewType == AddEditNodeViewType.edit ? "Edit node" : "Add node",
-              style: STextStyles.navBarTitle(context),
-            ),
-            actions: [
-              if (viewType == AddEditNodeViewType.add &&
-                  coin
-                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("qrNodeAppBarButtonKey"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: QrCodeIcon(
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                      ),
-                      onPressed: _scanQr,
-                    ),
-                  ),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 75),
+                      );
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
                 ),
-              if (viewType == AddEditNodeViewType.edit &&
-                  ref
-                          .watch(
-                            nodeServiceChangeNotifierProvider
-                                .select((value) => value.getNodesFor(coin)),
-                          )
-                          .length >
-                      1)
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("deleteNodeAppBarButtonKey"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.trash,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () async {
-                        Navigator.popUntil(
-                          context,
-                          ModalRoute.withName(widget.routeOnSuccessOrDelete),
-                        );
-
-                        await ref
-                            .read(nodeServiceChangeNotifierProvider)
-                            .delete(
-                              nodeId!,
-                              true,
-                            );
-                      },
-                    ),
-                  ),
+                title: Text(
+                  viewType == AddEditNodeViewType.edit
+                      ? "Edit node"
+                      : "Add node",
+                  style: STextStyles.navBarTitle(context),
                 ),
-            ],
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              top: 12,
-              left: 12,
-              right: 12,
-              bottom: 12,
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(minHeight: constraints.maxHeight - 8),
-                      child: IntrinsicHeight(
-                        child: child,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-      child: ConditionalParent(
-        condition: isDesktop,
-        builder: (child) => DesktopDialog(
-          maxWidth: 580,
-          maxHeight: double.infinity,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(
-                height: 8,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const SizedBox(
-                        width: 8,
-                      ),
-                      const AppBarBackButton(
-                        iconSize: 24,
-                        size: 40,
-                      ),
-                      Text(
-                        "Add new node",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                    ],
-                  ),
-                  if (coin
-                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
+                actions: [
+                  if (viewType == AddEditNodeViewType.add &&
+                      coin
+                          is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
                     Padding(
-                      padding: const EdgeInsets.only(right: 32),
-                      child: AppBarIconButton(
-                        size: 40,
-                        color: isDesktop
-                            ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldDefaultBG
-                            : Theme.of(context)
-                                .extension<StackColors>()!
-                                .background,
-                        icon: const QrCodeIcon(
-                          width: 21,
-                          height: 21,
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        right: 10,
+                      ),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: AppBarIconButton(
+                          key: const Key("qrNodeAppBarButtonKey"),
+                          size: 36,
+                          shadows: const [],
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
+                          icon: QrCodeIcon(
+                            width: 20,
+                            height: 20,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.accentColorDark,
+                          ),
+                          onPressed: _scanQr,
                         ),
-                        onPressed: _scanQr,
+                      ),
+                    ),
+                  if (viewType == AddEditNodeViewType.edit &&
+                      ref
+                              .watch(
+                                nodeServiceChangeNotifierProvider.select(
+                                  (value) => value.getNodesFor(coin),
+                                ),
+                              )
+                              .length >
+                          1)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        right: 10,
+                      ),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: AppBarIconButton(
+                          key: const Key("deleteNodeAppBarButtonKey"),
+                          size: 36,
+                          shadows: const [],
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
+                          icon: SvgPicture.asset(
+                            Assets.svg.trash,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.accentColorDark,
+                            width: 20,
+                            height: 20,
+                          ),
+                          onPressed: () async {
+                            Navigator.popUntil(
+                              context,
+                              ModalRoute.withName(
+                                widget.routeOnSuccessOrDelete,
+                              ),
+                            );
+
+                            await ref
+                                .read(nodeServiceChangeNotifierProvider)
+                                .delete(nodeId!, true);
+                          },
+                        ),
                       ),
                     ),
                 ],
               ),
-              Padding(
+              body: Padding(
                 padding: const EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                  top: 16,
-                  bottom: 32,
+                  top: 12,
+                  left: 12,
+                  right: 12,
+                  bottom: 12,
                 ),
-                child: child,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 8,
+                          ),
+                          child: IntrinsicHeight(child: child),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ],
+            ),
           ),
-        ),
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder:
+            (child) => DesktopDialog(
+              maxWidth: 580,
+              maxHeight: double.infinity,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const SizedBox(width: 8),
+                          const AppBarBackButton(iconSize: 24, size: 40),
+                          Text(
+                            "Add new node",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ],
+                      ),
+                      if (coin
+                          is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
+                        Padding(
+                          padding: const EdgeInsets.only(right: 32),
+                          child: AppBarIconButton(
+                            size: 40,
+                            color:
+                                isDesktop
+                                    ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldDefaultBG
+                                    : Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.background,
+                            icon: const QrCodeIcon(width: 21, height: 21),
+                            onPressed: _scanQr,
+                          ),
+                        ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 32,
+                      right: 32,
+                      top: 16,
+                      bottom: 32,
+                    ),
+                    child: child,
+                  ),
+                ],
+              ),
+            ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -670,10 +667,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               },
             ),
             if (!isDesktop) const Spacer(),
-            if (isDesktop)
-              const SizedBox(
-                height: 78,
-              ),
+            if (isDesktop) const SizedBox(height: 78),
             Row(
               children: [
                 Expanded(
@@ -681,42 +675,40 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     label: "Test connection",
                     enabled: testConnectionEnabled,
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
-                    onPressed: testConnectionEnabled
-                        ? () async {
-                            final testPassed = await testNodeConnection(
-                              context: context,
-                              onSuccess: _onTestSuccess,
-                              cryptoCurrency: coin,
-                              nodeFormData: ref.read(nodeFormDataProvider),
-                              ref: ref,
-                            );
-                            if (context.mounted) {
-                              if (testPassed) {
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.success,
-                                    message: "Server ping success",
-                                    context: context,
-                                  ),
-                                );
-                              } else {
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.warning,
-                                    message: "Server unreachable",
-                                    context: context,
-                                  ),
-                                );
+                    onPressed:
+                        testConnectionEnabled
+                            ? () async {
+                              final testPassed = await testNodeConnection(
+                                context: context,
+                                onSuccess: _onTestSuccess,
+                                cryptoCurrency: coin,
+                                nodeFormData: ref.read(nodeFormDataProvider),
+                                ref: ref,
+                              );
+                              if (context.mounted) {
+                                if (testPassed) {
+                                  unawaited(
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.success,
+                                      message: "Server ping success",
+                                      context: context,
+                                    ),
+                                  );
+                                } else {
+                                  unawaited(
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: "Server unreachable",
+                                      context: context,
+                                    ),
+                                  );
+                                }
                               }
                             }
-                          }
-                        : null,
+                            : null,
                   ),
                 ),
-                if (isDesktop)
-                  const SizedBox(
-                    width: 16,
-                  ),
+                if (isDesktop) const SizedBox(width: 16),
                 if (isDesktop)
                   Expanded(
                     child: PrimaryButton(
@@ -728,24 +720,19 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   ),
               ],
             ),
-            if (!isDesktop)
-              const SizedBox(
-                height: 16,
-              ),
+            if (!isDesktop) const SizedBox(height: 16),
             if (!isDesktop)
               TextButton(
-                style: saveEnabled
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryEnabledButtonStyle(context)
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryDisabledButtonStyle(context),
+                style:
+                    saveEnabled
+                        ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonStyle(context)
+                        : Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryDisabledButtonStyle(context),
                 onPressed: saveEnabled ? attemptSave : null,
-                child: Text(
-                  "Save",
-                  style: STextStyles.button(context),
-                ),
+                child: Text("Save", style: STextStyles.button(context)),
               ),
           ],
         ),
@@ -965,24 +952,25 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _nameFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !shouldBeReadOnly && _nameController.text.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            TextFieldIconButton(
-                              child: const XIcon(),
-                              onTap: () async {
-                                _nameController.text = "";
-                                _updateState();
-                              },
-                            ),
-                          ],
+              suffixIcon:
+                  !shouldBeReadOnly && _nameController.text.isNotEmpty
+                      ? Padding(
+                        padding: const EdgeInsets.only(right: 0),
+                        child: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              TextFieldIconButton(
+                                child: const XIcon(),
+                                onTap: () async {
+                                  _nameController.text = "";
+                                  _updateState();
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                  : null,
+                      )
+                      : null,
             ),
             onChanged: (newValue) {
               _updateState();
@@ -990,9 +978,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             },
           ),
         ),
-        const SizedBox(
-          height: 8,
-        ),
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
@@ -1011,26 +997,59 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _hostFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !shouldBeReadOnly && _hostController.text.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            TextFieldIconButton(
-                              child: const XIcon(),
-                              onTap: () async {
-                                _hostController.text = "";
-                                _updateState();
-                              },
-                            ),
-                          ],
+              suffixIcon:
+                  !shouldBeReadOnly && _hostController.text.isNotEmpty
+                      ? Padding(
+                        padding: const EdgeInsets.only(right: 0),
+                        child: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              TextFieldIconButton(
+                                child: const XIcon(),
+                                onTap: () async {
+                                  _hostController.text = "";
+                                  _updateState();
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                  : null,
+                      )
+                      : null,
             ),
             onChanged: (newValue) {
+              // parse port hack
+              try {
+                final uri = Uri.parse(newValue);
+                final port = uri.hasPort ? uri.port : 0;
+                if (port != 0) {
+                  _portController.text = port.toString();
+                  final noPortUri = Uri(
+                    scheme: uri.scheme,
+                    userInfo: uri.userInfo,
+                    host: uri.host,
+                    path: uri.path,
+                    query: uri.hasQuery ? uri.query : null,
+                    fragment: uri.fragment.isNotEmpty ? uri.fragment : null,
+                  );
+                  _hostController.text = noPortUri.toString();
+                }
+              } catch (_) {
+                if (newValue.contains(":")) {
+                  final parts = newValue.split(":");
+                  if (parts.isNotEmpty) {
+                    final maybePort = int.tryParse(parts.last);
+                    if (maybePort != null) {
+                      _portController.text = maybePort.toString();
+                      _hostController.text = newValue.substring(
+                        0,
+                        newValue.lastIndexOf(":"),
+                      );
+                    }
+                  }
+                }
+              }
+
               if (widget.coin is Epiccash) {
                 if (newValue.startsWith("https://")) {
                   _useSSL = true;
@@ -1055,9 +1074,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             },
           ),
         ),
-        const SizedBox(
-          height: 8,
-        ),
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
@@ -1078,24 +1095,25 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               _portFocusNode,
               context,
             ).copyWith(
-              suffixIcon: !shouldBeReadOnly && _portController.text.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            TextFieldIconButton(
-                              child: const XIcon(),
-                              onTap: () async {
-                                _portController.text = "";
-                                _updateState();
-                              },
-                            ),
-                          ],
+              suffixIcon:
+                  !shouldBeReadOnly && _portController.text.isNotEmpty
+                      ? Padding(
+                        padding: const EdgeInsets.only(right: 0),
+                        child: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              TextFieldIconButton(
+                                child: const XIcon(),
+                                onTap: () async {
+                                  _portController.text = "";
+                                  _updateState();
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                  : null,
+                      )
+                      : null,
             ),
             onChanged: (newValue) {
               _updateState();
@@ -1103,9 +1121,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             },
           ),
         ),
-        const SizedBox(
-          height: 8,
-        ),
+        const SizedBox(height: 8),
         if (enableAuthFields)
           ClipRRect(
             borderRadius: BorderRadius.circular(
@@ -1127,21 +1143,21 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 suffixIcon:
                     !shouldBeReadOnly && _usernameController.text.isNotEmpty
                         ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      _usernameController.text = "";
-                                      _updateState();
-                                    },
-                                  ),
-                                ],
-                              ),
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    _usernameController.text = "";
+                                    _updateState();
+                                  },
+                                ),
+                              ],
                             ),
-                          )
+                          ),
+                        )
                         : null,
               ),
               onChanged: (newValue) {
@@ -1150,10 +1166,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               },
             ),
           ),
-        if (enableAuthFields)
-          const SizedBox(
-            height: 8,
-          ),
+        if (enableAuthFields) const SizedBox(height: 8),
         if (enableAuthFields)
           ClipRRect(
             borderRadius: BorderRadius.circular(
@@ -1176,21 +1189,21 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 suffixIcon:
                     !shouldBeReadOnly && _passwordController.text.isNotEmpty
                         ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      _passwordController.text = "";
-                                      _updateState();
-                                    },
-                                  ),
-                                ],
-                              ),
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    _passwordController.text = "";
+                                    _updateState();
+                                  },
+                                ),
+                              ],
                             ),
-                          )
+                          ),
+                        )
                         : null,
               ),
               onChanged: (newValue) {
@@ -1199,22 +1212,20 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               },
             ),
           ),
-        if (enableAuthFields)
-          const SizedBox(
-            height: 8,
-          ),
+        if (enableAuthFields) const SizedBox(height: 8),
         if (widget.coin is! CryptonoteCurrency)
           Row(
             children: [
               GestureDetector(
-                onTap: !shouldBeReadOnly && enableSSLCheckbox
-                    ? () {
-                        setState(() {
-                          _useSSL = !_useSSL;
-                        });
-                        _updateState();
-                      }
-                    : null,
+                onTap:
+                    !shouldBeReadOnly && enableSSLCheckbox
+                        ? () {
+                          setState(() {
+                            _useSSL = !_useSSL;
+                          });
+                          _updateState();
+                        }
+                        : null,
                 child: Container(
                   color: Colors.transparent,
                   child: Row(
@@ -1223,29 +1234,29 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: !shouldBeReadOnly && enableSSLCheckbox
-                              ? null
-                              : MaterialStateProperty.all(
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .checkboxBGDisabled,
-                                ),
+                          fillColor:
+                              !shouldBeReadOnly && enableSSLCheckbox
+                                  ? null
+                                  : MaterialStateProperty.all(
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .checkboxBGDisabled,
+                                  ),
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _useSSL,
-                          onChanged: !shouldBeReadOnly && enableSSLCheckbox
-                              ? (newValue) {
-                                  setState(() {
-                                    _useSSL = newValue!;
-                                  });
-                                  _updateState();
-                                }
-                              : null,
+                          onChanged:
+                              !shouldBeReadOnly && enableSSLCheckbox
+                                  ? (newValue) {
+                                    setState(() {
+                                      _useSSL = newValue!;
+                                    });
+                                    _updateState();
+                                  }
+                                  : null,
                         ),
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                       Text(
                         "Use SSL",
                         style: STextStyles.itemSubtitle12(context),
@@ -1260,14 +1271,15 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           Row(
             children: [
               GestureDetector(
-                onTap: !widget.readOnly /*&& trustedCheckbox*/
-                    ? () {
-                        setState(() {
-                          _trusted = !_trusted;
-                        });
-                        _updateState();
-                      }
-                    : null,
+                onTap:
+                    !widget.readOnly /*&& trustedCheckbox*/
+                        ? () {
+                          setState(() {
+                            _trusted = !_trusted;
+                          });
+                          _updateState();
+                        }
+                        : null,
                 child: Container(
                   color: Colors.transparent,
                   child: Row(
@@ -1276,29 +1288,29 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: !widget.readOnly
-                              ? null
-                              : MaterialStateProperty.all(
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .checkboxBGDisabled,
-                                ),
+                          fillColor:
+                              !widget.readOnly
+                                  ? null
+                                  : MaterialStateProperty.all(
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .checkboxBGDisabled,
+                                  ),
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _trusted,
-                          onChanged: !widget.readOnly
-                              ? (newValue) {
-                                  setState(() {
-                                    _trusted = newValue!;
-                                  });
-                                  _updateState();
-                                }
-                              : null,
+                          onChanged:
+                              !widget.readOnly
+                                  ? (newValue) {
+                                    setState(() {
+                                      _trusted = newValue!;
+                                    });
+                                    _updateState();
+                                  }
+                                  : null,
                         ),
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                       Text(
                         "Trusted",
                         style: STextStyles.itemSubtitle12(context),
@@ -1310,9 +1322,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             ],
           ),
         if (widget.coin is! CryptonoteCurrency && widget.coin is! Epiccash)
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
         if (widget.coin is! CryptonoteCurrency && widget.coin is! Epiccash)
           Row(
             children: [
@@ -1322,7 +1332,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                     _isFailover = !_isFailover;
                   });
                   if (widget.readOnly) {
-                    ref.read(nodeServiceChangeNotifierProvider).edit(
+                    ref
+                        .read(nodeServiceChangeNotifierProvider)
+                        .edit(
                           widget.node!.copyWith(
                             isFailover: _isFailover,
                             loginName: widget.node!.loginName,
@@ -1351,7 +1363,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                               _isFailover = newValue!;
                             });
                             if (widget.readOnly) {
-                              ref.read(nodeServiceChangeNotifierProvider).edit(
+                              ref
+                                  .read(nodeServiceChangeNotifierProvider)
+                                  .edit(
                                     widget.node!.copyWith(
                                       isFailover: _isFailover,
                                       loginName: widget.node!.loginName,
@@ -1366,9 +1380,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                           },
                         ),
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                       Text(
                         "Use as failover",
                         style: STextStyles.itemSubtitle12(context),
@@ -1379,10 +1391,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin is! Ethereum)
-          const SizedBox(
-            height: 16,
-          ),
+        if (widget.coin is! Ethereum) const SizedBox(height: 16),
         if (widget.coin is! Ethereum)
           Row(
             children: [
@@ -1393,19 +1402,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 groupValue: netOption,
                 onChanged: (value) {
                   if (!widget.readOnly) {
-                    setState(
-                      () => netOption = TorPlainNetworkOption.tor,
-                    );
+                    setState(() => netOption = TorPlainNetworkOption.tor);
                     _updateState();
                   }
                 },
               ),
             ],
           ),
-        if (widget.coin is! Ethereum)
-          const SizedBox(
-            height: 8,
-          ),
+        if (widget.coin is! Ethereum) const SizedBox(height: 8),
         if (widget.coin is! Ethereum)
           Row(
             children: [
@@ -1416,19 +1420,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 groupValue: netOption,
                 onChanged: (value) {
                   if (!widget.readOnly) {
-                    setState(
-                      () => netOption = TorPlainNetworkOption.clear,
-                    );
+                    setState(() => netOption = TorPlainNetworkOption.clear);
                     _updateState();
                   }
                 },
               ),
             ],
           ),
-        if (widget.coin is! Ethereum)
-          const SizedBox(
-            height: 8,
-          ),
+        if (widget.coin is! Ethereum) const SizedBox(height: 8),
         if (widget.coin is! Ethereum)
           Row(
             children: [
@@ -1439,9 +1438,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 groupValue: netOption,
                 onChanged: (value) {
                   if (!widget.readOnly) {
-                    setState(
-                      () => netOption = TorPlainNetworkOption.both,
-                    );
+                    setState(() => netOption = TorPlainNetworkOption.both);
                     _updateState();
                   }
                 },
@@ -1473,10 +1470,9 @@ class RadioTextButton<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder: (child) => MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: child,
-      ),
+      builder:
+          (child) =>
+              MouseRegion(cursor: SystemMouseCursors.click, child: child),
       child: GestureDetector(
         onTap: () {
           if (value != groupValue) {
@@ -1493,27 +1489,24 @@ class RadioTextButton<T> extends StatelessWidget {
                 width: 20,
                 height: 20,
                 child: Radio<T>(
-                  activeColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .radioButtonIconEnabled,
+                  activeColor:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.radioButtonIconEnabled,
                   value: value,
                   groupValue: groupValue,
-                  onChanged: !enabled
-                      ? null
-                      : (_) {
-                          if (value != groupValue) {
-                            onChanged.call(value);
-                          }
-                        },
+                  onChanged:
+                      !enabled
+                          ? null
+                          : (_) {
+                            if (value != groupValue) {
+                              onChanged.call(value);
+                            }
+                          },
                 ),
               ),
-              const SizedBox(
-                width: 14,
-              ),
-              Text(
-                label,
-                style: STextStyles.w500_14(context),
-              ),
+              const SizedBox(width: 14),
+              Text(label, style: STextStyles.w500_14(context)),
             ],
           ),
         ),

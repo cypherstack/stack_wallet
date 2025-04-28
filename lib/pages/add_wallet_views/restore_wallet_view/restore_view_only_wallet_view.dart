@@ -51,7 +51,7 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
     super.key,
     required this.walletName,
     required this.coin,
-    required this.restoreFromDate,
+    required this.restoreBlockHeight,
     this.enableLelantusScanning = false,
     this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
@@ -61,7 +61,7 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
 
   final String walletName;
   final CryptoCurrency coin;
-  final DateTime? restoreFromDate;
+  final int restoreBlockHeight;
   final bool enableLelantusScanning;
   final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
@@ -114,7 +114,6 @@ class _RestoreViewOnlyWalletViewState
   }
 
   Future<void> _attemptRestore() async {
-    int height = 0;
     final Map<String, dynamic> otherDataJson = {
       WalletInfoKeys.isViewOnlyKey: true,
     };
@@ -134,20 +133,6 @@ class _RestoreViewOnlyWalletViewState
           ? ViewOnlyWalletType.addressOnly
           : ViewOnlyWalletType.xPub;
     } else if (widget.coin is CryptonoteCurrency) {
-      if (widget.restoreFromDate != null) {
-        if (widget.coin is Monero) {
-          height = cs_monero_deprecated.getMoneroHeightByDate(
-            date: widget.restoreFromDate!,
-          );
-        }
-        if (widget.coin is Wownero) {
-          height = cs_monero_deprecated.getWowneroHeightByDate(
-            date: widget.restoreFromDate!,
-          );
-        }
-        if (height < 0) height = 0;
-      }
-
       viewOnlyWalletType = ViewOnlyWalletType.cryptonote;
     } else {
       throw Exception(
@@ -163,7 +148,7 @@ class _RestoreViewOnlyWalletViewState
       final info = WalletInfo.createNew(
         coin: widget.coin,
         name: widget.walletName,
-        restoreHeight: height,
+        restoreHeight: widget.restoreBlockHeight,
         otherDataJsonString: jsonEncode(otherDataJson),
       );
 
