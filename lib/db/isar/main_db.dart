@@ -19,6 +19,8 @@ import '../../models/isar/models/contact_entry.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/ordinal.dart';
 import '../../models/isar/stack_theme.dart';
+import '../../models/isar/models/silent_payments/silent_payment_config.dart';
+import '../../models/isar/models/silent_payments/silent_payment_metadata.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/stack_file_system.dart';
@@ -70,6 +72,8 @@ class MainDB {
         WalletInfoMetaSchema,
         TokenWalletInfoSchema,
         FrostWalletInfoSchema,
+        SilentPaymentConfigSchema,
+        SilentPaymentMetadataSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
