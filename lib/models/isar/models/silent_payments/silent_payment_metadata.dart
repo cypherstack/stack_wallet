@@ -5,68 +5,25 @@ part 'silent_payment_metadata.g.dart';
 
 @Collection(accessor: "silentPaymentMetadata", inheritance: false)
 class SilentPaymentMetadata implements IsarId {
+  /// Primary key for this metadata entry.
+  /// Should be generated as a sha256 hash of '$txid:$vout:$walletId'
   @override
-  Id id = Isar.autoIncrement;
+  Id id;
 
-  // Link to the UTXO this metadata is associated with
-  @Index(unique: true)
-  final int utxoId;
+  /// Private key tweak needed to spend this output
+  final String tweak;
 
-  // The wallet ID for efficient querying
-  @Index()
-  final String walletId;
-
-  // Private key tweak needed to spend this output
-  final String privKeyTweak;
-
-  // Optional label for the silent payment
+  /// This is not a user-defined label but a cryptographic tag
+  /// that affects key derivation
   final String? label;
 
-  // Shared secret used to derive this output (optional - for reference only)
-  final String? sharedSecret;
+  SilentPaymentMetadata({required this.id, required this.tweak, this.label});
 
-  // Output index in the set of outputs derived from the same shared secret
-  final int outputIndex;
-
-  SilentPaymentMetadata({
-    required this.utxoId,
-    required this.walletId,
-    required this.privKeyTweak,
-    required this.outputIndex,
-    this.label,
-    this.sharedSecret,
-  });
-
-  SilentPaymentMetadata copyWith({
-    int? utxoId,
-    String? walletId,
-    String? privKeyTweak,
-    int? outputIndex,
-    String? label,
-    String? sharedSecret,
-  }) {
+  SilentPaymentMetadata copyWith({int? id, String? tweak, String? label}) {
     return SilentPaymentMetadata(
-      utxoId: utxoId ?? this.utxoId,
-      walletId: walletId ?? this.walletId,
-      privKeyTweak: privKeyTweak ?? this.privKeyTweak,
-      outputIndex: outputIndex ?? this.outputIndex,
+      id: id ?? this.id,
+      tweak: tweak ?? this.tweak,
       label: label ?? this.label,
-      sharedSecret: sharedSecret ?? this.sharedSecret,
-    )..id = id;
-  }
-
-  Future<void> updateLabel({
-    required Isar isar,
-    required String? newLabel,
-  }) async {
-    final thisMetadata = await isar.silentPaymentMetadata.get(id) ?? this;
-
-    if (thisMetadata.label != newLabel) {
-      await isar.writeTxn(() async {
-        await isar.silentPaymentMetadata.put(
-          thisMetadata.copyWith(label: newLabel),
-        );
-      });
-    }
+    );
   }
 }
