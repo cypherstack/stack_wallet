@@ -2,14 +2,18 @@
 
 import 'dart:async';
 
+import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
 
 import '../../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
+import '../../models/isar/models/isar_models.dart';
+import '../../providers/silent_payment/silent_payment_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -29,6 +33,7 @@ import '../../widgets/icon_widgets/copy_icon.dart';
 import '../../widgets/rounded_white_container.dart';
 
 import 'package:silent_payments/silent_payments.dart';
+import 'package:coinlib/src/tx/outpoint.dart';
 
 class SilentPaymentsView extends ConsumerStatefulWidget {
   const SilentPaymentsView({super.key, required this.walletId});
@@ -89,6 +94,13 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
       _scanPrivateKey = owner.b_scan.data.toHex;
       _spendPrivateKey = owner.b_spend.data.toHex;
 
+      // Initialize UI state from config
+      final config = ref.read(pSilentPaymentConfig(widget.walletId));
+
+      setState(() {
+        _enabled = config.isEnabled;
+      });
+
       // Update debug info
       _debugInfo.clear();
       _debugInfo.addAll({
@@ -104,6 +116,18 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
     _amountController.dispose();
     _blockHeightController.dispose();
     super.dispose();
+  }
+
+  // Example: Toggle silent payments on/off
+  Future<void> _toggleSilentPayments(bool enabled) async {
+    final isar = ref.read(mainDBProvider).isar;
+    final config = ref.read(pSilentPaymentConfig(widget.walletId));
+    await config.updateEnabled(enabled: enabled, isar: isar);
+
+    // Update the local state to reflect the change
+    setState(() {
+      _enabled = enabled;
+    });
   }
 
   // Mock sending silent payment
@@ -158,6 +182,83 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
       // 2. Derive the shared secret
       // 3. Generate output addresses
       // 4. Broadcast the transaction
+
+      // Get Bitcoin wallet instance
+      final wallet =
+          ref.read(pWallets).getWallet(widget.walletId) as BitcoinWallet;
+      final mainDB = wallet.mainDB;
+      final root = await wallet.getRootHDNode();
+
+      // Amount in satoshis
+      final satoshiAmount = (double.parse(amount) * 100000000).toInt();
+
+      // Get available UTXOs
+      // final isar = mainDB.isar;
+      // final utxos =
+      //     await isar.utxos
+      //         .filter()
+      //         .walletIdEqualTo(widget.walletId)
+      //         .usedEqualTo(false)
+      //         .findAll();
+      final utxos =
+          await mainDB
+              .getUTXOs(widget.walletId)
+              .filter()
+              .usedEqualTo(false)
+              .findAll();
+
+      final signingData = await wallet.fetchBuildTxData(utxos);
+
+      final selectedUtxos = <UTXO>[];
+      int runningTotal = 0;
+      final int estimatedFee = 1000;
+
+      for (final utxo in utxos) {
+        selectedUtxos.add(utxo);
+        runningTotal += utxo.value;
+
+        if (runningTotal >= satoshiAmount + estimatedFee) {
+          break;
+        }
+      }
+
+      // Convert UTXOs to outpoints
+      final outpoints =
+          selectedUtxos.map((utxo) {
+            return OutPoint(utxo.txid.toUint8ListFromHex, utxo.vout);
+          }).toList();
+
+      final inputPrivateInfos =
+          selectedUtxos.map((utxo) async {
+            // TODO: figure out how to get private key for each outpoint
+            final address = await mainDB.getAddress(
+              wallet.walletId,
+              utxo.address!,
+            );
+            final keys = root.derivePath(address.derivationPath!.value);
+            final ECPrivateKey privkey;
+            final bool isTaproot;
+            return ECPrivateInfo(privkey, isTaproot);
+          }).toList();
+
+      // Prepare destination addresses
+      final destinations = [
+        SilentPaymentDestination.fromAddress(recipientAddress, 0),
+      ];
+
+      final inputPubKeys =
+          inputPrivateInfos.map((info) => info.privkey.pubkey).toList();
+
+      final builder = SilentPaymentBuilder(
+        outpoints: outpoints,
+        publicKeys: inputPubKeys,
+      );
+
+      final outputMap = builder.createOutputs(inputPrivateInfos, destinations);
+      final sendingOutputs =
+          outputMap.values
+              .expand((outputs) => outputs.map((o) => o.address.data.toHex))
+              .toList();
 
       await Future<void>.delayed(const Duration(seconds: 1));
 
@@ -438,10 +539,8 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
           children: [
             Switch(
               value: _enabled,
-              onChanged: (value) {
-                setState(() {
-                  _enabled = value;
-                });
+              onChanged: (value) async {
+                await _toggleSilentPayments(value);
               },
               activeColor: colors.accentColorGreen,
             ),
@@ -557,7 +656,7 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
           TextField(
             controller: _recipientAddressController,
             decoration: InputDecoration(
-              hintText: "sp1...",
+              hintText: "tsp1...",
               filled: true,
               fillColor: colors.textFieldDefaultBG,
               border: OutlineInputBorder(
