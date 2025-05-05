@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 import 'measure_size.dart';
 
 class StaticOverflowRow extends StatefulWidget {
-  final List<Widget> children;
   final Widget Function(int hiddenCount) overflowBuilder;
+  final MainAxisAlignment mainAxisAlignment;
+  final List<Widget> children;
+  final bool forcedOverflow;
 
   const StaticOverflowRow({
     super.key,
-    required this.children,
     required this.overflowBuilder,
+    this.mainAxisAlignment = MainAxisAlignment.end,
+    this.forcedOverflow = false,
+    required this.children,
   });
 
   @override
@@ -29,10 +33,17 @@ class _StaticOverflowRowState extends State<StaticOverflowRow> {
         // Still measuring
         if (_itemSizes.length < childCount || _overflowSize == null) {
           return Row(
+            mainAxisAlignment: widget.mainAxisAlignment,
             children: [
               ...List.generate(childCount, (i) {
                 return MeasureSize(
-                  onChange: (size) => _itemSizes[i] = size,
+                  onChange: (size) {
+                    if (_itemSizes[i] != size) {
+                      setState(() {
+                        _itemSizes[i] = size;
+                      });
+                    }
+                  },
                   child: KeyedSubtree(
                     key: ValueKey("item-$i"),
                     child: widget.children[i],
@@ -40,7 +51,13 @@ class _StaticOverflowRowState extends State<StaticOverflowRow> {
                 );
               }),
               MeasureSize(
-                onChange: (size) => _overflowSize = size,
+                onChange: (size) {
+                  if (_overflowSize != size) {
+                    setState(() {
+                      _overflowSize = size;
+                    });
+                  }
+                },
                 child: KeyedSubtree(
                   key: const ValueKey("overflow"),
                   child: widget.overflowBuilder(0),
@@ -51,8 +68,9 @@ class _StaticOverflowRowState extends State<StaticOverflowRow> {
         }
 
         final List<Widget> visible = [];
-        double usedWidth = 0;
+        double usedWidth = (widget.forcedOverflow ? _overflowSize!.width : 0);
 
+        bool firstPassFailed = false;
         // Try first pass without overflow
         for (int i = 0; i < childCount; i++) {
           final itemSize = _itemSizes[i]!;
@@ -61,36 +79,46 @@ class _StaticOverflowRowState extends State<StaticOverflowRow> {
             usedWidth += itemSize.width;
           } else {
             // Not all children fit. Overflow required
-            visible.clear();
-            usedWidth = 0;
-            int overflowCount = 0;
-
-            for (int j = 0; j < childCount; j++) {
-              final size = _itemSizes[j]!;
-              final needsOverflow = j < childCount - 1;
-              final canFit =
-                  usedWidth +
-                      size.width +
-                      (needsOverflow ? _overflowSize!.width : 0) <=
-                  constraints.maxWidth;
-
-              if (canFit) {
-                visible.add(widget.children[j]);
-
-                usedWidth += size.width;
-              } else {
-                overflowCount = childCount - j;
-                break;
-              }
-            }
-
-            // Add overflow
-            visible.add(widget.overflowBuilder(overflowCount));
+            firstPassFailed = true;
             break;
           }
         }
 
-        return Row(children: visible);
+        if (firstPassFailed) {
+          visible.clear();
+          usedWidth = 0;
+          int overflowCount = 0;
+          for (int i = 0; i < childCount; i++) {
+            final size = _itemSizes[i]!;
+            final needsOverflow = i < childCount - 1 || widget.forcedOverflow;
+            final canFit =
+                usedWidth +
+                    size.width +
+                    (needsOverflow ? _overflowSize!.width : 0) <=
+                constraints.maxWidth;
+
+            if (canFit) {
+              visible.add(widget.children[i]);
+              usedWidth += size.width;
+            } else {
+              overflowCount = childCount - i;
+              break;
+            }
+          }
+
+          // Add overflow
+          visible.add(widget.overflowBuilder(overflowCount));
+        } else {
+          if (widget.forcedOverflow) {
+            // Add forced overflow
+            visible.add(widget.overflowBuilder(0));
+          }
+        }
+
+        return Row(
+          mainAxisAlignment: widget.mainAxisAlignment,
+          children: visible,
+        );
       },
     );
   }
