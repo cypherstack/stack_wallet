@@ -1461,43 +1461,41 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreWalletView.routeName:
-        if (args
-            is Tuple6<String, CryptoCurrency, int, int, String, bool>) {
+        if (args is Tuple6<String, CryptoCurrency, int, int, String, bool>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => RestoreWalletView(
-              walletName: args.item1,
-              coin: args.item2,
-              seedWordsLength: args.item3,
-              restoreBlockHeight: args.item4,
-              mnemonicPassphrase: args.item5,
-              enableLelantusScanning: args.item6 ?? false,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
+            builder:
+                (_) => RestoreWalletView(
+                  walletName: args.item1,
+                  coin: args.item2,
+                  seedWordsLength: args.item3,
+                  restoreBlockHeight: args.item4,
+                  mnemonicPassphrase: args.item5,
+                  enableLelantusScanning: args.item6 ?? false,
+                ),
+            settings: RouteSettings(name: settings.name),
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreViewOnlyWalletView.routeName:
-        if (args is ({
-          String walletName,
-          CryptoCurrency coin,
-          int restoreBlockHeight,
-          bool enableLelantusScanning,
-        })) {
+        if (args
+            is ({
+              String walletName,
+              CryptoCurrency coin,
+              int restoreBlockHeight,
+              bool enableLelantusScanning,
+            })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => RestoreViewOnlyWalletView(
-              walletName: args.walletName,
-              coin: args.coin,
-              restoreBlockHeight: args.restoreBlockHeight,
-              enableLelantusScanning: args.enableLelantusScanning,
-            ),
-            settings: RouteSettings(
-              name: settings.name,
-            ),
+            builder:
+                (_) => RestoreViewOnlyWalletView(
+                  walletName: args.walletName,
+                  coin: args.coin,
+                  restoreBlockHeight: args.restoreBlockHeight,
+                  enableLelantusScanning: args.enableLelantusScanning,
+                ),
+            settings: RouteSettings(name: settings.name),
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
