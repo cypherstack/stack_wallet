@@ -1132,7 +1132,9 @@ class ElectrumXClient {
     }
   }
 
-  Future<List<String>> getSparkNames({String? requestID}) async {
+  Future<List<({String name, String address})>> getSparkNames({
+    String? requestID,
+  }) async {
     try {
       final start = DateTime.now();
       await checkElectrumAdapter();
@@ -1143,13 +1145,62 @@ class ElectrumXClient {
 
       final response = await request(requestID: requestID, command: command);
 
+      if (response is List) {
+        Logging.instance.d(
+          "Finished ElectrumXClient.getSparkNames(). "
+          "names.length: ${response.length}"
+          "Duration=${DateTime.now().difference(start)}",
+        );
+
+        return response
+            .map(
+              (e) => (
+                name: e["name"] as String,
+                address: e["address"] as String,
+              ),
+            )
+            .toList();
+      } else if (response["error"] != null) {
+        Logging.instance.d(response);
+        throw Exception(response["error"].toString());
+      } else {
+        throw Exception("Failed to parse getSparkNames response: $response");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<({String address, int validUntil, String additionalInfo})>
+  getSparkNameData({required String sparkName, String? requestID}) async {
+    try {
+      final start = DateTime.now();
+      await checkElectrumAdapter();
+      const command = "spark.getsparknamedata";
       Logging.instance.d(
-        "Finished ElectrumXClient.getSparkNames(). "
-        "coins.length: ${(response as List).length}"
-        "Duration=${DateTime.now().difference(start)}",
+        "[${getElectrumAdapter()?.host}] => attempting to fetch $command...",
       );
 
-      return response.cast();
+      final response = await request(
+        requestID: requestID,
+        command: command,
+        args: [sparkName],
+      );
+
+      Logging.instance.d(
+        "Finished ElectrumXClient.getSparkNameData(). "
+        "Duration=${DateTime.now().difference(start)}",
+      );
+      if (response["error"] != null) {
+        Logging.instance.d(response);
+        throw Exception(response["error"].toString());
+      }
+
+      return (
+        address: response["address"] as String,
+        validUntil: response["validUntil"] as int,
+        additionalInfo: response["additionalInfo"] as String,
+      );
     } catch (e) {
       rethrow;
     }

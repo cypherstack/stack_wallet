@@ -44,9 +44,14 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as SparkInterface;
 
-    final names = await wallet.electrumXClient.getSparkNames();
-
-    return !names.map((e) => e.toLowerCase()).contains(name.toLowerCase());
+    try {
+      await wallet.electrumXClient.getSparkNameData(sparkName: name);
+      // name exists
+      return false;
+    } catch (e) {
+      // name not found
+      return true;
+    }
   }
 
   bool _lookupLock = false;
