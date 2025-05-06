@@ -1,14 +1,15 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
-import 'package:namecoin/namecoin.dart';
 
-import '../../../models/isar/models/blockchain_data/utxo.dart';
+import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'owned_spark_name_card.dart';
 
 class ManageSparkNamesOptionWidget extends ConsumerStatefulWidget {
@@ -23,76 +24,76 @@ class ManageSparkNamesOptionWidget extends ConsumerStatefulWidget {
 
 class _ManageSparkNamesWidgetState
     extends ConsumerState<ManageSparkNamesOptionWidget> {
-  double _tempWidth = 0;
-  double? _width;
-  int _count = 0;
+  StreamSubscription<List<TransactionV2>>? _streamSubscription;
+  final Set<({String address, String name})> _myNames = {};
 
-  void _sillyHack(double value, int length) {
-    if (value > _tempWidth) _tempWidth = value;
-    _count++;
-    if (_count == length) {
+  void _updateNames() async {
+    final wallet =
+        ref.read(pWallets).getWallet(widget.walletId) as SparkInterface;
+    final names = await wallet.electrumXClient.getSparkNames();
+    final myAddresses =
+        await wallet.mainDB.isar.addresses
+            .where()
+            .walletIdEqualTo(widget.walletId)
+            .filter()
+            .typeEqualTo(AddressType.spark)
+            .and()
+            .subTypeEqualTo(AddressSubType.receiving)
+            .valueProperty()
+            .findAll();
+
+    names.retainWhere((e) => myAddresses.contains(e.name));
+
+    if (names.length != _myNames.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            _width = _tempWidth;
-            _tempWidth = 0;
-          });
-        }
+        setState(() {
+          _myNames.addAll(names);
+        });
       });
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    _streamSubscription = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionV2s
+        .where()
+        .walletIdEqualTo(widget.walletId)
+        .watch(fireImmediately: true)
+        .listen((event) {
+          if (mounted) {
+            _updateNames();
+          }
+        });
+  }
+
+  @override
+  void dispose() {
+    _streamSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final height = ref.watch(pWalletChainHeight(widget.walletId));
-    return StreamBuilder(
-      stream: ref.watch(
-        mainDBProvider.select(
-          (s) => s.isar.utxos
-              .where()
-              .walletIdEqualTo(widget.walletId)
-              .filter()
-              .otherDataIsNotNull()
-              .watch(fireImmediately: true),
-        ),
-      ),
-      builder: (context, snapshot) {
-        List<(UTXO, OpNameData)> list = [];
-        if (snapshot.hasData) {
-          list = snapshot.data!
-              .map((utxo) {
-                final data = jsonDecode(utxo.otherData!) as Map;
-
-                final nameData =
-                    jsonDecode(data["nameOpData"] as String) as Map;
-
-                return (
-                  utxo,
-                  OpNameData(nameData.cast(), utxo.blockHeight ?? height),
-                );
-              })
-              .toList(growable: false);
-        }
-
-        return Column(
-          children: [
-            ...list.map(
-              (e) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: OwnedSparkNameCard(
-                  key: ValueKey(e),
-                  utxo: e.$1,
-                  opNameData: e.$2,
-                  firstColWidth: _width,
-                  calculatedFirstColWidth:
-                      (value) => _sillyHack(value, list.length),
-                ),
-              ),
+    return Column(
+      children: [
+        ..._myNames.map(
+          (e) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: OwnedSparkNameCard(
+              key: ValueKey(e),
+              name: e.name,
+              address: e.address,
+              walletId: widget.walletId,
             ),
-            SizedBox(height: Util.isDesktop ? 14 : 6),
-          ],
-        );
-      },
+          ),
+        ),
+        SizedBox(height: Util.isDesktop ? 14 : 6),
+      ],
     );
   }
 }

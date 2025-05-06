@@ -122,7 +122,6 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final double dotBitBoxLength = Util.isDesktop ? 100 : 74;
     return Column(
       crossAxisAlignment:
           Util.isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
@@ -140,13 +139,8 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
                         Theme.of(
                           context,
                         ).extension<StackColors>()!.textFieldDefaultBG,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(
-                        Constants.size.circularBorderRadius,
-                      ), // Adjust radius as needed
-                      bottomLeft: Radius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(Constants.size.circularBorderRadius),
                     ),
                   ),
                   child: Row(
@@ -206,7 +200,7 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Padding(
-              padding: EdgeInsets.only(right: dotBitBoxLength),
+              padding: const EdgeInsets.only(right: 5),
               child: Builder(
                 builder: (context) {
                   final length = _nameController.text.length;
