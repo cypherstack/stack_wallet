@@ -1,17 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:namecoin/namecoin.dart';
 
-import '../../../models/isar/models/isar_models.dart';
-import '../../../providers/global/secure_store_provider.dart';
+import '../../../db/drift/database.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/impl/namecoin_wallet.dart';
-import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
@@ -20,52 +14,34 @@ import 'spark_name_details.dart';
 class OwnedSparkNameCard extends ConsumerStatefulWidget {
   const OwnedSparkNameCard({
     super.key,
-    required this.opNameData,
-    required this.utxo,
-    this.firstColWidth,
-    this.calculatedFirstColWidth,
+    required this.name,
+    required this.walletId,
   });
 
-  final OpNameData opNameData;
-  final UTXO utxo;
-
-  final double? firstColWidth;
-  final void Function(double)? calculatedFirstColWidth;
+  final SparkName name;
+  final String walletId;
 
   @override
   ConsumerState<OwnedSparkNameCard> createState() => _OwnedSparkNameCardState();
 }
 
 class _OwnedSparkNameCardState extends ConsumerState<OwnedSparkNameCard> {
-  String? constructedName, value;
-
   (String, Color) _getExpiry(int currentChainHeight, StackColors theme) {
     final String message;
     final Color color;
 
-    if (widget.utxo.blockHash == null) {
-      message = "Expires in $blocksNameExpiration+ blocks";
-      color = theme.accentColorGreen;
-    } else {
-      final remaining = widget.opNameData.expiredBlockLeft(
-        currentChainHeight,
-        false,
-      );
-      final semiRemaining = widget.opNameData.expiredBlockLeft(
-        currentChainHeight,
-        true,
-      );
+    final remaining = widget.name.validUntil - currentChainHeight;
 
-      if (remaining == null) {
-        color = theme.accentColorRed;
-        message = "Expired";
+    if (remaining <= 0) {
+      color = theme.accentColorRed;
+      message = "Expired";
+    } else {
+      message = "Expires in $remaining blocks";
+      if (remaining < 1000) {
+        // todo change arbitrary 1000 to something else?
+        color = theme.accentColorYellow;
       } else {
-        message = "Expires in $remaining blocks";
-        if (semiRemaining == null) {
-          color = theme.accentColorYellow;
-        } else {
-          color = theme.accentColorGreen;
-        }
+        color = theme.accentColorGreen;
       }
     }
 
@@ -84,15 +60,15 @@ class _OwnedSparkNameCardState extends ConsumerState<OwnedSparkNameCard> {
           builder:
               (context) => SDialog(
                 child: SparkNameDetailsView(
-                  utxoId: widget.utxo.id,
-                  walletId: widget.utxo.walletId,
+                  name: widget.name,
+                  walletId: widget.walletId,
                 ),
               ),
         );
       } else {
         await Navigator.of(context).pushNamed(
           SparkNameDetailsView.routeName,
-          arguments: (widget.utxo.id, widget.utxo.walletId),
+          arguments: (name: widget.name, walletId: widget.walletId),
         );
       }
     } finally {
@@ -100,119 +76,34 @@ class _OwnedSparkNameCardState extends ConsumerState<OwnedSparkNameCard> {
     }
   }
 
-  void _setName() {
-    try {
-      constructedName = widget.opNameData.constructedName;
-      value = widget.opNameData.value;
-    } catch (_) {
-      if (widget.opNameData.op == OpName.nameNew) {
-        ref
-            .read(secureStoreProvider)
-            .read(
-              key: nameSaltKeyBuilder(
-                widget.utxo.txid,
-                widget.utxo.walletId,
-                widget.utxo.vout,
-              ),
-            )
-            .then((onValue) {
-              if (onValue != null) {
-                final data =
-                    (jsonDecode(onValue) as Map).cast<String, String>();
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  constructedName = data["name"]!;
-                  value = data["value"]!;
-                  if (mounted) {
-                    setState(() {});
-                  }
-                });
-              } else {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  constructedName = "UNKNOWN";
-                  value = "";
-                  if (mounted) {
-                    setState(() {});
-                  }
-                });
-              }
-            });
-      }
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _setName();
-  }
-
-  double _callbackWidth = 0;
-
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
     final (message, color) = _getExpiry(
-      ref.watch(pWalletChainHeight(widget.utxo.walletId)),
+      ref.watch(pWalletChainHeight(widget.walletId)),
       Theme.of(context).extension<StackColors>()!,
     );
 
     return RoundedWhiteContainer(
+      padding:
+          Util.isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ConditionalParent(
-            condition: widget.firstColWidth != null && Util.isDesktop,
-            builder:
-                (child) => ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: widget.firstColWidth!),
-                  child: child,
-                ),
-            child: ConditionalParent(
-              condition: widget.firstColWidth == null && Util.isDesktop,
-              builder:
-                  (child) => LayoutBuilder(
-                    builder: (context, constraints) {
-                      if (widget.firstColWidth == null &&
-                          _callbackWidth != constraints.maxWidth) {
-                        _callbackWidth = constraints.maxWidth;
-                        widget.calculatedFirstColWidth?.call(_callbackWidth);
-                      }
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: constraints.maxWidth,
-                        ),
-                        child: child,
-                      );
-                    },
-                  ),
-              child: Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(constructedName ?? ""),
-                    const SizedBox(height: 8),
-                    SelectableText(
-                      message,
-                      style: STextStyles.w500_12(
-                        context,
-                      ).copyWith(color: color),
-                    ),
-                  ],
-                ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(widget.name.name),
+              const SizedBox(height: 8),
+              SelectableText(
+                message,
+                style: STextStyles.w500_12(context).copyWith(color: color),
               ),
-            ),
+            ],
           ),
-          if (Util.isDesktop)
-            Expanded(
-              child: SelectableText(
-                value ?? "",
-                style: STextStyles.w500_12(context),
-              ),
-            ),
-          if (Util.isDesktop) const SizedBox(width: 12),
+          const SizedBox(width: 12),
           PrimaryButton(
             label: "Details",
             buttonHeight: Util.isDesktop ? ButtonHeight.xs : ButtonHeight.l,

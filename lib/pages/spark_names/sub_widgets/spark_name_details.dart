@@ -1,37 +1,35 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
-import 'package:namecoin/namecoin.dart';
 
+import '../../../db/drift/database.dart';
 import '../../../models/isar/models/isar_models.dart';
+import '../../../providers/db/drift_provider.dart';
 import '../../../providers/db/main_db_provider.dart';
-import '../../../providers/global/secure_store_provider.dart';
-import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../wallet_view/transaction_views/transaction_details_view.dart';
+import '../buy_spark_name_view.dart';
 
 class SparkNameDetailsView extends ConsumerStatefulWidget {
   const SparkNameDetailsView({
     super.key,
-    required this.utxoId,
+    required this.name,
     required this.walletId,
   });
 
   static const routeName = "/sparkNameDetails";
 
-  final Id utxoId;
+  final SparkName name;
   final String walletId;
 
   @override
@@ -40,136 +38,117 @@ class SparkNameDetailsView extends ConsumerStatefulWidget {
 }
 
 class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
-  late Stream<UTXO?> streamUTXO;
-  UTXO? utxo;
-  OpNameData? opNameData;
+  // todo change arbitrary 1000 to something else?
+  static const _remainingMagic = 1000;
 
-  String? constructedName, value;
+  late Stream<SparkName?> _nameStream;
+  late SparkName name;
 
-  Stream<AddressLabel?>? streamLabel;
+  Stream<AddressLabel?>? _labelStream;
   AddressLabel? label;
 
-  void setUtxo(UTXO? utxo, int currentHeight) {
-    if (utxo != null) {
-      this.utxo = utxo;
-      final data = jsonDecode(utxo.otherData!) as Map;
-
-      final nameData = jsonDecode(data["nameOpData"] as String) as Map;
-      opNameData = OpNameData(
-        nameData.cast(),
-        utxo.blockHeight ?? currentHeight,
-      );
-
-      _setName();
-    }
-  }
-
-  void _setName() {
-    try {
-      constructedName = opNameData!.constructedName;
-      value = opNameData!.value;
-    } catch (_) {
-      if (opNameData?.op == OpName.nameNew) {
-        ref
-            .read(secureStoreProvider)
-            .read(
-              key: nameSaltKeyBuilder(utxo!.txid, widget.walletId, utxo!.vout),
-            )
-            .then((onValue) {
-              if (onValue != null) {
-                final data =
-                    (jsonDecode(onValue) as Map).cast<String, String>();
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  constructedName = data["name"]!;
-                  value = data["value"]!;
-                  if (mounted) {
-                    setState(() {});
-                  }
-                });
-              } else {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  constructedName = "UNKNOWN";
-                  value = "";
-                  if (mounted) {
-                    setState(() {});
-                  }
-                });
-              }
-            });
-      }
-    }
-  }
-
-  (String, Color) _getExpiry(int currentChainHeight, StackColors theme) {
+  (String, Color, int) _getExpiry(int currentChainHeight, StackColors theme) {
     final String message;
     final Color color;
 
-    if (utxo?.blockHash == null) {
-      message = "Expires in $blocksNameExpiration+ blocks";
-      color = theme.accentColorGreen;
-    } else {
-      final remaining = opNameData?.expiredBlockLeft(currentChainHeight, false);
-      final semiRemaining = opNameData?.expiredBlockLeft(
-        currentChainHeight,
-        true,
-      );
+    final remaining = name.validUntil - currentChainHeight;
 
-      if (remaining == null) {
-        color = theme.accentColorRed;
-        message = "Expired";
+    if (remaining <= 0) {
+      color = theme.accentColorRed;
+      message = "Expired";
+    } else {
+      message = "Expires in $remaining blocks";
+      if (remaining < _remainingMagic) {
+        color = theme.accentColorYellow;
       } else {
-        message = "Expires in $remaining blocks";
-        if (semiRemaining == null) {
-          color = theme.accentColorYellow;
-        } else {
-          color = theme.accentColorGreen;
-        }
+        color = theme.accentColorGreen;
       }
     }
 
-    return (message, color);
+    return (message, color, remaining);
   }
 
-  bool _checkConfirmedUtxo(int currentHeight) {
-    return (ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet)
-        .checkUtxoConfirmed(utxo!, currentHeight);
+  bool _lock = false;
+
+  Future<void> _renew() async {
+    if (_lock) return;
+    _lock = true;
+    try {
+      if (Util.isDesktop) {
+        await showDialog<void>(
+          context: context,
+          builder:
+              (context) => SDialog(
+                child: SizedBox(
+                  width: 580,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 32),
+                            child: Text(
+                              "Renew name",
+                              style: STextStyles.desktopH3(context),
+                            ),
+                          ),
+                          const DesktopDialogCloseButton(),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: BuySparkNameView(
+                          walletId: widget.walletId,
+                          name: name.name,
+                          nameToRenew: name,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+        );
+      } else {
+        await Navigator.of(context).pushNamed(
+          BuySparkNameView.routeName,
+          arguments: (
+            walletId: widget.walletId,
+            name: name.name,
+            nameToRenew: name,
+          ),
+        );
+      }
+    } finally {
+      _lock = false;
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    name = widget.name;
 
-    setUtxo(
-      ref
-          .read(mainDBProvider)
-          .isar
-          .utxos
-          .where()
-          .idEqualTo(widget.utxoId)
-          .findFirstSync(),
-      ref.read(pWalletChainHeight(widget.walletId)),
-    );
+    label = ref
+        .read(mainDBProvider)
+        .getAddressLabelSync(widget.walletId, name.address);
 
-    _setName();
-
-    if (utxo?.address != null) {
-      label = ref
-          .read(mainDBProvider)
-          .getAddressLabelSync(widget.walletId, utxo!.address!);
-
-      if (label != null) {
-        streamLabel = ref.read(mainDBProvider).watchAddressLabel(id: label!.id);
-      }
+    if (label != null) {
+      _labelStream = ref.read(mainDBProvider).watchAddressLabel(id: label!.id);
     }
 
-    streamUTXO = ref.read(mainDBProvider).watchUTXO(id: widget.utxoId);
+    final db = ref.read(pDrift(widget.walletId));
+
+    _nameStream =
+        (db.select(db.sparkNames)
+          ..where((e) => e.name.equals(name.name))).watchSingleOrNull();
   }
 
   @override
   Widget build(BuildContext context) {
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
-    final (message, color) = _getExpiry(
+    final (message, color, remaining) = _getExpiry(
       currentHeight,
       Theme.of(context).extension<StackColors>()!,
     );
@@ -185,7 +164,7 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                 // Theme.of(context).extension<StackColors>()!.background,
                 leading: const AppBarBackButton(),
                 title: Text(
-                  "Domain details",
+                  "Spark name details",
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
@@ -221,7 +200,7 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                     Padding(
                       padding: const EdgeInsets.only(left: 32),
                       child: Text(
-                        "Domain details",
+                        "Spark name details",
                         style: STextStyles.desktopH3(context),
                       ),
                     ),
@@ -250,239 +229,152 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
           );
         },
         child: StreamBuilder(
-          stream: streamUTXO,
+          stream: _nameStream,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              setUtxo(snapshot.data!, currentHeight);
+              name = snapshot.data!;
             }
 
-            return utxo == null
-                ? Center(
-                  child: Text(
-                    "Missing output. Was it used recently?",
-                    style: STextStyles.w500_14(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorRed,
-                    ),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                RoundedContainer(
+                  padding: const EdgeInsets.all(12),
+                  color:
+                      Util.isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SelectableText(
+                        name.name,
+                        style:
+                            Util.isDesktop
+                                ? STextStyles.pageTitleH2(context)
+                                : STextStyles.w500_14(context),
+                      ),
+                    ],
                   ),
-                )
-                : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // if (!isDesktop)
-                    //   const SizedBox(
-                    //     height: 10,
-                    //   ),
-                    RoundedContainer(
-                      padding: const EdgeInsets.all(12),
-                      color:
-                          Util.isDesktop
-                              ? Colors.transparent
-                              : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
-                      child: Row(
+                ),
+
+                const _Div(),
+                RoundedContainer(
+                  padding:
+                      Util.isDesktop
+                          ? const EdgeInsets.all(16)
+                          : const EdgeInsets.all(12),
+                  color:
+                      Util.isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
+                          Text(
+                            "Address",
+                            style: STextStyles.w500_14(context).copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
+                            ),
+                          ),
+                          Util.isDesktop
+                              ? IconCopyButton(data: name.address)
+                              : SimpleCopyButton(data: name.address),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      SelectableText(
+                        name.address,
+                        style: STextStyles.w500_14(context),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_labelStream != null)
+                  StreamBuilder(
+                    stream: _labelStream!,
+                    builder: (context, snapshot) {
+                      label = snapshot.data;
+
+                      return (label != null && label!.value.isNotEmpty)
+                          ? Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SelectableText(
-                                constructedName ?? "",
-                                style: STextStyles.pageTitleH2(context),
-                              ),
-                              if (Util.isDesktop)
-                                SelectableText(
-                                  opNameData!.op.name,
-                                  style: STextStyles.w500_14(context),
-                                ),
-                            ],
-                          ),
-                          if (!Util.isDesktop)
-                            SelectableText(
-                              opNameData!.op.name,
-                              style: STextStyles.w500_14(context),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const _Div(),
-                    RoundedContainer(
-                      padding:
-                          Util.isDesktop
-                              ? const EdgeInsets.all(16)
-                              : const EdgeInsets.all(12),
-                      color:
-                          Util.isDesktop
-                              ? Colors.transparent
-                              : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Value",
-                                style: STextStyles.w500_14(context).copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textSubtitle1,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          SelectableText(
-                            value ?? "",
-                            style: STextStyles.w500_14(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const _Div(),
-                    RoundedContainer(
-                      padding:
-                          Util.isDesktop
-                              ? const EdgeInsets.all(16)
-                              : const EdgeInsets.all(12),
-                      color:
-                          Util.isDesktop
-                              ? Colors.transparent
-                              : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Address",
-                                style: STextStyles.w500_14(context).copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textSubtitle1,
+                              const _Div(),
+
+                              RoundedContainer(
+                                padding:
+                                    Util.isDesktop
+                                        ? const EdgeInsets.all(16)
+                                        : const EdgeInsets.all(12),
+                                color:
+                                    Util.isDesktop
+                                        ? Colors.transparent
+                                        : Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.popupBG,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Address label",
+                                          style: STextStyles.w500_14(
+                                            context,
+                                          ).copyWith(
+                                            color:
+                                                Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textSubtitle1,
+                                          ),
+                                        ),
+                                        Util.isDesktop
+                                            ? IconCopyButton(data: label!.value)
+                                            : SimpleCopyButton(
+                                              data: label!.value,
+                                            ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    SelectableText(
+                                      label!.value,
+                                      style: STextStyles.w500_14(context),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Util.isDesktop
-                                  ? IconCopyButton(data: utxo!.address!)
-                                  : SimpleCopyButton(data: utxo!.address!),
                             ],
-                          ),
-                          const SizedBox(height: 4),
-                          SelectableText(
-                            utxo!.address!,
-                            style: STextStyles.w500_14(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (label != null && label!.value.isNotEmpty) const _Div(),
-                    if (label != null && label!.value.isNotEmpty)
-                      RoundedContainer(
-                        padding:
-                            Util.isDesktop
-                                ? const EdgeInsets.all(16)
-                                : const EdgeInsets.all(12),
-                        color:
-                            Util.isDesktop
-                                ? Colors.transparent
-                                : Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.popupBG,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Address label",
-                                  style: STextStyles.w500_14(context).copyWith(
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
-                                  ),
-                                ),
-                                Util.isDesktop
-                                    ? IconCopyButton(data: label!.value)
-                                    : SimpleCopyButton(data: label!.value),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            SelectableText(
-                              label!.value,
-                              style: STextStyles.w500_14(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                    const _Div(),
-                    RoundedContainer(
-                      padding:
-                          Util.isDesktop
-                              ? const EdgeInsets.all(16)
-                              : const EdgeInsets.all(12),
-                      color:
-                          Util.isDesktop
-                              ? Colors.transparent
-                              : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Transaction ID",
-                                style: STextStyles.w500_14(context).copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textSubtitle1,
-                                ),
-                              ),
-                              Util.isDesktop
-                                  ? IconCopyButton(data: utxo!.txid)
-                                  : SimpleCopyButton(data: utxo!.txid),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          SelectableText(
-                            utxo!.txid,
-                            style: STextStyles.w500_14(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const _Div(),
-                    RoundedContainer(
-                      padding:
-                          Util.isDesktop
-                              ? const EdgeInsets.all(16)
-                              : const EdgeInsets.all(12),
-                      color:
-                          Util.isDesktop
-                              ? Colors.transparent
-                              : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
-                      child: Column(
+                          )
+                          : const SizedBox(width: 0, height: 0);
+                    },
+                  ),
+
+                const _Div(),
+                RoundedContainer(
+                  padding:
+                      Util.isDesktop
+                          ? const EdgeInsets.all(16)
+                          : const EdgeInsets.all(12),
+                  color:
+                      Util.isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -504,42 +396,49 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                           ),
                         ],
                       ),
-                    ),
-                    const _Div(),
-                    RoundedContainer(
-                      padding:
-                          Util.isDesktop
-                              ? const EdgeInsets.all(16)
-                              : const EdgeInsets.all(12),
-                      color:
-                          Util.isDesktop
-                              ? Colors.transparent
-                              : Theme.of(
+                      if (remaining < _remainingMagic)
+                        PrimaryButton(
+                          label: "Renew",
+                          buttonHeight:
+                              Util.isDesktop ? ButtonHeight.xs : ButtonHeight.l,
+                          onPressed: _renew,
+                        ),
+                    ],
+                  ),
+                ),
+                const _Div(),
+                RoundedContainer(
+                  padding:
+                      Util.isDesktop
+                          ? const EdgeInsets.all(16)
+                          : const EdgeInsets.all(12),
+                  color:
+                      Util.isDesktop
+                          ? Colors.transparent
+                          : Theme.of(context).extension<StackColors>()!.popupBG,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Additional info",
+                        style: STextStyles.w500_14(context).copyWith(
+                          color:
+                              Theme.of(
                                 context,
-                              ).extension<StackColors>()!.popupBG,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Confirmations",
-                            style: STextStyles.w500_14(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          SelectableText(
-                            "${utxo!.getConfirmations(currentHeight)}",
-                            style: STextStyles.w500_14(context),
-                          ),
-                        ],
+                              ).extension<StackColors>()!.textSubtitle1,
+                        ),
                       ),
-                    ),
-                  ],
-                );
+                      const SizedBox(height: 4),
+                      SelectableText(
+                        name.additionalInfo ?? "",
+                        style: STextStyles.w500_14(context),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
           },
         ),
       ),

@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import 'db/drift/database.dart';
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'models/buy/response_objects/quote.dart';
@@ -149,6 +150,7 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'pages/spark_names/buy_spark_name_view.dart';
 import 'pages/spark_names/spark_names_home_view.dart';
+import 'pages/spark_names/sub_widgets/spark_name_details.dart';
 import 'pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'pages/stack_privacy_calls.dart';
 import 'pages/token_view/my_tokens_view.dart';
@@ -822,6 +824,32 @@ class RouteGenerator {
             builder:
                 (_) =>
                     BuySparkNameView(walletId: args.walletId, name: args.name),
+            settings: RouteSettings(name: settings.name),
+          );
+        } else if (args
+            is ({String walletId, String name, SparkName? nameToRenew})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder:
+                (_) => BuySparkNameView(
+                  walletId: args.walletId,
+                  name: args.name,
+                  nameToRenew: args.nameToRenew,
+                ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SparkNameDetailsView.routeName:
+        if (args is ({String walletId, SparkName name})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder:
+                (_) => SparkNameDetailsView(
+                  walletId: args.walletId,
+                  name: args.name,
+                ),
             settings: RouteSettings(name: settings.name),
           );
         }

@@ -38,6 +38,7 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
   final _nameFieldFocus = FocusNode();
 
   bool _isAvailable = false;
+  bool _isInvalidCharacters = false;
   String? _lastLookedUpName;
 
   Future<bool> _checkIsAvailable(String name) async {
@@ -79,20 +80,15 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
 
       Logging.instance.i("LOOKUP RESULT: $result");
     } catch (e, s) {
-      Logging.instance.e("_lookup failed", error: e, stackTrace: s);
-
-      String? err;
-      if (e.toString().contains("Contains invalid characters")) {
-        err = "Contains invalid characters";
-      }
+      const message = "Spark name lookup failed";
+      Logging.instance.e(message, error: e, stackTrace: s);
 
       if (mounted) {
         await showDialog<void>(
           context: context,
           builder:
               (_) => StackOkDialog(
-                title: "Spark name lookup failed",
-                message: err,
+                title: message,
                 desktopPopRootNavigator: Util.isDesktop,
                 maxWidth: Util.isDesktop ? 600 : null,
               ),
@@ -184,7 +180,11 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
                           },
                           onChanged: (value) {
                             // trigger look up button enabled/disabled state change
-                            setState(() {});
+                            setState(() {
+                              _isInvalidCharacters =
+                                  value.isNotEmpty &&
+                                  !RegExp(kNameRegexString).hasMatch(value);
+                            });
                           },
                         ),
                       ),
@@ -197,8 +197,18 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
         ),
         const SizedBox(height: 4),
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment:
+              _isInvalidCharacters
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.end,
           children: [
+            if (_isInvalidCharacters)
+              Text(
+                "Invalid name",
+                style: STextStyles.w500_10(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textError,
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.only(right: 5),
               child: Builder(
@@ -221,8 +231,9 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
         SizedBox(height: Util.isDesktop ? 24 : 16),
         SecondaryButton(
           label: "Lookup",
-          enabled: _nameController.text.isNotEmpty,
-          // width: Util.isDesktop ? 160 : double.infinity,
+          enabled:
+              _nameController.text.isNotEmpty &&
+              RegExp(kNameRegexString).hasMatch(_nameController.text),
           buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
           onPressed: _lookup,
         ),

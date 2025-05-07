@@ -12,6 +12,7 @@ import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:isar/isar.dart';
 import 'package:logger/logger.dart';
 
+import '../../../db/drift/database.dart' show Drift;
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -1109,6 +1110,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               .isUsedEqualTo(false)
               .findAll();
 
+      final sparkNamesUpdateFuture = refreshSparkNames();
+
       final total = Amount(
         rawValue: unusedCoins
             .map((e) => e.value)
@@ -1140,6 +1143,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         newBalance: sparkBalance,
         isar: mainDB.isar,
       );
+
+      await sparkNamesUpdateFuture;
     } catch (e, s) {
       Logging.instance.e(
         "$runtimeType $walletId ${info.name}: ",
@@ -1191,6 +1196,66 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         stackTrace: s,
       );
       rethrow;
+    }
+  }
+
+  Future<void> refreshSparkNames() async {
+    try {
+      Logging.instance.i("Refreshing spark names for $walletId ${info.name}");
+
+      final db = Drift.get(walletId);
+      final myNameStrings =
+          await db.managers.sparkNames.map((e) => e.name).get();
+      final names = await electrumXClient.getSparkNames();
+      final myAddresses =
+          await mainDB.isar.addresses
+              .where()
+              .walletIdEqualTo(walletId)
+              .filter()
+              .typeEqualTo(AddressType.spark)
+              .and()
+              .subTypeEqualTo(AddressSubType.receiving)
+              .valueProperty()
+              .findAll();
+
+      names.retainWhere(
+        (e) =>
+            myAddresses.contains(e.address) && !myNameStrings.contains(e.name),
+      );
+      Logging.instance.d("Found $names new spark names");
+
+      if (names.isNotEmpty) {
+        final List<
+          ({
+            String name,
+            String address,
+            int validUntil,
+            String? additionalInfo,
+          })
+        >
+        data = [];
+
+        for (final name in names) {
+          final info = await electrumXClient.getSparkNameData(
+            sparkName: name.name,
+          );
+
+          data.add((
+            name: name.name,
+            address: name.address,
+            validUntil: info.validUntil,
+            additionalInfo: info.additionalInfo,
+          ));
+        }
+
+        await db.upsertSparkNames(data);
+      }
+    } catch (e, s) {
+      Logging.instance.e(
+        "refreshing spark names for $walletId \"${info.name}\" failed",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar/isar.dart';
 
 import '../../../providers/providers.dart';
 import '../../../utilities/amount/amount.dart';
@@ -14,6 +15,8 @@ import '../../../utilities/util.dart';
 import '../../../wallets/models/tx_data.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/stack_dialog.dart';
+import '../../db/drift/database.dart';
+import '../../models/isar/models/blockchain_data/address.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
@@ -25,6 +28,7 @@ import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'confirm_spark_name_transaction_view.dart';
@@ -34,10 +38,12 @@ class BuySparkNameView extends ConsumerStatefulWidget {
     super.key,
     required this.walletId,
     required this.name,
+    this.nameToRenew,
   });
 
   final String walletId;
   final String name;
+  final SparkName? nameToRenew;
 
   static const routeName = "/buySparkNameView";
 
@@ -46,21 +52,57 @@ class BuySparkNameView extends ConsumerStatefulWidget {
 }
 
 class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
+  final addressController = TextEditingController();
   final additionalInfoController = TextEditingController();
 
+  bool get isRenewal => widget.nameToRenew != null;
+  String get _title => isRenewal ? "Renew name" : "Buy name";
+
   int _years = 1;
+
+  bool _lockAddressFill = false;
+  Future<void> _fillCurrentReceiving() async {
+    if (_lockAddressFill) return;
+    _lockAddressFill = true;
+    try {
+      final wallet =
+          ref.read(pWallets).getWallet(widget.walletId) as SparkInterface;
+      final myAddress = await wallet.getCurrentReceivingSparkAddress();
+      if (myAddress == null) {
+        throw Exception("No spark address found");
+      }
+      addressController.text = myAddress.value;
+    } catch (e, s) {
+      Logging.instance.e("_fillCurrentReceiving", error: e, stackTrace: s);
+    } finally {
+      _lockAddressFill = false;
+    }
+  }
 
   Future<TxData> _preRegFuture() async {
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as SparkInterface;
-    final myAddress = await wallet.getCurrentReceivingSparkAddress();
-    if (myAddress == null) {
-      throw Exception("No spark address found");
+
+    final myAddresses =
+        await wallet.mainDB.isar.addresses
+            .where()
+            .walletIdEqualTo(widget.walletId)
+            .filter()
+            .typeEqualTo(AddressType.spark)
+            .and()
+            .subTypeEqualTo(AddressSubType.receiving)
+            .valueProperty()
+            .findAll();
+
+    final chosenAddress = addressController.text;
+
+    if (!myAddresses.contains(chosenAddress)) {
+      throw Exception("Address does not belong to this wallet");
     }
 
     final txData = await wallet.prepareSparkNameTransaction(
       name: widget.name,
-      address: myAddress.value,
+      address: chosenAddress,
       years: _years,
       additionalInfo: additionalInfoController.text,
     );
@@ -130,8 +172,18 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (isRenewal) {
+      additionalInfoController.text = widget.nameToRenew!.additionalInfo ?? "";
+      addressController.text = widget.nameToRenew!.address;
+    }
+  }
+
+  @override
   void dispose() {
     additionalInfoController.dispose();
+    addressController.dispose();
     super.dispose();
   }
 
@@ -148,7 +200,7 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
               leading: const AppBarBackButton(),
               titleSpacing: 0,
               title: Text(
-                "Buy name",
+                _title,
                 style: STextStyles.navBarTitle(context),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -181,42 +233,8 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
                 ? CrossAxisAlignment.start
                 : CrossAxisAlignment.stretch,
         children: [
-          if (!Util.isDesktop)
-            Text(
-              "Buy name",
-              style:
-                  Util.isDesktop
-                      ? STextStyles.desktopH3(context)
-                      : STextStyles.pageTitleH2(context),
-            ),
-          SizedBox(height: Util.isDesktop ? 24 : 16),
-          // Row(
-          //   mainAxisAlignment:
-          //       Util.isDesktop
-          //           ? MainAxisAlignment.center
-          //           : MainAxisAlignment.start,
-          //   children: [
-          //     Text(
-          //       "Name registration will take approximately 2 to 4 hours.",
-          //       style:
-          //           Util.isDesktop
-          //               ? STextStyles.w500_14(context).copyWith(
-          //                 color:
-          //                     Theme.of(
-          //                       context,
-          //                     ).extension<StackColors>()!.textDark3,
-          //               )
-          //               : STextStyles.w500_12(context).copyWith(
-          //                 color:
-          //                     Theme.of(
-          //                       context,
-          //                     ).extension<StackColors>()!.textDark3,
-          //               ),
-          //     ),
-          //   ],
-          // ),
-          // SizedBox(height: Util.isDesktop ? 24 : 16),
           RoundedWhiteContainer(
+            padding: EdgeInsets.all(Util.isDesktop ? 0 : 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -249,52 +267,117 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
           ),
           SizedBox(height: Util.isDesktop ? 16 : 8),
           RoundedWhiteContainer(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: EdgeInsets.all(Util.isDesktop ? 0 : 12),
+            child: Column(
               children: [
-                Text(
-                  "Amount",
-                  style:
-                      Util.isDesktop
-                          ? STextStyles.w500_14(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemLabel,
-                          )
-                          : STextStyles.w500_12(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.infoItemLabel,
-                          ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Address",
+                      style:
+                          Util.isDesktop
+                              ? STextStyles.w500_14(context).copyWith(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.infoItemLabel,
+                              )
+                              : STextStyles.w500_12(context).copyWith(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.infoItemLabel,
+                              ),
+                    ),
+                    CustomTextButton(
+                      text: "Use current",
+                      onTap: _fillCurrentReceiving,
+                    ),
+                  ],
                 ),
-                Text(
-                  ref
-                      .watch(pAmountFormatter(coin))
-                      .format(
-                        Amount.fromDecimal(
-                          Decimal.fromInt(
-                            kStandardSparkNamesFee[widget.name.length] * _years,
-                          ),
-                          fractionDigits: coin.fractionDigits,
-                        ),
-                      ),
-                  style:
-                      Util.isDesktop
-                          ? STextStyles.w500_14(context)
-                          : STextStyles.w500_12(context),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                  child: TextField(
+                    controller: addressController,
+                    readOnly: isRenewal,
+                    textAlignVertical: TextAlignVertical.center,
+                    minLines: 1,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.all(16),
+                      hintStyle: STextStyles.fieldLabel(context),
+                      hintText: "Address",
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
           SizedBox(height: Util.isDesktop ? 16 : 8),
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Additional info",
+                    style:
+                        Util.isDesktop
+                            ? STextStyles.w500_14(context).copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.infoItemLabel,
+                            )
+                            : STextStyles.w500_12(context).copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.infoItemLabel,
+                            ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              RoundedWhiteContainer(
+                padding: EdgeInsets.all(Util.isDesktop ? 0 : 12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                  child: TextField(
+                    controller: additionalInfoController,
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.all(16),
+                      hintStyle: STextStyles.fieldLabel(context),
+                      hintText: "Additional info",
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: Util.isDesktop ? 16 : 8),
           RoundedWhiteContainer(
+            padding: EdgeInsets.all(Util.isDesktop ? 0 : 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Register for",
+                  "${isRenewal ? "Register" : "Renew"} for",
                   style:
                       Util.isDesktop
                           ? STextStyles.w500_14(context).copyWith(
@@ -387,31 +470,51 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
           ),
           SizedBox(height: Util.isDesktop ? 16 : 8),
           RoundedWhiteContainer(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-              child: TextField(
-                controller: additionalInfoController,
-                textAlignVertical: TextAlignVertical.center,
-                decoration: InputDecoration(
-                  isDense: true,
-                  contentPadding: const EdgeInsets.all(16),
-                  hintStyle: STextStyles.fieldLabel(context),
-                  hintText: "Additional info",
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
+            padding: EdgeInsets.all(Util.isDesktop ? 0 : 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Cost",
+                  style:
+                      Util.isDesktop
+                          ? STextStyles.w500_14(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.infoItemLabel,
+                          )
+                          : STextStyles.w500_12(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.infoItemLabel,
+                          ),
                 ),
-              ),
+                Text(
+                  ref
+                      .watch(pAmountFormatter(coin))
+                      .format(
+                        Amount.fromDecimal(
+                          Decimal.fromInt(
+                            kStandardSparkNamesFee[widget.name.length] * _years,
+                          ),
+                          fractionDigits: coin.fractionDigits,
+                        ),
+                      ),
+                  style:
+                      Util.isDesktop
+                          ? STextStyles.w500_14(context)
+                          : STextStyles.w500_12(context),
+                ),
+              ],
             ),
           ),
 
-          SizedBox(height: Util.isDesktop ? 24 : 16),
+          SizedBox(height: Util.isDesktop ? 32 : 16),
           if (!Util.isDesktop) const Spacer(),
           PrimaryButton(
-            label: "Buy",
-            // width: Util.isDesktop ? 160 : double.infinity,
+            label: isRenewal ? "Renew" : "Buy",
             buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
             onPressed: _prepareNameTx,
           ),

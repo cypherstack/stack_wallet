@@ -135,34 +135,37 @@ class _NamecoinNamesHomeViewState extends ConsumerState<SparkNamesHomeView> {
                         ),
                       ),
                       const SizedBox(width: 24),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "Names",
-                                  style: STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldActiveSearchIconLeft,
+                      Flexible(
+                        child: SizedBox(
+                          width: 520,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    "Names",
+                                    style: STextStyles.desktopTextExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textFieldActiveSearchIconLeft,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Flexible(
+                                child: SingleChildScrollView(
+                                  child: ManageSparkNamesOptionWidget(
+                                    walletId: widget.walletId,
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            Flexible(
-                              child: SingleChildScrollView(
-                                child: ManageSparkNamesOptionWidget(
-                                  walletId: widget.walletId,
-                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ],
