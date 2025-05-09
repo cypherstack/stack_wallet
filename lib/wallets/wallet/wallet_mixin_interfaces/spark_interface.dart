@@ -313,6 +313,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         serializedCoins: serializedCoins,
         // privateRecipientsCount: (txData.sparkRecipients?.length ?? 0),
         privateRecipientsCount: 1, // ROUGHLY!
+        utxoNum: 0, // TODO not zero?
+        additionalTxSize: 0, // spark name script size
       );
 
       if (estimate < 0) {
@@ -495,6 +497,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         subtractFeeFromAmount: true,
         serializedCoins: serializedCoins,
         privateRecipientsCount: (txData.sparkRecipients?.length ?? 0),
+        utxoNum: 0, // ??
+        additionalTxSize: 0, // name script size
       );
       estimatedFee = BigInt.from(estFee);
     } else {
@@ -599,6 +603,22 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
     extractedTx.setPayload(Uint8List(0));
 
+    ({Uint8List script, int size})? noProofNameTxData;
+    if (txData.sparkNameInfo != null) {
+      noProofNameTxData = LibSpark.createSparkNameScript(
+        sparkNameValidityBlocks: txData.sparkNameInfo!.validBlocks,
+        name: txData.sparkNameInfo!.name,
+        additionalInfo: txData.sparkNameInfo!.additionalInfo,
+        scalarHex: extractedTx.getId(),
+        privateKeyHex: privateKey.toHex,
+        spendKeyIndex: kDefaultSparkIndex,
+        diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
+        isTestNet: cryptoCurrency.network != CryptoCurrencyNetwork.main,
+        ignoreProof: true,
+        hashFailSafe: 0,
+      );
+    }
+
     final spend = await computeWithLibSparkLogging(_createSparkSend, (
       privateKeyHex: privateKey.toHex,
       index: kDefaultSparkIndex,
@@ -634,6 +654,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
               )
               .toList(),
       txHash: extractedTx.getHash(),
+      additionalTxSize:
+          txData.sparkNameInfo == null ? 0 : noProofNameTxData!.size,
     ));
 
     for (final outputScript in spend.outputScripts) {
@@ -645,19 +667,45 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     if (txData.sparkNameInfo != null) {
       // this is name reg tx
 
-      final nameScript = LibSpark.createSparkNameScript(
-        sparkNameValidityBlocks: txData.sparkNameInfo!.validBlocks,
-        name: txData.sparkNameInfo!.name,
-        additionalInfo: txData.sparkNameInfo!.additionalInfo,
-        scalarHex: extractedTx.getHash().toHex,
-        privateKeyHex: privateKey.toHex,
-        spendKeyIndex: kDefaultSparkIndex,
-        diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
-        isTestNet: cryptoCurrency.network != CryptoCurrencyNetwork.main,
+      extractedTx.setPayload(
+        Uint8List.fromList([
+          ...spend.serializedSpendPayload,
+          ...noProofNameTxData!.script,
+        ]),
       );
 
+      final hash = extractedTx.getId();
+
+      ({Uint8List script, int size})? nameScriptData;
+      int hashFailSafe = 0;
+      while (nameScriptData == null) {
+        try {
+          nameScriptData = LibSpark.createSparkNameScript(
+            sparkNameValidityBlocks: txData.sparkNameInfo!.validBlocks,
+            name: txData.sparkNameInfo!.name,
+            additionalInfo: txData.sparkNameInfo!.additionalInfo,
+            scalarHex: hash,
+            privateKeyHex: privateKey.toHex,
+            spendKeyIndex: kDefaultSparkIndex,
+            diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
+            isTestNet: cryptoCurrency.network != CryptoCurrencyNetwork.main,
+            ignoreProof: false,
+            hashFailSafe: hashFailSafe,
+          );
+          break;
+        } catch (e) {
+          if (e.toString() != "Exception: hash fail") {
+            rethrow;
+          }
+          hashFailSafe++;
+        }
+      }
+
       extractedTx.setPayload(
-        Uint8List.fromList([...spend.serializedSpendPayload, ...nameScript]),
+        Uint8List.fromList([
+          ...spend.serializedSpendPayload,
+          ...nameScriptData.script,
+        ]),
       );
     }
 
@@ -2213,6 +2261,7 @@ _createSparkSend(
     allAnonymitySets,
     List<({int setId, Uint8List blockHash})> idAndBlockHashes,
     Uint8List txHash,
+    int additionalTxSize,
   })
   args,
 ) async {
@@ -2225,6 +2274,7 @@ _createSparkSend(
     allAnonymitySets: args.allAnonymitySets,
     idAndBlockHashes: args.idAndBlockHashes,
     txHash: args.txHash,
+    additionalTxSize: args.additionalTxSize,
   );
 
   return spend;
@@ -2343,6 +2393,8 @@ Future<int> _asyncSparkFeesWrapper({
   required bool subtractFeeFromAmount,
   required List<SerializedCoinData> serializedCoins,
   required int privateRecipientsCount,
+  required int utxoNum,
+  required int additionalTxSize,
 }) async {
   return await computeWithLibSparkLogging(_estSparkFeeComputeFunc, (
     privateKeyHex: privateKeyHex,
@@ -2351,6 +2403,8 @@ Future<int> _asyncSparkFeesWrapper({
     subtractFeeFromAmount: subtractFeeFromAmount,
     serializedCoins: serializedCoins,
     privateRecipientsCount: privateRecipientsCount,
+    utxoNum: utxoNum,
+    additionalTxSize: additionalTxSize,
   ));
 }
 
@@ -2362,6 +2416,8 @@ int _estSparkFeeComputeFunc(
     bool subtractFeeFromAmount,
     List<SerializedCoinData> serializedCoins,
     int privateRecipientsCount,
+    int utxoNum,
+    int additionalTxSize,
   })
   args,
 ) {
@@ -2372,6 +2428,8 @@ int _estSparkFeeComputeFunc(
     subtractFeeFromAmount: args.subtractFeeFromAmount,
     serializedCoins: args.serializedCoins,
     privateRecipientsCount: args.privateRecipientsCount,
+    utxoNum: args.utxoNum,
+    additionalTxSize: args.additionalTxSize,
   );
 
   return est;
