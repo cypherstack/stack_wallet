@@ -17,6 +17,7 @@ import '../../providers/silent_payment/silent_payment_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../services/silentium_api.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/extensions/extensions.dart';
@@ -192,6 +193,12 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
       // Amount in satoshis
       final satoshiAmount = (double.parse(amount) * 100000000).toInt();
 
+      final silentium = SilentiumApi(baseUrl: "https://bitcoin.silentium.dev/");
+      final chainTip = await silentium.getLatestBlockHeight();
+      final scalars = await silentium.getScalarsForBlock(883586);
+
+      // might not need any of this here
+
       // Get available UTXOs
       // final isar = mainDB.isar;
       // final utxos =
@@ -200,65 +207,65 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
       //         .walletIdEqualTo(widget.walletId)
       //         .usedEqualTo(false)
       //         .findAll();
-      final utxos =
-          await mainDB
-              .getUTXOs(widget.walletId)
-              .filter()
-              .usedEqualTo(false)
-              .findAll();
-
-      final signingData = await wallet.fetchBuildTxData(utxos);
-
-      final selectedUtxos = <UTXO>[];
-      int runningTotal = 0;
-      final int estimatedFee = 1000;
-
-      for (final utxo in utxos) {
-        selectedUtxos.add(utxo);
-        runningTotal += utxo.value;
-
-        if (runningTotal >= satoshiAmount + estimatedFee) {
-          break;
-        }
-      }
-
-      // Convert UTXOs to outpoints
-      final outpoints =
-          selectedUtxos.map((utxo) {
-            return OutPoint(utxo.txid.toUint8ListFromHex, utxo.vout);
-          }).toList();
-
-      final inputPrivateInfos =
-          selectedUtxos.map((utxo) async {
-            // TODO: figure out how to get private key for each outpoint
-            final address = await mainDB.getAddress(
-              wallet.walletId,
-              utxo.address!,
-            );
-            final keys = root.derivePath(address.derivationPath!.value);
-            final ECPrivateKey privkey;
-            final bool isTaproot;
-            return ECPrivateInfo(privkey, isTaproot);
-          }).toList();
-
-      // Prepare destination addresses
-      final destinations = [
-        SilentPaymentDestination.fromAddress(recipientAddress, 0),
-      ];
-
-      final inputPubKeys =
-          inputPrivateInfos.map((info) => info.privkey.pubkey).toList();
-
-      final builder = SilentPaymentBuilder(
-        outpoints: outpoints,
-        publicKeys: inputPubKeys,
-      );
-
-      final outputMap = builder.createOutputs(inputPrivateInfos, destinations);
-      final sendingOutputs =
-          outputMap.values
-              .expand((outputs) => outputs.map((o) => o.address.data.toHex))
-              .toList();
+      // final utxos =
+      //     await mainDB
+      //         .getUTXOs(widget.walletId)
+      //         .filter()
+      //         .usedEqualTo(false)
+      //         .findAll();
+      //
+      // final signingData = await wallet.fetchBuildTxData(utxos);
+      //
+      // final selectedUtxos = <UTXO>[];
+      // int runningTotal = 0;
+      // final int estimatedFee = 1000;
+      //
+      // for (final utxo in utxos) {
+      //   selectedUtxos.add(utxo);
+      //   runningTotal += utxo.value;
+      //
+      //   if (runningTotal >= satoshiAmount + estimatedFee) {
+      //     break;
+      //   }
+      // }
+      //
+      // // Convert UTXOs to outpoints
+      // final outpoints =
+      //     selectedUtxos.map((utxo) {
+      //       return OutPoint(utxo.txid.toUint8ListFromHex, utxo.vout);
+      //     }).toList();
+      //
+      // final inputPrivateInfos =
+      //     selectedUtxos.map((utxo) async {
+      //       // TODO: figure out how to get private key for each outpoint
+      //       final address = await mainDB.getAddress(
+      //         wallet.walletId,
+      //         utxo.address!,
+      //       );
+      //       final keys = root.derivePath(address.derivationPath!.value);
+      //       final ECPrivateKey privkey;
+      //       final bool isTaproot;
+      //       return ECPrivateInfo(privkey, isTaproot);
+      //     }).toList();
+      //
+      // // Prepare destination addresses
+      // final destinations = [
+      //   SilentPaymentDestination.fromAddress(recipientAddress, 0),
+      // ];
+      //
+      // final inputPubKeys =
+      //     inputPrivateInfos.map((info) => info.privkey.pubkey).toList();
+      //
+      // final builder = SilentPaymentBuilder(
+      //   outpoints: outpoints,
+      //   publicKeys: inputPubKeys,
+      // );
+      //
+      // final outputMap = builder.createOutputs(inputPrivateInfos, destinations);
+      // final sendingOutputs =
+      //     outputMap.values
+      //         .expand((outputs) => outputs.map((o) => o.address.data.toHex))
+      //         .toList();
 
       await Future<void>.delayed(const Duration(seconds: 1));
 
@@ -285,6 +292,8 @@ class _SilentPaymentsViewState extends ConsumerState<SilentPaymentsView> {
         "Amount": "$amount BTC",
         "Transaction ID": txDetails["txid"]! as String,
         "Output Addresses": (txDetails["outputs"] as List<String>).join("\n"),
+        "Chain Tip": chainTip.toString(),
+        "Scalars": scalars.join("\n"),
       });
 
       if (mounted) {
