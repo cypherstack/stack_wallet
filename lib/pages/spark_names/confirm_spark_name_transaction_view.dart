@@ -20,7 +20,6 @@ import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
@@ -33,6 +32,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -74,7 +74,7 @@ class _ConfirmSparkNameTransactionViewState
   late final TextEditingController noteController;
 
   Future<void> _attemptSend() async {
-    final wallet = ref.read(pWallets).getWallet(walletId);
+    final wallet = ref.read(pWallets).getWallet(walletId) as SparkInterface;
     final coin = wallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
@@ -101,7 +101,7 @@ class _ConfirmSparkNameTransactionViewState
     final note = noteController.text;
 
     try {
-      txDataFuture = wallet.confirmSend(txData: widget.txData);
+      txDataFuture = wallet.confirmSendSpark(txData: widget.txData);
 
       // await futures in parallel
       final futureResults = await Future.wait([txDataFuture, time]);
