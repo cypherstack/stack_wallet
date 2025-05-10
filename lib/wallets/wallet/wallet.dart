@@ -564,7 +564,7 @@ abstract class Wallet<T extends CryptoCurrency> {
           ),
         );
         Logging.instance.e(
-          "Caught exception in refreshWalletData()",
+          "Caught exception in refresh()",
           error: e,
           stackTrace: s,
         );

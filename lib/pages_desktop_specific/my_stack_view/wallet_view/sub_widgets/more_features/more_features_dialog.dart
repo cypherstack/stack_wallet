@@ -32,6 +32,7 @@ import '../../../../../utilities/util.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
@@ -67,6 +68,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
     required this.onFusionPressed,
     required this.onChurnPressed,
     required this.onNamesPressed,
+    required this.onSilentPaymentsPressed,
   });
 
   final String walletId;
@@ -82,6 +84,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   final VoidCallback? onFusionPressed;
   final VoidCallback? onChurnPressed;
   final VoidCallback? onNamesPressed;
+  final VoidCallback? onSilentPaymentsPressed;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -419,6 +422,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
           //     iconAsset: Assets.svg.whirlPool,
           //     onPressed: () => widget.onWhirlpoolPressed?.call(),
           //   ),
+
           if (wallet is CoinControlInterface && coinControlPrefEnabled)
             _MoreFeaturesItem(
               label: "Coin control",
@@ -456,6 +460,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               detail: "Increased address privacy using BIP47",
               iconAsset: Assets.svg.robotHead,
               onPressed: () async => widget.onPaynymPressed?.call(),
+            ),
+          if (!isViewOnly && wallet is BitcoinWallet)
+            _MoreFeaturesItem(
+              label: "Silent Payments",
+              detail: "Increased address privacy using BIP352",
+              iconAsset: Assets.svg.ellipsis,
+              onPressed: () async => widget.onSilentPaymentsPressed?.call(),
             ),
           if (wallet is OrdinalsInterface)
             _MoreFeaturesItem(

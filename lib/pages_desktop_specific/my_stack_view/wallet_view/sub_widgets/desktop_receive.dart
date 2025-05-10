@@ -18,6 +18,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:silent_payments/silent_payments.dart';
+
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
@@ -198,6 +200,45 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     }
   }
 
+  Future<void> generateSilentPaymentAddress() async {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is BitcoinWallet) {
+      final rootNode = await wallet.getRootHDNode();
+      final owner = SilentPaymentOwner.fromBip32(rootNode);
+
+      // Translate the wallet's network to what the Silent Payment library expects
+      final network = switch (wallet.info.coin.network) {
+        CryptoCurrencyNetwork.main => 'BitcoinNetwork.mainnet',
+        CryptoCurrencyNetwork.test => 'BitcoinNetwork.testnet',
+        CryptoCurrencyNetwork.test4 => 'BitcoinNetwork.testnet',
+        _ => null
+      };
+
+      final address = Address(
+        walletId: walletId,
+        value: owner.toString(network: network),
+        publicKey: [], // Could store both public keys if needed
+        derivationIndex: 0, // Could keep track of this if generating multiple
+        derivationPath: null, // BIP-352 uses two paths, so this may not apply directly
+        type: AddressType.bip352,
+        subType: AddressSubType.nonWallet,
+      );
+      
+      final isar = ref.read(mainDBProvider).isar;
+      await isar.writeTxn(() async {
+        await isar.addresses.put(address);
+      });
+      
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        
+        setState(() {
+          _addressMap[_walletAddressTypes[_currentIndex]] = address.value;
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     walletId = widget.walletId;
@@ -231,6 +272,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
     if (_walletAddressTypes.length > 1 && wallet is BitcoinWallet) {
       _walletAddressTypes.removeWhere((e) => e == AddressType.p2pkh);
+      _walletAddressTypes.add(AddressType.bip352);
     }
 
     _addressMap[_walletAddressTypes[_currentIndex]] =
@@ -238,6 +280,12 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
     if (showMultiType) {
       for (final type in _walletAddressTypes) {
+        // For Silent Payment addresses, we'll use a different approach
+        if (type == AddressType.bip352) {
+          // Check if a Silent Payment address exists
+          _checkAndGenerateSilentPaymentAddress();
+          continue; // Skip the regular subscription for this type
+        }
         _addressSubMap[type] = ref
             .read(mainDBProvider)
             .isar
@@ -265,6 +313,33 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     super.initState();
   }
 
+  // Separate method to check for and generate Silent Payment address if needed
+  Future<void> _checkAndGenerateSilentPaymentAddress() async {
+    if (_walletAddressTypes.contains(AddressType.bip352)) {
+      final isar = ref.read(mainDBProvider).isar;
+      
+      // Check if a Silent Payment address already exists
+      final existingAddress = await isar.addresses
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .typeEqualTo(AddressType.bip352)
+          .findFirst();
+      
+      if (existingAddress != null) {
+        // Address exists, update the map
+        if (mounted) {
+          setState(() {
+            _addressMap[AddressType.bip352] = existingAddress.value;
+          });
+        }
+      } else {
+        // No address exists, generate one
+        await generateSilentPaymentAddress();
+      }
+    }
+  }
+
   @override
   void dispose() {
     for (final subscription in _addressSubMap.values) {
@@ -290,7 +365,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     final bool canGen;
     if (wallet is ViewOnlyOptionInterface &&
         wallet.isViewOnly &&
-        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly ||
+        _walletAddressTypes[_currentIndex] == AddressType.bip352) {
       canGen = false;
     } else {
       canGen = (wallet is MultiAddressInterface || supportsSpark);
