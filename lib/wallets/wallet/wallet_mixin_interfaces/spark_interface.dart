@@ -22,6 +22,7 @@ import '../../../models/isar/models/isar_models.dart';
 import '../../../models/signing_data.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/spark_names_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
@@ -1255,6 +1256,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       final myNameStrings =
           await db.managers.sparkNames.map((e) => e.name).get();
       final names = await electrumXClient.getSparkNames();
+
+      // start update shared cache of all names
+      final nameUpdateFuture = SparkNamesService.update(
+        names,
+        network: cryptoCurrency.network,
+      );
+
       final myAddresses =
           await mainDB.isar.addresses
               .where()
@@ -1298,6 +1306,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
         await db.upsertSparkNames(data);
       }
+
+      // finally ensure shared cache update has completed
+      await nameUpdateFuture;
     } catch (e, s) {
       Logging.instance.e(
         "refreshing spark names for $walletId \"${info.name}\" failed",
