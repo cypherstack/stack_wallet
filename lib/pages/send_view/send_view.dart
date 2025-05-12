@@ -27,6 +27,7 @@ import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/spark_names_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
@@ -169,6 +170,82 @@ class _SendViewState extends ConsumerState<SendView> {
         error: e,
         stackTrace: s,
       );
+    }
+  }
+
+  Future<void> _checkSparkNameAndOrSetAddress(
+    String content, {
+    bool setController = true,
+  }) async {
+    void setContent() {
+      if (setController) {
+        sendToController.text = content;
+      }
+      _address = content;
+    }
+
+    // check for spark name
+    if (coin is Firo) {
+      final address = await SparkNamesService.getAddressFor(
+        content,
+        network: coin.network,
+      );
+      if (address != null) {
+        // found a spark name
+        sendToController.text = content;
+        _address = address;
+      } else {
+        setContent();
+      }
+    } else {
+      setContent();
+    }
+  }
+
+  Future<void> _pasteAddress() async {
+    final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      String content = data.text!.trim();
+      if (content.contains("\n")) {
+        content = content.substring(0, content.indexOf("\n")).trim();
+      }
+
+      try {
+        final paymentData = AddressUtils.parsePaymentUri(
+          content,
+          logging: Logging.instance,
+        );
+
+        if (paymentData != null &&
+            paymentData.coin?.uriScheme == coin.uriScheme) {
+          _applyUri(paymentData);
+        } else {
+          if (coin is Epiccash) {
+            content = AddressUtils().formatAddress(content);
+          }
+
+          sendToController.text = content;
+          _address = content;
+
+          _setValidAddressProviders(_address);
+          setState(() {
+            _addressToggleFlag = sendToController.text.isNotEmpty;
+          });
+        }
+      } catch (e) {
+        if (coin is Epiccash) {
+          // strip http:// and https:// if content contains @
+          content = AddressUtils().formatAddress(content);
+        }
+
+        await _checkSparkNameAndOrSetAddress(content);
+
+        // Trigger validation after pasting.
+        _setValidAddressProviders(_address);
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
+      }
     }
   }
 
@@ -1295,7 +1372,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   paste: true,
                                   selectAll: false,
                                 ),
-                                onChanged: (newValue) {
+                                onChanged: (newValue) async {
                                   final trimmed = newValue.trim();
 
                                   if ((trimmed.length - (_address?.length ?? 0))
@@ -1308,11 +1385,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                     if (parsed != null) {
                                       _applyUri(parsed);
                                     } else {
-                                      _address = newValue;
-                                      sendToController.text = newValue;
+                                      await _checkSparkNameAndOrSetAddress(
+                                        newValue,
+                                      );
                                     }
                                   } else {
-                                    _address = newValue;
+                                    await _checkSparkNameAndOrSetAddress(
+                                      newValue,
+                                      setController: false,
+                                    );
                                   }
 
                                   _setValidAddressProviders(_address);
@@ -1369,63 +1450,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 key: const Key(
                                                   "sendViewPasteAddressFieldButtonKey",
                                                 ),
-                                                onTap: () async {
-                                                  final ClipboardData? data =
-                                                      await clipboard.getData(
-                                                        Clipboard.kTextPlain,
-                                                      );
-                                                  if (data?.text != null &&
-                                                      data!.text!.isNotEmpty) {
-                                                    String content =
-                                                        data.text!.trim();
-                                                    if (content.contains(
-                                                      "\n",
-                                                    )) {
-                                                      content = content
-                                                          .substring(
-                                                            0,
-                                                            content.indexOf(
-                                                              "\n",
-                                                            ),
-                                                          );
-                                                    }
-
-                                                    if (coin is Epiccash) {
-                                                      // strip http:// and https:// if content contains @
-                                                      content = AddressUtils()
-                                                          .formatAddress(
-                                                            content,
-                                                          );
-                                                    }
-
-                                                    final trimmed =
-                                                        content.trim();
-                                                    final parsed =
-                                                        AddressUtils.parsePaymentUri(
-                                                          trimmed,
-                                                          logging:
-                                                              Logging.instance,
-                                                        );
-                                                    if (parsed != null) {
-                                                      _applyUri(parsed);
-                                                    } else {
-                                                      sendToController.text =
-                                                          content;
-                                                      _address = content;
-
-                                                      _setValidAddressProviders(
-                                                        _address,
-                                                      );
-
-                                                      setState(() {
-                                                        _addressToggleFlag =
-                                                            sendToController
-                                                                .text
-                                                                .isNotEmpty;
-                                                      });
-                                                    }
-                                                  }
-                                                },
+                                                onTap: _pasteAddress,
                                                 child:
                                                     sendToController
                                                             .text

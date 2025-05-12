@@ -29,6 +29,7 @@ import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -698,12 +699,41 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  Future<void> _checkSparkNameAndOrSetAddress(
+    String content, {
+    bool setController = true,
+  }) async {
+    void setContent() {
+      if (setController) {
+        sendToController.text = content;
+      }
+      _address = content;
+    }
+
+    // check for spark name
+    if (coin is Firo) {
+      final address = await SparkNamesService.getAddressFor(
+        content,
+        network: coin.network,
+      );
+      if (address != null) {
+        // found a spark name
+        sendToController.text = content;
+        _address = address;
+      } else {
+        setContent();
+      }
+    } else {
+      setContent();
+    }
+  }
+
   Future<void> pasteAddress() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
     if (data?.text != null && data!.text!.isNotEmpty) {
       String content = data.text!.trim();
       if (content.contains("\n")) {
-        content = content.substring(0, content.indexOf("\n"));
+        content = content.substring(0, content.indexOf("\n")).trim();
       }
 
       try {
@@ -715,7 +745,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             paymentData.coin?.uriScheme == coin.uriScheme) {
           _applyUri(paymentData);
         } else {
-          content = content.split("\n").first.trim();
           if (coin is Epiccash) {
             content = AddressUtils().formatAddress(content);
           }
@@ -735,8 +764,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           content = AddressUtils().formatAddress(content);
         }
 
-        sendToController.text = content;
-        _address = content;
+        await _checkSparkNameAndOrSetAddress(content);
 
         // Trigger validation after pasting.
         _setValidAddressProviders(_address);
@@ -1353,7 +1381,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 paste: true,
                 selectAll: false,
               ),
-              onChanged: (newValue) {
+              onChanged: (newValue) async {
                 final trimmed = newValue;
 
                 if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
@@ -1364,11 +1392,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   if (parsed != null) {
                     _applyUri(parsed);
                   } else {
-                    _address = newValue;
-                    sendToController.text = newValue;
+                    await _checkSparkNameAndOrSetAddress(newValue);
                   }
                 } else {
-                  _address = newValue;
+                  await _checkSparkNameAndOrSetAddress(
+                    newValue,
+                    setController: false,
+                  );
                 }
 
                 _setValidAddressProviders(_address);

@@ -50,6 +50,11 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
       // name exists
       return false;
     } catch (e) {
+      if (e.toString().contains(
+        "(method not found): unknown method \"spark.getsparknamedata\"",
+      )) {
+        rethrow;
+      }
       // name not found
       return true;
     }
@@ -80,7 +85,15 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
 
       Logging.instance.i("LOOKUP RESULT: $result");
     } catch (e, s) {
-      const message = "Spark name lookup failed";
+      final String message;
+      if (e.toString().contains(
+        "(method not found): unknown method \"spark.getsparknamedata\"",
+      )) {
+        message = e.toString();
+      } else {
+        message = "Spark name lookup failed";
+      }
+
       Logging.instance.e(message, error: e, stackTrace: s);
 
       if (mounted) {
