@@ -87,10 +87,12 @@ class WalletSummaryInfo extends ConsumerWidget {
     final Amount balanceToShow;
     final String title;
 
-    final bool toggleBalance;
+    final bool useSimpleToggle;
+    final bool hasMultipleBalances;
 
     if (coin is Firo) {
-      toggleBalance = false;
+      useSimpleToggle = false;
+      hasMultipleBalances = true; // Firo always has multiple balance types.
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
@@ -111,7 +113,9 @@ class WalletSummaryInfo extends ConsumerWidget {
           break;
       }
     } else {
-      toggleBalance = true;
+      useSimpleToggle = true;
+      // Update hasMultipleBalances based on if all of the balances are equal.
+      hasMultipleBalances = balance.spendable != balance.total;
       balanceToShow = _showAvailable ? balance.spendable : balance.total;
       title = _showAvailable ? "Available balance" : "Full balance";
     }
@@ -144,7 +148,7 @@ class WalletSummaryInfo extends ConsumerWidget {
               children: [
                 GestureDetector(
                   onTap: () {
-                    if (toggleBalance) {
+                    if (useSimpleToggle) {
                       if (ref.read(walletBalanceToggleStateProvider) ==
                           WalletBalanceToggleState.available) {
                         ref
@@ -169,7 +173,7 @@ class WalletSummaryInfo extends ConsumerWidget {
                               .textFavoriteCard,
                         ),
                       ),
-                      if (!toggleBalance) ...[
+                      if (hasMultipleBalances) ...[
                         const SizedBox(
                           width: 4,
                         ),
