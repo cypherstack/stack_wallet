@@ -1264,15 +1264,54 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
 
       final myAddresses =
-          await mainDB.isar.addresses
-              .where()
-              .walletIdEqualTo(walletId)
-              .filter()
-              .typeEqualTo(AddressType.spark)
-              .and()
-              .subTypeEqualTo(AddressSubType.receiving)
-              .valueProperty()
-              .findAll();
+          (await mainDB.isar.addresses
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .filter()
+                  .typeEqualTo(AddressType.spark)
+                  .and()
+                  .subTypeEqualTo(AddressSubType.receiving)
+                  .valueProperty()
+                  .findAll())
+              .toSet();
+
+      // some look ahead
+      // TODO revisit this and clean up (track pre gen'd addresses instead of generating every time)
+      // arbitrary number of addresses
+      const lookAheadCount = 100;
+      final highestStoredDiversifier =
+          (await getCurrentReceivingSparkAddress())?.derivationIndex;
+
+      final root = await getRootHDNode();
+      final String derivationPath;
+      if (cryptoCurrency.network.isTestNet) {
+        derivationPath = "$kSparkBaseDerivationPathTestnet$kDefaultSparkIndex";
+      } else {
+        derivationPath = "$kSparkBaseDerivationPath$kDefaultSparkIndex";
+      }
+      final keys = root.derivePath(derivationPath);
+
+      // default to starting at 1 if none found
+      int diversifier = (highestStoredDiversifier ?? 0) + 1;
+
+      final maxDiversifier = diversifier + lookAheadCount;
+
+      while (diversifier < maxDiversifier) {
+        // change address check
+        if (diversifier == kSparkChange) {
+          diversifier++;
+        }
+        final addressString = await LibSpark.getAddress(
+          privateKey: keys.privateKey.data,
+          index: kDefaultSparkIndex,
+          diversifier: diversifier,
+          isTestNet: cryptoCurrency.network.isTestNet,
+        );
+
+        myAddresses.add(addressString);
+
+        diversifier++;
+      }
 
       names.retainWhere(
         (e) =>
