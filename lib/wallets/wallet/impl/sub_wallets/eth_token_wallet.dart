@@ -5,7 +5,6 @@ import 'package:isar/isar.dart';
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 import '../../../../dto/ethereum/eth_token_tx_dto.dart';
-import '../../../../dto/ethereum/eth_token_tx_extra_dto.dart';
 import '../../../../models/balance.dart';
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -15,7 +14,6 @@ import '../../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../../models/paymint/fee_object_model.dart';
 import '../../../../services/ethereum/ethereum_api.dart';
 import '../../../../utilities/amount/amount.dart';
-import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/eth_commons.dart';
 import '../../../../utilities/extensions/extensions.dart';
 import '../../../../utilities/logger.dart';
@@ -29,7 +27,7 @@ class EthTokenWallet extends Wallet {
   int get isarTransactionVersion => 2;
 
   EthTokenWallet(this.ethWallet, this._tokenContract)
-      : super(ethWallet.cryptoCurrency);
+    : super(ethWallet.cryptoCurrency);
 
   final EthereumWallet ethWallet;
 
@@ -38,8 +36,6 @@ class EthTokenWallet extends Wallet {
 
   late web3dart.DeployedContract _deployedContract;
   late web3dart.ContractFunction _sendFunction;
-
-  static const _gasLimit = 65000;
 
   // ===========================================================================
 
@@ -85,9 +81,7 @@ class EthTokenWallet extends Wallet {
     final output = OutputV2.isarCantDoRequiredInDefaultConstructor(
       scriptPubKeyHex: "00",
       valueStringSats: amount.raw.toString(),
-      addresses: [
-        addressTo,
-      ],
+      addresses: [addressTo],
       walletOwns: addressTo == myAddress,
     );
     final input = InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -116,16 +110,15 @@ class EthTokenWallet extends Wallet {
       inputs: List.unmodifiable(inputs),
       outputs: List.unmodifiable(outputs),
       version: -1,
-      type: addressTo == myAddress
-          ? TransactionType.sentToSelf
-          : TransactionType.outgoing,
+      type:
+          addressTo == myAddress
+              ? TransactionType.sentToSelf
+              : TransactionType.outgoing,
       subType: TransactionSubType.ethToken,
       otherData: jsonEncode(otherData),
     );
 
-    return txData.copyWith(
-      tempTx: tempTx,
-    );
+    return txData.copyWith(tempTx: tempTx);
   }
 
   // ===========================================================================
@@ -143,8 +136,9 @@ class EthTokenWallet extends Wallet {
     try {
       await super.init();
 
-      final contractAddress =
-          web3dart.EthereumAddress.fromHex(tokenContract.address);
+      final contractAddress = web3dart.EthereumAddress.fromHex(
+        tokenContract.address,
+      );
 
       // first try to update the abi regardless just in case something has changed
       try {
@@ -153,8 +147,11 @@ class EthTokenWallet extends Wallet {
           usingContractAddress: contractAddress.hex,
         );
       } catch (e, s) {
-        Logging.instance
-            .w("$runtimeType _updateTokenABI(): ", error: e, stackTrace: s);
+        Logging.instance.w(
+          "$runtimeType _updateTokenABI(): ",
+          error: e,
+          stackTrace: s,
+        );
       }
 
       try {
@@ -176,8 +173,8 @@ class EthTokenWallet extends Wallet {
       // Some failure, try for proxy contract
       final contractAddressResponse =
           await EthereumAPI.getProxyTokenImplementationAddress(
-        contractAddress.hex,
-      );
+            contractAddress.hex,
+          );
 
       if (contractAddressResponse.value != null) {
         _tokenContract = await _updateTokenABI(
@@ -198,55 +195,36 @@ class EthTokenWallet extends Wallet {
 
       _sendFunction = _deployedContract.function('transfer');
     } catch (e, s) {
-      Logging.instance
-          .w("$runtimeType wallet failed init(): ", error: e, stackTrace: s);
+      Logging.instance.w(
+        "$runtimeType wallet failed init(): ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
-    final feeRateType = txData.feeRateType!;
-    int fee = 0;
-    final feeObject = await fees;
-    switch (feeRateType) {
-      case FeeRateType.fast:
-        fee = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        fee = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        fee = feeObject.slow;
-        break;
-      case FeeRateType.custom:
-        throw UnimplementedError("custom eth token fees");
-    }
-
-    final feeEstimate = await estimateFeeFor(Amount.zero, fee);
-
-    final client = ethWallet.getEthClient();
-
-    final myAddress = (await getCurrentReceivingAddress())!.value;
-    final myWeb3Address = web3dart.EthereumAddress.fromHex(myAddress);
-
-    final nonce = txData.nonce ??
-        await client.getTransactionCount(
-          myWeb3Address,
-          atBlock: const web3dart.BlockNum.pending(),
-        );
-
     final amount = txData.recipients!.first.amount;
     final address = txData.recipients!.first.address;
 
-    await updateBalance();
-    final info = await mainDB.isar.tokenWalletInfo
-        .where()
-        .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
-        .findFirst();
-    final availableBalance = info?.getCachedBalance().spendable ??
-        Amount.zeroWith(
-          fractionDigits: tokenContract.decimals,
-        );
+    final myWeb3Address = await ethWallet.getMyWeb3Address();
+
+    final prep = await ethWallet.internalSharedPrepareSend(
+      txData: txData,
+      myWeb3Address: myWeb3Address,
+    );
+
+    // double check balance after internalSharedPrepareSend call to ensure
+    // balance is up to date
+    final info =
+        await mainDB.isar.tokenWalletInfo
+            .where()
+            .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
+            .findFirst();
+    final availableBalance =
+        info?.getCachedBalance().spendable ??
+        Amount.zeroWith(fractionDigits: tokenContract.decimals);
     if (amount > availableBalance) {
       throw Exception("Insufficient balance");
     }
@@ -255,19 +233,26 @@ class EthTokenWallet extends Wallet {
       contract: _deployedContract,
       function: _sendFunction,
       parameters: [web3dart.EthereumAddress.fromHex(address), amount.raw],
-      maxGas: _gasLimit,
-      gasPrice: web3dart.EtherAmount.fromUnitAndValue(
+      maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumTokenMinGasLimit,
+      nonce: prep.nonce,
+      maxFeePerGas: web3dart.EtherAmount.fromBigInt(
         web3dart.EtherUnit.wei,
-        fee,
+        prep.maxBaseFee,
       ),
-      nonce: nonce,
+      maxPriorityFeePerGas: web3dart.EtherAmount.fromBigInt(
+        web3dart.EtherUnit.wei,
+        prep.priorityFee,
+      ),
     );
 
+    final feeEstimate = await estimateFeeFor(
+      Amount.zero,
+      prep.maxBaseFee + prep.priorityFee,
+    );
     return txData.copyWith(
       fee: feeEstimate,
-      feeInWei: BigInt.from(fee),
       web3dartTransaction: tx,
-      chainId: await client.getChainId(),
+      chainId: prep.chainId,
       nonce: tx.nonce,
     );
   }
@@ -286,16 +271,16 @@ class EthTokenWallet extends Wallet {
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     return ethWallet.estimateEthFee(
       feeRate,
-      _gasLimit,
+      kEthereumTokenMinGasLimit,
       cryptoCurrency.fractionDigits,
     );
   }
 
   @override
-  Future<FeeObject> get fees => EthereumAPI.getFees();
+  Future<EthFeeObject> get fees => EthereumAPI.getFees();
 
   @override
   Future<bool> pingCheck() async {
@@ -317,10 +302,11 @@ class EthTokenWallet extends Wallet {
   @override
   Future<void> updateBalance() async {
     try {
-      final info = await mainDB.isar.tokenWalletInfo
-          .where()
-          .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
-          .findFirst();
+      final info =
+          await mainDB.isar.tokenWalletInfo
+              .where()
+              .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
+              .findFirst();
       final response = await EthereumAPI.getWalletTokenBalance(
         address: (await getCurrentReceivingAddress())!.value,
         contractAddress: tokenContract.address,
@@ -364,8 +350,9 @@ class EthTokenWallet extends Wallet {
   @override
   Future<void> updateTransactions() async {
     try {
-      final String addressString =
-          checksumEthereumAddress((await getCurrentReceivingAddress())!.value);
+      final String addressString = checksumEthereumAddress(
+        (await getCurrentReceivingAddress())!.value,
+      );
 
       final response = await EthereumAPI.getTokenTransactions(
         address: addressString,
@@ -374,8 +361,9 @@ class EthTokenWallet extends Wallet {
 
       if (response.value == null) {
         if (response.exception != null &&
-            response.exception!.message
-                .contains("response is empty but status code is 200")) {
+            response.exception!.message.contains(
+              "response is empty but status code is 200",
+            )) {
           Logging.instance.d(
             "No ${tokenContract.name} transfers found for $addressString",
           );
@@ -390,50 +378,38 @@ class EthTokenWallet extends Wallet {
         return;
       }
 
-      final response2 = await EthereumAPI.getEthTokenTransactionsByTxids(
-        response.value!.map((e) => e.transactionHash).toSet().toList(),
-      );
-
-      if (response2.value == null) {
-        throw response2.exception ??
-            Exception("Failed to fetch token transactions");
-      }
-      final List<({EthTokenTxDto tx, EthTokenTxExtraDTO extra})> data = [];
-      for (final tokenDto in response.value!) {
-        try {
-          final txExtra = response2.value!.firstWhere(
-            (e) => e.hash == tokenDto.transactionHash,
-          );
-          data.add(
-            (
-              tx: tokenDto,
-              extra: txExtra,
-            ),
-          );
-        } catch (e, s) {
-          // Server indexing failed for some reason. Instead of hard crashing or
-          // showing no transactions we just skip it here. Not ideal but better
-          // than nothing showing up
-          Logging.instance.e(
-            "Server error: Transaction hash not found.",
-            error: e,
-            stackTrace: s,
-          );
-          Logging.instance.d(
-            "Server error: Transaction ${tokenDto.transactionHash} not found.",
-            error: e,
-            stackTrace: s,
-          );
+      web3dart.Web3Client? client;
+      final List<EthTokenTxDto> allTxs = [];
+      for (final dto in response.value!) {
+        if (dto.nonce == null) {
+          client ??= ethWallet.getEthClient();
+          final txInfo = await client.getTransactionByHash(dto.transactionHash);
+          if (txInfo == null) {
+            // Something strange is happening
+            Logging.instance.w(
+              "Could not find token transaction via RPC that was found use "
+              "TrueBlocks API.\nOffending tx: $dto",
+            );
+          } else {
+            final updated = dto.copyWith(
+              nonce: txInfo.nonce,
+              gasPrice: txInfo.gasPrice.getInWei,
+              gasUsed: txInfo.gas,
+            );
+            allTxs.add(updated);
+          }
+        } else {
+          allTxs.add(dto);
         }
       }
 
       final List<TransactionV2> txns = [];
 
-      for (final tuple in data) {
+      for (final tx in allTxs) {
         // ignore all non Transfer events (for now)
-        if (tuple.tx.topics[0] == kTransferEventSignature) {
+        if (tx.topics[0] == kTransferEventSignature) {
           final amount = Amount(
-            rawValue: tuple.tx.data.toBigIntFromHex,
+            rawValue: tx.data.toBigIntFromHex,
             fractionDigits: tokenContract.decimals,
           );
 
@@ -442,13 +418,12 @@ class EthTokenWallet extends Wallet {
             continue;
           }
 
-          final Amount txFee = tuple.extra.gasUsed * tuple.extra.gasPrice;
-          final addressFrom = _addressFromTopic(
-            tuple.tx.topics[1],
+          final txFee = Amount(
+            rawValue: BigInt.from(tx.gasUsed!) * tx.gasPrice!,
+            fractionDigits: cryptoCurrency.fractionDigits,
           );
-          final addressTo = _addressFromTopic(
-            tuple.tx.topics[2],
-          );
+          final addressFrom = _addressFromTopic(tx.topics[1]);
+          final addressTo = _addressFromTopic(tx.topics[2]);
 
           final TransactionType txType;
           if (addressTo == addressString) {
@@ -470,10 +445,10 @@ class EthTokenWallet extends Wallet {
           }
 
           final otherData = {
-            "nonce": tuple.extra.nonce,
+            "nonce": tx.nonce,
             "isCancelled": false,
             "overrideFee": txFee.toJsonString(),
-            "contractAddress": tuple.tx.address,
+            "contractAddress": tx.address,
           };
 
           // hack eth tx data into inputs and outputs
@@ -483,9 +458,7 @@ class EthTokenWallet extends Wallet {
           final output = OutputV2.isarCantDoRequiredInDefaultConstructor(
             scriptPubKeyHex: "00",
             valueStringSats: amount.raw.toString(),
-            addresses: [
-              addressTo,
-            ],
+            addresses: [addressTo],
             walletOwns: addressTo == addressString,
           );
           final input = InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -506,11 +479,11 @@ class EthTokenWallet extends Wallet {
 
           final txn = TransactionV2(
             walletId: walletId,
-            blockHash: tuple.extra.blockHash,
-            hash: tuple.tx.transactionHash,
-            txid: tuple.tx.transactionHash,
-            timestamp: tuple.extra.timestamp,
-            height: tuple.tx.blockNumber,
+            blockHash: tx.blockHash,
+            hash: tx.transactionHash,
+            txid: tx.transactionHash,
+            timestamp: tx.timestamp,
+            height: tx.blockNumber,
             inputs: List.unmodifiable(inputs),
             outputs: List.unmodifiable(outputs),
             version: -1,
@@ -544,15 +517,15 @@ class EthTokenWallet extends Wallet {
 
   @override
   FilterOperation? get transactionFilterOperation => FilterGroup.and([
-        FilterCondition.equalTo(
-          property: r"contractAddress",
-          value: tokenContract.address,
-        ),
-        const FilterCondition.equalTo(
-          property: r"subType",
-          value: TransactionSubType.ethToken,
-        ),
-      ]);
+    FilterCondition.equalTo(
+      property: r"contractAddress",
+      value: tokenContract.address,
+    ),
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: TransactionSubType.ethToken,
+    ),
+  ]);
 
   @override
   Future<void> checkSaveInitialReceivingAddress() async {

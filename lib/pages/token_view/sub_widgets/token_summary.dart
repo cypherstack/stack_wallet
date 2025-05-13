@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -53,11 +54,21 @@ class TokenSummary extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token =
-        ref.watch(pCurrentTokenWallet.select((value) => value!.tokenContract));
+    final token = ref.watch(
+      pCurrentTokenWallet.select((value) => value!.tokenContract),
+    );
     final balance = ref.watch(
       pTokenBalance((walletId: walletId, contractAddress: token.address)),
     );
+
+    Decimal? price;
+    if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) => value.getTokenPrice(token.address)?.value,
+        ),
+      );
+    }
 
     return Stack(
       children: [
@@ -71,30 +82,26 @@ class TokenSummary extends ConsumerWidget {
                 children: [
                   SvgPicture.asset(
                     Assets.svg.walletDesktop,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .tokenSummaryTextSecondary,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.tokenSummaryTextSecondary,
                     width: 12,
                     height: 12,
                   ),
-                  const SizedBox(
-                    width: 6,
-                  ),
+                  const SizedBox(width: 6),
                   Text(
-                    ref.watch(
-                      pWalletName(walletId),
-                    ),
+                    ref.watch(pWalletName(walletId)),
                     style: STextStyles.w500_12(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .tokenSummaryTextSecondary,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.tokenSummaryTextSecondary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 6,
-              ),
+              const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -105,58 +112,31 @@ class TokenSummary extends ConsumerWidget {
                             Ethereum(CryptoCurrencyNetwork.main),
                           ),
                         )
-                        .format(
-                          balance.total,
-                          ethContract: token,
-                        ),
+                        .format(balance.total, ethContract: token),
                     style: STextStyles.pageTitleH1(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .tokenSummaryTextPrimary,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.tokenSummaryTextPrimary,
                     ),
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  CoinTickerTag(
-                    walletId: walletId,
-                  ),
+                  const SizedBox(width: 10),
+                  CoinTickerTag(walletId: walletId),
                 ],
               ),
-              const SizedBox(
-                height: 6,
-              ),
-              Text(
-                "${(balance.total.decimal * ref.watch(
-                          priceAnd24hChangeNotifierProvider.select(
-                            (value) => value.getTokenPrice(token.address).item1,
-                          ),
-                        )).toAmount(
-                      fractionDigits: 2,
-                    ).fiatString(
-                      locale: ref.watch(
-                        localeServiceChangeNotifierProvider.select(
-                          (value) => value.locale,
-                        ),
-                      ),
-                    )} ${ref.watch(
-                  prefsChangeNotifierProvider.select(
-                    (value) => value.currency,
+              if (price != null) const SizedBox(height: 6),
+              if (price != null)
+                Text(
+                  "${(balance.total.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                  style: STextStyles.subtitle500(context).copyWith(
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.tokenSummaryTextPrimary,
                   ),
-                )}",
-                style: STextStyles.subtitle500(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .tokenSummaryTextPrimary,
                 ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              TokenWalletOptions(
-                walletId: walletId,
-                tokenContract: token,
-              ),
+              const SizedBox(height: 20),
+              TokenWalletOptions(walletId: walletId, tokenContract: token),
             ],
           ),
         ),
@@ -195,11 +175,7 @@ class TokenWalletOptions extends ConsumerWidget {
     unawaited(
       Navigator.of(context).pushNamed(
         WalletInitiatedExchangeView.routeName,
-        arguments: Tuple3(
-          walletId,
-          ethereum,
-          tokenContract,
-        ),
+        arguments: Tuple3(walletId, ethereum, tokenContract),
       ),
     );
   }
@@ -208,10 +184,7 @@ class TokenWalletOptions extends ConsumerWidget {
     unawaited(
       Navigator.of(context).pushNamed(
         BuyInWalletView.routeName,
-        arguments: Tuple2(
-          ethereum,
-          tokenContract,
-        ),
+        arguments: Tuple2(ethereum, tokenContract),
       ),
     );
   }
@@ -228,50 +201,35 @@ class TokenWalletOptions extends ConsumerWidget {
           onPressed: () {
             Navigator.of(context).pushNamed(
               ReceiveView.routeName,
-              arguments: Tuple2(
-                walletId,
-                tokenContract,
-              ),
+              arguments: Tuple2(walletId, tokenContract),
             );
           },
           subLabel: "Receive",
           iconAssetPathSVG: Assets.svg.arrowDownLeft,
         ),
-        const SizedBox(
-          width: 16,
-        ),
+        const SizedBox(width: 16),
         TokenOptionsButton(
           onPressed: () {
             Navigator.of(context).pushNamed(
               TokenSendView.routeName,
-              arguments: Tuple3(
-                walletId,
-                ethereum,
-                tokenContract,
-              ),
+              arguments: Tuple3(walletId, ethereum, tokenContract),
             );
           },
           subLabel: "Send",
           iconAssetPathSVG: Assets.svg.arrowUpRight,
         ),
         if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
-          const SizedBox(
-            width: 16,
-          ),
+          const SizedBox(width: 16),
         if (AppConfig.hasFeature(AppFeature.swap) && showExchange)
           TokenOptionsButton(
             onPressed: () => _onExchangePressed(context),
             subLabel: "Swap",
             iconAssetPathSVG: ref.watch(
-              themeProvider.select(
-                (value) => value.assets.exchange,
-              ),
+              themeProvider.select((value) => value.assets.exchange),
             ),
           ),
         if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
-          const SizedBox(
-            width: 16,
-          ),
+          const SizedBox(width: 16),
         if (AppConfig.hasFeature(AppFeature.buy) && showExchange)
           TokenOptionsButton(
             onPressed: () => _onBuyPressed(context),
@@ -320,46 +278,47 @@ class TokenOptionsButton extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             child: ConditionalParent(
               condition: iconSize < 24,
-              builder: (child) => RoundedContainer(
-                padding: const EdgeInsets.all(6),
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .tokenSummaryIcon
-                    .withOpacity(0.4),
-                radiusMultiplier: 10,
-                child: Center(
-                  child: child,
-                ),
-              ),
-              child: iconAssetPathSVG.startsWith("assets/")
-                  ? SvgPicture.asset(
-                      iconAssetPathSVG,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .tokenSummaryIcon,
-                      width: iconSize,
-                      height: iconSize,
-                    )
-                  : SvgPicture.file(
-                      File(iconAssetPathSVG),
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .tokenSummaryIcon,
-                      width: iconSize,
-                      height: iconSize,
-                    ),
+              builder:
+                  (child) => RoundedContainer(
+                    padding: const EdgeInsets.all(6),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .tokenSummaryIcon
+                        .withOpacity(0.4),
+                    radiusMultiplier: 10,
+                    child: Center(child: child),
+                  ),
+              child:
+                  iconAssetPathSVG.startsWith("assets/")
+                      ? SvgPicture.asset(
+                        iconAssetPathSVG,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.tokenSummaryIcon,
+                        width: iconSize,
+                        height: iconSize,
+                      )
+                      : SvgPicture.file(
+                        File(iconAssetPathSVG),
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.tokenSummaryIcon,
+                        width: iconSize,
+                        height: iconSize,
+                      ),
             ),
           ),
         ),
-        const SizedBox(
-          height: 6,
-        ),
+        const SizedBox(height: 6),
         Text(
           subLabel,
           style: STextStyles.w500_12(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .tokenSummaryTextPrimary,
+            color:
+                Theme.of(
+                  context,
+                ).extension<StackColors>()!.tokenSummaryTextPrimary,
           ),
         ),
       ],
@@ -368,10 +327,7 @@ class TokenOptionsButton extends StatelessWidget {
 }
 
 class CoinTickerTag extends ConsumerWidget {
-  const CoinTickerTag({
-    super.key,
-    required this.walletId,
-  });
+  const CoinTickerTag({super.key, required this.walletId});
 
   final String walletId;
 
@@ -382,11 +338,7 @@ class CoinTickerTag extends ConsumerWidget {
       radiusMultiplier: 0.25,
       color: Theme.of(context).extension<StackColors>()!.ethTagBG,
       child: Text(
-        ref
-            .watch(
-              pWalletCoin(walletId),
-            )
-            .ticker,
+        ref.watch(pWalletCoin(walletId)).ticker,
         style: STextStyles.w600_12(context).copyWith(
           color: Theme.of(context).extension<StackColors>()!.ethTagText,
         ),

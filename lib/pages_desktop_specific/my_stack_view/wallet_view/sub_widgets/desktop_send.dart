@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:cs_monero/cs_monero.dart' as lib_monero;
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +27,7 @@ import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
@@ -40,7 +40,6 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
@@ -51,20 +50,16 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import '../../../../widgets/animated_text.dart';
-import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
-import '../../../../widgets/desktop/desktop_fee_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
-import '../../../../widgets/fee_slider.dart';
+import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
@@ -75,7 +70,7 @@ import '../../../../widgets/textfield_icon_button.dart';
 import '../../../coin_control/desktop_coin_control_use_dialog.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
-import 'desktop_fee_dropdown.dart';
+import 'desktop_send_fee_form.dart';
 
 class DesktopSend extends ConsumerStatefulWidget {
   const DesktopSend({
@@ -106,8 +101,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
-  // late TextEditingController feeController;
   late TextEditingController memoController;
+  late TextEditingController nonceController;
 
   late final SendViewAutoFillData? _data;
 
@@ -115,6 +110,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
   final _memoFocus = FocusNode();
+  final _nonceFocusNode = FocusNode();
 
   late final bool isStellar;
 
@@ -135,14 +131,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool isCustomFee = false;
   int customFeeRate = 1;
-  (FeeRateType, String?, String?)? feeSelectionResult;
-
-  final stringsToLoopThrough = [
-    "Calculating",
-    "Calculating.",
-    "Calculating..",
-    "Calculating...",
-  ];
+  EthEIP1559Fee? ethFee;
 
   Future<void> scanWebcam() async {
     try {
@@ -197,9 +186,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.read(prefsChangeNotifierProvider).enableCoinControl;
 
     if (!(wallet is CoinControlInterface && coinControlEnabled) ||
-        (wallet is CoinControlInterface &&
-            coinControlEnabled &&
-            ref.read(desktopUseUTXOs).isEmpty)) {
+        (coinControlEnabled && ref.read(desktopUseUTXOs).isEmpty)) {
       // confirm send all
       if (amount == availableBalance) {
         final bool? shouldSendAll = await showDialog<bool>(
@@ -321,7 +308,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       if (isPaynymSend) {
         final paynymWallet = wallet as PaynymInterface;
 
-        final feeRate = ref.read(feeRateTypeStateProvider);
+        final feeRate = ref.read(feeRateTypeDesktopStateProvider);
         txDataFuture = paynymWallet.preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
@@ -356,11 +343,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
-                      (wallet is CoinControlInterface &&
-                              coinControlEnabled &&
+                      (coinControlEnabled &&
                               ref.read(desktopUseUTXOs).isNotEmpty)
                           ? ref.read(desktopUseUTXOs)
                           : null,
@@ -372,11 +358,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   recipients: [
                     (address: _address!, amount: amount, isChange: false),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
+                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
                   satsPerVByte: isCustomFee ? customFeeRate : null,
                   utxos:
-                      (wallet is CoinControlInterface &&
-                              coinControlEnabled &&
+                      (coinControlEnabled &&
                               ref.read(desktopUseUTXOs).isNotEmpty)
                           ? ref.read(desktopUseUTXOs)
                           : null,
@@ -425,14 +410,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           txData: TxData(
             recipients: [(address: _address!, amount: amount, isChange: false)],
             memo: memo,
-            feeRateType: ref.read(feeRateTypeStateProvider),
+            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
             satsPerVByte: isCustomFee ? customFeeRate : null,
+            nonce:
+                wallet.cryptoCurrency is Ethereum
+                    ? int.tryParse(nonceController.text)
+                    : null,
             utxos:
                 (wallet is CoinControlInterface &&
                         coinControlEnabled &&
                         ref.read(desktopUseUTXOs).isNotEmpty)
                     ? ref.read(desktopUseUTXOs)
                     : null,
+            ethEIP1559Fee: ethFee,
           ),
         );
       }
@@ -547,6 +537,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.text = "";
     baseAmountController.text = "";
     memoController.text = "";
+    nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
     if (mounted) {
@@ -569,9 +560,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _cachedAmountToSend = amount;
 
         final price =
-            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
 
-        if (price > Decimal.zero) {
+        if (price != null && price > Decimal.zero) {
           final String fiatAmountString = (amount.decimal * price)
               .toAmount(fractionDigits: 2)
               .fiatString(
@@ -800,9 +791,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final Amount? amount;
     if (baseAmount != null) {
       final _price =
-          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
 
-      if (_price == Decimal.zero) {
+      if (_price == null || _price == Decimal.zero) {
         amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
       } else {
         amount =
@@ -910,7 +901,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
     memoController = TextEditingController();
-    // feeController = TextEditingController();
+    nonceController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
@@ -964,12 +955,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     memoController.dispose();
-    // feeController.dispose();
+    nonceController.dispose();
 
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
     _memoFocus.dispose();
+    _nonceFocusNode.dispose();
     super.dispose();
   }
 
@@ -1671,228 +1663,64 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         if (!isPaynymSend) const SizedBox(height: 20),
         if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
-          ConditionalParent(
-            condition:
-                ref.watch(pWallets).getWallet(walletId) is ElectrumXInterface &&
-                !(((coin is Firo) &&
-                    (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                            FiroType.lelantus ||
-                        ref
-                                .watch(publicPrivateBalanceStateProvider.state)
-                                .state ==
-                            FiroType.spark))),
-            builder:
-                (child) => Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    child,
-                    CustomTextButton(
-                      text: "Edit",
-                      onTap: () async {
-                        feeSelectionResult =
-                            await showDialog<(FeeRateType, String?, String?)?>(
-                              context: context,
-                              builder:
-                                  (_) => DesktopFeeDialog(walletId: walletId),
-                            );
-
-                        if (feeSelectionResult != null) {
-                          if (isCustomFee &&
-                              feeSelectionResult!.$1 != FeeRateType.custom) {
-                            isCustomFee = false;
-                          } else if (!isCustomFee &&
-                              feeSelectionResult!.$1 == FeeRateType.custom) {
-                            isCustomFee = true;
-                          }
-                        }
-
-                        setState(() {});
-                      },
-                    ),
-                  ],
-                ),
-            child: Text(
-              "Transaction fee"
-              "${isCustomFee ? "" : " (${coin is Ethereum ? "max" : "estimated"})"}",
+          DesktopSendFeeForm(
+            walletId: walletId,
+            isToken: false,
+            onCustomFeeSliderChanged: (value) => customFeeRate = value,
+            onCustomFeeOptionChanged: (value) {
+              isCustomFee = value;
+              ethFee = null;
+            },
+            onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
+          ),
+        if (coin is Ethereum) const SizedBox(height: 20),
+        if (coin is Ethereum)
+          Text(
+            "Nonce",
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            ),
+            textAlign: TextAlign.left,
+          ),
+        if (coin is Ethereum) const SizedBox(height: 10),
+        if (coin is Ethereum)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              minLines: 1,
+              maxLines: 1,
+              key: const Key("sendViewNonceFieldKey"),
+              controller: nonceController,
+              readOnly: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              keyboardType: const TextInputType.numberWithOptions(),
+              focusNode: _nonceFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color:
                     Theme.of(
                       context,
-                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                    ).extension<StackColors>()!.textFieldActiveText,
+                height: 1.8,
               ),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
-          const SizedBox(height: 10),
-        if (coin is! NanoCurrency && coin is! Epiccash && coin is! Tezos)
-          if (!isCustomFee)
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child:
-                  (feeSelectionResult?.$2 == null)
-                      ? FutureBuilder(
-                        future: ref.watch(
-                          pWallets.select(
-                            (value) => value.getWallet(walletId).fees,
-                          ),
-                        ),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                                  ConnectionState.done &&
-                              snapshot.hasData) {
-                            return DesktopFeeItem(
-                              feeObject: snapshot.data,
-                              feeRateType: FeeRateType.average,
-                              walletId: walletId,
-                              isButton: false,
-                              feeFor: ({
-                                required Amount amount,
-                                required FeeRateType feeRateType,
-                                required int feeRate,
-                                required CryptoCurrency coin,
-                              }) async {
-                                if (ref
-                                        .read(feeSheetSessionCacheProvider)
-                                        .average[amount] ==
-                                    null) {
-                                  final wallet = ref
-                                      .read(pWallets)
-                                      .getWallet(walletId);
-
-                                  if (coin is Monero || coin is Wownero) {
-                                    final fee = await wallet.estimateFeeFor(
-                                      amount,
-                                      lib_monero
-                                          .TransactionPriority
-                                          .medium
-                                          .value,
-                                    );
-                                    ref
-                                            .read(feeSheetSessionCacheProvider)
-                                            .average[amount] =
-                                        fee;
-                                  } else if ((coin is Firo) &&
-                                      ref
-                                              .read(
-                                                publicPrivateBalanceStateProvider
-                                                    .state,
-                                              )
-                                              .state !=
-                                          FiroType.public) {
-                                    final firoWallet = wallet as FiroWallet;
-
-                                    if (ref
-                                            .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state,
-                                            )
-                                            .state ==
-                                        FiroType.lelantus) {
-                                      ref
-                                          .read(feeSheetSessionCacheProvider)
-                                          .average[amount] = await firoWallet
-                                          .estimateFeeForLelantus(amount);
-                                    } else if (ref
-                                            .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state,
-                                            )
-                                            .state ==
-                                        FiroType.spark) {
-                                      ref
-                                          .read(feeSheetSessionCacheProvider)
-                                          .average[amount] = await firoWallet
-                                          .estimateFeeForSpark(amount);
-                                    }
-                                  } else {
-                                    ref
-                                        .read(feeSheetSessionCacheProvider)
-                                        .average[amount] = await wallet
-                                        .estimateFeeFor(amount, feeRate);
-                                  }
-                                }
-                                return ref
-                                    .read(feeSheetSessionCacheProvider)
-                                    .average[amount]!;
-                              },
-                              isSelected: true,
-                            );
-                          } else {
-                            return Row(
-                              children: [
-                                AnimatedText(
-                                  stringsToLoopThrough: stringsToLoopThrough,
-                                  style: STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldActiveText,
-                                  ),
-                                ),
-                              ],
-                            );
-                          }
-                        },
-                      )
-                      : (coin is Firo) &&
-                          ref
-                                  .watch(
-                                    publicPrivateBalanceStateProvider.state,
-                                  )
-                                  .state ==
-                              FiroType.lelantus
-                      ? Text(
-                        "~${ref.watch(pAmountFormatter(coin)).format(Amount(rawValue: BigInt.parse("3794"), fractionDigits: coin.fractionDigits), indicatePrecisionLoss: false)}",
-                        style: STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        ).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveText,
-                        ),
-                        textAlign: TextAlign.left,
-                      )
-                      : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            feeSelectionResult?.$2 ?? "",
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveText,
-                            ),
-                            textAlign: TextAlign.left,
-                          ),
-                          Text(
-                            feeSelectionResult?.$3 ?? "",
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveSearchIconRight,
-                            ),
-                          ),
-                        ],
-                      ),
-            ),
-        if (isCustomFee)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12, top: 16),
-            child: FeeSlider(
-              coin: coin,
-              onSatVByteChanged: (rate) {
-                customFeeRate = rate;
-              },
+              decoration: standardInputDecoration(
+                "Leave empty to auto select nonce",
+                _nonceFocusNode,
+                context,
+                desktopMed: true,
+              ).copyWith(
+                contentPadding: const EdgeInsets.only(
+                  left: 16,
+                  top: 11,
+                  bottom: 12,
+                  right: 5,
+                ),
+              ),
             ),
           ),
         const SizedBox(height: 36),

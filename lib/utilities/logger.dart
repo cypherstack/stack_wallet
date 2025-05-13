@@ -53,87 +53,79 @@ class Logging {
   SendPort get _sendPort {
     final port = IsolateNameServer.lookupPortByName(_kLoggerPortName);
     if (port == null) {
-      throw Exception(
-        "Did you forget to call Logging.initialize()?",
-      );
+      throw Exception("Did you forget to call Logging.initialize()?");
     }
     return port;
   }
 
-  Future<void> initialize(String logsPath, {required Level level}) async {
+  Future<void> initialize(
+    String logsPath, {
+    required Level level,
+    Level? debugConsoleLevel,
+  }) async {
     if (Isolate.current.debugName != "main") {
       throw Exception(
         "Logging.initialize() must be called on the main isolate.",
       );
     }
     if (IsolateNameServer.lookupPortByName(_kLoggerPortName) != null) {
-      throw Exception(
-        "Logging was already initialized",
-      );
+      throw Exception("Logging was already initialized");
     }
 
     logsDirPath = logsPath;
 
     final receivePort = ReceivePort();
-    await Isolate.spawn(
-      (sendPort) {
-        final ReceivePort receivePort = ReceivePort();
-        sendPort.send(receivePort.sendPort);
+    await Isolate.spawn((sendPort) {
+      final ReceivePort receivePort = ReceivePort();
+      sendPort.send(receivePort.sendPort);
 
-        PrettyPrinter prettyPrinter(bool toFile) => PrettyPrinter(
-              printEmojis: false,
-              methodCount: 0,
-              dateTimeFormat:
-                  toFile ? DateTimeFormat.none : DateTimeFormat.dateAndTime,
-              colors: !toFile,
-              noBoxingByDefault: toFile,
-            );
+      PrettyPrinter prettyPrinter(bool toFile) => PrettyPrinter(
+        printEmojis: false,
+        methodCount: 0,
+        dateTimeFormat:
+            toFile ? DateTimeFormat.none : DateTimeFormat.dateAndTime,
+        colors: !toFile,
+        noBoxingByDefault: toFile,
+      );
 
-        final consoleLogger = Logger(
-          printer: PrefixPrinter(prettyPrinter(false)),
-          filter: ProductionFilter(),
-          level: level,
+      final consoleLogger = Logger(
+        printer: PrefixPrinter(prettyPrinter(false)),
+        filter: ProductionFilter(),
+        level: debugConsoleLevel ?? level,
+      );
+
+      final fileLogger = Logger(
+        printer: PrefixPrinter(prettyPrinter(true)),
+        filter: ProductionFilter(),
+        level: level,
+        output: AdvancedFileOutput(
+          path: logsDirPath,
+          overrideExisting: false,
+          latestFileName: "latest.txt",
+          writeImmediately: [Level.error, Level.fatal, Level.warning],
+        ),
+      );
+
+      receivePort.listen((message) {
+        final event = (message as (LogEvent, bool)).$1;
+        consoleLogger.log(
+          event.level,
+          event.message,
+          stackTrace: event.stackTrace,
+          error: event.error,
+          time: event.time.toUtc(),
         );
-
-        final fileLogger = Logger(
-          printer: PrefixPrinter(prettyPrinter(true)),
-          filter: ProductionFilter(),
-          level: level,
-          output: AdvancedFileOutput(
-            path: logsDirPath,
-            overrideExisting: false,
-            latestFileName: "latest.txt",
-            writeImmediately: [
-              Level.error,
-              Level.fatal,
-              Level.warning,
-              Level.trace, // mainly for spark debugging. TODO: Remove later
-            ],
-          ),
-        );
-
-        receivePort.listen((message) {
-          final event = (message as (LogEvent, bool)).$1;
-          consoleLogger.log(
+        if (message.$2) {
+          fileLogger.log(
             event.level,
-            event.message,
+            "${event.time.toUtc().toIso8601String()} ${event.message}",
             stackTrace: event.stackTrace,
             error: event.error,
-            time: event.time.toUtc(),
+            time: event.time,
           );
-          if (message.$2) {
-            fileLogger.log(
-              event.level,
-              "${event.time.toUtc().toIso8601String()} ${event.message}",
-              stackTrace: event.stackTrace,
-              error: event.error,
-              time: event.time,
-            );
-          }
-        });
-      },
-      receivePort.sendPort,
-    );
+        }
+      });
+    }, receivePort.sendPort);
     final loggerPort = await receivePort.first as SendPort;
     IsolateNameServer.registerPortWithName(loggerPort, _kLoggerPortName);
   }
@@ -155,18 +147,16 @@ class Logging {
       toFile = false;
     }
     try {
-      _sendPort.send(
-        (
-          LogEvent(
-            level,
-            _stringifyMessage(message),
-            time: time,
-            error: error,
-            stackTrace: stackTrace,
-          ),
-          toFile
+      _sendPort.send((
+        LogEvent(
+          level,
+          _stringifyMessage(message),
+          time: time,
+          error: error,
+          stackTrace: stackTrace,
         ),
-      );
+        toFile,
+      ));
     } catch (e, s) {
       t("Isolates suck", error: e, stackTrace: s);
     }
@@ -177,82 +167,76 @@ class Logging {
     DateTime? time,
     Object? error,
     StackTrace? stackTrace,
-  }) =>
-      log(
-        Level.trace,
-        message,
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => log(
+    Level.trace,
+    message,
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   void d(
     dynamic message, {
     DateTime? time,
     Object? error,
     StackTrace? stackTrace,
-  }) =>
-      log(
-        Level.debug,
-        message,
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => log(
+    Level.debug,
+    message,
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   void i(
     dynamic message, {
     DateTime? time,
     Object? error,
     StackTrace? stackTrace,
-  }) =>
-      log(
-        Level.info,
-        message,
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => log(
+    Level.info,
+    message,
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   void w(
     dynamic message, {
     DateTime? time,
     Object? error,
     StackTrace? stackTrace,
-  }) =>
-      log(
-        Level.warning,
-        message,
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => log(
+    Level.warning,
+    message,
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   void e(
     dynamic message, {
     DateTime? time,
     Object? error,
     StackTrace? stackTrace,
-  }) =>
-      log(
-        Level.error,
-        message,
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => log(
+    Level.error,
+    message,
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 
   void f(
     dynamic message, {
     DateTime? time,
     Object? error,
     StackTrace? stackTrace,
-  }) =>
-      log(
-        Level.fatal,
-        message,
-        time: time,
-        error: error,
-        stackTrace: stackTrace,
-      );
+  }) => log(
+    Level.fatal,
+    message,
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+  );
 }
