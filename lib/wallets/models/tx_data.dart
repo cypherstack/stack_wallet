@@ -64,15 +64,17 @@ class TxData {
   final tezart.OperationsList? tezosOperationsList;
 
   // firo spark specific
-  final List<
-      ({
-        String address,
-        Amount amount,
-        String memo,
-        bool isChange,
-      })>? sparkRecipients;
+  final List<({String address, Amount amount, String memo, bool isChange})>?
+  sparkRecipients;
   final List<TxData>? sparkMints;
   final List<SparkCoin>? usedSparkCoins;
+  final ({
+    String additionalInfo,
+    String name,
+    Address sparkAddress,
+    int validBlocks,
+  })?
+  sparkNameInfo;
 
   // xelis specific
   final String? otherData;
@@ -122,6 +124,7 @@ class TxData {
     this.tempTx,
     this.ignoreCachedBalanceChecks = false,
     this.opNameState,
+    this.sparkNameInfo,
   });
 
   Amount? get amount {
@@ -201,9 +204,10 @@ class TxData {
     }
   }
 
-  int? get estimatedSatsPerVByte => fee != null && vSize != null
-      ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
-      : null;
+  int? get estimatedSatsPerVByte =>
+      fee != null && vSize != null
+          ? (fee!.raw ~/ BigInt.from(vSize!)).toInt()
+          : null;
 
   TxData copyWith({
     FeeRateType? feeRateType,
@@ -237,19 +241,20 @@ class TxData {
     TransactionSubType? txSubType,
     List<Map<String, dynamic>>? mintsMapLelantus,
     tezart.OperationsList? tezosOperationsList,
-    List<
-            ({
-              String address,
-              Amount amount,
-              String memo,
-              bool isChange,
-            })>?
-        sparkRecipients,
+    List<({String address, Amount amount, String memo, bool isChange})>?
+    sparkRecipients,
     List<TxData>? sparkMints,
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
     bool? ignoreCachedBalanceChecks,
     NameOpState? opNameState,
+    ({
+      String additionalInfo,
+      String name,
+      Address sparkAddress,
+      int validBlocks,
+    })?
+    sparkNameInfo,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -290,11 +295,13 @@ class TxData {
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       opNameState: opNameState ?? this.opNameState,
+      sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
     );
   }
 
   @override
-  String toString() => 'TxData{'
+  String toString() =>
+      'TxData{'
       'feeRateType: $feeRateType, '
       'feeRateAmount: $feeRateAmount, '
       'satsPerVByte: $satsPerVByte, '
@@ -331,5 +338,6 @@ class TxData {
       'tempTx: $tempTx, '
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
       'opNameState: $opNameState, '
+      'sparkNameInfo: $sparkNameInfo, '
       '}';
 }
