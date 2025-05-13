@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,16 +17,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/monkey/monkey_view.dart';
 import '../../../../pages/namecoin_names/namecoin_names_home_view.dart';
 import '../../../../pages/paynym/paynym_claim_view.dart';
 import '../../../../pages/paynym/paynym_home_view.dart';
+import '../../../../pages/spark_names/spark_names_home_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/wallet/my_paynym_account_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
+import '../../../../themes/theme_providers.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
@@ -34,16 +38,23 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/coins/banano.dart';
 import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
+import '../../../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/wallet.dart' show Wallet;
 import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/static_overflow_row/static_overflow_row.dart';
 import '../../../cashfusion/desktop_cashfusion_view.dart';
 import '../../../churning/desktop_churning_view.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
@@ -53,6 +64,35 @@ import '../../../ordinals/desktop_ordinals_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
 import '../desktop_wallet_view.dart';
 import 'more_features/more_features_dialog.dart';
+
+enum WalletFeature {
+  anonymizeFunds("Anonymize funds", "Anonymize funds"),
+  swap("Swap", ""),
+  buy("Buy", "Buy cryptocurrency"),
+  paynym("PayNym", "Increased address privacy using BIP47"),
+  coinControl(
+    "Coin control",
+    "Control, freeze, and utilize outputs at your discretion",
+  ),
+  lelantusCoins("Lelantus coins", "View wallet lelantus coins"),
+  sparkCoins("Spark coins", "View wallet spark coins"),
+  ordinals("Ordinals", "View and control your ordinals in ${AppConfig.prefix}"),
+  monkey("MonKey", "Generate Banano MonKey"),
+  fusion("Fusion", "Decentralized mixing protocol"),
+  churn("Churn", "Churning"),
+  namecoinName("Domains", "Namecoin DNS"),
+  sparkNames("Names", "Spark names"),
+
+  // special cases
+  clearSparkCache("", ""),
+  lelantusScanOption("", ""),
+  rbf("", ""),
+  reuseAddress("", "");
+
+  final String label;
+  final String description;
+  const WalletFeature(this.label, this.description);
+}
 
 class DesktopWalletFeatures extends ConsumerStatefulWidget {
   const DesktopWalletFeatures({super.key, required this.walletId});
@@ -65,8 +105,6 @@ class DesktopWalletFeatures extends ConsumerStatefulWidget {
 }
 
 class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
-  static const double buttonWidth = 120;
-
   Future<void> _onSwapPressed() async {
     ref.read(currentDesktopMenuItemProvider.state).state =
         DesktopMenuItemId.exchange;
@@ -75,57 +113,35 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   }
 
   Future<void> _onBuyPressed() async {
-    Navigator.of(context, rootNavigator: true).pop();
     ref.read(currentDesktopMenuItemProvider.state).state =
         DesktopMenuItemId.buy;
     ref.read(prevDesktopMenuItemProvider.state).state = DesktopMenuItemId.buy;
   }
 
-  Future<void> _onMorePressed() async {
+  Future<void> _onMorePressed(
+    List<(WalletFeature, String, FutureOr<void> Function())> options,
+  ) async {
     await showDialog<void>(
       context: context,
       builder:
-          (_) => MoreFeaturesDialog(
-            walletId: widget.walletId,
-            onPaynymPressed: _onPaynymPressed,
-            onBuyPressed: _onBuyPressed,
-            onCoinControlPressed: _onCoinControlPressed,
-            onLelantusCoinsPressed: _onLelantusCoinsPressed,
-            onSparkCoinsPressedPressed: _onSparkCoinsPressed,
-            // onAnonymizeAllPressed: _onAnonymizeAllPressed,
-            onWhirlpoolPressed: _onWhirlpoolPressed,
-            onOrdinalsPressed: _onOrdinalsPressed,
-            onMonkeyPressed: _onMonkeyPressed,
-            onFusionPressed: _onFusionPressed,
-            onChurnPressed: _onChurnPressed,
-            onNamesPressed: _onNamesPressed,
-          ),
+          (_) =>
+              MoreFeaturesDialog(walletId: widget.walletId, options: options),
     );
   }
 
-  void _onWhirlpoolPressed() {
-    Navigator.of(context, rootNavigator: true).pop();
-  }
-
   void _onCoinControlPressed() {
-    Navigator.of(context, rootNavigator: true).pop();
-
     Navigator.of(
       context,
     ).pushNamed(DesktopCoinControlView.routeName, arguments: widget.walletId);
   }
 
   void _onLelantusCoinsPressed() {
-    Navigator.of(context, rootNavigator: true).pop();
-
     Navigator.of(
       context,
     ).pushNamed(LelantusCoinsView.routeName, arguments: widget.walletId);
   }
 
   void _onSparkCoinsPressed() {
-    Navigator.of(context, rootNavigator: true).pop();
-
     Navigator.of(
       context,
     ).pushNamed(SparkCoinsView.routeName, arguments: widget.walletId);
@@ -290,8 +306,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   }
 
   Future<void> _onPaynymPressed() async {
-    Navigator.of(context, rootNavigator: true).pop();
-
     unawaited(
       showDialog(
         context: context,
@@ -332,114 +346,158 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   }
 
   Future<void> _onMonkeyPressed() async {
-    Navigator.of(context, rootNavigator: true).pop();
-
     await (Navigator.of(
       context,
     ).pushNamed(MonkeyView.routeName, arguments: widget.walletId));
   }
 
   void _onOrdinalsPressed() {
-    Navigator.of(context, rootNavigator: true).pop();
-
     Navigator.of(
       context,
     ).pushNamed(DesktopOrdinalsView.routeName, arguments: widget.walletId);
   }
 
   void _onFusionPressed() {
-    Navigator.of(context, rootNavigator: true).pop();
-
     Navigator.of(
       context,
     ).pushNamed(DesktopCashFusionView.routeName, arguments: widget.walletId);
   }
 
   void _onChurnPressed() {
-    Navigator.of(context, rootNavigator: true).pop();
-
     Navigator.of(
       context,
     ).pushNamed(DesktopChurningView.routeName, arguments: widget.walletId);
   }
 
   void _onNamesPressed() {
-    Navigator.of(context, rootNavigator: true).pop();
-
     Navigator.of(
       context,
     ).pushNamed(NamecoinNamesHomeView.routeName, arguments: widget.walletId);
   }
 
+  void _onSparkNamesPressed() {
+    Navigator.of(
+      context,
+    ).pushNamed(SparkNamesHomeView.routeName, arguments: widget.walletId);
+  }
+
+  List<(WalletFeature, String, FutureOr<void> Function())> _getOptions(
+    Wallet wallet,
+    bool showExchange,
+    bool showCoinControl,
+    bool firoAdvanced,
+  ) {
+    final coin = wallet.info.coin;
+    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+
+    return [
+      if (!isViewOnly && coin is Firo)
+        (
+          WalletFeature.anonymizeFunds,
+          Assets.svg.recycle,
+          _onAnonymizeAllPressed,
+        ),
+      if (!isViewOnly &&
+          Constants.enableExchange &&
+          AppConfig.hasFeature(AppFeature.swap) &&
+          showExchange)
+        (WalletFeature.swap, Assets.svg.swap, _onSwapPressed),
+
+      if (showExchange && AppConfig.hasFeature(AppFeature.buy))
+        (WalletFeature.buy, Assets.svg.swap, _onBuyPressed),
+
+      if (wallet is SparkInterface)
+        (WalletFeature.sparkNames, Assets.svg.robotHead, _onSparkNamesPressed),
+
+      if (showCoinControl)
+        (
+          WalletFeature.coinControl,
+          Assets.svg.coinControl.gamePad,
+          _onCoinControlPressed,
+        ),
+
+      if (firoAdvanced && wallet is FiroWallet)
+        (
+          WalletFeature.lelantusCoins,
+          Assets.svg.coinControl.gamePad,
+          _onLelantusCoinsPressed,
+        ),
+
+      if (firoAdvanced && wallet is FiroWallet)
+        (
+          WalletFeature.sparkCoins,
+          Assets.svg.coinControl.gamePad,
+          _onSparkCoinsPressed,
+        ),
+
+      if (!isViewOnly && wallet is PaynymInterface)
+        (WalletFeature.paynym, Assets.svg.robotHead, _onPaynymPressed),
+
+      if (wallet is OrdinalsInterface)
+        (WalletFeature.ordinals, Assets.svg.ordinal, _onOrdinalsPressed),
+
+      if (wallet.info.coin is Banano)
+        (WalletFeature.monkey, Assets.svg.monkey, _onMonkeyPressed),
+
+      if (!isViewOnly && wallet is CashFusionInterface)
+        (WalletFeature.fusion, Assets.svg.cashFusion, _onFusionPressed),
+
+      if (!isViewOnly && wallet is LibMoneroWallet)
+        (WalletFeature.churn, Assets.svg.churn, _onChurnPressed),
+
+      if (wallet is NamecoinWallet)
+        (WalletFeature.namecoinName, Assets.svg.robotHead, _onNamesPressed),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final wallet = ref.watch(pWallets).getWallet(widget.walletId);
-    final coin = wallet.info.coin;
 
-    final prefs = ref.watch(prefsChangeNotifierProvider);
-    final showExchange = prefs.enableExchange;
-
-    final showMore =
-        wallet is PaynymInterface ||
-        (wallet is CoinControlInterface &&
-            ref.watch(
-              prefsChangeNotifierProvider.select(
-                (value) => value.enableCoinControl,
-              ),
-            )) ||
-        coin is Firo ||
-        // manager.hasWhirlpoolSupport ||
-        coin is Banano ||
-        wallet is OrdinalsInterface ||
-        wallet is CashFusionInterface;
+    final options = _getOptions(
+      wallet,
+      ref.watch(
+        prefsChangeNotifierProvider.select((value) => value.enableExchange),
+      ),
+      (wallet is CoinControlInterface &&
+          ref.watch(
+            prefsChangeNotifierProvider.select(
+              (value) => value.enableCoinControl,
+            ),
+          )),
+      ref.watch(
+        prefsChangeNotifierProvider.select((s) => s.advancedFiroFeatures),
+      ),
+    );
 
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (!isViewOnly && wallet.info.coin is Firo)
-          SecondaryButton(
-            label: "Anonymize funds",
-            width: buttonWidth * 2,
-            buttonHeight: ButtonHeight.l,
-            icon: SvgPicture.asset(
-              Assets.svg.recycle,
-              height: 20,
-              width: 20,
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
-            ),
-            onPressed: () => _onAnonymizeAllPressed(),
-          ),
-        if (!isViewOnly && wallet.info.coin is Firo) const SizedBox(width: 16),
-        if (!isViewOnly &&
-            Constants.enableExchange &&
-            AppConfig.hasFeature(AppFeature.swap) &&
-            showExchange)
-          SecondaryButton(
-            label: "Swap",
-            width: buttonWidth,
-            buttonHeight: ButtonHeight.l,
-            icon: SvgPicture.asset(
-              Assets.svg.arrowRotate,
-              height: 20,
-              width: 20,
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
-            ),
-            onPressed: () => _onSwapPressed(),
-          ),
+    final isViewOnlyNoAddressGen =
+        wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
 
-        if (showMore) const SizedBox(width: 16),
-        if (showMore)
-          SecondaryButton(
+    final extraOptions = [
+      if (wallet is SparkInterface && !isViewOnly)
+        (WalletFeature.clearSparkCache, Assets.svg.key, () => ()),
+
+      if (wallet is LelantusInterface && !isViewOnly)
+        (WalletFeature.lelantusScanOption, Assets.svg.key, () => ()),
+
+      if (wallet is RbfInterface) (WalletFeature.rbf, Assets.svg.key, () => ()),
+
+      if (!isViewOnlyNoAddressGen)
+        (WalletFeature.reuseAddress, Assets.svg.key, () => ()),
+    ];
+
+    return StaticOverflowRow(
+      forcedOverflow: extraOptions.isNotEmpty,
+      overflowBuilder: (count) {
+        return Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: SecondaryButton(
             label: "More",
-            width: buttonWidth,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             buttonHeight: ButtonHeight.l,
             icon: SvgPicture.asset(
               Assets.svg.bars,
@@ -450,9 +508,52 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                     context,
                   ).extension<StackColors>()!.buttonTextSecondary,
             ),
-            onPressed: () => _onMorePressed(),
+            onPressed:
+                () => _onMorePressed([
+                  ...options.sublist(options.length - count),
+                  ...extraOptions,
+                ]),
           ),
-      ],
+        );
+      },
+
+      children: options
+          .map(
+            (option) => Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: SecondaryButton(
+                label: option.$1.label,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                buttonHeight: ButtonHeight.l,
+                icon:
+                    option.$1 == WalletFeature.buy
+                        ? SvgPicture.file(
+                          File(
+                            ref.watch(
+                              themeProvider.select((value) => value.assets.buy),
+                            ),
+                          ),
+                          height: 20,
+                          width: 20,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.buttonTextSecondary,
+                        )
+                        : SvgPicture.asset(
+                          option.$2,
+                          height: 20,
+                          width: 20,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.buttonTextSecondary,
+                        ),
+                onPressed: () => option.$3(),
+              ),
+            ),
+          )
+          .toList(growable: false),
     );
   }
 }

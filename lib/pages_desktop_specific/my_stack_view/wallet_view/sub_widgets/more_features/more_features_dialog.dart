@@ -8,6 +8,7 @@
  *
  */
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -15,16 +16,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../../../../../app_config.dart';
 import '../../../../../db/sqlite/firo_cache.dart';
-import '../../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../../providers/db/main_db_provider.dart';
-import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/wallets_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../themes/theme_providers.dart';
 import '../../../../../utilities/assets.dart';
-import '../../../../../utilities/constants.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/show_loading.dart';
 import '../../../../../utilities/text_styles.dart';
@@ -32,17 +29,6 @@ import '../../../../../utilities/util.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../../wallets/wallet/impl/firo_wallet.dart';
-import '../../../../../wallets/wallet/impl/namecoin_wallet.dart';
-import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -50,38 +36,17 @@ import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/rounded_container.dart';
 import '../../../../../widgets/stack_dialog.dart';
+import '../desktop_wallet_features.dart';
 
 class MoreFeaturesDialog extends ConsumerStatefulWidget {
   const MoreFeaturesDialog({
     super.key,
     required this.walletId,
-    required this.onPaynymPressed,
-    required this.onBuyPressed,
-    required this.onCoinControlPressed,
-    required this.onLelantusCoinsPressed,
-    required this.onSparkCoinsPressedPressed,
-    // required this.onAnonymizeAllPressed,
-    required this.onWhirlpoolPressed,
-    required this.onOrdinalsPressed,
-    required this.onMonkeyPressed,
-    required this.onFusionPressed,
-    required this.onChurnPressed,
-    required this.onNamesPressed,
+    required this.options,
   });
 
   final String walletId;
-  final VoidCallback? onPaynymPressed;
-  final VoidCallback? onBuyPressed;
-  final VoidCallback? onCoinControlPressed;
-  final VoidCallback? onLelantusCoinsPressed;
-  final VoidCallback? onSparkCoinsPressedPressed;
-  // final VoidCallback? onAnonymizeAllPressed;
-  final VoidCallback? onWhirlpoolPressed;
-  final VoidCallback? onOrdinalsPressed;
-  final VoidCallback? onMonkeyPressed;
-  final VoidCallback? onFusionPressed;
-  final VoidCallback? onChurnPressed;
-  final VoidCallback? onNamesPressed;
+  final List<(WalletFeature, String, FutureOr<void> Function())> options;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -364,16 +329,6 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
       pWallets.select((value) => value.getWallet(widget.walletId)),
     );
 
-    final coinControlPrefEnabled = ref.watch(
-      prefsChangeNotifierProvider.select((value) => value.enableCoinControl),
-    );
-
-    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
-    final isViewOnlyNoAddressGen =
-        wallet is ViewOnlyOptionInterface &&
-        wallet.isViewOnly &&
-        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
-
     return DesktopDialog(
       maxHeight: double.infinity,
       child: Column(
@@ -392,213 +347,147 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          if (Constants.enableExchange &&
-              AppConfig.hasFeature(AppFeature.buy) &&
-              ref.watch(prefsChangeNotifierProvider).enableExchange)
-            _MoreFeaturesItem(
-              label: "Buy",
-              detail: "Buy cryptocurrency",
-              isSvgFile: true,
-              iconAsset: ref.watch(
-                themeProvider.select((value) => value.assets.buy),
-              ),
-              onPressed: () async => widget.onBuyPressed?.call(),
-            ),
-          // if (!isViewOnly && wallet.info.coin is Firo)
-          //   _MoreFeaturesItem(
-          //     label: "Anonymize funds",
-          //     detail: "Anonymize funds",
-          //     iconAsset: Assets.svg.recycle,
-          //     onPressed: () async => widget.onAnonymizeAllPressed?.call(),
-          //   ),
-          // TODO: [prio=med]
-          // if (manager.hasWhirlpoolSupport)
-          //   _MoreFeaturesItem(
-          //     label: "Whirlpool",
-          //     detail: "Powerful Bitcoin privacy enhancer",
-          //     iconAsset: Assets.svg.whirlPool,
-          //     onPressed: () => widget.onWhirlpoolPressed?.call(),
-          //   ),
-          if (wallet is CoinControlInterface && coinControlPrefEnabled)
-            _MoreFeaturesItem(
-              label: "Coin control",
-              detail: "Control, freeze, and utilize outputs at your discretion",
-              iconAsset: Assets.svg.coinControl.gamePad,
-              onPressed: () async => widget.onCoinControlPressed?.call(),
-            ),
-          if (wallet is FiroWallet &&
-              ref.watch(
-                prefsChangeNotifierProvider.select(
-                  (s) => s.advancedFiroFeatures,
-                ),
-              ))
-            _MoreFeaturesItem(
-              label: "Lelantus Coins",
-              detail: "View wallet lelantus coins",
-              iconAsset: Assets.svg.coinControl.gamePad,
-              onPressed: () async => widget.onLelantusCoinsPressed?.call(),
-            ),
-          if (wallet is FiroWallet &&
-              ref.watch(
-                prefsChangeNotifierProvider.select(
-                  (s) => s.advancedFiroFeatures,
-                ),
-              ))
-            _MoreFeaturesItem(
-              label: "Spark Coins",
-              detail: "View wallet spark coins",
-              iconAsset: Assets.svg.coinControl.gamePad,
-              onPressed: () async => widget.onSparkCoinsPressedPressed?.call(),
-            ),
-          if (!isViewOnly && wallet is PaynymInterface)
-            _MoreFeaturesItem(
-              label: "PayNym",
-              detail: "Increased address privacy using BIP47",
-              iconAsset: Assets.svg.robotHead,
-              onPressed: () async => widget.onPaynymPressed?.call(),
-            ),
-          if (wallet is OrdinalsInterface)
-            _MoreFeaturesItem(
-              label: "Ordinals",
-              detail: "View and control your ordinals in ${AppConfig.prefix}",
-              iconAsset: Assets.svg.ordinal,
-              onPressed: () async => widget.onOrdinalsPressed?.call(),
-            ),
-          if (wallet.info.coin is Banano)
-            _MoreFeaturesItem(
-              label: "MonKey",
-              detail: "Generate Banano MonKey",
-              iconAsset: Assets.svg.monkey,
-              onPressed: () async => widget.onMonkeyPressed?.call(),
-            ),
-          if (!isViewOnly && wallet is CashFusionInterface)
-            _MoreFeaturesItem(
-              label: "Fusion",
-              detail: "Decentralized mixing protocol",
-              iconAsset: Assets.svg.cashFusion,
-              onPressed: () async => widget.onFusionPressed?.call(),
-            ),
-          if (!isViewOnly && wallet is LibMoneroWallet)
-            _MoreFeaturesItem(
-              label: "Churn",
-              detail: "Churning",
-              iconAsset: Assets.svg.churn,
-              onPressed: () async => widget.onChurnPressed?.call(),
-            ),
-          if (wallet is NamecoinWallet)
-            _MoreFeaturesItem(
-              label: "Domains",
-              detail: "Namecoin DNS",
-              iconAsset: Assets.svg.robotHead,
-              onPressed: () async => widget.onNamesPressed?.call(),
-            ),
-          if (wallet is SparkInterface && !isViewOnly)
-            _MoreFeaturesClearSparkCacheItem(
-              cryptoCurrency: wallet.cryptoCurrency,
-            ),
-          if (wallet is LelantusInterface && !isViewOnly)
-            _MoreFeaturesItemBase(
-              child: Row(
-                children: [
-                  const SizedBox(width: 3),
-                  SizedBox(
-                    height: 20,
-                    width: 40,
-                    child: DraggableSwitchButton(
-                      isOn:
-                          ref.watch(
-                                pWalletInfo(
-                                  widget.walletId,
-                                ).select((value) => value.otherData),
-                              )[WalletInfoKeys.enableLelantusScanning]
-                              as bool? ??
-                          false,
-                      onValueChanged: _switchToggled,
-                    ),
+
+          ...widget.options.map((option) {
+            switch (option.$1) {
+              case WalletFeature.buy:
+                // Buy has a special icon
+                return _MoreFeaturesItem(
+                  label: option.$1.label,
+                  detail: option.$1.description,
+                  isSvgFile: true,
+                  iconAsset: ref.watch(
+                    themeProvider.select((value) => value.assets.buy),
                   ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  onPressed: () async {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    option.$3();
+                  },
+                );
+
+              case WalletFeature.clearSparkCache:
+                return _MoreFeaturesClearSparkCacheItem(
+                  cryptoCurrency: wallet.cryptoCurrency,
+                );
+
+              case WalletFeature.lelantusScanOption:
+                return _MoreFeaturesItemBase(
+                  child: Row(
                     children: [
-                      Text(
-                        "Scan for Lelantus transactions",
-                        style: STextStyles.w600_20(context),
+                      const SizedBox(width: 3),
+                      SizedBox(
+                        height: 20,
+                        width: 40,
+                        child: DraggableSwitchButton(
+                          isOn:
+                              ref.watch(
+                                    pWalletInfo(
+                                      widget.walletId,
+                                    ).select((value) => value.otherData),
+                                  )[WalletInfoKeys.enableLelantusScanning]
+                                  as bool? ??
+                              false,
+                          onValueChanged: _switchToggled,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Scan for Lelantus transactions",
+                            style: STextStyles.w600_20(context),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          if (wallet is RbfInterface)
-            _MoreFeaturesItemBase(
-              child: Row(
-                children: [
-                  const SizedBox(width: 3),
-                  SizedBox(
-                    height: 20,
-                    width: 40,
-                    child: DraggableSwitchButton(
-                      isOn:
-                          ref.watch(
-                                pWalletInfo(
-                                  widget.walletId,
-                                ).select((value) => value.otherData),
-                              )[WalletInfoKeys.enableOptInRbf]
-                              as bool? ??
-                          false,
-                      onValueChanged: _switchRbfToggled,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                );
+
+              case WalletFeature.rbf:
+                return _MoreFeaturesItemBase(
+                  child: Row(
                     children: [
-                      Text(
-                        "Flag outgoing transactions with opt-in RBF",
-                        style: STextStyles.w600_20(context),
+                      const SizedBox(width: 3),
+                      SizedBox(
+                        height: 20,
+                        width: 40,
+                        child: DraggableSwitchButton(
+                          isOn:
+                              ref.watch(
+                                    pWalletInfo(
+                                      widget.walletId,
+                                    ).select((value) => value.otherData),
+                                  )[WalletInfoKeys.enableOptInRbf]
+                                  as bool? ??
+                              false,
+                          onValueChanged: _switchRbfToggled,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Flag outgoing transactions with opt-in RBF",
+                            style: STextStyles.w600_20(context),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          // reuseAddress preference.
-          if (!isViewOnlyNoAddressGen)
-            _MoreFeaturesItemBase(
-              onPressed: _switchReuseAddressToggled,
-              child: Row(
-                children: [
-                  const SizedBox(width: 3),
-                  SizedBox(
-                    height: 20,
-                    width: 40,
-                    child: IgnorePointer(
-                      child: DraggableSwitchButton(
-                        isOn:
-                            ref.watch(
-                                  pWalletInfo(
-                                    widget.walletId,
-                                  ).select((value) => value.otherData),
-                                )[WalletInfoKeys.reuseAddress]
-                                as bool? ??
-                            false,
-                        controller: _switchController,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                );
+
+              case WalletFeature.reuseAddress:
+                return _MoreFeaturesItemBase(
+                  onPressed: _switchReuseAddressToggled,
+                  child: Row(
                     children: [
-                      Text(
-                        "Reuse receiving address",
-                        style: STextStyles.w600_20(context),
+                      const SizedBox(width: 3),
+                      SizedBox(
+                        height: 20,
+                        width: 40,
+                        child: IgnorePointer(
+                          child: DraggableSwitchButton(
+                            isOn:
+                                ref.watch(
+                                      pWalletInfo(
+                                        widget.walletId,
+                                      ).select((value) => value.otherData),
+                                    )[WalletInfoKeys.reuseAddress]
+                                    as bool? ??
+                                false,
+                            controller: _switchController,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Reuse receiving address",
+                            style: STextStyles.w600_20(context),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                );
+
+              default:
+                return _MoreFeaturesItem(
+                  label: option.$1.label,
+                  detail: option.$1.description,
+                  iconAsset: option.$2,
+                  onPressed: () async {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    option.$3();
+                  },
+                );
+            }
+          }),
+
           const SizedBox(height: 28),
         ],
       ),

@@ -33,7 +33,6 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -1197,10 +1196,8 @@ class _ConfirmTransactionViewState
                 label: "Send",
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
-                  final dynamic unlocked;
-
                   if (isDesktop) {
-                    unlocked = await showDialog<bool?>(
+                    final unlocked = await showDialog<bool?>(
                       context: context,
                       builder:
                           (context) => DesktopDialog(
@@ -1225,8 +1222,21 @@ class _ConfirmTransactionViewState
                             ),
                           ),
                     );
+                    if (context.mounted && unlocked is bool) {
+                      if (unlocked) {
+                        unawaited(_attemptSend(context));
+                      } else {
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: "Invalid passphrase",
+                            context: context,
+                          ),
+                        );
+                      }
+                    }
                   } else {
-                    unlocked = await Navigator.push(
+                    final unlocked = await Navigator.push(
                       context,
                       RouteGenerator.getRoute(
                         shouldUseMaterialRoute:
@@ -1248,22 +1258,21 @@ class _ConfirmTransactionViewState
                         ),
                       ),
                     );
-                  }
 
-                  if (mounted) {
-                    if (unlocked == true) {
-                      unawaited(_attemptSend(context));
-                    } else {
-                      unawaited(
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message:
-                              Util.isDesktop
-                                  ? "Invalid passphrase"
-                                  : "Invalid PIN",
-                          context: context,
-                        ),
-                      );
+                    if (context.mounted) {
+                      if (unlocked == true) {
+                        unawaited(_attemptSend(context));
+                      } else {
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: Util.isDesktop
+                              ? "Invalid passphrase"
+                              : "Invalid PIN",
+                            context: context,
+                          ),
+                        );
+                      }
                     }
                   }
                 },

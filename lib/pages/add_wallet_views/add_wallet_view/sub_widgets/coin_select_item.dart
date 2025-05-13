@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import '../../../../models/isar/exchange_cache/currency.dart';
@@ -28,10 +29,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 
 class CoinSelectItem extends ConsumerWidget {
-  const CoinSelectItem({
-    super.key,
-    required this.entity,
-  });
+  const CoinSelectItem({super.key, required this.entity});
 
   final AddWalletListEntity entity;
 
@@ -44,82 +42,77 @@ class CoinSelectItem extends ConsumerWidget {
 
     String? tokenImageUri;
     if (entity is EthTokenEntity) {
-      final currency = ExchangeDataLoadingService.instance.isar.currencies
-          .where()
-          .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-          .filter()
-          .tokenContractEqualTo(
-            (entity as EthTokenEntity).token.address,
-            caseSensitive: false,
-          )
-          .and()
-          .imageIsNotEmpty()
-          .findFirstSync();
+      final currency =
+          ExchangeDataLoadingService.instance.isar.currencies
+              .where()
+              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+              .filter()
+              .tokenContractEqualTo(
+                (entity as EthTokenEntity).token.address,
+                caseSensitive: false,
+              )
+              .and()
+              .imageIsNotEmpty()
+              .findFirstSync();
       tokenImageUri = currency?.image;
     }
 
     return Container(
       decoration: BoxDecoration(
-        color: selectedEntity == entity
-            ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
-            : Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius:
-            BorderRadius.circular(Constants.size.circularBorderRadius),
+        color:
+            selectedEntity == entity
+                ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
+                : Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: BorderRadius.circular(
+          Constants.size.circularBorderRadius,
+        ),
       ),
       child: MaterialButton(
         key: Key("coinSelectItemButtonKey_${entity.name}${entity.ticker}"),
-        padding: isDesktop
-            ? const EdgeInsets.only(left: 24)
-            : const EdgeInsets.all(12),
+        padding:
+            isDesktop
+                ? const EdgeInsets.only(left: 24)
+                : const EdgeInsets.all(12),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(Constants.size.circularBorderRadius),
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
         ),
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: isDesktop ? 70 : 0,
-          ),
+          constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
           child: Row(
             children: [
               tokenImageUri != null
-                  ? SvgPicture.network(
-                      tokenImageUri,
-                      width: 26,
-                      height: 26,
-                    )
+                  ? SvgPicture.network(tokenImageUri, width: 26, height: 26)
                   : SvgPicture.file(
-                      File(
-                        ref.watch(coinIconProvider(entity.cryptoCurrency)),
-                      ),
-                      width: 26,
-                      height: 26,
-                    ),
-              SizedBox(
-                width: isDesktop ? 12 : 10,
-              ),
+                    File(ref.watch(coinIconProvider(entity.cryptoCurrency))),
+                    width: 26,
+                    height: 26,
+                  ),
+              SizedBox(width: isDesktop ? 12 : 10),
               Text(
                 "${entity.name} (${entity.ticker})",
-                style: isDesktop
-                    ? STextStyles.desktopTextMedium(context)
-                    : STextStyles.subtitle600(context).copyWith(
-                        fontSize: 14,
-                      ),
+                style:
+                    isDesktop
+                        ? STextStyles.desktopTextMedium(context)
+                        : STextStyles.subtitle600(
+                          context,
+                        ).copyWith(fontSize: 14),
               ),
               if (isDesktop && selectedEntity == entity) const Spacer(),
               if (isDesktop && selectedEntity == entity)
                 Padding(
-                  padding: const EdgeInsets.only(
-                    right: 18,
-                  ),
+                  padding: const EdgeInsets.only(right: 18),
                   child: SizedBox(
                     width: 24,
                     height: 24,
                     child: SvgPicture.asset(
                       Assets.svg.check,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                 ),

@@ -139,12 +139,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required String path,
     required String password,
     required int wordCount,
+    required String seedOffset,
   });
 
   Future<lib_monero.Wallet> getRestoredWallet({
     required String path,
     required String password,
     required String mnemonic,
+    required String seedOffset,
     int height = 0,
   });
 
@@ -343,6 +345,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           path: path,
           password: password,
           wordCount: wordCount,
+          seedOffset: "", // default for non restored wallets for now
         );
 
         final height = wallet.getRefreshFromBlockHeight();
@@ -394,6 +397,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     await refreshMutex.protect(() async {
       final mnemonic = await getMnemonic();
+      final seedOffset = await getMnemonicPassphrase();
       final seedLength = mnemonic.trim().split(" ").length;
 
       invalidSeedLengthCheck(seedLength);
@@ -421,6 +425,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             password: password,
             mnemonic: mnemonic,
             height: height,
+            seedOffset: seedOffset,
           );
 
           if (libMoneroWallet != null) {
@@ -515,7 +520,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             trusted: node.trusted ?? false,
             useSSL: node.useSSL,
             socksProxyAddress:
-                proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+              node.forceNoTor ? null : proxy == null ? null : "${proxy.host.address}:${proxy.port}",
           );
         });
       } else {
@@ -526,7 +531,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           trusted: node.trusted ?? false,
           useSSL: node.useSSL,
           socksProxyAddress:
-              proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+            node.forceNoTor ? null : proxy == null ? null : "${proxy.host.address}:${proxy.port}",
         );
       }
       libMoneroWallet?.startSyncing();

@@ -68,6 +68,13 @@ class TxData {
   sparkRecipients;
   final List<TxData>? sparkMints;
   final List<SparkCoin>? usedSparkCoins;
+  final ({
+    String additionalInfo,
+    String name,
+    Address sparkAddress,
+    int validBlocks,
+  })?
+  sparkNameInfo;
 
   // xelis specific
   final String? otherData;
@@ -117,6 +124,7 @@ class TxData {
     this.tempTx,
     this.ignoreCachedBalanceChecks = false,
     this.opNameState,
+    this.sparkNameInfo,
   });
 
   Amount? get amount {
@@ -240,6 +248,13 @@ class TxData {
     TransactionV2? tempTx,
     bool? ignoreCachedBalanceChecks,
     NameOpState? opNameState,
+    ({
+      String additionalInfo,
+      String name,
+      Address sparkAddress,
+      int validBlocks,
+    })?
+    sparkNameInfo,
   }) {
     return TxData(
       feeRateType: feeRateType ?? this.feeRateType,
@@ -280,6 +295,7 @@ class TxData {
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       opNameState: opNameState ?? this.opNameState,
+      sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
     );
   }
 
@@ -322,5 +338,6 @@ class TxData {
       'tempTx: $tempTx, '
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
       'opNameState: $opNameState, '
+      'sparkNameInfo: $sparkNameInfo, '
       '}';
 }

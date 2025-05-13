@@ -32,13 +32,13 @@ dependencies:
 
   xelis_flutter:
     git:
-      url: https://github.com/Tritonn204/xelis_flutter_ffi.git
-      ref: v0.1.0
+      url: https://github.com/xelis-project/xelis-flutter-ffi.git
+      ref: v0.1.1
 
   flutter_libsparkmobile:
     git:
       url: https://github.com/cypherstack/flutter_libsparkmobile.git
-      ref: e8c502652da7836cd1a22893339838553675b464
+      ref: 66dab036ed7332fd4b0609e5eb59b0c1ac3eb98b
 
   # cs_monero compat (unpublished)
   compat:
@@ -188,8 +188,8 @@ dependencies:
       ref: dea799c20bc917f72b18c916ca96bc99fb1bd1c5
       path: packages/solana
   calendar_date_picker2: ^1.0.2
-  sqlite3: 2.4.3
-  sqlite3_flutter_libs: 0.5.22
+  sqlite3: 2.4.5
+  sqlite3_flutter_libs: 0.5.24
 #  camera_linux: ^0.0.8
   camera_linux:
     git:
@@ -205,7 +205,7 @@ dependencies:
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
-  cs_monero: 1.0.0-pre.2
+  cs_monero: 1.0.0-pre.3
   cs_monero_flutter_libs: 1.0.0-pre.0
   monero_rpc: ^2.0.0
   digest_auth: ^1.0.1
@@ -218,6 +218,9 @@ dependencies:
     git:
       url: https://github.com/Cyrix126/namecoin_dart
       ref: 819b21164ef93cc0889049d4a8a1be2d0cc36a1b
+  drift: ^2.22.1
+  drift_flutter: ^0.2.3
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:
@@ -238,6 +241,7 @@ dev_dependencies:
   isar_generator:
     version: 3.1.8
     hosted: https://pub.isar-community.dev/
+  drift_dev: ^2.22.1
 
 flutter_native_splash:
   image: assets/icon/splash.png

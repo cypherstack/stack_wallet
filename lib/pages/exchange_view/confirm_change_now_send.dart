@@ -17,6 +17,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/trade_wallet_lookup.dart';
+import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
@@ -246,8 +247,18 @@ class _ConfirmChangeNowSendViewState
       );
     }
 
-    if (unlocked is bool && unlocked && mounted) {
-      await _attemptSend(context);
+    if (unlocked is bool && mounted) {
+      if (unlocked) {
+        await _attemptSend(context);
+      } else {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Invalid passphrase",
+            context: context,
+          ),
+        );
+      }
     }
   }
 

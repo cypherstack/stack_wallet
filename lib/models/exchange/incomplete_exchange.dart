@@ -10,13 +10,16 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
+
+import '../../utilities/enums/exchange_rate_type_enum.dart';
 import 'response_objects/estimate.dart';
 import 'response_objects/trade.dart';
-import '../../utilities/enums/exchange_rate_type_enum.dart';
 
 class IncompleteExchangeModel extends ChangeNotifier {
   final String sendTicker;
+  final String? sendNetwork;
   final String receiveTicker;
+  final String? receiveNetwork;
 
   final String rateInfo;
 
@@ -74,7 +77,9 @@ class IncompleteExchangeModel extends ChangeNotifier {
 
   IncompleteExchangeModel({
     required this.sendTicker,
+    required this.sendNetwork,
     required this.receiveTicker,
+    required this.receiveNetwork,
     required this.rateInfo,
     required this.sendAmount,
     required this.receiveAmount,

@@ -20,6 +20,9 @@
 # is commented out by default.
 #.vscode/
 
+#CppWinRT manual install
+Microsoft.Windows*
+
 # Flutter/Dart/Pub related
 **/doc/api/
 .dart_tool/

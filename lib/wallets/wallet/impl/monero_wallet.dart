@@ -71,6 +71,7 @@ class MoneroWallet extends LibMoneroWallet {
     required String path,
     required String password,
     required int wordCount,
+    required String seedOffset,
   }) async {
     final lib_monero.MoneroSeedType type;
     switch (wordCount) {
@@ -90,6 +91,7 @@ class MoneroWallet extends LibMoneroWallet {
       path: path,
       password: password,
       seedType: type,
+      seedOffset: seedOffset,
     );
   }
 
@@ -98,12 +100,14 @@ class MoneroWallet extends LibMoneroWallet {
     required String path,
     required String password,
     required String mnemonic,
+    required String seedOffset,
     int height = 0,
   }) async => await lib_monero.MoneroWallet.restoreWalletFromSeed(
     path: path,
     password: password,
     seed: mnemonic,
     restoreHeight: height,
+    seedOffset: seedOffset,
   );
 
   @override
