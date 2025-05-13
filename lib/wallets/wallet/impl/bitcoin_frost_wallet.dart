@@ -337,7 +337,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     }
   }
 
-  Future<Amount> sweepAllEstimate(int feeRate) async {
+  Future<Amount> sweepAllEstimate(BigInt feeRate) async {
     int available = 0;
     int inputCount = 0;
     final height = await chainHeight;
@@ -367,11 +367,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   //   return vSize * (feeRatePerKB / 1000).ceil();
   // }
 
-  Amount _roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+  Amount _roughFeeEstimate(int inputCount, int outputCount, BigInt feeRatePerKB) {
     return Amount(
       rawValue: BigInt.from(
         ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-            (feeRatePerKB / 1000).ceil(),
+            (feeRatePerKB.toInt() / 1000).ceil(),
       ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
@@ -724,7 +724,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     final available = info.cachedBalance.spendable;
 
     if (available == amount) {
@@ -790,15 +790,15 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         fast: Amount.fromDecimal(
           fast,
           fractionDigits: cryptoCurrency.fractionDigits,
-        ).raw.toInt(),
+        ).raw,
         medium: Amount.fromDecimal(
           medium,
           fractionDigits: cryptoCurrency.fractionDigits,
-        ).raw.toInt(),
+        ).raw,
         slow: Amount.fromDecimal(
           slow,
           fractionDigits: cryptoCurrency.fractionDigits,
-        ).raw.toInt(),
+        ).raw,
       );
 
       Logging.instance.i("fetched fees: $feeObject");

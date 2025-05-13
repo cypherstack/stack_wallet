@@ -12,14 +12,14 @@ class MoneroWallet extends LibMoneroWallet {
     : super(Monero(network), lib_monero_compat.WalletType.monero);
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     if (libMoneroWallet == null ||
         syncStatus is! lib_monero_compat.SyncedSyncStatus) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
     lib_monero.TransactionPriority priority;
-    switch (feeRate) {
+    switch (feeRate.toInt()) {
       case 1:
         priority = lib_monero.TransactionPriority.low;
         break;

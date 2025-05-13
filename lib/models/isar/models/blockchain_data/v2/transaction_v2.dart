@@ -135,8 +135,9 @@ class TransactionV2 {
       return Amount.zeroWith(fractionDigits: fractionDigits);
     }
 
-    final inSum =
-        inputs.map((e) => e.value).reduce((value, element) => value += element);
+    final inSum = inputs
+        .map((e) => e.value)
+        .reduce((value, element) => value += element);
     final outSum = outputs
         .map((e) => e.value)
         .reduce((value, element) => value += element);
@@ -161,15 +162,20 @@ class TransactionV2 {
   }
 
   Amount getAmountSparkSelfMinted({required int fractionDigits}) {
-    final outSum = outputs.where((e) {
-      final op = e.scriptPubKeyHex.substring(0, 2).toUint8ListFromHex.first;
-      return e.walletOwns && (op == OP_SPARKMINT);
-    }).fold(BigInt.zero, (p, e) => p + e.value);
+    final outSum = outputs
+        .where((e) {
+          final op = e.scriptPubKeyHex.substring(0, 2).toUint8ListFromHex.first;
+          return e.walletOwns && (op == OP_SPARKMINT);
+        })
+        .fold(BigInt.zero, (p, e) => p + e.value);
 
     return Amount(rawValue: outSum, fractionDigits: fractionDigits);
   }
 
-  Amount getAmountSentFromThisWallet({required int fractionDigits}) {
+  Amount getAmountSentFromThisWallet({
+    required int fractionDigits,
+    required bool subtractFee,
+  }) {
     if (_isMonero()) {
       if (type == TransactionType.outgoing) {
         return _getMoneroAmount()!;
@@ -182,15 +188,11 @@ class TransactionV2 {
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
 
-    Amount amount = Amount(
-          rawValue: inSum,
-          fractionDigits: fractionDigits,
-        ) -
-        getAmountReceivedInThisWallet(
-          fractionDigits: fractionDigits,
-        );
+    Amount amount =
+        Amount(rawValue: inSum, fractionDigits: fractionDigits) -
+        getAmountReceivedInThisWallet(fractionDigits: fractionDigits);
 
-    if (subType != TransactionSubType.ethToken) {
+    if (subtractFee) {
       amount = amount - getFee(fractionDigits: fractionDigits);
     }
 
@@ -204,9 +206,9 @@ class TransactionV2 {
   }
 
   Set<String> associatedAddresses() => {
-        ...inputs.map((e) => e.addresses).expand((e) => e),
-        ...outputs.map((e) => e.addresses).expand((e) => e),
-      };
+    ...inputs.map((e) => e.addresses).expand((e) => e),
+    ...outputs.map((e) => e.addresses).expand((e) => e),
+  };
 
   Amount? _getOverrideFee() {
     try {
@@ -238,7 +240,8 @@ class TransactionV2 {
     required int minConfirms,
     required int minCoinbaseConfirms,
   }) {
-    String prettyConfirms() => "("
+    String prettyConfirms() =>
+        "("
         "${getConfirmations(currentChainHeight)}"
         "/"
         "${(isCoinbase() ? minCoinbaseConfirms : minConfirms)}"

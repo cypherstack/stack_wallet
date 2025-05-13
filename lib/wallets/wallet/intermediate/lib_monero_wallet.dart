@@ -520,7 +520,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             trusted: node.trusted ?? false,
             useSSL: node.useSSL,
             socksProxyAddress:
-              node.forceNoTor ? null : proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+                node.forceNoTor
+                    ? null
+                    : proxy == null
+                    ? null
+                    : "${proxy.host.address}:${proxy.port}",
           );
         });
       } else {
@@ -531,7 +535,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           trusted: node.trusted ?? false,
           useSSL: node.useSSL,
           socksProxyAddress:
-            node.forceNoTor ? null : proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+              node.forceNoTor
+                  ? null
+                  : proxy == null
+                  ? null
+                  : "${proxy.host.address}:${proxy.port}",
         );
       }
       libMoneroWallet?.startSyncing();
@@ -1230,9 +1238,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     numberOfBlocksFast: 10,
     numberOfBlocksAverage: 15,
     numberOfBlocksSlow: 20,
-    fast: lib_monero.TransactionPriority.high.value,
-    medium: lib_monero.TransactionPriority.medium.value,
-    slow: lib_monero.TransactionPriority.normal.value,
+    fast: BigInt.from(lib_monero.TransactionPriority.high.value),
+    medium: BigInt.from(lib_monero.TransactionPriority.medium.value),
+    slow: BigInt.from(lib_monero.TransactionPriority.normal.value),
   );
 
   @override

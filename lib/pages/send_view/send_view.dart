@@ -40,6 +40,7 @@ import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/eth_commons.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
@@ -58,6 +59,7 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
+import '../../widgets/eth_fee_form.dart';
 import '../../widgets/fee_slider.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
@@ -99,6 +101,13 @@ class SendView extends ConsumerStatefulWidget {
 }
 
 class _SendViewState extends ConsumerState<SendView> {
+  static const stringsToLoopThrough = [
+    "Calculating",
+    "Calculating.",
+    "Calculating..",
+    "Calculating...",
+  ];
+
   late final String walletId;
   late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
@@ -123,6 +132,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
   late final bool isStellar;
   late final bool isFiro;
+  late final bool isEth;
 
   Amount? _cachedAmountToSend;
   String? _address;
@@ -314,10 +324,10 @@ class _SendViewState extends ConsumerState<SendView> {
     );
     final Amount? amount;
     if (baseAmount != null) {
-      final Decimal _price =
-          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+      final _price =
+          ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
 
-      if (_price == Decimal.zero) {
+      if (_price == null || _price == Decimal.zero) {
         amount = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
       } else {
         amount =
@@ -367,9 +377,9 @@ class _SendViewState extends ConsumerState<SendView> {
         _cachedAmountToSend = amount;
 
         final price =
-            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin).item1;
+            ref.read(priceAnd24hChangeNotifierProvider).getPrice(coin)?.value;
 
-        if (price > Decimal.zero) {
+        if (price != null && price > Decimal.zero) {
           baseAmountController.text = (amount.decimal * price)
               .toAmount(fractionDigits: 2)
               .fiatString(
@@ -511,9 +521,9 @@ class _SendViewState extends ConsumerState<SendView> {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final feeObject = await wallet.fees;
 
-    late final int feeRate;
+    late final BigInt feeRate;
 
-    switch (ref.read(feeRateTypeStateProvider.state).state) {
+    switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
       case FeeRateType.fast:
         feeRate = feeObject.fast;
         break;
@@ -524,13 +534,13 @@ class _SendViewState extends ConsumerState<SendView> {
         feeRate = feeObject.slow;
         break;
       default:
-        feeRate = -1;
+        feeRate = BigInt.from(-1);
     }
 
     Amount fee;
     if (coin is Monero) {
       lib_monero.TransactionPriority specialMoneroId;
-      switch (ref.read(feeRateTypeStateProvider.state).state) {
+      switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
         case FeeRateType.fast:
           specialMoneroId = lib_monero.TransactionPriority.high;
           break;
@@ -544,7 +554,10 @@ class _SendViewState extends ConsumerState<SendView> {
           throw ArgumentError("custom fee not available for monero");
       }
 
-      fee = await wallet.estimateFeeFor(amount, specialMoneroId.value);
+      fee = await wallet.estimateFeeFor(
+        amount,
+        BigInt.from(specialMoneroId.value),
+      );
       cachedFees[amount] = ref
           .read(pAmountFormatter(coin))
           .format(fee, withUnitName: true, indicatePrecisionLoss: false);
@@ -699,7 +712,7 @@ class _SendViewState extends ConsumerState<SendView> {
       Future<TxData> txDataFuture;
 
       if (isPaynymSend) {
-        final feeRate = ref.read(feeRateTypeStateProvider);
+        final feeRate = ref.read(feeRateTypeMobileStateProvider);
         txDataFuture = (wallet as PaynymInterface).preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
@@ -710,7 +723,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 isChange: false,
               ),
             ],
-            satsPerVByte: isCustomFee ? customFeeRate : null,
+            satsPerVByte: isCustomFee.value ? customFeeRate : null,
             feeRateType: feeRate,
             utxos:
                 (wallet is CoinControlInterface &&
@@ -734,8 +747,8 @@ class _SendViewState extends ConsumerState<SendView> {
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  feeRateType: ref.read(feeRateTypeMobileStateProvider),
+                  satsPerVByte: isCustomFee.value ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled && selectedUTXOs.isNotEmpty)
                           ? selectedUTXOs
@@ -748,8 +761,8 @@ class _SendViewState extends ConsumerState<SendView> {
                   recipients: [
                     (address: _address!, amount: amount, isChange: false),
                   ],
-                  feeRateType: ref.read(feeRateTypeStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  feeRateType: ref.read(feeRateTypeMobileStateProvider),
+                  satsPerVByte: isCustomFee.value ? customFeeRate : null,
                   utxos:
                       (coinControlEnabled && selectedUTXOs.isNotEmpty)
                           ? selectedUTXOs
@@ -799,8 +812,9 @@ class _SendViewState extends ConsumerState<SendView> {
           txData: TxData(
             recipients: [(address: _address!, amount: amount, isChange: false)],
             memo: memo,
-            feeRateType: ref.read(feeRateTypeStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
+            feeRateType: ref.read(feeRateTypeMobileStateProvider),
+            satsPerVByte: isCustomFee.value ? customFeeRate : null,
+            ethEIP1559Fee: ethFee,
             utxos:
                 (wallet is CoinControlInterface &&
                         coinControlEnabled &&
@@ -947,9 +961,80 @@ class _SendViewState extends ConsumerState<SendView> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
-  bool isCustomFee = false;
-
+  final isCustomFee = ValueNotifier(false);
   int customFeeRate = 1;
+  EthEIP1559Fee? ethFee;
+
+  late final bool hasFees;
+
+  void _onSendToAddressPasteButtonPressed() async {
+    final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      String content = data.text!.trim();
+      if (content.contains("\n")) {
+        content = content.substring(0, content.indexOf("\n"));
+      }
+
+      if (coin is Epiccash) {
+        // strip http:// and https:// if content contains @
+        content = AddressUtils().formatAddress(content);
+      }
+
+      final trimmed = content.trim();
+      final parsed = AddressUtils.parsePaymentUri(
+        trimmed,
+        logging: Logging.instance,
+      );
+      if (parsed != null) {
+        _applyUri(parsed);
+      } else {
+        sendToController.text = content;
+        _address = content;
+
+        _setValidAddressProviders(_address);
+
+        setState(() {
+          _addressToggleFlag = sendToController.text.isNotEmpty;
+        });
+      }
+    }
+  }
+
+  void _onFeeSelectPressed() {
+    showModalBottomSheet<dynamic>(
+      backgroundColor: Colors.transparent,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (_) => TransactionFeeSelectionSheet(
+            walletId: walletId,
+            amount: (Decimal.tryParse(cryptoAmountController.text) ??
+                    ref.watch(pSendAmount)?.decimal ??
+                    Decimal.zero)
+                .toAmount(fractionDigits: coin.fractionDigits),
+            updateChosen: (String fee) {
+              if (fee == "custom") {
+                if (!isCustomFee.value) {
+                  setState(() {
+                    isCustomFee.value = true;
+                  });
+                }
+                return;
+              }
+
+              _setCurrentFee(fee, true);
+              setState(() {
+                _calculateFeesFuture = Future(() => fee);
+                if (isCustomFee.value) {
+                  isCustomFee.value = false;
+                }
+              });
+            },
+          ),
+    );
+  }
 
   @override
   void initState() {
@@ -958,6 +1043,10 @@ class _SendViewState extends ConsumerState<SendView> {
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
     });
+    isCustomFee.addListener(() {
+      if (!isCustomFee.value) ethFee = null;
+    });
+    hasFees = coin is! Epiccash && coin is! NanoCurrency && coin is! Tezos;
     _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
 
     _calculateFeesFuture = calculateFees(
@@ -969,6 +1058,7 @@ class _SendViewState extends ConsumerState<SendView> {
     scanner = widget.barcodeScanner;
     isStellar = coin is Stellar;
     isFiro = coin is Firo;
+    isEth = coin is Ethereum;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1066,6 +1156,7 @@ class _SendViewState extends ConsumerState<SendView> {
     _cryptoFocus.dispose();
     _baseFocus.dispose();
     _memoFocus.dispose();
+    isCustomFee.dispose();
     super.dispose();
   }
 
@@ -1135,6 +1226,15 @@ class _SendViewState extends ConsumerState<SendView> {
           sendToController.text = AddressUtils().formatAddress(_address!);
         }
       });
+    }
+
+    Decimal? price;
+    if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
+      price = ref.watch(
+        priceAnd24hChangeNotifierProvider.select(
+          (value) => value.getPrice(coin)?.value,
+        ),
+      );
     }
 
     return Background(
@@ -1297,13 +1397,14 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 ).copyWith(fontSize: 10),
                                                 textAlign: TextAlign.right,
                                               ),
-                                              Text(
-                                                "${(amount.decimal * ref.watch(priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin).item1))).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                style: STextStyles.subtitle(
-                                                  context,
-                                                ).copyWith(fontSize: 8),
-                                                textAlign: TextAlign.right,
-                                              ),
+                                              if (price != null)
+                                                Text(
+                                                  "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                  style: STextStyles.subtitle(
+                                                    context,
+                                                  ).copyWith(fontSize: 8),
+                                                  textAlign: TextAlign.right,
+                                                ),
                                             ],
                                           ),
                                         ),
@@ -2127,21 +2228,18 @@ class _SendViewState extends ConsumerState<SendView> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          if (coin is! Epiccash &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
+                          if (hasFees)
                             Text(
-                              "Transaction fee (estimated)",
+                              "Transaction fee ${isEth
+                                  ? isCustomFee.value
+                                      ? ""
+                                      : "(max)"
+                                  : "(estimated)"}",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          if (coin is! Epiccash &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
-                            const SizedBox(height: 8),
-                          if (coin is! Epiccash &&
-                              coin is! NanoCurrency &&
-                              coin is! Tezos)
+                          if (hasFees) const SizedBox(height: 8),
+                          if (hasFees)
                             Stack(
                               children: [
                                 TextField(
@@ -2176,68 +2274,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         .state !=
                                                     FiroType.public
                                             ? null
-                                            : () {
-                                              showModalBottomSheet<dynamic>(
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                context: context,
-                                                shape:
-                                                    const RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.vertical(
-                                                            top:
-                                                                Radius.circular(
-                                                                  20,
-                                                                ),
-                                                          ),
-                                                    ),
-                                                builder:
-                                                    (
-                                                      _,
-                                                    ) => TransactionFeeSelectionSheet(
-                                                      walletId: walletId,
-                                                      amount: (Decimal.tryParse(
-                                                                cryptoAmountController
-                                                                    .text,
-                                                              ) ??
-                                                              ref
-                                                                  .watch(
-                                                                    pSendAmount,
-                                                                  )
-                                                                  ?.decimal ??
-                                                              Decimal.zero)
-                                                          .toAmount(
-                                                            fractionDigits:
-                                                                coin.fractionDigits,
-                                                          ),
-                                                      updateChosen: (
-                                                        String fee,
-                                                      ) {
-                                                        if (fee == "custom") {
-                                                          if (!isCustomFee) {
-                                                            setState(() {
-                                                              isCustomFee =
-                                                                  true;
-                                                            });
-                                                          }
-                                                          return;
-                                                        }
-
-                                                        _setCurrentFee(
-                                                          fee,
-                                                          true,
-                                                        );
-                                                        setState(() {
-                                                          _calculateFeesFuture =
-                                                              Future(() => fee);
-                                                          if (isCustomFee) {
-                                                            isCustomFee = false;
-                                                          }
-                                                        });
-                                                      },
-                                                    ),
-                                              );
-                                            },
+                                            : _onFeeSelectPressed,
                                     child:
                                         (isFiro &&
                                                 ref
@@ -2270,12 +2307,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     } else {
                                                       return AnimatedText(
                                                         stringsToLoopThrough:
-                                                            const [
-                                                              "Calculating",
-                                                              "Calculating.",
-                                                              "Calculating..",
-                                                              "Calculating...",
-                                                            ],
+                                                            stringsToLoopThrough,
                                                         style:
                                                             STextStyles.itemSubtitle(
                                                               context,
@@ -2296,7 +2328,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     Text(
                                                       ref
                                                           .watch(
-                                                            feeRateTypeStateProvider
+                                                            feeRateTypeMobileStateProvider
                                                                 .state,
                                                           )
                                                           .state
@@ -2323,7 +2355,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                             false,
                                                           );
                                                           return Text(
-                                                            isCustomFee
+                                                            isCustomFee.value
                                                                 ? ""
                                                                 : "~${snapshot.data!}",
                                                             style:
@@ -2334,12 +2366,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         } else {
                                                           return AnimatedText(
                                                             stringsToLoopThrough:
-                                                                const [
-                                                                  "Calculating",
-                                                                  "Calculating.",
-                                                                  "Calculating..",
-                                                                  "Calculating...",
-                                                                ],
+                                                                stringsToLoopThrough,
                                                             style:
                                                                 STextStyles.itemSubtitle(
                                                                   context,
@@ -2367,7 +2394,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ],
                             ),
-                          if (isCustomFee)
+                          if (isCustomFee.value && !isEth)
                             Padding(
                               padding: const EdgeInsets.only(
                                 bottom: 12,
@@ -2379,6 +2406,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                   customFeeRate = rate;
                                 },
                               ),
+                            ),
+                          if (isCustomFee.value && isEth)
+                            const SizedBox(height: 12),
+                          if (isCustomFee.value && isEth)
+                            EthFeeForm(
+                              minGasLimit: kEthereumMinGasLimit,
+                              stateChanged: (fee) => ethFee = fee,
                             ),
                           const Spacer(),
                           const SizedBox(height: 12),
@@ -2400,7 +2434,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               style: STextStyles.button(context),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
