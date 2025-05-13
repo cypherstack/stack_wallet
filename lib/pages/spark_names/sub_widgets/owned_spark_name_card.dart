@@ -106,6 +106,7 @@ class _OwnedSparkNameCardState extends ConsumerState<OwnedSparkNameCard> {
           const SizedBox(width: 12),
           PrimaryButton(
             label: "Details",
+            width: Util.isDesktop ? 90 : null,
             buttonHeight: Util.isDesktop ? ButtonHeight.xs : ButtonHeight.l,
             onPressed: _showDetails,
           ),

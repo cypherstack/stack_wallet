@@ -306,6 +306,7 @@ class _NameCard extends ConsumerWidget {
               ),
             ),
             Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 PrimaryButton(
                   label: "Buy name",

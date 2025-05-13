@@ -377,7 +377,7 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${isRenewal ? "Register" : "Renew"} for",
+                  "${isRenewal ? "Renew" : "Register"} for",
                   style:
                       Util.isDesktop
                           ? STextStyles.w500_14(context).copyWith(

@@ -406,6 +406,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       if (showExchange && AppConfig.hasFeature(AppFeature.buy))
         (WalletFeature.buy, Assets.svg.swap, _onBuyPressed),
 
+      if (wallet is SparkInterface)
+        (WalletFeature.sparkNames, Assets.svg.robotHead, _onSparkNamesPressed),
+
       if (showCoinControl)
         (
           WalletFeature.coinControl,
@@ -444,9 +447,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (wallet is NamecoinWallet)
         (WalletFeature.namecoinName, Assets.svg.robotHead, _onNamesPressed),
-
-      if (wallet is SparkInterface)
-        (WalletFeature.sparkNames, Assets.svg.robotHead, _onSparkNamesPressed),
     ];
   }
 
