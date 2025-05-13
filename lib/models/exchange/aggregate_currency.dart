@@ -8,9 +8,10 @@
  *
  */
 
+import 'package:tuple/tuple.dart';
+
 import '../isar/exchange_cache/currency.dart';
 import '../isar/exchange_cache/pair.dart';
-import 'package:tuple/tuple.dart';
 
 class AggregateCurrency {
   final Map<String, Currency?> _map = {};
@@ -28,6 +29,8 @@ class AggregateCurrency {
   Currency? forExchange(String exchangeName) {
     return _map[exchangeName];
   }
+
+  String? networkFor(String exchangeName) => forExchange(exchangeName)?.network;
 
   String get ticker => _map.values.first!.ticker;
 

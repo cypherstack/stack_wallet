@@ -48,26 +48,28 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
 
   @override
   Widget build(BuildContext context) {
-    final currency = ExchangeDataLoadingService.instance.isar.currencies
-        .where()
-        .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-        .filter()
-        .tokenContractEqualTo(
-          widget.data.token.address,
-          caseSensitive: false,
-        )
-        .and()
-        .imageIsNotEmpty()
-        .findFirstSync();
+    final currency =
+        ExchangeDataLoadingService.instance.isar.currencies
+            .where()
+            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+            .filter()
+            .tokenContractEqualTo(
+              widget.data.token.address,
+              caseSensitive: false,
+            )
+            .and()
+            .imageIsNotEmpty()
+            .findFirstSync();
 
     final String mainLabel = widget.data.token.name;
     final double iconSize = isDesktop ? 32 : 24;
 
     return RoundedWhiteContainer(
       padding: EdgeInsets.all(isDesktop ? 16 : 12),
-      borderColor: isDesktop
-          ? Theme.of(context).extension<StackColors>()!.backgroundAppBar
-          : null,
+      borderColor:
+          isDesktop
+              ? Theme.of(context).extension<StackColors>()!.backgroundAppBar
+              : null,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -75,71 +77,68 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
             children: [
               currency != null
                   ? SvgPicture.network(
-                      currency.image,
-                      width: iconSize,
-                      height: iconSize,
-                      placeholderBuilder: (_) => AppIcon(
-                        width: iconSize,
-                        height: iconSize,
-                      ),
-                    )
+                    currency.image,
+                    width: iconSize,
+                    height: iconSize,
+                    placeholderBuilder:
+                        (_) => AppIcon(width: iconSize, height: iconSize),
+                  )
                   : SvgPicture.asset(
-                      widget.data.token.symbol == "BNB"
-                          ? Assets.svg.bnbIcon
-                          : Assets.svg.ethereum,
-                      width: iconSize,
-                      height: iconSize,
-                    ),
-              const SizedBox(
-                width: 12,
-              ),
+                    widget.data.token.symbol == "BNB"
+                        ? Assets.svg.bnbIcon
+                        : Assets.svg.ethereum,
+                    width: iconSize,
+                    height: iconSize,
+                  ),
+              const SizedBox(width: 12),
               ConditionalParent(
                 condition: isDesktop,
-                builder: (child) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    child,
-                    const SizedBox(
-                      height: 2,
+                builder:
+                    (child) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        child,
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.data.token.symbol,
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                    Text(
-                      widget.data.token.symbol,
-                      style: STextStyles.desktopTextExtraExtraSmall(context),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
                 child: Text(
                   isDesktop
                       ? mainLabel
                       : "$mainLabel (${widget.data.token.symbol})",
-                  style: isDesktop
-                      ? STextStyles.desktopTextSmall(context)
-                      : STextStyles.w600_14(context),
+                  style:
+                      isDesktop
+                          ? STextStyles.desktopTextSmall(context)
+                          : STextStyles.w600_14(context),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(
-            width: 4,
-          ),
+          const SizedBox(width: 4),
           isDesktop
               ? Checkbox(
-                  value: widget.data.selected,
-                  onChanged: (newValue) =>
-                      setState(() => widget.data.selected = newValue!),
-                )
+                value: widget.data.selected,
+                onChanged:
+                    (newValue) =>
+                        setState(() => widget.data.selected = newValue!),
+              )
               : SizedBox(
-                  height: 20,
-                  width: 40,
-                  child: DraggableSwitchButton(
-                    isOn: widget.data.selected,
-                    onValueChanged: (newValue) {
-                      widget.data.selected = newValue;
-                    },
-                  ),
+                height: 20,
+                width: 40,
+                child: DraggableSwitchButton(
+                  isOn: widget.data.selected,
+                  onValueChanged: (newValue) {
+                    widget.data.selected = newValue;
+                  },
                 ),
+              ),
         ],
       ),
     );

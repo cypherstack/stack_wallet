@@ -241,6 +241,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     final plainEnabled =
         formData.netOption == TorPlainNetworkOption.clear ||
         formData.netOption == TorPlainNetworkOption.both;
+    
+    final forceNoTor = formData.forceNoTor ?? false;
 
     switch (viewType) {
       case AddEditNodeViewType.add:
@@ -258,6 +260,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           isDown: false,
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
+          forceNoTor: forceNoTor,
         );
 
         await ref
@@ -285,6 +288,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           isDown: false,
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
+          forceNoTor: forceNoTor,
         );
 
         await ref
@@ -744,7 +748,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 class NodeFormData {
   String? name, host, login, password;
   int? port;
-  bool? useSSL, isFailover, trusted;
+  bool? useSSL, isFailover, trusted, forceNoTor;
   TorPlainNetworkOption? netOption;
 
   @override
@@ -793,6 +797,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   bool _useSSL = false;
   bool _isFailover = false;
   bool _trusted = false;
+  bool _forceNoTor = false;
   int? port;
   late bool enableSSLCheckbox;
   late TorPlainNetworkOption netOption;
@@ -851,6 +856,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     ref.read(nodeFormDataProvider).isFailover = _isFailover;
     ref.read(nodeFormDataProvider).trusted = _trusted;
     ref.read(nodeFormDataProvider).netOption = netOption;
+    ref.read(nodeFormDataProvider).forceNoTor = _forceNoTor;
   }
 
   @override
@@ -885,6 +891,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
       _trusted = node.trusted ?? false;
+      _forceNoTor = node.forceNoTor ?? false;
 
       if (node.torEnabled && !node.clearnetEnabled) {
         netOption = TorPlainNetworkOption.tor;
@@ -1445,8 +1452,47 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
+        if (widget.coin is CryptonoteCurrency && _isLocalNode())
+          const SizedBox(height: 8),
+        if (widget.coin is CryptonoteCurrency && _isLocalNode())
+          Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: Checkbox(
+                  fillColor:
+                      !widget.readOnly
+                          ? null
+                          : MaterialStateProperty.all(
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.checkboxBGDisabled,
+                          ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  value: _forceNoTor,
+                  onChanged:
+                      !widget.readOnly
+                          ? (newValue) {
+                            setState(() {
+                              _forceNoTor = newValue!;
+                            });
+                            _updateState();
+                          }
+                          : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text("Bypass TOR", style: STextStyles.itemSubtitle12(context)),
+            ],
+          ),
       ],
     );
+  }
+
+  bool _isLocalNode() {
+    final host = _hostController.text.toLowerCase();
+    return host.contains("127.0.0.1") || host.contains("localhost");
   }
 }
 

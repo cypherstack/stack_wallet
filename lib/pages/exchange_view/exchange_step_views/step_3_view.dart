@@ -79,10 +79,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
               }
             },
           ),
-          title: Text(
-            "Swap",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Swap", style: STextStyles.navBarTitle(context)),
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
@@ -100,21 +97,13 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          StepRow(
-                            count: 4,
-                            current: 2,
-                            width: width,
-                          ),
-                          const SizedBox(
-                            height: 14,
-                          ),
+                          StepRow(count: 4, current: 2, width: width),
+                          const SizedBox(height: 14),
                           Text(
                             "Confirm exchange details",
                             style: STextStyles.pageTitleH1(context),
                           ),
-                          const SizedBox(
-                            height: 24,
-                          ),
+                          const SizedBox(height: 24),
                           RoundedWhiteContainer(
                             child: Row(
                               children: [
@@ -130,9 +119,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: 8,
-                          ),
+                          const SizedBox(height: 8),
                           RoundedWhiteContainer(
                             child: Row(
                               children: [
@@ -148,9 +135,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: 8,
-                          ),
+                          const SizedBox(height: 8),
                           RoundedWhiteContainer(
                             child: Row(
                               children: [
@@ -166,9 +151,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: 8,
-                          ),
+                          const SizedBox(height: 8),
                           RoundedWhiteContainer(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,9 +160,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   "Recipient ${model.receiveTicker.toUpperCase()} address",
                                   style: STextStyles.itemSubtitle(context),
                                 ),
-                                const SizedBox(
-                                  height: 4,
-                                ),
+                                const SizedBox(height: 4),
                                 Text(
                                   model.recipientAddress!,
                                   style: STextStyles.itemSubtitle12(context),
@@ -187,10 +168,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                               ],
                             ),
                           ),
-                          if (supportsRefund)
-                            const SizedBox(
-                              height: 8,
-                            ),
+                          if (supportsRefund) const SizedBox(height: 8),
                           if (supportsRefund)
                             RoundedWhiteContainer(
                               child: Column(
@@ -200,9 +178,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     "Refund ${model.sendTicker.toUpperCase()} address",
                                     style: STextStyles.itemSubtitle(context),
                                   ),
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
+                                  const SizedBox(height: 4),
                                   Text(
                                     model.refundAddress!,
                                     style: STextStyles.itemSubtitle12(context),
@@ -210,9 +186,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 ],
                               ),
                             ),
-                          const SizedBox(
-                            height: 8,
-                          ),
+                          const SizedBox(height: 8),
                           const Spacer(),
                           Row(
                             children: [
@@ -227,16 +201,15 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                   child: Text(
                                     "Back",
                                     style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextSecondary,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .buttonTextSecondary,
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(
-                                width: 16,
-                              ),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: TextButton(
                                   onPressed: () async {
@@ -244,19 +217,22 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                       showDialog<void>(
                                         context: context,
                                         barrierDismissible: false,
-                                        builder: (_) => WillPopScope(
-                                          onWillPop: () async => false,
-                                          child: Container(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .overlay
-                                                .withOpacity(0.6),
-                                            child: const CustomLoadingOverlay(
-                                              message: "Creating a trade",
-                                              eventBus: null,
+                                        builder:
+                                            (_) => WillPopScope(
+                                              onWillPop: () async => false,
+                                              child: Container(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .overlay
+                                                    .withOpacity(0.6),
+                                                child:
+                                                    const CustomLoadingOverlay(
+                                                      message:
+                                                          "Creating a trade",
+                                                      eventBus: null,
+                                                    ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
                                       ),
                                     );
 
@@ -265,18 +241,23 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                             .read(efExchangeProvider)
                                             .createTrade(
                                               from: model.sendTicker,
+                                              fromNetwork: model.sendNetwork,
                                               to: model.receiveTicker,
-                                              fixedRate: model.rateType !=
+                                              toNetwork: model.receiveNetwork,
+                                              fixedRate:
+                                                  model.rateType !=
                                                   ExchangeRateType.estimated,
-                                              amount: model.reversed
-                                                  ? model.receiveAmount
-                                                  : model.sendAmount,
+                                              amount:
+                                                  model.reversed
+                                                      ? model.receiveAmount
+                                                      : model.sendAmount,
                                               addressTo:
                                                   model.recipientAddress!,
                                               extraId: null,
-                                              addressRefund: supportsRefund
-                                                  ? model.refundAddress!
-                                                  : "",
+                                              addressRefund:
+                                                  supportsRefund
+                                                      ? model.refundAddress!
+                                                      : "",
                                               refundExtraId: "",
                                               estimate: model.estimate,
                                               reversed: model.reversed,
@@ -304,10 +285,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                           showDialog<void>(
                                             context: context,
                                             barrierDismissible: true,
-                                            builder: (_) => StackDialog(
-                                              title: "Failed to create trade",
-                                              message: message ?? "",
-                                            ),
+                                            builder:
+                                                (_) => StackDialog(
+                                                  title:
+                                                      "Failed to create trade",
+                                                  message: message ?? "",
+                                                ),
                                           ),
                                         );
                                       }
@@ -315,7 +298,9 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     }
 
                                     // save trade to hive
-                                    await ref.read(tradesServiceProvider).add(
+                                    await ref
+                                        .read(tradesServiceProvider)
+                                        .add(
                                           trade: response.value!,
                                           shouldNotifyListeners: true,
                                         );
