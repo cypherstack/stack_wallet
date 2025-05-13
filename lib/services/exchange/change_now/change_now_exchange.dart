@@ -9,16 +9,16 @@
  */
 
 import 'package:decimal/decimal.dart';
-import '../../../models/exchange/change_now/exchange_transaction.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../models/exchange/response_objects/estimate.dart';
 import '../../../models/exchange/response_objects/range.dart';
 import '../../../models/exchange/response_objects/trade.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
-import 'change_now_api.dart';
 import '../exchange.dart';
 import '../exchange_response.dart';
-import 'package:uuid/uuid.dart';
+import 'change_now_api.dart';
 
 class ChangeNowExchange extends Exchange {
   ChangeNowExchange._();
@@ -35,6 +35,8 @@ class ChangeNowExchange extends Exchange {
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
     required String to,
+    String? fromNetwork,
+    String? toNetwork,
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
@@ -44,45 +46,35 @@ class ChangeNowExchange extends Exchange {
     Estimate? estimate,
     required bool reversed,
   }) async {
-    late final ExchangeResponse<ExchangeTransaction> response;
-    if (fixedRate) {
-      response = await ChangeNowAPI.instance.createFixedRateExchangeTransaction(
-        fromTicker: from,
-        toTicker: to,
-        receivingAddress: addressTo,
-        amount: amount,
-        rateId: estimate!.rateId!,
-        extraId: extraId ?? "",
-        refundAddress: addressRefund,
-        refundExtraId: refundExtraId,
-        reversed: reversed,
-      );
-    } else {
-      response = await ChangeNowAPI.instance.createStandardExchangeTransaction(
-        fromTicker: from,
-        toTicker: to,
-        receivingAddress: addressTo,
-        amount: amount,
-        extraId: extraId ?? "",
-        refundAddress: addressRefund,
-        refundExtraId: refundExtraId,
-      );
-    }
+    final response = await ChangeNowAPI.instance.createExchangeTransaction(
+      fromCurrency: from,
+      fromNetwork: fromNetwork ?? "",
+      toCurrency: to,
+      toNetwork: toNetwork ?? "",
+      address: addressTo,
+      rateId: estimate?.rateId,
+      refundAddress: addressRefund,
+      refundExtraId: refundExtraId,
+      fromAmount: reversed ? null : amount,
+      toAmount: reversed ? amount : null,
+      flow: fixedRate ? CNFlow.fixedRate : CNFlow.standard,
+      type: reversed ? CNExchangeType.reverse : CNExchangeType.direct,
+    );
+
     if (response.exception != null) {
       return ExchangeResponse(exception: response.exception);
     }
 
-    final statusResponse = await ChangeNowAPI.instance
-        .getTransactionStatus(id: response.value!.id);
+    final statusResponse = await ChangeNowAPI.instance.getTransactionStatus(
+      id: response.value!.id,
+    );
     if (statusResponse.exception != null) {
       return ExchangeResponse(exception: statusResponse.exception);
     }
 
     return ExchangeResponse(
-      value: Trade.fromExchangeTransaction(
-        response.value!.copyWith(
-          statusObject: statusResponse.value!,
-        ),
+      value: Trade.fromCNExchangeTransaction(
+        response.value!.copyWithStatus(statusResponse.value!),
         reversed,
       ),
     );
@@ -92,75 +84,70 @@ class ChangeNowExchange extends Exchange {
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(
     bool fixedRate,
   ) async {
-    return await ChangeNowAPI.instance.getCurrenciesV2();
-    // return await ChangeNowAPI.instance.getAvailableCurrencies(
-    //   fixedRate: fixedRate ? true : null,
-    //   active: true,
-    // );
+    return await ChangeNowAPI.instance.getAvailableCurrencies();
   }
-
-  @override
-  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-    String forCurrency,
-    bool fixedRate,
-  ) async {
-    return await ChangeNowAPI.instance.getPairedCurrencies(
-      ticker: forCurrency,
-      fixedRate: fixedRate,
-    );
-  }
-
-  @override
-  Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
-    if (fixedRate) {
-      final markets =
-          await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
-
-      if (markets.value == null) {
-        return ExchangeResponse(exception: markets.exception);
-      }
-
-      final List<Pair> pairs = [];
-      for (final market in markets.value!) {
-        pairs.add(
-          Pair(
-            exchangeName: ChangeNowExchange.exchangeName,
-            from: market.from,
-            to: market.to,
-            rateType: SupportedRateType.fixed,
-          ),
-        );
-      }
-      return ExchangeResponse(value: pairs);
-    } else {
-      return await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
-    }
-  }
+  //
+  // @override
+  // Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+  //   String forCurrency,
+  //   bool fixedRate,
+  // ) async {
+  //   return await ChangeNowAPI.instance.getPairedCurrencies(
+  //     ticker: forCurrency,
+  //     fixedRate: fixedRate,
+  //   );
+  // }
+  //
+  // @override
+  // Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
+  //   if (fixedRate) {
+  //     final markets =
+  //         await ChangeNowAPI.instance.getAvailableFixedRateMarkets();
+  //
+  //     if (markets.value == null) {
+  //       return ExchangeResponse(exception: markets.exception);
+  //     }
+  //
+  //     final List<Pair> pairs = [];
+  //     for (final market in markets.value!) {
+  //       pairs.add(
+  //         Pair(
+  //           exchangeName: ChangeNowExchange.exchangeName,
+  //           from: market.from,
+  //           to: market.to,
+  //           rateType: SupportedRateType.fixed,
+  //         ),
+  //       );
+  //     }
+  //     return ExchangeResponse(value: pairs);
+  //   } else {
+  //     return await ChangeNowAPI.instance.getAvailableFloatingRatePairs();
+  //   }
+  // }
 
   @override
   Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     Decimal amount,
     bool fixedRate,
     bool reversed,
   ) async {
-    late final ExchangeResponse<Estimate> response;
-    if (fixedRate) {
-      response =
-          await ChangeNowAPI.instance.getEstimatedExchangeAmountFixedRate(
-        fromTicker: from,
-        toTicker: to,
-        fromAmount: amount,
-        reversed: reversed,
-      );
-    } else {
-      response = await ChangeNowAPI.instance.getEstimatedExchangeAmount(
-        fromTicker: from,
-        toTicker: to,
-        fromAmount: amount,
-      );
-    }
+    final response = await ChangeNowAPI.instance.getEstimatedExchangeAmount(
+      fromCurrency: from,
+      fromNetwork: fromNetwork,
+      toCurrency: to,
+      toNetwork: toNetwork,
+      flow: fixedRate ? CNFlow.fixedRate : CNFlow.standard,
+      type: reversed ? CNExchangeType.reverse : CNExchangeType.direct,
+      fromAmount: reversed ? null : amount,
+      toAmount: reversed ? amount : null,
+
+      useRateId: fixedRate ? true : null,
+    );
+
     return ExchangeResponse(
       value: response.value == null ? null : [response.value!],
       exception: response.exception,
@@ -170,13 +157,17 @@ class ChangeNowExchange extends Exchange {
   @override
   Future<ExchangeResponse<Range>> getRange(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     bool fixedRate,
   ) async {
     return await ChangeNowAPI.instance.getRange(
-      fromTicker: from,
-      toTicker: to,
-      isFixedRate: fixedRate,
+      fromCurrency: from,
+      fromNetwork: fromNetwork,
+      toCurrency: to,
+      toNetwork: toNetwork,
+      flow: fixedRate ? CNFlow.fixedRate : CNFlow.standard,
     );
   }
 
@@ -191,8 +182,9 @@ class ChangeNowExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<Trade>> getTrade(String tradeId) async {
-    final response =
-        await ChangeNowAPI.instance.getTransactionStatus(id: tradeId);
+    final response = await ChangeNowAPI.instance.getTransactionStatus(
+      id: tradeId,
+    );
     if (response.exception != null) {
       return ExchangeResponse(exception: response.exception);
     }
@@ -207,19 +199,19 @@ class ChangeNowExchange extends Exchange {
       timestamp: timestamp,
       updatedAt: DateTime.tryParse(t.updatedAt) ?? timestamp,
       payInCurrency: t.fromCurrency,
-      payInAmount: t.expectedSendAmountDecimal,
+      payInAmount: t.expectedAmountFrom ?? "",
       payInAddress: t.payinAddress,
       payInNetwork: "",
-      payInExtraId: t.payinExtraId,
-      payInTxid: t.payinHash,
+      payInExtraId: t.payinExtraId ?? "",
+      payInTxid: t.payinHash ?? "",
       payOutCurrency: t.toCurrency,
-      payOutAmount: t.expectedReceiveAmountDecimal,
+      payOutAmount: t.expectedAmountTo ?? "",
       payOutAddress: t.payoutAddress,
       payOutNetwork: "",
-      payOutExtraId: t.payoutExtraId,
-      payOutTxid: t.payoutHash,
-      refundAddress: t.refundAddress,
-      refundExtraId: t.refundExtraId,
+      payOutExtraId: t.payoutExtraId ?? "",
+      payOutTxid: t.payoutHash ?? "",
+      refundAddress: t.refundAddress ?? "",
+      refundExtraId: t.refundExtraId ?? "",
       status: t.status.name,
       exchangeName: ChangeNowExchange.exchangeName,
     );
@@ -229,8 +221,9 @@ class ChangeNowExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<Trade>> updateTrade(Trade trade) async {
-    final response =
-        await ChangeNowAPI.instance.getTransactionStatus(id: trade.tradeId);
+    final response = await ChangeNowAPI.instance.getTransactionStatus(
+      id: trade.tradeId,
+    );
     if (response.exception != null) {
       return ExchangeResponse(exception: response.exception);
     }
@@ -245,23 +238,19 @@ class ChangeNowExchange extends Exchange {
       timestamp: timestamp,
       updatedAt: DateTime.tryParse(t.updatedAt) ?? timestamp,
       payInCurrency: t.fromCurrency,
-      payInAmount: t.amountSendDecimal.isEmpty
-          ? t.expectedSendAmountDecimal
-          : t.amountSendDecimal,
+      payInAmount: t.amountFrom ?? t.expectedAmountFrom ?? trade.payInAmount,
       payInAddress: t.payinAddress,
       payInNetwork: trade.payInNetwork,
-      payInExtraId: t.payinExtraId,
-      payInTxid: t.payinHash,
+      payInExtraId: t.payinExtraId ?? "",
+      payInTxid: t.payinHash ?? "",
       payOutCurrency: t.toCurrency,
-      payOutAmount: t.amountReceiveDecimal.isEmpty
-          ? t.expectedReceiveAmountDecimal
-          : t.amountReceiveDecimal,
+      payOutAmount: t.amountTo ?? t.expectedAmountTo ?? trade.payOutAmount,
       payOutAddress: t.payoutAddress,
       payOutNetwork: trade.payOutNetwork,
-      payOutExtraId: t.payoutExtraId,
-      payOutTxid: t.payoutHash,
-      refundAddress: t.refundAddress,
-      refundExtraId: t.refundExtraId,
+      payOutExtraId: t.payoutExtraId ?? "",
+      payOutTxid: t.payoutHash ?? "",
+      refundAddress: t.refundAddress ?? "",
+      refundExtraId: t.refundExtraId ?? "",
       status: t.status.name,
       exchangeName: ChangeNowExchange.exchangeName,
     );

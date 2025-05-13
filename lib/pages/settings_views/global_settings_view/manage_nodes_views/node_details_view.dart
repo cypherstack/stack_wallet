@@ -320,7 +320,8 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         ..login = node.loginName
                         ..port = node.port
                         ..isFailover = node.isFailover
-                        ..netOption = netOption;
+                        ..netOption = netOption
+                        ..forceNoTor = node.forceNoTor;
                       nodeFormData.password = await node.getPassword(
                         ref.read(secureStoreProvider),
                       );
@@ -396,6 +397,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                                         TorPlainNetworkOption.clear ||
                                     ref.read(nodeFormDataProvider).netOption ==
                                         TorPlainNetworkOption.both,
+                            forceNoTor: ref.read(nodeFormDataProvider).forceNoTor,
                           );
 
                           await ref

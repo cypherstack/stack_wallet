@@ -520,7 +520,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             trusted: node.trusted ?? false,
             useSSL: node.useSSL,
             socksProxyAddress:
-                proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+              node.forceNoTor ? null : proxy == null ? null : "${proxy.host.address}:${proxy.port}",
           );
         });
       } else {
@@ -531,7 +531,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           trusted: node.trusted ?? false,
           useSSL: node.useSSL,
           socksProxyAddress:
-              proxy == null ? null : "${proxy.host.address}:${proxy.port}",
+            node.forceNoTor ? null : proxy == null ? null : "${proxy.host.address}:${proxy.port}",
         );
       }
       libMoneroWallet?.startSyncing();
