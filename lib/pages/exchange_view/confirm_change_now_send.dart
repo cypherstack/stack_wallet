@@ -19,7 +19,6 @@ import '../../models/isar/models/isar_models.dart';
 import '../../models/trade_wallet_lookup.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';

@@ -693,8 +693,8 @@ class _ConfirmSparkNameTransactionViewState
                             ref
                                 .read(priceAnd24hChangeNotifierProvider)
                                 .getPrice(coin)
-                                .item1;
-                        if (price > Decimal.zero) {
+                                ?.value;
+                        if (price != null && price > Decimal.zero) {
                           fiatAmount = (amountWithoutChange.decimal * price)
                               .toAmount(fractionDigits: 2)
                               .fiatString(
