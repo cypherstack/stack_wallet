@@ -5,6 +5,7 @@ import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar/isar.dart';
+import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart' as web3;
 
 import '../../../dto/ethereum/eth_tx_dto.dart';
@@ -556,18 +557,24 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       await _initCredentials();
     }
 
-    final txid = await client.sendTransaction(
-      _credentials!,
-      txData.web3dartTransaction!,
-      chainId: txData.chainId!.toInt(),
-    );
+    try {
+      final txid = await client.sendTransaction(
+        _credentials!,
+        txData.web3dartTransaction!,
+        chainId: txData.chainId!.toInt(),
+      );
 
-    final data = (prepareTempTx ?? _prepareTempTx)(
-      txData.copyWith(txid: txid, txHash: txid),
-      (await getCurrentReceivingAddress())!.value,
-    );
+      final data = (prepareTempTx ?? _prepareTempTx)(
+        txData.copyWith(txid: txid, txHash: txid),
+        (await getCurrentReceivingAddress())!.value,
+      );
 
-    return await updateSentCachedTxData(txData: data);
+      return await updateSentCachedTxData(txData: data);
+    } on RPCError catch (e) {
+      final message =
+          "${e.toString()}${e.data == null ? "" : e.data.toString()}";
+      throw Exception(message);
+    }
   }
 
   @override
