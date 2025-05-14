@@ -114,6 +114,7 @@ import 'pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_
 import 'pages/settings_views/global_settings_view/manage_nodes_views/manage_nodes_view.dart';
 import 'pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import 'pages/settings_views/global_settings_view/security_views/change_pin_view/change_pin_view.dart';
+import 'pages/settings_views/global_settings_view/security_views/create_duress_pin_view.dart';
 import 'pages/settings_views/global_settings_view/security_views/security_view.dart';
 import 'pages/settings_views/global_settings_view/stack_backup_views/auto_backup_view.dart';
 import 'pages/settings_views/global_settings_view/stack_backup_views/create_auto_backup_view.dart';
@@ -972,6 +973,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const ChangePinView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CreateDuressPinView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CreateDuressPinView(),
           settings: RouteSettings(name: settings.name),
         );
 
