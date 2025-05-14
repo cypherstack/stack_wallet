@@ -29,6 +29,7 @@ import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/coins/epiccash.dart';
@@ -227,8 +228,8 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
-      //todo: comeback to this
-      debugPrint("$e\n$s");
+      const message = "Broadcast transaction failed";
+      Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
       if (context.mounted) {
         Navigator.of(context).pop();
@@ -247,10 +248,7 @@ class _ConfirmTransactionViewState
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Broadcast transaction failed",
-                        style: STextStyles.desktopH3(context),
-                      ),
+                      Text(message, style: STextStyles.desktopH3(context)),
                       const SizedBox(height: 24),
                       Flexible(
                         child: SingleChildScrollView(
@@ -279,7 +277,7 @@ class _ConfirmTransactionViewState
               );
             } else {
               return StackDialog(
-                title: "Broadcast transaction failed",
+                title: message,
                 message: e.toString(),
                 rightButton: TextButton(
                   style: Theme.of(context)
@@ -1266,9 +1264,10 @@ class _ConfirmTransactionViewState
                         unawaited(
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
-                            message: Util.isDesktop
-                              ? "Invalid passphrase"
-                              : "Invalid PIN",
+                            message:
+                                Util.isDesktop
+                                    ? "Invalid passphrase"
+                                    : "Invalid PIN",
                             context: context,
                           ),
                         );
