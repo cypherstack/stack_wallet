@@ -317,7 +317,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
       _cryptoAmountChangedFeeUpdateTimer?.cancel();
       _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (coin is! Epiccash && !_baseFocus.hasFocus) {
+        if (mounted && coin is! Epiccash && !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees();
           });
@@ -329,7 +329,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   void _baseAmountChanged() {
     _baseAmountChangedFeeUpdateTimer?.cancel();
     _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (coin is! Epiccash && !_cryptoFocus.hasFocus) {
+      if (mounted && coin is! Epiccash && !_cryptoFocus.hasFocus) {
         setState(() {
           _calculateFeesFuture = calculateFees();
         });
