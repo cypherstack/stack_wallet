@@ -2165,6 +2165,14 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     required int years,
     required String additionalInfo,
   }) async {
+    // TODO remove after block 1104500
+    if (cryptoCurrency.network == CryptoCurrencyNetwork.main) {
+      final height = await fetchChainHeight();
+      if (height < 1104500) {
+        throw Exception("Spark names not enabled on main net yet");
+      }
+    }
+
     if (years < 1 || years > kMaxNameRegistrationLengthYears) {
       throw Exception("Invalid spark name registration period years: $years");
     }
