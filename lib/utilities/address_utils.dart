@@ -134,6 +134,20 @@ class AddressUtils {
   ///
   /// Returns null on failure to parse
   static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
+    // hacky check its not just a bcash, ecash, or xel address
+    final parts = uri.split(":");
+    if (parts.length == 2) {
+      if ([
+        "xel",
+        "bitcoincash",
+        "bchtest",
+        "ecash",
+        "ectest",
+      ].contains(parts.first.toLowerCase())) {
+        return null;
+      }
+    }
+
     try {
       final Map<String, String> parsedData = _parseUri(uri);
 
