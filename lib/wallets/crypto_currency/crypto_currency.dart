@@ -1,6 +1,10 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/node_model.dart';
+import '../../utilities/address_utils.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
+import '../wallet/wallet.dart';
 
 export 'coins/banano.dart';
 export 'coins/bitcoin.dart';
@@ -91,4 +95,9 @@ abstract class CryptoCurrency {
 
   @override
   int get hashCode => Object.hash(runtimeType, network);
+
+  Future<Wallet> importPaperWallet(WalletUriData walletData, WidgetRef ref) async {
+    throw UnimplementedError(
+        "Paper wallet import not implemented for $identifier",);
+  }
 }

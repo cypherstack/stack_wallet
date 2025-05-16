@@ -1,9 +1,21 @@
 import 'package:cs_monero/src/ffi_bindings/monero_wallet_bindings.dart'
     as xmr_wallet_ffi;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/node_model.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/node_service_provider.dart';
+import '../../../providers/global/prefs_provider.dart';
+import '../../../providers/global/secure_store_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../utilities/address_utils.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../isar/models/wallet_info.dart';
+import '../../models/tx_data.dart';
+import '../../wallet/impl/monero_wallet.dart';
+import '../../wallet/wallet.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
 
@@ -119,6 +131,57 @@ class Monero extends CryptonoteCurrency {
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
         );
+    }
+  }
+
+  @override
+  Future<Wallet<CryptoCurrency>> importPaperWallet(WalletUriData walletData, WidgetRef ref) async {
+    try {
+      if (walletData.txids != null) {
+        final info = WalletInfo.createNew(
+          coin: walletData.coin,
+          name: "${walletData.coin.prettyName} Paper Wallet",
+          restoreHeight: walletData.height ?? 0,
+          otherDataJsonString: walletData.toJson(),
+        );
+
+        final wallet = await Wallet.create(
+          walletInfo: info,
+          mainDB: ref.read(mainDBProvider),
+          secureStorageInterface: ref.read(secureStoreProvider),
+          nodeService: ref.read(nodeServiceChangeNotifierProvider),
+          prefs: ref.read(prefsChangeNotifierProvider),
+          mnemonicPassphrase: null,
+          mnemonic: walletData.seed,
+        );
+
+        
+      } else {
+        final info = WalletInfo.createNew(
+          coin: walletData.coin,
+          name: "${walletData.coin.prettyName} Paper Wallet",
+          restoreHeight: walletData.height ?? 0,
+          otherDataJsonString: walletData.toJson(),
+        );
+
+        final wallet = await Wallet.create(
+          walletInfo: info,
+          mainDB: ref.read(mainDBProvider),
+          secureStorageInterface: ref.read(secureStoreProvider),
+          nodeService: ref.read(nodeServiceChangeNotifierProvider),
+          prefs: ref.read(prefsChangeNotifierProvider),
+          mnemonicPassphrase: null,
+          mnemonic: walletData.seed,
+        );
+
+        await (wallet as MoneroWallet).init(isRestore: true);
+        await wallet.recover(isRescan: false);
+        await wallet.info.setMnemonicVerified(isar: ref.read(mainDBProvider).isar);
+        ref.read(pWallets).addWallet(wallet);
+        return wallet;
+      }
+    } catch (e) {
+      throw Exception("Failed to import paper wallet: $e");
     }
   }
 

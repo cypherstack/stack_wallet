@@ -10,7 +10,9 @@
 
 import 'dart:async';
 
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
@@ -24,9 +26,12 @@ import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
 import '../../../utilities/assets.dart';
+import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/default_eth_tokens.dart';
+import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
@@ -40,6 +45,7 @@ import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import '../../wallet_view/wallet_view.dart';
 import '../add_token_view/add_custom_token_view.dart';
 import '../add_token_view/sub_widgets/add_custom_token_selector.dart';
 import 'sub_widgets/add_wallet_text.dart';
@@ -123,6 +129,31 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
           }
         });
       }
+    }
+  }
+
+  Future<void> scanPaperWalletQr() async {
+    try {
+      final qrResult = await const BarcodeScannerWrapper().scan();
+
+      final results = AddressUtils.parseWalletUri(qrResult.rawContent, logging: Logging.instance);
+
+      if (results != null) {
+        final wallet = await results.coin.importPaperWallet(results, ref);
+        if (mounted) {
+          await Navigator.of(context).pushNamed(
+            WalletView.routeName,
+            arguments: wallet.walletId,
+          );
+        }
+      }
+    } on PlatformException catch (e, s) {
+      // likely failed to get camera permissions
+      Logging.instance.e(
+        "Restore wallet qr scan failed: $e",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -343,6 +374,37 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                 Navigator.of(context).pop();
               },
             ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 10,
+                  right: 10,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    semanticsLabel:
+                    "Paper Wallet Import Button. Imports your paper wallet to Stack Wallet.",
+                    key: const Key("restoreWalletImportPaperWalletButton"),
+                    size: 36,
+                    shadows: const [],
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.paperWallet,
+                      width: 20,
+                      height: 20,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
+                    ),
+                    onPressed: scanPaperWalletQr,
+                  ),
+                ),
+              ),
+            ],
           ),
           body: Container(
             color: Theme.of(context).extension<StackColors>()!.background,
