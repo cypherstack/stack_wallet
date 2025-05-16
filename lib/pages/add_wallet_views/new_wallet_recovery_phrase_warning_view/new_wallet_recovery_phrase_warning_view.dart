@@ -150,10 +150,15 @@ class _NewWalletRecoveryPhraseWarningViewState
         otherDataJson[WalletInfoKeys.duressMarkedVisibleWalletKey] = true;
       }
 
+      String? otherDataJsonString;
+      if (otherDataJson != null && otherDataJson.isNotEmpty) {
+        otherDataJsonString = jsonEncode(otherDataJson);
+      }
+
       final info = WalletInfo.createNew(
         coin: widget.coin,
         name: widget.walletName,
-        otherDataJsonString: jsonEncode(otherDataJson),
+        otherDataJsonString: otherDataJsonString,
       );
 
       var node = ref
