@@ -229,7 +229,7 @@ class AddressUtils {
   }
 
   /// Formats an address string to remove any unnecessary prefixes or suffixes.
-  String formatAddress(String epicAddress) {
+  String formatEpicCashAddress(String epicAddress) {
     // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
     if ((epicAddress.startsWith("http://") ||
             epicAddress.startsWith("https://")) &&
