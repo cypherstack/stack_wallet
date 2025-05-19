@@ -84,7 +84,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
             )
             : null;
 
-    final priceTuple =
+    final price =
         widget.isToken
             ? ref.watch(
               priceAnd24hChangeNotifierProvider.select(
@@ -150,9 +150,9 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
-                if (externalCalls)
+                if (externalCalls && price != null)
                   SelectableText(
-                    "${Amount.fromDecimal(priceTuple.item1 * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
+                    "${Amount.fromDecimal(price.value * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
                       color:
                           Theme.of(

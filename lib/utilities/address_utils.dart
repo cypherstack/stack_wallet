@@ -33,8 +33,9 @@ class AddressUtils {
   /// Return only recognized parameters.
   static Map<String, String> _filterParams(Map<String, String> params) {
     return Map.fromEntries(
-      params.entries
-          .where((entry) => recognizedParams.contains(entry.key.toLowerCase())),
+      params.entries.where(
+        (entry) => recognizedParams.contains(entry.key.toLowerCase()),
+      ),
     );
   }
 
@@ -52,8 +53,10 @@ class AddressUtils {
           result["address"] = u.path;
         } else if (result["scheme"] == "monero") {
           // Monero addresses can contain '?' which Uri.parse interprets as query start.
-          final addressEnd =
-              uri.indexOf('?', 7); // 7 is the length of "monero:".
+          final addressEnd = uri.indexOf(
+            '?',
+            7,
+          ); // 7 is the length of "monero:".
           if (addressEnd != -1) {
             result["address"] = uri.substring(7, addressEnd);
           } else {
@@ -130,10 +133,7 @@ class AddressUtils {
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
   ///
   /// Returns null on failure to parse
-  static PaymentUriData? parsePaymentUri(
-    String uri, {
-    Logging? logging,
-  }) {
+  static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
     try {
       final Map<String, String> parsedData = _parseUri(uri);
 
@@ -155,7 +155,7 @@ class AddressUtils {
         additionalParams: filteredParams,
       );
     } catch (e, s) {
-      logging?.e("", error: e, stackTrace: s);
+      logging?.i("Invalid payment URI: $uri", error: e, stackTrace: s);
       return null;
     }
   }
@@ -259,8 +259,8 @@ class PaymentUriData {
   final Map<String, String> additionalParams;
 
   CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
-        scheme ?? "", // empty will just return null
-      );
+    scheme ?? "", // empty will just return null
+  );
 
   PaymentUriData({
     required this.address,
@@ -273,7 +273,8 @@ class PaymentUriData {
   });
 
   @override
-  String toString() => "PaymentUriData { "
+  String toString() =>
+      "PaymentUriData { "
       "coin: $coin, "
       "address: $address, "
       "amount: $amount, "

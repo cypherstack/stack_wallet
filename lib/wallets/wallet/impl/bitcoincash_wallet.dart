@@ -33,57 +33,54 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
   int get isarTransactionVersion => 2;
 
   BitcoincashWallet(CryptoCurrencyNetwork network)
-      : super(Bitcoincash(network) as T);
+    : super(Bitcoincash(network) as T);
 
   @override
-  FilterOperation? get changeAddressFilterOperation => FilterGroup.and(
-        [
-          ...standardChangeAddressFilters,
-          FilterGroup.not(
-            const ObjectFilter(
-              property: "derivationPath",
-              filter: FilterCondition.startsWith(
-                property: "value",
-                value: "m/44'/0'",
-              ),
-            ),
-          ),
-        ],
-      );
+  FilterOperation? get changeAddressFilterOperation => FilterGroup.and([
+    ...standardChangeAddressFilters,
+    FilterGroup.not(
+      const ObjectFilter(
+        property: "derivationPath",
+        filter: FilterCondition.startsWith(
+          property: "value",
+          value: "m/44'/0'",
+        ),
+      ),
+    ),
+  ]);
 
   @override
-  FilterOperation? get receivingAddressFilterOperation => FilterGroup.and(
-        [
-          ...standardReceivingAddressFilters,
-          FilterGroup.not(
-            const ObjectFilter(
-              property: "derivationPath",
-              filter: FilterCondition.startsWith(
-                property: "value",
-                value: "m/44'/0'",
-              ),
-            ),
-          ),
-        ],
-      );
+  FilterOperation? get receivingAddressFilterOperation => FilterGroup.and([
+    ...standardReceivingAddressFilters,
+    FilterGroup.not(
+      const ObjectFilter(
+        property: "derivationPath",
+        filter: FilterCondition.startsWith(
+          property: "value",
+          value: "m/44'/0'",
+        ),
+      ),
+    ),
+  ]);
 
   // ===========================================================================
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .typeEqualTo(AddressType.nonWallet)
-        .and()
-        .group(
-          (q) => q
-              .subTypeEqualTo(AddressSubType.receiving)
-              .or()
-              .subTypeEqualTo(AddressSubType.change),
-        )
-        .findAll();
+    final allAddresses =
+        await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .not()
+            .typeEqualTo(AddressType.nonWallet)
+            .and()
+            .group(
+              (q) => q
+                  .subTypeEqualTo(AddressSubType.receiving)
+                  .or()
+                  .subTypeEqualTo(AddressSubType.change),
+            )
+            .findAll();
     return allAddresses;
   }
 
@@ -106,20 +103,23 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
     final List<Address> allAddressesOld =
         await fetchAddressesForElectrumXScan();
 
-    final Set<String> receivingAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.receiving)
-        .map((e) => convertAddressString(e.value))
-        .toSet();
+    final Set<String> receivingAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.receiving)
+            .map((e) => convertAddressString(e.value))
+            .toSet();
 
-    final Set<String> changeAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.change)
-        .map((e) => convertAddressString(e.value))
-        .toSet();
+    final Set<String> changeAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.change)
+            .map((e) => convertAddressString(e.value))
+            .toSet();
 
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
-    final List<Map<String, dynamic>> allTxHashes =
-        await fetchHistory(allAddressesSet);
+    final List<Map<String, dynamic>> allTxHashes = await fetchHistory(
+      allAddressesSet,
+    );
 
     final List<Map<String, dynamic>> allTransactions = [];
 
@@ -139,8 +139,9 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
       );
 
       // check for duplicates before adding to list
-      if (allTransactions
-              .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+      if (allTransactions.indexWhere(
+            (e) => e["txid"] == tx["txid"] as String,
+          ) ==
           -1) {
         tx["height"] = txHash["height"];
         allTransactions.add(tx);
@@ -294,12 +295,8 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
         // only found outputs owned by this wallet
         type = TransactionType.incoming;
       } else {
-        Logging.instance.e(
-          "Unexpected tx found (ignoring it)",
-        );
-        Logging.instance.d(
-          "Unexpected tx found (ignoring it): $txData",
-        );
+        Logging.instance.e("Unexpected tx found (ignoring it)");
+        Logging.instance.d("Unexpected tx found (ignoring it): $txData");
         continue;
       }
 
@@ -310,7 +307,8 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
         txid: txData["txid"] as String,
         height: txData["height"] as int?,
         version: txData["version"] as int,
-        timestamp: txData["blocktime"] as int? ??
+        timestamp:
+            txData["blocktime"] as int? ??
             DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
         inputs: List.unmodifiable(inputs),
         outputs: List.unmodifiable(outputs),
@@ -327,7 +325,7 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<({String? blockedReason, bool blocked, String? utxoLabel})>
-      checkBlockUTXO(
+  checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic> jsonTX,
@@ -339,8 +337,9 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
     if (scriptPubKeyHex != null) {
       // check for cash tokens
       try {
-        final ctOutput =
-            cash_tokens.unwrap_spk(scriptPubKeyHex.toUint8ListFromHex);
+        final ctOutput = cash_tokens.unwrap_spk(
+          scriptPubKeyHex.toUint8ListFromHex,
+        );
         if (ctOutput.token_data != null) {
           // found a token!
           blocked = true;
@@ -374,19 +373,23 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
 
   // TODO: correct formula for bch?
   @override
-  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+  Amount roughFeeEstimate(
+    int inputCount,
+    int outputCount,
+    BigInt feeRatePerKB,
+  ) {
     return Amount(
       rawValue: BigInt.from(
         ((181 * inputCount) + (34 * outputCount) + 10) *
-            (feeRatePerKB / 1000).ceil(),
+            (feeRatePerKB.toInt() / 1000).ceil(),
       ),
       fractionDigits: info.coin.fractionDigits,
     );
   }
 
   @override
-  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    return vSize * (feeRatePerKB / 1000).ceil();
+  int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
+    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
   }
 
   @override

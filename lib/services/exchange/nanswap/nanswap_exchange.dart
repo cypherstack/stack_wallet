@@ -30,6 +30,8 @@ class NanswapExchange extends Exchange {
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
     required String to,
+    required String? fromNetwork,
+    required String? toNetwork,
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
@@ -74,9 +76,7 @@ class NanswapExchange extends Exchange {
       );
 
       if (response.exception != null) {
-        return ExchangeResponse(
-          exception: response.exception,
-        );
+        return ExchangeResponse(exception: response.exception);
       }
 
       final t = response.value!;
@@ -108,9 +108,7 @@ class NanswapExchange extends Exchange {
         ),
       );
     } on ExchangeException catch (e) {
-      return ExchangeResponse(
-        exception: e,
-      );
+      return ExchangeResponse(exception: e);
     } catch (e) {
       return ExchangeResponse(
         exception: ExchangeException(
@@ -136,34 +134,31 @@ class NanswapExchange extends Exchange {
       final response = await NanswapAPI.instance.getSupportedCurrencies();
 
       if (response.exception != null) {
-        return ExchangeResponse(
-          exception: response.exception,
-        );
+        return ExchangeResponse(exception: response.exception);
       }
 
       return ExchangeResponse(
-        value: response.value!
-            .where((e) => filter.contains(e.id))
-            .map(
-              (e) => Currency(
-                exchangeName: exchangeName,
-                ticker: e.id,
-                name: e.name,
-                network: e.network,
-                image: e.image,
-                isFiat: false,
-                rateType: SupportedRateType.estimated,
-                isStackCoin: AppConfig.isStackCoin(e.id),
-                tokenContract: null,
-                isAvailable: true,
-              ),
-            )
-            .toList(),
+        value:
+            response.value!
+                .where((e) => filter.contains(e.id))
+                .map(
+                  (e) => Currency(
+                    exchangeName: exchangeName,
+                    ticker: e.id,
+                    name: e.name,
+                    network: e.network,
+                    image: e.image,
+                    isFiat: false,
+                    rateType: SupportedRateType.estimated,
+                    isStackCoin: AppConfig.isStackCoin(e.id),
+                    tokenContract: null,
+                    isAvailable: true,
+                  ),
+                )
+                .toList(),
       );
     } on ExchangeException catch (e) {
-      return ExchangeResponse(
-        exception: e,
-      );
+      return ExchangeResponse(exception: e);
     } catch (e) {
       return ExchangeResponse(
         exception: ExchangeException(
@@ -175,14 +170,11 @@ class NanswapExchange extends Exchange {
   }
 
   @override
-  Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     Decimal amount,
     bool fixedRate,
     bool reversed,
@@ -211,9 +203,7 @@ class NanswapExchange extends Exchange {
       }
 
       if (response.exception != null) {
-        return ExchangeResponse(
-          exception: response.exception,
-        );
+        return ExchangeResponse(exception: response.exception);
       }
 
       final t = response.value!;
@@ -231,9 +221,7 @@ class NanswapExchange extends Exchange {
         ],
       );
     } on ExchangeException catch (e) {
-      return ExchangeResponse(
-        exception: e,
-      );
+      return ExchangeResponse(exception: e);
     } catch (e) {
       return ExchangeResponse(
         exception: ExchangeException(
@@ -243,59 +231,53 @@ class NanswapExchange extends Exchange {
       );
     }
   }
-
-  @override
-  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-    String forCurrency,
-    bool fixedRate,
-  ) async {
-    try {
-      if (fixedRate) {
-        throw ExchangeException(
-          "Nanswap fixedRate not available",
-          ExchangeExceptionType.generic,
-        );
-      }
-
-      final response = await getAllCurrencies(
-        fixedRate,
-      );
-
-      if (response.exception != null) {
-        return ExchangeResponse(
-          exception: response.exception,
-        );
-      }
-
-      return ExchangeResponse(
-        value: response.value!..removeWhere((e) => e.ticker == forCurrency),
-      );
-    } on ExchangeException catch (e) {
-      return ExchangeResponse(
-        exception: e,
-      );
-    } catch (e) {
-      return ExchangeResponse(
-        exception: ExchangeException(
-          e.toString(),
-          ExchangeExceptionType.generic,
-        ),
-      );
-    }
-  }
-
-  @override
-  Future<ExchangeResponse<List<Pair>>> getPairsFor(
-    String currency,
-    bool fixedRate,
-  ) async {
-    throw UnsupportedError("Not used");
-  }
+  //
+  // @override
+  // Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+  //   String forCurrency,
+  //   bool fixedRate,
+  // ) async {
+  //   try {
+  //     if (fixedRate) {
+  //       throw ExchangeException(
+  //         "Nanswap fixedRate not available",
+  //         ExchangeExceptionType.generic,
+  //       );
+  //     }
+  //
+  //     final response = await getAllCurrencies(
+  //       fixedRate,
+  //     );
+  //
+  //     if (response.exception != null) {
+  //       return ExchangeResponse(
+  //         exception: response.exception,
+  //       );
+  //     }
+  //
+  //     return ExchangeResponse(
+  //       value: response.value!..removeWhere((e) => e.ticker == forCurrency),
+  //     );
+  //   } on ExchangeException catch (e) {
+  //     return ExchangeResponse(
+  //       exception: e,
+  //     );
+  //   } catch (e) {
+  //     return ExchangeResponse(
+  //       exception: ExchangeException(
+  //         e.toString(),
+  //         ExchangeExceptionType.generic,
+  //       ),
+  //     );
+  //   }
+  // }
 
   @override
   Future<ExchangeResponse<Range>> getRange(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     bool fixedRate,
   ) async {
     try {
@@ -312,9 +294,7 @@ class NanswapExchange extends Exchange {
       );
 
       if (response.exception != null) {
-        return ExchangeResponse(
-          exception: response.exception,
-        );
+        return ExchangeResponse(exception: response.exception);
       }
 
       final t = response.value!;
@@ -326,9 +306,7 @@ class NanswapExchange extends Exchange {
         ),
       );
     } on ExchangeException catch (e) {
-      return ExchangeResponse(
-        exception: e,
-      );
+      return ExchangeResponse(exception: e);
     } catch (e) {
       return ExchangeResponse(
         exception: ExchangeException(
@@ -342,14 +320,10 @@ class NanswapExchange extends Exchange {
   @override
   Future<ExchangeResponse<Trade>> getTrade(String tradeId) async {
     try {
-      final response = await NanswapAPI.instance.getOrder(
-        id: tradeId,
-      );
+      final response = await NanswapAPI.instance.getOrder(id: tradeId);
 
       if (response.exception != null) {
-        return ExchangeResponse(
-          exception: response.exception,
-        );
+        return ExchangeResponse(exception: response.exception);
       }
 
       final t = response.value!;
@@ -381,9 +355,7 @@ class NanswapExchange extends Exchange {
         ),
       );
     } on ExchangeException catch (e) {
-      return ExchangeResponse(
-        exception: e,
-      );
+      return ExchangeResponse(exception: e);
     } catch (e) {
       return ExchangeResponse(
         exception: ExchangeException(
@@ -406,14 +378,10 @@ class NanswapExchange extends Exchange {
   @override
   Future<ExchangeResponse<Trade>> updateTrade(Trade trade) async {
     try {
-      final response = await NanswapAPI.instance.getOrder(
-        id: trade.tradeId,
-      );
+      final response = await NanswapAPI.instance.getOrder(id: trade.tradeId);
 
       if (response.exception != null) {
-        return ExchangeResponse(
-          exception: response.exception,
-        );
+        return ExchangeResponse(exception: response.exception);
       }
 
       final t = response.value!;
@@ -445,9 +413,7 @@ class NanswapExchange extends Exchange {
         ),
       );
     } on ExchangeException catch (e) {
-      return ExchangeResponse(
-        exception: e,
-      );
+      return ExchangeResponse(exception: e);
     } catch (e) {
       return ExchangeResponse(
         exception: ExchangeException(

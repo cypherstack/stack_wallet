@@ -200,6 +200,7 @@ void main(List<String> args) async {
   await Logging.instance.initialize(
     (await StackFileSystem.applicationLogsDirectory(Prefs.instance)).path,
     level: Prefs.instance.logLevel,
+    debugConsoleLevel: kDebugMode ? Level.trace : null,
   );
 
   await xelis_api.setUpRustLogger();

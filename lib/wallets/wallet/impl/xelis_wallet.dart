@@ -622,9 +622,9 @@ class XelisWallet extends LibXelisWallet {
       numberOfBlocksFast: 10,
       numberOfBlocksAverage: 10,
       numberOfBlocksSlow: 10,
-      fast: 1,
-      medium: 1,
-      slow: 1,
+      fast: BigInt.one,
+      medium: BigInt.one,
+      slow: BigInt.one,
     );
   }
 
@@ -661,7 +661,7 @@ class XelisWallet extends LibXelisWallet {
       // Estimate fee using the shared method
       final boostedFee = await estimateFeeFor(
         totalSendAmount,
-        1,
+        BigInt.one,
         feeMultiplier: 1.0,
         recipients: recipients,
         assetId: asset,
@@ -701,7 +701,7 @@ class XelisWallet extends LibXelisWallet {
   @override
   Future<Amount> estimateFeeFor(
     Amount amount,
-    int feeRate, {
+    BigInt feeRate, {
     double? feeMultiplier,
     List<TxRecipient> recipients = const [],
     String? assetId,

@@ -143,30 +143,35 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
-    final baseCurrency = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.currency));
+    final baseCurrency = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.currency),
+    );
 
-    final price = ref
-        .watch(
-          priceAnd24hChangeNotifierProvider.select(
-            (value) => isTokenTx
-                ? value.getTokenPrice(_transaction.otherData!)
-                : value.getPrice(coin),
-          ),
-        )
-        .item1;
+    final price =
+        ref
+            .watch(
+              priceAnd24hChangeNotifierProvider.select(
+                (value) =>
+                    isTokenTx
+                        ? value.getTokenPrice(_transaction.otherData!)
+                        : value.getPrice(coin),
+              ),
+            )
+            ?.value;
 
     final currentHeight = ref.watch(
-      pWallets
-          .select((value) => value.getWallet(walletId).info.cachedChainHeight),
+      pWallets.select(
+        (value) => value.getWallet(walletId).info.cachedChainHeight,
+      ),
     );
 
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(Constants.size.circularBorderRadius),
+        borderRadius: BorderRadius.circular(
+          Constants.size.circularBorderRadius,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(6),
@@ -191,25 +196,22 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
             if (Util.isDesktop) {
               await showDialog<void>(
                 context: context,
-                builder: (context) => DesktopDialog(
-                  maxHeight: MediaQuery.of(context).size.height - 64,
-                  maxWidth: 580,
-                  child: TransactionDetailsView(
-                    transaction: _transaction,
-                    coin: coin,
-                    walletId: walletId,
-                  ),
-                ),
+                builder:
+                    (context) => DesktopDialog(
+                      maxHeight: MediaQuery.of(context).size.height - 64,
+                      maxWidth: 580,
+                      child: TransactionDetailsView(
+                        transaction: _transaction,
+                        coin: coin,
+                        walletId: walletId,
+                      ),
+                    ),
               );
             } else {
               unawaited(
                 Navigator.of(context).pushNamed(
                   TransactionDetailsView.routeName,
-                  arguments: Tuple3(
-                    _transaction,
-                    coin,
-                    walletId,
-                  ),
+                  arguments: Tuple3(_transaction, coin, walletId),
                 ),
               );
             }
@@ -223,9 +225,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                   coin: coin,
                   currentHeight: currentHeight,
                 ),
-                const SizedBox(
-                  width: 14,
-                ),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -243,17 +243,15 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                         ? "Failed"
                                         : "Cancelled"
                                     : whatIsIt(
-                                        _transaction.type,
-                                        coin,
-                                        currentHeight,
-                                      ),
+                                      _transaction.type,
+                                      coin,
+                                      currentHeight,
+                                    ),
                                 style: STextStyles.itemSubtitle12(context),
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 10,
-                          ),
+                          const SizedBox(width: 10),
                           Flexible(
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
@@ -271,9 +269,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 4,
-                      ),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         // crossAxisAlignment: CrossAxisAlignment.end,
@@ -287,17 +283,19 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                               ),
                             ),
                           ),
-                          if (ref.watch(
-                            prefsChangeNotifierProvider
-                                .select((value) => value.externalCalls),
-                          ))
-                            const SizedBox(
-                              width: 10,
-                            ),
-                          if (ref.watch(
-                            prefsChangeNotifierProvider
-                                .select((value) => value.externalCalls),
-                          ))
+                          if (price != null &&
+                              ref.watch(
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.externalCalls,
+                                ),
+                              ))
+                            const SizedBox(width: 10),
+                          if (price != null &&
+                              ref.watch(
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.externalCalls,
+                                ),
+                              ))
                             Flexible(
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
@@ -306,12 +304,7 @@ class _TransactionCardState extends ConsumerState<TransactionCard> {
                                     final amount = _transaction.realAmount;
 
                                     return Text(
-                                      "$prefix${Amount.fromDecimal(
-                                        amount.decimal * price,
-                                        fractionDigits: 2,
-                                      ).fiatString(
-                                        locale: locale,
-                                      )} $baseCurrency",
+                                      "$prefix${Amount.fromDecimal(amount.decimal * price, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                                       style: STextStyles.label(context),
                                     );
                                   },

@@ -47,14 +47,11 @@ final ssss = StateProvider<IncompleteExchangeModel?>((_) => null);
 
 final desktopExchangeModelProvider =
     ChangeNotifierProvider<IncompleteExchangeModel?>(
-  (ref) => ref.watch(ssss.state).state,
-);
+      (ref) => ref.watch(ssss.state).state,
+    );
 
 class StepScaffold extends ConsumerStatefulWidget {
-  const StepScaffold({
-    super.key,
-    required this.initialStep,
-  });
+  const StepScaffold({super.key, required this.initialStep});
 
   final int initialStep;
 
@@ -79,19 +76,19 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async => false,
-          child: Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.6),
-            child: const CustomLoadingOverlay(
-              message: "Creating a trade",
-              eventBus: null,
+        builder:
+            (_) => WillPopScope(
+              onWillPop: () async => false,
+              child: Container(
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.overlay.withOpacity(0.6),
+                child: const CustomLoadingOverlay(
+                  message: "Creating a trade",
+                  eventBus: null,
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
 
@@ -99,12 +96,16 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
         .read(efExchangeProvider)
         .createTrade(
           from: ref.read(desktopExchangeModelProvider)!.sendTicker,
+          fromNetwork: ref.read(desktopExchangeModelProvider)!.sendNetwork,
           to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
-          fixedRate: ref.read(desktopExchangeModelProvider)!.rateType !=
+          toNetwork: ref.read(desktopExchangeModelProvider)!.receiveNetwork,
+          fixedRate:
+              ref.read(desktopExchangeModelProvider)!.rateType !=
               ExchangeRateType.estimated,
-          amount: ref.read(desktopExchangeModelProvider)!.reversed
-              ? ref.read(desktopExchangeModelProvider)!.receiveAmount
-              : ref.read(desktopExchangeModelProvider)!.sendAmount,
+          amount:
+              ref.read(desktopExchangeModelProvider)!.reversed
+                  ? ref.read(desktopExchangeModelProvider)!.receiveAmount
+                  : ref.read(desktopExchangeModelProvider)!.sendAmount,
           addressTo: ref.read(desktopExchangeModelProvider)!.recipientAddress!,
           extraId: null,
           addressRefund: ref.read(desktopExchangeModelProvider)!.refundAddress!,
@@ -131,10 +132,11 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
           showDialog<void>(
             context: context,
             barrierDismissible: true,
-            builder: (_) => SimpleDesktopDialog(
-              title: "Failed to create trade",
-              message: message ?? "",
-            ),
+            builder:
+                (_) => SimpleDesktopDialog(
+                  title: "Failed to create trade",
+                  message: message ?? "",
+                ),
           ),
         );
       }
@@ -142,10 +144,9 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
     }
 
     // save trade to hive
-    await ref.read(tradesServiceProvider).add(
-          trade: response.value!,
-          shouldNotifyListeners: true,
-        );
+    await ref
+        .read(tradesServiceProvider)
+        .add(trade: response.value!, shouldNotifyListeners: true);
 
     String status = response.value!.status;
 
@@ -206,35 +207,35 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   void sendFromStack() {
     final trade = ref.read(desktopExchangeModelProvider)!.trade!;
     final address = trade.payInAddress;
-    final coin = AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency) ??
+    final coin =
+        AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency) ??
         AppConfig.getCryptoCurrencyByPrettyName(trade.payInCurrency);
-    final amount = Decimal.parse(trade.payInAmount).toAmount(
-      fractionDigits: coin.fractionDigits,
-    );
+    final amount = Decimal.parse(
+      trade.payInAmount,
+    ).toAmount(fractionDigits: coin.fractionDigits);
 
     showDialog<void>(
       context: context,
-      builder: (context) => Navigator(
-        initialRoute: SendFromView.routeName,
-        onGenerateRoute: RouteGenerator.generateRoute,
-        onGenerateInitialRoutes: (_, __) {
-          return [
-            FadePageRoute(
-              SendFromView(
-                coin: coin,
-                trade: trade,
-                amount: amount,
-                address: address,
-                shouldPopRoot: true,
-                fromDesktopStep4: true,
-              ),
-              const RouteSettings(
-                name: SendFromView.routeName,
-              ),
-            ),
-          ];
-        },
-      ),
+      builder:
+          (context) => Navigator(
+            initialRoute: SendFromView.routeName,
+            onGenerateRoute: RouteGenerator.generateRoute,
+            onGenerateInitialRoutes: (_, __) {
+              return [
+                FadePageRoute(
+                  SendFromView(
+                    coin: coin,
+                    trade: trade,
+                    amount: amount,
+                    address: address,
+                    shouldPopRoot: true,
+                    fromDesktopStep4: true,
+                  ),
+                  const RouteSettings(name: SendFromView.routeName),
+                ),
+              ];
+            },
+          ),
     );
   }
 
@@ -258,13 +259,11 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
               children: [
                 currentStep != 4
                     ? AppBarBackButton(
-                        isCompact: true,
-                        iconSize: 23,
-                        onPressed: onBack,
-                      )
-                    : const SizedBox(
-                        width: 32,
-                      ),
+                      isCompact: true,
+                      iconSize: 23,
+                      onPressed: onBack,
+                    )
+                    : const SizedBox(width: 32),
                 Text(
                   "Exchange ${model?.sendTicker.toUpperCase()} to ${model?.receiveTicker.toUpperCase()}",
                   style: STextStyles.desktopH3(context),
@@ -279,31 +278,19 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
               ),
           ],
         ),
-        const SizedBox(
-          height: 12,
-        ),
+        const SizedBox(height: 12),
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32,
-          ),
-          child: DesktopExchangeStepsIndicator(
-            currentStep: currentStep,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: DesktopExchangeStepsIndicator(currentStep: currentStep),
         ),
-        const SizedBox(
-          height: 32,
-        ),
+        const SizedBox(height: 32),
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: FadeStack(
             index: currentStep - 1,
             children: [
               const DesktopStep1(),
-              DesktopStep2(
-                enableNextChanged: updateEnableNext,
-              ),
+              DesktopStep2(enableNextChanged: updateEnableNext),
               const DesktopStep3(),
               const DesktopStep4(),
             ],
@@ -321,9 +308,10 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
               Expanded(
                 child: AnimatedCrossFade(
                   duration: const Duration(milliseconds: 250),
-                  crossFadeState: currentStep == 4
-                      ? CrossFadeState.showSecond
-                      : CrossFadeState.showFirst,
+                  crossFadeState:
+                      currentStep == 4
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
                   firstChild: SecondaryButton(
                     label: "Back",
                     buttonHeight: ButtonHeight.l,
@@ -336,20 +324,20 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 16,
-              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: AnimatedCrossFade(
                   duration: const Duration(milliseconds: 250),
-                  crossFadeState: currentStep == 4
-                      ? CrossFadeState.showSecond
-                      : CrossFadeState.showFirst,
+                  crossFadeState:
+                      currentStep == 4
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
                   firstChild: AnimatedCrossFade(
                     duration: const Duration(milliseconds: 250),
-                    crossFadeState: currentStep == 3
-                        ? CrossFadeState.showSecond
-                        : CrossFadeState.showFirst,
+                    crossFadeState:
+                        currentStep == 3
+                            ? CrossFadeState.showSecond
+                            : CrossFadeState.showFirst,
                     firstChild: PrimaryButton(
                       label: "Next",
                       enabled: currentStep != 2 ? true : enableNext,
@@ -394,9 +382,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                                   "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))} to this address",
                                   style: STextStyles.desktopH3(context),
                                 ),
-                                const SizedBox(
-                                  height: 48,
-                                ),
+                                const SizedBox(height: 48),
                                 Center(
                                   child: QR(
                                     // TODO: grab coin uri scheme from somewhere
@@ -409,9 +395,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                                     size: 290,
                                   ),
                                 ),
-                                const SizedBox(
-                                  height: 48,
-                                ),
+                                const SizedBox(height: 48),
                                 SecondaryButton(
                                   label: "Cancel",
                                   width: 310,

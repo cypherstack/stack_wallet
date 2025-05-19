@@ -15,10 +15,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
 
 import '../../../app_config.dart';
-import '../../../exceptions/exchange/unsupported_currency_exception.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
-import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
@@ -34,12 +32,9 @@ import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_loading_overlay.dart';
-import '../../../widgets/desktop/primary_button.dart';
-import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/rounded_white_container.dart';
-import '../../../widgets/stack_dialog.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 import '../../buy_view/sub_widgets/crypto_selection_view.dart';
@@ -74,26 +69,24 @@ class _ExchangeCurrencySelectionViewState
   bool _loaded = false;
   String _searchString = "";
 
-  Future<T> _showUpdatingCurrencies<T>({
-    required Future<T> whileFuture,
-  }) async {
+  Future<T> _showUpdatingCurrencies<T>({required Future<T> whileFuture}) async {
     unawaited(
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async => false,
-          child: Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.6),
-            child: const CustomLoadingOverlay(
-              message: "Loading currencies",
-              eventBus: null,
+        builder:
+            (_) => WillPopScope(
+              onWillPop: () async => false,
+              child: Container(
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.overlay.withOpacity(0.6),
+                child: const CustomLoadingOverlay(
+                  message: "Loading currencies",
+                  eventBus: null,
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
 
@@ -111,85 +104,52 @@ class _ExchangeCurrencySelectionViewState
       return await _getCurrencies();
     }
     await ExchangeDataLoadingService.instance.initDB();
-    final List<Currency> currencies = await ExchangeDataLoadingService
-        .instance.isar.currencies
-        .where()
-        .filter()
-        .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
-        .or()
-        .exchangeNameStartsWith(TrocadorExchange.exchangeName)
-        .or()
-        .exchangeNameStartsWith(NanswapExchange.exchangeName)
-        .findAll();
-
-    final cn = await ChangeNowExchange.instance.getPairedCurrencies(
-      widget.pairedTicker!,
-      widget.isFixedRate,
-    );
-
-    if (cn.value == null) {
-      if (cn.exception is UnsupportedCurrencyException) {
-        return _getDistinctCurrenciesFrom(currencies);
-      }
-
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => StackDialog(
-            title: "Exchange Error",
-            message: "Failed to load currency data: ${cn.exception}",
-            leftButton: SecondaryButton(
-              label: "Ok",
-              onPressed: Navigator.of(context, rootNavigator: isDesktop).pop,
-            ),
-            rightButton: PrimaryButton(
-              label: "Retry",
-              onPressed: () async {
-                Navigator.of(context, rootNavigator: isDesktop).pop();
-                _currencies = await _showUpdatingCurrencies(
-                  whileFuture: _loadCurrencies(),
-                );
-                setState(() {});
-              },
-            ),
-          ),
-        );
-      }
-    } else {
-      currencies.addAll(cn.value!);
-    }
+    final List<Currency> currencies =
+        await ExchangeDataLoadingService.instance.isar.currencies
+            .where()
+            .filter()
+            .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
+            .or()
+            .exchangeNameStartsWith(TrocadorExchange.exchangeName)
+            .or()
+            .exchangeNameStartsWith(NanswapExchange.exchangeName)
+            .findAll();
 
     return _getDistinctCurrenciesFrom(currencies);
   }
 
   Future<List<Currency>> _getCurrencies() async {
     await ExchangeDataLoadingService.instance.initDB();
-    final currencies = await ExchangeDataLoadingService.instance.isar.currencies
-        .where()
-        .filter()
-        .isFiatEqualTo(false)
-        .and()
-        .group(
-          (q) => widget.isFixedRate
-              ? q
-                  .rateTypeEqualTo(SupportedRateType.both)
-                  .or()
-                  .rateTypeEqualTo(SupportedRateType.fixed)
-              : q
-                  .rateTypeEqualTo(SupportedRateType.both)
-                  .or()
-                  .rateTypeEqualTo(SupportedRateType.estimated),
-        )
-        .sortByIsStackCoin()
-        .thenByName()
-        .findAll();
+    final currencies =
+        await ExchangeDataLoadingService.instance.isar.currencies
+            .where()
+            .filter()
+            .isFiatEqualTo(false)
+            .and()
+            .group(
+              (q) =>
+                  widget.isFixedRate
+                      ? q
+                          .rateTypeEqualTo(SupportedRateType.both)
+                          .or()
+                          .rateTypeEqualTo(SupportedRateType.fixed)
+                      : q
+                          .rateTypeEqualTo(SupportedRateType.both)
+                          .or()
+                          .rateTypeEqualTo(SupportedRateType.estimated),
+            )
+            .sortByIsStackCoin()
+            .thenByName()
+            .findAll();
 
     // If using Tor, filter exchanges which do not support Tor.
     if (Prefs.instance.useTor) {
       if (Exchange.exchangeNamesWithTorSupport.isNotEmpty) {
         currencies.removeWhere(
-          (element) => !Exchange.exchangeNamesWithTorSupport
-              .contains(element.exchangeName),
+          (element) =>
+              !Exchange.exchangeNamesWithTorSupport.contains(
+                element.exchangeName,
+              ),
         );
       }
     }
@@ -262,8 +222,9 @@ class _ExchangeCurrencySelectionViewState
     if (!_loaded) {
       _loaded = true;
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-        _currencies =
-            await _showUpdatingCurrencies(whileFuture: _loadCurrencies());
+        _currencies = await _showUpdatingCurrencies(
+          whileFuture: _loadCurrencies(),
+        );
         setState(() {});
       });
     }
@@ -284,7 +245,7 @@ class _ExchangeCurrencySelectionViewState
                       const Duration(milliseconds: 50),
                     );
                   }
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.of(context).pop();
                   }
                 },
@@ -295,9 +256,7 @@ class _ExchangeCurrencySelectionViewState
               ),
             ),
             body: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: child,
             ),
           ),
@@ -307,10 +266,7 @@ class _ExchangeCurrencySelectionViewState
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
         children: [
-          if (!isDesktop)
-            const SizedBox(
-              height: 16,
-            ),
+          if (!isDesktop) const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -340,32 +296,31 @@ class _ExchangeCurrencySelectionViewState
                     height: 16,
                   ),
                 ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _searchController.text = "";
-                                    _searchString = "";
-                                  });
-                                },
-                              ),
-                            ],
+                suffixIcon:
+                    _searchController.text.isNotEmpty
+                        ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      _searchController.text = "";
+                                      _searchString = "";
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                    : null,
+                        )
+                        : null,
               ),
             ),
           ),
-          const SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 20),
           Flexible(
             child: Builder(
               builder: (context) {
@@ -377,17 +332,19 @@ class _ExchangeCurrencySelectionViewState
 
                 final items = filter(_searchString);
 
-                final walletCoins = items
-                    .where(
-                      (currency) => coins
-                          .where(
-                            (coin) =>
-                                coin.ticker.toLowerCase() ==
-                                currency.ticker.toLowerCase(),
-                          )
-                          .isNotEmpty,
-                    )
-                    .toList();
+                final walletCoins =
+                    items
+                        .where(
+                          (currency) =>
+                              coins
+                                  .where(
+                                    (coin) =>
+                                        coin.ticker.toLowerCase() ==
+                                        currency.ticker.toLowerCase(),
+                                  )
+                                  .isNotEmpty,
+                        )
+                        .toList();
 
                 // sort alphabetically by name
                 items.sort((a, b) => a.name.compareTo(b.name));
@@ -408,8 +365,9 @@ class _ExchangeCurrencySelectionViewState
                     primary: isDesktop ? false : null,
                     itemCount: items.length,
                     itemBuilder: (builderContext, index) {
-                      final bool hasImageUrl =
-                          items[index].image.startsWith("http");
+                      final bool hasImageUrl = items[index].image.startsWith(
+                        "http",
+                      );
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: GestureDetector(
@@ -425,29 +383,27 @@ class _ExchangeCurrencySelectionViewState
                                   child:
                                       AppConfig.isStackCoin(items[index].ticker)
                                           ? CoinIconForTicker(
-                                              ticker: items[index].ticker,
-                                              size: 24,
-                                            )
+                                            ticker: items[index].ticker,
+                                            size: 24,
+                                          )
                                           // ? getIconForTicker(
                                           //     items[index].ticker,
                                           //     size: 24,
                                           //   )
                                           : hasImageUrl
-                                              ? SvgPicture.network(
-                                                  items[index].image,
-                                                  width: 24,
-                                                  height: 24,
-                                                  placeholderBuilder: (_) =>
-                                                      const LoadingIndicator(),
-                                                )
-                                              : const SizedBox(
-                                                  width: 24,
-                                                  height: 24,
-                                                ),
+                                          ? SvgPicture.network(
+                                            items[index].image,
+                                            width: 24,
+                                            height: 24,
+                                            placeholderBuilder:
+                                                (_) => const LoadingIndicator(),
+                                          )
+                                          : const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                          ),
                                 ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -455,19 +411,20 @@ class _ExchangeCurrencySelectionViewState
                                     children: [
                                       Text(
                                         items[index].name,
-                                        style:
-                                            STextStyles.largeMedium14(context),
+                                        style: STextStyles.largeMedium14(
+                                          context,
+                                        ),
                                       ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
+                                      const SizedBox(height: 2),
                                       Text(
                                         items[index].ticker.toUpperCase(),
-                                        style: STextStyles.smallMed12(context)
-                                            .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
+                                        style: STextStyles.smallMed12(
+                                          context,
+                                        ).copyWith(
+                                          color:
+                                              Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textSubtitle1,
                                         ),
                                       ),
                                     ],

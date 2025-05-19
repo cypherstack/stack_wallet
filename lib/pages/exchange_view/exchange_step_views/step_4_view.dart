@@ -86,8 +86,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   }
 
   Future<void> _updateStatus() async {
-    final statusResponse =
-        await ref.read(efExchangeProvider).updateTrade(model.trade!);
+    final statusResponse = await ref
+        .read(efExchangeProvider)
+        .updateTrade(model.trade!);
     String status = "Waiting";
     if (statusResponse.value != null) {
       status = statusResponse.value!.status;
@@ -149,46 +150,34 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           Theme.of(context).extension<StackColors>()!.backgroundAppBar,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(
-            Constants.size.circularBorderRadius * 3,
-          ),
+          top: Radius.circular(Constants.size.circularBorderRadius * 3),
         ),
       ),
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(
-                height: 32,
-              ),
+              const SizedBox(height: 32),
               Text(
                 "Select Firo balance",
                 style: STextStyles.pageTitleH2(context),
               ),
-              const SizedBox(
-                height: 32,
-              ),
+              const SizedBox(height: 32),
               SecondaryButton(
                 label:
                     "${ref.watch(pAmountFormatter(coin)).format(balancePrivate.spendable)} (private)",
                 onPressed: () => Navigator.of(context).pop(false),
               ),
-              const SizedBox(
-                height: 16,
-              ),
+              const SizedBox(height: 16),
               SecondaryButton(
                 label:
                     "${ref.watch(pAmountFormatter(coin)).format(balancePublic.spendable)} (public)",
                 onPressed: () => Navigator.of(context).pop(true),
               ),
-              const SizedBox(
-                height: 32,
-              ),
+              const SizedBox(height: 32),
             ],
           ),
         );
@@ -237,55 +226,39 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         ),
       );
 
-      final time = Future<dynamic>.delayed(
-        const Duration(
-          milliseconds: 2500,
-        ),
-      );
+      final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       Future<TxData> txDataFuture;
 
       if (wallet is FiroWallet && !firoPublicSend) {
         txDataFuture = wallet.prepareSendSpark(
           txData: TxData(
-            recipients: [
-              (
-                address: address,
-                amount: amount,
-                isChange: false,
-              ),
-            ],
-            note: "${model.trade!.payInCurrency.toUpperCase()}/"
+            recipients: [(address: address, amount: amount, isChange: false)],
+            note:
+                "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
           ),
         );
       } else {
-        final memo = wallet.info.coin is Stellar
-            ? model.trade!.payInExtraId.isNotEmpty
-                ? model.trade!.payInExtraId
-                : null
-            : null;
+        final memo =
+            wallet.info.coin is Stellar
+                ? model.trade!.payInExtraId.isNotEmpty
+                    ? model.trade!.payInExtraId
+                    : null
+                : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [
-              (
-                address: address,
-                amount: amount,
-                isChange: false,
-              ),
-            ],
+            recipients: [(address: address, amount: amount, isChange: false)],
             memo: memo,
             feeRateType: FeeRateType.average,
-            note: "${model.trade!.payInCurrency.toUpperCase()}/"
+            note:
+                "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
           ),
         );
       }
 
-      final results = await Future.wait([
-        txDataFuture,
-        time,
-      ]);
+      final results = await Future.wait([txDataFuture, time]);
 
       final txData = results.first as TxData;
 
@@ -301,13 +274,14 @@ class _Step4ViewState extends ConsumerState<Step4View> {
             Navigator.of(context).push(
               RouteGenerator.getRoute(
                 shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-                builder: (_) => ConfirmChangeNowSendView(
-                  txData: txData,
-                  walletId: tuple.item1,
-                  routeOnSuccessName: HomeView.routeName,
-                  trade: model.trade!,
-                  shouldSendPublicFiroFunds: firoPublicSend,
-                ),
+                builder:
+                    (_) => ConfirmChangeNowSendView(
+                      txData: txData,
+                      walletId: tuple.item1,
+                      routeOnSuccessName: HomeView.routeName,
+                      trade: model.trade!,
+                      shouldSendPublicFiroFunds: firoPublicSend,
+                    ),
                 settings: const RouteSettings(
                   name: ConfirmChangeNowSendView.routeName,
                 ),
@@ -338,9 +312,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.buttonTextSecondary,
                     ),
                   ),
                   onPressed: () {
@@ -357,8 +332,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isWalletCoin =
-        _isWalletCoinAndHasWallet(model.trade!.payInCurrency, ref);
+    final bool isWalletCoin = _isWalletCoinAndHasWallet(
+      model.trade!.payInCurrency,
+      ref,
+    );
     return WillPopScope(
       onWillPop: () async {
         await _close();
@@ -379,17 +356,15 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   Assets.svg.x,
                   width: 24,
                   height: 24,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: _close,
               ),
             ),
-            title: Text(
-              "Swap",
-              style: STextStyles.navBarTitle(context),
-            ),
+            title: Text("Swap", style: STextStyles.navBarTitle(context)),
           ),
           body: LayoutBuilder(
             builder: (context, constraints) {
@@ -407,59 +382,51 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            StepRow(
-                              count: 4,
-                              current: 3,
-                              width: width,
-                            ),
-                            const SizedBox(
-                              height: 14,
-                            ),
+                            StepRow(count: 4, current: 3, width: width),
+                            const SizedBox(height: 14),
                             Text(
                               "Send ${model.sendTicker.toUpperCase()} to the address below",
                               style: STextStyles.pageTitleH1(context),
                             ),
-                            const SizedBox(
-                              height: 8,
-                            ),
+                            const SizedBox(height: 8),
                             Text(
                               "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ${model.trade!.exchangeName} will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
                               style: STextStyles.itemSubtitle(context),
                             ),
-                            const SizedBox(
-                              height: 12,
-                            ),
+                            const SizedBox(height: 12),
                             RoundedContainer(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .warningBackground,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.warningBackground,
                               child: RichText(
                                 text: TextSpan(
                                   text:
                                       "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
                                   style: STextStyles.label700(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .warningForeground,
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .warningForeground,
                                   ),
                                   children: [
                                     TextSpan(
                                       text:
                                           "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
-                                      style:
-                                          STextStyles.label(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .warningForeground,
+                                      style: STextStyles.label(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .warningForeground,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                            const SizedBox(
-                              height: 8,
-                            ),
+                            const SizedBox(height: 8),
                             RoundedWhiteContainer(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -470,8 +437,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     children: [
                                       Text(
                                         "Amount",
-                                        style:
-                                            STextStyles.itemSubtitle(context),
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
                                       ),
                                       GestureDetector(
                                         onTap: () async {
@@ -493,14 +461,13 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                           children: [
                                             SvgPicture.asset(
                                               Assets.svg.copy,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .infoItemIcons,
+                                              color:
+                                                  Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .infoItemIcons,
                                               width: 10,
                                             ),
-                                            const SizedBox(
-                                              width: 4,
-                                            ),
+                                            const SizedBox(width: 4),
                                             Text(
                                               "Copy",
                                               style: STextStyles.link2(context),
@@ -510,9 +477,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
+                                  const SizedBox(height: 4),
                                   Text(
                                     "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
                                     style: STextStyles.itemSubtitle12(context),
@@ -520,9 +485,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 ],
                               ),
                             ),
-                            const SizedBox(
-                              height: 8,
-                            ),
+                            const SizedBox(height: 8),
                             RoundedWhiteContainer(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,8 +496,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     children: [
                                       Text(
                                         "Send ${model.sendTicker.toUpperCase()} to this address",
-                                        style:
-                                            STextStyles.itemSubtitle(context),
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
                                       ),
                                       GestureDetector(
                                         onTap: () async {
@@ -556,14 +520,13 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                           children: [
                                             SvgPicture.asset(
                                               Assets.svg.copy,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .infoItemIcons,
+                                              color:
+                                                  Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .infoItemIcons,
                                               width: 10,
                                             ),
-                                            const SizedBox(
-                                              width: 4,
-                                            ),
+                                            const SizedBox(width: 4),
                                             Text(
                                               "Copy",
                                               style: STextStyles.link2(context),
@@ -573,9 +536,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
+                                  const SizedBox(height: 4),
                                   Text(
                                     model.trade!.payInAddress,
                                     style: STextStyles.itemSubtitle12(context),
@@ -583,9 +544,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 ],
                               ),
                             ),
-                            const SizedBox(
-                              height: 6,
-                            ),
+                            const SizedBox(height: 6),
                             if (model.trade!.payInExtraId.isNotEmpty)
                               RoundedWhiteContainer(
                                 child: Column(
@@ -597,8 +556,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                       children: [
                                         Text(
                                           "Memo",
-                                          style:
-                                              STextStyles.itemSubtitle(context),
+                                          style: STextStyles.itemSubtitle(
+                                            context,
+                                          ),
                                         ),
                                         GestureDetector(
                                           onTap: () async {
@@ -621,39 +581,38 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                             children: [
                                               SvgPicture.asset(
                                                 Assets.svg.copy,
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .infoItemIcons,
+                                                color:
+                                                    Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .infoItemIcons,
                                                 width: 10,
                                               ),
-                                              const SizedBox(
-                                                width: 4,
-                                              ),
+                                              const SizedBox(width: 4),
                                               Text(
                                                 "Copy",
-                                                style:
-                                                    STextStyles.link2(context),
+                                                style: STextStyles.link2(
+                                                  context,
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
+                                    const SizedBox(height: 4),
                                     Text(
                                       model.trade!.payInExtraId,
-                                      style:
-                                          STextStyles.itemSubtitle12(context),
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                             if (model.trade!.payInExtraId.isNotEmpty)
-                              const SizedBox(
-                                height: 6,
-                              ),
+                              const SizedBox(height: 6),
                             RoundedWhiteContainer(
                               child: Row(
                                 children: [
@@ -666,12 +625,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     children: [
                                       Text(
                                         model.trade!.tradeId,
-                                        style:
-                                            STextStyles.itemSubtitle12(context),
+                                        style: STextStyles.itemSubtitle12(
+                                          context,
+                                        ),
                                       ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
+                                      const SizedBox(width: 10),
                                       GestureDetector(
                                         onTap: () async {
                                           final data = ClipboardData(
@@ -690,9 +648,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                         },
                                         child: SvgPicture.asset(
                                           Assets.svg.copy,
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .infoItemIcons,
+                                          color:
+                                              Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .infoItemIcons,
                                           width: 12,
                                         ),
                                       ),
@@ -701,9 +660,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 ],
                               ),
                             ),
-                            const SizedBox(
-                              height: 6,
-                            ),
+                            const SizedBox(height: 6),
                             RoundedWhiteContainer(
                               child: Row(
                                 mainAxisAlignment:
@@ -715,8 +672,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                   ),
                                   Text(
                                     _statusString,
-                                    style: STextStyles.itemSubtitle(context)
-                                        .copyWith(
+                                    style: STextStyles.itemSubtitle(
+                                      context,
+                                    ).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
                                           .colorForStatus(_statusString),
@@ -726,9 +684,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               ),
                             ),
                             const Spacer(),
-                            const SizedBox(
-                              height: 12,
-                            ),
+                            const SizedBox(height: 12),
                             TextButton(
                               onPressed: () {
                                 showDialog<dynamic>(
@@ -738,9 +694,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     return StackDialogBase(
                                       child: Column(
                                         children: [
-                                          const SizedBox(
-                                            height: 8,
-                                          ),
+                                          const SizedBox(height: 8),
                                           Center(
                                             child: Text(
                                               "Send ${model.sendTicker} to this address",
@@ -749,31 +703,30 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(
-                                            height: 24,
-                                          ),
+                                          const SizedBox(height: 24),
                                           Center(
                                             child: QR(
                                               // TODO: grab coin uri scheme from somewhere
                                               // data: "${coin.uriScheme}:$receivingAddress",
                                               data: model.trade!.payInAddress,
-                                              size: MediaQuery.of(context)
-                                                      .size
-                                                      .width /
+                                              size:
+                                                  MediaQuery.of(
+                                                    context,
+                                                  ).size.width /
                                                   2,
                                             ),
                                           ),
-                                          const SizedBox(
-                                            height: 24,
-                                          ),
+                                          const SizedBox(height: 24),
                                           Row(
                                             children: [
                                               const Spacer(),
                                               Expanded(
                                                 child: TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
+                                                  onPressed:
+                                                      () =>
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop(),
                                                   style: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .getSecondaryEnabledButtonStyle(
@@ -784,10 +737,12 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                                     style: STextStyles.button(
                                                       context,
                                                     ).copyWith(
-                                                      color: Theme.of(context)
-                                                          .extension<
-                                                              StackColors>()!
-                                                          .buttonTextSecondary,
+                                                      color:
+                                                          Theme.of(context)
+                                                              .extension<
+                                                                StackColors
+                                                              >()!
+                                                              .buttonTextSecondary,
                                                     ),
                                                   ),
                                                 ),
@@ -808,76 +763,83 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 style: STextStyles.button(context),
                               ),
                             ),
-                            if (isWalletCoin)
-                              const SizedBox(
-                                height: 12,
-                              ),
+                            if (isWalletCoin) const SizedBox(height: 12),
                             if (isWalletCoin)
                               Builder(
                                 builder: (context) {
                                   String buttonTitle =
                                       "Send from ${AppConfig.appName}";
 
-                                  final tuple = ref
-                                      .read(
-                                        exchangeSendFromWalletIdStateProvider
-                                            .state,
-                                      )
-                                      .state;
+                                  final tuple =
+                                      ref
+                                          .read(
+                                            exchangeSendFromWalletIdStateProvider
+                                                .state,
+                                          )
+                                          .state;
                                   if (tuple != null &&
                                       model.sendTicker.toLowerCase() ==
                                           tuple.item2.ticker.toLowerCase()) {
-                                    final walletName = ref
-                                        .read(pWallets)
-                                        .getWallet(tuple.item1)
-                                        .info
-                                        .name;
+                                    final walletName =
+                                        ref
+                                            .read(pWallets)
+                                            .getWallet(tuple.item1)
+                                            .info
+                                            .name;
                                     buttonTitle = "Send from $walletName";
                                   }
 
                                   return TextButton(
-                                    onPressed: tuple != null &&
-                                            model.sendTicker.toLowerCase() ==
-                                                tuple.item2.ticker.toLowerCase()
-                                        ? () async {
-                                            await _confirmSend(tuple);
-                                          }
-                                        : () {
-                                            Navigator.of(context).push(
-                                              RouteGenerator.getRoute(
-                                                shouldUseMaterialRoute:
-                                                    RouteGenerator
-                                                        .useMaterialPageRoute,
-                                                builder:
-                                                    (BuildContext context) {
-                                                  final coin = AppConfig.coins
-                                                      .firstWhere(
-                                                    (e) =>
-                                                        e.ticker
-                                                            .toLowerCase() ==
-                                                        model.trade!
-                                                            .payInCurrency
-                                                            .toLowerCase(),
-                                                  );
+                                    onPressed:
+                                        tuple != null &&
+                                                model.sendTicker
+                                                        .toLowerCase() ==
+                                                    tuple.item2.ticker
+                                                        .toLowerCase()
+                                            ? () async {
+                                              await _confirmSend(tuple);
+                                            }
+                                            : () {
+                                              Navigator.of(context).push(
+                                                RouteGenerator.getRoute(
+                                                  shouldUseMaterialRoute:
+                                                      RouteGenerator
+                                                          .useMaterialPageRoute,
+                                                  builder: (
+                                                    BuildContext context,
+                                                  ) {
+                                                    final coin = AppConfig.coins
+                                                        .firstWhere(
+                                                          (e) =>
+                                                              e.ticker
+                                                                  .toLowerCase() ==
+                                                              model
+                                                                  .trade!
+                                                                  .payInCurrency
+                                                                  .toLowerCase(),
+                                                        );
 
-                                                  return SendFromView(
-                                                    coin: coin,
-                                                    amount: model.sendAmount
-                                                        .toAmount(
-                                                      fractionDigits:
-                                                          coin.fractionDigits,
-                                                    ),
-                                                    address: model
-                                                        .trade!.payInAddress,
-                                                    trade: model.trade!,
-                                                  );
-                                                },
-                                                settings: const RouteSettings(
-                                                  name: SendFromView.routeName,
+                                                    return SendFromView(
+                                                      coin: coin,
+                                                      amount: model.sendAmount
+                                                          .toAmount(
+                                                            fractionDigits:
+                                                                coin.fractionDigits,
+                                                          ),
+                                                      address:
+                                                          model
+                                                              .trade!
+                                                              .payInAddress,
+                                                      trade: model.trade!,
+                                                    );
+                                                  },
+                                                  settings: const RouteSettings(
+                                                    name:
+                                                        SendFromView.routeName,
+                                                  ),
                                                 ),
-                                              ),
-                                            );
-                                          },
+                                              );
+                                            },
                                     style: Theme.of(context)
                                         .extension<StackColors>()!
                                         .getSecondaryEnabledButtonStyle(
@@ -885,11 +847,13 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                         ),
                                     child: Text(
                                       buttonTitle,
-                                      style:
-                                          STextStyles.button(context).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .buttonTextSecondary,
+                                      style: STextStyles.button(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonTextSecondary,
                                       ),
                                     ),
                                   );

@@ -96,6 +96,19 @@ abstract class StackFileSystem {
     }
   }
 
+  static Future<Directory> applicationDriftDirectory() async {
+    final root = await applicationRootDirectory();
+    if (_createSubDirs) {
+      final dir = Directory("${root.path}/drift");
+      if (!dir.existsSync()) {
+        await dir.create();
+      }
+      return dir;
+    } else {
+      return root;
+    }
+  }
+
   // Not used in general now. See applicationFiroCacheSQLiteDirectory()
   // static Future<Directory> applicationSQLiteDirectory() async {
   //   final root = await applicationRootDirectory();
