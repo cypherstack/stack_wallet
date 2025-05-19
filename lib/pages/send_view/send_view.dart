@@ -231,7 +231,7 @@ class _SendViewState extends ConsumerState<SendView> {
           _applyUri(paymentData);
         } else {
           if (coin is Epiccash) {
-            content = AddressUtils().formatAddress(content);
+            content = AddressUtils().formatEpicCashAddress(content);
           }
 
           sendToController.text = content;
@@ -245,7 +245,7 @@ class _SendViewState extends ConsumerState<SendView> {
       } catch (e) {
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
-          content = AddressUtils().formatAddress(content);
+          content = AddressUtils().formatEpicCashAddress(content);
         }
 
         await _checkSparkNameAndOrSetAddress(content);
@@ -977,7 +977,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
       if (coin is Epiccash) {
         // strip http:// and https:// if content contains @
-        content = AddressUtils().formatAddress(content);
+        content = AddressUtils().formatEpicCashAddress(content);
       }
 
       final trimmed = content.trim();
@@ -1223,7 +1223,7 @@ class _SendViewState extends ConsumerState<SendView> {
             _address = _address!.substring(0, _address!.indexOf("\n"));
           }
 
-          sendToController.text = AddressUtils().formatAddress(_address!);
+          sendToController.text = AddressUtils().formatEpicCashAddress(_address!);
         }
       });
     }

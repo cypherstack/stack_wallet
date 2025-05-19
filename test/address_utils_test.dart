@@ -57,6 +57,17 @@ void main() {
     expect(AddressUtils.parsePaymentUri(uri), isNull);
   });
 
+  test("parse double prefix type address", () {
+    const uri =
+        "bitcoin:xel:$firoAddress?amount=50.1&message=eggs%20are%20good%21";
+    final result = AddressUtils.parsePaymentUri(uri);
+    expect(result, isNotNull);
+    expect(result!.scheme, "bitcoin");
+    expect(result.address, "xel:$firoAddress");
+    expect(result.amount, "50.1");
+    expect(result.message, "eggs are good!");
+  });
+
   test("encode a list of (mnemonic) words/strings as a json object", () {
     final List<String> list = [
       "hello",
@@ -92,7 +103,10 @@ void main() {
   test("build a uri string with empty params", () {
     expect(
       AddressUtils.buildUriString(
-          Firo(CryptoCurrencyNetwork.main).uriScheme, firoAddress, {}),
+        Firo(CryptoCurrencyNetwork.main).uriScheme,
+        firoAddress,
+        {},
+      ),
       "firo:$firoAddress",
     );
   });

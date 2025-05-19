@@ -12,11 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/keys/view_only_wallet_data.dart';
-import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -40,10 +40,7 @@ import 'rename_wallet_view.dart';
 import 'spark_info.dart';
 
 class WalletSettingsWalletSettingsView extends ConsumerStatefulWidget {
-  const WalletSettingsWalletSettingsView({
-    super.key,
-    required this.walletId,
-  });
+  const WalletSettingsWalletSettingsView({super.key, required this.walletId});
 
   static const String routeName = "/walletSettingsWalletSettings";
 
@@ -57,6 +54,34 @@ class WalletSettingsWalletSettingsView extends ConsumerStatefulWidget {
 class _WalletSettingsWalletSettingsViewState
     extends ConsumerState<WalletSettingsWalletSettingsView> {
   late final DSBController _switchController;
+
+  bool _switchDuressToggleLock = false; // Mutex.
+  Future<void> _switchDuressToggled() async {
+    if (_switchDuressToggleLock) {
+      return;
+    }
+    _switchDuressToggleLock = true; // Lock mutex.
+
+    try {
+      final visibility = ref.read(pWalletInfo(widget.walletId)).isDuressVisible;
+
+      await ref
+          .read(pWalletInfo(widget.walletId))
+          .updateDuressVisibilityStatus(
+            isDuressVisible: !visibility,
+            isar: ref.read(mainDBProvider).isar,
+          );
+    } catch (e, s) {
+      Logging.instance.f(
+        "Failed to update duress visibility for wallet",
+        error: e,
+        stackTrace: s,
+      );
+    } finally {
+      // ensure _switchDuressToggleLock is set to false no matter what.
+      _switchDuressToggleLock = false;
+    }
+  }
 
   bool _switchReuseAddressToggledLock = false; // Mutex.
   Future<void> _switchReuseAddressToggled() async {
@@ -90,10 +115,7 @@ class _WalletSettingsWalletSettingsViewState
                 style: Theme.of(context)
                     .extension<StackColors>()!
                     .getPrimaryEnabledButtonStyle(context),
-                child: Text(
-                  "Continue",
-                  style: STextStyles.button(context),
-                ),
+                child: Text("Continue", style: STextStyles.button(context)),
                 onPressed: () {
                   Navigator.of(context).pop(true);
                 },
@@ -115,12 +137,12 @@ class _WalletSettingsWalletSettingsViewState
   }
 
   Future<void> _updateAddressReuse(bool shouldReuse) async {
-    await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-      newEntries: {
-        WalletInfoKeys.reuseAddress: shouldReuse,
-      },
-      isar: ref.read(mainDBProvider).isar,
-    );
+    await ref
+        .read(pWalletInfo(widget.walletId))
+        .updateOtherData(
+          newEntries: {WalletInfoKeys.reuseAddress: shouldReuse},
+          isar: ref.read(mainDBProvider).isar,
+        );
 
     if (_switchController.isOn != null) {
       if (_switchController.isOn!.call() != shouldReuse) {
@@ -139,7 +161,8 @@ class _WalletSettingsWalletSettingsViewState
   Widget build(BuildContext context) {
     final wallet = ref.watch(pWallets).getWallet(widget.walletId);
 
-    final isViewOnlyNoAddressGen = wallet is ViewOnlyOptionInterface &&
+    final isViewOnlyNoAddressGen =
+        wallet is ViewOnlyOptionInterface &&
         wallet.isViewOnly &&
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
 
@@ -158,11 +181,7 @@ class _WalletSettingsWalletSettingsViewState
           ),
         ),
         body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 16,
-            right: 16,
-          ),
+          padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -199,10 +218,7 @@ class _WalletSettingsWalletSettingsViewState
                     ),
                   ),
                 ),
-                if (wallet is RbfInterface)
-                  const SizedBox(
-                    height: 8,
-                  ),
+                if (wallet is RbfInterface) const SizedBox(height: 8),
                 if (wallet is RbfInterface)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
@@ -236,9 +252,7 @@ class _WalletSettingsWalletSettingsViewState
                     ),
                   ),
                 if (wallet is MultiAddressInterface && !isViewOnlyNoAddressGen)
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  const SizedBox(height: 8),
                 if (wallet is MultiAddressInterface && !isViewOnlyNoAddressGen)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
@@ -269,11 +283,13 @@ class _WalletSettingsWalletSettingsViewState
                               width: 40,
                               child: IgnorePointer(
                                 child: DraggableSwitchButton(
-                                  isOn: ref.watch(
-                                        pWalletInfo(widget.walletId).select(
-                                          (value) => value.otherData,
-                                        ),
-                                      )[WalletInfoKeys.reuseAddress] as bool? ??
+                                  isOn:
+                                      ref.watch(
+                                            pWalletInfo(widget.walletId).select(
+                                              (value) => value.otherData,
+                                            ),
+                                          )[WalletInfoKeys.reuseAddress]
+                                          as bool? ??
                                       false,
                                   controller: _switchController,
                                 ),
@@ -284,10 +300,56 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (wallet is LelantusInterface && !wallet.isViewOnly)
-                  const SizedBox(
-                    height: 8,
+                if (!ref.watch(pDuress)) const SizedBox(height: 8),
+                if (!ref.watch(pDuress))
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
+                      ),
+                      onPressed: _switchDuressToggled,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Show in duress",
+                              style: STextStyles.titleBold12(context),
+                              textAlign: TextAlign.left,
+                            ),
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: IgnorePointer(
+                                child: DraggableSwitch(
+                                  value:
+                                      ref.watch(
+                                            pWalletInfo(widget.walletId).select(
+                                              (value) => value.otherData,
+                                            ),
+                                          )[WalletInfoKeys
+                                              .duressMarkedVisibleWalletKey]
+                                          as bool? ??
+                                      false,
+                                  onChanged: (_) => (),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
+                if (wallet is LelantusInterface && !wallet.isViewOnly)
+                  const SizedBox(height: 8),
                 if (wallet is LelantusInterface && !wallet.isViewOnly)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
@@ -321,9 +383,7 @@ class _WalletSettingsWalletSettingsViewState
                     ),
                   ),
                 if (wallet is SparkInterface && !wallet.isViewOnly)
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  const SizedBox(height: 8),
                 if (wallet is SparkInterface && !wallet.isViewOnly)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
@@ -356,10 +416,7 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (wallet is LibMoneroWallet)
-                  const SizedBox(
-                    height: 8,
-                  ),
+                if (wallet is LibMoneroWallet) const SizedBox(height: 8),
                 if (wallet is LibMoneroWallet)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
@@ -392,9 +449,7 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                const SizedBox(
-                  height: 8,
-                ),
+                const SizedBox(height: 8),
                 RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
                   child: RawMaterialButton(
@@ -410,59 +465,65 @@ class _WalletSettingsWalletSettingsViewState
                       showDialog<void>(
                         barrierDismissible: true,
                         context: context,
-                        builder: (_) => StackDialog(
-                          title:
-                              "Do you want to delete ${ref.read(pWalletName(widget.walletId))}?",
-                          leftButton: TextButton(
-                            style: Theme.of(context)
-                                .extension<StackColors>()!
-                                .getSecondaryEnabledButtonStyle(context),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              "Cancel",
-                              style: STextStyles.button(context).copyWith(
-                                color: Theme.of(context)
+                        builder:
+                            (_) => StackDialog(
+                              title:
+                                  "Do you want to delete ${ref.read(pWalletName(widget.walletId))}?",
+                              leftButton: TextButton(
+                                style: Theme.of(context)
                                     .extension<StackColors>()!
-                                    .accentColorDark,
-                              ),
-                            ),
-                          ),
-                          rightButton: TextButton(
-                            style: Theme.of(context)
-                                .extension<StackColors>()!
-                                .getPrimaryEnabledButtonStyle(context),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                RouteGenerator.getRoute(
-                                  shouldUseMaterialRoute:
-                                      RouteGenerator.useMaterialPageRoute,
-                                  builder: (_) => LockscreenView(
-                                    routeOnSuccessArguments: widget.walletId,
-                                    showBackButton: true,
-                                    routeOnSuccess:
-                                        DeleteWalletWarningView.routeName,
-                                    biometricsCancelButtonString: "CANCEL",
-                                    biometricsLocalizedReason:
-                                        "Authenticate to delete wallet",
-                                    biometricsAuthenticationTitle:
-                                        "Delete wallet",
-                                  ),
-                                  settings: const RouteSettings(
-                                    name: "/deleteWalletLockscreen",
+                                    .getSecondaryEnabledButtonStyle(context),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text(
+                                  "Cancel",
+                                  style: STextStyles.button(context).copyWith(
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .accentColorDark,
                                   ),
                                 ),
-                              );
-                            },
-                            child: Text(
-                              "Delete",
-                              style: STextStyles.button(context),
+                              ),
+                              rightButton: TextButton(
+                                style: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryEnabledButtonStyle(context),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                    context,
+                                    RouteGenerator.getRoute(
+                                      shouldUseMaterialRoute:
+                                          RouteGenerator.useMaterialPageRoute,
+                                      builder:
+                                          (_) => LockscreenView(
+                                            routeOnSuccessArguments:
+                                                widget.walletId,
+                                            showBackButton: true,
+                                            routeOnSuccess:
+                                                DeleteWalletWarningView
+                                                    .routeName,
+                                            biometricsCancelButtonString:
+                                                "CANCEL",
+                                            biometricsLocalizedReason:
+                                                "Authenticate to delete wallet",
+                                            biometricsAuthenticationTitle:
+                                                "Delete wallet",
+                                          ),
+                                      settings: const RouteSettings(
+                                        name: "/deleteWalletLockscreen",
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  "Delete",
+                                  style: STextStyles.button(context),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
                       );
                     },
                     child: Padding(

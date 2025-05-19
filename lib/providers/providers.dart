@@ -19,6 +19,7 @@ export './exchange/exchange_form_state_provider.dart';
 export './exchange/exchange_send_from_wallet_id_provider.dart';
 export './exchange/trade_note_service_provider.dart';
 export './exchange/trade_sent_from_stack_lookup_provider.dart';
+export './global/duress_provider.dart';
 export './global/locale_provider.dart';
 export './global/node_service_provider.dart';
 export './global/notifications_provider.dart';

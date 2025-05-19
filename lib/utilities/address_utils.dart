@@ -134,6 +134,20 @@ class AddressUtils {
   ///
   /// Returns null on failure to parse
   static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
+    // hacky check its not just a bcash, ecash, or xel address
+    final parts = uri.split(":");
+    if (parts.length == 2) {
+      if ([
+        "xel",
+        "bitcoincash",
+        "bchtest",
+        "ecash",
+        "ectest",
+      ].contains(parts.first.toLowerCase())) {
+        return null;
+      }
+    }
+
     try {
       final Map<String, String> parsedData = _parseUri(uri);
 
@@ -229,7 +243,7 @@ class AddressUtils {
   }
 
   /// Formats an address string to remove any unnecessary prefixes or suffixes.
-  String formatAddress(String epicAddress) {
+  String formatEpicCashAddress(String epicAddress) {
     // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
     if ((epicAddress.startsWith("http://") ||
             epicAddress.startsWith("https://")) &&

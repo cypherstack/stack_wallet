@@ -737,7 +737,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           _applyUri(paymentData);
         } else {
           if (coin is Epiccash) {
-            content = AddressUtils().formatAddress(content);
+            content = AddressUtils().formatEpicCashAddress(content);
           }
 
           sendToController.text = content;
@@ -752,7 +752,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         // If parsing fails, treat it as a plain address.
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
-          content = AddressUtils().formatAddress(content);
+          content = AddressUtils().formatEpicCashAddress(content);
         }
 
         await _checkSparkNameAndOrSetAddress(content);

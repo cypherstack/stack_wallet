@@ -230,6 +230,7 @@ class MockWallets extends _i1.Mock implements _i9.Wallets {
   _i10.Future<void> load(
     _i13.Prefs? prefs,
     _i3.MainDB? mainDB,
+    bool? isDuress,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -237,6 +238,7 @@ class MockWallets extends _i1.Mock implements _i9.Wallets {
           [
             prefs,
             mainDB,
+            isDuress,
           ],
         ),
         returnValue: _i10.Future<void>.value(),
@@ -522,6 +524,36 @@ class MockPrefs extends _i1.Mock implements _i13.Prefs {
         Invocation.setter(
           #hasPin,
           hasPin,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool get hasDuressPin => (super.noSuchMethod(
+        Invocation.getter(#hasDuressPin),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set hasDuressPin(bool? hasDuressPin) => super.noSuchMethod(
+        Invocation.setter(
+          #hasDuressPin,
+          hasDuressPin,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool get biometricsDuress => (super.noSuchMethod(
+        Invocation.getter(#biometricsDuress),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set biometricsDuress(bool? biometricsDuress) => super.noSuchMethod(
+        Invocation.setter(
+          #biometricsDuress,
+          biometricsDuress,
         ),
         returnValueForMissingStub: null,
       );

@@ -912,6 +912,36 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
       );
 
   @override
+  bool get hasDuressPin => (super.noSuchMethod(
+        Invocation.getter(#hasDuressPin),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set hasDuressPin(bool? hasDuressPin) => super.noSuchMethod(
+        Invocation.setter(
+          #hasDuressPin,
+          hasDuressPin,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool get biometricsDuress => (super.noSuchMethod(
+        Invocation.getter(#biometricsDuress),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  set biometricsDuress(bool? biometricsDuress) => super.noSuchMethod(
+        Invocation.setter(
+          #biometricsDuress,
+          biometricsDuress,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   int get familiarity => (super.noSuchMethod(
         Invocation.getter(#familiarity),
         returnValue: 0,
