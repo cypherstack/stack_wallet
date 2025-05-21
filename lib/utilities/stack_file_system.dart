@@ -12,7 +12,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../app_config.dart';
 import 'prefs.dart';
@@ -215,13 +214,11 @@ abstract class StackFileSystem {
       // TODO check this is correct for macos
       logsDir = Directory(path.join(appDocsDir.path, logsDirName));
     } else if (Platform.isAndroid) {
-      await Permission.storage.request();
-      final ext = await getExternalStorageDirectory();
-      final rootPath = path.dirname(
-        path.dirname(path.dirname(path.dirname(ext!.path))),
-      );
-      final logsDirPath = path.join(rootPath, "Documents", logsDirName);
-      logsDir = Directory(logsDirPath);
+      // final dir = await wtfAndroidDocumentsPath();
+      // final logsDirPath = path.join(dir.path, logsDirName);
+      // logsDir = Directory(logsDirPath);
+
+      logsDir = Directory(path.join(appDocsDir.path, "logs"));
     } else {
       throw Exception("Unsupported Platform");
     }
@@ -231,5 +228,19 @@ abstract class StackFileSystem {
     }
 
     return logsDir;
+  }
+
+  static Future<Directory> wtfAndroidDocumentsPath() async {
+    const base = "/storage/emulated/";
+    final rootDir = await applicationRootDirectory();
+    final parts = rootDir.path.replaceFirst("/data/user/", "").split("/");
+    if (parts.isNotEmpty) {
+      final id = int.tryParse(parts.first);
+
+      if (id != null) {
+        return Directory(path.join(base, id.toString(), "Documents"));
+      }
+    }
+    throw Exception("Unsupported Android flavor");
   }
 }

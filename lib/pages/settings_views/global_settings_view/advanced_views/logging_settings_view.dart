@@ -11,21 +11,28 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../app_config.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/show_loading.dart';
+import '../../../../utilities/stack_file_system.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
+import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/log_level_preference_widget.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
@@ -45,15 +52,14 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
   bool _lock = false;
 
   Future<void> _edit() async {
-    final currentPath = ref.read(prefsChangeNotifierProvider).logsPath ??
+    final currentPath =
+        ref.read(prefsChangeNotifierProvider).logsPath ??
         Logging.instance.logsDirPath;
     final newPath = await _pickDir(context, currentPath);
 
     // test if has permission to write
     if (newPath != null) {
-      final file = File(
-        "$newPath${Platform.pathSeparator}._test",
-      );
+      final file = File("$newPath${Platform.pathSeparator}._test");
       if (!file.existsSync()) {
         file.createSync();
         file.deleteSync();
@@ -67,7 +73,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
       setState(() {
         fileLocationController.text =
             ref.read(prefsChangeNotifierProvider).logsPath ??
-                Logging.instance.logsDirPath;
+            Logging.instance.logsDirPath;
       });
     }
   }
@@ -88,13 +94,82 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     return chosenPath;
   }
 
+  Future<void> _exportHelper() async {
+    final logsDir = await StackFileSystem.applicationLogsDirectory(
+      ref.read(prefsChangeNotifierProvider),
+    );
+
+    final files = logsDir
+        .listSync(recursive: false)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.txt'));
+
+    if (files.isEmpty) {
+      throw Exception("No logs found in ${logsDir.path}");
+    }
+
+    final archive = Archive();
+
+    for (final file in files) {
+      final bytes = await file.readAsBytes();
+      final fileName = path.basename(file.path);
+      archive.addFile(ArchiveFile(fileName, bytes.length, bytes));
+    }
+
+    if (archive.isEmpty) {
+      throw Exception("Failed to add log files to archive");
+    }
+
+    // Write zip to a temp location
+    final tempDir = await getTemporaryDirectory();
+    final zipPath = path.join(tempDir.path, 'logs.zip');
+    final zipFile = File(zipPath);
+    await zipFile.writeAsBytes(ZipEncoder().encode(archive)!);
+
+    await Share.shareXFiles([
+      XFile(zipFile.path),
+    ], text: "${AppConfig.appName} logs");
+  }
+
+  bool _exportLock = false;
+  Future<void> _androidExportLogs() async {
+    if (_exportLock) {
+      return;
+    }
+    _exportLock = true;
+    try {
+      await showLoading(
+        whileFuture: _exportHelper(),
+        context: context,
+        message: "Exporting logs...",
+        onException: (e) => throw e,
+      );
+    } catch (e, s) {
+      Logging.instance.e("Failed to export logs", error: e, stackTrace: s);
+      if (mounted) {
+        unawaited(
+          showDialog(
+            context: context,
+            builder:
+                (context) => StackOkDialog(
+                  title: "Failed to export logs",
+                  message: e.toString(),
+                ),
+          ),
+        );
+      }
+    } finally {
+      _exportLock = false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     fileLocationController = TextEditingController();
     fileLocationController.text =
         ref.read(prefsChangeNotifierProvider).logsPath ??
-            Logging.instance.logsDirPath;
+        Logging.instance.logsDirPath;
   }
 
   @override
@@ -114,18 +189,11 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Logging",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Logging", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.only(
-              top: 12,
-              left: 16,
-              right: 16,
-            ),
+            padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
             child: Column(
               children: [
                 Row(
@@ -137,9 +205,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 TextField(
                   autocorrect: false,
                   enableSuggestions: false,
@@ -151,27 +217,22 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                     suffixIcon: UnconstrainedBox(
                       child: Row(
                         children: [
-                          const SizedBox(
-                            width: 16,
-                          ),
+                          const SizedBox(width: 16),
                           SvgPicture.asset(
                             Assets.svg.folder,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark3,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textDark3,
                             width: 16,
                             height: 16,
                           ),
-                          const SizedBox(
-                            width: 12,
-                          ),
+                          const SizedBox(width: 12),
                         ],
                       ),
                     ),
                   ),
-                  key: const Key(
-                    "logsDirPathLocationControllerKey",
-                  ),
+                  key: const Key("logsDirPathLocationControllerKey"),
                   readOnly: true,
                   toolbarOptions: const ToolbarOptions(
                     copy: true,
@@ -181,13 +242,9 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                   ),
                   onChanged: (newValue) {},
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 const LogLevelPreferenceWidget(),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -201,10 +258,16 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 const Spacer(),
+
+                if (Platform.isAndroid)
+                  SecondaryButton(
+                    label: "Export logs",
+                    onPressed: _androidExportLogs,
+                  ),
+                if (Platform.isAndroid) const SizedBox(height: 16),
+
                 PrimaryButton(
                   label: "Select log save location",
                   onPressed: () async {
@@ -222,9 +285,9 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                       );
                       if (context.mounted) {
                         final String err;
-                        if (e
-                            .toString()
-                            .contains("OS Error: Operation not permitted")) {
+                        if (e.toString().contains(
+                          "OS Error: Operation not permitted",
+                        )) {
                           err = "Cannot use chosen location";
                         } else {
                           err = e.toString();
@@ -233,10 +296,11 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                         unawaited(
                           showDialog(
                             context: context,
-                            builder: (context) => StackOkDialog(
-                              title: "Failed to change logs path",
-                              message: err,
-                            ),
+                            builder:
+                                (context) => StackOkDialog(
+                                  title: "Failed to change logs path",
+                                  message: err,
+                                ),
                           ),
                         );
                       }
@@ -245,9 +309,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                     }
                   },
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),

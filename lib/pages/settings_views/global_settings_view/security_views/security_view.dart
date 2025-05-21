@@ -489,7 +489,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Duress uses biometrics",
+                                "Biometrics opens duress",
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),

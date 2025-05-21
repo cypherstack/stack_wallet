@@ -204,7 +204,10 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         final hasDuressPin =
             (await _secureStore.read(key: kDuressPinKey)) != null;
 
-        ref.read(pDuress.notifier).state = hasDuressPin;
+        ref.read(pDuress.notifier).state =
+            hasDuressPin &&
+            ref.read(prefsChangeNotifierProvider).biometricsDuress;
+
         canTryUnlock = true;
       } else {
         if (ref.read(pDuress)) {

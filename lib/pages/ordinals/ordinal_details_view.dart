@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/ordinal.dart';
@@ -21,6 +21,7 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/show_loading.dart';
+import '../../utilities/stack_file_system.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
@@ -92,9 +93,7 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
                     title: "Inscription number",
                     data: widget.ordinal.inscriptionNumber.toString(),
                   ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
+                  const SizedBox(height: _spacing),
                   _DetailsItemWCopy(
                     title: "Inscription ID",
                     data: widget.ordinal.inscriptionId,
@@ -103,37 +102,32 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
                   //   height: _spacing,
                   // ),
                   // // todo: add utxo status
-                  const SizedBox(
-                    height: _spacing,
-                  ),
+                  const SizedBox(height: _spacing),
                   _DetailsItemWCopy(
                     title: "Amount",
-                    data: utxo == null
-                        ? "ERROR"
-                        : ref.watch(pAmountFormatter(coin)).format(
-                              Amount(
-                                rawValue: BigInt.from(utxo!.value),
-                                fractionDigits: coin.fractionDigits,
-                              ),
-                            ),
+                    data:
+                        utxo == null
+                            ? "ERROR"
+                            : ref
+                                .watch(pAmountFormatter(coin))
+                                .format(
+                                  Amount(
+                                    rawValue: BigInt.from(utxo!.value),
+                                    fractionDigits: coin.fractionDigits,
+                                  ),
+                                ),
                   ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
+                  const SizedBox(height: _spacing),
                   _DetailsItemWCopy(
                     title: "Owner address",
                     data: utxo?.address ?? "ERROR",
                   ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
+                  const SizedBox(height: _spacing),
                   _DetailsItemWCopy(
                     title: "Transaction ID",
                     data: widget.ordinal.utxoTXID,
                   ),
-                  const SizedBox(
-                    height: _spacing,
-                  ),
+                  const SizedBox(height: _spacing),
                 ],
               ),
             ),
@@ -145,11 +139,7 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
 }
 
 class _DetailsItemWCopy extends StatelessWidget {
-  const _DetailsItemWCopy({
-    super.key,
-    required this.title,
-    required this.data,
-  });
+  const _DetailsItemWCopy({super.key, required this.title, required this.data});
 
   final String title;
   final String data;
@@ -163,10 +153,7 @@ class _DetailsItemWCopy extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: STextStyles.itemSubtitle(context),
-              ),
+              Text(title, style: STextStyles.itemSubtitle(context)),
               GestureDetector(
                 onTap: () async {
                   await Clipboard.setData(ClipboardData(text: data));
@@ -184,20 +171,20 @@ class _DetailsItemWCopy extends StatelessWidget {
                   children: [
                     SvgPicture.asset(
                       Assets.svg.copy,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemIcons,
                       width: 12,
                     ),
-                    const SizedBox(
-                      width: 6,
-                    ),
+                    const SizedBox(width: 6),
                     Text(
                       "Copy",
                       style: STextStyles.infoSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemIcons,
                       ),
                     ),
                   ],
@@ -205,13 +192,8 @@ class _DetailsItemWCopy extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(
-            height: 4,
-          ),
-          SelectableText(
-            data,
-            style: STextStyles.itemSubtitle12(context),
-          ),
+          const SizedBox(height: 4),
+          SelectableText(data, style: STextStyles.itemSubtitle12(context)),
         ],
       ),
     );
@@ -235,9 +217,10 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
     final response = await client.get(
       url: Uri.parse(ordinal.content),
-      proxyInfo: ref.read(prefsChangeNotifierProvider).useTor
-          ? ref.read(pTorService).getProxyInfo()
-          : null,
+      proxyInfo:
+          ref.read(prefsChangeNotifierProvider).useTor
+              ? ref.read(pTorService).getProxyInfo()
+              : null,
     );
 
     if (response.code != 200) {
@@ -248,16 +231,14 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
     final bytes = response.bodyBytes;
 
-    if (Platform.isAndroid) {
-      await Permission.storage.request();
-    }
-
-    final dir = Platform.isAndroid
-        ? Directory("/storage/emulated/0/Documents")
-        : await getApplicationDocumentsDirectory();
-
-    final docPath = dir.path;
-    final filePath = "$docPath/ordinal_${ordinal.inscriptionNumber}.png";
+    final dir =
+        Platform.isAndroid
+            ? await StackFileSystem.wtfAndroidDocumentsPath()
+            : await getApplicationDocumentsDirectory();
+    final filePath = path.join(
+      dir.path,
+      "ordinal_${ordinal.inscriptionNumber}.png",
+    );
 
     final File imgFile = File(filePath);
 
@@ -299,9 +280,7 @@ class _OrdinalImageGroup extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(
-          height: _spacing,
-        ),
+        const SizedBox(height: _spacing),
         Row(
           children: [
             Expanded(
@@ -311,9 +290,10 @@ class _OrdinalImageGroup extends ConsumerWidget {
                   Assets.svg.arrowDown,
                   width: 10,
                   height: 12,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextSecondary,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonTextSecondary,
                 ),
                 buttonHeight: ButtonHeight.l,
                 iconSpacing: 4,
