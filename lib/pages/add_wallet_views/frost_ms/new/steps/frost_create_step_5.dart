@@ -8,12 +8,9 @@ import '../../../../../app_config.dart';
 import '../../../../../frost_route_generator.dart';
 import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../pages_desktop_specific/desktop_home_view.dart';
-import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
-import '../../../../../providers/global/node_service_provider.dart';
-import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/secure_store_provider.dart';
-import '../../../../../providers/global/wallets_provider.dart';
+import '../../../../../providers/providers.dart';
 import '../../../../../services/frost.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
@@ -43,7 +40,8 @@ class FrostCreateStep5 extends ConsumerStatefulWidget {
 }
 
 class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
-  static const _warning = "These are your private keys. Please back them up, "
+  static const _warning =
+      "These are your private keys. Please back them up, "
       "keep them safe and never share it with anyone. Your private keys are the"
       " only way you can access your funds if you forget PIN, lose your phone, "
       "etc. ${AppConfig.prefix} does not keep nor is able to restore your private keys"
@@ -79,9 +77,10 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
             child: Text(
               _warning,
               style: STextStyles.w500_14(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .warningForeground,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.warningForeground,
               ),
             ),
           ),
@@ -89,25 +88,19 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
           DetailItem(
             title: "Multisig Config",
             detail: multisigConfig,
-            button: Util.isDesktop
-                ? IconCopyButton(
-                    data: multisigConfig,
-                  )
-                : SimpleCopyButton(
-                    data: multisigConfig,
-                  ),
+            button:
+                Util.isDesktop
+                    ? IconCopyButton(data: multisigConfig)
+                    : SimpleCopyButton(data: multisigConfig),
           ),
           const SizedBox(height: 12),
           DetailItem(
             title: "Keys",
             detail: serializedKeys,
-            button: Util.isDesktop
-                ? IconCopyButton(
-                    data: serializedKeys,
-                  )
-                : SimpleCopyButton(
-                    data: serializedKeys,
-                  ),
+            button:
+                Util.isDesktop
+                    ? IconCopyButton(data: serializedKeys)
+                    : SimpleCopyButton(data: serializedKeys),
           ),
           if (!Util.isDesktop) const Spacer(),
           const SizedBox(height: 12),
@@ -133,10 +126,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                     useSafeArea: true,
                     builder: (ctx) {
                       return const Center(
-                        child: LoadingIndicator(
-                          width: 50,
-                          height: 50,
-                        ),
+                        child: LoadingIndicator(width: 50, height: 50),
                       );
                     },
                   ),
@@ -177,6 +167,13 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                   isar: ref.read(mainDBProvider).isar,
                 );
 
+                if (ref.read(pDuress)) {
+                  await wallet.info.updateDuressVisibilityStatus(
+                    isDuressVisible: true,
+                    isar: ref.read(mainDBProvider).isar,
+                  );
+                }
+
                 ref.read(pWallets).addWallet(wallet);
 
                 // pop progress dialog
@@ -191,9 +188,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
 
                   if (Util.isDesktop) {
                     nav.popUntil(
-                      ModalRoute.withName(
-                        DesktopHomeView.routeName,
-                      ),
+                      ModalRoute.withName(DesktopHomeView.routeName),
                     );
                   } else {
                     unawaited(
@@ -219,7 +214,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                   );
                 }
               } catch (e, s) {
-                Logging.instance.f("$e\n$s", error: e, stackTrace: s,);
+                Logging.instance.f("$e\n$s", error: e, stackTrace: s);
 
                 // pop progress dialog
                 if (context.mounted && !progressPopped) {

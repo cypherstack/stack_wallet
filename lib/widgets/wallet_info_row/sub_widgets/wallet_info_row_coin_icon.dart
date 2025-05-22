@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/exchange_data_loading_service.dart';
@@ -38,17 +39,15 @@ class WalletInfoCoinIcon extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     Currency? currency;
     if (contractAddress != null) {
-      currency = ExchangeDataLoadingService.instance.isar.currencies
-          .where()
-          .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-          .filter()
-          .tokenContractEqualTo(
-            contractAddress!,
-            caseSensitive: false,
-          )
-          .and()
-          .imageIsNotEmpty()
-          .findFirstSync();
+      currency =
+          ExchangeDataLoadingService.instance.isar.currencies
+              .where()
+              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+              .filter()
+              .tokenContractEqualTo(contractAddress!, caseSensitive: false)
+              .and()
+              .imageIsNotEmpty()
+              .findFirstSync();
     }
 
     return Container(
@@ -62,19 +61,14 @@ class WalletInfoCoinIcon extends ConsumerWidget {
       ),
       child: Padding(
         padding: EdgeInsets.all(size / 5),
-        child: currency != null && currency.image.isNotEmpty
-            ? SvgPicture.network(
-                currency.image,
-                width: 20,
-                height: 20,
-              )
-            : SvgPicture.file(
-                File(
-                  ref.watch(coinIconProvider(coin)),
+        child:
+            currency != null && currency.image.isNotEmpty
+                ? SvgPicture.network(currency.image, width: 20, height: 20)
+                : SvgPicture.file(
+                  File(ref.watch(coinIconProvider(coin))),
+                  width: 20,
+                  height: 20,
                 ),
-                width: 20,
-                height: 20,
-              ),
       ),
     );
   }

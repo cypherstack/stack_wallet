@@ -50,7 +50,6 @@ import 'pages/pinpad_views/create_pin_view.dart';
 import 'pages/pinpad_views/lock_screen_view.dart';
 import 'pages/settings_views/global_settings_view/stack_backup_views/restore_from_encrypted_string_view.dart';
 import 'pages_desktop_specific/password/desktop_login_view.dart';
-import 'providers/db/main_db_provider.dart';
 import 'providers/desktop/storage_crypto_handler_provider.dart';
 import 'providers/global/auto_swb_service_provider.dart';
 import 'providers/global/base_currencies_provider.dart';
@@ -200,6 +199,7 @@ void main(List<String> args) async {
   await Logging.instance.initialize(
     (await StackFileSystem.applicationLogsDirectory(Prefs.instance)).path,
     level: Prefs.instance.logLevel,
+    debugConsoleLevel: kDebugMode ? Level.trace : null,
   );
 
   await xelis_api.setUpRustLogger();
@@ -356,7 +356,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     }
   }
 
-  Future<void> load() async {
+  Future<void> load(bool loadWallets) async {
     try {
       if (didLoad) {
         return;
@@ -386,12 +386,15 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         prefs: ref.read(prefsChangeNotifierProvider),
       );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
-      await ref
-          .read(pWallets)
-          .load(
-            ref.read(prefsChangeNotifierProvider),
-            ref.read(mainDBProvider),
-          );
+      if (loadWallets) {
+        await ref
+            .read(pWallets)
+            .load(
+              ref.read(prefsChangeNotifierProvider),
+              ref.read(mainDBProvider),
+              false,
+            );
+      }
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
@@ -444,6 +447,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   void initState() {
+    if (Util.isDesktop) {
+      // set to false for desktop
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(pDuress.notifier).state = false;
+      });
+    }
+
     String themeId;
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
       final brightness = WidgetsBinding.instance.window.platformBrightness;
@@ -780,7 +790,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
                         return DesktopLoginView(
                           startupWalletId: startupWalletId,
-                          load: load,
+                          load: () => load(true),
                         );
                       } else {
                         return const IntroView();
@@ -791,7 +801,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                   },
                 )
                 : FutureBuilder(
-                  future: load(),
+                  future: load(false),
                   builder: (
                     BuildContext context,
                     AsyncSnapshot<void> snapshot,

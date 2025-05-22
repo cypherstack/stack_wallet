@@ -40,6 +40,7 @@ import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -60,12 +61,7 @@ import 'sub_widgets/exchange_provider_options.dart';
 import 'sub_widgets/rate_type_toggle.dart';
 
 class ExchangeForm extends ConsumerStatefulWidget {
-  const ExchangeForm({
-    super.key,
-    this.walletId,
-    this.coin,
-    this.contract,
-  });
+  const ExchangeForm({super.key, this.walletId, this.coin, this.contract});
 
   final String? walletId;
   final CryptoCurrency? coin;
@@ -111,19 +107,19 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async => false,
-          child: Container(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .overlay
-                .withOpacity(0.6),
-            child: const CustomLoadingOverlay(
-              message: "Updating exchange rate",
-              eventBus: null,
+        builder:
+            (_) => WillPopScope(
+              onWillPop: () async => false,
+              child: Container(
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.overlay.withOpacity(0.6),
+                child: const CustomLoadingOverlay(
+                  message: "Updating exchange rate",
+                  eventBus: null,
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
 
@@ -185,27 +181,26 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
   Future<AggregateCurrency> _getAggregateCurrency(Currency currency) async {
     final rateType = ref.read(efRateTypeProvider);
-    final currencies = await ExchangeDataLoadingService.instance.isar.currencies
-        .filter()
-        .group(
-          (q) => rateType == ExchangeRateType.fixed
-              ? q
-                  .rateTypeEqualTo(SupportedRateType.both)
-                  .or()
-                  .rateTypeEqualTo(SupportedRateType.fixed)
-              : q
-                  .rateTypeEqualTo(SupportedRateType.both)
-                  .or()
-                  .rateTypeEqualTo(SupportedRateType.estimated),
-        )
-        .and()
-        .tickerEqualTo(
-          currency.ticker,
-          caseSensitive: false,
-        )
-        .and()
-        .tokenContractEqualTo(currency.tokenContract)
-        .findAll();
+    final currencies =
+        await ExchangeDataLoadingService.instance.isar.currencies
+            .filter()
+            .group(
+              (q) =>
+                  rateType == ExchangeRateType.fixed
+                      ? q
+                          .rateTypeEqualTo(SupportedRateType.both)
+                          .or()
+                          .rateTypeEqualTo(SupportedRateType.fixed)
+                      : q
+                          .rateTypeEqualTo(SupportedRateType.both)
+                          .or()
+                          .rateTypeEqualTo(SupportedRateType.estimated),
+            )
+            .and()
+            .tickerEqualTo(currency.ticker, caseSensitive: false)
+            .and()
+            .tokenContractEqualTo(currency.tokenContract)
+            .findAll();
 
     final items = [Tuple2(currency.exchangeName, currency)];
 
@@ -242,10 +237,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     if (selectedCurrency != null) {
       await showUpdatingExchangeRate(
         whileFuture: _getAggregateCurrency(selectedCurrency).then(
-          (aggregateSelected) => ref.read(efCurrencyPairProvider).setSend(
-                aggregateSelected,
-                notifyListeners: true,
-              ),
+          (aggregateSelected) => ref
+              .read(efCurrencyPairProvider)
+              .setSend(aggregateSelected, notifyListeners: true),
         ),
       );
     }
@@ -269,10 +263,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     if (selectedCurrency != null) {
       await showUpdatingExchangeRate(
         whileFuture: _getAggregateCurrency(selectedCurrency).then(
-          (aggregateSelected) => ref.read(efCurrencyPairProvider).setReceive(
-                aggregateSelected,
-                notifyListeners: true,
-              ),
+          (aggregateSelected) => ref
+              .read(efCurrencyPairProvider)
+              .setReceive(aggregateSelected, notifyListeners: true),
         ),
       );
     }
@@ -284,20 +277,20 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _receiveFocusNode.unfocus();
 
     final temp = ref.read(efCurrencyPairProvider).send;
-    ref.read(efCurrencyPairProvider).setSend(
+    ref
+        .read(efCurrencyPairProvider)
+        .setSend(
           ref.read(efCurrencyPairProvider).receive,
           notifyListeners: true,
         );
-    ref.read(efCurrencyPairProvider).setReceive(
-          temp,
-          notifyListeners: true,
-        );
+    ref.read(efCurrencyPairProvider).setReceive(temp, notifyListeners: true);
 
     // final reversed = ref.read(efReversedProvider);
 
     final amount = ref.read(efSendAmountProvider);
-    ref.read(efSendAmountProvider.notifier).state =
-        ref.read(efReceiveAmountProvider);
+    ref.read(efSendAmountProvider.notifier).state = ref.read(
+      efReceiveAmountProvider,
+    );
 
     ref.read(efReceiveAmountProvider.notifier).state = amount;
 
@@ -315,72 +308,73 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
 
-    final result = isDesktop
-        ? await showDialog<Currency?>(
-            context: context,
-            builder: (context) {
-              return DesktopDialog(
-                maxHeight: 700,
-                maxWidth: 580,
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
+    final result =
+        isDesktop
+            ? await showDialog<Currency?>(
+              context: context,
+              builder: (context) {
+                return DesktopDialog(
+                  maxHeight: 700,
+                  maxWidth: 580,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 32),
+                            child: Text(
+                              "Choose a coin to exchange",
+                              style: STextStyles.desktopH3(context),
+                            ),
+                          ),
+                          const DesktopDialogCloseButton(),
+                        ],
+                      ),
+                      Expanded(
+                        child: Padding(
                           padding: const EdgeInsets.only(
                             left: 32,
+                            right: 32,
+                            bottom: 32,
                           ),
-                          child: Text(
-                            "Choose a coin to exchange",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                        ),
-                        const DesktopDialogCloseButton(),
-                      ],
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 32,
-                          right: 32,
-                          bottom: 32,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: RoundedWhiteContainer(
-                                padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .background,
-                                child: ExchangeCurrencySelectionView(
-                                  willChangeTicker: willChange,
-                                  pairedTicker: paired,
-                                  isFixedRate: isFixedRate,
-                                  willChangeIsSend: willChangeIsSend,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: RoundedWhiteContainer(
+                                  padding: const EdgeInsets.all(16),
+                                  borderColor:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.background,
+                                  child: ExchangeCurrencySelectionView(
+                                    willChangeTicker: willChange,
+                                    pairedTicker: paired,
+                                    isFixedRate: isFixedRate,
+                                    willChangeIsSend: willChangeIsSend,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                );
+              },
+            )
+            : await Navigator.of(context).push(
+              MaterialPageRoute<dynamic>(
+                builder:
+                    (_) => ExchangeCurrencySelectionView(
+                      willChangeTicker: willChange,
+                      pairedTicker: paired,
+                      isFixedRate: isFixedRate,
+                      willChangeIsSend: willChangeIsSend,
                     ),
-                  ],
-                ),
-              );
-            },
-          )
-        : await Navigator.of(context).push(
-            MaterialPageRoute<dynamic>(
-              builder: (_) => ExchangeCurrencySelectionView(
-                willChangeTicker: willChange,
-                pairedTicker: paired,
-                isFixedRate: isFixedRate,
-                willChangeIsSend: willChangeIsSend,
               ),
-            ),
-          );
+            );
 
     if (mounted && result is Currency) {
       return result;
@@ -398,20 +392,31 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   void onExchangePressed() async {
+    final exchangeName = ref.read(efExchangeProvider).name;
+
     final rateType = ref.read(efRateTypeProvider);
     final fromTicker = ref.read(efCurrencyPairProvider).send?.ticker ?? "";
+    final fromNetwork = ref
+        .read(efCurrencyPairProvider)
+        .send
+        ?.networkFor(exchangeName);
     final toTicker = ref.read(efCurrencyPairProvider).receive?.ticker ?? "";
+    final toNetwork = ref
+        .read(efCurrencyPairProvider)
+        .receive
+        ?.networkFor(exchangeName);
     final estimate = ref.read(efEstimateProvider)!;
     final sendAmount = ref.read(efSendAmountProvider)!;
 
     if (rateType == ExchangeRateType.fixed && toTicker.toUpperCase() == "WOW") {
       await showDialog<void>(
         context: context,
-        builder: (context) => const StackOkDialog(
-          title: "WOW error",
-          message:
-              "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
-        ),
+        builder:
+            (context) => const StackOkDialog(
+              title: "WOW error",
+              message:
+                  "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
+            ),
       );
 
       return;
@@ -421,9 +426,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     final amountToSend =
         estimate.reversed ? estimate.estimatedAmount : sendAmount;
-    final amountToReceive = estimate.reversed
-        ? ref.read(efReceiveAmountProvider)!
-        : estimate.estimatedAmount;
+    final amountToReceive =
+        estimate.reversed
+            ? ref.read(efReceiveAmountProvider)!
+            : estimate.estimatedAmount;
 
     switch (rateType) {
       case ExchangeRateType.estimated:
@@ -466,32 +472,30 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                         "Do you want to attempt trade anyways?",
                         style: STextStyles.desktopTextSmall(context),
                       ),
-                      const Spacer(
-                        flex: 2,
-                      ),
+                      const Spacer(flex: 2),
                       Row(
                         children: [
                           Expanded(
                             child: SecondaryButton(
                               label: "Cancel",
                               buttonHeight: ButtonHeight.l,
-                              onPressed: () => Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop(true),
+                              onPressed:
+                                  () => Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop(true),
                             ),
                           ),
-                          const SizedBox(
-                            width: 16,
-                          ),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: PrimaryButton(
                               label: "Attempt",
                               buttonHeight: ButtonHeight.l,
-                              onPressed: () => Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop(false),
+                              onPressed:
+                                  () => Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop(false),
                             ),
                           ),
                         ],
@@ -521,10 +525,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                     style: Theme.of(context)
                         .extension<StackColors>()!
                         .getPrimaryEnabledButtonStyle(context),
-                    child: Text(
-                      "Attempt",
-                      style: STextStyles.button(context),
-                    ),
+                    child: Text("Attempt", style: STextStyles.button(context)),
                     onPressed: () {
                       // continue and try to attempt trade
                       Navigator.of(context).pop(false);
@@ -540,15 +541,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           return;
         }
         rate =
-            "1 ${fromTicker.toUpperCase()} ~${(amountToReceive / amountToSend).toDecimal(
-                  scaleOnInfinitePrecision: 12,
-                ).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
+            "1 ${fromTicker.toUpperCase()} ~${(amountToReceive / amountToSend).toDecimal(scaleOnInfinitePrecision: 12).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
         break;
     }
 
     final model = IncompleteExchangeModel(
       sendTicker: fromTicker.toUpperCase(),
+      sendNetwork: fromNetwork,
       receiveTicker: toTicker.toUpperCase(),
+      receiveNetwork: toNetwork,
       rateInfo: rate,
       sendAmount: amountToSend,
       receiveAmount: amountToReceive,
@@ -560,8 +561,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     if (mounted) {
       if (walletInitiated) {
-        ref.read(exchangeSendFromWalletIdStateProvider.state).state =
-            Tuple2(walletId!, coin!);
+        ref.read(exchangeSendFromWalletIdStateProvider.state).state = Tuple2(
+          walletId!,
+          coin!,
+        );
         if (isDesktop) {
           ref.read(ssss.state).state = model;
           await showDialog<void>(
@@ -571,18 +574,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
               return const DesktopDialog(
                 maxWidth: 720,
                 maxHeight: double.infinity,
-                child: StepScaffold(
-                  initialStep: 2,
-                ),
+                child: StepScaffold(initialStep: 2),
               );
             },
           );
         } else {
           unawaited(
-            Navigator.of(context).pushNamed(
-              Step2View.routeName,
-              arguments: model,
-            ),
+            Navigator.of(
+              context,
+            ).pushNamed(Step2View.routeName, arguments: model),
           );
         }
       } else {
@@ -597,18 +597,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
               return const DesktopDialog(
                 maxWidth: 720,
                 maxHeight: double.infinity,
-                child: StepScaffold(
-                  initialStep: 1,
-                ),
+                child: StepScaffold(initialStep: 1),
               );
             },
           );
         } else {
           unawaited(
-            Navigator.of(context).pushNamed(
-              Step1View.routeName,
-              arguments: model,
-            ),
+            Navigator.of(
+              context,
+            ).pushNamed(Step1View.routeName, arguments: model),
           );
         }
       }
@@ -620,9 +617,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       return false;
     }
 
-    final String? ticker = isSend
-        ? ref.read(efCurrencyPairProvider).send?.ticker
-        : ref.read(efCurrencyPairProvider).receive?.ticker;
+    final String? ticker =
+        isSend
+            ? ref.read(efCurrencyPairProvider).send?.ticker
+            : ref.read(efCurrencyPairProvider).receive?.ticker;
 
     if (ticker == null) {
       return false;
@@ -640,9 +638,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
 
     final reversed = ref.read(efReversedProvider);
-    final amount = reversed
-        ? ref.read(efReceiveAmountProvider)
-        : ref.read(efSendAmountProvider);
+    final amount =
+        reversed
+            ? ref.read(efReceiveAmountProvider)
+            : ref.read(efSendAmountProvider);
 
     final pair = ref.read(efCurrencyPairProvider);
     if (amount == null ||
@@ -654,7 +653,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
     final rateType = ref.read(efRateTypeProvider);
     final Map<String, Tuple2<ExchangeResponse<List<Estimate>>, Range?>>
-        results = {};
+    results = {};
 
     for (final exchange in usableExchanges) {
       final sendCurrency = pair.send?.forExchange(exchange.name);
@@ -663,26 +662,29 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       if (sendCurrency != null && receiveCurrency != null) {
         final rangeResponse = await exchange.getRange(
           reversed ? receiveCurrency.ticker : sendCurrency.ticker,
+          reversed ? receiveCurrency.network : sendCurrency.network,
           reversed ? sendCurrency.ticker : receiveCurrency.ticker,
+          reversed ? sendCurrency.network : receiveCurrency.network,
           rateType == ExchangeRateType.fixed,
+        );
+
+        Logging.instance.d(
+          "${exchange.name}: fixedRate=$rateType, RANGE=$rangeResponse",
         );
 
         final estimateResponse = await exchange.getEstimates(
           sendCurrency.ticker,
+          sendCurrency.network,
           receiveCurrency.ticker,
+          receiveCurrency.network,
           amount,
           rateType == ExchangeRateType.fixed,
           reversed,
         );
 
-        results.addAll(
-          {
-            exchange.name: Tuple2(
-              estimateResponse,
-              rangeResponse.value,
-            ),
-          },
-        );
+        results.addAll({
+          exchange.name: Tuple2(estimateResponse, rangeResponse.value),
+        });
       }
     }
 
@@ -743,8 +745,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     });
     _receiveFocusNode.addListener(() {
-      if (_receiveFocusNode.hasFocus &&
-          ref.read(efExchangeProvider).name != ChangeNowExchange.exchangeName) {
+      if (_receiveFocusNode.hasFocus) {
         final reversed = ref.read(efReversedProvider);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref.read(efReversedProvider.notifier).state = true;
@@ -767,18 +768,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             .setReceive(null, notifyListeners: true);
         ExchangeDataLoadingService.instance
             .getAggregateCurrency(
-          widget.contract == null ? coin!.ticker : widget.contract!.symbol,
-          ExchangeRateType.estimated,
-          widget.contract == null ? null : widget.contract!.address,
-        )
+              widget.contract == null ? coin!.ticker : widget.contract!.symbol,
+              ExchangeRateType.estimated,
+              widget.contract?.address,
+            )
             .then((value) {
-          if (value != null) {
-            ref.read(efCurrencyPairProvider).setSend(
-                  value,
-                  notifyListeners: true,
-                );
-          }
-        });
+              if (value != null) {
+                ref
+                    .read(efCurrencyPairProvider)
+                    .setSend(value, notifyListeners: true);
+              }
+            });
       });
     } else {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -816,9 +816,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
         if (_sendFocusNode.hasFocus) {
           _sendController.selection = TextSelection.fromPosition(
-            TextPosition(
-              offset: _sendController.text.length,
-            ),
+            TextPosition(offset: _sendController.text.length),
           );
         }
       }
@@ -835,9 +833,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
         if (_receiveFocusNode.hasFocus) {
           _receiveController.selection = TextSelection.fromPosition(
-            TextPosition(
-              offset: _receiveController.text.length,
-            ),
+            TextPosition(offset: _receiveController.text.length),
           );
         }
       }
@@ -868,13 +864,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
         ),
-        SizedBox(
-          height: isDesktop ? 10 : 4,
-        ),
+        SizedBox(height: isDesktop ? 10 : 4),
         ExchangeTextField(
-          key: Key("exchangeTextFieldKeyFor_"
-              "${Theme.of(context).extension<StackColors>()!.themeId}"
-              "${ref.watch(efCurrencyPairProvider.select((value) => value.send?.ticker))}"),
+          key: Key(
+            "exchangeTextFieldKeyFor_"
+            "${Theme.of(context).extension<StackColors>()!.themeId}"
+            "${ref.watch(efCurrencyPairProvider.select((value) => value.send?.ticker))}",
+          ),
           controller: _sendController,
           focusNode: _sendFocusNode,
           textStyle: STextStyles.smallMed14(context).copyWith(
@@ -893,15 +889,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           onChanged: sendFieldOnChanged,
           onButtonTap: selectSendCurrency,
           isWalletCoin: isWalletCoin(coin, true),
-          currency:
-              ref.watch(efCurrencyPairProvider.select((value) => value.send)),
+          currency: ref.watch(
+            efCurrencyPairProvider.select((value) => value.send),
+          ),
         ),
-        SizedBox(
-          height: isDesktop ? 10 : 4,
-        ),
-        SizedBox(
-          height: isDesktop ? 10 : 4,
-        ),
+        SizedBox(height: isDesktop ? 10 : 4),
+        SizedBox(height: isDesktop ? 10 : 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -914,20 +907,23 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             ),
             ConditionalParent(
               condition: isDesktop,
-              builder: (child) => MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: child,
-              ),
+              builder:
+                  (child) => MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: child,
+                  ),
               child: Semantics(
                 label: "Swap Button. Reverse The Exchange Currencies.",
                 excludeSemantics: true,
                 child: RoundedContainer(
-                  padding: isDesktop
-                      ? const EdgeInsets.all(6)
-                      : const EdgeInsets.all(2),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonBackSecondary,
+                  padding:
+                      isDesktop
+                          ? const EdgeInsets.all(6)
+                          : const EdgeInsets.all(2),
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonBackSecondary,
                   radiusMultiplier: 0.75,
                   child: GestureDetector(
                     onTap: () async {
@@ -939,9 +935,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                         Assets.svg.swap,
                         width: 20,
                         height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorDark,
                       ),
                     ),
                   ),
@@ -950,9 +947,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
             ),
           ],
         ),
-        SizedBox(
-          height: isDesktop ? 10 : 7,
-        ),
+        SizedBox(height: isDesktop ? 10 : 7),
         ExchangeTextField(
           key: Key(
             "exchangeTextFieldKeyFor1_${Theme.of(context).extension<StackColors>()!.themeId}",
@@ -967,52 +962,42 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           borderRadius: Constants.size.circularBorderRadius,
           background:
               Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
-          onTap: rateType == ExchangeRateType.estimated &&
-                  ref.watch(efExchangeProvider).name ==
-                      ChangeNowExchange.exchangeName
-              ? null
-              : () {
-                  if (_sendController.text == "-") {
-                    _sendController.text = "";
-                  }
-                },
+          onTap:
+              rateType == ExchangeRateType.estimated
+                  ? null
+                  : () {
+                    if (_sendController.text == "-") {
+                      _sendController.text = "";
+                    }
+                  },
           onChanged: receiveFieldOnChanged,
           onButtonTap: selectReceiveCurrency,
           isWalletCoin: isWalletCoin(coin, true),
-          currency: ref
-              .watch(efCurrencyPairProvider.select((value) => value.receive)),
-          readOnly: rateType == ExchangeRateType.estimated &&
-              ref.watch(efExchangeProvider).name ==
-                  ChangeNowExchange.exchangeName,
+          currency: ref.watch(
+            efCurrencyPairProvider.select((value) => value.receive),
+          ),
+          readOnly: rateType == ExchangeRateType.estimated,
         ),
-        SizedBox(
-          height: isDesktop ? 20 : 12,
-        ),
+        SizedBox(height: isDesktop ? 20 : 12),
         SizedBox(
           height: isDesktop ? 60 : 40,
-          child: RateTypeToggle(
-            key: UniqueKey(),
-            onChanged: onRateTypeChanged,
-          ),
+          child: RateTypeToggle(key: UniqueKey(), onChanged: onRateTypeChanged),
         ),
         AnimatedSize(
           duration: const Duration(milliseconds: 300),
-          child: ref.watch(efSendAmountProvider) == null &&
-                  ref.watch(efReceiveAmountProvider) == null
-              ? const SizedBox(
-                  height: 0,
-                )
-              : Padding(
-                  padding: EdgeInsets.only(top: isDesktop ? 20 : 12),
-                  child: ExchangeProviderOptions(
-                    fixedRate: rateType == ExchangeRateType.fixed,
-                    reversed: ref.watch(efReversedProvider),
+          child:
+              ref.watch(efSendAmountProvider) == null &&
+                      ref.watch(efReceiveAmountProvider) == null
+                  ? const SizedBox(height: 0)
+                  : Padding(
+                    padding: EdgeInsets.only(top: isDesktop ? 20 : 12),
+                    child: ExchangeProviderOptions(
+                      fixedRate: rateType == ExchangeRateType.fixed,
+                      reversed: ref.watch(efReversedProvider),
+                    ),
                   ),
-                ),
         ),
-        SizedBox(
-          height: isDesktop ? 20 : 12,
-        ),
+        SizedBox(height: isDesktop ? 20 : 12),
         PrimaryButton(
           buttonHeight: isDesktop ? ButtonHeight.l : null,
           enabled: ref.watch(efCanExchangeProvider),

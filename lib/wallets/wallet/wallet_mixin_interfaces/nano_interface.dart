@@ -28,9 +28,7 @@ import '../intermediate/bip39_wallet.dart';
 const _kWorkServer = "https://nodes.nanswap.com/XNO";
 
 Map<String, String> _buildHeaders(String url) {
-  final result = {
-    'Content-type': 'application/json',
-  };
+  final result = {'Content-type': 'application/json'};
   if (url
       case "https://nodes.nanswap.com/XNO" || "https://nodes.nanswap.com/BAN") {
     result["nodes-api-key"] = kNanoSwapRpcApiKey;
@@ -52,28 +50,24 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     _hackedCheckTorNodePrefs();
     return _httpClient
         .post(
-      url: Uri.parse(_kWorkServer), // this should be a
-      headers: _buildHeaders(_kWorkServer),
-      body: json.encode(
-        {
-          "action": "work_generate",
-          "hash": hash,
-        },
-      ),
-      proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
-    )
+          url: Uri.parse(_kWorkServer), // this should be a
+          headers: _buildHeaders(_kWorkServer),
+          body: json.encode({"action": "work_generate", "hash": hash}),
+          proxyInfo:
+              prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
+        )
         .then((_httpClient) {
-      if (_httpClient.code == 200) {
-        final Map<String, dynamic> decoded =
-            json.decode(_httpClient.body) as Map<String, dynamic>;
-        if (decoded.containsKey("error")) {
-          throw Exception("Received error ${decoded["error"]}");
-        }
-        return decoded["work"] as String?;
-      } else {
-        throw Exception("Received error ${_httpClient.code}");
-      }
-    });
+          if (_httpClient.code == 200) {
+            final Map<String, dynamic> decoded =
+                json.decode(_httpClient.body) as Map<String, dynamic>;
+            if (decoded.containsKey("error")) {
+              throw Exception("Received error ${decoded["error"]}");
+            }
+            return decoded["work"] as String?;
+          } else {
+            throw Exception("Received error ${_httpClient.code}");
+          }
+        });
   }
 
   Future<String> _getPrivateKeyFromMnemonic() async {
@@ -87,8 +81,10 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       await _getPrivateKeyFromMnemonic(),
     );
 
-    final addressString =
-        NanoAccounts.createAccount(cryptoCurrency.nanoAccountType, publicKey);
+    final addressString = NanoAccounts.createAccount(
+      cryptoCurrency.nanoAccountType,
+      publicKey,
+    );
 
     return Address(
       walletId: walletId,
@@ -146,8 +142,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     );
 
     final balanceData = jsonDecode(balanceResponse.body);
-    final BigInt currentBalance =
-        BigInt.parse(balanceData["balance"].toString());
+    final BigInt currentBalance = BigInt.parse(
+      balanceData["balance"].toString(),
+    );
     final BigInt txAmount = BigInt.parse(amountRaw);
     final BigInt balanceAfterTx = currentBalance + txAmount;
 
@@ -162,16 +159,19 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     // link = send block hash:
     final String link = blockHash;
     // this "linkAsAccount" is meaningless:
-    final String linkAsAccount =
-        NanoAccounts.createAccount(NanoAccountType.BANANO, blockHash);
+    final String linkAsAccount = NanoAccounts.createAccount(
+      NanoAccountType.BANANO,
+      blockHash,
+    );
 
     // construct the receive block:
     final Map<String, String> receiveBlock = {
       "type": "state",
       "account": publicAddress,
-      "previous": openBlock
-          ? "0000000000000000000000000000000000000000000000000000000000000000"
-          : frontier,
+      "previous":
+          openBlock
+              ? "0000000000000000000000000000000000000000000000000000000000000000"
+              : frontier,
       "representative": representative,
       "balance": balanceAfterTx.toString(),
       "link": link,
@@ -320,8 +320,10 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   @override
   Future<void> updateNode() async {
-    _cachedNode = NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(currency: info.coin) ??
+    _cachedNode =
+        NodeService(
+          secureStorageInterface: secureStorageInterface,
+        ).getPrimaryNodeFor(currency: info.coin) ??
         info.coin.defaultNode;
 
     unawaited(refresh());
@@ -330,8 +332,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   @override
   NodeModel getCurrentNode() {
     return _cachedNode ??
-        NodeService(secureStorageInterface: secureStorageInterface)
-            .getPrimaryNodeFor(currency: info.coin) ??
+        NodeService(
+          secureStorageInterface: secureStorageInterface,
+        ).getPrimaryNodeFor(currency: info.coin) ??
         info.coin.defaultNode;
   }
 
@@ -365,11 +368,7 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     final response = await _httpClient.post(
       url: uri,
       headers: _buildHeaders(node.host),
-      body: jsonEncode(
-        {
-          "action": "version",
-        },
-      ),
+      body: jsonEncode({"action": "version"}),
       proxyInfo: prefs.useTor ? TorService.sharedInstance.getProxyInfo() : null,
     );
 
@@ -485,15 +484,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       }
 
       // return the hash of the transaction:
-      return txData.copyWith(
-        txid: decoded["hash"].toString(),
-      );
+      return txData.copyWith(txid: decoded["hash"].toString());
     } catch (e, s) {
-      Logging.instance.e(
-        "Error sending transaction",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("Error sending transaction", error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -544,8 +537,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
     );
 
     // this should really have proper type checking and error propagation but I'm out of time
-    final newData =
-        Map<String, dynamic>.from((await jsonDecode(response.body)) as Map);
+    final newData = Map<String, dynamic>.from(
+      (await jsonDecode(response.body)) as Map,
+    );
 
     if (newData["previous"] is String) {
       if (data?["history"] is List) {
@@ -572,9 +566,10 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
     final data = await _fetchAll(publicAddress, null, null);
 
-    final transactions = data["history"] is List
-        ? data["history"] as List<dynamic>
-        : <dynamic>[];
+    final transactions =
+        data["history"] is List
+            ? data["history"] as List<dynamic>
+            : <dynamic>[];
     if (transactions.isEmpty) {
       return;
     } else {
@@ -612,17 +607,18 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
           numberOfMessages: null,
         );
 
-        final Address address = transactionType == TransactionType.incoming
-            ? receivingAddress
-            : Address(
-                walletId: walletId,
-                publicKey: [],
-                value: tx["account"].toString(),
-                derivationIndex: 0,
-                derivationPath: null,
-                type: info.mainAddressType,
-                subType: AddressSubType.nonWallet,
-              );
+        final Address address =
+            transactionType == TransactionType.incoming
+                ? receivingAddress
+                : Address(
+                  walletId: walletId,
+                  publicKey: [],
+                  value: tx["account"].toString(),
+                  derivationIndex: 0,
+                  derivationPath: null,
+                  type: info.mainAddressType,
+                  subType: AddressSubType.nonWallet,
+                );
         final Tuple2<Transaction, Address> tuple = Tuple2(transaction, address);
         transactionList.add(tuple);
       }
@@ -653,8 +649,9 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       final data = jsonDecode(response.body);
       final balance = Balance(
         total: Amount(
-          rawValue: (BigInt.parse(data["balance"].toString()) +
-              BigInt.parse(data["receivable"].toString())),
+          rawValue:
+              (BigInt.parse(data["balance"].toString()) +
+                  BigInt.parse(data["receivable"].toString())),
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
         spendable: Amount(
@@ -703,10 +700,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
       );
       final infoData = jsonDecode(infoResponse.body);
 
-      final height = int.tryParse(
-            infoData["confirmation_height"].toString(),
-          ) ??
-          0;
+      final height =
+          int.tryParse(infoData["confirmation_height"].toString()) ?? 0;
 
       await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
     } catch (e, s) {
@@ -734,21 +729,21 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
 
   @override
   // nano has no fees
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async => Amount(
-        rawValue: BigInt.from(0),
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async => Amount(
+    rawValue: BigInt.from(0),
+    fractionDigits: cryptoCurrency.fractionDigits,
+  );
 
   @override
   // nano has no fees
   Future<FeeObject> get fees async => FeeObject(
-        numberOfBlocksFast: 1,
-        numberOfBlocksAverage: 1,
-        numberOfBlocksSlow: 1,
-        fast: 0,
-        medium: 0,
-        slow: 0,
-      );
+    numberOfBlocksFast: 1,
+    numberOfBlocksAverage: 1,
+    numberOfBlocksSlow: 1,
+    fast: BigInt.zero,
+    medium: BigInt.zero,
+    slow: BigInt.zero,
+  );
 
   void _hackedCheckTorNodePrefs() {
     final node = getCurrentNode();

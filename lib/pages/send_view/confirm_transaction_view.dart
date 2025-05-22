@@ -21,7 +21,6 @@ import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
@@ -30,9 +29,11 @@ import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/coins/epiccash.dart';
+import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -181,7 +182,9 @@ class _ConfirmTransactionViewState
       } else {
         txids.add((results.first as TxData).txid!);
       }
-      ref.refresh(desktopUseUTXOs);
+      if (coin is! Ethereum) {
+        ref.refresh(desktopUseUTXOs);
+      }
 
       // save note
       for (final txid in txids) {
@@ -201,7 +204,7 @@ class _ConfirmTransactionViewState
       widget.onSuccess.call();
 
       // pop back to wallet
-      if (mounted) {
+      if (context.mounted) {
         if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
           Navigator.of(
             context,
@@ -211,7 +214,7 @@ class _ConfirmTransactionViewState
         }
       }
     } on BadEpicHttpAddressException catch (_) {
-      if (mounted) {
+      if (context.mounted) {
         // pop building dialog
         Navigator.of(context).pop();
         unawaited(
@@ -225,80 +228,79 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
-      //todo: comeback to this
-      debugPrint("$e\n$s");
+      const message = "Broadcast transaction failed";
+      Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
-      Navigator.of(context).pop();
+      if (context.mounted) {
+        Navigator.of(context).pop();
 
-      await showDialog<void>(
-        context: context,
-        useSafeArea: false,
-        barrierDismissible: true,
-        builder: (context) {
-          if (isDesktop) {
-            return DesktopDialog(
-              maxWidth: 450,
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Broadcast transaction failed",
-                      style: STextStyles.desktopH3(context),
-                    ),
-                    const SizedBox(height: 24),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: SelectableText(
-                          e.toString(),
-                          style: STextStyles.smallMed14(context),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 56),
-                    Row(
-                      children: [
-                        const Spacer(),
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: "Ok",
-                            onPressed: Navigator.of(context).pop,
+        await showDialog<void>(
+          context: context,
+          useSafeArea: false,
+          barrierDismissible: true,
+          builder: (context) {
+            if (isDesktop) {
+              return DesktopDialog(
+                maxWidth: 450,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(message, style: STextStyles.desktopH3(context)),
+                      const SizedBox(height: 24),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: SelectableText(
+                            e.toString(),
+                            style: STextStyles.smallMed14(context),
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else {
-            return StackDialog(
-              title: "Broadcast transaction failed",
-              message: e.toString(),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Ok",
-                  style: STextStyles.button(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                      ),
+                      const SizedBox(height: 56),
+                      Row(
+                        children: [
+                          const Spacer(),
+                          Expanded(
+                            child: PrimaryButton(
+                              buttonHeight: ButtonHeight.l,
+                              label: "Ok",
+                              onPressed: Navigator.of(context).pop,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            );
-          }
-        },
-      );
+              );
+            } else {
+              return StackDialog(
+                title: message,
+                message: e.toString(),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.button(context).copyWith(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              );
+            }
+          },
+        );
+      }
     }
   }
 
@@ -533,6 +535,21 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
+                  if (coin is Ethereum) const SizedBox(height: 12),
+                  if (coin is Ethereum)
+                    RoundedWhiteContainer(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Nonce", style: STextStyles.smallMed12(context)),
+                          SelectableText(
+                            widget.txData.nonce.toString(),
+                            style: STextStyles.itemSubtitle12(context),
+                            textAlign: TextAlign.right,
+                          ),
+                        ],
+                      ),
+                    ),
                   if (widget.txData.fee != null && widget.txData.vSize != null)
                     const SizedBox(height: 12),
                   if (widget.txData.fee != null && widget.txData.vSize != null)
@@ -685,14 +702,14 @@ class _ConfirmTransactionViewState
                                                     .tokenContract
                                                     .address,
                                               )
-                                              .item1
+                                              ?.value
                                           : ref
                                               .read(
                                                 priceAnd24hChangeNotifierProvider,
                                               )
                                               .getPrice(coin)
-                                              .item1;
-                                  if (price > Decimal.zero) {
+                                              ?.value;
+                                  if (price != null && price > Decimal.zero) {
                                     fiatAmount = (amountWithoutChange.decimal *
                                             price)
                                         .toAmount(fractionDigits: 2)
@@ -824,6 +841,42 @@ class _ConfirmTransactionViewState
                               const SizedBox(height: 2),
                               SelectableText(
                                 ref.watch(pAmountFormatter(coin)).format(fee!),
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (coin is Ethereum)
+                        Container(
+                          height: 1,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.background,
+                        ),
+                      if (coin is Ethereum)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Nonce",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              SelectableText(
+                                widget.txData.nonce.toString(),
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                   context,
                                 ).copyWith(
@@ -1211,7 +1264,10 @@ class _ConfirmTransactionViewState
                         unawaited(
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
-                            message: "Invalid PIN",
+                            message:
+                                Util.isDesktop
+                                    ? "Invalid passphrase"
+                                    : "Invalid PIN",
                             context: context,
                           ),
                         );

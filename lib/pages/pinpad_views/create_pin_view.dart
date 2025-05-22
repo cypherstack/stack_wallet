@@ -26,6 +26,7 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_pin_put/custom_pin_put.dart';
 import '../home_view/home_view.dart';
+import 'lock_screen_view.dart';
 
 class CreatePinView extends ConsumerStatefulWidget {
   const CreatePinView({
@@ -55,8 +56,10 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
     );
   }
 
-  final PageController _pageController =
-      PageController(initialPage: 0, keepPage: true);
+  final PageController _pageController = PageController(
+    initialPage: 0,
+    keepPage: true,
+  );
 
   // Attributes for Page 1 of the pageview
   final TextEditingController _pinPutController1 = TextEditingController();
@@ -118,27 +121,18 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Create a PIN",
-                    style: STextStyles.pageTitleH1(context),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  Text("Create a PIN", style: STextStyles.pageTitleH1(context)),
+                  const SizedBox(height: 8),
                   Text(
                     "This PIN protects access to your wallet.",
                     style: STextStyles.subtitle(context),
                   ),
-                  const SizedBox(
-                    height: 36,
-                  ),
+                  const SizedBox(height: 36),
                   CustomPinPut(
                     fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
-                    textStyle: STextStyles.label(context).copyWith(
-                      fontSize: 1,
-                    ),
+                    textStyle: STextStyles.label(context).copyWith(fontSize: 1),
                     focusNode: _pinPutFocusNode1,
                     controller: _pinPutController1,
                     useNativeKeyboard: false,
@@ -150,9 +144,10 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      fillColor:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                       counterText: "",
                     ),
                     isRandom:
@@ -188,28 +183,22 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Confirm PIN",
-                    style: STextStyles.pageTitleH1(context),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  Text("Confirm PIN", style: STextStyles.pageTitleH1(context)),
+                  const SizedBox(height: 8),
                   Text(
                     "This PIN protects access to your wallet.",
                     style: STextStyles.subtitle(context),
                   ),
-                  const SizedBox(
-                    height: 36,
-                  ),
+                  const SizedBox(height: 36),
                   CustomPinPut(
                     fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.infoSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle3,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textSubtitle3,
                       fontSize: 1,
                     ),
                     focusNode: _pinPutFocusNode2,
@@ -223,20 +212,23 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      fillColor:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                       counterText: "",
                     ),
                     submittedFieldDecoration: _pinPutDecoration.copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .infoItemIcons,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemIcons,
                       border: Border.all(
                         width: 1,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .infoItemIcons,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemIcons,
                       ),
                     ),
                     selectedFieldDecoration: _pinPutDecoration,
@@ -249,14 +241,15 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
 
                       if (_pinPutController1.text == _pinPutController2.text) {
                         // ask if want to use biometrics
-                        final bool useBiometrics = (Platform.isLinux)
-                            ? false
-                            : await biometrics.authenticate(
-                                cancelButtonText: "SKIP",
-                                localizedReason:
-                                    "You can use your fingerprint to unlock the wallet and confirm transactions.",
-                                title: "Enable fingerprint authentication",
-                              );
+                        final bool useBiometrics =
+                            (Platform.isLinux)
+                                ? false
+                                : await biometrics.authenticate(
+                                  cancelButtonText: "SKIP",
+                                  localizedReason:
+                                      "You can use your fingerprint to unlock the wallet and confirm transactions.",
+                                  title: "Enable fingerprint authentication",
+                                );
 
                         //TODO investigate why this crashes IOS, maybe ios persists securestorage even after an uninstall?
                         // This should never fail as we are writing a new pin
@@ -270,7 +263,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                           ref.read(prefsChangeNotifierProvider).hasPin == false,
                         );
 
-                        await _secureStore.write(key: "stack_pin", value: pin);
+                        await _secureStore.write(key: kPinKey, value: pin);
 
                         ref.read(prefsChangeNotifierProvider).useBiometrics =
                             useBiometrics;
@@ -280,11 +273,13 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                           const Duration(milliseconds: 200),
                         );
 
-                        if (mounted) {
+                        if (context.mounted) {
                           if (!widget.popOnSuccess) {
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              HomeView.routeName,
-                              (route) => false,
+                            unawaited(
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                HomeView.routeName,
+                                (route) => false,
+                              ),
                             );
                           } else {
                             Navigator.of(context).pop();
@@ -292,17 +287,21 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                         }
                       } else {
                         // _onSubmitFailCount++;
-                        _pageController.animateTo(
-                          0,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.linear,
+                        unawaited(
+                          _pageController.animateTo(
+                            0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.linear,
+                          ),
                         );
 
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "PIN codes do not match. Try again.",
-                          context: context,
-                          iconAsset: Assets.svg.alertCircle,
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: "PIN codes do not match. Try again.",
+                            context: context,
+                            iconAsset: Assets.svg.alertCircle,
+                          ),
                         );
 
                         _pinPutController1.text = '';

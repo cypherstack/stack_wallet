@@ -66,12 +66,14 @@ class _WFiroDesktopWalletSummaryState
     if (ref.watch(
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
     )) {
-      final priceTuple = ref.watch(
-        priceAnd24hChangeNotifierProvider.select(
-          (value) => value.getPrice(coin),
-        ),
-      );
-      price = priceTuple.item1;
+      price =
+          ref
+              .watch(
+                priceAnd24hChangeNotifierProvider.select(
+                  (value) => value.getPrice(coin),
+                ),
+              )
+              ?.value;
     }
 
     final _showAvailable =

@@ -45,29 +45,26 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses = await mainDB
-        .getAddresses(walletId)
-        .filter()
-        .not()
-        .group(
-          (q) => q
-              .typeEqualTo(AddressType.nonWallet)
-              .or()
-              .subTypeEqualTo(AddressSubType.nonWallet),
-        )
-        .findAll();
+    final allAddresses =
+        await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .not()
+            .group(
+              (q) => q
+                  .typeEqualTo(AddressType.nonWallet)
+                  .or()
+                  .subTypeEqualTo(AddressSubType.nonWallet),
+            )
+            .findAll();
     return allAddresses;
   }
 
-// ===========================================================================
+  // ===========================================================================
 
   @override
-  Future<
-      ({
-        bool blocked,
-        String? blockedReason,
-        String? utxoLabel,
-      })> checkBlockUTXO(
+  Future<({bool blocked, String? blockedReason, String? utxoLabel})>
+  checkBlockUTXO(
     Map<String, dynamic> jsonUTXO,
     String? scriptPubKeyHex,
     Map<String, dynamic> jsonTX,
@@ -98,8 +95,9 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           utxoLabel = "Unsupported output type.";
         } else if (output['scriptPubKey'] != null) {
           if (output['scriptPubKey']?['asm'] is String &&
-              (output['scriptPubKey']['asm'] as String)
-                  .contains("OP_ISCOINSTAKE")) {
+              (output['scriptPubKey']['asm'] as String).contains(
+                "OP_ISCOINSTAKE",
+              )) {
             blocked = true;
             blockedReason = "Spending staking";
             utxoLabel = "Unsupported output type.";
@@ -111,21 +109,25 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     return (
       blocked: blocked,
       blockedReason: blockedReason,
-      utxoLabel: utxoLabel
+      utxoLabel: utxoLabel,
     );
   }
 
   @override
-  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    return vSize * (feeRatePerKB / 1000).ceil();
+  int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
+    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
   }
 
   @override
-  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+  Amount roughFeeEstimate(
+    int inputCount,
+    int outputCount,
+    BigInt feeRatePerKB,
+  ) {
     return Amount(
       rawValue: BigInt.from(
         ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-            (feeRatePerKB / 1000).ceil(),
+            (feeRatePerKB.toInt() / 1000).ceil(),
       ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
@@ -138,30 +140,34 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    final Set<String> receivingAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.receiving)
-        .map((e) => e.value)
-        .toSet();
-    final Set<String> changeAddresses = allAddressesOld
-        .where((e) => e.subType == AddressSubType.change)
-        .map((e) => e.value)
-        .toSet();
+    final Set<String> receivingAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.receiving)
+            .map((e) => e.value)
+            .toSet();
+    final Set<String> changeAddresses =
+        allAddressesOld
+            .where((e) => e.subType == AddressSubType.change)
+            .map((e) => e.value)
+            .toSet();
 
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
     // Fetch history from ElectrumX.
-    final List<Map<String, dynamic>> allTxHashes =
-        await fetchHistory(allAddressesSet);
+    final List<Map<String, dynamic>> allTxHashes = await fetchHistory(
+      allAddressesSet,
+    );
 
     // Only parse new txs (not in db yet).
     final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
-      final storedTx = await mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
-          .findFirst();
+      final storedTx =
+          await mainDB.isar.transactionV2s
+              .where()
+              .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+              .findFirst();
 
       if (storedTx == null ||
           storedTx.height == null ||
@@ -174,8 +180,9 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         );
 
         // Only tx to list once.
-        if (allTransactions
-                .indexWhere((e) => e["txid"] == tx["txid"] as String) ==
+        if (allTransactions.indexWhere(
+              (e) => e["txid"] == tx["txid"] as String,
+            ) ==
             -1) {
           tx["height"] = txHash["height"];
           allTransactions.add(tx);
@@ -325,7 +332,8 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         txid: txData["txid"] as String,
         height: txData["height"] as int?,
         version: txData["version"] as int,
-        timestamp: txData["blocktime"] as int? ??
+        timestamp:
+            txData["blocktime"] as int? ??
             DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
         inputs: List.unmodifiable(inputs),
         outputs: List.unmodifiable(outputs),
@@ -372,32 +380,31 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
       switch (sd.derivePathType) {
         case DerivePathType.bip44:
-          data = bitcoindart
-              .P2PKH(
-                data: bitcoindart.PaymentData(
-                  pubkey: pubKey,
-                ),
-                network: convertedNetwork,
-              )
-              .data;
+          data =
+              bitcoindart
+                  .P2PKH(
+                    data: bitcoindart.PaymentData(pubkey: pubKey),
+                    network: convertedNetwork,
+                  )
+                  .data;
           break;
 
         case DerivePathType.bip49:
-          final p2wpkh = bitcoindart
-              .P2WPKH(
-                data: bitcoindart.PaymentData(
-                  pubkey: pubKey,
-                ),
-                network: convertedNetwork,
-              )
-              .data;
+          final p2wpkh =
+              bitcoindart
+                  .P2WPKH(
+                    data: bitcoindart.PaymentData(pubkey: pubKey),
+                    network: convertedNetwork,
+                  )
+                  .data;
           redeem = p2wpkh.output;
-          data = bitcoindart
-              .P2SH(
-                data: bitcoindart.PaymentData(redeem: p2wpkh),
-                network: convertedNetwork,
-              )
-              .data;
+          data =
+              bitcoindart
+                  .P2SH(
+                    data: bitcoindart.PaymentData(redeem: p2wpkh),
+                    network: convertedNetwork,
+                  )
+                  .data;
           break;
 
         case DerivePathType.bip84:
@@ -405,14 +412,13 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
           //   publicKey: keys.publicKey,
           // );
-          data = bitcoindart
-              .P2WPKH(
-                data: bitcoindart.PaymentData(
-                  pubkey: pubKey,
-                ),
-                network: convertedNetwork,
-              )
-              .data;
+          data =
+              bitcoindart
+                  .P2WPKH(
+                    data: bitcoindart.PaymentData(pubkey: pubKey),
+                    network: convertedNetwork,
+                  )
+                  .data;
           break;
 
         case DerivePathType.bip86:
@@ -432,9 +438,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
       extraData.add((output: output, redeem: redeem));
     }
 
-    final txb = bitcoindart.TransactionBuilder(
-      network: convertedNetwork,
-    );
+    final txb = bitcoindart.TransactionBuilder(network: convertedNetwork);
     const version = 160; // buildTransaction overridden for Particl to set this.
     // TODO: [prio=low] refactor overridden buildTransaction to use eg. cryptocurrency.networkParams.txVersion.
     txb.setVersion(version);
@@ -463,9 +467,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
             txid: utxoSigningData[i].utxo.txid,
             vout: utxoSigningData[i].utxo.vout,
           ),
-          addresses: utxoSigningData[i].utxo.address == null
-              ? []
-              : [utxoSigningData[i].utxo.address!],
+          addresses:
+              utxoSigningData[i].utxo.address == null
+                  ? []
+                  : [utxoSigningData[i].utxo.address!],
           valueStringSats: utxoSigningData[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
@@ -487,10 +492,9 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "000000",
           valueStringSats: txData.recipients![i].amount.raw.toString(),
-          addresses: [
-            txData.recipients![i].address.toString(),
-          ],
-          walletOwns: (await mainDB.isar.addresses
+          addresses: [txData.recipients![i].address.toString()],
+          walletOwns:
+              (await mainDB.isar.addresses
                   .where()
                   .walletIdEqualTo(walletId)
                   .filter()
@@ -518,8 +522,11 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         );
       }
     } catch (e, s) {
-      Logging.instance.e("Caught exception while signing transaction: ",
-          error: e, stackTrace: s);
+      Logging.instance.e(
+        "Caught exception while signing transaction: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
 

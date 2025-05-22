@@ -423,73 +423,41 @@ class DesktopWalletHeaderRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(20),
-      child:
-          wallet is FiroWallet && MediaQuery.of(context).size.width < 1600
-              ? Column(
-                children: [
-                  Row(
-                    children: [
-                      SvgPicture.file(
-                        File(ref.watch(coinIconProvider(wallet.info.coin))),
-                        width: 40,
-                        height: 40,
-                      ),
-                      const SizedBox(width: 10),
-                      FiroDesktopWalletSummary(
-                        walletId: wallet.walletId,
-                        initialSyncStatus:
-                            wallet.refreshMutex.isLocked
-                                ? WalletSyncStatus.syncing
-                                : WalletSyncStatus.synced,
-                      ),
+      child: Row(
+        children: [
+          if (monke != null)
+            SvgPicture.memory(
+              Uint8List.fromList(monke!),
+              width: 60,
+              height: 60,
+            ),
+          if (monke == null)
+            SvgPicture.file(
+              File(ref.watch(coinIconProvider(wallet.info.coin))),
+              width: 40,
+              height: 40,
+            ),
+          const SizedBox(width: 10),
+          if (wallet is FiroWallet)
+            FiroDesktopWalletSummary(
+              walletId: wallet.walletId,
+              initialSyncStatus:
+                  wallet.refreshMutex.isLocked
+                      ? WalletSyncStatus.syncing
+                      : WalletSyncStatus.synced,
+            ),
 
-                      const Spacer(),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      DesktopWalletFeatures(walletId: wallet.walletId),
-                    ],
-                  ),
-                ],
-              )
-              : Row(
-                children: [
-                  if (monke != null)
-                    SvgPicture.memory(
-                      Uint8List.fromList(monke!),
-                      width: 60,
-                      height: 60,
-                    ),
-                  if (monke == null)
-                    SvgPicture.file(
-                      File(ref.watch(coinIconProvider(wallet.info.coin))),
-                      width: 40,
-                      height: 40,
-                    ),
-                  const SizedBox(width: 10),
-                  if (wallet is FiroWallet)
-                    FiroDesktopWalletSummary(
-                      walletId: wallet.walletId,
-                      initialSyncStatus:
-                          wallet.refreshMutex.isLocked
-                              ? WalletSyncStatus.syncing
-                              : WalletSyncStatus.synced,
-                    ),
-
-                  if (wallet is! FiroWallet)
-                    DesktopWalletSummary(
-                      walletId: wallet.walletId,
-                      initialSyncStatus:
-                          wallet.refreshMutex.isLocked
-                              ? WalletSyncStatus.syncing
-                              : WalletSyncStatus.synced,
-                    ),
-                  const Spacer(),
-                  DesktopWalletFeatures(walletId: wallet.walletId),
-                ],
-              ),
+          if (wallet is! FiroWallet)
+            DesktopWalletSummary(
+              walletId: wallet.walletId,
+              initialSyncStatus:
+                  wallet.refreshMutex.isLocked
+                      ? WalletSyncStatus.syncing
+                      : WalletSyncStatus.synced,
+            ),
+          Expanded(child: DesktopWalletFeatures(walletId: wallet.walletId)),
+        ],
+      ),
     );
   }
 }

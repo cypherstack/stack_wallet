@@ -19,7 +19,7 @@ import 'package:isar/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../db/isar/main_db.dart';
-import '../../models/exchange/change_now/exchange_transaction_status.dart';
+import '../../models/exchange/change_now/cn_exchange_transaction_status.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/stack_theme.dart';
@@ -104,41 +104,32 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
         background: Theme.of(context).extension<StackColors>()!.popupBG,
         leading: Row(
           children: [
-            const SizedBox(
-              width: 32,
-            ),
+            const SizedBox(width: 32),
             AppBarIconButton(
               size: 32,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldDefaultBG,
+              color:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
               shadows: const [],
               icon: SvgPicture.asset(
                 Assets.svg.arrowLeft,
                 width: 18,
                 height: 18,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .topNavIconPrimary,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.topNavIconPrimary,
               ),
               onPressed: Navigator.of(context).pop,
             ),
-            const SizedBox(
-              width: 12,
-            ),
-            Text(
-              "Trades",
-              style: STextStyles.desktopH3(context),
-            ),
+            const SizedBox(width: 12),
+            Text("Trades", style: STextStyles.desktopH3(context)),
           ],
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(
-          left: 20,
-          top: 20,
-          right: 20,
-        ),
+        padding: const EdgeInsets.only(left: 20, top: 20, right: 20),
         child: Column(
           children: [
             Row(
@@ -159,11 +150,13 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
                           _searchString = value;
                         });
                       },
-                      style:
-                          STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldActiveText,
+                      style: STextStyles.desktopTextExtraSmall(
+                        context,
+                      ).copyWith(
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldActiveText,
                         height: 1.8,
                       ),
                       decoration: standardInputDecoration(
@@ -183,35 +176,34 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
                             height: 20,
                           ),
                         ),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            _searchController.text = "";
-                                            _searchString = "";
-                                          });
-                                        },
-                                      ),
-                                    ],
+                        suffixIcon:
+                            _searchController.text.isNotEmpty
+                                ? Padding(
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              _searchController.text = "";
+                                              _searchString = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              )
-                            : null,
+                                )
+                                : null,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(
-              height: 8,
-            ),
+            const SizedBox(height: 8),
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
@@ -237,38 +229,36 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (index != 0)
-                              const SizedBox(
-                                height: 12,
-                              ),
+                            if (index != 0) const SizedBox(height: 12),
                             Text(
                               month.item1,
                               style: STextStyles.smallMed12(context),
                             ),
-                            const SizedBox(
-                              height: 12,
-                            ),
+                            const SizedBox(height: 12),
                             RoundedWhiteContainer(
                               padding: const EdgeInsets.all(0),
                               child: ListView.separated(
                                 shrinkWrap: true,
                                 primary: false,
-                                separatorBuilder: (context, _) => Container(
-                                  height: 1,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .background,
-                                ),
-                                itemCount: month.item2.length,
-                                itemBuilder: (context, index) => Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: DesktopTradeRowCard(
-                                    key: Key(
-                                      "transactionCard_key_${month.item2[index].tradeId}",
+                                separatorBuilder:
+                                    (context, _) => Container(
+                                      height: 1,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .background,
                                     ),
-                                    tradeId: month.item2[index].tradeId,
-                                  ),
-                                ),
+                                itemCount: month.item2.length,
+                                itemBuilder:
+                                    (context, index) => Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: DesktopTradeRowCard(
+                                        key: Key(
+                                          "transactionCard_key_${month.item2[index].tradeId}",
+                                        ),
+                                        tradeId: month.item2[index].tradeId,
+                                      ),
+                                    ),
                               ),
                             ),
                           ],
@@ -287,10 +277,7 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
 }
 
 class DesktopTradeRowCard extends ConsumerStatefulWidget {
-  const DesktopTradeRowCard({
-    super.key,
-    required this.tradeId,
-  });
+  const DesktopTradeRowCard({super.key, required this.tradeId});
 
   final String tradeId;
 
@@ -347,8 +334,9 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
 
   @override
   Widget build(BuildContext context) {
-    final String? txid =
-        ref.read(tradeSentFromStackLookupProvider).getTxidForTradeId(tradeId);
+    final String? txid = ref
+        .read(tradeSentFromStackLookupProvider)
+        .getTxidForTradeId(tradeId);
     final List<String>? walletIds = ref
         .read(tradeSentFromStackLookupProvider)
         .getWalletIdsForTradeId(tradeId);
@@ -360,8 +348,9 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(Constants.size.circularBorderRadius),
+        borderRadius: BorderRadius.circular(
+          Constants.size.circularBorderRadius,
+        ),
       ),
       child: RawMaterialButton(
         shape: RoundedRectangleBorder(
@@ -374,25 +363,27 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
             //todo: check if print needed
             // debugPrint("name: ${manager.walletName}");
 
-            final tx = await MainDB.instance
-                .getTransactions(walletIds.first)
-                .filter()
-                .txidEqualTo(txid)
-                .findFirst();
+            final tx =
+                await MainDB.instance
+                    .getTransactions(walletIds.first)
+                    .filter()
+                    .txidEqualTo(txid)
+                    .findFirst();
 
             if (mounted) {
               await showDialog<void>(
                 context: context,
-                builder: (context) => DesktopDialog(
-                  maxHeight: MediaQuery.of(context).size.height - 64,
-                  maxWidth: 580,
-                  child: TradeDetailsView(
-                    tradeId: tradeId,
-                    transactionIfSentFromStack: tx,
-                    walletName: ref.read(pWalletName(walletIds.first)),
-                    walletId: walletIds.first,
-                  ),
-                ),
+                builder:
+                    (context) => DesktopDialog(
+                      maxHeight: MediaQuery.of(context).size.height - 64,
+                      maxWidth: 580,
+                      child: TradeDetailsView(
+                        tradeId: tradeId,
+                        transactionIfSentFromStack: tx,
+                        walletName: ref.read(pWalletName(walletIds.first)),
+                        walletId: walletIds.first,
+                      ),
+                    ),
               );
             }
 
@@ -400,62 +391,67 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
               unawaited(
                 showDialog<void>(
                   context: context,
-                  builder: (context) => Navigator(
-                    initialRoute: TradeDetailsView.routeName,
-                    onGenerateRoute: RouteGenerator.generateRoute,
-                    onGenerateInitialRoutes: (_, __) {
-                      return [
-                        FadePageRoute(
-                          DesktopDialog(
-                            maxHeight: null,
-                            maxWidth: 580,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 32,
-                                    bottom: 16,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Trade details",
-                                        style: STextStyles.desktopH3(context),
+                  builder:
+                      (context) => Navigator(
+                        initialRoute: TradeDetailsView.routeName,
+                        onGenerateRoute: RouteGenerator.generateRoute,
+                        onGenerateInitialRoutes: (_, __) {
+                          return [
+                            FadePageRoute(
+                              DesktopDialog(
+                                maxHeight: null,
+                                maxWidth: 580,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 32,
+                                        bottom: 16,
                                       ),
-                                      DesktopDialogCloseButton(
-                                        onPressedOverride: Navigator.of(
-                                          context,
-                                          rootNavigator: true,
-                                        ).pop,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "Trade details",
+                                            style: STextStyles.desktopH3(
+                                              context,
+                                            ),
+                                          ),
+                                          DesktopDialogCloseButton(
+                                            onPressedOverride:
+                                                Navigator.of(
+                                                  context,
+                                                  rootNavigator: true,
+                                                ).pop,
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                Flexible(
-                                  child: SingleChildScrollView(
-                                    primary: false,
-                                    child: TradeDetailsView(
-                                      tradeId: tradeId,
-                                      transactionIfSentFromStack: tx,
-                                      walletName: ref
-                                          .read(pWalletName(walletIds.first)),
-                                      walletId: walletIds.first,
                                     ),
-                                  ),
+                                    Flexible(
+                                      child: SingleChildScrollView(
+                                        primary: false,
+                                        child: TradeDetailsView(
+                                          tradeId: tradeId,
+                                          transactionIfSentFromStack: tx,
+                                          walletName: ref.read(
+                                            pWalletName(walletIds.first),
+                                          ),
+                                          walletId: walletIds.first,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
+                              const RouteSettings(
+                                name: TradeDetailsView.routeName,
+                              ),
                             ),
-                          ),
-                          const RouteSettings(
-                            name: TradeDetailsView.routeName,
-                          ),
-                        ),
-                      ];
-                    },
-                  ),
+                          ];
+                        },
+                      ),
                 ),
               );
             }
@@ -463,70 +459,69 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
             unawaited(
               showDialog<void>(
                 context: context,
-                builder: (context) => Navigator(
-                  initialRoute: TradeDetailsView.routeName,
-                  onGenerateRoute: RouteGenerator.generateRoute,
-                  onGenerateInitialRoutes: (_, __) {
-                    return [
-                      FadePageRoute(
-                        DesktopDialog(
-                          maxHeight: null,
-                          maxWidth: 580,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 32,
-                                  bottom: 16,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Trade details",
-                                      style: STextStyles.desktopH3(context),
+                builder:
+                    (context) => Navigator(
+                      initialRoute: TradeDetailsView.routeName,
+                      onGenerateRoute: RouteGenerator.generateRoute,
+                      onGenerateInitialRoutes: (_, __) {
+                        return [
+                          FadePageRoute(
+                            DesktopDialog(
+                              maxHeight: null,
+                              maxWidth: 580,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 32,
+                                      bottom: 16,
                                     ),
-                                    DesktopDialogCloseButton(
-                                      onPressedOverride: Navigator.of(
-                                        context,
-                                        rootNavigator: true,
-                                      ).pop,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Trade details",
+                                          style: STextStyles.desktopH3(context),
+                                        ),
+                                        DesktopDialogCloseButton(
+                                          onPressedOverride:
+                                              Navigator.of(
+                                                context,
+                                                rootNavigator: true,
+                                              ).pop,
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                              Flexible(
-                                child: SingleChildScrollView(
-                                  primary: false,
-                                  child: TradeDetailsView(
-                                    tradeId: tradeId,
-                                    transactionIfSentFromStack: null,
-                                    walletName: null,
-                                    walletId: walletIds?.first,
                                   ),
-                                ),
+                                  Flexible(
+                                    child: SingleChildScrollView(
+                                      primary: false,
+                                      child: TradeDetailsView(
+                                        tradeId: tradeId,
+                                        transactionIfSentFromStack: null,
+                                        walletName: null,
+                                        walletId: walletIds?.first,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                            const RouteSettings(
+                              name: TradeDetailsView.routeName,
+                            ),
                           ),
-                        ),
-                        const RouteSettings(
-                          name: TradeDetailsView.routeName,
-                        ),
-                      ),
-                    ];
-                  },
-                ),
+                        ];
+                      },
+                    ),
               ),
             );
           }
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: 16,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           child: Row(
             children: [
               Container(
@@ -540,9 +535,7 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                     File(
                       _fetchIconAssetForStatus(
                         trade.status,
-                        ref.watch(
-                          themeAssetsProvider,
-                        ),
+                        ref.watch(themeAssetsProvider),
                       ),
                     ),
                     width: 32,
@@ -550,15 +543,14 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 12,
-              ),
+              const SizedBox(width: 12),
               Expanded(
                 flex: 3,
                 child: Text(
                   "${trade.payInCurrency.toUpperCase()} → ${trade.payOutCurrency.toUpperCase()}",
-                  style:
-                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  style: STextStyles.desktopTextExtraExtraSmall(
+                    context,
+                  ).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
                 ),
@@ -576,8 +568,9 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                 flex: 6,
                 child: Text(
                   "-${Decimal.tryParse(trade.payInAmount)?.toStringAsFixed(8) ?? "..."} ${trade.payInCurrency.toUpperCase()}",
-                  style:
-                      STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                  style: STextStyles.desktopTextExtraExtraSmall(
+                    context,
+                  ).copyWith(
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
                 ),

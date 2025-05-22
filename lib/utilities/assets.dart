@@ -62,8 +62,10 @@ class _EXCHANGE {
       case NanswapExchange.exchangeName:
         return nanswap;
       default:
-        throw ArgumentError("Invalid exchange name passed to "
-            "Assets.exchange.getIconFor()");
+        throw ArgumentError(
+          "Invalid exchange name passed to "
+          "Assets.exchange.getIconFor()",
+        );
     }
   }
 }
@@ -233,7 +235,7 @@ class _SVG {
   String get trocadorRatingC => "assets/svg/trocador_rating_c.svg";
   String get trocadorRatingD => "assets/svg/trocador_rating_d.svg";
 
-// TODO provide proper assets
+  // TODO provide proper assets
   String get bitcoinTestnet => "assets/svg/coin_icons/Bitcoin.svg";
   String get bitcoincashTestnet => "assets/svg/coin_icons/Bitcoincash.svg";
   String get firoTestnet => "assets/svg/coin_icons/Firo.svg";
