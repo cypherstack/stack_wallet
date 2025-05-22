@@ -221,6 +221,11 @@ dependencies:
   drift: ^2.22.1
   drift_flutter: ^0.2.3
   path: ^1.9.1
+#  cs_salvium: 1.0.0-pre.1
+  cs_salvium:
+    path: ../cs_salvium/packages/cs_salvium
+  cs_salvium_flutter_libs:
+    path: ../cs_salvium/packages/cs_salvium_flutter_libs
 
 dev_dependencies:
   flutter_test:
