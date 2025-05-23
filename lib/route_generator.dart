@@ -150,6 +150,7 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import 'pages/spark_names/buy_spark_name_view.dart';
+import 'pages/spark_names/confirm_spark_name_transaction_view.dart';
 import 'pages/spark_names/spark_names_home_view.dart';
 import 'pages/spark_names/sub_widgets/spark_name_details.dart';
 import 'pages/special/firo_rescan_recovery_error_dialog.dart';
@@ -836,6 +837,20 @@ class RouteGenerator {
                   walletId: args.walletId,
                   name: args.name,
                   nameToRenew: args.nameToRenew,
+                ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ConfirmSparkNameTransactionView.routeName:
+        if (args is ({String walletId, TxData txData})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder:
+                (_) => ConfirmSparkNameTransactionView(
+                  walletId: args.walletId,
+                  txData: args.txData,
                 ),
             settings: RouteSettings(name: settings.name),
           );
