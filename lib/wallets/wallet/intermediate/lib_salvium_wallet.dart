@@ -332,9 +332,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   Future<void> init({bool? isRestore, int? wordCount}) async {
     final path = await pathForWallet(name: walletId, type: compatType);
     if (!(walletExists(path)) && isRestore != true) {
-      if (wordCount == null) {
-        throw Exception("Missing word count for new xmr/wow wallet!");
-      }
+      wordCount ??= 25;
       try {
         final password = generatePassword();
         await secureStorageInterface.write(
