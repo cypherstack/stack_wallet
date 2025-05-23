@@ -9,7 +9,7 @@ import '../intermediate/lib_salvium_wallet.dart';
 
 class SalviumWallet extends LibSalviumWallet {
   SalviumWallet(CryptoCurrencyNetwork network)
-    : super(Salvium(network), lib_monero_compat.WalletType.salvium);
+    : super(Salvium(network), lib_monero_compat.WalletType.monero);
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
