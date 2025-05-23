@@ -45,6 +45,7 @@ import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/monero_wallet.dart';
+import '../../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
@@ -259,6 +260,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       if (bip39.validateMnemonic(mnemonic) == false &&
           !(widget.coin is Monero ||
               widget.coin is Wownero ||
+              widget.coin is Salvium ||
               widget.coin is Xelis)) {
         unawaited(
           showFloatingFlushBar(
@@ -341,6 +343,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             case const (WowneroWallet):
               await (wallet as WowneroWallet).init(isRestore: true);
+              break;
+
+            case const (Salvium):
+              await (wallet as SalviumWallet).init(isRestore: true);
               break;
 
             case const (XelisWallet):
