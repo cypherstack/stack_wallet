@@ -69,6 +69,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Namecoin(CryptoCurrencyNetwork.main),
   Particl(CryptoCurrencyNetwork.main),
   Peercoin(CryptoCurrencyNetwork.main),
+  Salvium(CryptoCurrencyNetwork.main),
   Solana(CryptoCurrencyNetwork.main),
   Stellar(CryptoCurrencyNetwork.main),
   Tezos(CryptoCurrencyNetwork.main),
@@ -85,7 +86,6 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Peercoin(CryptoCurrencyNetwork.test),
   Stellar(CryptoCurrencyNetwork.test),
   Xelis(CryptoCurrencyNetwork.test),
-  Salvium(CryptoCurrencyNetwork.main),
 ]);
 
 final ({String from, String to}) _swapDefaults = (from: "BTC", to: "XMR");
