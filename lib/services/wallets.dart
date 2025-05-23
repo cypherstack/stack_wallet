@@ -25,6 +25,7 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
 import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../wallets/wallet/wallet.dart';
 import 'event_bus/events/wallet_added_event.dart';
 import 'event_bus/global_event_bus.dart';
@@ -230,7 +231,7 @@ class Wallets {
               shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(walletInfo.walletId);
 
-          if (wallet is LibMoneroWallet) {
+          if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(
@@ -339,7 +340,7 @@ class Wallets {
             nodeService: nodeService,
             prefs: prefs,
           ).then((wallet) {
-            if (wallet is LibMoneroWallet) {
+            if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
               // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
 
               walletIdCompleter.complete("dummy_ignore");
@@ -477,7 +478,7 @@ class Wallets {
             nodeService: nodeService,
             prefs: prefs,
           ).then((wallet) {
-            if (wallet is LibMoneroWallet) {
+            if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
               // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
 
               walletIdCompleter.complete("dummy_ignore");
@@ -588,7 +589,7 @@ class Wallets {
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 
         if (isDesktop) {
-          if (wallet is LibMoneroWallet) {
+          if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(

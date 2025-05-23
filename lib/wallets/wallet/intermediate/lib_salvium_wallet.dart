@@ -188,7 +188,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
     if (libSalviumWallet == null) {
       wasNull = true;
-      // libSalviumWalletT?.close();
+      // await libSalviumWallet?.close();
       final path = await pathForWallet(name: walletId);
 
       final String password;

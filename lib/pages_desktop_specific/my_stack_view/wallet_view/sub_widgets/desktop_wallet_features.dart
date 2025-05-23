@@ -442,7 +442,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       if (!isViewOnly && wallet is CashFusionInterface)
         (WalletFeature.fusion, Assets.svg.cashFusion, _onFusionPressed),
 
-      if (!isViewOnly && wallet is LibMoneroWallet)
+      if (!isViewOnly && (wallet is LibMoneroWallet || wallet is LibSalviumWallet))
         (WalletFeature.churn, Assets.svg.churn, _onChurnPressed),
 
       if (wallet is NamecoinWallet)

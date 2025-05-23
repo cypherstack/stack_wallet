@@ -21,6 +21,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
@@ -416,8 +417,8 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                if (wallet is LibMoneroWallet) const SizedBox(height: 8),
-                if (wallet is LibMoneroWallet)
+                if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) const SizedBox(height: 8),
+                if (wallet is LibMoneroWallet || wallet is LibSalviumWallet)
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
