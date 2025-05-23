@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
@@ -47,7 +46,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   @override
   int get isarTransactionVersion => 2;
 
-  LibSalviumWallet(super.currency, this.compatType) {
+  LibSalviumWallet(super.currency) {
     final bus = GlobalEventBus.instance;
 
     // Listen for tor status changes.
@@ -103,26 +102,25 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     });
   }
 
-  final lib_monero_compat.WalletType compatType;
   lib_salvium.Wallet? libSalviumWallet;
 
-  lib_monero_compat.SyncStatus? get syncStatus => _syncStatus;
-  lib_monero_compat.SyncStatus? _syncStatus;
-  int _syncedCount = 0;
-  void _setSyncStatus(lib_monero_compat.SyncStatus status) {
-    if (status is lib_monero_compat.SyncedSyncStatus) {
-      if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
-        _syncedCount++;
-      }
-    } else {
-      _syncedCount = 0;
-    }
-
-    if (_syncedCount < 3) {
-      _syncStatus = status;
-      syncStatusChanged();
-    }
-  }
+  // lib_monero_compat.SyncStatus? get syncStatus => _syncStatus;
+  // lib_monero_compat.SyncStatus? _syncStatus;
+  // int _syncedCount = 0;
+  // void _setSyncStatus(lib_monero_compat.SyncStatus status) {
+  //   if (status is lib_monero_compat.SyncedSyncStatus) {
+  //     if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
+  //       _syncedCount++;
+  //     }
+  //   } else {
+  //     _syncedCount = 0;
+  //   }
+  //
+  //   if (_syncedCount < 3) {
+  //     _syncStatus = status;
+  //     syncStatusChanged();
+  //   }
+  // }
 
   final prepareSendMutex = Mutex();
   final estimateFeeMutex = Mutex();
@@ -191,13 +189,13 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     if (libSalviumWallet == null) {
       wasNull = true;
       // libSalviumWalletT?.close();
-      final path = await pathForWallet(name: walletId, type: compatType);
+      final path = await pathForWallet(name: walletId);
 
       final String password;
       try {
         password =
             (await secureStorageInterface.read(
-              key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+              key: _libSalviumWalletPasswordKey(walletId.toUpperCase()),
             ))!;
       } catch (e, s) {
         throw Exception("Password not found $e, $s");
@@ -224,10 +222,10 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
     if (wasNull) {
       try {
-        _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
+        // _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
         libSalviumWallet?.startSyncing();
       } catch (_) {
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
         // TODO log
       }
     }
@@ -238,23 +236,22 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     unawaited(refresh());
   }
 
-  @Deprecated("Only used in the case of older wallets")
-  lib_monero_compat.WalletInfo? getLibSalviumWalletInfo(String walletId) {
-    try {
-      return DB.instance.moneroWalletInfoBox.values.firstWhere(
-        (info) => info.id == lib_monero_compat.hiveIdFor(walletId, compatType),
-      );
-    } catch (_) {
-      return null;
-    }
-  }
+  // @Deprecated("Only used in the case of older wallets")
+  // lib_monero_compat.WalletInfo? getLibSalviumWalletInfo(String walletId) {
+  //   try {
+  //     return DB.instance.moneroWalletInfoBox.values.firstWhere(
+  //       (info) => info.id == lib_monero_compat.hiveIdFor(walletId, compatType),
+  //     );
+  //   } catch (_) {
+  //     return null;
+  //   }
+  // }
 
   Future<void> save() async {
     if (!Platform.isWindows) {
       final appRoot = await StackFileSystem.applicationRootDirectory();
-      await lib_monero_compat.backupWalletFiles(
+      await _backupWalletFiles(
         name: walletId,
-        type: compatType,
         appRoot: appRoot,
       );
     }
@@ -287,8 +284,8 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   Future<CWKeyData?> getKeys() async {
     final base = libSalviumWallet;
 
-    final oldInfo = getLibSalviumWalletInfo(walletId);
-    if (base == null || (oldInfo != null && oldInfo.name != walletId)) {
+    // final oldInfo = getLibSalviumWalletInfo(walletId);
+    if (base == null /*|| (oldInfo != null && oldInfo.name != walletId)*/) {
       return null;
     }
     try {
@@ -313,12 +310,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   Future<(String, String)>
   hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing() async {
-    final path = await pathForWallet(name: walletId, type: compatType);
+    final path = await pathForWallet(name: walletId);
     final String password;
     try {
       password =
           (await secureStorageInterface.read(
-            key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+            key: _libSalviumWalletPasswordKey(walletId),
           ))!;
     } catch (e, s) {
       throw Exception("Password not found $e, $s");
@@ -330,13 +327,13 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   @override
   Future<void> init({bool? isRestore, int? wordCount}) async {
-    final path = await pathForWallet(name: walletId, type: compatType);
+    final path = await pathForWallet(name: walletId);
     if (!(walletExists(path)) && isRestore != true) {
       wordCount ??= 25;
       try {
         final password = generatePassword();
         await secureStorageInterface.write(
-          key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+          key: _libSalviumWalletPasswordKey(walletId),
           value: password,
         );
         final wallet = await getCreatedWallet(
@@ -410,12 +407,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
         final String name = walletId;
 
-        final path = await pathForWallet(name: name, type: compatType);
+        final path = await pathForWallet(name: name);
 
         try {
           final password = generatePassword();
           await secureStorageInterface.write(
-            key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+            key: _libSalviumWalletPasswordKey(walletId),
             value: password,
           );
           final wallet = await getRestoredWallet(
@@ -493,7 +490,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         libSalviumWallet?.stopAutoSaving();
         libSalviumWallet?.stopListeners();
         libSalviumWallet?.stopSyncing();
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
         throw Exception("TOR - clearnet mismatch");
       }
       proxy = TorService.sharedInstance.getProxyInfo();
@@ -502,12 +499,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         libSalviumWallet?.stopAutoSaving();
         libSalviumWallet?.stopListeners();
         libSalviumWallet?.stopSyncing();
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
         throw Exception("TOR - clearnet mismatch");
       }
     }
 
-    _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
+    // _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
     try {
       if (_requireMutex) {
         await _torConnectingLock.protect(() async {
@@ -544,9 +541,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       libSalviumWallet?.startListeners();
       libSalviumWallet?.startAutoSaving();
 
-      _setSyncStatus(lib_monero_compat.ConnectedSyncStatus());
+      // _setSyncStatus(lib_monero_compat.ConnectedSyncStatus());
     } catch (e, s) {
-      _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+      // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
       Logging.instance.e(
         "Exception caught in $runtimeType.updateNode(): ",
         error: e,
@@ -742,22 +739,18 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   Future<String> pathForWalletDir({
     required String name,
-    required lib_monero_compat.WalletType type,
   }) async {
     final Directory root = await StackFileSystem.applicationRootDirectory();
-    return lib_monero_compat.pathForWalletDir(
+    return _pathForWalletDir(
       name: name,
-      type: type.name.toLowerCase(),
       appRoot: root,
     );
   }
 
   Future<String> pathForWallet({
     required String name,
-    required lib_monero_compat.WalletType type,
   }) async => await pathForWalletDir(
     name: name,
-    type: type,
   ).then((path) => '$path/$name');
 
   void onSyncingUpdate({
@@ -769,9 +762,8 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       currentKnownChainHeight = nodeHeight;
       updateChainHeight();
       final blocksLeft = nodeHeight - syncHeight;
-      final lib_monero_compat.SyncStatus status;
       if (blocksLeft < 100) {
-        status = lib_monero_compat.SyncedSyncStatus();
+        // status = lib_monero_compat.SyncedSyncStatus();
 
         // if (!_hasSyncAfterStartup) {
         //   _hasSyncAfterStartup = true;
@@ -784,14 +776,14 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       } else {
         final percent = syncHeight / currentKnownChainHeight;
 
-        status = lib_monero_compat.SyncingSyncStatus(
-          blocksLeft,
-          percent,
-          currentKnownChainHeight,
-        );
+        // status = lib_monero_compat.SyncingSyncStatus(
+        //   blocksLeft,
+        //   percent,
+        //   currentKnownChainHeight,
+        // );
       }
 
-      _setSyncStatus(status);
+      // _setSyncStatus(status);
       _refreshTxDataHelper();
     }
   }
@@ -867,82 +859,82 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     );
   }
 
-  void syncStatusChanged() async {
-    final _syncStatus = syncStatus;
-
-    if (_syncStatus != null) {
-      if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
-        refreshMutex.release();
-      }
-
-      WalletSyncStatus? status;
-      xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
-
-      if (_syncStatus is lib_monero_compat.SyncingSyncStatus) {
-        final int blocksLeft = _syncStatus.blocksLeft;
-
-        // ensure at least 1 to prevent math errors
-        final int height = max(1, _syncStatus.height);
-
-        final nodeHeight = height + blocksLeft;
-        currentKnownChainHeight = nodeHeight;
-
-        // final percent = height / nodeHeight;
-        final percent = _syncStatus.ptc;
-
-        final highest = max(highestPercentCached, percent);
-
-        final unchanged = highest == highestPercentCached;
-        if (unchanged) {
-          return;
-        }
-
-        // update cached
-        if (highestPercentCached < percent) {
-          highestPercentCached = percent;
-        }
-
-        GlobalEventBus.instance.fire(
-          RefreshPercentChangedEvent(highest, walletId),
-        );
-        GlobalEventBus.instance.fire(
-          BlocksRemainingEvent(blocksLeft, walletId),
-        );
-      } else if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
-        status = WalletSyncStatus.synced;
-      } else if (_syncStatus is lib_monero_compat.NotConnectedSyncStatus) {
-        status = WalletSyncStatus.unableToSync;
-        xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
-      } else if (_syncStatus is lib_monero_compat.StartingSyncStatus) {
-        status = WalletSyncStatus.syncing;
-        GlobalEventBus.instance.fire(
-          RefreshPercentChangedEvent(highestPercentCached, walletId),
-        );
-      } else if (_syncStatus is lib_monero_compat.FailedSyncStatus) {
-        status = WalletSyncStatus.unableToSync;
-        xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
-      } else if (_syncStatus is lib_monero_compat.ConnectingSyncStatus) {
-        status = WalletSyncStatus.syncing;
-        GlobalEventBus.instance.fire(
-          RefreshPercentChangedEvent(highestPercentCached, walletId),
-        );
-      } else if (_syncStatus is lib_monero_compat.ConnectedSyncStatus) {
-        status = WalletSyncStatus.syncing;
-        GlobalEventBus.instance.fire(
-          RefreshPercentChangedEvent(highestPercentCached, walletId),
-        );
-      } else if (_syncStatus is lib_monero_compat.LostConnectionSyncStatus) {
-        status = WalletSyncStatus.unableToSync;
-        xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
-      }
-
-      if (status != null) {
-        GlobalEventBus.instance.fire(
-          WalletSyncStatusChangedEvent(status, walletId, info.coin),
-        );
-      }
-    }
-  }
+  // void syncStatusChanged() async {
+  //   final _syncStatus = syncStatus;
+  //
+  //   if (_syncStatus != null) {
+  //     if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
+  //       refreshMutex.release();
+  //     }
+  //
+  //     WalletSyncStatus? status;
+  //     xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
+  //
+  //     if (_syncStatus is lib_monero_compat.SyncingSyncStatus) {
+  //       final int blocksLeft = _syncStatus.blocksLeft;
+  //
+  //       // ensure at least 1 to prevent math errors
+  //       final int height = max(1, _syncStatus.height);
+  //
+  //       final nodeHeight = height + blocksLeft;
+  //       currentKnownChainHeight = nodeHeight;
+  //
+  //       // final percent = height / nodeHeight;
+  //       final percent = _syncStatus.ptc;
+  //
+  //       final highest = max(highestPercentCached, percent);
+  //
+  //       final unchanged = highest == highestPercentCached;
+  //       if (unchanged) {
+  //         return;
+  //       }
+  //
+  //       // update cached
+  //       if (highestPercentCached < percent) {
+  //         highestPercentCached = percent;
+  //       }
+  //
+  //       GlobalEventBus.instance.fire(
+  //         RefreshPercentChangedEvent(highest, walletId),
+  //       );
+  //       GlobalEventBus.instance.fire(
+  //         BlocksRemainingEvent(blocksLeft, walletId),
+  //       );
+  //     } else if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
+  //       status = WalletSyncStatus.synced;
+  //     } else if (_syncStatus is lib_monero_compat.NotConnectedSyncStatus) {
+  //       status = WalletSyncStatus.unableToSync;
+  //       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
+  //     } else if (_syncStatus is lib_monero_compat.StartingSyncStatus) {
+  //       status = WalletSyncStatus.syncing;
+  //       GlobalEventBus.instance.fire(
+  //         RefreshPercentChangedEvent(highestPercentCached, walletId),
+  //       );
+  //     } else if (_syncStatus is lib_monero_compat.FailedSyncStatus) {
+  //       status = WalletSyncStatus.unableToSync;
+  //       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
+  //     } else if (_syncStatus is lib_monero_compat.ConnectingSyncStatus) {
+  //       status = WalletSyncStatus.syncing;
+  //       GlobalEventBus.instance.fire(
+  //         RefreshPercentChangedEvent(highestPercentCached, walletId),
+  //       );
+  //     } else if (_syncStatus is lib_monero_compat.ConnectedSyncStatus) {
+  //       status = WalletSyncStatus.syncing;
+  //       GlobalEventBus.instance.fire(
+  //         RefreshPercentChangedEvent(highestPercentCached, walletId),
+  //       );
+  //     } else if (_syncStatus is lib_monero_compat.LostConnectionSyncStatus) {
+  //       status = WalletSyncStatus.unableToSync;
+  //       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
+  //     }
+  //
+  //     if (status != null) {
+  //       GlobalEventBus.instance.fire(
+  //         WalletSyncStatusChangedEvent(status, walletId, info.coin),
+  //       );
+  //     }
+  //   }
+  // }
 
   @override
   Future<void> checkSaveInitialReceivingAddress() async {
@@ -954,21 +946,21 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     if (_txRefreshLock) return;
     _txRefreshLock = true;
 
-    final _syncStatus = syncStatus;
+    // final _syncStatus = syncStatus;
 
-    if (_syncStatus != null &&
-        _syncStatus is lib_monero_compat.SyncingSyncStatus) {
-      final int blocksLeft = _syncStatus.blocksLeft;
-      final tenKChange = blocksLeft ~/ 10000;
-
-      // only refresh transactions periodically during a sync
-      if (_lastCheckedHeight == -1 || tenKChange < _lastCheckedHeight) {
-        _lastCheckedHeight = tenKChange;
-        await _refreshTxData();
-      }
-    } else {
-      await _refreshTxData();
-    }
+    // if (_syncStatus != null &&
+    //     _syncStatus is lib_monero_compat.SyncingSyncStatus) {
+    //   final int blocksLeft = _syncStatus.blocksLeft;
+    //   final tenKChange = blocksLeft ~/ 10000;
+    //
+    //   // only refresh transactions periodically during a sync
+    //   if (_lastCheckedHeight == -1 || tenKChange < _lastCheckedHeight) {
+    //     _lastCheckedHeight = tenKChange;
+    //     await _refreshTxData();
+    //   }
+    // } else {
+    //   await _refreshTxData();
+    // }
 
     _txRefreshLock = false;
   }
@@ -1090,7 +1082,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         libSalviumWallet?.stopAutoSaving();
         libSalviumWallet?.stopListeners();
         libSalviumWallet?.stopSyncing();
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
         throw Exception("TOR - clearnet mismatch");
       }
     } else {
@@ -1098,7 +1090,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         libSalviumWallet?.stopAutoSaving();
         libSalviumWallet?.stopListeners();
         libSalviumWallet?.stopSyncing();
-        _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
         throw Exception("TOR - clearnet mismatch");
       }
     }
@@ -1108,7 +1100,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     await refreshMutex.acquire();
 
     libSalviumWallet?.startSyncing();
-    _setSyncStatus(lib_monero_compat.StartingSyncStatus());
+    // _setSyncStatus(lib_monero_compat.StartingSyncStatus());
 
     await updateTransactions();
     await updateBalance();
@@ -1124,7 +1116,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     final synced = await libSalviumWallet?.isSynced();
 
     if (synced == true) {
-      _setSyncStatus(lib_monero_compat.SyncedSyncStatus());
+      // _setSyncStatus(lib_monero_compat.SyncedSyncStatus());
     }
   }
 
@@ -1400,7 +1392,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         return txData.copyWith(txid: txData.pendingSalviumTransaction!.txid);
       } catch (e, s) {
         Logging.instance.e(
-          "${info.name} ${compatType.name.toLowerCase()} confirmSend: ",
+          "${info.name} confirmSend: ",
           error: e,
           stackTrace: s,
         );
@@ -1434,11 +1426,11 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
         final String name = walletId;
 
-        final path = await pathForWallet(name: name, type: compatType);
+        final path = await pathForWallet(name: name);
 
         final password = generatePassword();
         await secureStorageInterface.write(
-          key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+          key: _libSalviumWalletPasswordKey(walletId.toUpperCase()),
           value: password,
         );
         final wallet = await getRestoredFromViewKeyWallet(
@@ -1503,3 +1495,65 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   final Mutex _torConnectingLock = Mutex();
   bool _requireMutex = false;
 }
+
+String _libSalviumWalletPasswordKey(String walletName) =>
+    "SALVIUM_WALLET_PASSWORD_${walletName.toUpperCase()}";
+
+String _backupFileName(String originalPath) {
+  final pathParts = originalPath.split('/');
+  final newName = '#_${pathParts.last}';
+  pathParts.removeLast();
+  pathParts.add(newName);
+  return pathParts.join('/');
+}
+
+Future<void> _backupWalletFiles({
+  required String name,
+  required Directory appRoot,
+}) async {
+  final path = await _pathForWallet(
+    name: name,
+    appRoot: appRoot,
+  );
+  final cacheFile = File(path);
+  final keysFile = File('$path.keys');
+  final addressListFile = File('$path.address.txt');
+  final newCacheFilePath = _backupFileName(cacheFile.path);
+  final newKeysFilePath = _backupFileName(keysFile.path);
+  final newAddressListFilePath = _backupFileName(addressListFile.path);
+
+  if (cacheFile.existsSync()) {
+    await cacheFile.copy(newCacheFilePath);
+  }
+
+  if (keysFile.existsSync()) {
+    await keysFile.copy(newKeysFilePath);
+  }
+
+  if (addressListFile.existsSync()) {
+    await addressListFile.copy(newAddressListFilePath);
+  }
+}
+
+Future<String> _pathForWalletDir({
+  required String name,
+  required Directory appRoot,
+}) async {
+  final walletsDir = Directory('${appRoot.path}/wallets');
+  final walletDire = Directory('${walletsDir.path}/salvium/$name');
+
+  if (!walletDire.existsSync()) {
+    walletDire.createSync(recursive: true);
+  }
+
+  return walletDire.path;
+}
+
+Future<String> _pathForWallet({
+  required String name,
+  required Directory appRoot,
+}) async =>
+    await _pathForWalletDir(
+      name: name,
+      appRoot: appRoot,
+    ).then((path) => '$path/$name');

@@ -9,12 +9,12 @@ import '../intermediate/lib_salvium_wallet.dart';
 
 class SalviumWallet extends LibSalviumWallet {
   SalviumWallet(CryptoCurrencyNetwork network)
-    : super(Salvium(network), lib_monero_compat.WalletType.monero);
+    : super(Salvium(network));
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    if (libSalviumWallet == null ||
-        syncStatus is! lib_monero_compat.SyncedSyncStatus) {
+    if (libSalviumWallet == null /*||
+        syncStatus is! lib_monero_compat.SyncedSyncStatus*/) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
