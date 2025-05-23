@@ -1,20 +1,20 @@
 import 'dart:async';
 
-import 'package:compat/compat.dart' as lib_salvium_compat;
+import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 
 import '../../../utilities/amount/amount.dart';
 import '../../crypto_currency/crypto_currency.dart';
-import '../intermediate/lib_monero_wallet.dart';
+import '../intermediate/lib_salvium_wallet.dart';
 
-class SalviumWallet extends LibMoneroWallet {
+class SalviumWallet extends LibSalviumWallet {
   SalviumWallet(CryptoCurrencyNetwork network)
-    : super(Salvium(network), lib_salvium_compat.WalletType.salvium);
+    : super(Salvium(network), lib_monero_compat.WalletType.salvium);
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    if (libMoneroWallet == null ||
-        syncStatus is! lib_salvium_compat.SyncedSyncStatus) {
+    if (libSalviumWallet == null ||
+        syncStatus is! lib_monero_compat.SyncedSyncStatus) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
@@ -40,7 +40,7 @@ class SalviumWallet extends LibMoneroWallet {
 
     int approximateFee = 0;
     await estimateFeeMutex.protect(() async {
-      approximateFee = await libMoneroWallet!.estimateFee(
+      approximateFee = await libSalviumWallet!.estimateFee(
         priority,
         amount.raw.toInt(),
       );
@@ -60,7 +60,7 @@ class SalviumWallet extends LibMoneroWallet {
     required String path,
     required String password,
   }) async {
-    libMoneroWallet = await lib_salvium.SalviumWallet.loadWallet(
+    libSalviumWallet = await lib_salvium.SalviumWallet.loadWallet(
       path: path,
       password: password,
     );
@@ -75,10 +75,6 @@ class SalviumWallet extends LibMoneroWallet {
   }) async {
     final lib_salvium.SalviumSeedType type;
     switch (wordCount) {
-      case 16:
-        type = lib_salvium.SalviumSeedType.sixteen;
-        break;
-
       case 25:
         type = lib_salvium.SalviumSeedType.twentyFive;
         break;
