@@ -1366,7 +1366,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
             return txData.copyWith(
               fee: realFee,
-              pendingTransaction: pendingTransaction,
+              pendingSalviumTransaction: pendingTransaction,
             );
           });
         } catch (e) {
@@ -1394,12 +1394,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
       try {
-        await libSalviumWallet!.commitTx(txData.pendingTransaction!);
+        await libSalviumWallet!.commitTx(txData.pendingSalviumTransaction!);
 
         Logging.instance.d(
-          "transaction ${txData.pendingTransaction!.txid} has been sent",
+          "transaction ${txData.pendingSalviumTransaction!.txid} has been sent",
         );
-        return txData.copyWith(txid: txData.pendingTransaction!.txid);
+        return txData.copyWith(txid: txData.pendingSalviumTransaction!.txid);
       } catch (e, s) {
         Logging.instance.e(
           "${info.name} ${compatType.name.toLowerCase()} confirmSend: ",
