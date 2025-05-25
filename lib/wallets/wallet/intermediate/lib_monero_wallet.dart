@@ -798,6 +798,15 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     }
   }
 
+  Completer<void> _balanceChangeCompleter = Completer<void>();
+
+  Future<void> waitForBalanceChange() async {
+    if (_balanceChangeCompleter.isCompleted) {
+      _balanceChangeCompleter = Completer<void>();
+    }
+    return _balanceChangeCompleter.future;
+  }
+
   void onBalancesChanged({
     required BigInt newBalance,
     required BigInt newUnlockedBalance,
@@ -805,6 +814,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     try {
       await updateBalance();
       await updateTransactions();
+      if (newBalance != BigInt.zero && !_balanceChangeCompleter.isCompleted) {
+        _balanceChangeCompleter.complete();
+      }
     } catch (e, s) {
       Logging.instance.w("onBalancesChanged(): ", error: e, stackTrace: s);
     }

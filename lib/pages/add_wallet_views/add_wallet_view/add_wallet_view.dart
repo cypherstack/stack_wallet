@@ -139,12 +139,53 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       final results = AddressUtils.parseWalletUri(qrResult.rawContent, logging: Logging.instance);
 
       if (results != null) {
-        final wallet = await results.coin.importPaperWallet(results, ref);
         if (mounted) {
-          await Navigator.of(context).pushNamed(
-            WalletView.routeName,
-            arguments: wallet.walletId,
-          );
+          unawaited(showModalBottomSheet<dynamic>(
+            backgroundColor: Colors.transparent,
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (_) {
+              return Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).extension<StackColors>()!.popupBG,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(),
+                          const SizedBox(
+                            height: 16,
+                          ),
+                          Text(
+                            "Importing ${results.coin.prettyName} Paper Wallet",
+                            style: STextStyles.field(context).copyWith(
+                              fontSize: 16,
+                              height: 1.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      )
+                  ),
+              );
+            },
+          ));
+          final wallet = await results.coin.importPaperWallet(results, ref);
+          if (mounted) {
+            Navigator.pop(context);
+            await Navigator.of(context).pushNamed(
+              WalletView.routeName,
+              arguments: wallet.walletId,
+            );
+          }
         }
       }
     } on PlatformException catch (e, s) {

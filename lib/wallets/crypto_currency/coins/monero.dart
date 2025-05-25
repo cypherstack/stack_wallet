@@ -1,20 +1,30 @@
+import 'dart:io';
+
+import 'package:compat/old_cw_core/wallet_type.dart';
+import 'package:cs_monero/cs_monero.dart' as cs_monero;
 import 'package:cs_monero/src/ffi_bindings/monero_wallet_bindings.dart'
     as xmr_wallet_ffi;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/io_client.dart';
+import 'package:monero_rpc/monero_rpc.dart';
 
+import '../../../models/isar/models/isar_models.dart';
 import '../../../models/node_model.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/node_service_provider.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
+import '../../../services/node_service.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../isar/models/wallet_info.dart';
+import '../../isar/providers/wallet_info_provider.dart';
 import '../../models/tx_data.dart';
 import '../../wallet/impl/monero_wallet.dart';
+import '../../wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallet/wallet.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
@@ -136,52 +146,100 @@ class Monero extends CryptonoteCurrency {
 
   @override
   Future<Wallet<CryptoCurrency>> importPaperWallet(WalletUriData walletData, WidgetRef ref) async {
-    try {
-      if (walletData.txids != null) {
-        final info = WalletInfo.createNew(
+    if (walletData.txids != null) {
+      final wallet = await Wallet.create(
+        walletInfo: WalletInfo.createNew(
           coin: walletData.coin,
           name: "${walletData.coin.prettyName} Paper Wallet",
           restoreHeight: walletData.height ?? 0,
           otherDataJsonString: walletData.toJson(),
-        );
+        ),
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonicPassphrase: null,
+        mnemonic: walletData.seed,
+      );
+      await (wallet as MoneroWallet).init(isRestore: true);
+      await wallet.recover(isRescan: false);
 
-        final wallet = await Wallet.create(
-          walletInfo: info,
-          mainDB: ref.read(mainDBProvider),
-          secureStorageInterface: ref.read(secureStoreProvider),
-          nodeService: ref.read(nodeServiceChangeNotifierProvider),
-          prefs: ref.read(prefsChangeNotifierProvider),
-          mnemonicPassphrase: null,
-          mnemonic: walletData.seed,
-        );
-
-        
-      } else {
-        final info = WalletInfo.createNew(
-          coin: walletData.coin,
-          name: "${walletData.coin.prettyName} Paper Wallet",
-          restoreHeight: walletData.height ?? 0,
-          otherDataJsonString: walletData.toJson(),
-        );
-
-        final wallet = await Wallet.create(
-          walletInfo: info,
-          mainDB: ref.read(mainDBProvider),
-          secureStorageInterface: ref.read(secureStoreProvider),
-          nodeService: ref.read(nodeServiceChangeNotifierProvider),
-          prefs: ref.read(prefsChangeNotifierProvider),
-          mnemonicPassphrase: null,
-          mnemonic: walletData.seed,
-        );
-
-        await (wallet as MoneroWallet).init(isRestore: true);
-        await wallet.recover(isRescan: false);
-        await wallet.info.setMnemonicVerified(isar: ref.read(mainDBProvider).isar);
-        ref.read(pWallets).addWallet(wallet);
-        return wallet;
+      // Scan the blocks with given txids
+      final primaryNode = defaultNode;
+      final daemonRpc = DaemonRpc(
+          IOClient(HttpClient()), "${primaryNode.host}:${primaryNode.port}");
+      final txs = await daemonRpc.postToEndpoint("/get_transactions", {
+        "txs_hashes": walletData.txids,
+        "decode_as_json": true,
+      });
+      for (final tx in txs["txs"] as List) {
+        wallet.onSyncingUpdate(syncHeight: tx["block_height"] as int,
+            nodeHeight: wallet.currentKnownChainHeight);
+        await wallet.waitForBalanceChange();
       }
-    } catch (e) {
-      throw Exception("Failed to import paper wallet: $e");
+
+      // Set the sync height to the current known chain height - make the wallet synced
+      wallet.onSyncingUpdate(syncHeight: wallet.currentKnownChainHeight,
+          nodeHeight: wallet.currentKnownChainHeight);
+
+      // Create the new wallet info
+      final newWallet = await Wallet.create(
+        walletInfo: WalletInfo.createNew(
+          coin: walletData.coin,
+          name: "${walletData.coin.prettyName} Gift Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
+        ),
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonic: null,
+        mnemonicPassphrase: null,
+        privateKey: null,
+      );
+      await (newWallet as MoneroWallet).init(wordCount: 16);
+      await newWallet.info.setMnemonicVerified(isar: ref
+          .read(mainDBProvider)
+          .isar);
+      ref.read(pWallets).addWallet(newWallet);
+
+      await newWallet.open();
+      await newWallet.generateNewReceivingAddress();
+
+      // Send the balance to the new wallet
+      final txData = await wallet.prepareSend(txData: TxData(
+        recipients: [
+          (address: (await newWallet.getCurrentReceivingAddress())!.value, amount: (await wallet.totalBalance), isChange: false)
+        ],
+        feeRateType: FeeRateType.average,
+      ));
+      await wallet.confirmSend(txData: txData);
+
+      return newWallet;
+    } else {
+      final info = WalletInfo.createNew(
+        coin: walletData.coin,
+        name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
+        restoreHeight: walletData.height ?? 0,
+        otherDataJsonString: walletData.toJson(),
+      );
+
+      final wallet = await Wallet.create(
+        walletInfo: info,
+        mainDB: ref.read(mainDBProvider),
+        secureStorageInterface: ref.read(secureStoreProvider),
+        nodeService: ref.read(nodeServiceChangeNotifierProvider),
+        prefs: ref.read(prefsChangeNotifierProvider),
+        mnemonicPassphrase: null,
+        mnemonic: walletData.seed,
+      );
+
+      await (wallet as MoneroWallet).init(isRestore: true);
+      await wallet.recover(isRescan: false);
+      await wallet.info.setMnemonicVerified(isar: ref
+          .read(mainDBProvider)
+          .isar);
+      ref.read(pWallets).addWallet(wallet);
+      return wallet;
     }
   }
 

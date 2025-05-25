@@ -2,8 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/node_model.dart';
+import '../../providers/db/main_db_provider.dart';
+import '../../providers/global/node_service_provider.dart';
+import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/secure_store_provider.dart';
+import '../../providers/global/wallets_provider.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
+import '../isar/models/wallet_info.dart';
 import '../wallet/wallet.dart';
 
 export 'coins/banano.dart';
@@ -97,7 +103,29 @@ abstract class CryptoCurrency {
   int get hashCode => Object.hash(runtimeType, network);
 
   Future<Wallet> importPaperWallet(WalletUriData walletData, WidgetRef ref) async {
-    throw UnimplementedError(
-        "Paper wallet import not implemented for $identifier",);
+    final info = WalletInfo.createNew(
+      coin: walletData.coin,
+      name: "${walletData.coin.prettyName} Paper Wallet ${walletData.address != null ? '(${walletData.address!.substring(walletData.address!.length - 4)})' : ''}",
+      restoreHeight: walletData.height ?? 0,
+      otherDataJsonString: walletData.toJson(),
+    );
+
+    final wallet = await Wallet.create(
+      walletInfo: info,
+      mainDB: ref.read(mainDBProvider),
+      secureStorageInterface: ref.read(secureStoreProvider),
+      nodeService: ref.read(nodeServiceChangeNotifierProvider),
+      prefs: ref.read(prefsChangeNotifierProvider),
+      mnemonicPassphrase: null,
+      mnemonic: walletData.seed,
+    );
+
+    await wallet.init();
+    await wallet.recover(isRescan: false);
+    await wallet.info.setMnemonicVerified(isar: ref
+        .read(mainDBProvider)
+        .isar);
+    ref.read(pWallets).addWallet(wallet);
+    return wallet;
   }
 }
