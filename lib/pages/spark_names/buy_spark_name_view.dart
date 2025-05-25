@@ -142,7 +142,7 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
         } else {
           await Navigator.of(context).pushNamed(
             ConfirmSparkNameTransactionView.routeName,
-            arguments: (txData, widget.walletId),
+            arguments: (walletId: widget.walletId, txData: txData),
           );
         }
       }
