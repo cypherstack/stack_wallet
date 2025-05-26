@@ -3,11 +3,7 @@ import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
 part 'app_config.g.dart';
 
-enum AppFeature {
-  themeSelection,
-  buy,
-  swap;
-}
+enum AppFeature { themeSelection, buy, swap }
 
 abstract class AppConfig {
   static const appName = _prefix + _separator + suffix;
