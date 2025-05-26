@@ -250,10 +250,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   Future<void> save() async {
     if (!Platform.isWindows) {
       final appRoot = await StackFileSystem.applicationRootDirectory();
-      await _backupWalletFiles(
-        name: walletId,
-        appRoot: appRoot,
-      );
+      await _backupWalletFiles(name: walletId, appRoot: appRoot);
     }
     await libSalviumWallet!.save();
   }
@@ -285,7 +282,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     final base = libSalviumWallet;
 
     // final oldInfo = getLibSalviumWalletInfo(walletId);
-    if (base == null /*|| (oldInfo != null && oldInfo.name != walletId)*/) {
+    if (base == null /*|| (oldInfo != null && oldInfo.name != walletId)*/ ) {
       return null;
     }
     try {
@@ -737,21 +734,13 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     await libSalviumWallet?.save();
   }
 
-  Future<String> pathForWalletDir({
-    required String name,
-  }) async {
+  Future<String> pathForWalletDir({required String name}) async {
     final Directory root = await StackFileSystem.applicationRootDirectory();
-    return _pathForWalletDir(
-      name: name,
-      appRoot: root,
-    );
+    return _pathForWalletDir(name: name, appRoot: root);
   }
 
-  Future<String> pathForWallet({
-    required String name,
-  }) async => await pathForWalletDir(
-    name: name,
-  ).then((path) => '$path/$name');
+  Future<String> pathForWallet({required String name}) async =>
+      await pathForWalletDir(name: name).then((path) => '$path/$name');
 
   void onSyncingUpdate({
     required int syncHeight,
@@ -1511,10 +1500,7 @@ Future<void> _backupWalletFiles({
   required String name,
   required Directory appRoot,
 }) async {
-  final path = await _pathForWallet(
-    name: name,
-    appRoot: appRoot,
-  );
+  final path = await _pathForWallet(name: name, appRoot: appRoot);
   final cacheFile = File(path);
   final keysFile = File('$path.keys');
   final addressListFile = File('$path.address.txt');
@@ -1552,8 +1538,7 @@ Future<String> _pathForWalletDir({
 Future<String> _pathForWallet({
   required String name,
   required Directory appRoot,
-}) async =>
-    await _pathForWalletDir(
-      name: name,
-      appRoot: appRoot,
-    ).then((path) => '$path/$name');
+}) async => await _pathForWalletDir(
+  name: name,
+  appRoot: appRoot,
+).then((path) => '$path/$name');

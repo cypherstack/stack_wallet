@@ -15,7 +15,7 @@ import 'dart:math';
 import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
     as cs_monero_deprecated;
 import 'package:cs_salvium/src/deprecated/get_height_by_date.dart'
-as cs_salvium_deprecated;
+    as cs_salvium_deprecated;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -124,7 +124,8 @@ class _VerifyRecoveryPhraseViewState
         });
       }
       viewOnlyWalletType = ViewOnlyWalletType.xPub;
-    } else if (widget.wallet is LibMoneroWallet) {
+    } else if (widget.wallet is LibMoneroWallet ||
+        widget.wallet is LibSalviumWallet) {
       if (widget.wallet.cryptoCurrency is Monero) {
         height = cs_monero_deprecated.getMoneroHeightByDate(
           date: DateTime.now().subtract(const Duration(days: 7)),
@@ -205,8 +206,8 @@ class _VerifyRecoveryPhraseViewState
       final w = widget.wallet as LibSalviumWallet;
 
       final info =
-      await w
-          .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
+          await w
+              .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
       final address = info.$1;
       final privateViewKey = info.$2;
 
