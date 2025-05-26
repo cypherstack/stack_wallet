@@ -61,20 +61,19 @@ class _OrdinalDetailsViewState extends ConsumerState<OrdinalDetailsView> {
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
     return Background(
-      child: SafeArea(
-        child: Scaffold(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
           backgroundColor:
               Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            leading: const AppBarBackButton(),
-            title: Text(
-              "Ordinal details",
-              style: STextStyles.navBarTitle(context),
-            ),
+          leading: const AppBarBackButton(),
+          title: Text(
+            "Ordinal details",
+            style: STextStyles.navBarTitle(context),
           ),
-          body: SingleChildScrollView(
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(

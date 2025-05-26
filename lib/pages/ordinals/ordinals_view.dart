@@ -11,7 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'widgets/ordinals_list.dart';
+
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -20,12 +20,10 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import 'widgets/ordinals_list.dart';
 
 class OrdinalsView extends ConsumerStatefulWidget {
-  const OrdinalsView({
-    super.key,
-    required this.walletId,
-  });
+  const OrdinalsView({super.key, required this.walletId});
 
   static const routeName = "/ordinalsView";
 
@@ -59,73 +57,66 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
   @override
   Widget build(BuildContext context) {
     return Background(
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            leading: const AppBarBackButton(),
-            title: Text(
-              "Ordinals",
-              style: STextStyles.navBarTitle(context),
-            ),
-            titleSpacing: 0,
-            actions: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: AppBarIconButton(
-                  size: 36,
-                  icon: SvgPicture.asset(
-                    Assets.svg.arrowRotate,
-                    width: 20,
-                    height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
-                  ),
-                  onPressed: () async {
-                    // show loading for a minimum of 2 seconds on refreshing
-                    await showLoading(
-                      whileFuture: Future.wait<void>([
-                        Future.delayed(const Duration(seconds: 2)),
-                        (ref.read(pWallets).getWallet(widget.walletId)
-                                as OrdinalsInterface)
-                            .refreshInscriptions(),
-                      ]),
-                      context: context,
-                      message: "Refreshing...",
-                    );
-                  },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: const AppBarBackButton(),
+          title: Text("Ordinals", style: STextStyles.navBarTitle(context)),
+          titleSpacing: 0,
+          actions: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: AppBarIconButton(
+                size: 36,
+                icon: SvgPicture.asset(
+                  Assets.svg.arrowRotate,
+                  width: 20,
+                  height: 20,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                 ),
+                onPressed: () async {
+                  // show loading for a minimum of 2 seconds on refreshing
+                  await showLoading(
+                    whileFuture: Future.wait<void>([
+                      Future.delayed(const Duration(seconds: 2)),
+                      (ref.read(pWallets).getWallet(widget.walletId)
+                              as OrdinalsInterface)
+                          .refreshInscriptions(),
+                    ]),
+                    context: context,
+                    message: "Refreshing...",
+                  );
+                },
               ),
-              // AspectRatio(
-              //   aspectRatio: 1,
-              //   child: AppBarIconButton(
-              //     size: 36,
-              //     icon: SvgPicture.asset(
-              //       Assets.svg.filter,
-              //       width: 20,
-              //       height: 20,
-              //       color: Theme.of(context)
-              //           .extension<StackColors>()!
-              //           .topNavIconPrimary,
-              //     ),
-              //     onPressed: () {
-              //       Navigator.of(context).pushNamed(
-              //         OrdinalsFilterView.routeName,
-              //       );
-              //     },
-              //   ),
-              // ),
-            ],
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 8,
             ),
+            // AspectRatio(
+            //   aspectRatio: 1,
+            //   child: AppBarIconButton(
+            //     size: 36,
+            //     icon: SvgPicture.asset(
+            //       Assets.svg.filter,
+            //       width: 20,
+            //       height: 20,
+            //       color: Theme.of(context)
+            //           .extension<StackColors>()!
+            //           .topNavIconPrimary,
+            //     ),
+            //     onPressed: () {
+            //       Navigator.of(context).pushNamed(
+            //         OrdinalsFilterView.routeName,
+            //       );
+            //     },
+            //   ),
+            // ),
+          ],
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
             child: Column(
               children: [
                 // ClipRRect(
@@ -185,11 +176,7 @@ class _OrdinalsViewState extends ConsumerState<OrdinalsView> {
                 // const SizedBox(
                 //   height: 16,
                 // ),
-                Expanded(
-                  child: OrdinalsList(
-                    walletId: widget.walletId,
-                  ),
-                ),
+                Expanded(child: OrdinalsList(walletId: widget.walletId)),
               ],
             ),
           ),

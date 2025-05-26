@@ -29,10 +29,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 
 class BuyOrderDetailsView extends ConsumerStatefulWidget {
-  const BuyOrderDetailsView({
-    super.key,
-    required this.order,
-  });
+  const BuyOrderDetailsView({super.key, required this.order});
 
   final SimplexOrder order;
 
@@ -74,29 +71,31 @@ Provider: Simplex
                 style: STextStyles.navBarTitle(context),
               ),
             ),
-            body: LayoutBuilder(
-              builder: (builderContext, constraints) {
-                return Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12,
-                    top: 12,
-                    right: 12,
-                  ),
-                  child: SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - 24,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: child,
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (builderContext, constraints) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      top: 12,
+                      right: 12,
+                    ),
+                    child: SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 24,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: child,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -104,21 +103,13 @@ Provider: Simplex
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            "Simplex order",
-            style: STextStyles.pageTitleH1(context),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
+          Text("Simplex order", style: STextStyles.pageTitleH1(context)),
+          const SizedBox(height: 16),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Purchase ID",
-                  style: STextStyles.label(context),
-                ),
+                Text("Purchase ID", style: STextStyles.label(context)),
                 Text(
                   widget.order.paymentId,
                   style: STextStyles.label(context).copyWith(
@@ -128,17 +119,12 @@ Provider: Simplex
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "User ID",
-                  style: STextStyles.label(context),
-                ),
+                Text("User ID", style: STextStyles.label(context)),
                 Text(
                   widget.order.userId,
                   style: STextStyles.label(context).copyWith(
@@ -148,17 +134,12 @@ Provider: Simplex
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Quote ID",
-                  style: STextStyles.label(context),
-                ),
+                Text("Quote ID", style: STextStyles.label(context)),
                 Text(
                   widget.order.quote.id,
                   style: STextStyles.label(context).copyWith(
@@ -168,17 +149,12 @@ Provider: Simplex
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Quoted cost",
-                  style: STextStyles.label(context),
-                ),
+                Text("Quoted cost", style: STextStyles.label(context)),
                 Text(
                   "${widget.order.quote.youPayFiatPrice.toStringAsFixed(2)} ${widget.order.quote.fiat.ticker.toUpperCase()}",
                   style: STextStyles.label(context).copyWith(
@@ -188,9 +164,7 @@ Provider: Simplex
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           // RoundedWhiteContainer(
           //   child: Row(
           //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -215,10 +189,7 @@ Provider: Simplex
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Quoted amount",
-                  style: STextStyles.label(context),
-                ),
+                Text("Quoted amount", style: STextStyles.label(context)),
                 Text(
                   "${widget.order.quote.youReceiveCryptoAmount} ${widget.order.quote.crypto.ticker.toUpperCase()}",
                   style: STextStyles.label(context).copyWith(
@@ -228,9 +199,7 @@ Provider: Simplex
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           RoundedWhiteContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,32 +217,23 @@ Provider: Simplex
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Provider",
-                  style: STextStyles.label(context),
-                ),
+                Text("Provider", style: STextStyles.label(context)),
                 SizedBox(
                   width: 64,
                   height: 32,
                   child: SvgPicture.asset(
-                    Assets.buy.simplexLogo(
-                      ref.watch(themeProvider).brightness,
-                    ),
+                    Assets.buy.simplexLogo(ref.watch(themeProvider).brightness),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -307,18 +267,15 @@ Provider: Simplex
                   Assets.svg.copy,
                   width: 20,
                   height: 20,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextSecondary,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonTextSecondary,
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
+                const SizedBox(width: 10),
                 Text(
                   "Copy to clipboard",
-                  style: STextStyles.desktopButtonSecondaryEnabled(
-                    context,
-                  ),
+                  style: STextStyles.desktopButtonSecondaryEnabled(context),
                 ),
               ],
             ),

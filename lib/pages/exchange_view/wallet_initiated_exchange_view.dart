@@ -12,9 +12,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/isar/models/isar_models.dart';
-import 'exchange_form.dart';
-import 'sub_widgets/step_row.dart';
 import '../../providers/exchange/exchange_form_state_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
@@ -25,6 +24,8 @@ import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
+import 'exchange_form.dart';
+import 'sub_widgets/step_row.dart';
 
 class WalletInitiatedExchangeView extends ConsumerStatefulWidget {
   const WalletInitiatedExchangeView({
@@ -110,10 +111,9 @@ class _WalletInitiatedExchangeViewState
           children: [
             child,
             Material(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.6),
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.overlay.withOpacity(0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",
@@ -139,62 +139,51 @@ class _WalletInitiatedExchangeViewState
                 }
               },
             ),
-            title: Text(
-              "Swap",
-              style: STextStyles.navBarTitle(context),
-            ),
+            title: Text("Swap", style: STextStyles.navBarTitle(context)),
           ),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              final width = MediaQuery.of(context).size.width - 32;
-              return Padding(
-                padding: const EdgeInsets.all(12),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 24,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            StepRow(
-                              count: 4,
-                              current: 0,
-                              width: width,
-                            ),
-                            const SizedBox(
-                              height: 14,
-                            ),
-                            Text(
-                              "Exchange amount",
-                              style: STextStyles.pageTitleH1(context),
-                            ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            Text(
-                              "Network fees and other exchange charges are included in the rate.",
-                              style: STextStyles.itemSubtitle(context),
-                            ),
-                            const SizedBox(
-                              height: 24,
-                            ),
-                            ExchangeForm(
-                              walletId: walletId,
-                              coin: coin,
-                              contract: widget.contract,
-                            ),
-                          ],
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = MediaQuery.of(context).size.width - 32;
+                return Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 24,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              StepRow(count: 4, current: 0, width: width),
+                              const SizedBox(height: 14),
+                              Text(
+                                "Exchange amount",
+                                style: STextStyles.pageTitleH1(context),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Network fees and other exchange charges are included in the rate.",
+                                style: STextStyles.itemSubtitle(context),
+                              ),
+                              const SizedBox(height: 24),
+                              ExchangeForm(
+                                walletId: walletId,
+                                coin: coin,
+                                contract: widget.contract,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

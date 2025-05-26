@@ -20,7 +20,6 @@ import 'package:isar/isar.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/keys/view_only_wallet_data.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
@@ -94,10 +93,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .overlay
-                    .withOpacity(0.5),
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.overlay.withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -112,8 +110,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       if (wallet is Bip39HDWallet && wallet is! BCashInterface) {
         DerivePathType? type;
         if (wallet.isViewOnly && wallet is ExtendedKeysInterface) {
-          final voData = await wallet.getViewOnlyWalletData()
-              as ExtendedKeysViewOnlyWalletData;
+          final voData =
+              await wallet.getViewOnlyWalletData()
+                  as ExtendedKeysViewOnlyWalletData;
           for (final t in wallet.cryptoCurrency.supportedDerivationPathTypes) {
             final testPath = wallet.cryptoCurrency.constructDerivePath(
               derivePathType: t,
@@ -151,8 +150,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       shouldPop = true;
 
       if (mounted) {
-        Navigator.of(context)
-            .popUntil(ModalRoute.withName(ReceiveView.routeName));
+        Navigator.of(
+          context,
+        ).popUntil(ModalRoute.withName(ReceiveView.routeName));
 
         setState(() {
           _addressMap[_walletAddressTypes[_currentIndex]] =
@@ -173,10 +173,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .overlay
-                    .withOpacity(0.5),
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.overlay.withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -214,7 +213,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       _showMultiType = false;
     } else {
-      _showMultiType = _supportsSpark ||
+      _showMultiType =
+          _supportsSpark ||
           (wallet is! BCashInterface &&
               wallet is Bip39HDWallet &&
               wallet.supportedAddressTypes.length > 1);
@@ -227,9 +227,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         _walletAddressTypes.insert(0, AddressType.spark);
       } else {
         _walletAddressTypes.addAll(
-          (wallet as Bip39HDWallet)
-              .supportedAddressTypes
-              .where((e) => e != wallet.info.mainAddressType),
+          (wallet as Bip39HDWallet).supportedAddressTypes.where(
+            (e) => e != wallet.info.mainAddressType,
+          ),
         );
       }
     }
@@ -238,8 +238,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       _walletAddressTypes.removeWhere((e) => e == AddressType.p2pkh);
     }
 
-    _addressMap[_walletAddressTypes[_currentIndex]] =
-        ref.read(pWalletReceivingAddress(walletId));
+    _addressMap[_walletAddressTypes[_currentIndex]] = ref.read(
+      pWalletReceivingAddress(walletId),
+    );
 
     if (_showMultiType) {
       for (final type in _walletAddressTypes) {
@@ -255,15 +256,15 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             .findFirst()
             .asStream()
             .listen((event) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _addressMap[type] =
-                    event?.value ?? _addressMap[type] ?? "[No address yet]";
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _addressMap[type] =
+                        event?.value ?? _addressMap[type] ?? "[No address yet]";
+                  });
+                }
               });
-            }
-          });
-        });
+            });
       }
     }
 
@@ -291,8 +292,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       address = ref.watch(pWalletReceivingAddress(walletId));
     }
 
-    final wallet =
-        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
+    final wallet = ref.watch(
+      pWallets.select((value) => value.getWallet(walletId)),
+    );
 
     final bool canGen;
     if (wallet is ViewOnlyOptionInterface &&
@@ -318,11 +320,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                bottom: 10,
-                right: 10,
-              ),
+              padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
@@ -334,9 +332,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                   color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.verticalEllipsis,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -353,9 +352,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               right: 10,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .popupBG,
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.popupBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -407,114 +407,176 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(12),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ConditionalParent(
-                    condition: _showMultiType,
-                    builder: (child) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          "Address type",
-                          style: STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .infoItemLabel,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        DropdownButtonHideUnderline(
-                          child: DropdownButton2<int>(
-                            value: _currentIndex,
-                            items: [
-                              for (int i = 0;
-                                  i < _walletAddressTypes.length;
-                                  i++)
-                                DropdownMenuItem(
-                                  value: i,
-                                  child: Text(
-                                    _supportsSpark &&
-                                            _walletAddressTypes[i] ==
-                                                AddressType.p2pkh
-                                        ? "Transparent address"
-                                        : "${_walletAddressTypes[i].readableName} address",
-                                    style: STextStyles.w500_14(context),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ConditionalParent(
+                      condition: _showMultiType,
+                      builder:
+                          (child) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "Address type",
+                                style: STextStyles.w500_14(context).copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.infoItemLabel,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              DropdownButtonHideUnderline(
+                                child: DropdownButton2<int>(
+                                  value: _currentIndex,
+                                  items: [
+                                    for (
+                                      int i = 0;
+                                      i < _walletAddressTypes.length;
+                                      i++
+                                    )
+                                      DropdownMenuItem(
+                                        value: i,
+                                        child: Text(
+                                          _supportsSpark &&
+                                                  _walletAddressTypes[i] ==
+                                                      AddressType.p2pkh
+                                              ? "Transparent address"
+                                              : "${_walletAddressTypes[i].readableName} address",
+                                          style: STextStyles.w500_14(context),
+                                        ),
+                                      ),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value != null &&
+                                        value != _currentIndex) {
+                                      setState(() {
+                                        _currentIndex = value;
+                                      });
+                                    }
+                                  },
+                                  isExpanded: true,
+                                  iconStyleData: IconStyleData(
+                                    icon: Padding(
+                                      padding: const EdgeInsets.only(right: 10),
+                                      child: SvgPicture.asset(
+                                        Assets.svg.chevronDown,
+                                        width: 12,
+                                        height: 6,
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textFieldActiveSearchIconRight,
+                                      ),
+                                    ),
+                                  ),
+                                  buttonStyleData: ButtonStyleData(
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textFieldDefaultBG,
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownStyleData: DropdownStyleData(
+                                    offset: const Offset(0, -10),
+                                    elevation: 0,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textFieldDefaultBG,
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                    ),
+                                  ),
+                                  menuItemStyleData: const MenuItemStyleData(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
                                   ),
                                 ),
+                              ),
+                              const SizedBox(height: 12),
+                              child,
                             ],
-                            onChanged: (value) {
-                              if (value != null && value != _currentIndex) {
-                                setState(() {
-                                  _currentIndex = value;
-                                });
-                              }
-                            },
-                            isExpanded: true,
-                            iconStyleData: IconStyleData(
-                              icon: Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: SvgPicture.asset(
-                                  Assets.svg.chevronDown,
-                                  width: 12,
-                                  height: 6,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveSearchIconRight,
-                                ),
+                          ),
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          clipboard.setData(ClipboardData(text: address));
+                          showFloatingFlushBar(
+                            type: FlushBarType.info,
+                            message: "Copied to clipboard",
+                            iconAsset: Assets.svg.copy,
+                            context: context,
+                          );
+                        },
+                        child: RoundedWhiteContainer(
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    "Your $ticker address",
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                  const Spacer(),
+                                  Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        Assets.svg.copy,
+                                        width: 10,
+                                        height: 10,
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .infoItemIcons,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        "Copy",
+                                        style: STextStyles.link2(context),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ),
-                            buttonStyleData: ButtonStyleData(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldDefaultBG,
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      address,
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            dropdownStyleData: DropdownStyleData(
-                              offset: const Offset(0, -10),
-                              elevation: 0,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldDefaultBG,
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                              ),
-                            ),
-                            menuItemStyleData: const MenuItemStyleData(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                            ),
+                            ],
                           ),
                         ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        child,
-                      ],
+                      ),
                     ),
-                    child: GestureDetector(
-                      onTap: () {
+                    const SizedBox(height: 12),
+                    PrimaryButton(
+                      label: "Copy address",
+                      onPressed: () {
                         HapticFeedback.lightImpact();
-                        clipboard.setData(
-                          ClipboardData(
-                            text: address,
-                          ),
-                        );
+                        clipboard.setData(ClipboardData(text: address));
                         showFloatingFlushBar(
                           type: FlushBarType.info,
                           message: "Copied to clipboard",
@@ -522,134 +584,62 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           context: context,
                         );
                       },
-                      child: RoundedWhiteContainer(
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "Your $ticker address",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                const Spacer(),
-                                Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      Assets.svg.copy,
-                                      width: 10,
-                                      height: 10,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .infoItemIcons,
-                                    ),
-                                    const SizedBox(
-                                      width: 4,
-                                    ),
-                                    Text(
-                                      "Copy",
-                                      style: STextStyles.link2(context),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    address,
-                                    style: STextStyles.itemSubtitle12(context),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                    ),
+                    if (canGen) const SizedBox(height: 12),
+                    if (canGen)
+                      SecondaryButton(
+                        label: "Generate new address",
+                        onPressed:
+                            _supportsSpark &&
+                                    _walletAddressTypes[_currentIndex] ==
+                                        AddressType.spark
+                                ? generateNewSparkAddress
+                                : generateNewAddress,
                       ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  PrimaryButton(
-                    label: "Copy address",
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      clipboard.setData(
-                        ClipboardData(
-                          text: address,
-                        ),
-                      );
-                      showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "Copied to clipboard",
-                        iconAsset: Assets.svg.copy,
-                        context: context,
-                      );
-                    },
-                  ),
-                  if (canGen)
-                    const SizedBox(
-                      height: 12,
-                    ),
-                  if (canGen)
-                    SecondaryButton(
-                      label: "Generate new address",
-                      onPressed: _supportsSpark &&
-                              _walletAddressTypes[_currentIndex] ==
-                                  AddressType.spark
-                          ? generateNewSparkAddress
-                          : generateNewAddress,
-                    ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  RoundedWhiteContainer(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            QR(
-                              data: AddressUtils.buildUriString(
-                                coin.uriScheme,
-                                address,
-                                {},
+                    const SizedBox(height: 30),
+                    RoundedWhiteContainer(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              QR(
+                                data: AddressUtils.buildUriString(
+                                  coin.uriScheme,
+                                  address,
+                                  {},
+                                ),
+                                size: MediaQuery.of(context).size.width / 2,
                               ),
-                              size: MediaQuery.of(context).size.width / 2,
-                            ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            CustomTextButton(
-                              text: "Advanced options",
-                              onTap: () async {
-                                unawaited(
-                                  Navigator.of(context).push(
-                                    RouteGenerator.getRoute(
-                                      shouldUseMaterialRoute:
-                                          RouteGenerator.useMaterialPageRoute,
-                                      builder: (_) => GenerateUriQrCodeView(
-                                        coin: coin,
-                                        receivingAddress: address,
-                                      ),
-                                      settings: const RouteSettings(
-                                        name: GenerateUriQrCodeView.routeName,
+                              const SizedBox(height: 20),
+                              CustomTextButton(
+                                text: "Advanced options",
+                                onTap: () async {
+                                  unawaited(
+                                    Navigator.of(context).push(
+                                      RouteGenerator.getRoute(
+                                        shouldUseMaterialRoute:
+                                            RouteGenerator.useMaterialPageRoute,
+                                        builder:
+                                            (_) => GenerateUriQrCodeView(
+                                              coin: coin,
+                                              receivingAddress: address,
+                                            ),
+                                        settings: const RouteSettings(
+                                          name: GenerateUriQrCodeView.routeName,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -62,9 +62,7 @@ class _EditContactAddressViewState
   Future<void> save(ContactEntry contact) async {
     if (FocusScope.of(context).hasFocus) {
       FocusScope.of(context).unfocus();
-      await Future<void>.delayed(
-        const Duration(milliseconds: 75),
-      );
+      await Future<void>.delayed(const Duration(milliseconds: 75));
     }
     final List<ContactAddressEntry> entries = contact.addresses.toList();
 
@@ -108,61 +106,67 @@ class _EditContactAddressViewState
   @override
   Widget build(BuildContext context) {
     final contact = ref.watch(
-      addressBookServiceProvider
-          .select((value) => value.getContactById(contactId)),
+      addressBookServiceProvider.select(
+        (value) => value.getContactById(contactId),
+      ),
     );
 
     final bool isDesktop = Util.isDesktop;
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            title: Text(
-              "Edit address",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              return Padding(
-                padding: const EdgeInsets.only(
-                  left: 12,
-                  top: 12,
-                  right: 12,
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 75),
+                      );
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
                 ),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 24,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: child,
+                title: Text(
+                  "Edit address",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12,
+                        top: 12,
+                        right: 12,
                       ),
-                    ),
-                  ),
+                      child: SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 24,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: child,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
-      ),
       child: Column(
         children: [
           Row(
@@ -172,31 +176,28 @@ class _EditContactAddressViewState
                 width: 48,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldActiveBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldActiveBG,
                 ),
                 child: Center(
-                  child: contact.emojiChar == null
-                      ? SvgPicture.asset(
-                          Assets.svg.user,
-                          height: 24,
-                          width: 24,
-                        )
-                      : Text(
-                          contact.emojiChar!,
-                          style: STextStyles.pageTitleH1(context),
-                        ),
+                  child:
+                      contact.emojiChar == null
+                          ? SvgPicture.asset(
+                            Assets.svg.user,
+                            height: 24,
+                            width: 24,
+                          )
+                          : Text(
+                            contact.emojiChar!,
+                            style: STextStyles.pageTitleH1(context),
+                          ),
                 ),
               ),
-              const SizedBox(
-                width: 16,
-              ),
+              const SizedBox(width: 16),
               if (isDesktop)
-                Text(
-                  contact.name,
-                  style: STextStyles.pageTitleH2(context),
-                ),
+                Text(contact.name, style: STextStyles.pageTitleH2(context)),
               if (!isDesktop)
                 Expanded(
                   child: FittedBox(
@@ -209,23 +210,18 @@ class _EditContactAddressViewState
                 ),
             ],
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           NewContactAddressEntryForm(
             id: 0,
             barcodeScanner: barcodeScanner,
             clipboard: clipboard,
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           ConditionalParent(
             condition: isDesktop,
-            builder: (child) => MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: child,
-            ),
+            builder:
+                (child) =>
+                    MouseRegion(cursor: SystemMouseCursors.click, child: child),
             child: GestureDetector(
               onTap: () async {
                 // delete address
@@ -240,11 +236,13 @@ class _EditContactAddressViewState
                 //Deleting an entry directly from _addresses gives error
                 // "Cannot remove from a fixed-length list", so we remove the
                 // entry from a copy
-                final tempAddresses =
-                    List<ContactAddressEntry>.from(_addresses);
+                final tempAddresses = List<ContactAddressEntry>.from(
+                  _addresses,
+                );
                 tempAddresses.remove(entry);
-                final ContactEntry editedContact =
-                    contact.copyWith(addresses: tempAddresses);
+                final ContactEntry editedContact = contact.copyWith(
+                  addresses: tempAddresses,
+                );
                 if (await ref
                     .read(addressBookServiceProvider)
                     .editContact(editedContact)) {
@@ -254,16 +252,11 @@ class _EditContactAddressViewState
                   // TODO show error notification
                 }
               },
-              child: Text(
-                "Delete address",
-                style: STextStyles.link(context),
-              ),
+              child: Text("Delete address", style: STextStyles.link(context)),
             ),
           ),
           const Spacer(),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -283,9 +276,7 @@ class _EditContactAddressViewState
                   },
                 ),
               ),
-              const SizedBox(
-                width: 16,
-              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(
                   label: "Save",
