@@ -1530,6 +1530,11 @@ Future<String> _pathForWallet({
   appRoot: appRoot,
 ).then((path) => '$path/$name');
 
+Future<String> salviumWalletDir({
+  required String walletId,
+  required Directory appRoot,
+}) => _pathForWalletDir(name: walletId, appRoot: appRoot);
+
 // =============================================================================
 // The following sync status stuff copy pasted here for now to simplify the
 // integration of salvium.

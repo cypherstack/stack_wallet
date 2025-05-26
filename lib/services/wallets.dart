@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:isar/isar.dart';
@@ -22,6 +23,7 @@ import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../utilities/stack_file_system.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
 import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
@@ -68,6 +70,38 @@ class Wallets {
     }
   }
 
+  Future<void> _deleteCryptonoteWalletFilesHelper(WalletInfo info) async {
+    final walletId = info.walletId;
+    if (info.coin is Wownero) {
+      await lib_monero_compat.deleteWalletFiles(
+        name: walletId,
+        type: lib_monero_compat.WalletType.wownero,
+        appRoot: await StackFileSystem.applicationRootDirectory(),
+      );
+      Logging.instance.d("Wownero wallet: $walletId deleted");
+    } else if (info.coin is Monero) {
+      await lib_monero_compat.deleteWalletFiles(
+        name: walletId,
+        type: lib_monero_compat.WalletType.monero,
+        appRoot: await StackFileSystem.applicationRootDirectory(),
+      );
+      Logging.instance.d("Monero wallet: $walletId deleted");
+    } else if (info.coin is Salvium) {
+      final path = await salviumWalletDir(
+        walletId: walletId,
+        appRoot: await StackFileSystem.applicationRootDirectory(),
+      );
+      final file = Directory(path);
+      final isExist = file.existsSync();
+
+      if (isExist) {
+        await file.delete(recursive: true);
+      }
+    } else {
+      throw Exception("Not a valid CN coin");
+    }
+  }
+
   Future<void> deleteWallet(
     WalletInfo info,
     SecureStorageInterface secureStorage,
@@ -88,20 +122,8 @@ class Wallets {
       key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
     );
 
-    if (info.coin is Wownero) {
-      await lib_monero_compat.deleteWalletFiles(
-        name: walletId,
-        type: lib_monero_compat.WalletType.wownero,
-        appRoot: await StackFileSystem.applicationRootDirectory(),
-      );
-      Logging.instance.d("monero wallet: $walletId deleted");
-    } else if (info.coin is Monero) {
-      await lib_monero_compat.deleteWalletFiles(
-        name: walletId,
-        type: lib_monero_compat.WalletType.monero,
-        appRoot: await StackFileSystem.applicationRootDirectory(),
-      );
-      Logging.instance.d("monero wallet: $walletId deleted");
+    if (info.coin is CryptonoteCurrency) {
+      await _deleteCryptonoteWalletFilesHelper(info);
     } else if (info.coin is Epiccash) {
       final deleteResult = await deleteEpicWallet(
         walletId: walletId,
