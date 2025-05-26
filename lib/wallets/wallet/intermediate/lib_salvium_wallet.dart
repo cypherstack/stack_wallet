@@ -8,7 +8,6 @@ import 'package:isar/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 
-import '../../../db/hive/db.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -104,23 +103,23 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   lib_salvium.Wallet? libSalviumWallet;
 
-  // lib_monero_compat.SyncStatus? get syncStatus => _syncStatus;
-  // lib_monero_compat.SyncStatus? _syncStatus;
-  // int _syncedCount = 0;
-  // void _setSyncStatus(lib_monero_compat.SyncStatus status) {
-  //   if (status is lib_monero_compat.SyncedSyncStatus) {
-  //     if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
-  //       _syncedCount++;
-  //     }
-  //   } else {
-  //     _syncedCount = 0;
-  //   }
-  //
-  //   if (_syncedCount < 3) {
-  //     _syncStatus = status;
-  //     syncStatusChanged();
-  //   }
-  // }
+  SyncStatus? get syncStatus => _syncStatus;
+  SyncStatus? _syncStatus;
+  int _syncedCount = 0;
+  void _setSyncStatus(SyncStatus status) {
+    if (status is SyncedSyncStatus) {
+      if (_syncStatus is SyncedSyncStatus) {
+        _syncedCount++;
+      }
+    } else {
+      _syncedCount = 0;
+    }
+
+    if (_syncedCount < 3) {
+      _syncStatus = status;
+      syncStatusChanged();
+    }
+  }
 
   final prepareSendMutex = Mutex();
   final estimateFeeMutex = Mutex();
@@ -222,10 +221,10 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
     if (wasNull) {
       try {
-        // _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
+        _setSyncStatus(ConnectingSyncStatus());
         libSalviumWallet?.startSyncing();
       } catch (_) {
-        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        _setSyncStatus(FailedSyncStatus());
         // TODO log
       }
     }
@@ -235,17 +234,6 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
     unawaited(refresh());
   }
-
-  // @Deprecated("Only used in the case of older wallets")
-  // lib_monero_compat.WalletInfo? getLibSalviumWalletInfo(String walletId) {
-  //   try {
-  //     return DB.instance.moneroWalletInfoBox.values.firstWhere(
-  //       (info) => info.id == lib_monero_compat.hiveIdFor(walletId, compatType),
-  //     );
-  //   } catch (_) {
-  //     return null;
-  //   }
-  // }
 
   Future<void> save() async {
     if (!Platform.isWindows) {
@@ -281,8 +269,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   Future<CWKeyData?> getKeys() async {
     final base = libSalviumWallet;
 
-    // final oldInfo = getLibSalviumWalletInfo(walletId);
-    if (base == null /*|| (oldInfo != null && oldInfo.name != walletId)*/ ) {
+    if (base == null) {
       return null;
     }
     try {
@@ -487,7 +474,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         libSalviumWallet?.stopAutoSaving();
         libSalviumWallet?.stopListeners();
         libSalviumWallet?.stopSyncing();
-        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        _setSyncStatus(FailedSyncStatus());
         throw Exception("TOR - clearnet mismatch");
       }
       proxy = TorService.sharedInstance.getProxyInfo();
@@ -496,12 +483,12 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         libSalviumWallet?.stopAutoSaving();
         libSalviumWallet?.stopListeners();
         libSalviumWallet?.stopSyncing();
-        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        _setSyncStatus(FailedSyncStatus());
         throw Exception("TOR - clearnet mismatch");
       }
     }
 
-    // _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
+    _setSyncStatus(ConnectingSyncStatus());
     try {
       if (_requireMutex) {
         await _torConnectingLock.protect(() async {
@@ -538,9 +525,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       libSalviumWallet?.startListeners();
       libSalviumWallet?.startAutoSaving();
 
-      // _setSyncStatus(lib_monero_compat.ConnectedSyncStatus());
+      // _setSyncStatus(ConnectedSyncStatus());
     } catch (e, s) {
-      // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+      // _setSyncStatus(FailedSyncStatus());
       Logging.instance.e(
         "Exception caught in $runtimeType.updateNode(): ",
         error: e,
@@ -751,8 +738,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       currentKnownChainHeight = nodeHeight;
       updateChainHeight();
       final blocksLeft = nodeHeight - syncHeight;
+      final SyncStatus status;
       if (blocksLeft < 100) {
-        // status = lib_monero_compat.SyncedSyncStatus();
+        status = SyncedSyncStatus();
 
         // if (!_hasSyncAfterStartup) {
         //   _hasSyncAfterStartup = true;
@@ -765,14 +753,14 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       } else {
         final percent = syncHeight / currentKnownChainHeight;
 
-        // status = lib_monero_compat.SyncingSyncStatus(
-        //   blocksLeft,
-        //   percent,
-        //   currentKnownChainHeight,
-        // );
+        status = SyncingSyncStatus(
+          blocksLeft,
+          percent,
+          currentKnownChainHeight,
+        );
       }
 
-      // _setSyncStatus(status);
+      _setSyncStatus(status);
       _refreshTxDataHelper();
     }
   }
@@ -848,82 +836,82 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     );
   }
 
-  // void syncStatusChanged() async {
-  //   final _syncStatus = syncStatus;
-  //
-  //   if (_syncStatus != null) {
-  //     if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
-  //       refreshMutex.release();
-  //     }
-  //
-  //     WalletSyncStatus? status;
-  //     xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
-  //
-  //     if (_syncStatus is lib_monero_compat.SyncingSyncStatus) {
-  //       final int blocksLeft = _syncStatus.blocksLeft;
-  //
-  //       // ensure at least 1 to prevent math errors
-  //       final int height = max(1, _syncStatus.height);
-  //
-  //       final nodeHeight = height + blocksLeft;
-  //       currentKnownChainHeight = nodeHeight;
-  //
-  //       // final percent = height / nodeHeight;
-  //       final percent = _syncStatus.ptc;
-  //
-  //       final highest = max(highestPercentCached, percent);
-  //
-  //       final unchanged = highest == highestPercentCached;
-  //       if (unchanged) {
-  //         return;
-  //       }
-  //
-  //       // update cached
-  //       if (highestPercentCached < percent) {
-  //         highestPercentCached = percent;
-  //       }
-  //
-  //       GlobalEventBus.instance.fire(
-  //         RefreshPercentChangedEvent(highest, walletId),
-  //       );
-  //       GlobalEventBus.instance.fire(
-  //         BlocksRemainingEvent(blocksLeft, walletId),
-  //       );
-  //     } else if (_syncStatus is lib_monero_compat.SyncedSyncStatus) {
-  //       status = WalletSyncStatus.synced;
-  //     } else if (_syncStatus is lib_monero_compat.NotConnectedSyncStatus) {
-  //       status = WalletSyncStatus.unableToSync;
-  //       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
-  //     } else if (_syncStatus is lib_monero_compat.StartingSyncStatus) {
-  //       status = WalletSyncStatus.syncing;
-  //       GlobalEventBus.instance.fire(
-  //         RefreshPercentChangedEvent(highestPercentCached, walletId),
-  //       );
-  //     } else if (_syncStatus is lib_monero_compat.FailedSyncStatus) {
-  //       status = WalletSyncStatus.unableToSync;
-  //       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
-  //     } else if (_syncStatus is lib_monero_compat.ConnectingSyncStatus) {
-  //       status = WalletSyncStatus.syncing;
-  //       GlobalEventBus.instance.fire(
-  //         RefreshPercentChangedEvent(highestPercentCached, walletId),
-  //       );
-  //     } else if (_syncStatus is lib_monero_compat.ConnectedSyncStatus) {
-  //       status = WalletSyncStatus.syncing;
-  //       GlobalEventBus.instance.fire(
-  //         RefreshPercentChangedEvent(highestPercentCached, walletId),
-  //       );
-  //     } else if (_syncStatus is lib_monero_compat.LostConnectionSyncStatus) {
-  //       status = WalletSyncStatus.unableToSync;
-  //       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
-  //     }
-  //
-  //     if (status != null) {
-  //       GlobalEventBus.instance.fire(
-  //         WalletSyncStatusChangedEvent(status, walletId, info.coin),
-  //       );
-  //     }
-  //   }
-  // }
+  void syncStatusChanged() async {
+    final _syncStatus = syncStatus;
+
+    if (_syncStatus != null) {
+      if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
+        refreshMutex.release();
+      }
+
+      WalletSyncStatus? status;
+      xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
+
+      if (_syncStatus is SyncingSyncStatus) {
+        final int blocksLeft = _syncStatus.blocksLeft;
+
+        // ensure at least 1 to prevent math errors
+        final int height = max(1, _syncStatus.height);
+
+        final nodeHeight = height + blocksLeft;
+        currentKnownChainHeight = nodeHeight;
+
+        // final percent = height / nodeHeight;
+        final percent = _syncStatus.ptc;
+
+        final highest = max(highestPercentCached, percent);
+
+        final unchanged = highest == highestPercentCached;
+        if (unchanged) {
+          return;
+        }
+
+        // update cached
+        if (highestPercentCached < percent) {
+          highestPercentCached = percent;
+        }
+
+        GlobalEventBus.instance.fire(
+          RefreshPercentChangedEvent(highest, walletId),
+        );
+        GlobalEventBus.instance.fire(
+          BlocksRemainingEvent(blocksLeft, walletId),
+        );
+      } else if (_syncStatus is SyncedSyncStatus) {
+        status = WalletSyncStatus.synced;
+      } else if (_syncStatus is NotConnectedSyncStatus) {
+        status = WalletSyncStatus.unableToSync;
+        xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
+      } else if (_syncStatus is StartingSyncStatus) {
+        status = WalletSyncStatus.syncing;
+        GlobalEventBus.instance.fire(
+          RefreshPercentChangedEvent(highestPercentCached, walletId),
+        );
+      } else if (_syncStatus is FailedSyncStatus) {
+        status = WalletSyncStatus.unableToSync;
+        xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
+      } else if (_syncStatus is ConnectingSyncStatus) {
+        status = WalletSyncStatus.syncing;
+        GlobalEventBus.instance.fire(
+          RefreshPercentChangedEvent(highestPercentCached, walletId),
+        );
+      } else if (_syncStatus is ConnectedSyncStatus) {
+        status = WalletSyncStatus.syncing;
+        GlobalEventBus.instance.fire(
+          RefreshPercentChangedEvent(highestPercentCached, walletId),
+        );
+      } else if (_syncStatus is LostConnectionSyncStatus) {
+        status = WalletSyncStatus.unableToSync;
+        xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(false);
+      }
+
+      if (status != null) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(status, walletId, info.coin),
+        );
+      }
+    }
+  }
 
   @override
   Future<void> checkSaveInitialReceivingAddress() async {
@@ -935,21 +923,20 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     if (_txRefreshLock) return;
     _txRefreshLock = true;
 
-    // final _syncStatus = syncStatus;
+    final _syncStatus = syncStatus;
 
-    // if (_syncStatus != null &&
-    //     _syncStatus is lib_monero_compat.SyncingSyncStatus) {
-    //   final int blocksLeft = _syncStatus.blocksLeft;
-    //   final tenKChange = blocksLeft ~/ 10000;
-    //
-    //   // only refresh transactions periodically during a sync
-    //   if (_lastCheckedHeight == -1 || tenKChange < _lastCheckedHeight) {
-    //     _lastCheckedHeight = tenKChange;
-    //     await _refreshTxData();
-    //   }
-    // } else {
-    //   await _refreshTxData();
-    // }
+    if (_syncStatus != null && _syncStatus is SyncingSyncStatus) {
+      final int blocksLeft = _syncStatus.blocksLeft;
+      final tenKChange = blocksLeft ~/ 10000;
+
+      // only refresh transactions periodically during a sync
+      if (_lastCheckedHeight == -1 || tenKChange < _lastCheckedHeight) {
+        _lastCheckedHeight = tenKChange;
+        await _refreshTxData();
+      }
+    } else {
+      await _refreshTxData();
+    }
 
     _txRefreshLock = false;
   }
@@ -1071,7 +1058,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         libSalviumWallet?.stopAutoSaving();
         libSalviumWallet?.stopListeners();
         libSalviumWallet?.stopSyncing();
-        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        _setSyncStatus(FailedSyncStatus());
         throw Exception("TOR - clearnet mismatch");
       }
     } else {
@@ -1079,7 +1066,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         libSalviumWallet?.stopAutoSaving();
         libSalviumWallet?.stopListeners();
         libSalviumWallet?.stopSyncing();
-        // _setSyncStatus(lib_monero_compat.FailedSyncStatus());
+        _setSyncStatus(FailedSyncStatus());
         throw Exception("TOR - clearnet mismatch");
       }
     }
@@ -1089,7 +1076,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     await refreshMutex.acquire();
 
     libSalviumWallet?.startSyncing();
-    // _setSyncStatus(lib_monero_compat.StartingSyncStatus());
+    _setSyncStatus(StartingSyncStatus());
 
     await updateTransactions();
     await updateBalance();
@@ -1105,7 +1092,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     final synced = await libSalviumWallet?.isSynced();
 
     if (synced == true) {
-      // _setSyncStatus(lib_monero_compat.SyncedSyncStatus());
+      _setSyncStatus(SyncedSyncStatus());
     }
   }
 
@@ -1542,3 +1529,66 @@ Future<String> _pathForWallet({
   name: name,
   appRoot: appRoot,
 ).then((path) => '$path/$name');
+
+// =============================================================================
+// The following sync status stuff copy pasted here for now to simplify the
+// integration of salvium.
+// TODO: eventually rework this (one day)
+
+abstract class SyncStatus {
+  const SyncStatus();
+  double progress();
+}
+
+class SyncingSyncStatus extends SyncStatus {
+  SyncingSyncStatus(this.blocksLeft, this.ptc, this.height);
+
+  final double ptc;
+  final int blocksLeft;
+  final int height;
+
+  @override
+  double progress() => ptc;
+
+  @override
+  String toString() => '$blocksLeft';
+}
+
+class SyncedSyncStatus extends SyncStatus {
+  @override
+  double progress() => 1.0;
+}
+
+class NotConnectedSyncStatus extends SyncStatus {
+  const NotConnectedSyncStatus();
+
+  @override
+  double progress() => 0.0;
+}
+
+class StartingSyncStatus extends SyncStatus {
+  @override
+  double progress() => 0.0;
+}
+
+class FailedSyncStatus extends SyncStatus {
+  @override
+  double progress() => 1.0;
+}
+
+class ConnectingSyncStatus extends SyncStatus {
+  @override
+  double progress() => 0.0;
+}
+
+class ConnectedSyncStatus extends SyncStatus {
+  @override
+  double progress() => 0.0;
+}
+
+class LostConnectionSyncStatus extends SyncStatus {
+  @override
+  double progress() => 1.0;
+}
+
+// =============================================================================
