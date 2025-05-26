@@ -39,12 +39,13 @@ import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/stack_text_field.dart';
-import '../../../widgets/toggle.dart';
+import '../../../widgets/options.dart';
 import '../../home_view/home_view.dart';
 import 'confirm_recovery_dialog.dart';
 import 'sub_widgets/restore_failed_dialog.dart';
 import 'sub_widgets/restore_succeeded_dialog.dart';
 import 'sub_widgets/restoring_dialog.dart';
+import '../../../wallets/wallet/impl/firo_wallet.dart';
 
 class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
   const RestoreViewOnlyWalletView({
@@ -75,13 +76,13 @@ class _RestoreViewOnlyWalletViewState
     extends ConsumerState<RestoreViewOnlyWalletView> {
   late final TextEditingController addressController;
   late final TextEditingController viewKeyController;
+  late final TextEditingController sparkViewKeyController;
 
-  late String _currentDropDownValue;
+  late ViewOnlyWalletType _walletType;
 
   bool _enableRestoreButton = false;
-  bool _addressOnly = false;
-
   bool _buttonLock = false;
+  late String _currentDropDownValue;
 
   Future<void> _requestRestore() async {
     if (_buttonLock) return;
@@ -119,7 +120,7 @@ class _RestoreViewOnlyWalletViewState
       WalletInfoKeys.isViewOnlyKey: true,
     };
 
-    final ViewOnlyWalletType viewOnlyWalletType;
+    ViewOnlyWalletType viewOnlyWalletType = _walletType;
     if (widget.coin is Bip39HDCurrency) {
       if (widget.coin is Firo) {
         otherDataJson.addAll(
@@ -130,9 +131,6 @@ class _RestoreViewOnlyWalletViewState
           },
         );
       }
-      viewOnlyWalletType = _addressOnly
-          ? ViewOnlyWalletType.addressOnly
-          : ViewOnlyWalletType.xPub;
     } else if (widget.coin is CryptonoteCurrency) {
       if (widget.restoreFromDate != null) {
         if (widget.coin is Monero) {
@@ -154,8 +152,7 @@ class _RestoreViewOnlyWalletViewState
         "Unsupported view only wallet currency type found: ${widget.coin.runtimeType}",
       );
     }
-    otherDataJson[WalletInfoKeys.viewOnlyTypeIndexKey] =
-        viewOnlyWalletType.index;
+    otherDataJson[WalletInfoKeys.viewOnlyTypeIndexKey] = _walletType.index;
 
     if (!Platform.isLinux && !Util.isDesktop) await WakelockPlus.enable();
 
@@ -227,6 +224,16 @@ class _RestoreViewOnlyWalletViewState
             ],
           );
           break;
+
+        case ViewOnlyWalletType.spark:
+          if (sparkViewKeyController.text.isEmpty) {
+            throw Exception("Spark View Key is empty");
+          }
+          viewOnlyData = SparkViewOnlyWalletData(
+            walletId: info.walletId,
+            viewKey: sparkViewKeyController.text,
+          );
+          break;
       }
 
       var node = ref
@@ -267,6 +274,10 @@ class _RestoreViewOnlyWalletViewState
 
           case const (XelisWallet):
             await (wallet as XelisWallet).init(isRestore: true);
+            break;
+
+          case const (FiroWallet):
+            await (wallet as FiroWallet).init();
             break;
 
           default:
@@ -342,11 +353,15 @@ class _RestoreViewOnlyWalletViewState
     super.initState();
     addressController = TextEditingController();
     viewKeyController = TextEditingController();
+    sparkViewKeyController = TextEditingController();
 
     if (widget.coin is Bip39HDCurrency) {
       _currentDropDownValue = (widget.coin as Bip39HDCurrency)
           .supportedHardenedDerivationPaths
           .last;
+      _walletType = ViewOnlyWalletType.xPub;
+    } else if (widget.coin is CryptonoteCurrency) {
+      _walletType = ViewOnlyWalletType.cryptonote;
     }
   }
 
@@ -354,6 +369,7 @@ class _RestoreViewOnlyWalletViewState
   void dispose() {
     addressController.dispose();
     viewKeyController.dispose();
+    sparkViewKeyController.dispose();
     super.dispose();
   }
 
@@ -427,20 +443,19 @@ class _RestoreViewOnlyWalletViewState
                           SizedBox(
                             height: isDesktop ? 56 : 48,
                             width: isDesktop ? 490 : null,
-                            child: Toggle(
+                            child: Options(
                               key: UniqueKey(),
-                              onText: "Extended pub key",
-                              offText: "Single address",
+                              texts: ["Single address", "Extended pub key", if (widget.coin is Firo) "Spark View Key"],
                               onColor: Theme.of(context)
                                   .extension<StackColors>()!
                                   .popupBG,
                               offColor: Theme.of(context)
                                   .extension<StackColors>()!
                                   .textFieldDefaultBG,
-                              isOn: _addressOnly,
+                              selectedIndex: _walletType.index-1,
                               onValueChanged: (value) {
                                 setState(() {
-                                  _addressOnly = value;
+                                  _walletType = ViewOnlyWalletType.values[value+1];
                                 });
                               },
                               decoration: BoxDecoration(
@@ -454,7 +469,7 @@ class _RestoreViewOnlyWalletViewState
                         SizedBox(
                           height: isDesktop ? 24 : 16,
                         ),
-                        if (!isElectrumX || _addressOnly)
+                        if (!isElectrumX || _walletType == ViewOnlyWalletType.addressOnly)
                           FullTextField(
                             key: const Key("viewOnlyAddressRestoreFieldKey"),
                             label: "Address",
@@ -477,7 +492,7 @@ class _RestoreViewOnlyWalletViewState
                           SizedBox(
                             height: isDesktop ? 16 : 12,
                           ),
-                        if (isElectrumX && !_addressOnly)
+                        if (isElectrumX && _walletType == ViewOnlyWalletType.xPub)
                           DropdownButtonHideUnderline(
                             child: DropdownButton2<String>(
                               value: _currentDropDownValue,
@@ -545,11 +560,11 @@ class _RestoreViewOnlyWalletViewState
                               ),
                             ),
                           ),
-                        if (isElectrumX && !_addressOnly)
+                        if (isElectrumX && _walletType == ViewOnlyWalletType.xPub)
                           SizedBox(
                             height: isDesktop ? 16 : 12,
                           ),
-                        if (!isElectrumX || !_addressOnly)
+                        if (!isElectrumX || _walletType == ViewOnlyWalletType.xPub)
                           FullTextField(
                             key: const Key("viewOnlyKeyRestoreFieldKey"),
                             label:
@@ -567,6 +582,21 @@ class _RestoreViewOnlyWalletViewState
                                       addressController.text.isNotEmpty;
                                 });
                               }
+                            },
+                          ),
+                        if (_walletType == ViewOnlyWalletType.spark)
+                          SizedBox(
+                            height: isDesktop ? 16 : 12,
+                          ),
+                        if (_walletType == ViewOnlyWalletType.spark)
+                          FullTextField(
+                            key: const Key("viewOnlySparkViewKeyRestoreFieldKey"),
+                            label: "Spark View Key",
+                            controller: sparkViewKeyController,
+                            onChanged: (value) {
+                                setState(() {
+                                  _enableRestoreButton = value.isNotEmpty;
+                                });
                             },
                           ),
                         if (!isDesktop) const Spacer(),

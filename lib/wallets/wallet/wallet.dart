@@ -173,7 +173,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         value: viewOnlyData!.toJsonEncodedString(),
       );
     } else if (wallet is MnemonicInterface) {
-      if (wallet is CryptonoteWallet || wallet is XelisWallet) { // 
+      if (wallet is CryptonoteWallet || wallet is XelisWallet) { //
         // currently a special case due to the xmr/wow/xelis libraries handling their
         // own mnemonic generation on new wallet creation
         // if its a restore we must set them

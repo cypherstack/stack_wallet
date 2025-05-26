@@ -1308,7 +1308,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> checkReceivingAddressForTransactions() async {
-    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) {
+    if (isViewOnly &&
+        (viewOnlyType == ViewOnlyWalletType.addressOnly ||
+            viewOnlyType == ViewOnlyWalletType.spark)) {
       return;
     }
 
@@ -1363,7 +1365,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> checkChangeAddressForTransactions() async {
-    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) {
+    if (isViewOnly &&
+        (viewOnlyType == ViewOnlyWalletType.addressOnly ||
+            viewOnlyType == ViewOnlyWalletType.spark)) {
       return;
     }
 
@@ -1908,7 +1912,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final data = await getViewOnlyWalletData();
 
     final coinlib.HDKey? root;
-    if (data is AddressViewOnlyWalletData) {
+    if (data is AddressViewOnlyWalletData || data is SparkViewOnlyWalletData) {
       root = null;
     } else {
       if ((data as ExtendedKeysViewOnlyWalletData).xPubs.length != 1) {
