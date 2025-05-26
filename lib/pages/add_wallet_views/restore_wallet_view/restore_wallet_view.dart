@@ -345,7 +345,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               await (wallet as WowneroWallet).init(isRestore: true);
               break;
 
-            case const (Salvium):
+            case const (SalviumWallet):
               await (wallet as SalviumWallet).init(isRestore: true);
               break;
 
