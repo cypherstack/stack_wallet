@@ -420,20 +420,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
 
     final rateType = ref.read(efRateTypeProvider);
-    final fromTicker = ref.read(efCurrencyPairProvider).send?.ticker ?? "";
-    final fromNetwork = ref
-        .read(efCurrencyPairProvider)
-        .send
-        ?.networkFor(exchangeName);
-    final toTicker = ref.read(efCurrencyPairProvider).receive?.ticker ?? "";
-    final toNetwork = ref
-        .read(efCurrencyPairProvider)
-        .receive
-        ?.networkFor(exchangeName);
     final estimate = ref.read(efEstimateProvider)!;
     final sendAmount = ref.read(efSendAmountProvider)!;
 
-    if (rateType == ExchangeRateType.fixed && toTicker.toUpperCase() == "WOW") {
+    if (rateType == ExchangeRateType.fixed &&
+        toCurrency.ticker.toUpperCase() == "WOW") {
       if (mounted) {
         await showDialog<void>(
           context: context,
@@ -461,7 +452,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     switch (rateType) {
       case ExchangeRateType.estimated:
         rate =
-            "1 ${fromTicker.toUpperCase()} ~${(amountToReceive / sendAmount).toDecimal(scaleOnInfinitePrecision: 8).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
+            "1 ${fromCurrency.ticker.toUpperCase()} ~${(amountToReceive / sendAmount).toDecimal(scaleOnInfinitePrecision: 8).toStringAsFixed(8)} ${toCurrency.ticker.toUpperCase()}";
         break;
       case ExchangeRateType.fixed:
         bool? shouldCancel;
@@ -568,15 +559,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           return;
         }
         rate =
-            "1 ${fromTicker.toUpperCase()} ~${(amountToReceive / amountToSend).toDecimal(scaleOnInfinitePrecision: 12).toStringAsFixed(8)} ${toTicker.toUpperCase()}";
+            "1 ${fromCurrency.ticker.toUpperCase()} ~${(amountToReceive / amountToSend).toDecimal(scaleOnInfinitePrecision: 12).toStringAsFixed(8)} ${toCurrency.ticker.toUpperCase()}";
         break;
     }
 
     final model = IncompleteExchangeModel(
-      sendTicker: fromTicker.toUpperCase(),
-      sendNetwork: fromNetwork,
-      receiveTicker: toTicker.toUpperCase(),
-      receiveNetwork: toNetwork,
+      sendCurrency: fromCurrency,
+      receiveCurrency: toCurrency,
       rateInfo: rate,
       sendAmount: amountToSend,
       receiveAmount: amountToReceive,

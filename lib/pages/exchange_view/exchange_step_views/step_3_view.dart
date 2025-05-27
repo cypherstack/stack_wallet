@@ -74,7 +74,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                 FocusScope.of(context).unfocus();
                 await Future<void>.delayed(const Duration(milliseconds: 75));
               }
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop();
               }
             },
@@ -243,32 +243,33 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                         ),
                                       );
 
-                                      final ExchangeResponse<Trade> response =
-                                          await ref
-                                              .read(efExchangeProvider)
-                                              .createTrade(
-                                                from: model.sendTicker,
-                                                fromNetwork: model.sendNetwork,
-                                                to: model.receiveTicker,
-                                                toNetwork: model.receiveNetwork,
-                                                fixedRate:
-                                                    model.rateType !=
-                                                    ExchangeRateType.estimated,
-                                                amount:
-                                                    model.reversed
-                                                        ? model.receiveAmount
-                                                        : model.sendAmount,
-                                                addressTo:
-                                                    model.recipientAddress!,
-                                                extraId: null,
-                                                addressRefund:
-                                                    supportsRefund
-                                                        ? model.refundAddress!
-                                                        : "",
-                                                refundExtraId: "",
-                                                estimate: model.estimate,
-                                                reversed: model.reversed,
-                                              );
+                                      final ExchangeResponse<Trade>
+                                      response = await ref
+                                          .read(efExchangeProvider)
+                                          .createTrade(
+                                            from: model.sendTicker,
+                                            fromNetwork:
+                                                model.sendCurrency.network,
+                                            to: model.receiveTicker,
+                                            toNetwork:
+                                                model.receiveCurrency.network,
+                                            fixedRate:
+                                                model.rateType !=
+                                                ExchangeRateType.estimated,
+                                            amount:
+                                                model.reversed
+                                                    ? model.receiveAmount
+                                                    : model.sendAmount,
+                                            addressTo: model.recipientAddress!,
+                                            extraId: null,
+                                            addressRefund:
+                                                supportsRefund
+                                                    ? model.refundAddress!
+                                                    : "",
+                                            refundExtraId: "",
+                                            estimate: model.estimate,
+                                            reversed: model.reversed,
+                                          );
 
                                       if (response.value == null) {
                                         if (context.mounted) {
@@ -339,7 +340,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                         ),
                                       );
 
-                                      if (mounted) {
+                                      if (context.mounted) {
                                         unawaited(
                                           Navigator.of(context).pushNamed(
                                             Step4View.routeName,
