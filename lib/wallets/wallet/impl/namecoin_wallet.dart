@@ -200,17 +200,21 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
   }
 
   @override
-  int estimateTxFee({required int vSize, required int feeRatePerKB}) {
-    return vSize * (feeRatePerKB / 1000).ceil();
+  int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
+    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
   }
 
   // TODO: Check if this is the correct formula for namecoin.
   @override
-  Amount roughFeeEstimate(int inputCount, int outputCount, int feeRatePerKB) {
+  Amount roughFeeEstimate(
+    int inputCount,
+    int outputCount,
+    BigInt feeRatePerKB,
+  ) {
     return Amount(
       rawValue: BigInt.from(
         ((42 + (272 * inputCount) + (128 * outputCount)) / 4).ceil() *
-            (feeRatePerKB / 1000).ceil(),
+            (feeRatePerKB.toInt() / 1000).ceil(),
       ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
@@ -897,7 +901,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
       if (customSatsPerVByte != null) {
         final result = await coinSelectionName(
-          txData: txData.copyWith(feeRateAmount: -1),
+          txData: txData.copyWith(feeRateAmount: BigInt.from(-1)),
           utxos: utxos?.toList(),
           coinControl: coinControl,
         );
@@ -911,10 +915,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
         }
 
         return result;
-      } else if (feeRateType is FeeRateType || feeRateAmount is int) {
-        late final int rate;
+      } else if (feeRateType is FeeRateType || feeRateAmount is BigInt) {
+        late final BigInt rate;
         if (feeRateType is FeeRateType) {
-          int fee = 0;
+          BigInt fee = BigInt.zero;
           final feeObject = await fees;
           switch (feeRateType) {
             case FeeRateType.fast:
@@ -931,7 +935,7 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
           }
           rate = fee;
         } else {
-          rate = feeRateAmount as int;
+          rate = feeRateAmount!;
         }
 
         final result = await coinSelectionName(

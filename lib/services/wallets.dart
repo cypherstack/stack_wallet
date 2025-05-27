@@ -152,10 +152,10 @@ class Wallets {
     }
   }
 
-  Future<void> load(Prefs prefs, MainDB mainDB) async {
+  Future<void> load(Prefs prefs, MainDB mainDB, bool isDuress) async {
     // return await _loadV1(prefs, mainDB);
     // return await _loadV2(prefs, mainDB);
-    return await _loadV3(prefs, mainDB);
+    return await _loadV3(prefs, mainDB, isDuress);
   }
 
   Future<void> _loadV1(Prefs prefs, MainDB mainDB) async {
@@ -165,18 +165,21 @@ class Wallets {
     hasLoaded = true;
 
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
-    for (final walletId in DB.instance
-        .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)) {
+    for (final walletId in DB.instance.values<String>(
+      boxName: DB.boxNameWalletsToDeleteOnStart,
+    )) {
       await mainDB.isar.writeTxn(
-        () async => await mainDB.isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletId)
-            .deleteAll(),
+        () async =>
+            await mainDB.isar.walletInfo
+                .where()
+                .walletIdEqualTo(walletId)
+                .deleteAll(),
       );
     }
     // clear list
-    await DB.instance
-        .deleteAll<String>(boxName: DB.boxNameWalletsToDeleteOnStart);
+    await DB.instance.deleteAll<String>(
+      boxName: DB.boxNameWalletsToDeleteOnStart,
+    );
 
     final walletInfoList = await mainDB.isar.walletInfo.where().findAll();
     if (walletInfoList.isEmpty) {
@@ -204,9 +207,10 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance
-            .d("LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-                "IS VERIFIED: $isVerified");
+        Logging.instance.d(
+          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
+          "IS VERIFIED: $isVerified",
+        );
 
         if (isVerified) {
           // TODO: integrate this into the new wallets somehow?
@@ -222,7 +226,8 @@ class Wallets {
             prefs: prefs,
           );
 
-          final shouldSetAutoSync = shouldAutoSyncAll ||
+          final shouldSetAutoSync =
+              shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(walletInfo.walletId);
 
           if (wallet is LibMoneroWallet) {
@@ -269,18 +274,21 @@ class Wallets {
     hasLoaded = true;
 
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
-    for (final walletId in DB.instance
-        .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)) {
+    for (final walletId in DB.instance.values<String>(
+      boxName: DB.boxNameWalletsToDeleteOnStart,
+    )) {
       await mainDB.isar.writeTxn(
-        () async => await mainDB.isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletId)
-            .deleteAll(),
+        () async =>
+            await mainDB.isar.walletInfo
+                .where()
+                .walletIdEqualTo(walletId)
+                .deleteAll(),
       );
     }
     // clear list
-    await DB.instance
-        .deleteAll<String>(boxName: DB.boxNameWalletsToDeleteOnStart);
+    await DB.instance.deleteAll<String>(
+      boxName: DB.boxNameWalletsToDeleteOnStart,
+    );
 
     final walletInfoList = await mainDB.isar.walletInfo.where().findAll();
     if (walletInfoList.isEmpty) {
@@ -309,9 +317,10 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance
-            .d("LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-                "IS VERIFIED: $isVerified");
+        Logging.instance.d(
+          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
+          "IS VERIFIED: $isVerified",
+        );
 
         if (isVerified) {
           // TODO: integrate this into the new wallets somehow?
@@ -345,11 +354,7 @@ class Wallets {
           deleteFutures.add(_deleteWallet(walletInfo.walletId));
         }
       } catch (e, s) {
-        Logging.instance.w(
-          "$e $s",
-          error: e,
-          stackTrace: s,
-        );
+        Logging.instance.w("$e $s", error: e, stackTrace: s);
         continue;
       }
     }
@@ -357,17 +362,17 @@ class Wallets {
     final asyncWalletIds = await Future.wait(walletIDInitFutures);
     asyncWalletIds.removeWhere((e) => e == "dummy_ignore");
 
-    final List<Future<void>> walletInitFutures = asyncWalletIds
-        .map(
-          (id) => _wallets[id]!.init().then(
-            (_) {
-              if (shouldAutoSyncAll || walletIdsToEnableAutoSync.contains(id)) {
-                _wallets[id]!.shouldAutoSync = true;
-              }
-            },
-          ),
-        )
-        .toList();
+    final List<Future<void>> walletInitFutures =
+        asyncWalletIds
+            .map(
+              (id) => _wallets[id]!.init().then((_) {
+                if (shouldAutoSyncAll ||
+                    walletIdsToEnableAutoSync.contains(id)) {
+                  _wallets[id]!.shouldAutoSync = true;
+                }
+              }),
+            )
+            .toList();
 
     if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
       unawaited(
@@ -387,34 +392,43 @@ class Wallets {
   }
 
   /// should be best performance
-  Future<void> _loadV3(Prefs prefs, MainDB mainDB) async {
+  Future<void> _loadV3(Prefs prefs, MainDB mainDB, bool isDuress) async {
     if (hasLoaded) {
       return;
     }
     hasLoaded = true;
 
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
-    for (final walletId in DB.instance
-        .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)) {
+    for (final walletId in DB.instance.values<String>(
+      boxName: DB.boxNameWalletsToDeleteOnStart,
+    )) {
       await mainDB.isar.writeTxn(
-        () async => await mainDB.isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletId)
-            .deleteAll(),
+        () async =>
+            await mainDB.isar.walletInfo
+                .where()
+                .walletIdEqualTo(walletId)
+                .deleteAll(),
       );
     }
     // clear list
-    await DB.instance
-        .deleteAll<String>(boxName: DB.boxNameWalletsToDeleteOnStart);
+    await DB.instance.deleteAll<String>(
+      boxName: DB.boxNameWalletsToDeleteOnStart,
+    );
 
-    final walletInfoList = await mainDB.isar.walletInfo
-        .where()
-        .filter()
-        .anyOf<String, CryptoCurrency>(
-          AppConfig.coins.map((e) => e.identifier),
-          (q, element) => q.coinNameMatches(element),
-        )
-        .findAll();
+    final walletInfoList =
+        await mainDB.isar.walletInfo
+            .where()
+            .filter()
+            .anyOf<String, CryptoCurrency>(
+              AppConfig.coins.map((e) => e.identifier),
+              (q, element) => q.coinNameMatches(element),
+            )
+            .findAll();
+
+    if (isDuress) {
+      walletInfoList.retainWhere((e) => e.isDuressVisible);
+    }
+
     if (walletInfoList.isEmpty) {
       return;
     }
@@ -441,9 +455,10 @@ class Wallets {
     for (final walletInfo in walletInfoList) {
       try {
         final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance
-            .d("LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-                "IS VERIFIED: $isVerified");
+        Logging.instance.d(
+          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
+          "IS VERIFIED: $isVerified",
+        );
 
         if (isVerified) {
           // TODO: integrate this into the new wallets somehow?
@@ -477,11 +492,7 @@ class Wallets {
           deleteFutures.add(_deleteWallet(walletInfo.walletId));
         }
       } catch (e, s) {
-        Logging.instance.w(
-          "$e $s",
-          error: e,
-          stackTrace: s,
-        );
+        Logging.instance.w("$e $s", error: e, stackTrace: s);
         continue;
       }
     }
@@ -490,24 +501,21 @@ class Wallets {
     asyncWalletIds.removeWhere((e) => e == "dummy_ignore");
 
     final List<String> idsToRefresh = [];
-    final List<Future<void>> walletInitFutures = asyncWalletIds
-        .map(
-          (id) => _wallets[id]!.init().then(
-            (_) {
-              if (shouldSyncAllOnceOnStartup ||
-                  walletIdsToSyncOnceOnStartup.contains(id)) {
-                idsToRefresh.add(id);
-              }
-            },
-          ),
-        )
-        .toList();
+    final List<Future<void>> walletInitFutures =
+        asyncWalletIds
+            .map(
+              (id) => _wallets[id]!.init().then((_) {
+                if (shouldSyncAllOnceOnStartup ||
+                    walletIdsToSyncOnceOnStartup.contains(id)) {
+                  idsToRefresh.add(id);
+                }
+              }),
+            )
+            .toList();
 
     Future<void> _refreshFutures(List<String> idsToRefresh) async {
       final start = DateTime.now();
-      Logging.instance.d(
-        "Initial refresh start: ${start.toUtc()}",
-      );
+      Logging.instance.d("Initial refresh start: ${start.toUtc()}");
       const groupCount = 3;
       for (int i = 0; i < idsToRefresh.length; i += groupCount) {
         final List<Future<void>> futures = [];
@@ -515,14 +523,13 @@ class Wallets {
           if (i + j >= idsToRefresh.length) {
             break;
           }
-          futures.add(
-            _wallets[idsToRefresh[i + j]]!.refresh(),
-          );
+          futures.add(_wallets[idsToRefresh[i + j]]!.refresh());
         }
         await Future.wait(futures);
       }
-      Logging.instance
-          .d("Initial refresh duration: ${DateTime.now().difference(start)}");
+      Logging.instance.d(
+        "Initial refresh duration: ${DateTime.now().difference(start)}",
+      );
     }
 
     if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
@@ -530,15 +537,13 @@ class Wallets {
         Future.wait([
           _initLinearly(walletsToInitLinearly),
           ...walletInitFutures,
-        ]).then(
-          (value) => _refreshFutures(idsToRefresh),
-        ),
+        ]).then((value) => _refreshFutures(idsToRefresh)),
       );
     } else if (walletInitFutures.isNotEmpty) {
       unawaited(
-        Future.wait(walletInitFutures).then(
-          (value) => _refreshFutures(idsToRefresh),
-        ),
+        Future.wait(
+          walletInitFutures,
+        ).then((value) => _refreshFutures(idsToRefresh)),
       );
     } else if (walletsToInitLinearly.isNotEmpty) {
       unawaited(_initLinearly(walletsToInitLinearly));
@@ -578,7 +583,8 @@ class Wallets {
       );
 
       if (isVerified) {
-        final shouldSetAutoSync = shouldAutoSyncAll ||
+        final shouldSetAutoSync =
+            shouldAutoSyncAll ||
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 
         if (isDesktop) {

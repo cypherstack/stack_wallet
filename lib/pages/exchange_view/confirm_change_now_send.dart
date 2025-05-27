@@ -19,7 +19,6 @@ import '../../models/isar/models/isar_models.dart';
 import '../../models/trade_wallet_lookup.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
@@ -296,25 +295,31 @@ class _ConfirmChangeNowSendViewState
                 style: STextStyles.navBarTitle(context),
               ),
             ),
-            body: LayoutBuilder(
-              builder: (builderContext, constraints) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
-                  child: SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - 24,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: child,
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (builderContext, constraints) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      top: 12,
+                      right: 12,
+                    ),
+                    child: SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 24,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: child,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -564,24 +569,32 @@ class _ConfirmChangeNowSendViewState
                                     (value) => value.getPrice(coin),
                                   ),
                                 );
-                                final amountWithoutChange =
-                                    widget.txData.amountWithoutChange!;
-                                final value = (price.item1 *
-                                        amountWithoutChange.decimal)
-                                    .toAmount(fractionDigits: 2);
-                                final currency = ref.watch(
-                                  prefsChangeNotifierProvider.select(
-                                    (value) => value.currency,
-                                  ),
-                                );
-                                final locale = ref.watch(
-                                  localeServiceChangeNotifierProvider.select(
-                                    (value) => value.locale,
-                                  ),
-                                );
+                                final String extra;
+                                if (price == null) {
+                                  extra = "";
+                                } else {
+                                  final amountWithoutChange =
+                                      widget.txData.amountWithoutChange!;
+                                  final value = (price.value *
+                                          amountWithoutChange.decimal)
+                                      .toAmount(fractionDigits: 2);
+                                  final currency = ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.currency,
+                                    ),
+                                  );
+                                  final locale = ref.watch(
+                                    localeServiceChangeNotifierProvider.select(
+                                      (value) => value.locale,
+                                    ),
+                                  );
+
+                                  extra =
+                                      " | ${value.fiatString(locale: locale)} $currency";
+                                }
 
                                 return Text(
-                                  " | ${value.fiatString(locale: locale)} $currency",
+                                  extra,
                                   style: STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(

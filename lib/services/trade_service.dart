@@ -38,8 +38,11 @@ class TradesService extends ChangeNotifier {
     required Trade trade,
     required bool shouldNotifyListeners,
   }) async {
-    await DB.instance
-        .put<Trade>(boxName: DB.boxNameTradesV2, key: trade.uuid, value: trade);
+    await DB.instance.put<Trade>(
+      boxName: DB.boxNameTradesV2,
+      key: trade.uuid,
+      value: trade,
+    );
 
     if (shouldNotifyListeners) {
       notifyListeners();

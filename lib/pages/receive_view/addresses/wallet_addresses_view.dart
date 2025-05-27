@@ -27,10 +27,7 @@ import 'address_card.dart';
 import 'address_details_view.dart';
 
 class WalletAddressesView extends ConsumerStatefulWidget {
-  const WalletAddressesView({
-    super.key,
-    required this.walletId,
-  });
+  const WalletAddressesView({super.key, required this.walletId});
 
   static const String routeName = "/walletAddressesView";
 
@@ -85,23 +82,24 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
           .findAll();
     }
 
-    final labels = await MainDB.instance
-        .getAddressLabels(widget.walletId)
-        .filter()
-        .group(
-          (q) => q
-              .valueContains(term, caseSensitive: false)
-              .or()
-              .addressStringContains(term, caseSensitive: false)
-              .or()
-              .group(
-                (q) => q
-                    .tagsIsNotNull()
-                    .and()
-                    .tagsElementContains(term, caseSensitive: false),
-              ),
-        )
-        .findAll();
+    final labels =
+        await MainDB.instance
+            .getAddressLabels(widget.walletId)
+            .filter()
+            .group(
+              (q) => q
+                  .valueContains(term, caseSensitive: false)
+                  .or()
+                  .addressStringContains(term, caseSensitive: false)
+                  .or()
+                  .group(
+                    (q) => q.tagsIsNotNull().and().tagsElementContains(
+                      term,
+                      caseSensitive: false,
+                    ),
+                  ),
+            )
+            .findAll();
 
     if (labels.isEmpty) {
       return [];
@@ -165,139 +163,137 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.backgroundAppBar,
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            titleSpacing: 0,
-            title: Text(
-              "Wallet addresses",
-              style: STextStyles.navBarTitle(context),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                backgroundColor:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.backgroundAppBar,
+                leading: AppBarBackButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                titleSpacing: 0,
+                title: Text(
+                  "Wallet addresses",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: Padding(padding: const EdgeInsets.all(16), child: child),
             ),
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: child,
-          ),
-        ),
-      ),
-      child: Column(
-        children: [
-          // SizedBox(
-          //   width: isDesktop ? 490 : null,
-          //   child: ClipRRect(
-          //     borderRadius: BorderRadius.circular(
-          //       Constants.size.circularBorderRadius,
-          //     ),
-          //     child: TextField(
-          //       autocorrect: !isDesktop,
-          //       enableSuggestions: !isDesktop,
-          //       controller: _searchController,
-          //       focusNode: searchFieldFocusNode,
-          //       onChanged: (value) {
-          //         setState(() {
-          //           _searchString = value;
-          //         });
-          //       },
-          //       style: isDesktop
-          //           ? STextStyles.desktopTextExtraSmall(context).copyWith(
-          //               color: Theme.of(context)
-          //                   .extension<StackColors>()!
-          //                   .textFieldActiveText,
-          //               height: 1.8,
-          //             )
-          //           : STextStyles.field(context),
-          //       decoration: standardInputDecoration(
-          //         "Search...",
-          //         searchFieldFocusNode,
-          //         context,
-          //         desktopMed: isDesktop,
-          //       ).copyWith(
-          //         prefixIcon: Padding(
-          //           padding: EdgeInsets.symmetric(
-          //             horizontal: isDesktop ? 12 : 10,
-          //             vertical: isDesktop ? 18 : 16,
-          //           ),
-          //           child: SvgPicture.asset(
-          //             Assets.svg.search,
-          //             width: isDesktop ? 20 : 16,
-          //             height: isDesktop ? 20 : 16,
-          //           ),
-          //         ),
-          //         suffixIcon: _searchController.text.isNotEmpty
-          //             ? Padding(
-          //                 padding: const EdgeInsets.only(right: 0),
-          //                 child: UnconstrainedBox(
-          //                   child: Row(
-          //                     children: [
-          //                       TextFieldIconButton(
-          //                         child: const XIcon(),
-          //                         onTap: () async {
-          //                           setState(() {
-          //                             _searchController.text = "";
-          //                             _searchString = "";
-          //                           });
-          //                         },
-          //                       ),
-          //                     ],
-          //                   ),
-          //                 ),
-          //               )
-          //             : null,
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // SizedBox(
-          //   height: isDesktop ? 20 : 16,
-          // ),
-          Expanded(
-            child: FutureBuilder(
-              future: _search(_searchString),
-              builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.data != null) {
-                  // listview
-                  return ListView.separated(
-                    itemCount: snapshot.data!.length,
-                    separatorBuilder: (_, __) => Container(
-                      height: 10,
-                    ),
-                    itemBuilder: (_, index) => AddressCard(
-                      walletId: widget.walletId,
-                      addressId: snapshot.data![index],
-                      coin: coin,
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          AddressDetailsView.routeName,
-                          arguments: Tuple2(
-                            snapshot.data![index],
-                            widget.walletId,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // SizedBox(
+            //   width: isDesktop ? 490 : null,
+            //   child: ClipRRect(
+            //     borderRadius: BorderRadius.circular(
+            //       Constants.size.circularBorderRadius,
+            //     ),
+            //     child: TextField(
+            //       autocorrect: !isDesktop,
+            //       enableSuggestions: !isDesktop,
+            //       controller: _searchController,
+            //       focusNode: searchFieldFocusNode,
+            //       onChanged: (value) {
+            //         setState(() {
+            //           _searchString = value;
+            //         });
+            //       },
+            //       style: isDesktop
+            //           ? STextStyles.desktopTextExtraSmall(context).copyWith(
+            //               color: Theme.of(context)
+            //                   .extension<StackColors>()!
+            //                   .textFieldActiveText,
+            //               height: 1.8,
+            //             )
+            //           : STextStyles.field(context),
+            //       decoration: standardInputDecoration(
+            //         "Search...",
+            //         searchFieldFocusNode,
+            //         context,
+            //         desktopMed: isDesktop,
+            //       ).copyWith(
+            //         prefixIcon: Padding(
+            //           padding: EdgeInsets.symmetric(
+            //             horizontal: isDesktop ? 12 : 10,
+            //             vertical: isDesktop ? 18 : 16,
+            //           ),
+            //           child: SvgPicture.asset(
+            //             Assets.svg.search,
+            //             width: isDesktop ? 20 : 16,
+            //             height: isDesktop ? 20 : 16,
+            //           ),
+            //         ),
+            //         suffixIcon: _searchController.text.isNotEmpty
+            //             ? Padding(
+            //                 padding: const EdgeInsets.only(right: 0),
+            //                 child: UnconstrainedBox(
+            //                   child: Row(
+            //                     children: [
+            //                       TextFieldIconButton(
+            //                         child: const XIcon(),
+            //                         onTap: () async {
+            //                           setState(() {
+            //                             _searchController.text = "";
+            //                             _searchString = "";
+            //                           });
+            //                         },
+            //                       ),
+            //                     ],
+            //                   ),
+            //                 ),
+            //               )
+            //             : null,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // SizedBox(
+            //   height: isDesktop ? 20 : 16,
+            // ),
+            Expanded(
+              child: FutureBuilder(
+                future: _search(_searchString),
+                builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.data != null) {
+                    // listview
+                    return ListView.separated(
+                      itemCount: snapshot.data!.length,
+                      separatorBuilder: (_, __) => Container(height: 10),
+                      itemBuilder:
+                          (_, index) => AddressCard(
+                            walletId: widget.walletId,
+                            addressId: snapshot.data![index],
+                            coin: coin,
+                            onPressed: () {
+                              Navigator.of(context).pushNamed(
+                                AddressDetailsView.routeName,
+                                arguments: Tuple2(
+                                  snapshot.data![index],
+                                  widget.walletId,
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
-                  );
-                } else {
-                  return const Center(
-                    child: LoadingIndicator(
-                      height: 200,
-                      width: 200,
-                    ),
-                  );
-                }
-              },
+                    );
+                  } else {
+                    return const Center(
+                      child: LoadingIndicator(height: 200, width: 200),
+                    );
+                  }
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

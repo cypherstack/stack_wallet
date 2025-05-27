@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/ordinal.dart';
@@ -21,6 +21,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/show_loading.dart';
+import '../../utilities/stack_file_system.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
@@ -56,9 +57,10 @@ class _DesktopOrdinalDetailsViewState
 
     final response = await client.get(
       url: Uri.parse(widget.ordinal.content),
-      proxyInfo: Prefs.instance.useTor
-          ? TorService.sharedInstance.getProxyInfo()
-          : null,
+      proxyInfo:
+          Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null,
     );
 
     if (response.code != 200) {
@@ -69,16 +71,15 @@ class _DesktopOrdinalDetailsViewState
 
     final bytes = response.bodyBytes;
 
-    if (Platform.isAndroid) {
-      await Permission.storage.request();
-    }
+    final dir =
+        Platform.isAndroid
+            ? await StackFileSystem.wtfAndroidDocumentsPath()
+            : await getApplicationDocumentsDirectory();
 
-    final dir = Platform.isAndroid
-        ? Directory("/storage/emulated/0/Documents")
-        : await getApplicationDocumentsDirectory();
-
-    final docPath = dir.path;
-    final filePath = "$docPath/ordinal_${widget.ordinal.inscriptionNumber}.png";
+    final filePath = path.join(
+      dir.path,
+      "ordinal_${widget.ordinal.inscriptionNumber}.png",
+    );
 
     final File imgFile = File(filePath);
 
@@ -105,32 +106,27 @@ class _DesktopOrdinalDetailsViewState
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(
-                width: 32,
-              ),
+              const SizedBox(width: 32),
               AppBarIconButton(
                 size: 32,
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
+                color:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .topNavIconPrimary,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: Navigator.of(context).pop,
               ),
-              const SizedBox(
-                width: 18,
-              ),
-              Text(
-                "Ordinal details",
-                style: STextStyles.desktopH3(context),
-              ),
+              const SizedBox(width: 18),
+              Text("Ordinal details", style: STextStyles.desktopH3(context)),
             ],
           ),
         ),
@@ -138,11 +134,7 @@ class _DesktopOrdinalDetailsViewState
         isCompactHeight: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.only(
-          left: 24,
-          top: 24,
-          right: 24,
-        ),
+        padding: const EdgeInsets.only(left: 24, top: 24, right: 24),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -154,7 +146,8 @@ class _DesktopOrdinalDetailsViewState
                   Constants.size.circularBorderRadius,
                 ),
                 child: Image.network(
-                  widget.ordinal
+                  widget
+                      .ordinal
                       .content, // Use the preview URL as the image source
                   fit: BoxFit.cover,
                   filterQuality:
@@ -162,9 +155,7 @@ class _DesktopOrdinalDetailsViewState
                 ),
               ),
             ),
-            const SizedBox(
-              width: 16,
-            ),
+            const SizedBox(width: 16),
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
@@ -187,9 +178,7 @@ class _DesktopOrdinalDetailsViewState
                                 ],
                               ),
                             ),
-                            const SizedBox(
-                              width: 16,
-                            ),
+                            const SizedBox(width: 16),
                             // PrimaryButton(
                             //   width: 150,
                             //   label: "Send",
@@ -224,9 +213,10 @@ class _DesktopOrdinalDetailsViewState
                                 Assets.svg.arrowDown,
                                 width: 13,
                                 height: 18,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextSecondary,
+                                color:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
                               ),
                               buttonHeight: ButtonHeight.l,
                               iconSpacing: 8,
@@ -264,9 +254,7 @@ class _DesktopOrdinalDetailsViewState
                           ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 16,
-                      ),
+                      const SizedBox(height: 16),
                       RoundedWhiteContainer(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -288,25 +276,28 @@ class _DesktopOrdinalDetailsViewState
                             const _Divider(),
                             Consumer(
                               builder: (context, ref, _) {
-                                final coin = ref
-                                    .watch(pWallets)
-                                    .getWallet(widget.walletId)
-                                    .info
-                                    .coin;
+                                final coin =
+                                    ref
+                                        .watch(pWallets)
+                                        .getWallet(widget.walletId)
+                                        .info
+                                        .coin;
                                 return _DetailsItemWCopy(
                                   title: "Amount",
-                                  data: utxo == null
-                                      ? "ERROR"
-                                      : ref
-                                          .watch(pAmountFormatter(coin))
-                                          .format(
-                                            Amount(
-                                              rawValue:
-                                                  BigInt.from(utxo!.value),
-                                              fractionDigits:
-                                                  coin.fractionDigits,
-                                            ),
-                                          ),
+                                  data:
+                                      utxo == null
+                                          ? "ERROR"
+                                          : ref
+                                              .watch(pAmountFormatter(coin))
+                                              .format(
+                                                Amount(
+                                                  rawValue: BigInt.from(
+                                                    utxo!.value,
+                                                  ),
+                                                  fractionDigits:
+                                                      coin.fractionDigits,
+                                                ),
+                                              ),
                                 );
                               },
                             ),
@@ -341,9 +332,7 @@ class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 16,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Container(
         height: 1,
         color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
@@ -353,11 +342,7 @@ class _Divider extends StatelessWidget {
 }
 
 class _DetailsItemWCopy extends StatelessWidget {
-  const _DetailsItemWCopy({
-    super.key,
-    required this.title,
-    required this.data,
-  });
+  const _DetailsItemWCopy({super.key, required this.title, required this.data});
 
   final String title;
   final String data;
@@ -370,22 +355,12 @@ class _DetailsItemWCopy extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: STextStyles.itemSubtitle(context),
-            ),
-            IconCopyButton(
-              data: data,
-            ),
+            Text(title, style: STextStyles.itemSubtitle(context)),
+            IconCopyButton(data: data),
           ],
         ),
-        const SizedBox(
-          height: 4,
-        ),
-        SelectableText(
-          data,
-          style: STextStyles.itemSubtitle12(context),
-        ),
+        const SizedBox(height: 4),
+        SelectableText(data, style: STextStyles.itemSubtitle12(context)),
       ],
     );
   }

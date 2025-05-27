@@ -36,10 +36,28 @@ class TrocadorExchange extends Exchange {
 
   static const onlySupportedNetwork = "Mainnet";
 
+  static ProviderWarning? checkFiro(Currency currency) {
+    if (currency.ticker.toLowerCase() == "firo" &&
+        currency.name.contains("No Spark")) {
+      return ProviderWarning.noSpark;
+    }
+    return null;
+  }
+
+  static ProviderWarning? checkLtc(Currency currency) {
+    if (currency.ticker.toLowerCase() == "ltc" &&
+        currency.name.contains("not MW")) {
+      return ProviderWarning.noMWEB;
+    }
+    return null;
+  }
+
   @override
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
     required String to,
+    required String? fromNetwork,
+    required String? toNetwork,
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
@@ -49,37 +67,38 @@ class TrocadorExchange extends Exchange {
     Estimate? estimate,
     required bool reversed,
   }) async {
-    final response = reversed
-        ? await TrocadorAPI.createNewPaymentRateTrade(
-            isOnion: false,
-            rateId: estimate?.rateId,
-            fromTicker: from.toLowerCase(),
-            fromNetwork: onlySupportedNetwork,
-            toTicker: to.toLowerCase(),
-            toNetwork: onlySupportedNetwork,
-            toAmount: amount.toString(),
-            receivingAddress: addressTo,
-            receivingMemo: null,
-            refundAddress: addressRefund,
-            refundMemo: null,
-            exchangeProvider: estimate!.exchangeProvider!,
-            isFixedRate: fixedRate,
-          )
-        : await TrocadorAPI.createNewStandardRateTrade(
-            isOnion: false,
-            rateId: estimate?.rateId,
-            fromTicker: from.toLowerCase(),
-            fromNetwork: onlySupportedNetwork,
-            toTicker: to.toLowerCase(),
-            toNetwork: onlySupportedNetwork,
-            fromAmount: amount.toString(),
-            receivingAddress: addressTo,
-            receivingMemo: null,
-            refundAddress: addressRefund,
-            refundMemo: null,
-            exchangeProvider: estimate!.exchangeProvider!,
-            isFixedRate: fixedRate,
-          );
+    final response =
+        reversed
+            ? await TrocadorAPI.createNewPaymentRateTrade(
+              isOnion: false,
+              rateId: estimate?.rateId,
+              fromTicker: from.toLowerCase(),
+              fromNetwork: onlySupportedNetwork,
+              toTicker: to.toLowerCase(),
+              toNetwork: onlySupportedNetwork,
+              toAmount: amount.toString(),
+              receivingAddress: addressTo,
+              receivingMemo: null,
+              refundAddress: addressRefund,
+              refundMemo: null,
+              exchangeProvider: estimate!.exchangeProvider!,
+              isFixedRate: fixedRate,
+            )
+            : await TrocadorAPI.createNewStandardRateTrade(
+              isOnion: false,
+              rateId: estimate?.rateId,
+              fromTicker: from.toLowerCase(),
+              fromNetwork: onlySupportedNetwork,
+              toTicker: to.toLowerCase(),
+              toNetwork: onlySupportedNetwork,
+              fromAmount: amount.toString(),
+              receivingAddress: addressTo,
+              receivingMemo: null,
+              refundAddress: addressRefund,
+              refundMemo: null,
+              exchangeProvider: estimate!.exchangeProvider!,
+              isFixedRate: fixedRate,
+            );
 
     if (response.value == null) {
       return ExchangeResponse(exception: response.exception);
@@ -125,22 +144,23 @@ class TrocadorExchange extends Exchange {
 
     _cachedCurrencies?.removeWhere((e) => e.network != onlySupportedNetwork);
 
-    final value = _cachedCurrencies
-        ?.map(
-          (e) => Currency(
-            exchangeName: exchangeName,
-            ticker: e.ticker,
-            name: e.name,
-            network: e.network,
-            image: e.image,
-            isFiat: false,
-            rateType: SupportedRateType.both,
-            isStackCoin: AppConfig.isStackCoin(e.ticker),
-            tokenContract: null,
-            isAvailable: true,
-          ),
-        )
-        .toList();
+    final value =
+        _cachedCurrencies
+            ?.map(
+              (e) => Currency(
+                exchangeName: exchangeName,
+                ticker: e.ticker,
+                name: e.name,
+                network: e.network,
+                image: e.image,
+                isFiat: false,
+                rateType: SupportedRateType.both,
+                isStackCoin: AppConfig.isStackCoin(e.ticker),
+                tokenContract: null,
+                isAvailable: true,
+              ),
+            )
+            .toList();
 
     if (value == null) {
       return ExchangeResponse(
@@ -195,28 +215,31 @@ class TrocadorExchange extends Exchange {
   @override
   Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     Decimal amount,
     bool fixedRate,
     bool reversed,
   ) async {
-    final response = reversed
-        ? await TrocadorAPI.getNewPaymentRate(
-            isOnion: false,
-            fromTicker: from,
-            fromNetwork: onlySupportedNetwork,
-            toTicker: to,
-            toNetwork: onlySupportedNetwork,
-            toAmount: amount.toString(),
-          )
-        : await TrocadorAPI.getNewStandardRate(
-            isOnion: false,
-            fromTicker: from,
-            fromNetwork: onlySupportedNetwork,
-            toTicker: to,
-            toNetwork: onlySupportedNetwork,
-            fromAmount: amount.toString(),
-          );
+    final response =
+        reversed
+            ? await TrocadorAPI.getNewPaymentRate(
+              isOnion: false,
+              fromTicker: from,
+              fromNetwork: onlySupportedNetwork,
+              toTicker: to,
+              toNetwork: onlySupportedNetwork,
+              toAmount: amount.toString(),
+            )
+            : await TrocadorAPI.getNewStandardRate(
+              isOnion: false,
+              fromTicker: from,
+              fromNetwork: onlySupportedNetwork,
+              toTicker: to,
+              toNetwork: onlySupportedNetwork,
+              fromAmount: amount.toString(),
+            );
 
     if (response.value == null) {
       return ExchangeResponse(exception: response.exception);
@@ -265,43 +288,46 @@ class TrocadorExchange extends Exchange {
     }
 
     return ExchangeResponse(
-      value: estimates
-        ..sort((a, b) => b.estimatedAmount.compareTo(a.estimatedAmount)),
+      value:
+          estimates
+            ..sort((a, b) => b.estimatedAmount.compareTo(a.estimatedAmount)),
     );
   }
 
-  @override
-  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-    String forCurrency,
-    bool fixedRate,
-  ) async {
-    // TODO: implement getPairedCurrencies
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<ExchangeResponse<List<Pair>>> getPairsFor(
-    String currency,
-    bool fixedRate,
-  ) async {
-    final response = await getAllPairs(fixedRate);
-    if (response.value == null) {
-      return ExchangeResponse(exception: response.exception);
-    }
-
-    final pairs = response.value!.where(
-      (e) =>
-          e.from.toUpperCase() == currency.toUpperCase() ||
-          e.to.toUpperCase() == currency.toUpperCase(),
-    );
-
-    return ExchangeResponse(value: pairs.toList());
-  }
+  // @override
+  // Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+  //   String forCurrency,
+  //   bool fixedRate,
+  // ) async {
+  //   // TODO: implement getPairedCurrencies
+  //   throw UnimplementedError();
+  // }
+  //
+  // @override
+  // Future<ExchangeResponse<List<Pair>>> getPairsFor(
+  //   String currency,
+  //   bool fixedRate,
+  // ) async {
+  //   final response = await getAllPairs(fixedRate);
+  //   if (response.value == null) {
+  //     return ExchangeResponse(exception: response.exception);
+  //   }
+  //
+  //   final pairs = response.value!.where(
+  //     (e) =>
+  //         e.from.toUpperCase() == currency.toUpperCase() ||
+  //         e.to.toUpperCase() == currency.toUpperCase(),
+  //   );
+  //
+  //   return ExchangeResponse(value: pairs.toList());
+  // }
 
   @override
   Future<ExchangeResponse<Range>> getRange(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     bool fixedRate,
   ) async {
     if (_cachedCurrencies == null) {
@@ -316,14 +342,12 @@ class TrocadorExchange extends Exchange {
       );
     }
 
-    final fromCoin = _cachedCurrencies!
-        .firstWhere((e) => e.ticker.toLowerCase() == from.toLowerCase());
+    final fromCoin = _cachedCurrencies!.firstWhere(
+      (e) => e.ticker.toLowerCase() == from.toLowerCase(),
+    );
 
     return ExchangeResponse(
-      value: Range(
-        max: fromCoin.maximum,
-        min: fromCoin.minimum,
-      ),
+      value: Range(max: fromCoin.maximum, min: fromCoin.minimum),
     );
   }
 
@@ -412,4 +436,26 @@ class TrocadorExchange extends Exchange {
   // Trocador supports Tor.
   @override
   bool get supportsTor => true;
+}
+
+enum ProviderWarning {
+  noSpark("NO SPARK"),
+  noMWEB("NO MW");
+
+  final String value;
+  const ProviderWarning(this.value);
+
+  String get message => switch (this) {
+    ProviderWarning.noSpark => "No Spark",
+    ProviderWarning.noMWEB => "No MimbleWimble",
+  };
+
+  String get messageDetail => switch (this) {
+    ProviderWarning.noSpark =>
+      "Trocador does not support Firo transactions involving Spark addresses,"
+          " including both sending to and receiving from them.",
+    ProviderWarning.noMWEB =>
+      "Trocador does not support Litecoin transactions involving MWEB "
+          "(MimbleWimble Extension Block) addresses.",
+  };
 }

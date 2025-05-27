@@ -482,7 +482,7 @@ abstract class Wallet<T extends CryptoCurrency> {
   /// updates the wallet info's cachedChainHeight
   Future<void> updateChainHeight();
 
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate);
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate);
 
   Future<FeeObject> get fees;
 

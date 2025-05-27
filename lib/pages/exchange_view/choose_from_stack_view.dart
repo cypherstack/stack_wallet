@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
@@ -23,10 +24,7 @@ import '../../widgets/wallet_info_row/sub_widgets/wallet_info_row_balance.dart';
 import '../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
 
 class ChooseFromStackView extends ConsumerStatefulWidget {
-  const ChooseFromStackView({
-    super.key,
-    required this.coin,
-  });
+  const ChooseFromStackView({super.key, required this.coin});
 
   final CryptoCurrency coin;
 
@@ -48,12 +46,13 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
 
   @override
   Widget build(BuildContext context) {
-    final walletIds = ref
-        .watch(pWallets)
-        .wallets
-        .where((e) => e.info.coin == coin)
-        .map((e) => e.walletId)
-        .toList();
+    final walletIds =
+        ref
+            .watch(pWallets)
+            .wallets
+            .where((e) => e.info.coin == coin)
+            .map((e) => e.walletId)
+            .toList();
 
     return Background(
       child: Scaffold(
@@ -65,80 +64,84 @@ class _ChooseFromStackViewState extends ConsumerState<ChooseFromStackView> {
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: walletIds.isEmpty
-              ? Column(
-                  children: [
-                    RoundedWhiteContainer(
-                      child: Center(
-                        child: Text(
-                          "No ${coin.ticker.toUpperCase()} wallets",
-                          style: STextStyles.itemSubtitle(context),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child:
+                walletIds.isEmpty
+                    ? Column(
+                      children: [
+                        RoundedWhiteContainer(
+                          child: Center(
+                            child: Text(
+                              "No ${coin.ticker.toUpperCase()} wallets",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                )
-              : ListView.builder(
-                  itemCount: walletIds.length,
-                  itemBuilder: (context, index) {
-                    final walletId = walletIds[index];
+                      ],
+                    )
+                    : ListView.builder(
+                      itemCount: walletIds.length,
+                      itemBuilder: (context, index) {
+                        final walletId = walletIds[index];
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      child: RawMaterialButton(
-                        splashColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .highlight,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        padding: const EdgeInsets.all(0),
-                        // color: Theme.of(context).extension<StackColors>()!.popupBG,
-                        elevation: 0,
-                        onPressed: () async {
-                          if (mounted) {
-                            Navigator.of(context).pop(walletId);
-                          }
-                        },
-                        child: RoundedWhiteContainer(
-                          // color: Colors.transparent,
-                          child: Row(
-                            children: [
-                              WalletInfoCoinIcon(coin: coin),
-                              const SizedBox(
-                                width: 12,
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5.0),
+                          child: RawMaterialButton(
+                            splashColor:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.highlight,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
                               ),
-                              Expanded(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      ref.watch(pWalletName(walletId)),
-                                      style: STextStyles.titleBold12(context),
-                                      overflow: TextOverflow.ellipsis,
+                            ),
+                            padding: const EdgeInsets.all(0),
+                            // color: Theme.of(context).extension<StackColors>()!.popupBG,
+                            elevation: 0,
+                            onPressed: () async {
+                              if (mounted) {
+                                Navigator.of(context).pop(walletId);
+                              }
+                            },
+                            child: RoundedWhiteContainer(
+                              // color: Colors.transparent,
+                              child: Row(
+                                children: [
+                                  WalletInfoCoinIcon(coin: coin),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          ref.watch(pWalletName(walletId)),
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        WalletInfoRowBalance(
+                                          walletId: walletIds[index],
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(
-                                      height: 2,
-                                    ),
-                                    WalletInfoRowBalance(
-                                      walletId: walletIds[index],
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
+          ),
         ),
       ),
     );

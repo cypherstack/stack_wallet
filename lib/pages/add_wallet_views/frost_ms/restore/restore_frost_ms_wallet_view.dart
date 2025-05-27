@@ -9,11 +9,8 @@ import 'package:frostdart/frostdart.dart' as frost;
 
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages_desktop_specific/desktop_home_view.dart';
-import '../../../../providers/db/main_db_provider.dart';
-import '../../../../providers/global/node_service_provider.dart';
-import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
-import '../../../../providers/global/wallets_provider.dart';
+import '../../../../providers/providers.dart';
 import '../../../../services/frost.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -95,9 +92,7 @@ class _RestoreFrostMsWalletViewState
       knownSalts: [],
       participants: participants,
       myName: myName,
-      threshold: frost.multisigThreshold(
-        multisigConfig: config,
-      ),
+      threshold: frost.multisigThreshold(multisigConfig: config),
     );
 
     await ref.read(mainDBProvider).isar.writeTxn(() async {
@@ -110,9 +105,14 @@ class _RestoreFrostMsWalletViewState
       isRescan: false,
     );
 
-    await info.setMnemonicVerified(
-      isar: ref.read(mainDBProvider).isar,
-    );
+    await info.setMnemonicVerified(isar: ref.read(mainDBProvider).isar);
+
+    if (ref.read(pDuress)) {
+      await wallet.info.updateDuressVisibilityStatus(
+        isDuressVisible: true,
+        isar: ref.read(mainDBProvider).isar,
+      );
+    }
 
     return wallet;
   }
@@ -147,17 +147,14 @@ class _RestoreFrostMsWalletViewState
 
       if (mounted) {
         if (Util.isDesktop) {
-          Navigator.of(context).popUntil(
-            ModalRoute.withName(
-              DesktopHomeView.routeName,
-            ),
-          );
+          Navigator.of(
+            context,
+          ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
         } else {
           unawaited(
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              HomeView.routeName,
-              (route) => false,
-            ),
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
           );
         }
 
@@ -171,20 +168,17 @@ class _RestoreFrostMsWalletViewState
         );
       }
     } catch (e, s) {
-      Logging.instance.e(
-        "",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("", error: e, stackTrace: s);
 
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => StackOkDialog(
-            title: "Failed to restore",
-            message: e.toString(),
-            desktopPopRootNavigator: Util.isDesktop,
-          ),
+          builder:
+              (_) => StackOkDialog(
+                title: "Failed to restore",
+                message: e.toString(),
+                desktopPopRootNavigator: Util.isDesktop,
+              ),
         );
       }
     } finally {
@@ -215,9 +209,7 @@ class _RestoreFrostMsWalletViewState
       if (Platform.isAndroid || Platform.isIOS) {
         if (FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
-          await Future<void>.delayed(
-            const Duration(milliseconds: 75),
-          );
+          await Future<void>.delayed(const Duration(milliseconds: 75));
         }
 
         final qrResult = await BarcodeScanner.scan();
@@ -235,9 +227,7 @@ class _RestoreFrostMsWalletViewState
         );
 
         if (qrResult == null) {
-          Logging.instance.d(
-            "Qr scanning cancelled",
-          );
+          Logging.instance.d("Qr scanning cancelled");
         } else {
           // TODO [prio=low]: Validate QR code data.
           configFieldController.text = qrResult;
@@ -260,67 +250,64 @@ class _RestoreFrostMsWalletViewState
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder: (child) => DesktopScaffold(
-        background: Theme.of(context).extension<StackColors>()!.background,
-        appBar: const DesktopAppBar(
-          isCompactHeight: false,
-          leading: AppBarBackButton(),
-          // TODO: [prio=high] get rid of placeholder text??
-          trailing: FrostMascot(
-            title: 'Lorem ipsum',
-            body:
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+      builder:
+          (child) => DesktopScaffold(
+            background: Theme.of(context).extension<StackColors>()!.background,
+            appBar: const DesktopAppBar(
+              isCompactHeight: false,
+              leading: AppBarBackButton(),
+              // TODO: [prio=high] get rid of placeholder text??
+              trailing: FrostMascot(
+                title: 'Lorem ipsum',
+                body:
+                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam est justo, ',
+              ),
+            ),
+            body: SizedBox(width: 480, child: child),
           ),
-        ),
-        body: SizedBox(
-          width: 480,
-          child: child,
-        ),
-      ),
       child: ConditionalParent(
         condition: !Util.isDesktop,
-        builder: (child) => Background(
-          child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            appBar: AppBar(
-              leading: AppBarBackButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              title: Text(
-                "Restore FROST multisig wallet",
-                style: STextStyles.navBarTitle(context),
-              ),
-            ),
-            body: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: child,
+        builder:
+            (child) => Background(
+              child: Scaffold(
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.background,
+                appBar: AppBar(
+                  leading: AppBarBackButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  title: Text(
+                    "Restore FROST multisig wallet",
+                    style: STextStyles.navBarTitle(context),
+                  ),
+                ),
+                body: SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: child,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -350,51 +337,53 @@ class _RestoreFrostMsWalletViewState
                     right: 5,
                   ),
                   suffixIcon: Padding(
-                    padding: _configEmpty
-                        ? const EdgeInsets.only(right: 8)
-                        : const EdgeInsets.only(right: 0),
+                    padding:
+                        _configEmpty
+                            ? const EdgeInsets.only(right: 8)
+                            : const EdgeInsets.only(right: 0),
                     child: UnconstrainedBox(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           !_configEmpty
                               ? TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Clear Button. Clears The Config Field.",
-                                  key: const Key("frConfigClearButtonKey"),
-                                  onTap: () {
-                                    configFieldController.text = "";
+                                semanticsLabel:
+                                    "Clear Button. Clears The Config Field.",
+                                key: const Key("frConfigClearButtonKey"),
+                                onTap: () {
+                                  configFieldController.text = "";
 
-                                    setState(() {
-                                      _configEmpty = true;
-                                    });
-                                  },
-                                  child: const XIcon(),
-                                )
+                                  setState(() {
+                                    _configEmpty = true;
+                                  });
+                                },
+                                child: const XIcon(),
+                              )
                               : TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Paste Button. Pastes From Clipboard To Config Field Input.",
-                                  key: const Key("frConfigPasteButtonKey"),
-                                  onTap: () async {
-                                    final ClipboardData? data =
-                                        await Clipboard.getData(
-                                      Clipboard.kTextPlain,
-                                    );
-                                    if (data?.text != null &&
-                                        data!.text!.isNotEmpty) {
-                                      configFieldController.text =
-                                          data.text!.trim();
-                                    }
+                                semanticsLabel:
+                                    "Paste Button. Pastes From Clipboard To Config Field Input.",
+                                key: const Key("frConfigPasteButtonKey"),
+                                onTap: () async {
+                                  final ClipboardData? data =
+                                      await Clipboard.getData(
+                                        Clipboard.kTextPlain,
+                                      );
+                                  if (data?.text != null &&
+                                      data!.text!.isNotEmpty) {
+                                    configFieldController.text =
+                                        data.text!.trim();
+                                  }
 
-                                    setState(() {
-                                      _configEmpty =
-                                          configFieldController.text.isEmpty;
-                                    });
-                                  },
-                                  child: _configEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                                ),
+                                  setState(() {
+                                    _configEmpty =
+                                        configFieldController.text.isEmpty;
+                                  });
+                                },
+                                child:
+                                    _configEmpty
+                                        ? const ClipboardIcon()
+                                        : const XIcon(),
+                              ),
                           if (_configEmpty)
                             TextFieldIconButton(
                               semanticsLabel:
@@ -410,9 +399,7 @@ class _RestoreFrostMsWalletViewState
                 ),
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -442,51 +429,53 @@ class _RestoreFrostMsWalletViewState
                     right: 5,
                   ),
                   suffixIcon: Padding(
-                    padding: _keysEmpty
-                        ? const EdgeInsets.only(right: 8)
-                        : const EdgeInsets.only(right: 0),
+                    padding:
+                        _keysEmpty
+                            ? const EdgeInsets.only(right: 8)
+                            : const EdgeInsets.only(right: 0),
                     child: UnconstrainedBox(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           !_keysEmpty
                               ? TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Clear Button. Clears The Keys Field.",
-                                  key: const Key("frMyNameClearButtonKey"),
-                                  onTap: () {
-                                    keysFieldController.text = "";
+                                semanticsLabel:
+                                    "Clear Button. Clears The Keys Field.",
+                                key: const Key("frMyNameClearButtonKey"),
+                                onTap: () {
+                                  keysFieldController.text = "";
 
-                                    setState(() {
-                                      _keysEmpty = true;
-                                    });
-                                  },
-                                  child: const XIcon(),
-                                )
+                                  setState(() {
+                                    _keysEmpty = true;
+                                  });
+                                },
+                                child: const XIcon(),
+                              )
                               : TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Paste Button. Pastes From Clipboard To Keys Field.",
-                                  key: const Key("frKeysPasteButtonKey"),
-                                  onTap: () async {
-                                    final ClipboardData? data =
-                                        await Clipboard.getData(
-                                      Clipboard.kTextPlain,
-                                    );
-                                    if (data?.text != null &&
-                                        data!.text!.isNotEmpty) {
-                                      keysFieldController.text =
-                                          data.text!.trim();
-                                    }
+                                semanticsLabel:
+                                    "Paste Button. Pastes From Clipboard To Keys Field.",
+                                key: const Key("frKeysPasteButtonKey"),
+                                onTap: () async {
+                                  final ClipboardData? data =
+                                      await Clipboard.getData(
+                                        Clipboard.kTextPlain,
+                                      );
+                                  if (data?.text != null &&
+                                      data!.text!.isNotEmpty) {
+                                    keysFieldController.text =
+                                        data.text!.trim();
+                                  }
 
-                                    setState(() {
-                                      _keysEmpty =
-                                          keysFieldController.text.isEmpty;
-                                    });
-                                  },
-                                  child: _keysEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                                ),
+                                  setState(() {
+                                    _keysEmpty =
+                                        keysFieldController.text.isEmpty;
+                                  });
+                                },
+                                child:
+                                    _keysEmpty
+                                        ? const ClipboardIcon()
+                                        : const XIcon(),
+                              ),
                         ],
                       ),
                     ),
@@ -494,13 +483,9 @@ class _RestoreFrostMsWalletViewState
                 ),
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             if (!Util.isDesktop) const Spacer(),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             PrimaryButton(
               label: "Restore",
               enabled: !_keysEmpty && !_configEmpty,

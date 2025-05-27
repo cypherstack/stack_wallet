@@ -68,61 +68,67 @@ class _AddNewContactAddressViewState
   @override
   Widget build(BuildContext context) {
     final contact = ref.watch(
-      addressBookServiceProvider
-          .select((value) => value.getContactById(contactId)),
+      addressBookServiceProvider.select(
+        (value) => value.getContactById(contactId),
+      ),
     );
 
     final isDesktop = Util.isDesktop;
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            title: Text(
-              "Add new address",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              return Padding(
-                padding: const EdgeInsets.only(
-                  left: 12,
-                  top: 12,
-                  right: 12,
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 75),
+                      );
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
                 ),
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 24,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: child,
+                title: Text(
+                  "Add new address",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12,
+                        top: 12,
+                        right: 12,
                       ),
-                    ),
-                  ),
+                      child: SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 24,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: child,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
-      ),
       child: Column(
         children: [
           Row(
@@ -132,31 +138,28 @@ class _AddNewContactAddressViewState
                 width: 48,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldActiveBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldActiveBG,
                 ),
                 child: Center(
-                  child: contact.emojiChar == null
-                      ? SvgPicture.asset(
-                          Assets.svg.user,
-                          height: 24,
-                          width: 24,
-                        )
-                      : Text(
-                          contact.emojiChar!,
-                          style: STextStyles.pageTitleH1(context),
-                        ),
+                  child:
+                      contact.emojiChar == null
+                          ? SvgPicture.asset(
+                            Assets.svg.user,
+                            height: 24,
+                            width: 24,
+                          )
+                          : Text(
+                            contact.emojiChar!,
+                            style: STextStyles.pageTitleH1(context),
+                          ),
                 ),
               ),
-              const SizedBox(
-                width: 16,
-              ),
+              const SizedBox(width: 16),
               if (isDesktop)
-                Text(
-                  contact.name,
-                  style: STextStyles.pageTitleH2(context),
-                ),
+                Text(contact.name, style: STextStyles.pageTitleH2(context)),
               if (!isDesktop)
                 Expanded(
                   child: FittedBox(
@@ -169,17 +172,13 @@ class _AddNewContactAddressViewState
                 ),
             ],
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           NewContactAddressEntryForm(
             id: 0,
             barcodeScanner: barcodeScanner,
             clipboard: clipboard,
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           const Spacer(),
           Row(
             children: [
@@ -200,9 +199,7 @@ class _AddNewContactAddressViewState
                   },
                 ),
               ),
-              const SizedBox(
-                width: 16,
-              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(
                   label: "Save",
@@ -222,8 +219,9 @@ class _AddNewContactAddressViewState
                       ref.read(addressEntryDataProvider(0)).buildAddressEntry(),
                     );
 
-                    final ContactEntry editedContact =
-                        contact.copyWith(addresses: entries);
+                    final ContactEntry editedContact = contact.copyWith(
+                      addresses: entries,
+                    );
 
                     if (await ref
                         .read(addressBookServiceProvider)

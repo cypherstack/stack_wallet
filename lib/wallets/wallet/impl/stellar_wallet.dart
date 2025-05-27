@@ -33,34 +33,34 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     final bus = GlobalEventBus.instance;
 
     // Listen for tor status changes.
-    _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen(
-      (event) async {
-        switch (event.newStatus) {
-          case TorConnectionStatus.connecting:
-            if (!_torConnectingLock.isLocked) {
-              await _torConnectingLock.acquire();
-            }
-            _requireMutex = true;
-            break;
+    _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen((
+      event,
+    ) async {
+      switch (event.newStatus) {
+        case TorConnectionStatus.connecting:
+          if (!_torConnectingLock.isLocked) {
+            await _torConnectingLock.acquire();
+          }
+          _requireMutex = true;
+          break;
 
-          case TorConnectionStatus.connected:
-          case TorConnectionStatus.disconnected:
-            if (_torConnectingLock.isLocked) {
-              _torConnectingLock.release();
-            }
-            _requireMutex = false;
-            break;
-        }
-      },
-    );
+        case TorConnectionStatus.connected:
+        case TorConnectionStatus.disconnected:
+          if (_torConnectingLock.isLocked) {
+            _torConnectingLock.release();
+          }
+          _requireMutex = false;
+          break;
+      }
+    });
 
     // Listen for tor preference changes.
-    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen(
-      (event) async {
-        _stellarSdk?.httpClient.close();
-        _stellarSdk = null;
-      },
-    );
+    _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen((
+      event,
+    ) async {
+      _stellarSdk?.httpClient.close();
+      _stellarSdk = null;
+    });
   }
 
   void _hackedCheck() {
@@ -116,12 +116,10 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   // ============== Private ====================================================
   // add finalizer to cancel stream subscription when all references to an
   // instance of this becomes inaccessible
-  final _ = Finalizer<StellarWallet>(
-    (p0) {
-      p0._torPreferenceListener?.cancel();
-      p0._torStatusListener?.cancel();
-    },
-  );
+  final _ = Finalizer<StellarWallet>((p0) {
+    p0._torPreferenceListener?.cancel();
+    p0._torStatusListener?.cancel();
+  });
 
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
   StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
@@ -131,9 +129,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
   stellar.StellarSDK? _stellarSdk;
 
-  Future<int> _getBaseFee() async {
+  Future<BigInt> _getBaseFee() async {
     final fees = await (await stellarSdk).feeStats.execute();
-    return int.parse(fees.lastLedgerBaseFee);
+    return BigInt.parse(fees.lastLedgerBaseFee);
   }
 
   stellar.StellarSDK _getFreshSdk() {
@@ -145,15 +143,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           TorService.sharedInstance.getProxyInfo();
 
       _httpClient = HttpClient();
-      SocksTCPClient.assignToHttpClient(
-        _httpClient,
-        [
-          ProxySettings(
-            proxyInfo.host,
-            proxyInfo.port,
-          ),
-        ],
-      );
+      SocksTCPClient.assignToHttpClient(_httpClient, [
+        ProxySettings(proxyInfo.host, proxyInfo.port),
+      ]);
     }
 
     return stellar.StellarSDK(
@@ -166,16 +158,18 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     bool exists = false;
 
     try {
-      final receiverAccount =
-          await (await stellarSdk).accounts.account(accountId);
+      final receiverAccount = await (await stellarSdk).accounts.account(
+        accountId,
+      );
       if (receiverAccount.accountId != "") {
         exists = true;
       }
     } catch (e, s) {
       Logging.instance.e(
-          "Error getting account  ${e.toString()} - ${s.toString()}",
-          error: e,
-          stackTrace: s);
+        "Error getting account  ${e.toString()} - ${s.toString()}",
+        error: e,
+        stackTrace: s,
+      );
     }
     return exists;
   }
@@ -225,15 +219,17 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     try {
       final address = await getCurrentReceivingAddress();
       if (address == null) {
-        await mainDB
-            .updateOrPutAddresses([await _fetchStellarAddress(index: 0)]);
+        await mainDB.updateOrPutAddresses([
+          await _fetchStellarAddress(index: 0),
+        ]);
       }
     } catch (e, s) {
       // do nothing, still allow user into wallet
       Logging.instance.e(
-          "$runtimeType  checkSaveInitialReceivingAddress() failed: ",
-          error: e,
-          stackTrace: s);
+        "$runtimeType  checkSaveInitialReceivingAddress() failed: ",
+        error: e,
+        stackTrace: s,
+      );
     }
   }
 
@@ -245,7 +241,7 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       }
 
       final feeRate = txData.feeRateType;
-      var fee = 1000;
+      BigInt fee = BigInt.from(1000);
       if (feeRate is FeeRateType) {
         final theFees = await fees;
         switch (feeRate) {
@@ -261,13 +257,16 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
       return txData.copyWith(
         fee: Amount(
-          rawValue: BigInt.from(fee),
+          rawValue: fee,
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
       );
     } catch (e, s) {
-      Logging.instance
-          .e("$runtimeType prepareSend() failed: ", error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType prepareSend() failed: ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }
@@ -275,8 +274,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     final senderKeyPair = await _getSenderKeyPair(index: 0);
-    final sender =
-        await (await stellarSdk).accounts.account(senderKeyPair.accountId);
+    final sender = await (await stellarSdk).accounts.account(
+      senderKeyPair.accountId,
+    );
 
     final address = txData.recipients!.first.address;
     final amountToSend = txData.recipients!.first.amount;
@@ -293,9 +293,9 @@ class StellarWallet extends Bip39Wallet<Stellar> {
         address,
         amountToSend.decimal.toString(),
       );
-      transactionBuilder = stellar.TransactionBuilder(sender).addOperation(
-        createAccBuilder.build(),
-      );
+      transactionBuilder = stellar.TransactionBuilder(
+        sender,
+      ).addOperation(createAccBuilder.build());
     } else {
       transactionBuilder = stellar.TransactionBuilder(sender).addOperation(
         stellar.PaymentOperationBuilder(
@@ -316,14 +316,13 @@ class StellarWallet extends Bip39Wallet<Stellar> {
     try {
       final response = await (await stellarSdk).submitTransaction(transaction);
       if (!response.success) {
-        throw Exception("${response.extras?.resultCodes?.transactionResultCode}"
-            " ::: ${response.extras?.resultCodes?.operationsResultCodes}");
+        throw Exception(
+          "${response.extras?.resultCodes?.transactionResultCode}"
+          " ::: ${response.extras?.resultCodes?.operationsResultCodes}",
+        );
       }
 
-      return txData.copyWith(
-        txHash: response.hash!,
-        txid: response.hash!,
-      );
+      return txData.copyWith(txHash: response.hash!, txid: response.hash!);
     } catch (e, s) {
       Logging.instance.e("Error sending TX $e - $s", error: e, stackTrace: s);
       rethrow;
@@ -331,17 +330,17 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   }
 
   @override
-  Future<Amount> estimateFeeFor(Amount amount, int feeRate) async {
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     final baseFee = await _getBaseFee();
     return Amount(
-      rawValue: BigInt.from(baseFee),
+      rawValue: baseFee,
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }
 
   @override
   Future<FeeObject> get fees async {
-    final int fee = await _getBaseFee();
+    final fee = await _getBaseFee();
     return FeeObject(
       numberOfBlocksFast: 1,
       numberOfBlocksAverage: 1,
@@ -379,16 +378,17 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       stellar.AccountResponse accountResponse;
 
       try {
-        accountResponse = await (await stellarSdk)
-            .accounts
+        accountResponse = await (await stellarSdk).accounts
             .account((await getCurrentReceivingAddress())!.value)
             .onError((error, stackTrace) => throw error!);
       } catch (e) {
         if (e is stellar.ErrorResponse &&
-            e.body.contains("The resource at the url requested was not found.  "
-                "This usually occurs for one of two reasons:  "
-                "The url requested is not valid, or no data in our database "
-                "could be found with the parameters provided.")) {
+            e.body.contains(
+              "The resource at the url requested was not found.  "
+              "This usually occurs for one of two reasons:  "
+              "The url requested is not valid, or no data in our database "
+              "could be found with the parameters provided.",
+            )) {
           // probably just doesn't have any history yet or whatever stellar needs
           return;
         } else {
@@ -438,16 +438,18 @@ class StellarWallet extends Bip39Wallet<Stellar> {
   @override
   Future<void> updateChainHeight() async {
     try {
-      final height = await (await stellarSdk)
-          .ledgers
+      final height = await (await stellarSdk).ledgers
           .order(stellar.RequestBuilderOrder.DESC)
           .limit(1)
           .execute()
           .then((value) => value.records!.first.sequence);
       await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
     } catch (e, s) {
-      Logging.instance.e("$runtimeType updateChainHeight() failed: ",
-          error: e, stackTrace: s);
+      Logging.instance.e(
+        "$runtimeType updateChainHeight() failed: ",
+        error: e,
+        stackTrace: s,
+      );
 
       rethrow;
     }
@@ -467,17 +469,19 @@ class StellarWallet extends Bip39Wallet<Stellar> {
       final List<TransactionV2> transactionList = [];
       stellar.Page<stellar.OperationResponse> payments;
       try {
-        payments = await (await stellarSdk)
-            .payments
-            .forAccount(myAddress.value)
-            .order(stellar.RequestBuilderOrder.DESC)
-            .execute();
+        payments =
+            await (await stellarSdk).payments
+                .forAccount(myAddress.value)
+                .order(stellar.RequestBuilderOrder.DESC)
+                .execute();
       } catch (e) {
         if (e is stellar.ErrorResponse &&
-            e.body.contains("The resource at the url requested was not found.  "
-                "This usually occurs for one of two reasons:  "
-                "The url requested is not valid, or no data in our database "
-                "could be found with the parameters provided.")) {
+            e.body.contains(
+              "The resource at the url requested was not found.  "
+              "This usually occurs for one of two reasons:  "
+              "The url requested is not valid, or no data in our database "
+              "could be found with the parameters provided.",
+            )) {
           // probably just doesn't have any history yet or whatever stellar needs
           return;
         } else {
@@ -521,13 +525,11 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
           final OutputV2 output =
               OutputV2.isarCantDoRequiredInDefaultConstructor(
-            scriptPubKeyHex: "00",
-            valueStringSats: amount.raw.toString(),
-            addresses: [
-              addressTo,
-            ],
-            walletOwns: addressTo == myAddress.value,
-          );
+                scriptPubKeyHex: "00",
+                valueStringSats: amount.raw.toString(),
+                addresses: [addressTo],
+                walletOwns: addressTo == myAddress.value,
+              );
           final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
             scriptSigHex: null,
             scriptSigAsm: null,
@@ -558,10 +560,11 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           }
 
           final otherData = {
-            "overrideFee": Amount(
-              rawValue: BigInt.from(fee),
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ).toJsonString(),
+            "overrideFee":
+                Amount(
+                  rawValue: BigInt.from(fee),
+                  fractionDigits: cryptoCurrency.fractionDigits,
+                ).toJsonString(),
           };
 
           final theTransaction = TransactionV2(
@@ -603,8 +606,8 @@ class StellarWallet extends Bip39Wallet<Stellar> {
           final List<OutputV2> outputs = [];
           final List<InputV2> inputs = [];
 
-          final OutputV2 output =
-              OutputV2.isarCantDoRequiredInDefaultConstructor(
+          final OutputV2
+          output = OutputV2.isarCantDoRequiredInDefaultConstructor(
             scriptPubKeyHex: "00",
             valueStringSats: amount.raw.toString(),
             addresses: [
@@ -634,19 +637,20 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
           int fee = 0;
           int height = 0;
-          final tx = await (await stellarSdk)
-              .transactions
-              .transaction(caor.transactionHash!);
+          final tx = await (await stellarSdk).transactions.transaction(
+            caor.transactionHash!,
+          );
           if (tx.hash.isNotEmpty) {
             fee = tx.feeCharged!;
             height = tx.ledger;
           }
 
           final otherData = {
-            "overrideFee": Amount(
-              rawValue: BigInt.from(fee),
-              fractionDigits: cryptoCurrency.fractionDigits,
-            ).toJsonString(),
+            "overrideFee":
+                Amount(
+                  rawValue: BigInt.from(fee),
+                  fractionDigits: cryptoCurrency.fractionDigits,
+                ).toJsonString(),
           };
 
           final theTransaction = TransactionV2(
@@ -671,8 +675,11 @@ class StellarWallet extends Bip39Wallet<Stellar> {
 
       await mainDB.updateOrPutTransactionV2s(transactionList);
     } catch (e, s) {
-      Logging.instance.e("Exception rethrown from updateTransactions(): ",
-          error: e, stackTrace: s);
+      Logging.instance.e(
+        "Exception rethrown from updateTransactions(): ",
+        error: e,
+        stackTrace: s,
+      );
       rethrow;
     }
   }

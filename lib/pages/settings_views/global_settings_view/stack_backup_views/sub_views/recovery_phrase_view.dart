@@ -8,16 +8,19 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../../notifications/show_flush_bar.dart';
-import '../../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/clipboard_interface.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 
 class RecoverPhraseView extends StatelessWidget {
   const RecoverPhraseView({
@@ -52,19 +55,18 @@ class RecoverPhraseView extends StatelessWidget {
               child: AppBarIconButton(
                 color: Theme.of(context).extension<StackColors>()!.background,
                 shadows: const [],
-                icon: SvgPicture.asset(
-                  Assets.svg.copy,
-                  width: 20,
-                  height: 20,
-                ),
+                icon: SvgPicture.asset(Assets.svg.copy, width: 20, height: 20),
                 onPressed: () async {
-                  await clipboardInterface
-                      .setData(ClipboardData(text: mnemonic.join(" ")));
-                  showFloatingFlushBar(
-                    type: FlushBarType.info,
-                    message: "Copied to clipboard",
-                    iconAsset: Assets.svg.copy,
-                    context: context,
+                  await clipboardInterface.setData(
+                    ClipboardData(text: mnemonic.join(" ")),
+                  );
+                  unawaited(
+                    showFloatingFlushBar(
+                      type: FlushBarType.info,
+                      message: "Copied to clipboard",
+                      iconAsset: Assets.svg.copy,
+                      context: context,
+                    ),
                   );
                 },
               ),
@@ -72,41 +74,32 @@ class RecoverPhraseView extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(
-              height: 4,
-            ),
-            Text(
-              walletName,
-              textAlign: TextAlign.center,
-              style: STextStyles.label(context).copyWith(
-                fontSize: 12,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 4),
+              Text(
+                walletName,
+                textAlign: TextAlign.center,
+                style: STextStyles.label(context).copyWith(fontSize: 12),
               ),
-            ),
-            const SizedBox(
-              height: 4,
-            ),
-            Text(
-              "Recovery Phrase",
-              textAlign: TextAlign.center,
-              style: STextStyles.pageTitleH1(context),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: MnemonicTable(
-                  words: mnemonic,
-                  isDesktop: false,
+              const SizedBox(height: 4),
+              Text(
+                "Recovery Phrase",
+                textAlign: TextAlign.center,
+                style: STextStyles.pageTitleH1(context),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: MnemonicTable(words: mnemonic, isDesktop: false),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

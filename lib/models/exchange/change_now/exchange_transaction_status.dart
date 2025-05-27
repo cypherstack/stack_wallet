@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -11,38 +11,14 @@
 import 'package:hive/hive.dart';
 
 import '../../../utilities/logger.dart';
+import 'cn_exchange_transaction_status.dart'
+    show
+        ChangeNowTransactionStatus,
+        changeNowTransactionStatusFromStringIgnoreCase;
 
 part '../../type_adaptors/exchange_transaction_status.g.dart';
 
-enum ChangeNowTransactionStatus {
-  New,
-  Waiting,
-  Confirming,
-  Exchanging,
-  Sending,
-  Finished,
-  Failed,
-  Refunded,
-  Verifying,
-}
-
-extension ChangeNowTransactionStatusExt on ChangeNowTransactionStatus {
-  String get lowerCaseName => name.toLowerCase();
-}
-
-ChangeNowTransactionStatus changeNowTransactionStatusFromStringIgnoreCase(
-  String string,
-) {
-  for (final value in ChangeNowTransactionStatus.values) {
-    if (value.lowerCaseName == string.toLowerCase()) {
-      return value;
-    }
-  }
-  throw ArgumentError(
-    "String value does not match any known ChangeNowTransactionStatus",
-  );
-}
-
+@Deprecated("Only kept for legacy reasons")
 @HiveType(typeId: 16)
 class ExchangeTransactionStatus {
   /// Transaction status
@@ -156,6 +132,7 @@ class ExchangeTransactionStatus {
   @HiveField(26)
   final bool isPartner;
 
+  @Deprecated("Only kept for legacy reasons")
   ExchangeTransactionStatus({
     required this.status,
     required this.payinAddress,
@@ -186,6 +163,7 @@ class ExchangeTransactionStatus {
     required this.payload,
   });
 
+  @Deprecated("Only kept for legacy reasons")
   factory ExchangeTransactionStatus.fromJson(Map<String, dynamic> json) {
     Logging.instance.d(json, stackTrace: StackTrace.current);
     try {
@@ -199,12 +177,14 @@ class ExchangeTransactionStatus {
         toCurrency: json["toCurrency"] as String? ?? "",
         id: json["id"] as String,
         updatedAt: json["updatedAt"] as String? ?? "",
-        expectedSendAmountDecimal: json["expectedSendAmount"] == null
-            ? ""
-            : json["expectedSendAmount"].toString(),
-        expectedReceiveAmountDecimal: json["expectedReceiveAmount"] == null
-            ? ""
-            : json["expectedReceiveAmount"].toString(),
+        expectedSendAmountDecimal:
+            json["expectedSendAmount"] == null
+                ? ""
+                : json["expectedSendAmount"].toString(),
+        expectedReceiveAmountDecimal:
+            json["expectedReceiveAmount"] == null
+                ? ""
+                : json["expectedReceiveAmount"].toString(),
         createdAt: json["createdAt"] as String? ?? "",
         isPartner: json["isPartner"] as bool,
         depositReceivedAt: json["depositReceivedAt"] as String? ?? "",
@@ -216,9 +196,10 @@ class ExchangeTransactionStatus {
         payoutExtraId: json["payoutExtraId"] as String? ?? "",
         amountSendDecimal:
             json["amountSend"] == null ? "" : json["amountSend"].toString(),
-        amountReceiveDecimal: json["amountReceive"] == null
-            ? ""
-            : json["amountReceive"].toString(),
+        amountReceiveDecimal:
+            json["amountReceive"] == null
+                ? ""
+                : json["amountReceive"].toString(),
         tokensDestination: json["tokensDestination"] as String? ?? "",
         refundAddress: json["refundAddress"] as String? ?? "",
         refundExtraId: json["refundExtraId"] as String? ?? "",
@@ -233,6 +214,7 @@ class ExchangeTransactionStatus {
     }
   }
 
+  @Deprecated("Only kept for legacy reasons")
   Map<String, dynamic> toJson() {
     final map = {
       "status": status.name,
@@ -267,6 +249,7 @@ class ExchangeTransactionStatus {
     return map;
   }
 
+  @Deprecated("Only kept for legacy reasons")
   ExchangeTransactionStatus copyWith({
     ChangeNowTransactionStatus? status,
     String? payinAddress,

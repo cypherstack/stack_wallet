@@ -14,8 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+
 import '../../models/buy/response_objects/quote.dart';
-import 'sub_widgets/buy_warning_popup.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/assets.dart';
@@ -26,12 +26,10 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
+import 'sub_widgets/buy_warning_popup.dart';
 
 class BuyQuotePreviewView extends ConsumerStatefulWidget {
-  const BuyQuotePreviewView({
-    super.key,
-    required this.quote,
-  });
+  const BuyQuotePreviewView({super.key, required this.quote});
 
   final SimplexQuote quote;
 
@@ -48,9 +46,7 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
   Future<void> _buyWarning() async {
     await showDialog<void>(
       context: context,
-      builder: (context) => BuyWarningPopup(
-        quote: widget.quote,
-      ),
+      builder: (context) => BuyWarningPopup(quote: widget.quote),
     );
   }
 
@@ -76,29 +72,31 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
                 style: STextStyles.navBarTitle(context),
               ),
             ),
-            body: LayoutBuilder(
-              builder: (builderContext, constraints) {
-                return Padding(
-                  padding: const EdgeInsets.only(
-                    left: 12,
-                    top: 12,
-                    right: 12,
-                  ),
-                  child: SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - 24,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: child,
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (builderContext, constraints) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      top: 12,
+                      right: 12,
+                    ),
+                    child: SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 24,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: child,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -110,17 +108,12 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
             "Buy ${widget.quote.crypto.ticker.toUpperCase()}",
             style: STextStyles.pageTitleH1(context),
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "You pay",
-                  style: STextStyles.label(context),
-                ),
+                Text("You pay", style: STextStyles.label(context)),
                 Text(
                   "${format.simpleCurrencySymbol(widget.quote.fiat.ticker.toUpperCase())}${widget.quote.youPayFiatPrice.toStringAsFixed(2)} ${widget.quote.fiat.ticker.toUpperCase()}",
                   style: STextStyles.label(context).copyWith(
@@ -130,9 +123,7 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           // RoundedWhiteContainer(
           //   child: Row(
           //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -157,10 +148,7 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "You receive",
-                  style: STextStyles.label(context),
-                ),
+                Text("You receive", style: STextStyles.label(context)),
                 Text(
                   "${widget.quote.youReceiveCryptoAmount} ${widget.quote.crypto.ticker.toUpperCase()}",
                   style: STextStyles.label(context).copyWith(
@@ -170,9 +158,7 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           RoundedWhiteContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,17 +176,12 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Quote ID",
-                  style: STextStyles.label(context),
-                ),
+                Text("Quote ID", style: STextStyles.label(context)),
                 Text(
                   widget.quote.id,
                   style: STextStyles.label(context).copyWith(
@@ -210,37 +191,25 @@ class _BuyQuotePreviewViewState extends ConsumerState<BuyQuotePreviewView> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           RoundedWhiteContainer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Provider",
-                  style: STextStyles.label(context),
-                ),
+                Text("Provider", style: STextStyles.label(context)),
                 SizedBox(
                   width: 64,
                   height: 32,
                   child: SvgPicture.asset(
-                    Assets.buy.simplexLogo(
-                      ref.watch(themeProvider).brightness,
-                    ),
+                    Assets.buy.simplexLogo(ref.watch(themeProvider).brightness),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           const Spacer(),
-          PrimaryButton(
-            label: "Buy",
-            onPressed: _buyWarning,
-          ),
+          PrimaryButton(label: "Buy", onPressed: _buyWarning),
         ],
       ),
     );

@@ -64,8 +64,10 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
   bool _desktopReadOnly = true;
 
   Future<void> _notifyWalletsOfUpdatedNode() async {
-    final wallets =
-        ref.read(pWallets).wallets.where((e) => e.info.coin == widget.coin);
+    final wallets = ref
+        .read(pWallets)
+        .wallets
+        .where((e) => e.info.coin == widget.coin);
     final prefs = ref.read(prefsChangeNotifierProvider);
 
     switch (prefs.syncType) {
@@ -110,139 +112,140 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
     final isDesktop = Util.isDesktop;
 
     final node = ref.watch(
-      nodeServiceChangeNotifierProvider
-          .select((value) => value.getNodeById(id: nodeId)),
+      nodeServiceChangeNotifierProvider.select(
+        (value) => value.getNodeById(id: nodeId),
+      ),
     );
 
     final nodesForCoin = ref.watch(
-      nodeServiceChangeNotifierProvider
-          .select((value) => value.getNodesFor(coin)),
+      nodeServiceChangeNotifierProvider.select(
+        (value) => value.getNodesFor(coin),
+      ),
     );
 
     final canDelete = nodesForCoin.length > 1;
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            title: Text(
-              "Node details",
-              style: STextStyles.navBarTitle(context),
-            ),
-            actions: [
-              // if (!nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix))
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 75),
+                      );
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
                 ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.pencil,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
-                      width: 20,
-                      height: 20,
+                title: Text(
+                  "Node details",
+                  style: STextStyles.navBarTitle(context),
+                ),
+                actions: [
+                  // if (!nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix))
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 10,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        AddEditNodeView.routeName,
-                        arguments: Tuple4(
-                          AddEditNodeViewType.edit,
-                          coin,
-                          nodeId,
-                          popRouteName,
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
+                        size: 36,
+                        shadows: const [],
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
+                        icon: SvgPicture.asset(
+                          Assets.svg.pencil,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorDark,
+                          width: 20,
+                          height: 20,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            AddEditNodeView.routeName,
+                            arguments: Tuple4(
+                              AddEditNodeViewType.edit,
+                              coin,
+                              nodeId,
+                              popRouteName,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight - 8,
+                            ),
+                            child: IntrinsicHeight(child: child),
+                          ),
                         ),
                       );
                     },
                   ),
                 ),
               ),
-            ],
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              top: 12,
-              left: 12,
-              right: 12,
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(minHeight: constraints.maxHeight - 8),
-                      child: IntrinsicHeight(
-                        child: child,
-                      ),
-                    ),
-                  ),
-                );
-              },
             ),
           ),
-        ),
-      ),
       child: ConditionalParent(
         condition: isDesktop,
-        builder: (child) => DesktopDialog(
-          maxWidth: 580,
-          maxHeight: double.infinity,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+        builder:
+            (child) => DesktopDialog(
+              maxWidth: 580,
+              maxHeight: double.infinity,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(
-                    width: 8,
+                  Row(
+                    children: [
+                      const SizedBox(width: 8),
+                      const AppBarBackButton(iconSize: 24, size: 40),
+                      Text(
+                        "Node details",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ],
                   ),
-                  const AppBarBackButton(
-                    iconSize: 24,
-                    size: 40,
-                  ),
-                  Text(
-                    "Node details",
-                    style: STextStyles.desktopH3(context),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 32,
+                      right: 32,
+                      top: 16,
+                      bottom: 32,
+                    ),
+                    child: child,
                   ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                  top: 16,
-                  bottom: 32,
-                ),
-                child: child,
-              ),
-            ],
-          ),
-        ),
+            ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -253,44 +256,35 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
               coin: coin,
             ),
             if (!isDesktop) const Spacer(),
-            if (isDesktop)
-              const SizedBox(
-                height: 22,
-              ),
+            if (isDesktop) const SizedBox(height: 22),
             if (isDesktop && canDelete)
               SizedBox(
                 height: 56,
-                child: _desktopReadOnly
-                    ? null
-                    : Row(
-                        children: [
-                          Expanded(
-                            child: DeleteButton(
-                              label: "Delete node",
-                              desktopMed: true,
-                              onPressed: () async {
-                                Navigator.of(context).pop();
+                child:
+                    _desktopReadOnly
+                        ? null
+                        : Row(
+                          children: [
+                            Expanded(
+                              child: DeleteButton(
+                                label: "Delete node",
+                                desktopMed: true,
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
 
-                                await ref
-                                    .read(nodeServiceChangeNotifierProvider)
-                                    .delete(
-                                      node!.id,
-                                      true,
-                                    );
-                              },
+                                  await ref
+                                      .read(nodeServiceChangeNotifierProvider)
+                                      .delete(node!.id, true);
+                                },
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
+                            const SizedBox(width: 16),
+                            const Spacer(),
+                          ],
+                        ),
               ),
             if (isDesktop && !_desktopReadOnly && canDelete)
-              const SizedBox(
-                height: 45,
-              ),
+              const SizedBox(height: 45),
             Row(
               children: [
                 Expanded(
@@ -298,9 +292,10 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                     label: "Test connection",
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: () async {
-                      final node = ref
-                          .read(nodeServiceChangeNotifierProvider)
-                          .getNodeById(id: nodeId)!;
+                      final node =
+                          ref
+                              .read(nodeServiceChangeNotifierProvider)
+                              .getNodeById(id: nodeId)!;
 
                       final TorPlainNetworkOption netOption;
                       if (ref.read(nodeFormDataProvider).netOption != null) {
@@ -312,15 +307,17 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         );
                       }
 
-                      final nodeFormData = NodeFormData()
-                        ..useSSL = node.useSSL
-                        ..trusted = node.trusted
-                        ..name = node.name
-                        ..host = node.host
-                        ..login = node.loginName
-                        ..port = node.port
-                        ..isFailover = node.isFailover
-                        ..netOption = netOption;
+                      final nodeFormData =
+                          NodeFormData()
+                            ..useSSL = node.useSSL
+                            ..trusted = node.trusted
+                            ..name = node.name
+                            ..host = node.host
+                            ..login = node.loginName
+                            ..port = node.port
+                            ..isFailover = node.isFailover
+                            ..netOption = netOption
+                            ..forceNoTor = node.forceNoTor;
                       nodeFormData.password = await node.getPassword(
                         ref.read(secureStoreProvider),
                       );
@@ -358,16 +355,13 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                     },
                   ),
                 ),
-                if (isDesktop)
-                  const SizedBox(
-                    width: 16,
-                  ),
+                if (isDesktop) const SizedBox(width: 16),
                 if (isDesktop)
                   Expanded(
                     child:
-                        // !nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                        //     ?
-                        PrimaryButton(
+                    // !nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix)
+                    //     ?
+                    PrimaryButton(
                       label: _desktopReadOnly ? "Edit" : "Save",
                       buttonHeight: ButtonHeight.l,
                       onPressed: () async {
@@ -388,14 +382,16 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                                 ref.read(nodeFormDataProvider).isFailover,
                             torEnabled:
                                 ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.tor ||
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.both,
+                                    TorPlainNetworkOption.tor ||
+                                ref.read(nodeFormDataProvider).netOption ==
+                                    TorPlainNetworkOption.both,
                             clearnetEnabled:
                                 ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.clear ||
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.both,
+                                    TorPlainNetworkOption.clear ||
+                                ref.read(nodeFormDataProvider).netOption ==
+                                    TorPlainNetworkOption.both,
+                            forceNoTor:
+                                ref.read(nodeFormDataProvider).forceNoTor,
                           );
 
                           await ref
@@ -408,16 +404,12 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                           await _notifyWalletsOfUpdatedNode();
                         }
                       },
-                    )
+                    ),
                     // : Container()
-                    ,
                   ),
               ],
             ),
-            if (!isDesktop)
-              const SizedBox(
-                height: 16,
-              ),
+            if (!isDesktop) const SizedBox(height: 16),
           ],
         ),
       ),

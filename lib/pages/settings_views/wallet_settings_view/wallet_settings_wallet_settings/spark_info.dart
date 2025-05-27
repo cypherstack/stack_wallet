@@ -10,10 +10,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/detail_item.dart';
 
 class SparkInfoView extends ConsumerWidget {
-  const SparkInfoView({
-    super.key,
-    required this.walletId,
-  });
+  const SparkInfoView({super.key, required this.walletId});
 
   static const String routeName = "/sparkInfo";
 
@@ -30,33 +27,32 @@ class SparkInfoView extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Spark Info",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Spark Info", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              FutureBuilder(
-                future: FiroCacheCoordinator.getSparkCacheSize(
-                  ref.watch(pWalletCoin(walletId)).network,
-                ),
-                builder: (_, snapshot) {
-                  String detail = "Loading...";
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    detail = snapshot.data ?? detail;
-                  }
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FutureBuilder(
+                  future: FiroCacheCoordinator.getSparkCacheSize(
+                    ref.watch(pWalletCoin(walletId)).network,
+                  ),
+                  builder: (_, snapshot) {
+                    String detail = "Loading...";
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      detail = snapshot.data ?? detail;
+                    }
 
-                  return DetailItem(
-                    title: "Spark electrumx cache size",
-                    detail: detail,
-                  );
-                },
-              ),
-            ],
+                    return DetailItem(
+                      title: "Spark electrumx cache size",
+                      detail: detail,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

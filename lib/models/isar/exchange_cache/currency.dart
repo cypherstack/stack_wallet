@@ -11,6 +11,11 @@
 import 'package:isar/isar.dart';
 
 import '../../../app_config.dart';
+import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../../../services/exchange/exchange.dart';
+import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
+import '../../../services/exchange/nanswap/nanswap_exchange.dart';
+import '../../../services/exchange/trocador/trocador_exchange.dart';
 import 'pair.dart';
 
 part 'currency.g.dart';
@@ -23,12 +28,7 @@ class Currency {
   final String exchangeName;
 
   /// Currency ticker
-  @Index(
-    composite: [
-      CompositeIndex("exchangeName"),
-      CompositeIndex("name"),
-    ],
-  )
+  @Index(composite: [CompositeIndex("exchangeName"), CompositeIndex("name")])
   final String ticker;
 
   /// Currency name
@@ -67,6 +67,33 @@ class Currency {
   bool get supportsEstimatedRate =>
       rateType == SupportedRateType.estimated ||
       rateType == SupportedRateType.both;
+
+  // used to group coins across providers
+  @ignore
+  String? _fuzzyCache;
+  String getFuzzyNet() {
+    return _fuzzyCache ??= switch (Exchange.fromName(
+      exchangeName,
+    ).runtimeType) {
+      // already lower case ticker basically
+      const (ChangeNowExchange) => network,
+
+      // not used at the time being
+      // case const (SimpleSwapExchange):
+
+      // currently a hardcoded of coins so we can just
+      const (MajesticBankExchange) => ticker.toLowerCase(),
+
+      const (TrocadorExchange) =>
+        (network == "Mainnet" ? ticker.toLowerCase() : network),
+
+      // only a few coins and `network` is the ticker
+      const (NanswapExchange) =>
+        network.isNotEmpty ? network.toLowerCase() : ticker.toLowerCase(),
+
+      _ => throw Exception("Unknown exchange: $exchangeName"),
+    };
+  }
 
   Currency({
     required this.exchangeName,

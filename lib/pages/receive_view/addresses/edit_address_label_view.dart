@@ -28,10 +28,7 @@ import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 
 class EditAddressLabelView extends ConsumerStatefulWidget {
-  const EditAddressLabelView({
-    super.key,
-    required this.addressLabelId,
-  });
+  const EditAddressLabelView({super.key, required this.addressLabelId});
 
   static const String routeName = "/editAddressLabel";
 
@@ -54,10 +51,11 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
   void initState() {
     isDesktop = Util.isDesktop;
     _labelFieldController = TextEditingController();
-    addressLabel = MainDB.instance.isar.addressLabels
-        .where()
-        .idEqualTo(widget.addressLabelId)
-        .findFirstSync()!;
+    addressLabel =
+        MainDB.instance.isar.addressLabels
+            .where()
+            .idEqualTo(widget.addressLabelId)
+            .findFirstSync()!;
     _labelFieldController.text = addressLabel.value;
     super.initState();
   }
@@ -73,145 +71,163 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: child,
-      ),
+      builder: (child) => Background(child: child),
       child: Scaffold(
-        backgroundColor: isDesktop
-            ? Colors.transparent
-            : Theme.of(context).extension<StackColors>()!.background,
-        appBar: isDesktop
-            ? null
-            : AppBar(
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.background,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 75),
+        backgroundColor:
+            isDesktop
+                ? Colors.transparent
+                : Theme.of(context).extension<StackColors>()!.background,
+        appBar:
+            isDesktop
+                ? null
+                : AppBar(
+                  backgroundColor:
+                      Theme.of(context).extension<StackColors>()!.background,
+                  leading: AppBarBackButton(
+                    onPressed: () async {
+                      if (FocusScope.of(context).hasFocus) {
+                        FocusScope.of(context).unfocus();
+                        await Future<void>.delayed(
+                          const Duration(milliseconds: 75),
+                        );
+                      }
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  ),
+                  title: Text(
+                    "Edit label",
+                    style: STextStyles.navBarTitle(context),
+                  ),
+                ),
+        body: SafeArea(
+          child: ConditionalParent(
+            condition: !isDesktop,
+            builder:
+                (child) => Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: child,
+                            ),
+                          ),
+                        ),
                       );
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
+                    },
+                  ),
                 ),
-                title: Text(
-                  "Edit label",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-        body: ConditionalParent(
-          condition: !isDesktop,
-          builder: (child) => Padding(
-            padding: const EdgeInsets.all(12),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: child,
-                      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isDesktop)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32, bottom: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Edit label",
+                          style: STextStyles.desktopH3(context),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (isDesktop)
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                    bottom: 12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Edit label",
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                ),
-              Padding(
-                padding: isDesktop
-                    ? const EdgeInsets.symmetric(
-                        horizontal: 32,
-                      )
-                    : const EdgeInsets.all(0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                  child: TextField(
-                    autocorrect: Util.isDesktop ? false : true,
-                    enableSuggestions: Util.isDesktop ? false : true,
-                    controller: _labelFieldController,
-                    style: isDesktop
-                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveText,
-                            height: 1.8,
-                          )
-                        : STextStyles.field(context),
-                    focusNode: labelFieldFocusNode,
-                    decoration: standardInputDecoration(
-                      "Address label",
-                      labelFieldFocusNode,
-                      context,
-                      desktopMed: isDesktop,
-                    ).copyWith(
-                      contentPadding: isDesktop
-                          ? const EdgeInsets.only(
-                              left: 16,
-                              top: 11,
-                              bottom: 12,
-                              right: 5,
-                            )
-                          : null,
-                      suffixIcon: _labelFieldController.text.isNotEmpty
-                          ? Padding(
-                              padding: const EdgeInsets.only(right: 0),
-                              child: UnconstrainedBox(
-                                child: Row(
-                                  children: [
-                                    TextFieldIconButton(
-                                      child: const XIcon(),
-                                      onTap: () async {
-                                        setState(() {
-                                          _labelFieldController.text = "";
-                                        });
-                                      },
+                  padding:
+                      isDesktop
+                          ? const EdgeInsets.symmetric(horizontal: 32)
+                          : const EdgeInsets.all(0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: TextField(
+                      autocorrect: Util.isDesktop ? false : true,
+                      enableSuggestions: Util.isDesktop ? false : true,
+                      controller: _labelFieldController,
+                      style:
+                          isDesktop
+                              ? STextStyles.desktopTextExtraSmall(
+                                context,
+                              ).copyWith(
+                                color:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveText,
+                                height: 1.8,
+                              )
+                              : STextStyles.field(context),
+                      focusNode: labelFieldFocusNode,
+                      decoration: standardInputDecoration(
+                        "Address label",
+                        labelFieldFocusNode,
+                        context,
+                        desktopMed: isDesktop,
+                      ).copyWith(
+                        contentPadding:
+                            isDesktop
+                                ? const EdgeInsets.only(
+                                  left: 16,
+                                  top: 11,
+                                  bottom: 12,
+                                  right: 5,
+                                )
+                                : null,
+                        suffixIcon:
+                            _labelFieldController.text.isNotEmpty
+                                ? Padding(
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              _labelFieldController.text = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          : null,
+                                  ),
+                                )
+                                : null,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // if (!isDesktop)
-              const Spacer(),
-              if (isDesktop)
-                Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: PrimaryButton(
-                    label: "Save",
+                // if (!isDesktop)
+                const Spacer(),
+                if (isDesktop)
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: PrimaryButton(
+                      label: "Save",
+                      onPressed: () async {
+                        await MainDB.instance.updateAddressLabel(
+                          addressLabel.copyWith(
+                            label: _labelFieldController.text,
+                          ),
+                        );
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    ),
+                  ),
+                if (!isDesktop)
+                  TextButton(
                     onPressed: () async {
                       await MainDB.instance.updateAddressLabel(
                         addressLabel.copyWith(
@@ -222,29 +238,13 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                         Navigator.of(context).pop();
                       }
                     },
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonStyle(context),
+                    child: Text("Save", style: STextStyles.button(context)),
                   ),
-                ),
-              if (!isDesktop)
-                TextButton(
-                  onPressed: () async {
-                    await MainDB.instance.updateAddressLabel(
-                      addressLabel.copyWith(
-                        label: _labelFieldController.text,
-                      ),
-                    );
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context),
-                  child: Text(
-                    "Save",
-                    style: STextStyles.button(context),
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -53,6 +53,8 @@ class MajesticBankExchange extends Exchange {
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
     required String to,
+    required String? fromNetwork,
+    required String? toNetwork,
     required bool fixedRate,
     required Decimal amount,
     required String addressTo,
@@ -138,7 +140,8 @@ class MajesticBankExchange extends Exchange {
       final currency = Currency(
         exchangeName: MajesticBankExchange.exchangeName,
         ticker: limit.currency,
-        name: kMajesticBankCurrencyNames[limit.currency] ??
+        name:
+            kMajesticBankCurrencyNames[limit.currency] ??
             limit.currency, // todo: add more names if MB adds more
         network: "",
         image: "",
@@ -154,42 +157,44 @@ class MajesticBankExchange extends Exchange {
     return ExchangeResponse(value: currencies);
   }
 
-  @override
-  Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
-    String forCurrency,
-    bool fixedRate,
-  ) {
-    // TODO: change this if the api changes to allow getting by paired currency
-    return getAllCurrencies(fixedRate);
-  }
-
-  @override
-  Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
-    final response = await MajesticBankAPI.instance.getRates();
-    if (response.value == null) {
-      return ExchangeResponse(exception: response.exception);
-    }
-
-    final List<Pair> pairs = [];
-    final rates = response.value!;
-
-    for (final rate in rates) {
-      final pair = Pair(
-        exchangeName: MajesticBankExchange.exchangeName,
-        from: rate.fromCurrency,
-        to: rate.toCurrency,
-        rateType: SupportedRateType.both,
-      );
-      pairs.add(pair);
-    }
-
-    return ExchangeResponse(value: pairs);
-  }
+  // @override
+  // Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(
+  //   String forCurrency,
+  //   bool fixedRate,
+  // ) {
+  //   // TODO: change this if the api changes to allow getting by paired currency
+  //   return getAllCurrencies(fixedRate);
+  // }
+  //
+  // @override
+  // Future<ExchangeResponse<List<Pair>>> getAllPairs(bool fixedRate) async {
+  //   final response = await MajesticBankAPI.instance.getRates();
+  //   if (response.value == null) {
+  //     return ExchangeResponse(exception: response.exception);
+  //   }
+  //
+  //   final List<Pair> pairs = [];
+  //   final rates = response.value!;
+  //
+  //   for (final rate in rates) {
+  //     final pair = Pair(
+  //       exchangeName: MajesticBankExchange.exchangeName,
+  //       from: rate.fromCurrency,
+  //       to: rate.toCurrency,
+  //       rateType: SupportedRateType.both,
+  //     );
+  //     pairs.add(pair);
+  //   }
+  //
+  //   return ExchangeResponse(value: pairs);
+  // }
 
   @override
   Future<ExchangeResponse<List<Estimate>>> getEstimates(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     Decimal amount,
     bool fixedRate,
     bool reversed,
@@ -214,33 +219,36 @@ class MajesticBankExchange extends Exchange {
     return ExchangeResponse(value: [estimate]);
   }
 
-  @override
-  Future<ExchangeResponse<List<Pair>>> getPairsFor(
-    String currency,
-    bool fixedRate,
-  ) async {
-    final response = await getAllPairs(fixedRate);
-    if (response.value == null) {
-      return ExchangeResponse(exception: response.exception);
-    }
-
-    final pairs = response.value!.where(
-      (e) =>
-          e.from.toUpperCase() == currency.toUpperCase() ||
-          e.to.toUpperCase() == currency.toUpperCase(),
-    );
-
-    return ExchangeResponse(value: pairs.toList());
-  }
+  // @override
+  // Future<ExchangeResponse<List<Pair>>> getPairsFor(
+  //   String currency,
+  //   bool fixedRate,
+  // ) async {
+  //   final response = await getAllPairs(fixedRate);
+  //   if (response.value == null) {
+  //     return ExchangeResponse(exception: response.exception);
+  //   }
+  //
+  //   final pairs = response.value!.where(
+  //     (e) =>
+  //         e.from.toUpperCase() == currency.toUpperCase() ||
+  //         e.to.toUpperCase() == currency.toUpperCase(),
+  //   );
+  //
+  //   return ExchangeResponse(value: pairs.toList());
+  // }
 
   @override
   Future<ExchangeResponse<Range>> getRange(
     String from,
+    String? fromNetwork,
     String to,
+    String? toNetwork,
     bool fixedRate,
   ) async {
-    final response =
-        await MajesticBankAPI.instance.getLimit(fromCurrency: from);
+    final response = await MajesticBankAPI.instance.getLimit(
+      fromCurrency: from,
+    );
     if (response.value == null) {
       return ExchangeResponse(exception: response.exception);
     }

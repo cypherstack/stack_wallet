@@ -10,6 +10,7 @@
 
 import 'dart:io';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -53,12 +54,11 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
 
         return ConditionalParent(
           condition: index + 1 == walletsByCoin.length,
-          builder: (child) => Padding(
-            padding: const EdgeInsets.only(
-              bottom: 16,
-            ),
-            child: child,
-          ),
+          builder:
+              (child) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: child,
+              ),
           child: DesktopWalletSummaryRow(
             key: Key("DesktopWalletSummaryRow_key_${coin.identifier}"),
             coin: coin,
@@ -66,9 +66,7 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
           ),
         );
       },
-      separatorBuilder: (_, __) => const SizedBox(
-        height: 10,
-      ),
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemCount: walletsByCoin.length,
     );
   }
@@ -96,11 +94,10 @@ class _DesktopWalletSummaryRowState
       // ... and if the coin supports Tor.
       if (!widget.coin.torSupport) {
         // If not, show a Tor warning dialog.
-        final shouldContinue = await showDialog<bool>(
+        final shouldContinue =
+            await showDialog<bool>(
               context: context,
-              builder: (_) => TorWarningDialog(
-                coin: widget.coin,
-              ),
+              builder: (_) => TorWarningDialog(coin: widget.coin),
             ) ??
             false;
         if (!shouldContinue) {
@@ -121,8 +118,12 @@ class _DesktopWalletSummaryRowState
       await _checkTor();
 
       if (mounted) {
-        final wallet = ref.read(pWallets).wallets.firstWhere(
-            (e) => e.cryptoCurrency.identifier == widget.coin.identifier);
+        final wallet = ref
+            .read(pWallets)
+            .wallets
+            .firstWhere(
+              (e) => e.cryptoCurrency.identifier == widget.coin.identifier,
+            );
 
         final canContinue = await checkShowNodeTorSettingsMismatch(
           context: context,
@@ -139,8 +140,9 @@ class _DesktopWalletSummaryRowState
 
         final Future<void> loadFuture;
         if (wallet is ExternalWallet) {
-          loadFuture =
-              wallet.init().then((value) async => await (wallet).open());
+          loadFuture = wallet.init().then(
+            (value) async => await (wallet).open(),
+          );
         } else {
           loadFuture = wallet.init();
         }
@@ -152,10 +154,9 @@ class _DesktopWalletSummaryRowState
         );
 
         if (mounted) {
-          await Navigator.of(context).pushNamed(
-            DesktopWalletView.routeName,
-            arguments: wallet.walletId,
-          );
+          await Navigator.of(
+            context,
+          ).pushNamed(DesktopWalletView.routeName, arguments: wallet.walletId);
         }
       }
     } finally {
@@ -173,40 +174,41 @@ class _DesktopWalletSummaryRowState
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => DesktopDialog(
-            maxHeight: 600,
-            maxWidth: 700,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          builder:
+              (_) => DesktopDialog(
+                maxHeight: 600,
+                maxWidth: 700,
+                child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 32),
-                      child: Text(
-                        "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
-                        style: STextStyles.desktopH3(context),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: Text(
+                            "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 32,
+                          right: 32,
+                          bottom: 32,
+                        ),
+                        child: WalletsOverview(
+                          coin: widget.coin,
+                          navigatorState: Navigator.of(context),
+                        ),
                       ),
                     ),
-                    const DesktopDialogCloseButton(),
                   ],
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 32,
-                      right: 32,
-                      bottom: 32,
-                    ),
-                    child: WalletsOverview(
-                      coin: widget.coin,
-                      navigatorState: Navigator.of(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
         );
       }
     } finally {
@@ -216,6 +218,12 @@ class _DesktopWalletSummaryRowState
 
   @override
   Widget build(BuildContext context) {
+    final price = ref.watch(
+      priceAnd24hChangeNotifierProvider.select(
+        (value) => value.getPrice(widget.coin),
+      ),
+    );
+
     return Breathing(
       child: RoundedWhiteContainer(
         padding: const EdgeInsets.all(20),
@@ -229,15 +237,11 @@ class _DesktopWalletSummaryRowState
               child: Row(
                 children: [
                   SvgPicture.file(
-                    File(
-                      ref.watch(coinIconProvider(widget.coin)),
-                    ),
+                    File(ref.watch(coinIconProvider(widget.coin))),
                     width: 28,
                     height: 28,
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
+                  const SizedBox(width: 10),
                   Text(
                     widget.coin.prettyName,
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -260,12 +264,11 @@ class _DesktopWalletSummaryRowState
                 ),
               ),
             ),
-            Expanded(
-              flex: 6,
-              child: TablePriceInfo(
-                coin: widget.coin,
+            if (price != null)
+              Expanded(
+                flex: 6,
+                child: TablePriceInfo(coin: widget.coin, price: price),
               ),
-            ),
           ],
         ),
       ),
@@ -274,43 +277,30 @@ class _DesktopWalletSummaryRowState
 }
 
 class TablePriceInfo extends ConsumerWidget {
-  const TablePriceInfo({super.key, required this.coin});
+  const TablePriceInfo({super.key, required this.coin, required this.price});
 
   final CryptoCurrency coin;
+  final ({Decimal value, double change24h}) price;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tuple = ref.watch(
-      priceAnd24hChangeNotifierProvider.select(
-        (value) => value.getPrice(coin),
-      ),
-    );
-
     final currency = ref.watch(
-      prefsChangeNotifierProvider.select(
-        (value) => value.currency,
-      ),
+      prefsChangeNotifierProvider.select((value) => value.currency),
     );
 
     final priceString = Amount.fromDecimal(
-      tuple.item1,
+      price.value,
       fractionDigits: 2,
     ).fiatString(
-      locale: ref
-          .watch(
-            localeServiceChangeNotifierProvider.notifier,
-          )
-          .locale,
+      locale: ref.watch(localeServiceChangeNotifierProvider.notifier).locale,
     );
-
-    final double percentChange = tuple.item2;
 
     var percentChangedColor =
         Theme.of(context).extension<StackColors>()!.textDark;
-    if (percentChange > 0) {
+    if (price.change24h > 0) {
       percentChangedColor =
           Theme.of(context).extension<StackColors>()!.accentColorGreen;
-    } else if (percentChange < 0) {
+    } else if (price.change24h < 0) {
       percentChangedColor =
           Theme.of(context).extension<StackColors>()!.accentColorRed;
     }
@@ -325,10 +315,10 @@ class TablePriceInfo extends ConsumerWidget {
           ),
         ),
         Text(
-          "${percentChange.toStringAsFixed(2)}%",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: percentChangedColor,
-          ),
+          "${price.change24h.toStringAsFixed(2)}%",
+          style: STextStyles.desktopTextExtraSmall(
+            context,
+          ).copyWith(color: percentChangedColor),
         ),
       ],
     );
