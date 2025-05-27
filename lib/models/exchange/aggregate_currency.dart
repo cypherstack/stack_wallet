@@ -10,11 +10,12 @@
 
 import 'package:tuple/tuple.dart';
 
+import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../isar/exchange_cache/currency.dart';
 import '../isar/exchange_cache/pair.dart';
 
 class AggregateCurrency {
-  final Map<String, Currency?> _map = {};
+  final Map<String, Currency> _map = {};
 
   AggregateCurrency({
     required List<Tuple2<String, Currency>> exchangeCurrencyPairs,
@@ -32,17 +33,26 @@ class AggregateCurrency {
 
   String? networkFor(String exchangeName) => forExchange(exchangeName)?.network;
 
-  String get ticker => _map.values.first!.ticker;
+  String get ticker => _map.values.first.ticker;
 
-  String get name => _map.values.first!.name;
+  String get name {
+    if (_map.values.length > 2) {
+      return _map.values
+          .firstWhere((e) => e.exchangeName != TrocadorExchange.exchangeName)
+          .name;
+    }
 
-  String get image => _map.values.first!.image;
+    // trocador hack
+    return _map.values.first.name.split(" (Mainnet").first;
+  }
 
-  SupportedRateType get rateType => _map.values.first!.rateType;
+  String get image => _map.values.first.image;
 
-  bool get isStackCoin => _map.values.first!.isStackCoin;
+  SupportedRateType get rateType => _map.values.first.rateType;
 
-  String get fuzzyNet => _map.values.first!.getFuzzyNet();
+  bool get isStackCoin => _map.values.first.isStackCoin;
+
+  String get fuzzyNet => _map.values.first.getFuzzyNet();
 
   @override
   String toString() {
@@ -60,11 +70,11 @@ class AggregateCurrency {
         other.ticker == ticker &&
         other._map.isNotEmpty &&
         other._map.length == _map.length &&
-        other._map.values.first!.getFuzzyNet() ==
-            _map.values.first!.getFuzzyNet();
+        other._map.values.first.getFuzzyNet() ==
+            _map.values.first.getFuzzyNet();
   }
 
   @override
   int get hashCode =>
-      Object.hash(ticker, _map.values.first!.getFuzzyNet(), _map.length);
+      Object.hash(ticker, _map.values.first.getFuzzyNet(), _map.length);
 }

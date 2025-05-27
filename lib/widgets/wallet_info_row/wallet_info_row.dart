@@ -12,12 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../../pages/token_view/sub_widgets/token_summary.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../coin_ticker_tag.dart';
 import '../custom_buttons/blue_text_button.dart';
 import 'sub_widgets/wallet_info_row_balance.dart';
 import 'sub_widgets/wallet_info_row_coin_icon.dart';
@@ -43,8 +43,9 @@ class WalletInfoRow extends ConsumerWidget {
     EthContract? contract;
     if (contractAddress != null) {
       contract = ref.watch(
-        mainDBProvider
-            .select((value) => value.getEthContractSync(contractAddress!)),
+        mainDBProvider.select(
+          (value) => value.getEthContractSync(contractAddress!),
+        ),
       );
     }
 
@@ -63,39 +64,40 @@ class WalletInfoRow extends ConsumerWidget {
                       coin: wallet.info.coin,
                       contractAddress: contractAddress,
                     ),
-                    const SizedBox(
-                      width: 12,
-                    ),
+                    const SizedBox(width: 12),
                     contract != null
                         ? Row(
-                            children: [
-                              Text(
-                                contract.name,
-                                style:
-                                    STextStyles.desktopTextExtraSmall(context)
-                                        .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
+                          children: [
+                            Text(
+                              contract.name,
+                              style: STextStyles.desktopTextExtraSmall(
+                                context,
+                              ).copyWith(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
                               ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              CoinTickerTag(
-                                walletId: walletId,
-                              ),
-                            ],
-                          )
-                        : Text(
-                            wallet.info.name,
-                            style: STextStyles.desktopTextExtraSmall(context)
-                                .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark,
                             ),
+                            const SizedBox(width: 4),
+                            CoinTickerTag(
+                              ticker: ref.watch(
+                                pWalletCoin(walletId).select((s) => s.ticker),
+                              ),
+                            ),
+                          ],
+                        )
+                        : Text(
+                          wallet.info.name,
+                          style: STextStyles.desktopTextExtraSmall(
+                            context,
+                          ).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textDark,
                           ),
+                        ),
                   ],
                 ),
               ),
@@ -129,36 +131,33 @@ class WalletInfoRow extends ConsumerWidget {
             coin: wallet.info.coin,
             contractAddress: contractAddress,
           ),
-          const SizedBox(
-            width: 12,
-          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                contract != null
-                    ? Row(
-                        children: [
-                          Text(
-                            contract.name,
-                            style: STextStyles.titleBold12(context),
-                          ),
-                          const SizedBox(
-                            width: 4,
-                          ),
-                          CoinTickerTag(
-                            walletId: walletId,
-                          ),
-                        ],
-                      )
-                    : Text(
-                        wallet.info.name,
+                if (contract != null)
+                  Row(
+                    children: [
+                      Text(
+                        contract.name,
                         style: STextStyles.titleBold12(context),
                       ),
-                const SizedBox(
-                  height: 2,
-                ),
+                      const SizedBox(width: 4),
+                      CoinTickerTag(
+                        ticker: ref.watch(
+                          pWalletCoin(walletId).select((s) => s.ticker),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  Text(
+                    wallet.info.name,
+                    style: STextStyles.titleBold12(context),
+                  ),
+                const SizedBox(height: 2),
                 WalletInfoRowBalance(
                   walletId: walletId,
                   contractAddress: contractAddress,

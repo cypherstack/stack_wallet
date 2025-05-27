@@ -29,6 +29,7 @@ import '../../../utilities/prefs.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/background.dart';
+import '../../../widgets/coin_ticker_tag.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_loading_overlay.dart';
@@ -338,9 +339,8 @@ class _ExchangeCurrencySelectionViewState
                       primary: isDesktop ? false : null,
                       itemCount: items.length,
                       itemBuilder: (builderContext, index) {
-                        final bool hasImageUrl = items[index].image.startsWith(
-                          "http",
-                        );
+                        final image = items[index].image;
+                        final hasImageUrl = image.startsWith("http");
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: GestureDetector(
@@ -363,18 +363,12 @@ class _ExchangeCurrencySelectionViewState
                                               ticker: items[index].ticker,
                                               size: 24,
                                             )
-                                            // ? getIconForTicker(
-                                            //     items[index].ticker,
-                                            //     size: 24,
-                                            //   )
                                             : hasImageUrl
-                                            ? SvgPicture.network(
-                                              items[index].image,
-                                              width: 24,
-                                              height: 24,
-                                              placeholderBuilder:
-                                                  (_) =>
-                                                      const LoadingIndicator(),
+                                            ? _NetImage(
+                                              url: image,
+                                              key: ValueKey(
+                                                image + items[index].fuzzyNet,
+                                              ),
                                             )
                                             : const SizedBox(
                                               width: 24,
@@ -387,11 +381,29 @@ class _ExchangeCurrencySelectionViewState
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          items[index].name,
-                                          style: STextStyles.largeMedium14(
-                                            context,
-                                          ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              items[index].name,
+                                              style: STextStyles.largeMedium14(
+                                                context,
+                                              ),
+                                            ),
+                                            if (items[index].ticker
+                                                    .toLowerCase() !=
+                                                items[index].fuzzyNet
+                                                    .toLowerCase())
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 12,
+                                                ),
+                                                child: CoinTickerTag(
+                                                  ticker:
+                                                      items[index].fuzzyNet
+                                                          .toUpperCase(),
+                                                ),
+                                              ),
+                                          ],
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
@@ -423,5 +435,26 @@ class _ExchangeCurrencySelectionViewState
         ),
       ),
     );
+  }
+}
+
+class _NetImage extends StatelessWidget {
+  const _NetImage({super.key, required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    if (url.endsWith(".svg")) {
+      return SvgPicture.network(
+        key: key,
+        url,
+        width: 24,
+        height: 24,
+        placeholderBuilder: (_) => const LoadingIndicator(),
+      );
+    } else {
+      return Image.network(url, width: 24, height: 24, key: key);
+    }
   }
 }

@@ -22,6 +22,7 @@ import '../../models/exchange/aggregate_currency.dart';
 import '../../models/exchange/incomplete_exchange.dart';
 import '../../models/exchange/response_objects/estimate.dart';
 import '../../models/exchange/response_objects/range.dart';
+import '../../models/isar/exchange_cache/currency.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import '../../providers/providers.dart';
@@ -47,6 +48,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/basic_dialog.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
@@ -343,8 +345,79 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     update();
   }
 
+  Future<bool> _checkTrocadorWarning(Currency from, Currency to) async {
+    final Set<ProviderWarning> warnings = {};
+
+    final firoWarning =
+        TrocadorExchange.checkFiro(from) ?? TrocadorExchange.checkFiro(to);
+    final ltcWarning =
+        TrocadorExchange.checkLtc(from) ?? TrocadorExchange.checkLtc(to);
+
+    if (firoWarning != null) warnings.add(firoWarning);
+    if (ltcWarning != null) warnings.add(ltcWarning);
+
+    if (warnings.isNotEmpty) {
+      final title = warnings.map((e) => e.message).join(" and ");
+      final message = warnings.map((e) => e.messageDetail).join(" ");
+
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return BasicDialog(
+            title: title,
+            message: message,
+            canPopWithBackButton: true,
+            flex: true,
+            desktopHeight: 400,
+            leftButton: SecondaryButton(
+              label: "Cancel",
+              buttonHeight: isDesktop ? ButtonHeight.l : null,
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            rightButton: PrimaryButton(
+              label: "Continue",
+              buttonHeight: isDesktop ? ButtonHeight.l : null,
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          );
+        },
+      );
+
+      return result == true;
+    } else {
+      return true;
+    }
+  }
+
   void onExchangePressed() async {
     final exchangeName = ref.read(efExchangeProvider).name;
+
+    final fromCurrency = ref
+        .read(efCurrencyPairProvider)
+        .send
+        ?.forExchange(exchangeName);
+    final toCurrency = ref
+        .read(efCurrencyPairProvider)
+        .receive
+        ?.forExchange(exchangeName);
+
+    if (fromCurrency == null || toCurrency == null) {
+      await showDialog<void>(
+        context: context,
+        builder:
+            (context) => const StackOkDialog(
+              title: "Missing currency!",
+              message: "This should not happen. Please contact support",
+            ),
+      );
+
+      return;
+    }
+
+    if (exchangeName == TrocadorExchange.exchangeName) {
+      final canContinue = await _checkTrocadorWarning(fromCurrency, toCurrency);
+      if (!canContinue) return;
+    }
 
     final rateType = ref.read(efRateTypeProvider);
     final fromTicker = ref.read(efCurrencyPairProvider).send?.ticker ?? "";
@@ -361,15 +434,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final sendAmount = ref.read(efSendAmountProvider)!;
 
     if (rateType == ExchangeRateType.fixed && toTicker.toUpperCase() == "WOW") {
-      await showDialog<void>(
-        context: context,
-        builder:
-            (context) => const StackOkDialog(
-              title: "WOW error",
-              message:
-                  "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
-            ),
-      );
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder:
+              (context) => const StackOkDialog(
+                title: "WOW error",
+                message:
+                    "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
+              ),
+        );
+      }
 
       return;
     }
