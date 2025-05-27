@@ -72,7 +72,13 @@ abstract class AppConfig {
   /// Fuzzy logic. Use with caution!!
   @Deprecated("dangerous")
   static CryptoCurrency getCryptoCurrencyByPrettyName(final String prettyName) {
-    final name = prettyName.replaceAll(" ", "").toLowerCase();
+    // trocador hack
+    const hackSplitter = " (Mainnet";
+    final name =
+        prettyName.contains(hackSplitter)
+            ? prettyName.split(hackSplitter).first.toLowerCase()
+            : prettyName.replaceAll(" ", "").toLowerCase();
+
     try {
       return coins.firstWhere(
         (e) => e.identifier.toLowerCase() == name || e.prettyName == prettyName,
