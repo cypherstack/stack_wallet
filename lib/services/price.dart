@@ -36,6 +36,7 @@ class PriceAPI {
     Epiccash: "epic-cash",
     Ecash: "ecash",
     Ethereum: "ethereum",
+    Fact0rn: "fact0rn",
     Firo: "zcoin",
     Monero: "monero",
     Particl: "particl",
