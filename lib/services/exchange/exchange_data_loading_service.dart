@@ -82,6 +82,7 @@ class ExchangeDataLoadingService {
         pair?.setSend(
           await getAggregateCurrency(
             AppConfig.swapDefaults.from,
+            AppConfig.swapDefaults.fromFuzzyNet,
             rateType,
             null,
           ),
@@ -89,7 +90,12 @@ class ExchangeDataLoadingService {
         );
 
         pair?.setReceive(
-          await getAggregateCurrency(AppConfig.swapDefaults.to, rateType, null),
+          await getAggregateCurrency(
+            AppConfig.swapDefaults.to,
+            AppConfig.swapDefaults.toFuzzyNet,
+            rateType,
+            null,
+          ),
           notifyListeners: false,
         );
       }
@@ -98,29 +104,54 @@ class ExchangeDataLoadingService {
 
   Future<AggregateCurrency?> getAggregateCurrency(
     String ticker,
+    String fuzzyNet,
     ExchangeRateType rateType,
     String? contract,
   ) async {
-    final currencies =
-        await ExchangeDataLoadingService.instance.isar.currencies
-            .filter()
-            .group(
-              (q) =>
-                  rateType == ExchangeRateType.fixed
-                      ? q
-                          .rateTypeEqualTo(SupportedRateType.both)
-                          .or()
-                          .rateTypeEqualTo(SupportedRateType.fixed)
-                      : q
-                          .rateTypeEqualTo(SupportedRateType.both)
-                          .or()
-                          .rateTypeEqualTo(SupportedRateType.estimated),
-            )
-            .and()
-            .tickerEqualTo(ticker, caseSensitive: false)
-            .and()
-            .tokenContractEqualTo(contract)
-            .findAll();
+    final List<Currency> currencies;
+    if (contract != null) {
+      currencies =
+          await ExchangeDataLoadingService.instance.isar.currencies
+              .filter()
+              .tokenContractEqualTo(contract)
+              .and()
+              .group(
+                (q) =>
+                    rateType == ExchangeRateType.fixed
+                        ? q
+                            .rateTypeEqualTo(SupportedRateType.both)
+                            .or()
+                            .rateTypeEqualTo(SupportedRateType.fixed)
+                        : q
+                            .rateTypeEqualTo(SupportedRateType.both)
+                            .or()
+                            .rateTypeEqualTo(SupportedRateType.estimated),
+              )
+              .findAll();
+    } else {
+      currencies =
+          await ExchangeDataLoadingService.instance.isar.currencies
+              .filter()
+              .group(
+                (q) =>
+                    rateType == ExchangeRateType.fixed
+                        ? q
+                            .rateTypeEqualTo(SupportedRateType.both)
+                            .or()
+                            .rateTypeEqualTo(SupportedRateType.fixed)
+                        : q
+                            .rateTypeEqualTo(SupportedRateType.both)
+                            .or()
+                            .rateTypeEqualTo(SupportedRateType.estimated),
+              )
+              .and()
+              .tickerEqualTo(ticker, caseSensitive: false)
+              .and()
+              .tokenContractIsNull()
+              .findAll();
+    }
+
+    currencies.retainWhere((e) => e.getFuzzyNet() == fuzzyNet);
 
     final items = currencies
         .map((e) => Tuple2(e.exchangeName, e))

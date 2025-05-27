@@ -23,7 +23,8 @@ abstract class AppConfig {
 
   static List<CryptoCurrency> get coins => _supportedCoins;
 
-  static ({String from, String to}) get swapDefaults => _swapDefaults;
+  static ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
+  get swapDefaults => _swapDefaults;
 
   static bool get isSingleCoinApp => coins.length == 1;
 

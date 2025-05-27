@@ -42,13 +42,29 @@ class AggregateCurrency {
 
   bool get isStackCoin => _map.values.first!.isStackCoin;
 
+  String get fuzzyNet => _map.values.first!.getFuzzyNet();
+
   @override
   String toString() {
     String str = "AggregateCurrency: {";
     for (final key in _map.keys) {
-      str += " $key: ${_map[key]},";
+      str += "\n $key: ${_map[key]},";
     }
-    str += " }";
+    str += "\n}";
     return str;
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AggregateCurrency &&
+        other.ticker == ticker &&
+        other._map.isNotEmpty &&
+        other._map.length == _map.length &&
+        other._map.values.first!.getFuzzyNet() ==
+            _map.values.first!.getFuzzyNet();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(ticker, _map.values.first!.getFuzzyNet(), _map.length);
 }
