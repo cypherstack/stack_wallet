@@ -11,10 +11,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 
 class RbfSettingsView extends ConsumerStatefulWidget {
-  const RbfSettingsView({
-    super.key,
-    required this.walletId,
-  });
+  const RbfSettingsView({super.key, required this.walletId});
 
   static const String routeName = "/rbfSettings";
 
@@ -34,12 +31,12 @@ class _RbfSettingsViewState extends ConsumerState<RbfSettingsView> {
 
     try {
       // Toggle enableOptInRbf in wallet info.
-      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-        newEntries: {
-          WalletInfoKeys.enableOptInRbf: newValue,
-        },
-        isar: ref.read(mainDBProvider).isar,
-      );
+      await ref
+          .read(pWalletInfo(widget.walletId))
+          .updateOtherData(
+            newEntries: {WalletInfoKeys.enableOptInRbf: newValue},
+            isar: ref.read(mainDBProvider).isar,
+          );
     } finally {
       // ensure _switchRbfToggledLock is set to false no matter what
       _switchRbfToggledLock = false;
@@ -57,46 +54,46 @@ class _RbfSettingsViewState extends ConsumerState<RbfSettingsView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "RBF settings",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("RBF settings", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  const SizedBox(width: 3),
-                  SizedBox(
-                    height: 20,
-                    width: 40,
-                    child: DraggableSwitchButton(
-                      isOn: ref.watch(
-                            pWalletInfo(widget.walletId)
-                                .select((value) => value.otherData),
-                          )[WalletInfoKeys.enableOptInRbf] as bool? ??
-                          false,
-                      onValueChanged: _switchRbfToggled,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Enable opt-in RBF",
-                        style: STextStyles.w600_20(context),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const SizedBox(width: 3),
+                    SizedBox(
+                      height: 20,
+                      width: 40,
+                      child: DraggableSwitchButton(
+                        isOn:
+                            ref.watch(
+                                  pWalletInfo(
+                                    widget.walletId,
+                                  ).select((value) => value.otherData),
+                                )[WalletInfoKeys.enableOptInRbf]
+                                as bool? ??
+                            false,
+                        onValueChanged: _switchRbfToggled,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Enable opt-in RBF",
+                          style: STextStyles.w600_20(context),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

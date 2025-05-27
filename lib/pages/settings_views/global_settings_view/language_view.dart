@@ -59,20 +59,14 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
 
   BorderRadius? _borderRadius(int index) {
     if (index == 0 && listWithoutSelected.length == 1) {
-      return BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      );
+      return BorderRadius.circular(Constants.size.circularBorderRadius);
     } else if (index == 0) {
       return BorderRadius.vertical(
-        top: Radius.circular(
-          Constants.size.circularBorderRadius,
-        ),
+        top: Radius.circular(Constants.size.circularBorderRadius),
       );
     } else if (index == listWithoutSelected.length - 1) {
       return BorderRadius.vertical(
-        bottom: Radius.circular(
-          Constants.size.circularBorderRadius,
-        ),
+        bottom: Radius.circular(Constants.size.circularBorderRadius),
       );
     }
     return null;
@@ -103,8 +97,9 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    current = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.language));
+    current = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.language),
+    );
 
     listWithoutSelected = languages;
     if (current.isNotEmpty) {
@@ -127,101 +122,99 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
               }
             },
           ),
-          title: Text(
-            "Language",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Language", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 16,
-            right: 16,
-          ),
-          child: NestedScrollView(
-            floatHeaderSlivers: true,
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                SliverOverlapAbsorber(
-                  handle:
-                      NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                  sliver: SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        child: TextField(
-                          autocorrect: Util.isDesktop ? false : true,
-                          enableSuggestions: Util.isDesktop ? false : true,
-                          controller: _searchController,
-                          focusNode: _searchFocusNode,
-                          onChanged: (newString) {
-                            setState(() => filter = newString);
-                          },
-                          style: STextStyles.field(context),
-                          decoration: standardInputDecoration(
-                            "Search",
-                            _searchFocusNode,
-                            context,
-                          ).copyWith(
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 16,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+            child: NestedScrollView(
+              floatHeaderSlivers: true,
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverOverlapAbsorber(
+                    handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                      context,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                            autocorrect: Util.isDesktop ? false : true,
+                            enableSuggestions: Util.isDesktop ? false : true,
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            onChanged: (newString) {
+                              setState(() => filter = newString);
+                            },
+                            style: STextStyles.field(context),
+                            decoration: standardInputDecoration(
+                              "Search",
+                              _searchFocusNode,
+                              context,
+                            ).copyWith(
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 16,
+                                ),
+                                child: SvgPicture.asset(
+                                  Assets.svg.search,
+                                  width: 16,
+                                  height: 16,
+                                ),
                               ),
-                              child: SvgPicture.asset(
-                                Assets.svg.search,
-                                width: 16,
-                                height: 16,
-                              ),
-                            ),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                _searchController.text = "";
-                                                filter = "";
-                                              });
-                                            },
+                              suffixIcon:
+                                  _searchController.text.isNotEmpty
+                                      ? Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 0,
+                                        ),
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            children: [
+                                              TextFieldIconButton(
+                                                child: const XIcon(),
+                                                onTap: () async {
+                                                  setState(() {
+                                                    _searchController.text = "";
+                                                    filter = "";
+                                                  });
+                                                },
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : null,
+                                        ),
+                                      )
+                                      : null,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ];
-            },
-            body: Builder(
-              builder: (context) {
-                return CustomScrollView(
-                  slivers: [
-                    SliverOverlapInjector(
-                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                        context,
+                ];
+              },
+              body: Builder(
+                builder: (context) {
+                  return CustomScrollView(
+                    slivers: [
+                      SliverOverlapInjector(
+                        handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                          context,
+                        ),
                       ),
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
                           return Container(
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .popupBG,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.popupBG,
                               borderRadius: _borderRadius(index),
                             ),
                             child: Padding(
@@ -231,13 +224,14 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                               ),
                               child: RoundedContainer(
                                 padding: const EdgeInsets.all(0),
-                                color: index == 0
-                                    ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .currencyListItemBG
-                                    : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .popupBG,
+                                color:
+                                    index == 0
+                                        ? Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .currencyListItemBG
+                                        : Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.popupBG,
                                 child: RawMaterialButton(
                                   onPressed: () async {
                                     onTap(index);
@@ -257,9 +251,10 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                                           width: 20,
                                           height: 20,
                                           child: Radio(
-                                            activeColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .radioButtonIconEnabled,
+                                            activeColor:
+                                                Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .radioButtonIconEnabled,
                                             value: true,
                                             groupValue: index == 0,
                                             onChanged: (_) {
@@ -267,34 +262,32 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                                             },
                                           ),
                                         ),
-                                        const SizedBox(
-                                          width: 12,
-                                        ),
+                                        const SizedBox(width: 12),
                                         Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               listWithoutSelected[index],
-                                              key: (index == 0)
-                                                  ? const Key(
-                                                      "selectedLanguageSettingsLanguageText",
-                                                    )
-                                                  : null,
+                                              key:
+                                                  (index == 0)
+                                                      ? const Key(
+                                                        "selectedLanguageSettingsLanguageText",
+                                                      )
+                                                      : null,
                                               style: STextStyles.largeMedium14(
                                                 context,
                                               ),
                                             ),
-                                            const SizedBox(
-                                              height: 2,
-                                            ),
+                                            const SizedBox(height: 2),
                                             Text(
                                               listWithoutSelected[index],
-                                              key: (index == 0)
-                                                  ? const Key(
-                                                      "selectedLanguageSettingsLanguageTextDescription",
-                                                    )
-                                                  : null,
+                                              key:
+                                                  (index == 0)
+                                                      ? const Key(
+                                                        "selectedLanguageSettingsLanguageTextDescription",
+                                                      )
+                                                      : null,
                                               style: STextStyles.itemSubtitle(
                                                 context,
                                               ),
@@ -308,13 +301,12 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                               ),
                             ),
                           );
-                        },
-                        childCount: listWithoutSelected.length,
+                        }, childCount: listWithoutSelected.length),
                       ),
-                    ),
-                  ],
-                );
-              },
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),

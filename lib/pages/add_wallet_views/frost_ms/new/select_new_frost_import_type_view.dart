@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../frost_route_generator.dart';
 import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../../themes/stack_colors.dart';
@@ -43,76 +44,77 @@ class _SelectNewFrostImportTypeViewState
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder: (content) => DesktopScaffold(
-        appBar: const DesktopAppBar(
-          leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
-          isCompactHeight: false,
-        ),
-        body: SizedBox(
-          width: 480,
-          child: content,
-        ),
-      ),
+      builder:
+          (content) => DesktopScaffold(
+            appBar: const DesktopAppBar(
+              leading: AppBarBackButton(),
+              trailing: ExitToMyStackButton(),
+              isCompactHeight: false,
+            ),
+            body: SizedBox(width: 480, child: content),
+          ),
       child: ConditionalParent(
         condition: !Util.isDesktop,
-        builder: (content) => Background(
-          child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            appBar: AppBar(
-              leading: AppBarBackButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              actions: [
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    size: 36,
-                    icon: SvgPicture.asset(
-                      Assets.svg.circleQuestion,
-                      width: 20,
-                      height: 20,
-                      colorFilter: ColorFilter.mode(
-                        Theme.of(context)
-                            .extension<StackColors>()!
-                            .topNavIconPrimary,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    onPressed: () async {
-                      await showDialog<void>(
-                        context: context,
-                        builder: (_) => const _FrostJoinInfoDialog(),
-                      );
+        builder:
+            (content) => Background(
+              child: Scaffold(
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.background,
+                appBar: AppBar(
+                  leading: AppBarBackButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
                     },
                   ),
-                ),
-              ],
-            ),
-            body: Container(
-              color: Theme.of(context).extension<StackColors>()!.background,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: LayoutBuilder(
-                  builder: (ctx, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minHeight: constraints.maxHeight),
-                        child: IntrinsicHeight(
-                          child: content,
+                  actions: [
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        size: 36,
+                        icon: SvgPicture.asset(
+                          Assets.svg.circleQuestion,
+                          width: 20,
+                          height: 20,
+                          colorFilter: ColorFilter.mode(
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.topNavIconPrimary,
+                            BlendMode.srcIn,
+                          ),
                         ),
+                        onPressed: () async {
+                          await showDialog<void>(
+                            context: context,
+                            builder: (_) => const _FrostJoinInfoDialog(),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                  ],
+                ),
+                body: SafeArea(
+                  child: Container(
+                    color:
+                        Theme.of(context).extension<StackColors>()!.background,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: LayoutBuilder(
+                        builder: (ctx, constraints) {
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
+                              ),
+                              child: IntrinsicHeight(child: content),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
         child: Column(
           children: [
             ..._ImportOption.values.map(
@@ -163,9 +165,9 @@ class _SelectNewFrostImportTypeViewState
                     break;
                 }
 
-                await Navigator.of(context).pushNamed(
-                  FrostStepScaffold.routeName,
-                );
+                await Navigator.of(
+                  context,
+                ).pushNamed(FrostStepScaffold.routeName);
               },
             ),
           ],
@@ -232,9 +234,10 @@ class _ImportOptionCardState extends State<_ImportOptionCard> {
             child: Radio(
               value: widget.value,
               groupValue: widget.groupValue,
-              activeColor: Theme.of(context)
-                  .extension<StackColors>()!
-                  .radioButtonIconEnabled,
+              activeColor:
+                  Theme.of(
+                    context,
+                  ).extension<StackColors>()!.radioButtonIconEnabled,
               onChanged: (_) => widget.onPressed(),
             ),
           ),
@@ -257,18 +260,17 @@ class _ImportOptionCardState extends State<_ImportOptionCard> {
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 2,
-                  ),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           widget.description,
                           style: STextStyles.w500_14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textSubtitle1,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textSubtitle1,
                           ),
                         ),
                       ),
@@ -293,21 +295,14 @@ class _FrostJoinInfoDialog extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Join a group",
-            style: STextStyles.w600_20(context),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
+          Text("Join a group", style: STextStyles.w600_20(context)),
+          const SizedBox(height: 12),
           Text(
             "You should select 'Join a new group' if you are creating a brand "
             "new wallet with other people.",
             style: STextStyles.w600_16(context),
           ),
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
           Text(
             "You should select 'Join an existing group' if you an existing "
             "group is being edited and you are being added as a participant.",

@@ -22,10 +22,7 @@ import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 
 class EditRefreshHeightView extends ConsumerStatefulWidget {
-  const EditRefreshHeightView({
-    super.key,
-    required this.walletId,
-  });
+  const EditRefreshHeightView({super.key, required this.walletId});
 
   static const String routeName = "/editRefreshHeightView";
 
@@ -92,8 +89,10 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
   void initState() {
     super.initState();
     _wallet = ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet;
-    _controller = TextEditingController()
-      ..text = _wallet.libMoneroWallet!.getRefreshFromBlockHeight().toString();
+    _controller =
+        TextEditingController()
+          ..text =
+              _wallet.libMoneroWallet!.getRefreshFromBlockHeight().toString();
   }
 
   @override
@@ -119,10 +118,8 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   DesktopDialogCloseButton(
-                    onPressedOverride: Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop,
+                    onPressedOverride:
+                        Navigator.of(context, rootNavigator: true).pop,
                   ),
                 ],
               ),
@@ -130,9 +127,7 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: child,
               ),
-              const SizedBox(
-                height: 32,
-              ),
+              const SizedBox(height: 32),
             ],
           ),
         );
@@ -155,9 +150,8 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
-              body: Padding(
-                padding: const EdgeInsets.all(16),
-                child: child,
+              body: SafeArea(
+                child: Padding(padding: const EdgeInsets.all(16), child: child),
               ),
             ),
           );
@@ -173,11 +167,12 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
                 key: const Key("restoreHeightFieldKey"),
                 controller: _controller,
                 focusNode: _focusNode,
-                style: Util.isDesktop
-                    ? STextStyles.desktopTextMedium(context).copyWith(
-                        height: 2,
-                      )
-                    : STextStyles.field(context),
+                style:
+                    Util.isDesktop
+                        ? STextStyles.desktopTextMedium(
+                          context,
+                        ).copyWith(height: 2)
+                        : STextStyles.field(context),
                 enableSuggestions: false,
                 autocorrect: false,
                 autofocus: true,
@@ -188,48 +183,39 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
                   _focusNode,
                   context,
                 ).copyWith(
-                  suffixIcon: _controller.text.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: ConditionalParent(
-                              condition: Util.isDesktop,
-                              builder: (child) => SizedBox(
-                                height: 70,
-                                child: child,
-                              ),
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        _controller.text = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                  suffixIcon:
+                      _controller.text.isNotEmpty
+                          ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: ConditionalParent(
+                                condition: Util.isDesktop,
+                                builder:
+                                    (child) =>
+                                        SizedBox(height: 70, child: child),
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          _controller.text = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        )
-                      : Util.isDesktop
-                          ? const SizedBox(
-                              height: 70,
-                            )
+                          )
+                          : Util.isDesktop
+                          ? const SizedBox(height: 70)
                           : null,
                 ),
               ),
             ),
-            Util.isDesktop
-                ? const SizedBox(
-                    height: 32,
-                  )
-                : const Spacer(),
-            PrimaryButton(
-              label: "Save",
-              onPressed: _save,
-            ),
+            Util.isDesktop ? const SizedBox(height: 32) : const Spacer(),
+            PrimaryButton(label: "Save", onPressed: _save),
           ],
         ),
       ),

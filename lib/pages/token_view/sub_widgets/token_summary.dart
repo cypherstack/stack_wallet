@@ -34,6 +34,7 @@ import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/coin_ticker_tag.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../buy_view/buy_in_wallet_view.dart';
@@ -121,7 +122,11 @@ class TokenSummary extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  CoinTickerTag(walletId: walletId),
+                  CoinTickerTag(
+                    ticker: ref.watch(
+                      pWalletCoin(walletId).select((s) => s.ticker),
+                    ),
+                  ),
                 ],
               ),
               if (price != null) const SizedBox(height: 6),
@@ -322,27 +327,6 @@ class TokenOptionsButton extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class CoinTickerTag extends ConsumerWidget {
-  const CoinTickerTag({super.key, required this.walletId});
-
-  final String walletId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return RoundedContainer(
-      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-      radiusMultiplier: 0.25,
-      color: Theme.of(context).extension<StackColors>()!.ethTagBG,
-      child: Text(
-        ref.watch(pWalletCoin(walletId)).ticker,
-        style: STextStyles.w600_12(context).copyWith(
-          color: Theme.of(context).extension<StackColors>()!.ethTagText,
-        ),
-      ),
     );
   }
 }

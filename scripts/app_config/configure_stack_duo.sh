@@ -64,6 +64,12 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   BitcoinFrost(CryptoCurrencyNetwork.test4),
 ]);
 
-final ({String from, String to}) _swapDefaults = (from: "BTC", to: "XMR");
+final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
+_swapDefaults = (
+  from: "BTC",
+  fromFuzzyNet: "btc",
+  to: "XMR",
+  toFuzzyNet: "xmr",
+);
 
 EOF

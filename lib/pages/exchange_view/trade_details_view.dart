@@ -226,12 +226,14 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
-              body: Padding(
-                padding: const EdgeInsets.all(12),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: child,
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: child,
+                    ),
                   ),
                 ),
               ),

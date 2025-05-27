@@ -34,10 +34,7 @@ import 'frost_participants_view.dart';
 import 'initiate_resharing/initiate_resharing_view.dart';
 
 class FrostMSWalletOptionsView extends ConsumerWidget {
-  const FrostMSWalletOptionsView({
-    super.key,
-    required this.walletId,
-  });
+  const FrostMSWalletOptionsView({super.key, required this.walletId});
 
   static const String routeName = "/frostMSWalletOptionsView";
 
@@ -49,44 +46,39 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder: (child) => DesktopScaffold(
-        background: Theme.of(context).extension<StackColors>()!.background,
-        appBar: const DesktopAppBar(
-          isCompactHeight: false,
-          leading: AppBarBackButton(),
-          trailing: ExitToMyStackButton(),
-        ),
-        body: SizedBox(
-          width: 480,
-          child: child,
-        ),
-      ),
+      builder:
+          (child) => DesktopScaffold(
+            background: Theme.of(context).extension<StackColors>()!.background,
+            appBar: const DesktopAppBar(
+              isCompactHeight: false,
+              leading: AppBarBackButton(),
+              trailing: ExitToMyStackButton(),
+            ),
+            body: SizedBox(width: 480, child: child),
+          ),
       child: ConditionalParent(
         condition: !Util.isDesktop,
-        builder: (child) => Background(
-          child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            appBar: AppBar(
-              leading: AppBarBackButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              title: Text(
-                "FROST Multisig options",
-                style: STextStyles.navBarTitle(context),
+        builder:
+            (child) => Background(
+              child: Scaffold(
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.background,
+                appBar: AppBar(
+                  leading: AppBarBackButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  title: Text(
+                    "FROST Multisig options",
+                    style: STextStyles.navBarTitle(context),
+                  ),
+                ),
+                body: SafeArea(child: child),
               ),
             ),
-            body: child,
-          ),
-        ),
         child: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 16,
-            right: 16,
-          ),
+          padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -105,9 +97,7 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                     },
                   ),
                 ),
-                const SizedBox(
-                  height: 8,
-                ),
+                const SizedBox(height: 8),
                 RoundedWhiteContainer(
                   padding: EdgeInsets.zero,
                   child: SettingsListButton(
@@ -116,11 +106,12 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                     iconAssetName: Assets.svg.swap2,
                     onPressed: () {
                       // TODO: optimize this by creating watcher providers (similar to normal WalletInfo)
-                      final frostInfo = ref
-                          .read(mainDBProvider)
-                          .isar
-                          .frostWalletInfo
-                          .getByWalletIdSync(walletId)!;
+                      final frostInfo =
+                          ref
+                              .read(mainDBProvider)
+                              .isar
+                              .frostWalletInfo
+                              .getByWalletIdSync(walletId)!;
 
                       ref.read(pFrostMyName.state).state = frostInfo.myName;
 
@@ -131,9 +122,7 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                     },
                   ),
                 ),
-                const SizedBox(
-                  height: 8,
-                ),
+                const SizedBox(height: 8),
                 RoundedWhiteContainer(
                   padding: EdgeInsets.zero,
                   child: SettingsListButton(
@@ -143,16 +132,18 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                     iconSize: 16,
                     onPressed: () {
                       // TODO: optimize this by creating watcher providers (similar to normal WalletInfo)
-                      final frostInfo = ref
-                          .read(mainDBProvider)
-                          .isar
-                          .frostWalletInfo
-                          .getByWalletIdSync(walletId)!;
+                      final frostInfo =
+                          ref
+                              .read(mainDBProvider)
+                              .isar
+                              .frostWalletInfo
+                              .getByWalletIdSync(walletId)!;
 
                       ref.read(pFrostMyName.state).state = frostInfo.myName;
 
-                      final wallet = ref.read(pWallets).getWallet(walletId)
-                          as BitcoinFrostWallet;
+                      final wallet =
+                          ref.read(pWallets).getWallet(walletId)
+                              as BitcoinFrostWallet;
 
                       ref.read(pFrostScaffoldArgs.state).state = (
                         info: (
@@ -167,9 +158,9 @@ class FrostMSWalletOptionsView extends ConsumerWidget {
                         callerRouteName: FrostMSWalletOptionsView.routeName,
                       );
 
-                      Navigator.of(context).pushNamed(
-                        FrostStepScaffold.routeName,
-                      );
+                      Navigator.of(
+                        context,
+                      ).pushNamed(FrostStepScaffold.routeName);
                     },
                   ),
                 ),

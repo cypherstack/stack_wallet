@@ -34,9 +34,7 @@ import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/tor_subscription.dart';
 
 class TorSettingsView extends ConsumerStatefulWidget {
-  const TorSettingsView({
-    super.key,
-  });
+  const TorSettingsView({super.key});
 
   static const String routeName = "/torSettings";
 
@@ -59,17 +57,12 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Tor settings",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Tor settings", style: STextStyles.navBarTitle(context)),
           actions: [
             AspectRatio(
               aspectRatio: 1,
               child: AppBarIconButton(
-                icon: SvgPicture.asset(
-                  Assets.svg.circleQuestion,
-                ),
+                icon: SvgPicture.asset(Assets.svg.circleQuestion),
                 onPressed: () {
                   showDialog<dynamic>(
                     context: context,
@@ -94,107 +87,107 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
             ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: TorAnimatedButton(),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              const TorButton(),
-              const SizedBox(
-                height: 8,
-              ),
-              RoundedWhiteContainer(
-                child: Consumer(
-                  builder: (_, ref, __) {
-                    return RawMaterialButton(
-                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      onPressed: null,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "Tor killswitch",
-                                  style: STextStyles.titleBold12(context),
-                                ),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () {
-                                    showDialog<dynamic>(
-                                      context: context,
-                                      useSafeArea: false,
-                                      barrierDismissible: true,
-                                      builder: (context) {
-                                        return StackDialog(
-                                          title: "What is Tor killswitch?",
-                                          message:
-                                              "A security feature that protects your information from accidental exposure by"
-                                              " disconnecting your device from the Tor network if the"
-                                              " connection is disrupted or compromised.",
-                                          rightButton: SecondaryButton(
-                                            label: "Close",
-                                            onPressed:
-                                                Navigator.of(context).pop,
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  child: SvgPicture.asset(
-                                    Assets.svg.circleInfo,
-                                    height: 16,
-                                    width: 16,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .infoItemLabel,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 20,
-                              width: 40,
-                              child: DraggableSwitchButton(
-                                isOn: ref.watch(
-                                  prefsChangeNotifierProvider
-                                      .select((value) => value.torKillSwitch),
-                                ),
-                                onValueChanged: (newValue) {
-                                  ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .torKillSwitch = newValue;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: TorAnimatedButton(),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 30),
+                const TorButton(),
+                const SizedBox(height: 8),
+                RoundedWhiteContainer(
+                  child: Consumer(
+                    builder: (_, ref, __) {
+                      return RawMaterialButton(
+                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        onPressed: null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    "Tor killswitch",
+                                    style: STextStyles.titleBold12(context),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () {
+                                      showDialog<dynamic>(
+                                        context: context,
+                                        useSafeArea: false,
+                                        barrierDismissible: true,
+                                        builder: (context) {
+                                          return StackDialog(
+                                            title: "What is Tor killswitch?",
+                                            message:
+                                                "A security feature that protects your information from accidental exposure by"
+                                                " disconnecting your device from the Tor network if the"
+                                                " connection is disrupted or compromised.",
+                                            rightButton: SecondaryButton(
+                                              label: "Close",
+                                              onPressed:
+                                                  Navigator.of(context).pop,
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: SvgPicture.asset(
+                                      Assets.svg.circleInfo,
+                                      height: 16,
+                                      width: 16,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemLabel,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.torKillSwitch,
+                                    ),
+                                  ),
+                                  onValueChanged: (newValue) {
+                                    ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .torKillSwitch = newValue;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -248,11 +241,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
   }
 
   Future<void> _playPlug() async {
-    await _play(
-      from: "0.0",
-      to: "connecting-start",
-      repeat: false,
-    );
+    await _play(from: "0.0", to: "connecting-start", repeat: false);
   }
 
   Future<void> _playConnecting({double? start}) async {
@@ -272,11 +261,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
   }
 
   Future<void> _playConnected() async {
-    await _play(
-      from: "connected-start",
-      to: "connected-end",
-      repeat: true,
-    );
+    await _play(from: "connected-start", to: "connected-end", repeat: true);
   }
 
   Future<void> _playDisconnect() async {
@@ -358,10 +343,7 @@ class _TorAnimatedButtonState extends ConsumerState<TorAnimatedButton>
       },
       child: ConditionalParent(
         condition: _status != TorConnectionStatus.connecting,
-        builder: (child) => GestureDetector(
-          onTap: onTap,
-          child: child,
-        ),
+        builder: (child) => GestureDetector(onTap: onTap, child: child),
         child: Column(
           children: [
             SizedBox(
@@ -401,10 +383,7 @@ class TorButton extends ConsumerStatefulWidget {
 class _TorButtonState extends ConsumerState<TorButton> {
   late TorConnectionStatus _status;
 
-  Color _color(
-    TorConnectionStatus status,
-    StackColors colors,
-  ) {
+  Color _color(TorConnectionStatus status, StackColors colors) {
     switch (status) {
       case TorConnectionStatus.disconnected:
         return colors.textSubtitle3;
@@ -417,10 +396,7 @@ class _TorButtonState extends ConsumerState<TorButton> {
     }
   }
 
-  String _label(
-    TorConnectionStatus status,
-    StackColors colors,
-  ) {
+  String _label(TorConnectionStatus status, StackColors colors) {
     switch (status) {
       case TorConnectionStatus.disconnected:
         return "Disconnected";
@@ -487,16 +463,10 @@ class _TorButtonState extends ConsumerState<TorButton> {
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
               children: [
-                Text(
-                  "Tor status",
-                  style: STextStyles.titleBold12(context),
-                ),
+                Text("Tor status", style: STextStyles.titleBold12(context)),
                 const Spacer(),
                 Text(
-                  _label(
-                    _status,
-                    Theme.of(context).extension<StackColors>()!,
-                  ),
+                  _label(_status, Theme.of(context).extension<StackColors>()!),
                   style: STextStyles.itemSubtitle(context).copyWith(
                     color: _color(
                       _status,
@@ -523,10 +493,7 @@ class UpperCaseTorText extends ConsumerStatefulWidget {
 class _UpperCaseTorTextState extends ConsumerState<UpperCaseTorText> {
   late TorConnectionStatus _status;
 
-  Color _color(
-    TorConnectionStatus status,
-    StackColors colors,
-  ) {
+  Color _color(TorConnectionStatus status, StackColors colors) {
     switch (status) {
       case TorConnectionStatus.disconnected:
         return colors.textSubtitle3;
@@ -539,9 +506,7 @@ class _UpperCaseTorTextState extends ConsumerState<UpperCaseTorText> {
     }
   }
 
-  String _label(
-    TorConnectionStatus status,
-  ) {
+  String _label(TorConnectionStatus status) {
     switch (status) {
       case TorConnectionStatus.disconnected:
         return "CONNECT";
@@ -570,16 +535,9 @@ class _UpperCaseTorTextState extends ConsumerState<UpperCaseTorText> {
         });
       },
       child: Text(
-        _label(
-          _status,
-        ),
-        style: STextStyles.pageTitleH2(
-          context,
-        ).copyWith(
-          color: _color(
-            _status,
-            Theme.of(context).extension<StackColors>()!,
-          ),
+        _label(_status),
+        style: STextStyles.pageTitleH2(context).copyWith(
+          color: _color(_status, Theme.of(context).extension<StackColors>()!),
         ),
       ),
     );

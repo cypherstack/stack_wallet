@@ -29,9 +29,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class AddCustomTokenView extends ConsumerStatefulWidget {
-  const AddCustomTokenView({
-    super.key,
-  });
+  const AddCustomTokenView({super.key});
 
   static const routeName = "/addCustomToken";
 
@@ -56,60 +54,62 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              left: 16,
-              right: 16,
-              bottom: 16,
-            ),
-            child: child,
-          ),
-        ),
-      ),
-      child: ConditionalParent(
-        condition: isDesktop,
-        builder: (child) => Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+              body: SafeArea(
+                child: Padding(
                   padding: const EdgeInsets.only(
-                    left: 32,
+                    top: 10,
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
                   ),
-                  child: Text(
-                    "Add custom ETH token",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  child: child,
                 ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                  bottom: 32,
-                  top: 16,
-                ),
-                child: child,
               ),
             ),
-          ],
-        ),
+          ),
+      child: ConditionalParent(
+        condition: isDesktop,
+        builder:
+            (child) => Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "Add custom ETH token",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ),
+                    const DesktopDialogCloseButton(),
+                  ],
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 32,
+                      right: 32,
+                      bottom: 32,
+                      top: 16,
+                    ),
+                    child: child,
+                  ),
+                ),
+              ],
+            ),
         child: Column(
           children: [
             if (!isDesktop)
@@ -117,10 +117,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                 "Add custom ETH token",
                 style: STextStyles.pageTitleH1(context),
               ),
-            if (!isDesktop)
-              const SizedBox(
-                height: 16,
-              ),
+            if (!isDesktop) const SizedBox(height: 16),
             TextField(
               autocorrect: !isDesktop,
               enableSuggestions: !isDesktop,
@@ -131,9 +128,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                 hintStyle: STextStyles.fieldLabel(context),
               ),
             ),
-            SizedBox(
-              height: isDesktop ? 16 : 8,
-            ),
+            SizedBox(height: isDesktop ? 16 : 8),
             PrimaryButton(
               label: "Search",
               onPressed: () async {
@@ -157,10 +152,11 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                     unawaited(
                       showDialog<void>(
                         context: context,
-                        builder: (context) => StackOkDialog(
-                          title: "Failed to look up token",
-                          message: response!.exception?.message,
-                        ),
+                        builder:
+                            (context) => StackOkDialog(
+                              title: "Failed to look up token",
+                              message: response!.exception?.message,
+                            ),
                       ),
                     );
                   }
@@ -170,9 +166,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                 });
               },
             ),
-            SizedBox(
-              height: isDesktop ? 16 : 8,
-            ),
+            SizedBox(height: isDesktop ? 16 : 8),
             TextField(
               enabled: enableSubFields,
               autocorrect: !isDesktop,
@@ -184,9 +178,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                 hintStyle: STextStyles.fieldLabel(context),
               ),
             ),
-            SizedBox(
-              height: isDesktop ? 16 : 8,
-            ),
+            SizedBox(height: isDesktop ? 16 : 8),
             if (isDesktop)
               Row(
                 children: [
@@ -203,9 +195,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
                       enabled: enableSubFields,
@@ -245,10 +235,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                   hintStyle: STextStyles.fieldLabel(context),
                 ),
               ),
-            if (!isDesktop)
-              const SizedBox(
-                height: 8,
-              ),
+            if (!isDesktop) const SizedBox(height: 8),
             if (!isDesktop)
               TextField(
                 enabled: enableSubFields,
@@ -273,9 +260,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                   hintStyle: STextStyles.fieldLabel(context),
                 ),
               ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             const Spacer(),
             Row(
               children: [
@@ -286,10 +271,7 @@ class _AddCustomTokenViewState extends ConsumerState<AddCustomTokenView> {
                       onPressed: Navigator.of(context).pop,
                     ),
                   ),
-                if (isDesktop)
-                  const SizedBox(
-                    width: 16,
-                  ),
+                if (isDesktop) const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     label: "Add token",

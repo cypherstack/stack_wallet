@@ -241,7 +241,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     final plainEnabled =
         formData.netOption == TorPlainNetworkOption.clear ||
         formData.netOption == TorPlainNetworkOption.both;
-    
+
     final forceNoTor = formData.forceNoTor ?? false;
 
     switch (viewType) {
@@ -562,27 +562,29 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     ),
                 ],
               ),
-              body: Padding(
-                padding: const EdgeInsets.only(
-                  top: 12,
-                  left: 12,
-                  right: 12,
-                  bottom: 12,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 8,
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    bottom: 12,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight - 8,
+                            ),
+                            child: IntrinsicHeight(child: child),
                           ),
-                          child: IntrinsicHeight(child: child),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),

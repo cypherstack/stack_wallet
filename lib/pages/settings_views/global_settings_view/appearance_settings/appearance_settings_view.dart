@@ -39,125 +39,124 @@ class AppearanceSettingsView extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Appearance",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Appearance", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        RoundedWhiteContainer(
-                          child: Consumer(
-                            builder: (_, ref, __) {
-                              return RawMaterialButton(
-                                splashColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .highlight,
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          RoundedWhiteContainer(
+                            child: Consumer(
+                              builder: (_, ref, __) {
+                                return RawMaterialButton(
+                                  splashColor:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.highlight,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
                                   ),
-                                ),
-                                onPressed: null,
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Display favorite wallets",
-                                        style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      SizedBox(
-                                        height: 20,
-                                        width: 40,
-                                        child: DraggableSwitchButton(
-                                          isOn: ref.watch(
-                                            prefsChangeNotifierProvider.select(
-                                              (value) =>
-                                                  value.showFavoriteWallets,
-                                            ),
+                                  onPressed: null,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Display favorite wallets",
+                                          style: STextStyles.titleBold12(
+                                            context,
                                           ),
-                                          onValueChanged: (newValue) {
-                                            ref
-                                                .read(
-                                                  prefsChangeNotifierProvider,
-                                                )
-                                                .showFavoriteWallets = newValue;
-                                          },
+                                          textAlign: TextAlign.left,
                                         ),
-                                      ),
-                                    ],
+                                        SizedBox(
+                                          height: 20,
+                                          width: 40,
+                                          child: DraggableSwitchButton(
+                                            isOn: ref.watch(
+                                              prefsChangeNotifierProvider.select(
+                                                (value) =>
+                                                    value.showFavoriteWallets,
+                                              ),
+                                            ),
+                                            onValueChanged: (newValue) {
+                                              ref
+                                                  .read(
+                                                    prefsChangeNotifierProvider,
+                                                  )
+                                                  .showFavoriteWallets = newValue;
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          RoundedWhiteContainer(
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Choose Theme",
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        const Padding(
+                                          padding: EdgeInsets.all(4),
+                                          child: ThemeOptionsWidget(),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
+                                const SizedBox(height: 12),
+                                SecondaryButton(
+                                  label: "Add more themes",
+                                  onPressed: () {
+                                    Navigator.of(
+                                      context,
+                                    ).pushNamed(ManageThemesView.routeName);
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Choose Theme",
-                                        style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      const SizedBox(
-                                        height: 12,
-                                      ),
-                                      const Padding(
-                                        padding: EdgeInsets.all(4),
-                                        child: ThemeOptionsWidget(),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              SecondaryButton(
-                                label: "Add more themes",
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(
-                                    ManageThemesView.routeName,
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

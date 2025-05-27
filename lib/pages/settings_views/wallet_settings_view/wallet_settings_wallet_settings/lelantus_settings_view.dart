@@ -31,10 +31,7 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/stack_dialog.dart';
 
 class LelantusSettingsView extends ConsumerStatefulWidget {
-  const LelantusSettingsView({
-    super.key,
-    required this.walletId,
-  });
+  const LelantusSettingsView({super.key, required this.walletId});
 
   static const String routeName = "/lelantusSettings";
 
@@ -54,12 +51,12 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
 
     try {
       // Toggle enableLelantusScanning in wallet info.
-      await ref.read(pWalletInfo(widget.walletId)).updateOtherData(
-        newEntries: {
-          WalletInfoKeys.enableLelantusScanning: newValue,
-        },
-        isar: ref.read(mainDBProvider).isar,
-      );
+      await ref
+          .read(pWalletInfo(widget.walletId))
+          .updateOtherData(
+            newEntries: {WalletInfoKeys.enableLelantusScanning: newValue},
+            isar: ref.read(mainDBProvider).isar,
+          );
       if (newValue) {
         await _doRescanMaybe();
       }
@@ -75,7 +72,8 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
       builder: (context) {
         return StackDialog(
           title: "Rescan may be required",
-          message: "A blockchain rescan may be required to fully recover all "
+          message:
+              "A blockchain rescan may be required to fully recover all "
               "lelantus history. This may take a while.",
           leftButton: SecondaryButton(
             label: "Rescan now",
@@ -98,12 +96,14 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
         Exception? e;
         if (mounted) {
           await showLoading(
-            whileFuture: ref.read(pWallets).getWallet(widget.walletId).recover(
-                  isRescan: true,
-                ),
+            whileFuture: ref
+                .read(pWallets)
+                .getWallet(widget.walletId)
+                .recover(isRescan: true),
             context: context,
             message: "Rescanning blockchain",
-            subMessage: "This may take a while."
+            subMessage:
+                "This may take a while."
                 "\nPlease do not exit this screen.",
             rootNavigator: Util.isDesktop,
             onException: (ex) => e = ex,
@@ -121,22 +121,26 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
             context: context,
             useSafeArea: false,
             barrierDismissible: true,
-            builder: (context) => StackDialog(
-              title: "Rescan failed",
-              message: e.toString(),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Ok",
-                  style: STextStyles.itemSubtitle12(context),
+            builder:
+                (context) => StackDialog(
+                  title: "Rescan failed",
+                  message: e.toString(),
+                  rightButton: TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    child: Text(
+                      "Ok",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                    onPressed: () {
+                      Navigator.of(
+                        context,
+                        rootNavigator: Util.isDesktop,
+                      ).pop();
+                    },
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: Util.isDesktop).pop();
-                },
-              ),
-            ),
           );
         }
       } finally {
@@ -161,44 +165,47 @@ class _LelantusSettingsViewState extends ConsumerState<LelantusSettingsView> {
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  SizedBox(
-                    height: 20,
-                    width: 40,
-                    child: DraggableSwitchButton(
-                      isOn: ref.watch(
-                            pWalletInfo(widget.walletId)
-                                .select((value) => value.otherData),
-                          )[WalletInfoKeys.enableLelantusScanning] as bool? ??
-                          false,
-                      onValueChanged: _switchToggled,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Scan for Lelantus transactions",
-                        style: STextStyles.smallMed12(context),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      width: 40,
+                      child: DraggableSwitchButton(
+                        isOn:
+                            ref.watch(
+                                  pWalletInfo(
+                                    widget.walletId,
+                                  ).select((value) => value.otherData),
+                                )[WalletInfoKeys.enableLelantusScanning]
+                                as bool? ??
+                            false,
+                        onValueChanged: _switchToggled,
                       ),
-                      // Text(
-                      //   detail,
-                      //   style: STextStyles.desktopTextExtraExtraSmall(context),
-                      // ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Scan for Lelantus transactions",
+                          style: STextStyles.smallMed12(context),
+                        ),
+                        // Text(
+                        //   detail,
+                        //   style: STextStyles.desktopTextExtraExtraSmall(context),
+                        // ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

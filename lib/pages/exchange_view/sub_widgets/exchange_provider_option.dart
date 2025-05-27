@@ -14,10 +14,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
+import '../../../models/exchange/aggregate_currency.dart';
 import '../../../models/exchange/response_objects/estimate.dart';
 import '../../../providers/exchange/exchange_form_state_provider.dart';
 import '../../../providers/global/locale_provider.dart';
 import '../../../services/exchange/exchange.dart';
+import '../../../services/exchange/trocador/trocador_exchange.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
@@ -30,6 +32,9 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/animated_text.dart';
 import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/dialogs/basic_dialog.dart';
 import '../../../widgets/exchange/trocador/trocador_kyc_info_button.dart';
 import '../../../widgets/exchange/trocador/trocador_rating_type_enum.dart';
 
@@ -54,17 +59,25 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
   @override
   Widget build(BuildContext context) {
-    final sendCurrency =
-        ref.watch(efCurrencyPairProvider.select((value) => value.send));
-    final receivingCurrency =
-        ref.watch(efCurrencyPairProvider.select((value) => value.receive));
+    final sendCurrency = ref.watch(
+      efCurrencyPairProvider.select((value) => value.send),
+    );
+    final receivingCurrency = ref.watch(
+      efCurrencyPairProvider.select((value) => value.receive),
+    );
     final reversed = ref.watch(efReversedProvider);
-    final amount = reversed
-        ? ref.watch(efReceiveAmountProvider)
-        : ref.watch(efSendAmountProvider);
+    final amount =
+        reversed
+            ? ref.watch(efReceiveAmountProvider)
+            : ref.watch(efSendAmountProvider);
 
     final data = ref.watch(efEstimatesListProvider(widget.exchange.name));
     final estimates = data?.item1.value;
+
+    final pair =
+        sendCurrency != null && receivingCurrency != null
+            ? (from: sendCurrency, to: receivingCurrency)
+            : null;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 500),
@@ -76,6 +89,7 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
             return _ProviderOption(
               exchange: widget.exchange,
               estimate: null,
+              pair: pair,
               rateString: "",
               loadingString: true,
             );
@@ -94,10 +108,10 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         int decimals;
                         try {
-                          decimals = AppConfig.getCryptoCurrencyForTicker(
-                            receivingCurrency.ticker,
-                          )!
-                              .fractionDigits;
+                          decimals =
+                              AppConfig.getCryptoCurrencyForTicker(
+                                receivingCurrency.ticker,
+                              )!.fractionDigits;
                         } catch (_) {
                           decimals = 8; // some reasonable alternative
                         }
@@ -123,46 +137,50 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         final String rateString;
                         if (coin != null) {
-                          rateString = "1 ${sendCurrency.ticker.toUpperCase()} "
+                          rateString =
+                              "1 ${sendCurrency.ticker.toUpperCase()} "
                               "~ ${ref.watch(pAmountFormatter(coin)).format(rate)}";
                         } else {
                           final formatter = AmountFormatter(
                             unit: AmountUnit.normal,
                             locale: ref.watch(
-                              localeServiceChangeNotifierProvider
-                                  .select((value) => value.locale),
+                              localeServiceChangeNotifierProvider.select(
+                                (value) => value.locale,
+                              ),
                             ),
                             coin: Bitcoin(
                               CryptoCurrencyNetwork.main,
                             ), // some sane default
                             maxDecimals: 8, // some sane default
                           );
-                          rateString = "1 ${sendCurrency.ticker.toUpperCase()} "
+                          rateString =
+                              "1 ${sendCurrency.ticker.toUpperCase()} "
                               "~ ${formatter.format(rate, withUnitName: false)}"
                               " ${receivingCurrency.ticker.toUpperCase()}";
                         }
 
                         return ConditionalParent(
                           condition: i > 0,
-                          builder: (child) => Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              isDesktop
-                                  ? Container(
-                                      height: 1,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .background,
-                                    )
-                                  : const SizedBox(
-                                      height: 16,
-                                    ),
-                              child,
-                            ],
-                          ),
+                          builder:
+                              (child) => Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  isDesktop
+                                      ? Container(
+                                        height: 1,
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .background,
+                                      )
+                                      : const SizedBox(height: 16),
+                                  child,
+                                ],
+                              ),
                           child: _ProviderOption(
                             key: Key(widget.exchange.name + e.exchangeProvider),
                             exchange: widget.exchange,
+                            pair: pair,
                             estimate: e,
                             rateString: rateString,
                             kycRating: e.kycRating,
@@ -189,16 +207,18 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                       message ??= "Amount too large";
                     }
                   } else if (data?.item1.value == null) {
-                    final rateType = ref.watch(efRateTypeProvider) ==
-                            ExchangeRateType.estimated
-                        ? "estimated"
-                        : "fixed";
+                    final rateType =
+                        ref.watch(efRateTypeProvider) ==
+                                ExchangeRateType.estimated
+                            ? "estimated"
+                            : "fixed";
                     message ??= "Pair unavailable on $rateType rate flow";
                   }
 
                   return _ProviderOption(
                     exchange: widget.exchange,
                     estimate: null,
+                    pair: pair,
                     rateString: message ?? "Failed to fetch rate",
                     rateColor:
                         Theme.of(context).extension<StackColors>()!.textError,
@@ -211,6 +231,7 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
             return _ProviderOption(
               exchange: widget.exchange,
               estimate: null,
+              pair: pair,
               rateString: "n/a",
             );
           }
@@ -225,6 +246,7 @@ class _ProviderOption extends ConsumerStatefulWidget {
     super.key,
     required this.exchange,
     required this.estimate,
+    required this.pair,
     required this.rateString,
     this.kycRating,
     this.loadingString = false,
@@ -233,6 +255,7 @@ class _ProviderOption extends ConsumerStatefulWidget {
 
   final Exchange exchange;
   final Estimate? estimate;
+  final ({AggregateCurrency from, AggregateCurrency to})? pair;
   final String rateString;
   final String? kycRating;
   final bool loadingString;
@@ -246,12 +269,59 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
   final isDesktop = Util.isDesktop;
 
   late final String _id;
+  final Set<ProviderWarning> _warnings = {};
+
+  bool _warningLock = false;
+  void _showNoSparkWarning() async {
+    if (_warningLock) return;
+    _warningLock = true;
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (context) {
+          return BasicDialog(
+            title: _warnings.map((e) => e.message).join(" and "),
+            message: _warnings.map((e) => e.messageDetail).join(" "),
+            canPopWithBackButton: true,
+            flex: true,
+            desktopHeight: 400,
+            rightButton: PrimaryButton(
+              label: "OK",
+              buttonHeight: isDesktop ? ButtonHeight.l : null,
+              onPressed: Navigator.of(context).pop,
+            ),
+          );
+        },
+      );
+    } finally {
+      _warningLock = false;
+    }
+  }
 
   @override
   void initState() {
+    super.initState();
     _id =
         "${widget.exchange.name} (${widget.estimate?.exchangeProvider ?? widget.exchange.name})";
-    super.initState();
+
+    if (widget.exchange.name == TrocadorExchange.exchangeName &&
+        widget.pair != null) {
+      final from = widget.pair!.from.forExchange(widget.exchange.name);
+      final to = widget.pair!.to.forExchange(widget.exchange.name);
+
+      if (from != null) {
+        final firoWarning = TrocadorExchange.checkFiro(from);
+        if (firoWarning != null) _warnings.add(firoWarning);
+        final ltcWarning = TrocadorExchange.checkLtc(from);
+        if (ltcWarning != null) _warnings.add(ltcWarning);
+      }
+      if (to != null) {
+        final firoWarning = TrocadorExchange.checkFiro(to);
+        if (firoWarning != null) _warnings.add(firoWarning);
+        final ltcWarning = TrocadorExchange.checkLtc(to);
+        if (ltcWarning != null) _warnings.add(ltcWarning);
+      }
+    }
   }
 
   @override
@@ -265,10 +335,9 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
 
     return ConditionalParent(
       condition: isDesktop,
-      builder: (child) => MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: child,
-      ),
+      builder:
+          (child) =>
+              MouseRegion(cursor: SystemMouseCursors.click, child: child),
       child: GestureDetector(
         onTap: () {
           ref.read(efExchangeProvider.notifier).state = widget.exchange;
@@ -289,127 +358,138 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                   child: Padding(
                     padding: EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
                     child: Radio(
-                      activeColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .radioButtonIconEnabled,
+                      activeColor:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.radioButtonIconEnabled,
                       value: _id,
                       groupValue: groupValue,
                       onChanged: (_) {
                         ref.read(efExchangeProvider.notifier).state =
                             widget.exchange;
                         ref
-                                .read(efExchangeProviderNameProvider.notifier)
-                                .state =
-                            widget.estimate?.exchangeProvider ??
-                                widget.exchange.name;
+                            .read(efExchangeProviderNameProvider.notifier)
+                            .state = widget.estimate?.exchangeProvider ??
+                            widget.exchange.name;
                       },
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 14,
-                ),
+                const SizedBox(width: 14),
                 Padding(
                   padding: const EdgeInsets.only(top: 5.0),
                   child: SizedBox(
                     width: isDesktop ? 32 : 24,
                     height: isDesktop ? 32 : 24,
-                    child: widget.estimate?.exchangeProviderLogo != null &&
-                        widget
-                            .estimate!
-                            .exchangeProviderLogo!
-                            .isNotEmpty
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(5),
-                      child: Image.network(
-                        widget.estimate!.exchangeProviderLogo!,
-                        loadingBuilder: (
-                            context,
-                            child,
-                            loadingProgress,
-                            ) {
-                          if (loadingProgress == null) {
-                            return child;
-                          } else {
-                            return const Center(
-                              child:
-                              CircularProgressIndicator(),
-                            );
-                          }
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return SvgPicture.asset(
-                            Assets.exchange.getIconFor(
-                              exchangeName: widget.exchange.name,
+                    child:
+                        widget.estimate?.exchangeProviderLogo != null &&
+                                widget
+                                    .estimate!
+                                    .exchangeProviderLogo!
+                                    .isNotEmpty
+                            ? ClipRRect(
+                              borderRadius: BorderRadius.circular(5),
+                              child: Image.network(
+                                widget.estimate!.exchangeProviderLogo!,
+                                loadingBuilder: (
+                                  context,
+                                  child,
+                                  loadingProgress,
+                                ) {
+                                  if (loadingProgress == null) {
+                                    return child;
+                                  } else {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return SvgPicture.asset(
+                                    Assets.exchange.getIconFor(
+                                      exchangeName: widget.exchange.name,
+                                    ),
+                                    width: isDesktop ? 32 : 24,
+                                    height: isDesktop ? 32 : 24,
+                                  );
+                                },
+                                width: isDesktop ? 32 : 24,
+                                height: isDesktop ? 32 : 24,
+                              ),
+                            )
+                            : SvgPicture.asset(
+                              Assets.exchange.getIconFor(
+                                exchangeName: widget.exchange.name,
+                              ),
+                              width: isDesktop ? 32 : 24,
+                              height: isDesktop ? 32 : 24,
                             ),
-                            width: isDesktop ? 32 : 24,
-                            height: isDesktop ? 32 : 24,
-                          );
-                        },
-                        width: isDesktop ? 32 : 24,
-                        height: isDesktop ? 32 : 24,
-                      ),
-                    )
-                        : SvgPicture.asset(
-                      Assets.exchange.getIconFor(
-                        exchangeName: widget.exchange.name,
-                      ),
-                      width: isDesktop ? 32 : 24,
-                      height: isDesktop ? 32 : 24,
-                    ),
                   ),
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.estimate?.exchangeProvider ??
-                            widget.exchange.name,
-                        style: STextStyles.titleBold12(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark2,
+                      ConditionalParent(
+                        condition: _warnings.isNotEmpty,
+                        builder:
+                            (child) => Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                child,
+                                CustomTextButton(
+                                  text: _warnings.first.value,
+                                  onTap: () {
+                                    _showNoSparkWarning();
+                                  },
+                                ),
+                              ],
+                            ),
+                        child: Text(
+                          widget.estimate?.exchangeProvider ??
+                              widget.exchange.name,
+                          style: STextStyles.titleBold12(context).copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textDark2,
+                          ),
                         ),
                       ),
                       widget.loadingString
                           ? AnimatedText(
-                              stringsToLoopThrough: const [
-                                "Loading",
-                                "Loading.",
-                                "Loading..",
-                                "Loading...",
-                              ],
-                              style:
-                                  STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
-                              ),
-                            )
-                          : Text(
-                              widget.rateString,
-                              style:
-                                  STextStyles.itemSubtitle12(context).copyWith(
-                                color: widget.rateColor ??
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textSubtitle1,
-                              ),
+                            stringsToLoopThrough: const [
+                              "Loading",
+                              "Loading.",
+                              "Loading..",
+                              "Loading...",
+                            ],
+                            style: STextStyles.itemSubtitle12(context).copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
                             ),
+                          )
+                          : Text(
+                            widget.rateString,
+                            style: STextStyles.itemSubtitle12(context).copyWith(
+                              color:
+                                  widget.rateColor ??
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
+                            ),
+                          ),
                     ],
                   ),
                 ),
                 if (widget.kycRating != null)
                   TrocadorKYCInfoButton(
-                    kycType: TrocadorKYCType.fromString(
-                      widget.kycRating!,
-                    ),
+                    kycType: TrocadorKYCType.fromString(widget.kycRating!),
                   ),
               ],
             ),

@@ -198,7 +198,7 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
-              body: child,
+              body: SafeArea(child: child),
             ),
           ),
       child: Padding(

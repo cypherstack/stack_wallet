@@ -21,10 +21,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class ManageExplorerView extends ConsumerStatefulWidget {
-  const ManageExplorerView({
-    super.key,
-    required this.coin,
-  });
+  const ManageExplorerView({super.key, required this.coin});
 
   static const String routeName = "/manageExplorer";
 
@@ -41,9 +38,10 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
   void initState() {
     super.initState();
     textEditingController = TextEditingController(
-      text: getBlockExplorerTransactionUrlFor(coin: widget.coin, txid: "[TXID]")
-          .toString()
-          .replaceAll("%5BTXID%5D", "[TXID]"),
+      text: getBlockExplorerTransactionUrlFor(
+        coin: widget.coin,
+        txid: "[TXID]",
+      ).toString().replaceAll("%5BTXID%5D", "[TXID]"),
     );
   }
 
@@ -69,71 +67,66 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: textEditingController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    RoundedWhiteContainer(
-                      child: Center(
-                        child: Text(
-                          "Edit your block explorer above. Keep in mind that "
-                          "every block explorer has a slightly different URL "
-                          "scheme.\n\nPaste in your block explorer of choice,"
-                          " then edit in [TXID] where the transaction ID "
-                          "should go, and ${AppConfig.appName} will auto fill the "
-                          "transaction ID in that place of URL.",
-                          style: STextStyles.itemSubtitle(context),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: textEditingController,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minWidth: 480,
-                    minHeight: 70,
+                      const SizedBox(height: 8),
+                      RoundedWhiteContainer(
+                        child: Center(
+                          child: Text(
+                            "Edit your block explorer above. Keep in mind that "
+                            "every block explorer has a slightly different URL "
+                            "scheme.\n\nPaste in your block explorer of choice,"
+                            " then edit in [TXID] where the transaction ID "
+                            "should go, and ${AppConfig.appName} will auto fill the "
+                            "transaction ID in that place of URL.",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryEnabledButtonStyle(context),
-                    onPressed: () async {
-                      textEditingController.text =
-                          textEditingController.text.trim();
-                      await setBlockExplorerForCoin(
-                        coin: widget.coin,
-                        url: Uri.parse(
-                          textEditingController.text,
-                        ),
-                      );
+                ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 480,
+                      minHeight: 70,
+                    ),
+                    child: TextButton(
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getPrimaryEnabledButtonStyle(context),
+                      onPressed: () async {
+                        textEditingController.text =
+                            textEditingController.text.trim();
+                        await setBlockExplorerForCoin(
+                          coin: widget.coin,
+                          url: Uri.parse(textEditingController.text),
+                        );
 
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text(
-                      "Save",
-                      style: STextStyles.button(context),
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: Text("Save", style: STextStyles.button(context)),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

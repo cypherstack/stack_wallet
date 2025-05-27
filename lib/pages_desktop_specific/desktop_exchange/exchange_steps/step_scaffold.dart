@@ -96,9 +96,11 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
         .read(efExchangeProvider)
         .createTrade(
           from: ref.read(desktopExchangeModelProvider)!.sendTicker,
-          fromNetwork: ref.read(desktopExchangeModelProvider)!.sendNetwork,
+          fromNetwork:
+              ref.read(desktopExchangeModelProvider)!.sendCurrency.network,
           to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
-          toNetwork: ref.read(desktopExchangeModelProvider)!.receiveNetwork,
+          toNetwork:
+              ref.read(desktopExchangeModelProvider)!.receiveCurrency.network,
           fixedRate:
               ref.read(desktopExchangeModelProvider)!.rateType !=
               ExchangeRateType.estimated,

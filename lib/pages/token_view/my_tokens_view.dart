@@ -13,8 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import '../add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
-import 'sub_widgets/my_tokens_list.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
@@ -27,12 +26,11 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
+import 'sub_widgets/my_tokens_list.dart';
 
 class MyTokensView extends ConsumerStatefulWidget {
-  const MyTokensView({
-    super.key,
-    required this.walletId,
-  });
+  const MyTokensView({super.key, required this.walletId});
 
   static const String routeName = "/myTokens";
   final String walletId;
@@ -68,78 +66,80 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            leading: AppBarBackButton(
-              onPressed: () async {
-                if (FocusScope.of(context).hasFocus) {
-                  FocusScope.of(context).unfocus();
-                  await Future<void>.delayed(const Duration(milliseconds: 75));
-                }
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            title: Text(
-              "${ref.watch(
-                pWalletName(widget.walletId),
-              )} Tokens",
-              style: STextStyles.navBarTitle(context),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 20,
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    key: const Key("addTokenAppBarIconButtonKey"),
-                    size: 36,
-                    shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.circlePlusFilled,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
-                      width: 20,
-                      height: 20,
-                    ),
-                    onPressed: () async {
-                      final result = await Navigator.of(context).pushNamed(
-                        EditWalletTokensView.routeName,
-                        arguments: widget.walletId,
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                backgroundColor:
+                    Theme.of(context).extension<StackColors>()!.background,
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 75),
                       );
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+                title: Text(
+                  "${ref.watch(pWalletName(widget.walletId))} Tokens",
+                  style: STextStyles.navBarTitle(context),
+                ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 10,
+                      bottom: 10,
+                      right: 20,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: AppBarIconButton(
+                        key: const Key("addTokenAppBarIconButtonKey"),
+                        size: 36,
+                        shadows: const [],
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background,
+                        icon: SvgPicture.asset(
+                          Assets.svg.circlePlusFilled,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.topNavIconPrimary,
+                          width: 20,
+                          height: 20,
+                        ),
+                        onPressed: () async {
+                          final result = await Navigator.of(context).pushNamed(
+                            EditWalletTokensView.routeName,
+                            arguments: widget.walletId,
+                          );
 
-                      if (mounted && result == 42) {
-                        setState(() {});
-                      }
-                    },
+                          if (mounted && result == 42) {
+                            setState(() {});
+                          }
+                        },
+                      ),
+                    ),
                   ),
+                ],
+              ),
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+                  child: child,
                 ),
               ),
-            ],
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              left: 12,
-              top: 12,
-              right: 12,
             ),
-            child: child,
           ),
-        ),
-      ),
       child: Column(
         children: [
           Padding(
@@ -148,14 +148,10 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
               children: [
                 ConditionalParent(
                   condition: isDesktop,
-                  builder: (child) => Expanded(
-                    child: child,
-                  ),
+                  builder: (child) => Expanded(child: child),
                   child: ConditionalParent(
                     condition: !isDesktop,
-                    builder: (child) => Expanded(
-                      child: child,
-                    ),
+                    builder: (child) => Expanded(child: child),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -170,15 +166,18 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
                             _searchString = value;
                           });
                         },
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraSmall(context)
-                                .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveText,
-                                height: 1.8,
-                              )
-                            : STextStyles.field(context),
+                        style:
+                            isDesktop
+                                ? STextStyles.desktopTextExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFieldActiveText,
+                                  height: 1.8,
+                                )
+                                : STextStyles.field(context),
                         decoration: standardInputDecoration(
                           "Search...",
                           searchFieldFocusNode,
@@ -196,26 +195,27 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
                               height: isDesktop ? 20 : 16,
                             ),
                           ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              _searchController.text = "";
-                                              _searchString = "";
-                                            });
-                                          },
-                                        ),
-                                      ],
+                          suffixIcon:
+                              _searchController.text.isNotEmpty
+                                  ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchController.text = "";
+                                                _searchString = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
-                              : null,
+                                  )
+                                  : null,
                         ),
                       ),
                     ),
@@ -224,9 +224,7 @@ class _MyTokensViewState extends ConsumerState<MyTokensView> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           Expanded(
             child: MyTokensList(
               walletId: widget.walletId,
