@@ -19,6 +19,7 @@ export 'coins/namecoin.dart';
 export 'coins/nano.dart';
 export 'coins/particl.dart';
 export 'coins/peercoin.dart';
+export 'coins/salvium.dart';
 export 'coins/solana.dart';
 export 'coins/stellar.dart';
 export 'coins/tezos.dart';

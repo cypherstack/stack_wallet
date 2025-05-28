@@ -38,6 +38,7 @@ import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -316,21 +317,23 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                                               }
                                             }
 
-                                            KeyDataInterface? keyData;
-                                            if (wallet
-                                                    is ViewOnlyOptionInterface &&
-                                                wallet.isViewOnly) {
-                                              keyData =
-                                                  await wallet
-                                                      .getViewOnlyWalletData();
-                                            } else if (wallet
-                                                is ExtendedKeysInterface) {
-                                              keyData =
-                                                  await wallet.getXPrivs();
-                                            } else if (wallet
-                                                is LibMoneroWallet) {
-                                              keyData = await wallet.getKeys();
-                                            }
+                                          KeyDataInterface? keyData;
+                                          if (wallet
+                                                  is ViewOnlyOptionInterface &&
+                                              wallet.isViewOnly) {
+                                            keyData =
+                                                await wallet
+                                                    .getViewOnlyWalletData();
+                                          } else if (wallet
+                                              is ExtendedKeysInterface) {
+                                            keyData = await wallet.getXPrivs();
+                                          } else if (wallet
+                                              is LibMoneroWallet) {
+                                            keyData = await wallet.getKeys();
+                                          } else if (wallet
+                                          is LibSalviumWallet) {
+                                            keyData = await wallet.getKeys();
+                                          }
 
                                             if (context.mounted) {
                                               if (keyData != null &&
