@@ -35,6 +35,7 @@ import 'impl/dogecoin_wallet.dart';
 import 'impl/ecash_wallet.dart';
 import 'impl/epiccash_wallet.dart';
 import 'impl/ethereum_wallet.dart';
+import 'impl/fact0rn_wallet.dart';
 import 'impl/firo_wallet.dart';
 import 'impl/litecoin_wallet.dart';
 import 'impl/monero_wallet.dart';
@@ -357,6 +358,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Ethereum):
         return EthereumWallet(net);
+
+      case const (Fact0rn):
+        return Fact0rnWallet(net);
 
       case const (Firo):
         return FiroWallet(net);

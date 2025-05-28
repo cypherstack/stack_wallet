@@ -18,7 +18,6 @@ import '../../../providers/ui/address_book_providers/address_entry_data_provider
 import '../../../providers/ui/address_book_providers/valid_contact_state_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -33,7 +32,6 @@ class AddNewContactAddressView extends ConsumerStatefulWidget {
   const AddNewContactAddressView({
     super.key,
     required this.contactId,
-    this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -41,7 +39,6 @@ class AddNewContactAddressView extends ConsumerStatefulWidget {
 
   final String contactId;
 
-  final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
 
   @override
@@ -53,13 +50,12 @@ class _AddNewContactAddressViewState
     extends ConsumerState<AddNewContactAddressView> {
   late final String contactId;
 
-  late final BarcodeScannerInterface barcodeScanner;
   late final ClipboardInterface clipboard;
 
   @override
   void initState() {
     contactId = widget.contactId;
-    barcodeScanner = widget.barcodeScanner;
+
     clipboard = widget.clipboard;
 
     super.initState();
@@ -173,11 +169,7 @@ class _AddNewContactAddressViewState
             ],
           ),
           const SizedBox(height: 16),
-          NewContactAddressEntryForm(
-            id: 0,
-            barcodeScanner: barcodeScanner,
-            clipboard: clipboard,
-          ),
+          NewContactAddressEntryForm(id: 0, clipboard: clipboard),
           const SizedBox(height: 16),
           const Spacer(),
           Row(

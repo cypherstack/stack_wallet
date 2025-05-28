@@ -15,7 +15,6 @@ import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
@@ -50,7 +49,7 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
     required this.coin,
     required this.restoreBlockHeight,
     this.enableLelantusScanning = false,
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -60,7 +59,6 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
   final int restoreBlockHeight;
   final bool enableLelantusScanning;
-  final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
 
   @override

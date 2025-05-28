@@ -21,7 +21,6 @@ import '../../../providers/ui/address_book_providers/contact_name_is_not_empty_s
 import '../../../providers/ui/address_book_providers/valid_contact_state_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
@@ -43,13 +42,11 @@ import 'new_contact_address_entry_form.dart';
 class AddAddressBookEntryView extends ConsumerStatefulWidget {
   const AddAddressBookEntryView({
     super.key,
-    this.barcodeScanner = const BarcodeScannerWrapper(),
     this.clipboard = const ClipboardWrapper(),
   });
 
   static const String routeName = "/addAddressBookEntry";
 
-  final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
 
   @override
@@ -63,7 +60,6 @@ class _AddAddressBookEntryViewState
   late final FocusNode nameFocusNode;
   late final ScrollController scrollController;
 
-  late final BarcodeScannerInterface scanner;
   late final ClipboardInterface clipboard;
 
   Emoji? _selectedEmoji;
@@ -72,7 +68,7 @@ class _AddAddressBookEntryViewState
   @override
   initState() {
     ref.refresh(addressEntryDataProviderFamilyRefresher);
-    scanner = widget.barcodeScanner;
+
     clipboard = widget.clipboard;
 
     nameController = TextEditingController();
@@ -114,7 +110,6 @@ class _AddAddressBookEntryViewState
         key: Key("contactAddressEntryForm_$id"),
         id: ref.read(addressEntryDataProvider(id)).id,
         clipboard: clipboard,
-        barcodeScanner: scanner,
       ),
     );
     setState(() {});

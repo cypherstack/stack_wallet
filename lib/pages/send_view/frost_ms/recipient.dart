@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../providers/global/locale_provider.dart';
+import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/amount/amount.dart';
@@ -11,7 +11,6 @@ import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/amount/amount_input_formatter.dart';
 import '../../../utilities/amount/amount_unit.dart';
 import '../../../utilities/barcode_scanner_interface.dart';
-import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
@@ -25,12 +24,6 @@ import '../../../widgets/rounded_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 
-//TODO: move the following two providers elsewhere
-final pClipboard =
-    Provider<ClipboardInterface>((ref) => const ClipboardWrapper());
-final pBarcodeScanner =
-    Provider<BarcodeScannerInterface>((ref) => const BarcodeScannerWrapper());
-
 // final _pPrice = Provider.family<Decimal, Coin>((ref, coin) {
 //   return ref.watch(
 //     priceAnd24hChangeNotifierProvider
@@ -40,8 +33,8 @@ final pBarcodeScanner =
 
 final pRecipient =
     StateProvider.family<({String address, Amount? amount})?, int>(
-  (ref, index) => null,
-);
+      (ref, index) => null,
+    );
 
 class Recipient extends ConsumerStatefulWidget {
   const Recipient({
@@ -79,8 +72,9 @@ class _RecipientState extends ConsumerState<Recipient> {
 
   void _updateRecipientData() {
     final address = addressController.text;
-    final amount =
-        ref.read(pAmountFormatter(widget.coin)).tryParse(amountController.text);
+    final amount = ref
+        .read(pAmountFormatter(widget.coin))
+        .tryParse(amountController.text);
 
     ref.read(pRecipient(widget.index).notifier).state = (
       address: address,
@@ -91,9 +85,9 @@ class _RecipientState extends ConsumerState<Recipient> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      Amount? cryptoAmount = ref.read(pAmountFormatter(widget.coin)).tryParse(
-            amountController.text,
-          );
+      Amount? cryptoAmount = ref
+          .read(pAmountFormatter(widget.coin))
+          .tryParse(amountController.text);
       if (cryptoAmount != null) {
         if (ref.read(pRecipient(widget.index))?.amount != null &&
             ref.read(pRecipient(widget.index))?.amount == cryptoAmount) {
@@ -124,11 +118,7 @@ class _RecipientState extends ConsumerState<Recipient> {
     try {
       if (FocusScope.of(context).hasFocus) {
         FocusScope.of(context).unfocus();
-        await Future<void>.delayed(
-          const Duration(
-            milliseconds: 75,
-          ),
-        );
+        await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
       final qrResult = await ref.read(pBarcodeScanner).scan();
@@ -150,14 +140,12 @@ class _RecipientState extends ConsumerState<Recipient> {
 
         // autofill amount field
         if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
-            fractionDigits: widget.coin.fractionDigits,
-          );
-          amountController.text =
-              ref.read(pAmountFormatter(widget.coin)).format(
-                    amount,
-                    withUnitName: false,
-                  );
+          final Amount amount = Decimal.parse(
+            paymentData.amount!,
+          ).toAmount(fractionDigits: widget.coin.fractionDigits);
+          amountController.text = ref
+              .read(pAmountFormatter(widget.coin))
+              .format(amount, withUnitName: false);
         }
       } else {
         addressController.text = qrResult.rawContent.trim();
@@ -169,12 +157,27 @@ class _RecipientState extends ConsumerState<Recipient> {
 
       _updateRecipientData();
     } on PlatformException catch (e, s) {
-      Logging.instance.e(
-        "Failed to get camera permissions while "
-        "trying to scan qr code in SendView: $e\n$s",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.e(
+          "Failed to get camera permissions while "
+          "trying to scan qr code in SendView: $e\n$s",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
@@ -221,9 +224,7 @@ class _RecipientState extends ConsumerState<Recipient> {
   @override
   Widget build(BuildContext context) {
     final String locale = ref.watch(
-      localeServiceChangeNotifierProvider.select(
-        (value) => value.locale,
-      ),
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
     return RoundedContainer(
@@ -248,9 +249,7 @@ class _RecipientState extends ConsumerState<Recipient> {
               ),
             ],
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -281,72 +280,73 @@ class _RecipientState extends ConsumerState<Recipient> {
                   right: 5,
                 ),
                 suffixIcon: Padding(
-                  padding: _addressIsEmpty
-                      ? const EdgeInsets.only(right: 8)
-                      : const EdgeInsets.only(right: 0),
+                  padding:
+                      _addressIsEmpty
+                          ? const EdgeInsets.only(right: 8)
+                          : const EdgeInsets.only(right: 0),
                   child: UnconstrainedBox(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         !_addressIsEmpty
                             ? TextFieldIconButton(
-                                semanticsLabel:
-                                    "Clear Button. Clears The Address Field Input.",
-                                key: const Key(
-                                  "sendViewClearAddressFieldButtonKey",
-                                ),
-                                onTap: () {
-                                  addressController.text = "";
+                              semanticsLabel:
+                                  "Clear Button. Clears The Address Field Input.",
+                              key: const Key(
+                                "sendViewClearAddressFieldButtonKey",
+                              ),
+                              onTap: () {
+                                addressController.text = "";
+
+                                setState(() {
+                                  _addressIsEmpty = true;
+                                });
+
+                                _updateRecipientData();
+                              },
+                              child: const XIcon(),
+                            )
+                            : TextFieldIconButton(
+                              semanticsLabel:
+                                  "Paste Button. Pastes From Clipboard To Address Field Input.",
+                              key: const Key(
+                                "sendViewPasteAddressFieldButtonKey",
+                              ),
+                              onTap: () async {
+                                final ClipboardData? data = await ref
+                                    .read(pClipboard)
+                                    .getData(Clipboard.kTextPlain);
+                                if (data?.text != null &&
+                                    data!.text!.isNotEmpty) {
+                                  String content = data.text!.trim();
+                                  if (content.contains("\n")) {
+                                    content = content.substring(
+                                      0,
+                                      content.indexOf("\n"),
+                                    );
+                                  }
+
+                                  addressController.text = content.trim();
 
                                   setState(() {
-                                    _addressIsEmpty = true;
+                                    _addressIsEmpty =
+                                        addressController.text.isEmpty;
                                   });
 
                                   _updateRecipientData();
-                                },
-                                child: const XIcon(),
-                              )
-                            : TextFieldIconButton(
-                                semanticsLabel:
-                                    "Paste Button. Pastes From Clipboard To Address Field Input.",
-                                key: const Key(
-                                  "sendViewPasteAddressFieldButtonKey",
-                                ),
-                                onTap: () async {
-                                  final ClipboardData? data = await ref
-                                      .read(pClipboard)
-                                      .getData(Clipboard.kTextPlain);
-                                  if (data?.text != null &&
-                                      data!.text!.isNotEmpty) {
-                                    String content = data.text!.trim();
-                                    if (content.contains("\n")) {
-                                      content = content.substring(
-                                        0,
-                                        content.indexOf("\n"),
-                                      );
-                                    }
-
-                                    addressController.text = content.trim();
-
-                                    setState(() {
-                                      _addressIsEmpty =
-                                          addressController.text.isEmpty;
-                                    });
-
-                                    _updateRecipientData();
-                                  }
-                                },
-                                child: _addressIsEmpty
-                                    ? const ClipboardIcon()
-                                    : const XIcon(),
-                              ),
+                                }
+                              },
+                              child:
+                                  _addressIsEmpty
+                                      ? const ClipboardIcon()
+                                      : const XIcon(),
+                            ),
                         if (_addressIsEmpty)
                           TextFieldIconButton(
-                            semanticsLabel: "Scan QR Button. "
+                            semanticsLabel:
+                                "Scan QR Button. "
                                 "Opens Camera For Scanning QR Code.",
-                            key: const Key(
-                              "sendViewScanQrButtonKey",
-                            ),
+                            key: const Key("sendViewScanQrButtonKey"),
                             onTap: _onQrTapped,
                             child: const QrCodeIcon(),
                           ),
@@ -357,9 +357,7 @@ class _RecipientState extends ConsumerState<Recipient> {
               ),
             ),
           ),
-          SizedBox(
-            height: isSingle ? 12 : 8,
-          ),
+          SizedBox(height: isSingle ? 12 : 8),
           if (isSingle)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -380,10 +378,7 @@ class _RecipientState extends ConsumerState<Recipient> {
                 // ),
               ],
             ),
-          if (isSingle)
-            const SizedBox(
-              height: 8,
-            ),
+          if (isSingle) const SizedBox(height: 8),
           TextField(
             autocorrect: false,
             enableSuggestions: false,
@@ -396,12 +391,13 @@ class _RecipientState extends ConsumerState<Recipient> {
             onChanged: (_) {
               _updateRecipientData();
             },
-            keyboardType: Util.isDesktop
-                ? null
-                : const TextInputType.numberWithOptions(
-                    signed: false,
-                    decimal: true,
-                  ),
+            keyboardType:
+                Util.isDesktop
+                    ? null
+                    : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
@@ -411,14 +407,9 @@ class _RecipientState extends ConsumerState<Recipient> {
               ),
             ],
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.only(
-                top: 12,
-                right: 12,
-              ),
+              contentPadding: const EdgeInsets.only(top: 12, right: 12),
               hintText: "0",
-              hintStyle: STextStyles.fieldLabel(context).copyWith(
-                fontSize: 14,
-              ),
+              hintStyle: STextStyles.fieldLabel(context).copyWith(fontSize: 14),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Padding(
@@ -428,9 +419,10 @@ class _RecipientState extends ConsumerState<Recipient> {
                         .watch(pAmountUnit(widget.coin))
                         .unitForCoin(widget.coin),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                 ),

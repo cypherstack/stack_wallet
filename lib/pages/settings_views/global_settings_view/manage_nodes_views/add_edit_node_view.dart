@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +23,7 @@ import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
@@ -375,8 +375,23 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         }
       } else {
         try {
-          final result = await BarcodeScanner.scan();
+          final result = await ref.read(pBarcodeScanner).scan();
           await _processQrData(result.rawContent);
+        } on PlatformException catch (e, s) {
+          if (mounted) {
+            try {
+              await checkCamPermDeniedMobileAndOpenAppSettings(
+                context,
+                logging: Logging.instance,
+              );
+            } catch (e, s) {
+              Logging.instance.e(
+                "Failed to check cam permissions",
+                error: e,
+                stackTrace: s,
+              );
+            }
+          }
         } catch (e, s) {
           Logging.instance.e("$runtimeType._scanQr()", error: e, stackTrace: s);
         }

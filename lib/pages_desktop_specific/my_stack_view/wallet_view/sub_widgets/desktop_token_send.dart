@@ -30,7 +30,6 @@ import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
-import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/logger.dart';
@@ -61,14 +60,13 @@ class DesktopTokenSend extends ConsumerStatefulWidget {
     required this.walletId,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+
     this.accountLite,
   });
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
   final PaynymAccountLite? accountLite;
 
   @override
@@ -79,7 +77,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   late final String walletId;
   late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
-  late final BarcodeScannerInterface scanner;
 
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
@@ -423,7 +420,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan();
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
@@ -588,7 +585,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     walletId = widget.walletId;
     coin = ref.read(pWallets).getWallet(walletId).info.coin;
     clipboard = widget.clipboard;
-    scanner = widget.barcodeScanner;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
