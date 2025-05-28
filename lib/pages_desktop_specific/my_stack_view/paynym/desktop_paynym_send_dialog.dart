@@ -24,7 +24,6 @@ import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -39,14 +38,13 @@ class DesktopPaynymSendDialog extends ConsumerStatefulWidget {
     required this.walletId,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+
     this.accountLite,
   });
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
   final PaynymAccountLite? accountLite;
 
   @override

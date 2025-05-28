@@ -44,14 +44,12 @@ class Step2View extends ConsumerStatefulWidget {
     super.key,
     required this.model,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
   });
 
   static const String routeName = "/exchangeStep2";
 
   final IncompleteExchangeModel model;
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
 
   @override
   ConsumerState<Step2View> createState() => _Step2ViewState();
@@ -60,7 +58,6 @@ class Step2View extends ConsumerStatefulWidget {
 class _Step2ViewState extends ConsumerState<Step2View> {
   late final IncompleteExchangeModel model;
   late final ClipboardInterface clipboard;
-  late final BarcodeScannerInterface scanner;
 
   late final TextEditingController _toController;
   late final TextEditingController _refundController;
@@ -72,7 +69,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   void _onRefundQrTapped() async {
     try {
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan();
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
@@ -100,17 +97,32 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         });
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.w(
-        "Failed to get camera permissions while trying to scan qr code in SendView: ",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.w(
+          "Failed to get camera permissions while trying to scan qr code in $runtimeType: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
   void _onToQrTapped() async {
     try {
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan();
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent,
@@ -140,11 +152,26 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         });
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.w(
-        "Failed to get camera permissions while trying to scan qr code in SendView: ",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.w(
+          "Failed to get camera permissions while trying to scan qr code in $runtimeType: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
@@ -152,7 +179,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
   void initState() {
     model = widget.model;
     clipboard = widget.clipboard;
-    scanner = widget.barcodeScanner;
 
     _toController = TextEditingController();
     _refundController = TextEditingController();

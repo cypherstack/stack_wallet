@@ -18,7 +18,6 @@ import '../../../providers/ui/address_book_providers/address_entry_data_provider
 import '../../../providers/ui/address_book_providers/valid_contact_state_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
-import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -34,7 +33,7 @@ class EditContactAddressView extends ConsumerStatefulWidget {
     super.key,
     required this.contactId,
     required this.addressEntry,
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -43,7 +42,6 @@ class EditContactAddressView extends ConsumerStatefulWidget {
   final String contactId;
   final ContactAddressEntry addressEntry;
 
-  final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
 
   @override
@@ -56,7 +54,6 @@ class _EditContactAddressViewState
   late final String contactId;
   late final ContactAddressEntry addressEntry;
 
-  late final BarcodeScannerInterface barcodeScanner;
   late final ClipboardInterface clipboard;
 
   Future<void> save(ContactEntry contact) async {
@@ -97,7 +94,6 @@ class _EditContactAddressViewState
   void initState() {
     contactId = widget.contactId;
     addressEntry = widget.addressEntry;
-    barcodeScanner = widget.barcodeScanner;
     clipboard = widget.clipboard;
 
     super.initState();
@@ -211,11 +207,7 @@ class _EditContactAddressViewState
             ],
           ),
           const SizedBox(height: 16),
-          NewContactAddressEntryForm(
-            id: 0,
-            barcodeScanner: barcodeScanner,
-            clipboard: clipboard,
-          ),
+          NewContactAddressEntryForm(id: 0, clipboard: clipboard),
           const SizedBox(height: 24),
           ConditionalParent(
             condition: isDesktop,

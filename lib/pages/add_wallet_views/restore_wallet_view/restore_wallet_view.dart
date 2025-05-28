@@ -77,7 +77,7 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.mnemonicPassphrase,
     required this.restoreBlockHeight,
     this.enableLelantusScanning = false,
-    this.barcodeScanner = const BarcodeScannerWrapper(),
+
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -90,7 +90,6 @@ class RestoreWalletView extends ConsumerStatefulWidget {
   final int restoreBlockHeight;
   final bool enableLelantusScanning;
 
-  final BarcodeScannerInterface barcodeScanner;
   final ClipboardInterface clipboard;
 
   @override
@@ -109,8 +108,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   final List<TextEditingController> _controllers = [];
   final List<FormInputStatus> _inputStatuses = [];
   // final List<FocusNode> _focusNodes = [];
-
-  late final BarcodeScannerInterface scanner;
 
   late final TextSelectionControls textSelectionControls;
 
@@ -161,7 +158,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             ? CustomCupertinoTextSelectionControls(onPaste: onControlsPaste)
             : CustomMaterialTextSelectionControls(onPaste: onControlsPaste);
 
-    scanner = widget.barcodeScanner;
     for (int i = 0; i < _seedWordCount; i++) {
       _controllers.add(TextEditingController());
       _inputStatuses.add(FormInputStatus.empty);
@@ -601,7 +597,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   Future<void> scanMnemonicQr() async {
     try {
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan();
 
       final results = AddressUtils.decodeQRSeedData(qrResult.rawContent);
 
@@ -618,11 +614,26 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
     } on PlatformException catch (e, s) {
       // likely failed to get camera permissions
-      Logging.instance.e(
-        "Restore wallet qr scan failed: $e",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.e(
+          "Restore wallet qr scan failed: $e",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 

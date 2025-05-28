@@ -83,7 +83,6 @@ class SendView extends ConsumerStatefulWidget {
     required this.coin,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
     this.accountLite,
   });
 
@@ -93,7 +92,6 @@ class SendView extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
   final PaynymAccountLite? accountLite;
 
   @override
@@ -111,7 +109,6 @@ class _SendViewState extends ConsumerState<SendView> {
   late final String walletId;
   late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
-  late final BarcodeScannerInterface scanner;
 
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
@@ -271,7 +268,7 @@ class _SendViewState extends ConsumerState<SendView> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan();
 
       // Future<void>.delayed(
       //   const Duration(seconds: 2),
@@ -307,13 +304,27 @@ class _SendViewState extends ConsumerState<SendView> {
       //         shouldShowLockscreenOnResumeStateProvider
       //             .state)
       //     .state = true;
-      // here we ignore the exception caused by not giving permission
-      // to use the camera to scan a qr code
-      Logging.instance.e(
-        "Failed to get camera permissions while trying to scan qr code in SendView: ",
-        error: e,
-        stackTrace: s,
-      );
+
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.e(
+          "Failed to get camera permissions while trying to scan qr code in SendView: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
@@ -1055,7 +1066,6 @@ class _SendViewState extends ConsumerState<SendView> {
     _data = widget.autoFillData;
     walletId = widget.walletId;
     clipboard = widget.clipboard;
-    scanner = widget.barcodeScanner;
     isStellar = coin is Stellar;
     isFiro = coin is Firo;
     isEth = coin is Ethereum;

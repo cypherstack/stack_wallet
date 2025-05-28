@@ -69,7 +69,6 @@ class TokenSendView extends ConsumerStatefulWidget {
     required this.tokenContract,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
-    this.barcodeScanner = const BarcodeScannerWrapper(),
   });
 
   static const String routeName = "/tokenSendView";
@@ -79,7 +78,6 @@ class TokenSendView extends ConsumerStatefulWidget {
   final EthContract tokenContract;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
-  final BarcodeScannerInterface barcodeScanner;
 
   @override
   ConsumerState<TokenSendView> createState() => _TokenSendViewState();
@@ -90,7 +88,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   late final CryptoCurrency coin;
   late final EthContract tokenContract;
   late final ClipboardInterface clipboard;
-  late final BarcodeScannerInterface scanner;
 
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
@@ -154,7 +151,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
-      final qrResult = await scanner.scan();
+      final qrResult = await ref.read(pBarcodeScanner).scan();
 
       // Future<void>.delayed(
       //   const Duration(seconds: 2),
@@ -223,13 +220,26 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       //         shouldShowLockscreenOnResumeStateProvider
       //             .state)
       //     .state = true;
-      // here we ignore the exception caused by not giving permission
-      // to use the camera to scan a qr code
-      Logging.instance.w(
-        "Failed to get camera permissions while trying to scan qr code in SendView: ",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.w(
+          "Failed to get camera permissions while trying to scan qr code in SendView: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
@@ -581,7 +591,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     coin = widget.coin;
     tokenContract = widget.tokenContract;
     clipboard = widget.clipboard;
-    scanner = widget.barcodeScanner;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
