@@ -36,6 +36,7 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -228,7 +229,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin is LibMoneroWallet) {
+    if (coin is LibMoneroWallet || coin is LibSalviumWallet) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -1084,7 +1085,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 } else {
                   enableSSLCheckbox = true;
                 }
-              } else if (widget.coin is LibMoneroWallet) {
+              } else if (widget.coin is LibMoneroWallet || widget.coin is LibSalviumWallet) {
                 if (newValue.startsWith("https://")) {
                   _useSSL = true;
                 } else if (newValue.startsWith("http://")) {
@@ -1291,7 +1292,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin is LibMoneroWallet)
+        if (widget.coin is LibMoneroWallet || widget.coin is LibSalviumWallet)
           Row(
             children: [
               GestureDetector(

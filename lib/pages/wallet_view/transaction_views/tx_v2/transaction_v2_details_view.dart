@@ -43,6 +43,7 @@ import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
@@ -186,7 +187,7 @@ class _TransactionV2DetailsViewState
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     hasTxKeyProbably =
-        wallet is LibMoneroWallet &&
+        (wallet is LibMoneroWallet || wallet is LibSalviumWallet) &&
         (_transaction.type == TransactionType.outgoing ||
             _transaction.type == TransactionType.sentToSelf);
 

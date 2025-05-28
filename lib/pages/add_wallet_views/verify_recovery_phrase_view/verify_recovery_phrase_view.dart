@@ -14,6 +14,8 @@ import 'dart:math';
 
 import 'package:cs_monero/src/deprecated/get_height_by_date.dart'
     as cs_monero_deprecated;
+import 'package:cs_salvium/src/deprecated/get_height_by_date.dart'
+    as cs_salvium_deprecated;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,6 +42,7 @@ import '../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -121,7 +124,8 @@ class _VerifyRecoveryPhraseViewState
         });
       }
       viewOnlyWalletType = ViewOnlyWalletType.xPub;
-    } else if (widget.wallet is LibMoneroWallet) {
+    } else if (widget.wallet is LibMoneroWallet ||
+        widget.wallet is LibSalviumWallet) {
       if (widget.wallet.cryptoCurrency is Monero) {
         height = cs_monero_deprecated.getMoneroHeightByDate(
           date: DateTime.now().subtract(const Duration(days: 7)),
@@ -129,6 +133,11 @@ class _VerifyRecoveryPhraseViewState
       }
       if (widget.wallet.cryptoCurrency is Wownero) {
         height = cs_monero_deprecated.getWowneroHeightByDate(
+          date: DateTime.now().subtract(const Duration(days: 7)),
+        );
+      }
+      if (widget.wallet.cryptoCurrency is Salvium) {
+        height = cs_salvium_deprecated.getSalviumHeightByDate(
           date: DateTime.now().subtract(const Duration(days: 7)),
         );
       }
@@ -179,6 +188,22 @@ class _VerifyRecoveryPhraseViewState
       );
     } else if (widget.wallet is LibMoneroWallet) {
       final w = widget.wallet as LibMoneroWallet;
+
+      final info =
+          await w
+              .hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
+      final address = info.$1;
+      final privateViewKey = info.$2;
+
+      await w.exit();
+
+      viewOnlyData = CryptonoteViewOnlyWalletData(
+        walletId: voInfo.walletId,
+        address: address,
+        privateViewKey: privateViewKey,
+      );
+    } else if (widget.wallet is LibSalviumWallet) {
+      final w = widget.wallet as LibSalviumWallet;
 
       final info =
           await w

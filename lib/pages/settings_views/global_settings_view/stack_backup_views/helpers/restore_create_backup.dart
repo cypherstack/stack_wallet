@@ -57,6 +57,7 @@ import '../../../../../wallets/wallet/impl/monero_wallet.dart';
 import '../../../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
@@ -505,7 +506,7 @@ abstract class SWB {
 
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
-        if (wallet is EpiccashWallet || wallet is LibMoneroWallet) {
+        if (wallet is EpiccashWallet || wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
           restoreHeight = 0;
         } else {
           restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;

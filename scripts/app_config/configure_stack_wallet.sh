@@ -70,6 +70,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Namecoin(CryptoCurrencyNetwork.main),
   Particl(CryptoCurrencyNetwork.main),
   Peercoin(CryptoCurrencyNetwork.main),
+  Salvium(CryptoCurrencyNetwork.main),
   Solana(CryptoCurrencyNetwork.main),
   Stellar(CryptoCurrencyNetwork.main),
   Tezos(CryptoCurrencyNetwork.main),
