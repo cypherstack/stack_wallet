@@ -1223,7 +1223,9 @@ class _SendViewState extends ConsumerState<SendView> {
             _address = _address!.substring(0, _address!.indexOf("\n"));
           }
 
-          sendToController.text = AddressUtils().formatEpicCashAddress(_address!);
+          sendToController.text = AddressUtils().formatEpicCashAddress(
+            _address!,
+          );
         }
       });
     }
@@ -1257,733 +1259,680 @@ class _SendViewState extends ConsumerState<SendView> {
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: LayoutBuilder(
-          builder: (builderContext, constraints) {
-            return Padding(
-              padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    // subtract top and bottom padding set in parent
-                    minHeight: constraints.maxHeight - 24,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Row(
-                                children: [
-                                  SvgPicture.file(
-                                    File(ref.watch(coinIconProvider(coin))),
-                                    width: 22,
-                                    height: 22,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        ref.watch(pWalletName(walletId)),
-                                        style: STextStyles.titleBold12(
-                                          context,
-                                        ).copyWith(fontSize: 14),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                      // const SizedBox(
-                                      //   height: 2,
-                                      // ),
-                                      if (isFiro)
-                                        Text(
-                                          "${ref.watch(publicPrivateBalanceStateProvider.state).state.name.capitalize()} balance",
-                                          style: STextStyles.label(
-                                            context,
-                                          ).copyWith(fontSize: 10),
-                                        ),
-                                      if (coin is! Firo)
-                                        Text(
-                                          "Available balance",
-                                          style: STextStyles.label(
-                                            context,
-                                          ).copyWith(fontSize: 10),
-                                        ),
-                                    ],
-                                  ),
-                                  const Spacer(),
-                                  Builder(
-                                    builder: (context) {
-                                      final Amount amount;
-                                      if (isFiro) {
-                                        switch (ref
-                                            .watch(
-                                              publicPrivateBalanceStateProvider
-                                                  .state,
-                                            )
-                                            .state) {
-                                          case FiroType.public:
-                                            amount =
-                                                ref
-                                                    .read(
-                                                      pWalletBalance(walletId),
-                                                    )
-                                                    .spendable;
-                                            break;
-                                          case FiroType.lelantus:
-                                            amount =
-                                                ref
-                                                    .read(
-                                                      pWalletBalanceSecondary(
-                                                        walletId,
-                                                      ),
-                                                    )
-                                                    .spendable;
-                                            break;
-                                          case FiroType.spark:
-                                            amount =
-                                                ref
-                                                    .read(
-                                                      pWalletBalanceTertiary(
-                                                        walletId,
-                                                      ),
-                                                    )
-                                                    .spendable;
-                                            break;
-                                        }
-                                      } else {
-                                        amount =
-                                            ref
-                                                .read(pWalletBalance(walletId))
-                                                .spendable;
-                                      }
-
-                                      return GestureDetector(
-                                        onTap: () {
-                                          cryptoAmountController.text = ref
-                                              .read(pAmountFormatter(coin))
-                                              .format(
-                                                amount,
-                                                withUnitName: false,
-                                              );
-                                        },
-                                        child: Container(
-                                          color: Colors.transparent,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                ref
-                                                    .watch(
-                                                      pAmountFormatter(coin),
-                                                    )
-                                                    .format(amount),
-                                                style: STextStyles.titleBold12(
-                                                  context,
-                                                ).copyWith(fontSize: 10),
-                                                textAlign: TextAlign.right,
-                                              ),
-                                              if (price != null)
-                                                Text(
-                                                  "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                  style: STextStyles.subtitle(
-                                                    context,
-                                                  ).copyWith(fontSize: 8),
-                                                  textAlign: TextAlign.right,
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                isPaynymSend
-                                    ? "Send to PayNym address"
-                                    : "Send to",
-                                style: STextStyles.smallMed12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                              // if (coin is Monero)
-                              //   CustomTextButton(
-                              //     text: "Use OpenAlias",
-                              //     onTap: () async {
-                              //       await showModalBottomSheet(
-                              //         context: context,
-                              //         builder: (context) =>
-                              //             OpenAliasBottomSheet(
-                              //           onSelected: (address) {
-                              //             sendToController.text = address;
-                              //           },
-                              //         ),
-                              //       );
-                              //     },
-                              //   ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          if (isPaynymSend)
-                            TextField(
-                              key: const Key("sendViewPaynymAddressFieldKey"),
-                              controller: sendToController,
-                              enabled: false,
-                              readOnly: true,
-                              style: STextStyles.fieldLabel(context),
-                            ),
-                          if (!isPaynymSend)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                              child: TextField(
-                                key: const Key("sendViewAddressFieldKey"),
-                                controller: sendToController,
-                                readOnly: false,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                // inputFormatters: <TextInputFormatter>[
-                                //   FilteringTextInputFormatter.allow(
-                                //       RegExp("[a-zA-Z0-9]{34}")),
-                                // ],
-                                toolbarOptions: const ToolbarOptions(
-                                  copy: false,
-                                  cut: false,
-                                  paste: true,
-                                  selectAll: false,
-                                ),
-                                onChanged: (newValue) async {
-                                  final trimmed = newValue.trim();
-
-                                  if ((trimmed.length - (_address?.length ?? 0))
-                                          .abs() >
-                                      1) {
-                                    final parsed = AddressUtils.parsePaymentUri(
-                                      trimmed,
-                                      logging: Logging.instance,
-                                    );
-                                    if (parsed != null) {
-                                      _applyUri(parsed);
-                                    } else {
-                                      await _checkSparkNameAndOrSetAddress(
-                                        newValue,
-                                      );
-                                    }
-                                  } else {
-                                    await _checkSparkNameAndOrSetAddress(
-                                      newValue,
-                                      setController: false,
-                                    );
-                                  }
-
-                                  _setValidAddressProviders(_address);
-
-                                  setState(() {
-                                    _addressToggleFlag = newValue.isNotEmpty;
-                                  });
-                                },
-                                focusNode: _addressFocusNode,
-                                style: STextStyles.field(context),
-                                decoration: standardInputDecoration(
-                                  "Enter ${coin.ticker} address",
-                                  _addressFocusNode,
-                                  context,
-                                ).copyWith(
-                                  contentPadding: const EdgeInsets.only(
-                                    left: 16,
-                                    top: 6,
-                                    bottom: 8,
-                                    right: 5,
-                                  ),
-                                  suffixIcon: Padding(
-                                    padding:
-                                        sendToController.text.isEmpty
-                                            ? const EdgeInsets.only(right: 8)
-                                            : const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          _addressToggleFlag
-                                              ? TextFieldIconButton(
-                                                semanticsLabel:
-                                                    "Clear Button. Clears The Address Field Input.",
-                                                key: const Key(
-                                                  "sendViewClearAddressFieldButtonKey",
-                                                ),
-                                                onTap: () {
-                                                  sendToController.text = "";
-                                                  _address = "";
-                                                  _setValidAddressProviders(
-                                                    _address,
-                                                  );
-                                                  setState(() {
-                                                    _addressToggleFlag = false;
-                                                  });
-                                                },
-                                                child: const XIcon(),
-                                              )
-                                              : TextFieldIconButton(
-                                                semanticsLabel:
-                                                    "Paste Button. Pastes From Clipboard To Address Field Input.",
-                                                key: const Key(
-                                                  "sendViewPasteAddressFieldButtonKey",
-                                                ),
-                                                onTap: _pasteAddress,
-                                                child:
-                                                    sendToController
-                                                            .text
-                                                            .isEmpty
-                                                        ? const ClipboardIcon()
-                                                        : const XIcon(),
-                                              ),
-                                          if (sendToController.text.isEmpty)
-                                            TextFieldIconButton(
-                                              semanticsLabel:
-                                                  "Address Book Button. Opens Address Book For Address Field.",
-                                              key: const Key(
-                                                "sendViewAddressBookButtonKey",
-                                              ),
-                                              onTap: () {
-                                                Navigator.of(context).pushNamed(
-                                                  AddressBookView.routeName,
-                                                  arguments: widget.coin,
-                                                );
-                                              },
-                                              child: const AddressBookIcon(),
-                                            ),
-                                          if (sendToController.text.isEmpty)
-                                            TextFieldIconButton(
-                                              semanticsLabel:
-                                                  "Scan QR Button. Opens Camera For Scanning QR Code.",
-                                              key: const Key(
-                                                "sendViewScanQrButtonKey",
-                                              ),
-                                              onTap: _scanQr,
-                                              child: const QrCodeIcon(),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (builderContext, constraints) {
+              return Padding(
+                padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      // subtract top and bottom padding set in parent
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.popupBG,
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
                                 ),
                               ),
-                            ),
-                          const SizedBox(height: 10),
-                          if (isStellar ||
-                              (ref.watch(pValidSparkSendToAddress) &&
-                                  ref.watch(
-                                        publicPrivateBalanceStateProvider,
-                                      ) !=
-                                      FiroType.lelantus))
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                              child: TextField(
-                                key: const Key("sendViewMemoFieldKey"),
-                                maxLength: (coin is Firo) ? 31 : null,
-                                controller: memoController,
-                                readOnly: false,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                focusNode: _memoFocus,
-                                style: STextStyles.field(context),
-                                onChanged: (_) {
-                                  setState(() {});
-                                },
-                                decoration: standardInputDecoration(
-                                  "Enter memo (optional)",
-                                  _memoFocus,
-                                  context,
-                                ).copyWith(
-                                  counterText: '',
-                                  contentPadding: const EdgeInsets.only(
-                                    left: 16,
-                                    top: 6,
-                                    bottom: 8,
-                                    right: 5,
-                                  ),
-                                  suffixIcon: Padding(
-                                    padding:
-                                        memoController.text.isEmpty
-                                            ? const EdgeInsets.only(right: 8)
-                                            : const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          memoController.text.isNotEmpty
-                                              ? TextFieldIconButton(
-                                                semanticsLabel:
-                                                    "Clear Button. Clears The Memo Field Input.",
-                                                key: const Key(
-                                                  "sendViewClearMemoFieldButtonKey",
-                                                ),
-                                                onTap: () {
-                                                  memoController.text = "";
-                                                  setState(() {});
-                                                },
-                                                child: const XIcon(),
-                                              )
-                                              : TextFieldIconButton(
-                                                semanticsLabel:
-                                                    "Paste Button. Pastes From Clipboard To Memo Field Input.",
-                                                key: const Key(
-                                                  "sendViewPasteMemoFieldButtonKey",
-                                                ),
-                                                onTap: () async {
-                                                  final ClipboardData? data =
-                                                      await clipboard.getData(
-                                                        Clipboard.kTextPlain,
-                                                      );
-                                                  if (data?.text != null &&
-                                                      data!.text!.isNotEmpty) {
-                                                    final String content =
-                                                        data.text!.trim();
-
-                                                    memoController.text =
-                                                        content.trim();
-
-                                                    setState(() {});
-                                                  }
-                                                },
-                                                child: const ClipboardIcon(),
-                                              ),
-                                        ],
-                                      ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.file(
+                                      File(ref.watch(coinIconProvider(coin))),
+                                      width: 22,
+                                      height: 22,
                                     ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          Builder(
-                            builder: (_) {
-                              final String? error;
-
-                              if (_address == null || _address!.isEmpty) {
-                                error = null;
-                              } else if (isFiro) {
-                                if (ref.watch(
-                                      publicPrivateBalanceStateProvider,
-                                    ) ==
-                                    FiroType.lelantus) {
-                                  if (_data != null &&
-                                      _data.contactLabel == _address) {
-                                    error =
-                                        SparkInterface.validateSparkAddress(
-                                              address: _data.address,
-                                              isTestNet:
-                                                  coin.network ==
-                                                  CryptoCurrencyNetwork.test,
-                                            )
-                                            ? "Unsupported"
-                                            : null;
-                                  } else if (ref.watch(
-                                    pValidSparkSendToAddress,
-                                  )) {
-                                    error = "Unsupported";
-                                  } else {
-                                    error =
-                                        ref.watch(pValidSendToAddress)
-                                            ? null
-                                            : "Invalid address";
-                                  }
-                                } else {
-                                  if (_data != null &&
-                                      _data.contactLabel == _address) {
-                                    error = null;
-                                  } else if (!ref.watch(pValidSendToAddress) &&
-                                      !ref.watch(pValidSparkSendToAddress)) {
-                                    error = "Invalid address";
-                                  } else {
-                                    error = null;
-                                  }
-                                }
-                              } else {
-                                if (_data != null &&
-                                    _data.contactLabel == _address) {
-                                  error = null;
-                                } else if (!ref.watch(pValidSendToAddress)) {
-                                  error = "Invalid address";
-                                } else {
-                                  error = null;
-                                }
-                              }
-
-                              if (error == null || error.isEmpty) {
-                                return Container();
-                              } else {
-                                return Align(
-                                  alignment: Alignment.topLeft,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 12.0,
-                                      top: 4.0,
-                                    ),
-                                    child: Text(
-                                      error,
-                                      textAlign: TextAlign.left,
-                                      style: STextStyles.label(
-                                        context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textError,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          if (isFiro) const SizedBox(height: 12),
-                          if (isFiro)
-                            Text(
-                              "Send from",
-                              style: STextStyles.smallMed12(context),
-                              textAlign: TextAlign.left,
-                            ),
-                          if (isFiro) const SizedBox(height: 8),
-                          if (isFiro)
-                            Stack(
-                              children: [
-                                TextField(
-                                  autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions:
-                                      Util.isDesktop ? false : true,
-                                  readOnly: true,
-                                  textInputAction: TextInputAction.none,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: RawMaterialButton(
-                                    splashColor:
-                                        Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.highlight,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        Constants.size.circularBorderRadius,
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      showModalBottomSheet<dynamic>(
-                                        backgroundColor: Colors.transparent,
-                                        context: context,
-                                        shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.vertical(
-                                            top: Radius.circular(20),
-                                          ),
-                                        ),
-                                        builder:
-                                            (_) => FiroBalanceSelectionSheet(
-                                              walletId: walletId,
-                                            ),
-                                      );
-                                    },
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                    const SizedBox(width: 6),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "${ref.watch(publicPrivateBalanceStateProvider.state).state.name.capitalize()} balance",
-                                              style: STextStyles.itemSubtitle12(
-                                                context,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Builder(
-                                              builder: (_) {
-                                                final Amount amount;
-                                                switch (ref
-                                                    .read(
-                                                      publicPrivateBalanceStateProvider
-                                                          .state,
-                                                    )
-                                                    .state) {
-                                                  case FiroType.public:
-                                                    amount =
-                                                        ref
-                                                            .watch(
-                                                              pWalletBalance(
-                                                                walletId,
-                                                              ),
-                                                            )
-                                                            .spendable;
-                                                    break;
-                                                  case FiroType.lelantus:
-                                                    amount =
-                                                        ref
-                                                            .watch(
-                                                              pWalletBalanceSecondary(
-                                                                walletId,
-                                                              ),
-                                                            )
-                                                            .spendable;
-                                                    break;
-                                                  case FiroType.spark:
-                                                    amount =
-                                                        ref
-                                                            .watch(
-                                                              pWalletBalanceTertiary(
-                                                                walletId,
-                                                              ),
-                                                            )
-                                                            .spendable;
-                                                    break;
-                                                }
+                                        Text(
+                                          ref.watch(pWalletName(walletId)),
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ).copyWith(fontSize: 14),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                        // const SizedBox(
+                                        //   height: 2,
+                                        // ),
+                                        if (isFiro)
+                                          Text(
+                                            "${ref.watch(publicPrivateBalanceStateProvider.state).state.name.capitalize()} balance",
+                                            style: STextStyles.label(
+                                              context,
+                                            ).copyWith(fontSize: 10),
+                                          ),
+                                        if (coin is! Firo)
+                                          Text(
+                                            "Available balance",
+                                            style: STextStyles.label(
+                                              context,
+                                            ).copyWith(fontSize: 10),
+                                          ),
+                                      ],
+                                    ),
+                                    const Spacer(),
+                                    Builder(
+                                      builder: (context) {
+                                        final Amount amount;
+                                        if (isFiro) {
+                                          switch (ref
+                                              .watch(
+                                                publicPrivateBalanceStateProvider
+                                                    .state,
+                                              )
+                                              .state) {
+                                            case FiroType.public:
+                                              amount =
+                                                  ref
+                                                      .read(
+                                                        pWalletBalance(
+                                                          walletId,
+                                                        ),
+                                                      )
+                                                      .spendable;
+                                              break;
+                                            case FiroType.lelantus:
+                                              amount =
+                                                  ref
+                                                      .read(
+                                                        pWalletBalanceSecondary(
+                                                          walletId,
+                                                        ),
+                                                      )
+                                                      .spendable;
+                                              break;
+                                            case FiroType.spark:
+                                              amount =
+                                                  ref
+                                                      .read(
+                                                        pWalletBalanceTertiary(
+                                                          walletId,
+                                                        ),
+                                                      )
+                                                      .spendable;
+                                              break;
+                                          }
+                                        } else {
+                                          amount =
+                                              ref
+                                                  .read(
+                                                    pWalletBalance(walletId),
+                                                  )
+                                                  .spendable;
+                                        }
 
-                                                return Text(
+                                        return GestureDetector(
+                                          onTap: () {
+                                            cryptoAmountController.text = ref
+                                                .read(pAmountFormatter(coin))
+                                                .format(
+                                                  amount,
+                                                  withUnitName: false,
+                                                );
+                                          },
+                                          child: Container(
+                                            color: Colors.transparent,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
                                                   ref
                                                       .watch(
                                                         pAmountFormatter(coin),
                                                       )
                                                       .format(amount),
                                                   style:
-                                                      STextStyles.itemSubtitle(
+                                                      STextStyles.titleBold12(
                                                         context,
-                                                      ),
-                                                );
-                                              },
+                                                      ).copyWith(fontSize: 10),
+                                                  textAlign: TextAlign.right,
+                                                ),
+                                                if (price != null)
+                                                  Text(
+                                                    "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                    style: STextStyles.subtitle(
+                                                      context,
+                                                    ).copyWith(fontSize: 8),
+                                                    textAlign: TextAlign.right,
+                                                  ),
+                                              ],
                                             ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  isPaynymSend
+                                      ? "Send to PayNym address"
+                                      : "Send to",
+                                  style: STextStyles.smallMed12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                // if (coin is Monero)
+                                //   CustomTextButton(
+                                //     text: "Use OpenAlias",
+                                //     onTap: () async {
+                                //       await showModalBottomSheet(
+                                //         context: context,
+                                //         builder: (context) =>
+                                //             OpenAliasBottomSheet(
+                                //           onSelected: (address) {
+                                //             sendToController.text = address;
+                                //           },
+                                //         ),
+                                //       );
+                                //     },
+                                //   ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            if (isPaynymSend)
+                              TextField(
+                                key: const Key("sendViewPaynymAddressFieldKey"),
+                                controller: sendToController,
+                                enabled: false,
+                                readOnly: true,
+                                style: STextStyles.fieldLabel(context),
+                              ),
+                            if (!isPaynymSend)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  key: const Key("sendViewAddressFieldKey"),
+                                  controller: sendToController,
+                                  readOnly: false,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  // inputFormatters: <TextInputFormatter>[
+                                  //   FilteringTextInputFormatter.allow(
+                                  //       RegExp("[a-zA-Z0-9]{34}")),
+                                  // ],
+                                  toolbarOptions: const ToolbarOptions(
+                                    copy: false,
+                                    cut: false,
+                                    paste: true,
+                                    selectAll: false,
+                                  ),
+                                  onChanged: (newValue) async {
+                                    final trimmed = newValue.trim();
+
+                                    if ((trimmed.length -
+                                                (_address?.length ?? 0))
+                                            .abs() >
+                                        1) {
+                                      final parsed =
+                                          AddressUtils.parsePaymentUri(
+                                            trimmed,
+                                            logging: Logging.instance,
+                                          );
+                                      if (parsed != null) {
+                                        _applyUri(parsed);
+                                      } else {
+                                        await _checkSparkNameAndOrSetAddress(
+                                          newValue,
+                                        );
+                                      }
+                                    } else {
+                                      await _checkSparkNameAndOrSetAddress(
+                                        newValue,
+                                        setController: false,
+                                      );
+                                    }
+
+                                    _setValidAddressProviders(_address);
+
+                                    setState(() {
+                                      _addressToggleFlag = newValue.isNotEmpty;
+                                    });
+                                  },
+                                  focusNode: _addressFocusNode,
+                                  style: STextStyles.field(context),
+                                  decoration: standardInputDecoration(
+                                    "Enter ${coin.ticker} address",
+                                    _addressFocusNode,
+                                    context,
+                                  ).copyWith(
+                                    contentPadding: const EdgeInsets.only(
+                                      left: 16,
+                                      top: 6,
+                                      bottom: 8,
+                                      right: 5,
+                                    ),
+                                    suffixIcon: Padding(
+                                      padding:
+                                          sendToController.text.isEmpty
+                                              ? const EdgeInsets.only(right: 8)
+                                              : const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            _addressToggleFlag
+                                                ? TextFieldIconButton(
+                                                  semanticsLabel:
+                                                      "Clear Button. Clears The Address Field Input.",
+                                                  key: const Key(
+                                                    "sendViewClearAddressFieldButtonKey",
+                                                  ),
+                                                  onTap: () {
+                                                    sendToController.text = "";
+                                                    _address = "";
+                                                    _setValidAddressProviders(
+                                                      _address,
+                                                    );
+                                                    setState(() {
+                                                      _addressToggleFlag =
+                                                          false;
+                                                    });
+                                                  },
+                                                  child: const XIcon(),
+                                                )
+                                                : TextFieldIconButton(
+                                                  semanticsLabel:
+                                                      "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                                  key: const Key(
+                                                    "sendViewPasteAddressFieldButtonKey",
+                                                  ),
+                                                  onTap: _pasteAddress,
+                                                  child:
+                                                      sendToController
+                                                              .text
+                                                              .isEmpty
+                                                          ? const ClipboardIcon()
+                                                          : const XIcon(),
+                                                ),
+                                            if (sendToController.text.isEmpty)
+                                              TextFieldIconButton(
+                                                semanticsLabel:
+                                                    "Address Book Button. Opens Address Book For Address Field.",
+                                                key: const Key(
+                                                  "sendViewAddressBookButtonKey",
+                                                ),
+                                                onTap: () {
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pushNamed(
+                                                    AddressBookView.routeName,
+                                                    arguments: widget.coin,
+                                                  );
+                                                },
+                                                child: const AddressBookIcon(),
+                                              ),
+                                            if (sendToController.text.isEmpty)
+                                              TextFieldIconButton(
+                                                semanticsLabel:
+                                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                                key: const Key(
+                                                  "sendViewScanQrButtonKey",
+                                                ),
+                                                onTap: _scanQr,
+                                                child: const QrCodeIcon(),
+                                              ),
                                           ],
                                         ),
-                                        SvgPicture.asset(
-                                          Assets.svg.chevronDown,
-                                          width: 8,
-                                          height: 4,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 10),
+                            if (isStellar ||
+                                (ref.watch(pValidSparkSendToAddress) &&
+                                    ref.watch(
+                                          publicPrivateBalanceStateProvider,
+                                        ) !=
+                                        FiroType.lelantus))
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  key: const Key("sendViewMemoFieldKey"),
+                                  maxLength: (coin is Firo) ? 31 : null,
+                                  controller: memoController,
+                                  readOnly: false,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  focusNode: _memoFocus,
+                                  style: STextStyles.field(context),
+                                  onChanged: (_) {
+                                    setState(() {});
+                                  },
+                                  decoration: standardInputDecoration(
+                                    "Enter memo (optional)",
+                                    _memoFocus,
+                                    context,
+                                  ).copyWith(
+                                    counterText: '',
+                                    contentPadding: const EdgeInsets.only(
+                                      left: 16,
+                                      top: 6,
+                                      bottom: 8,
+                                      right: 5,
+                                    ),
+                                    suffixIcon: Padding(
+                                      padding:
+                                          memoController.text.isEmpty
+                                              ? const EdgeInsets.only(right: 8)
+                                              : const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            memoController.text.isNotEmpty
+                                                ? TextFieldIconButton(
+                                                  semanticsLabel:
+                                                      "Clear Button. Clears The Memo Field Input.",
+                                                  key: const Key(
+                                                    "sendViewClearMemoFieldButtonKey",
+                                                  ),
+                                                  onTap: () {
+                                                    memoController.text = "";
+                                                    setState(() {});
+                                                  },
+                                                  child: const XIcon(),
+                                                )
+                                                : TextFieldIconButton(
+                                                  semanticsLabel:
+                                                      "Paste Button. Pastes From Clipboard To Memo Field Input.",
+                                                  key: const Key(
+                                                    "sendViewPasteMemoFieldButtonKey",
+                                                  ),
+                                                  onTap: () async {
+                                                    final ClipboardData? data =
+                                                        await clipboard.getData(
+                                                          Clipboard.kTextPlain,
+                                                        );
+                                                    if (data?.text != null &&
+                                                        data!
+                                                            .text!
+                                                            .isNotEmpty) {
+                                                      final String content =
+                                                          data.text!.trim();
+
+                                                      memoController.text =
+                                                          content.trim();
+
+                                                      setState(() {});
+                                                    }
+                                                  },
+                                                  child: const ClipboardIcon(),
+                                                ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            Builder(
+                              builder: (_) {
+                                final String? error;
+
+                                if (_address == null || _address!.isEmpty) {
+                                  error = null;
+                                } else if (isFiro) {
+                                  if (ref.watch(
+                                        publicPrivateBalanceStateProvider,
+                                      ) ==
+                                      FiroType.lelantus) {
+                                    if (_data != null &&
+                                        _data.contactLabel == _address) {
+                                      error =
+                                          SparkInterface.validateSparkAddress(
+                                                address: _data.address,
+                                                isTestNet:
+                                                    coin.network ==
+                                                    CryptoCurrencyNetwork.test,
+                                              )
+                                              ? "Unsupported"
+                                              : null;
+                                    } else if (ref.watch(
+                                      pValidSparkSendToAddress,
+                                    )) {
+                                      error = "Unsupported";
+                                    } else {
+                                      error =
+                                          ref.watch(pValidSendToAddress)
+                                              ? null
+                                              : "Invalid address";
+                                    }
+                                  } else {
+                                    if (_data != null &&
+                                        _data.contactLabel == _address) {
+                                      error = null;
+                                    } else if (!ref.watch(
+                                          pValidSendToAddress,
+                                        ) &&
+                                        !ref.watch(pValidSparkSendToAddress)) {
+                                      error = "Invalid address";
+                                    } else {
+                                      error = null;
+                                    }
+                                  }
+                                } else {
+                                  if (_data != null &&
+                                      _data.contactLabel == _address) {
+                                    error = null;
+                                  } else if (!ref.watch(pValidSendToAddress)) {
+                                    error = "Invalid address";
+                                  } else {
+                                    error = null;
+                                  }
+                                }
+
+                                if (error == null || error.isEmpty) {
+                                  return Container();
+                                } else {
+                                  return Align(
+                                    alignment: Alignment.topLeft,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 12.0,
+                                        top: 4.0,
+                                      ),
+                                      child: Text(
+                                        error,
+                                        textAlign: TextAlign.left,
+                                        style: STextStyles.label(
+                                          context,
+                                        ).copyWith(
                                           color:
                                               Theme.of(context)
                                                   .extension<StackColors>()!
-                                                  .textSubtitle2,
+                                                  .textError,
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ],
+                                  );
+                                }
+                              },
                             ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
+                            if (isFiro) const SizedBox(height: 12),
+                            if (isFiro)
                               Text(
-                                "Amount",
+                                "Send from",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              if (coin is! Ethereum && coin is! Tezos)
-                                CustomTextButton(
-                                  text: _getSendAllTitle(
-                                    showCoinControl,
-                                    selectedUTXOs,
+                            if (isFiro) const SizedBox(height: 8),
+                            if (isFiro)
+                              Stack(
+                                children: [
+                                  TextField(
+                                    autocorrect: Util.isDesktop ? false : true,
+                                    enableSuggestions:
+                                        Util.isDesktop ? false : true,
+                                    readOnly: true,
+                                    textInputAction: TextInputAction.none,
                                   ),
-                                  onTap: () => _sendAllTapped(showCoinControl),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            autocorrect: Util.isDesktop ? false : true,
-                            enableSuggestions: Util.isDesktop ? false : true,
-                            style: STextStyles.smallMed14(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textDark,
-                            ),
-                            key: const Key(
-                              "amountInputFieldCryptoTextFieldKey",
-                            ),
-                            controller: cryptoAmountController,
-                            focusNode: _cryptoFocus,
-                            keyboardType:
-                                Util.isDesktop
-                                    ? null
-                                    : const TextInputType.numberWithOptions(
-                                      signed: false,
-                                      decimal: true,
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
                                     ),
-                            textAlign: TextAlign.right,
-                            inputFormatters: [
-                              AmountInputFormatter(
-                                decimals: coin.fractionDigits,
-                                unit: ref.watch(pAmountUnit(coin)),
-                                locale: locale,
-                              ),
+                                    child: RawMaterialButton(
+                                      splashColor:
+                                          Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!.highlight,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          Constants.size.circularBorderRadius,
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        showModalBottomSheet<dynamic>(
+                                          backgroundColor: Colors.transparent,
+                                          context: context,
+                                          shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.vertical(
+                                              top: Radius.circular(20),
+                                            ),
+                                          ),
+                                          builder:
+                                              (_) => FiroBalanceSelectionSheet(
+                                                walletId: walletId,
+                                              ),
+                                        );
+                                      },
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                "${ref.watch(publicPrivateBalanceStateProvider.state).state.name.capitalize()} balance",
+                                                style:
+                                                    STextStyles.itemSubtitle12(
+                                                      context,
+                                                    ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Builder(
+                                                builder: (_) {
+                                                  final Amount amount;
+                                                  switch (ref
+                                                      .read(
+                                                        publicPrivateBalanceStateProvider
+                                                            .state,
+                                                      )
+                                                      .state) {
+                                                    case FiroType.public:
+                                                      amount =
+                                                          ref
+                                                              .watch(
+                                                                pWalletBalance(
+                                                                  walletId,
+                                                                ),
+                                                              )
+                                                              .spendable;
+                                                      break;
+                                                    case FiroType.lelantus:
+                                                      amount =
+                                                          ref
+                                                              .watch(
+                                                                pWalletBalanceSecondary(
+                                                                  walletId,
+                                                                ),
+                                                              )
+                                                              .spendable;
+                                                      break;
+                                                    case FiroType.spark:
+                                                      amount =
+                                                          ref
+                                                              .watch(
+                                                                pWalletBalanceTertiary(
+                                                                  walletId,
+                                                                ),
+                                                              )
+                                                              .spendable;
+                                                      break;
+                                                  }
 
-                              // regex to validate a crypto amount with 8 decimal places
-                              // TextInputFormatter.withFunction((oldValue,
-                              //         newValue) =>
-                              //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                              //     // RegExp(r'^\d{1,3}([,\.]\d+)?|[,\.\d]+$')
-                              //     getAmountRegex(locale, coin.fractionDigits)
-                              //             .hasMatch(newValue.text)
-                              //         ? newValue
-                              //         : oldValue),
-                            ],
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.only(
-                                top: 12,
-                                right: 12,
-                              ),
-                              hintText: "0",
-                              hintStyle: STextStyles.fieldLabel(
-                                context,
-                              ).copyWith(fontSize: 14),
-                              prefixIcon: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Text(
-                                    ref
-                                        .watch(pAmountUnit(coin))
-                                        .unitForCoin(coin),
-                                    style: STextStyles.smallMed14(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
+                                                  return Text(
+                                                    ref
+                                                        .watch(
+                                                          pAmountFormatter(
+                                                            coin,
+                                                          ),
+                                                        )
+                                                        .format(amount),
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                          SvgPicture.asset(
+                                            Assets.svg.chevronDown,
+                                            width: 8,
+                                            height: 4,
+                                            color:
+                                                Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textSubtitle2,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Amount",
+                                  style: STextStyles.smallMed12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                if (coin is! Ethereum && coin is! Tezos)
+                                  CustomTextButton(
+                                    text: _getSendAllTitle(
+                                      showCoinControl,
+                                      selectedUTXOs,
+                                    ),
+                                    onTap:
+                                        () => _sendAllTapped(showCoinControl),
+                                  ),
+                              ],
                             ),
-                          ),
-                          if (Prefs.instance.externalCalls)
                             const SizedBox(height: 8),
-                          if (Prefs.instance.externalCalls)
                             TextField(
                               autocorrect: Util.isDesktop ? false : true,
                               enableSuggestions: Util.isDesktop ? false : true,
@@ -1994,10 +1943,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ).extension<StackColors>()!.textDark,
                               ),
                               key: const Key(
-                                "amountInputFieldFiatTextFieldKey",
+                                "amountInputFieldCryptoTextFieldKey",
                               ),
-                              controller: baseAmountController,
-                              focusNode: _baseFocus,
+                              controller: cryptoAmountController,
+                              focusNode: _cryptoFocus,
                               keyboardType:
                                   Util.isDesktop
                                       ? null
@@ -2008,19 +1957,21 @@ class _SendViewState extends ConsumerState<SendView> {
                               textAlign: TextAlign.right,
                               inputFormatters: [
                                 AmountInputFormatter(
-                                  decimals: 2,
+                                  decimals: coin.fractionDigits,
+                                  unit: ref.watch(pAmountUnit(coin)),
                                   locale: locale,
                                 ),
-                                // regex to validate a fiat amount with 2 decimal places
+
+                                // regex to validate a crypto amount with 8 decimal places
                                 // TextInputFormatter.withFunction((oldValue,
                                 //         newValue) =>
-                                //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                                //     getAmountRegex(locale, 2)
+                                //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
+                                //     // RegExp(r'^\d{1,3}([,\.]\d+)?|[,\.\d]+$')
+                                //     getAmountRegex(locale, coin.fractionDigits)
                                 //             .hasMatch(newValue.text)
                                 //         ? newValue
                                 //         : oldValue),
                               ],
-                              onChanged: _fiatFieldChanged,
                               decoration: InputDecoration(
                                 contentPadding: const EdgeInsets.only(
                                   top: 12,
@@ -2035,11 +1986,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                   child: Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Text(
-                                      ref.watch(
-                                        prefsChangeNotifierProvider.select(
-                                          (value) => value.currency,
-                                        ),
-                                      ),
+                                      ref
+                                          .watch(pAmountUnit(coin))
+                                          .unitForCoin(coin),
                                       style: STextStyles.smallMed14(
                                         context,
                                       ).copyWith(
@@ -2053,86 +2002,214 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
-                          if (showCoinControl) const SizedBox(height: 8),
-                          if (showCoinControl)
-                            RoundedWhiteContainer(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Coin control",
-                                    style: STextStyles.w500_14(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
+                            if (Prefs.instance.externalCalls)
+                              const SizedBox(height: 8),
+                            if (Prefs.instance.externalCalls)
+                              TextField(
+                                autocorrect: Util.isDesktop ? false : true,
+                                enableSuggestions:
+                                    Util.isDesktop ? false : true,
+                                style: STextStyles.smallMed14(context).copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                ),
+                                key: const Key(
+                                  "amountInputFieldFiatTextFieldKey",
+                                ),
+                                controller: baseAmountController,
+                                focusNode: _baseFocus,
+                                keyboardType:
+                                    Util.isDesktop
+                                        ? null
+                                        : const TextInputType.numberWithOptions(
+                                          signed: false,
+                                          decimal: true,
+                                        ),
+                                textAlign: TextAlign.right,
+                                inputFormatters: [
+                                  AmountInputFormatter(
+                                    decimals: 2,
+                                    locale: locale,
+                                  ),
+                                  // regex to validate a fiat amount with 2 decimal places
+                                  // TextInputFormatter.withFunction((oldValue,
+                                  //         newValue) =>
+                                  //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
+                                  //     getAmountRegex(locale, 2)
+                                  //             .hasMatch(newValue.text)
+                                  //         ? newValue
+                                  //         : oldValue),
+                                ],
+                                onChanged: _fiatFieldChanged,
+                                decoration: InputDecoration(
+                                  contentPadding: const EdgeInsets.only(
+                                    top: 12,
+                                    right: 12,
+                                  ),
+                                  hintText: "0",
+                                  hintStyle: STextStyles.fieldLabel(
+                                    context,
+                                  ).copyWith(fontSize: 14),
+                                  prefixIcon: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Text(
+                                        ref.watch(
+                                          prefsChangeNotifierProvider.select(
+                                            (value) => value.currency,
+                                          ),
+                                        ),
+                                        style: STextStyles.smallMed14(
+                                          context,
+                                        ).copyWith(
+                                          color:
+                                              Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorDark,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  CustomTextButton(
-                                    text:
-                                        selectedUTXOs.isEmpty
-                                            ? "Select coins"
-                                            : "Selected coins (${selectedUTXOs.length})",
-                                    onTap: () async {
-                                      if (FocusScope.of(context).hasFocus) {
-                                        FocusScope.of(context).unfocus();
-                                        await Future<void>.delayed(
-                                          const Duration(milliseconds: 100),
-                                        );
-                                      }
+                                ),
+                              ),
+                            if (showCoinControl) const SizedBox(height: 8),
+                            if (showCoinControl)
+                              RoundedWhiteContainer(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Coin control",
+                                      style: STextStyles.w500_14(
+                                        context,
+                                      ).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                      ),
+                                    ),
+                                    CustomTextButton(
+                                      text:
+                                          selectedUTXOs.isEmpty
+                                              ? "Select coins"
+                                              : "Selected coins (${selectedUTXOs.length})",
+                                      onTap: () async {
+                                        if (FocusScope.of(context).hasFocus) {
+                                          FocusScope.of(context).unfocus();
+                                          await Future<void>.delayed(
+                                            const Duration(milliseconds: 100),
+                                          );
+                                        }
 
-                                      if (context.mounted) {
-                                        final spendable =
-                                            ref
-                                                .read(pWalletBalance(walletId))
-                                                .spendable;
+                                        if (context.mounted) {
+                                          final spendable =
+                                              ref
+                                                  .read(
+                                                    pWalletBalance(walletId),
+                                                  )
+                                                  .spendable;
 
-                                        Amount? amount;
-                                        if (ref.read(pSendAmount) != null) {
-                                          amount = ref.read(pSendAmount)!;
+                                          Amount? amount;
+                                          if (ref.read(pSendAmount) != null) {
+                                            amount = ref.read(pSendAmount)!;
 
-                                          if (spendable == amount) {
-                                            // this is now a send all
-                                          } else {
-                                            amount += _currentFee;
+                                            if (spendable == amount) {
+                                              // this is now a send all
+                                            } else {
+                                              amount += _currentFee;
+                                            }
+                                          }
+
+                                          final result = await Navigator.of(
+                                            context,
+                                          ).pushNamed(
+                                            CoinControlView.routeName,
+                                            arguments: Tuple4(
+                                              walletId,
+                                              CoinControlViewType.use,
+                                              amount,
+                                              selectedUTXOs,
+                                            ),
+                                          );
+
+                                          if (result is Set<UTXO>) {
+                                            setState(() {
+                                              selectedUTXOs = result;
+                                            });
                                           }
                                         }
-
-                                        final result = await Navigator.of(
-                                          context,
-                                        ).pushNamed(
-                                          CoinControlView.routeName,
-                                          arguments: Tuple4(
-                                            walletId,
-                                            CoinControlViewType.use,
-                                            amount,
-                                            selectedUTXOs,
-                                          ),
-                                        );
-
-                                        if (result is Set<UTXO>) {
-                                          setState(() {
-                                            selectedUTXOs = result;
-                                          });
-                                        }
-                                      }
-                                    },
-                                  ),
-                                ],
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          const SizedBox(height: 12),
-                          if (coin is Epiccash)
+                            const SizedBox(height: 12),
+                            if (coin is Epiccash)
+                              Text(
+                                "On chain Note (optional)",
+                                style: STextStyles.smallMed12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                            if (coin is Epiccash) const SizedBox(height: 8),
+                            if (coin is Epiccash)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  autocorrect: Util.isDesktop ? false : true,
+                                  enableSuggestions:
+                                      Util.isDesktop ? false : true,
+                                  maxLength: 256,
+                                  controller: onChainNoteController,
+                                  focusNode: _onChainNoteFocusNode,
+                                  style: STextStyles.field(context),
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: standardInputDecoration(
+                                    "Type something...",
+                                    _onChainNoteFocusNode,
+                                    context,
+                                  ).copyWith(
+                                    suffixIcon:
+                                        onChainNoteController.text.isNotEmpty
+                                            ? Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 0,
+                                              ),
+                                              child: UnconstrainedBox(
+                                                child: Row(
+                                                  children: [
+                                                    TextFieldIconButton(
+                                                      child: const XIcon(),
+                                                      onTap: () async {
+                                                        setState(() {
+                                                          onChainNoteController
+                                                              .text = "";
+                                                        });
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                            : null,
+                                  ),
+                                ),
+                              ),
+                            if (coin is Epiccash) const SizedBox(height: 12),
                             Text(
-                              "On chain Note (optional)",
+                              (coin is Epiccash)
+                                  ? "Local Note (optional)"
+                                  : "Note (optional)",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
-                          if (coin is Epiccash) const SizedBox(height: 8),
-                          if (coin is Epiccash)
+                            const SizedBox(height: 8),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -2141,18 +2218,17 @@ class _SendViewState extends ConsumerState<SendView> {
                                 autocorrect: Util.isDesktop ? false : true,
                                 enableSuggestions:
                                     Util.isDesktop ? false : true,
-                                maxLength: 256,
-                                controller: onChainNoteController,
-                                focusNode: _onChainNoteFocusNode,
+                                controller: noteController,
+                                focusNode: _noteFocusNode,
                                 style: STextStyles.field(context),
                                 onChanged: (_) => setState(() {}),
                                 decoration: standardInputDecoration(
                                   "Type something...",
-                                  _onChainNoteFocusNode,
+                                  _noteFocusNode,
                                   context,
                                 ).copyWith(
                                   suffixIcon:
-                                      onChainNoteController.text.isNotEmpty
+                                      noteController.text.isNotEmpty
                                           ? Padding(
                                             padding: const EdgeInsets.only(
                                               right: 0,
@@ -2164,8 +2240,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     child: const XIcon(),
                                                     onTap: () async {
                                                       setState(() {
-                                                        onChainNoteController
-                                                            .text = "";
+                                                        noteController.text =
+                                                            "";
                                                       });
                                                     },
                                                   ),
@@ -2177,272 +2253,230 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                             ),
-                          if (coin is Epiccash) const SizedBox(height: 12),
-                          Text(
-                            (coin is Epiccash)
-                                ? "Local Note (optional)"
-                                : "Note (optional)",
-                            style: STextStyles.smallMed12(context),
-                            textAlign: TextAlign.left,
-                          ),
-                          const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                            child: TextField(
-                              autocorrect: Util.isDesktop ? false : true,
-                              enableSuggestions: Util.isDesktop ? false : true,
-                              controller: noteController,
-                              focusNode: _noteFocusNode,
-                              style: STextStyles.field(context),
-                              onChanged: (_) => setState(() {}),
-                              decoration: standardInputDecoration(
-                                "Type something...",
-                                _noteFocusNode,
-                                context,
-                              ).copyWith(
-                                suffixIcon:
-                                    noteController.text.isNotEmpty
-                                        ? Padding(
-                                          padding: const EdgeInsets.only(
-                                            right: 0,
-                                          ),
-                                          child: UnconstrainedBox(
-                                            child: Row(
-                                              children: [
-                                                TextFieldIconButton(
-                                                  child: const XIcon(),
-                                                  onTap: () async {
-                                                    setState(() {
-                                                      noteController.text = "";
-                                                    });
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        )
-                                        : null,
+                            const SizedBox(height: 12),
+                            if (hasFees)
+                              Text(
+                                "Transaction fee ${isEth
+                                    ? isCustomFee.value
+                                        ? ""
+                                        : "(max)"
+                                    : "(estimated)"}",
+                                style: STextStyles.smallMed12(context),
+                                textAlign: TextAlign.left,
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (hasFees)
-                            Text(
-                              "Transaction fee ${isEth
-                                  ? isCustomFee.value
-                                      ? ""
-                                      : "(max)"
-                                  : "(estimated)"}",
-                              style: STextStyles.smallMed12(context),
-                              textAlign: TextAlign.left,
-                            ),
-                          if (hasFees) const SizedBox(height: 8),
-                          if (hasFees)
-                            Stack(
-                              children: [
-                                TextField(
-                                  autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions:
-                                      Util.isDesktop ? false : true,
-                                  controller: feeController,
-                                  readOnly: true,
-                                  textInputAction: TextInputAction.none,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
+                            if (hasFees) const SizedBox(height: 8),
+                            if (hasFees)
+                              Stack(
+                                children: [
+                                  TextField(
+                                    autocorrect: Util.isDesktop ? false : true,
+                                    enableSuggestions:
+                                        Util.isDesktop ? false : true,
+                                    controller: feeController,
+                                    readOnly: true,
+                                    textInputAction: TextInputAction.none,
                                   ),
-                                  child: RawMaterialButton(
-                                    splashColor:
-                                        Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.highlight,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        Constants.size.circularBorderRadius,
-                                      ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
                                     ),
-                                    onPressed:
-                                        isFiro &&
-                                                ref
-                                                        .watch(
-                                                          publicPrivateBalanceStateProvider
-                                                              .state,
-                                                        )
-                                                        .state !=
-                                                    FiroType.public
-                                            ? null
-                                            : _onFeeSelectPressed,
-                                    child:
-                                        (isFiro &&
-                                                ref
-                                                        .watch(
-                                                          publicPrivateBalanceStateProvider
-                                                              .state,
-                                                        )
-                                                        .state !=
-                                                    FiroType.public)
-                                            ? Row(
-                                              children: [
-                                                FutureBuilder(
-                                                  future: _calculateFeesFuture,
-                                                  builder: (context, snapshot) {
-                                                    if (snapshot.connectionState ==
-                                                            ConnectionState
-                                                                .done &&
-                                                        snapshot.hasData) {
-                                                      _setCurrentFee(
-                                                        snapshot.data!,
-                                                        false,
-                                                      );
-                                                      return Text(
-                                                        "~${snapshot.data!}",
-                                                        style:
-                                                            STextStyles.itemSubtitle(
-                                                              context,
-                                                            ),
-                                                      );
-                                                    } else {
-                                                      return AnimatedText(
-                                                        stringsToLoopThrough:
-                                                            stringsToLoopThrough,
-                                                        style:
-                                                            STextStyles.itemSubtitle(
-                                                              context,
-                                                            ),
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                              ],
-                                            )
-                                            : Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      ref
+                                    child: RawMaterialButton(
+                                      splashColor:
+                                          Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!.highlight,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          Constants.size.circularBorderRadius,
+                                        ),
+                                      ),
+                                      onPressed:
+                                          isFiro &&
+                                                  ref
                                                           .watch(
-                                                            feeRateTypeMobileStateProvider
+                                                            publicPrivateBalanceStateProvider
                                                                 .state,
                                                           )
-                                                          .state
-                                                          .prettyName,
-                                                      style:
-                                                          STextStyles.itemSubtitle12(
-                                                            context,
-                                                          ),
-                                                    ),
-                                                    const SizedBox(width: 10),
-                                                    FutureBuilder(
-                                                      future:
-                                                          _calculateFeesFuture,
-                                                      builder: (
-                                                        context,
-                                                        snapshot,
-                                                      ) {
-                                                        if (snapshot.connectionState ==
-                                                                ConnectionState
-                                                                    .done &&
-                                                            snapshot.hasData) {
-                                                          _setCurrentFee(
-                                                            snapshot.data!,
-                                                            false,
-                                                          );
-                                                          return Text(
-                                                            isCustomFee.value
-                                                                ? ""
-                                                                : "~${snapshot.data!}",
-                                                            style:
-                                                                STextStyles.itemSubtitle(
-                                                                  context,
-                                                                ),
-                                                          );
-                                                        } else {
-                                                          return AnimatedText(
-                                                            stringsToLoopThrough:
-                                                                stringsToLoopThrough,
-                                                            style:
-                                                                STextStyles.itemSubtitle(
-                                                                  context,
-                                                                ),
-                                                          );
-                                                        }
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                                SvgPicture.asset(
-                                                  Assets.svg.chevronDown,
-                                                  width: 8,
-                                                  height: 4,
-                                                  color:
-                                                      Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .textSubtitle2,
-                                                ),
-                                              ],
-                                            ),
+                                                          .state !=
+                                                      FiroType.public
+                                              ? null
+                                              : _onFeeSelectPressed,
+                                      child:
+                                          (isFiro &&
+                                                  ref
+                                                          .watch(
+                                                            publicPrivateBalanceStateProvider
+                                                                .state,
+                                                          )
+                                                          .state !=
+                                                      FiroType.public)
+                                              ? Row(
+                                                children: [
+                                                  FutureBuilder(
+                                                    future:
+                                                        _calculateFeesFuture,
+                                                    builder: (
+                                                      context,
+                                                      snapshot,
+                                                    ) {
+                                                      if (snapshot.connectionState ==
+                                                              ConnectionState
+                                                                  .done &&
+                                                          snapshot.hasData) {
+                                                        _setCurrentFee(
+                                                          snapshot.data!,
+                                                          false,
+                                                        );
+                                                        return Text(
+                                                          "~${snapshot.data!}",
+                                                          style:
+                                                              STextStyles.itemSubtitle(
+                                                                context,
+                                                              ),
+                                                        );
+                                                      } else {
+                                                        return AnimatedText(
+                                                          stringsToLoopThrough:
+                                                              stringsToLoopThrough,
+                                                          style:
+                                                              STextStyles.itemSubtitle(
+                                                                context,
+                                                              ),
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
+                                                ],
+                                              )
+                                              : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        ref
+                                                            .watch(
+                                                              feeRateTypeMobileStateProvider
+                                                                  .state,
+                                                            )
+                                                            .state
+                                                            .prettyName,
+                                                        style:
+                                                            STextStyles.itemSubtitle12(
+                                                              context,
+                                                            ),
+                                                      ),
+                                                      const SizedBox(width: 10),
+                                                      FutureBuilder(
+                                                        future:
+                                                            _calculateFeesFuture,
+                                                        builder: (
+                                                          context,
+                                                          snapshot,
+                                                        ) {
+                                                          if (snapshot.connectionState ==
+                                                                  ConnectionState
+                                                                      .done &&
+                                                              snapshot
+                                                                  .hasData) {
+                                                            _setCurrentFee(
+                                                              snapshot.data!,
+                                                              false,
+                                                            );
+                                                            return Text(
+                                                              isCustomFee.value
+                                                                  ? ""
+                                                                  : "~${snapshot.data!}",
+                                                              style:
+                                                                  STextStyles.itemSubtitle(
+                                                                    context,
+                                                                  ),
+                                                            );
+                                                          } else {
+                                                            return AnimatedText(
+                                                              stringsToLoopThrough:
+                                                                  stringsToLoopThrough,
+                                                              style:
+                                                                  STextStyles.itemSubtitle(
+                                                                    context,
+                                                                  ),
+                                                            );
+                                                          }
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SvgPicture.asset(
+                                                    Assets.svg.chevronDown,
+                                                    width: 8,
+                                                    height: 4,
+                                                    color:
+                                                        Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textSubtitle2,
+                                                  ),
+                                                ],
+                                              ),
+                                    ),
                                   ),
+                                ],
+                              ),
+                            if (isCustomFee.value && !isEth)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: 12,
+                                  top: 16,
                                 ),
-                              ],
-                            ),
-                          if (isCustomFee.value && !isEth)
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 12,
-                                top: 16,
+                                child: FeeSlider(
+                                  coin: coin,
+                                  onSatVByteChanged: (rate) {
+                                    customFeeRate = rate;
+                                  },
+                                ),
                               ),
-                              child: FeeSlider(
-                                coin: coin,
-                                onSatVByteChanged: (rate) {
-                                  customFeeRate = rate;
-                                },
+                            if (isCustomFee.value && isEth)
+                              const SizedBox(height: 12),
+                            if (isCustomFee.value && isEth)
+                              EthFeeForm(
+                                minGasLimit: kEthereumMinGasLimit,
+                                stateChanged: (fee) => ethFee = fee,
                               ),
-                            ),
-                          if (isCustomFee.value && isEth)
+                            const Spacer(),
                             const SizedBox(height: 12),
-                          if (isCustomFee.value && isEth)
-                            EthFeeForm(
-                              minGasLimit: kEthereumMinGasLimit,
-                              stateChanged: (fee) => ethFee = fee,
+                            TextButton(
+                              onPressed:
+                                  ref.watch(pPreviewTxButtonEnabled(coin))
+                                      ? _previewTransaction
+                                      : null,
+                              style:
+                                  ref.watch(pPreviewTxButtonEnabled(coin))
+                                      ? Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .getPrimaryEnabledButtonStyle(context)
+                                      : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .getPrimaryDisabledButtonStyle(
+                                            context,
+                                          ),
+                              child: Text(
+                                "Preview",
+                                style: STextStyles.button(context),
+                              ),
                             ),
-                          const Spacer(),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed:
-                                ref.watch(pPreviewTxButtonEnabled(coin))
-                                    ? _previewTransaction
-                                    : null,
-                            style:
-                                ref.watch(pPreviewTxButtonEnabled(coin))
-                                    ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryEnabledButtonStyle(context)
-                                    : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryDisabledButtonStyle(context),
-                            child: Text(
-                              "Preview",
-                              style: STextStyles.button(context),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
+                            const SizedBox(height: 16),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

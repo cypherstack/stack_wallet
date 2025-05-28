@@ -96,10 +96,11 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   }
 
   Future<void> onNextPressed() async {
-    final selectedTokens = tokenEntities
-        .where((e) => e.selected)
-        .map((e) => e.token.address)
-        .toList();
+    final selectedTokens =
+        tokenEntities
+            .where((e) => e.selected)
+            .map((e) => e.token.address)
+            .toList();
 
     final ethWallet =
         ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet;
@@ -110,14 +111,13 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         Navigator.of(context).pop(42);
       } else {
         if (isDesktop) {
-          Navigator.of(context).popUntil(
-            ModalRoute.withName(DesktopHomeView.routeName),
-          );
+          Navigator.of(
+            context,
+          ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
         } else {
-          await Navigator.of(context).pushNamedAndRemoveUntil(
-            HomeView.routeName,
-            (route) => false,
-          );
+          await Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false);
         }
         if (mounted) {
           unawaited(
@@ -138,16 +138,17 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     if (isDesktop) {
       contract = await showDialog(
         context: context,
-        builder: (context) => const DesktopDialog(
-          maxWidth: 580,
-          maxHeight: 500,
-          child: AddCustomTokenView(),
-        ),
+        builder:
+            (context) => const DesktopDialog(
+              maxWidth: 580,
+              maxHeight: 500,
+              child: AddCustomTokenView(),
+            ),
       );
     } else {
-      final result = await Navigator.of(context).pushNamed(
-        AddCustomTokenView.routeName,
-      );
+      final result = await Navigator.of(
+        context,
+      ).pushNamed(AddCustomTokenView.routeName);
       contract = result as EthContract?;
     }
 
@@ -159,8 +160,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           if (tokenEntities
               .where((e) => e.token.address == contract!.address)
               .isEmpty) {
-            tokenEntities
-                .add(AddTokenListElementData(contract!)..selected = true);
+            tokenEntities.add(
+              AddTokenListElementData(contract!)..selected = true,
+            );
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });
@@ -178,7 +180,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
 
     if (contracts.isEmpty) {
       contracts.addAll(DefaultTokens.list);
-      MainDB.instance.putEthContracts(contracts).then(
+      MainDB.instance
+          .putEthContracts(contracts)
+          .then(
             (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
           );
     }
@@ -214,149 +218,135 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     if (isDesktop) {
       return ConditionalParent(
         condition: !widget.isDesktopPopup,
-        builder: (child) => DesktopScaffold(
-          appBar: DesktopAppBar(
-            isCompactHeight: false,
-            useSpacers: false,
-            leading: const AppBarBackButton(),
-            overlayCenter: Text(
-              walletName,
-              style: STextStyles.desktopSubtitleH2(context),
-            ),
-            trailing: widget.contractsToMarkSelected == null
-                ? Padding(
-                    padding: const EdgeInsets.only(
-                      right: 24,
-                    ),
-                    child: SizedBox(
-                      height: 56,
-                      child: TextButton(
-                        style: Theme.of(context)
-                            .extension<StackColors>()!
-                            .getSmallSecondaryEnabledButtonStyle(context),
-                        onPressed: _addToken,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                          ),
-                          child: Text(
-                            "Add custom token",
-                            style:
-                                STextStyles.desktopButtonSmallSecondaryEnabled(
-                              context,
+        builder:
+            (child) => DesktopScaffold(
+              appBar: DesktopAppBar(
+                isCompactHeight: false,
+                useSpacers: false,
+                leading: const AppBarBackButton(),
+                overlayCenter: Text(
+                  walletName,
+                  style: STextStyles.desktopSubtitleH2(context),
+                ),
+                trailing:
+                    widget.contractsToMarkSelected == null
+                        ? Padding(
+                          padding: const EdgeInsets.only(right: 24),
+                          child: SizedBox(
+                            height: 56,
+                            child: TextButton(
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .getSmallSecondaryEnabledButtonStyle(context),
+                              onPressed: _addToken,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 30,
+                                ),
+                                child: Text(
+                                  "Add custom token",
+                                  style:
+                                      STextStyles.desktopButtonSmallSecondaryEnabled(
+                                        context,
+                                      ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-          body: SizedBox(
-            width: 480,
-            child: Column(
-              children: [
-                const AddTokenText(
-                  isDesktop: true,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Expanded(
-                  child: RoundedWhiteContainer(
-                    radiusMultiplier: 2,
-                    padding: const EdgeInsets.only(
-                      left: 20,
-                      top: 20,
-                      right: 20,
-                      bottom: 0,
-                    ),
-                    child: child,
-                  ),
-                ),
-                const SizedBox(
-                  height: 26,
-                ),
-                SizedBox(
-                  height: 70,
-                  width: 480,
-                  child: PrimaryButton(
-                    label: widget.contractsToMarkSelected != null
-                        ? "Save"
-                        : "Next",
-                    onPressed: onNextPressed,
-                  ),
-                ),
-                const SizedBox(
-                  height: 32,
-                ),
-              ],
-            ),
-          ),
-        ),
-        child: ConditionalParent(
-          condition: widget.isDesktopPopup,
-          builder: (child) => DesktopDialog(
-            maxHeight: 670,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        )
+                        : null,
+              ),
+              body: SizedBox(
+                width: 480,
+                child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 32,
-                      ),
-                      child: Text(
-                        "Edit tokens",
-                        style: STextStyles.desktopH3(context),
+                    const AddTokenText(isDesktop: true),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: RoundedWhiteContainer(
+                        radiusMultiplier: 2,
+                        padding: const EdgeInsets.only(
+                          left: 20,
+                          top: 20,
+                          right: 20,
+                          bottom: 0,
+                        ),
+                        child: child,
                       ),
                     ),
-                    const DesktopDialogCloseButton(),
+                    const SizedBox(height: 26),
+                    SizedBox(
+                      height: 70,
+                      width: 480,
+                      child: PrimaryButton(
+                        label:
+                            widget.contractsToMarkSelected != null
+                                ? "Save"
+                                : "Next",
+                        onPressed: onNextPressed,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                   ],
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                    child: child,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SecondaryButton(
-                          label: "Add custom token",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed: _addToken,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Expanded(
-                        child: PrimaryButton(
-                          label: "Done",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed: onNextPressed,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 32,
-                ),
-              ],
+              ),
             ),
-          ),
+        child: ConditionalParent(
+          condition: widget.isDesktopPopup,
+          builder:
+              (child) => DesktopDialog(
+                maxHeight: 670,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: Text(
+                            "Edit tokens",
+                            style: STextStyles.desktopH3(context),
+                          ),
+                        ),
+                        const DesktopDialogCloseButton(),
+                      ],
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        child: child,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SecondaryButton(
+                              label: "Add custom token",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: _addToken,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: PrimaryButton(
+                              label: "Done",
+                              buttonHeight: ButtonHeight.l,
+                              onPressed: onNextPressed,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
           child: Column(
             children: [
               ClipRRect(
@@ -373,17 +363,15 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                       _searchTerm = value;
                     });
                   },
-                  style: STextStyles.desktopTextMedium(context).copyWith(
-                    height: 2,
-                  ),
+                  style: STextStyles.desktopTextMedium(
+                    context,
+                  ).copyWith(height: 2),
                   decoration: standardInputDecoration(
                     "Search",
                     _searchFocusNode,
                     context,
                   ).copyWith(
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
                     prefixIcon: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -393,40 +381,37 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                         Assets.svg.search,
                         width: 24,
                         height: 24,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultSearchIconLeft,
+                        color:
+                            Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultSearchIconLeft,
                       ),
                     ),
-                    suffixIcon: _searchFieldController.text.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(
-                                      width: 24,
-                                      height: 24,
+                    suffixIcon:
+                        _searchFieldController.text.isNotEmpty
+                            ? Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(width: 24, height: 24),
+                                      onTap: () async {
+                                        setState(() {
+                                          _searchFieldController.text = "";
+                                          _searchTerm = "";
+                                        });
+                                      },
                                     ),
-                                    onTap: () async {
-                                      setState(() {
-                                        _searchFieldController.text = "";
-                                        _searchTerm = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
-                        : null,
+                            )
+                            : null,
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 12,
-              ),
+              const SizedBox(height: 12),
               Expanded(
                 child: AddTokenList(
                   walletId: widget.walletId,
@@ -434,9 +419,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                   addFunction: isDesktop ? null : _addToken,
                 ),
               ),
-              const SizedBox(
-                height: 12,
-              ),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -454,11 +437,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
             ),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 20,
-                ),
+                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 20),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
@@ -468,9 +447,10 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                         Theme.of(context).extension<StackColors>()!.background,
                     icon: SvgPicture.asset(
                       Assets.svg.circlePlusFilled,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.topNavIconPrimary,
                       width: 20,
                       height: 20,
                     ),
@@ -480,92 +460,89 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               ),
             ],
           ),
-          body: Container(
-            color: Theme.of(context).extension<StackColors>()!.background,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AddTokenText(
-                    isDesktop: false,
-                    walletName: walletName,
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                    child: TextField(
-                      autofocus: isDesktop,
-                      autocorrect: !isDesktop,
-                      enableSuggestions: !isDesktop,
-                      controller: _searchFieldController,
-                      focusNode: _searchFocusNode,
-                      onChanged: (value) => setState(() => _searchTerm = value),
-                      style: STextStyles.field(context),
-                      decoration: standardInputDecoration(
-                        "Search",
-                        _searchFocusNode,
-                        context,
-                        desktopMed: isDesktop,
-                      ).copyWith(
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 16,
+          body: SafeArea(
+            child: Container(
+              color: Theme.of(context).extension<StackColors>()!.background,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AddTokenText(isDesktop: false, walletName: walletName),
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                      child: TextField(
+                        autofocus: isDesktop,
+                        autocorrect: !isDesktop,
+                        enableSuggestions: !isDesktop,
+                        controller: _searchFieldController,
+                        focusNode: _searchFocusNode,
+                        onChanged:
+                            (value) => setState(() => _searchTerm = value),
+                        style: STextStyles.field(context),
+                        decoration: standardInputDecoration(
+                          "Search",
+                          _searchFocusNode,
+                          context,
+                          desktopMed: isDesktop,
+                        ).copyWith(
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 16,
+                            ),
+                            child: SvgPicture.asset(
+                              Assets.svg.search,
+                              width: 16,
+                              height: 16,
+                            ),
                           ),
-                          child: SvgPicture.asset(
-                            Assets.svg.search,
-                            width: 16,
-                            height: 16,
-                          ),
-                        ),
-                        suffixIcon: _searchFieldController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            _searchFieldController.text = "";
-                                            _searchTerm = "";
-                                          });
-                                        },
+                          suffixIcon:
+                              _searchFieldController.text.isNotEmpty
+                                  ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchFieldController.text =
+                                                    "";
+                                                _searchTerm = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : null,
+                                    ),
+                                  )
+                                  : null,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Expanded(
-                    child: AddTokenList(
-                      walletId: widget.walletId,
-                      items: filter(_searchTerm, tokenEntities),
-                      addFunction: _addToken,
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: AddTokenList(
+                        walletId: widget.walletId,
+                        items: filter(_searchTerm, tokenEntities),
+                        addFunction: _addToken,
+                      ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  PrimaryButton(
-                    label: widget.contractsToMarkSelected != null
-                        ? "Save"
-                        : "Next",
-                    onPressed: onNextPressed,
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    PrimaryButton(
+                      label:
+                          widget.contractsToMarkSelected != null
+                              ? "Save"
+                              : "Next",
+                      onPressed: onNextPressed,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

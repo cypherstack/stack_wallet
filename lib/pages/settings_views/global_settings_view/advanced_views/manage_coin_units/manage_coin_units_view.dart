@@ -99,7 +99,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
                 style: STextStyles.navBarTitle(context),
               ),
             ),
-            body: child,
+            body: SafeArea(child: child),
           ),
         ),
         child: ListView.separated(

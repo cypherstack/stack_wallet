@@ -47,9 +47,7 @@ import 'helpers/swb_file_system.dart';
 import 'sub_views/backup_frequency_type_select_sheet.dart';
 
 class EditAutoBackupView extends ConsumerStatefulWidget {
-  const EditAutoBackupView({
-    super.key,
-  });
+  const EditAutoBackupView({super.key});
 
   static const String routeName = "/editAutoBackup";
 
@@ -142,10 +140,11 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
       showDialog<dynamic>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const StackDialog(
-          title: "Updating Auto Backup",
-          message: "This shouldn't take long",
-        ),
+        builder:
+            (_) => const StackDialog(
+              title: "Updating Auto Backup",
+              message: "This shouldn't take long",
+            ),
       ),
     );
     // make sure the dialog is able to be displayed for at least 1 second
@@ -220,29 +219,33 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
         await showDialog<dynamic>(
           context: context,
           barrierDismissible: false,
-          builder: (_) => Platform.isAndroid
-              ? StackOkDialog(
-                  title: "${AppConfig.prefix} Auto Backup saved to:",
-                  message: fileToSave,
-                )
-              : const StackOkDialog(
-                  title: "${AppConfig.prefix} Auto Backup saved"),
+          builder:
+              (_) =>
+                  Platform.isAndroid
+                      ? StackOkDialog(
+                        title: "${AppConfig.prefix} Auto Backup saved to:",
+                        message: fileToSave,
+                      )
+                      : const StackOkDialog(
+                        title: "${AppConfig.prefix} Auto Backup saved",
+                      ),
         );
         if (mounted) {
           passwordController.text = "";
           passwordRepeatController.text = "";
 
           if (!Util.isDesktop) {
-            Navigator.of(context)
-                .popUntil(ModalRoute.withName(AutoBackupView.routeName));
+            Navigator.of(
+              context,
+            ).popUntil(ModalRoute.withName(AutoBackupView.routeName));
           }
         }
       } else {
         await showDialog<dynamic>(
           context: context,
           barrierDismissible: false,
-          builder: (_) =>
-              const StackOkDialog(title: "Failed to update Auto Backup"),
+          builder:
+              (_) => const StackOkDialog(title: "Failed to update Auto Backup"),
         );
       }
     }
@@ -299,49 +302,47 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            title: Text(
-              "Edit Auto Backup",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: child,
-                    ),
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                title: Text(
+                  "Edit Auto Backup",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(child: child),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+              ),
             ),
           ),
-        ),
-      ),
       child: Column(
         crossAxisAlignment:
             isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.stretch,
         children: [
           if (!isDesktop)
-            Text(
-              "Create your backup",
-              style: STextStyles.smallMed12(context),
-            ),
+            Text("Create your backup", style: STextStyles.smallMed12(context)),
           if (isDesktop)
             Text(
               "Choose file location",
@@ -350,33 +351,32 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               ),
               textAlign: TextAlign.left,
             ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           if (!Platform.isAndroid && !Platform.isIOS)
             TextField(
               autocorrect: Util.isDesktop ? false : true,
               enableSuggestions: Util.isDesktop ? false : true,
-              onTap: Platform.isAndroid || Platform.isIOS
-                  ? null
-                  : () async {
-                      try {
-                        await stackFileSystem.prepareStorage();
+              onTap:
+                  Platform.isAndroid || Platform.isIOS
+                      ? null
+                      : () async {
+                        try {
+                          await stackFileSystem.prepareStorage();
 
-                        if (mounted) {
-                          await stackFileSystem.pickDir(context);
-                        }
+                          if (mounted) {
+                            await stackFileSystem.pickDir(context);
+                          }
 
-                        if (mounted) {
-                          setState(() {
-                            fileLocationController.text =
-                                stackFileSystem.dirPath ?? "";
-                          });
+                          if (mounted) {
+                            setState(() {
+                              fileLocationController.text =
+                                  stackFileSystem.dirPath ?? "";
+                            });
+                          }
+                        } catch (e, s) {
+                          Logging.instance.e("$e\n$s", error: e, stackTrace: s);
                         }
-                      } catch (e, s) {
-                        Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-                      }
-                    },
+                      },
               controller: fileLocationController,
               style: STextStyles.field(context),
               decoration: InputDecoration(
@@ -385,20 +385,17 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 suffixIcon: UnconstrainedBox(
                   child: Row(
                     children: [
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       SvgPicture.asset(
                         Assets.svg.folder,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark3,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark3,
                         width: 16,
                         height: 16,
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                     ],
                   ),
                 ),
@@ -413,10 +410,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               ),
               onChanged: (newValue) {},
             ),
-          if (isDesktop)
-            const SizedBox(
-              height: 24,
-            ),
+          if (isDesktop) const SizedBox(height: 24),
           if (isDesktop)
             Text(
               "Create a passphrase",
@@ -426,9 +420,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               textAlign: TextAlign.left,
             ),
           if (!Platform.isAndroid && !Platform.isIOS)
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -450,9 +442,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 suffixIcon: UnconstrainedBox(
                   child: Row(
                     children: [
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       GestureDetector(
                         key: const Key(
                           "createBackupPasswordFieldShowPasswordButtonKey",
@@ -464,16 +454,15 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         },
                         child: SvgPicture.asset(
                           hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark3,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textDark3,
                           width: 16,
                           height: 16,
                         ),
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                     ],
                   ),
                 ),
@@ -524,46 +513,46 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 right: 12,
                 top: passwordFeedback.isNotEmpty ? 4 : 0,
               ),
-              child: passwordFeedback.isNotEmpty
-                  ? Text(
-                      passwordFeedback,
-                      style: STextStyles.infoSmall(context),
-                    )
-                  : null,
+              child:
+                  passwordFeedback.isNotEmpty
+                      ? Text(
+                        passwordFeedback,
+                        style: STextStyles.infoSmall(context),
+                      )
+                      : null,
             ),
           if (passwordFocusNode.hasFocus ||
               passwordRepeatFocusNode.hasFocus ||
               passwordController.text.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                right: 12,
-                top: 10,
-              ),
+              padding: const EdgeInsets.only(left: 12, right: 12, top: 10),
               child: ProgressBar(
                 key: const Key("createStackBackUpProgressBar"),
-                width: isDesktop
-                    ? 492
-                    : MediaQuery.of(context).size.width - 32 - 24,
+                width:
+                    isDesktop
+                        ? 492
+                        : MediaQuery.of(context).size.width - 32 - 24,
                 height: 5,
-                fillColor: passwordStrength < 0.51
-                    ? Theme.of(context).extension<StackColors>()!.accentColorRed
-                    : passwordStrength < 1
-                        ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorYellow
-                        : Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen,
-                backgroundColor: Theme.of(context)
-                    .extension<StackColors>()!
-                    .buttonBackSecondary,
+                fillColor:
+                    passwordStrength < 0.51
+                        ? Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorRed
+                        : passwordStrength < 1
+                        ? Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorYellow
+                        : Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorGreen,
+                backgroundColor:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.buttonBackSecondary,
                 percent: passwordStrength < 0.25 ? 0.03 : passwordStrength,
               ),
             ),
-          SizedBox(
-            height: isDesktop ? 16 : 10,
-          ),
+          SizedBox(height: isDesktop ? 16 : 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -585,9 +574,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 suffixIcon: UnconstrainedBox(
                   child: Row(
                     children: [
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       GestureDetector(
                         key: const Key(
                           "createBackupPasswordFieldShowPasswordButtonKey",
@@ -599,16 +586,15 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         },
                         child: SvgPicture.asset(
                           hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark3,
+                          color:
+                              Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textDark3,
                           width: 16,
                           height: 16,
                         ),
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                     ],
                   ),
                 ),
@@ -619,52 +605,46 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               },
             ),
           ),
-          SizedBox(
-            height: isDesktop ? 24 : 32,
-          ),
+          SizedBox(height: isDesktop ? 24 : 32),
           Text(
             "Auto Backup frequency",
-            style: isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color:
-                        Theme.of(context).extension<StackColors>()!.textDark3,
-                  )
-                : STextStyles.smallMed12(context),
+            style:
+                isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color:
+                          Theme.of(context).extension<StackColors>()!.textDark3,
+                    )
+                    : STextStyles.smallMed12(context),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           if (isDesktop)
             DropdownButtonHideUnderline(
               child: DropdownButton2(
                 isExpanded: true,
                 value: _currentDropDownValue,
                 items: [
-                  ..._dropDownItems.map(
-                    (e) {
-                      String message = "";
-                      switch (e) {
-                        case BackupFrequencyType.everyTenMinutes:
-                          message = "Every 10 minutes";
-                          break;
-                        case BackupFrequencyType.everyAppStart:
-                          message = "Every app startup";
-                          break;
-                        case BackupFrequencyType.afterClosingAWallet:
-                          message = "After closing a cryptocurrency wallet";
-                          break;
-                      }
+                  ..._dropDownItems.map((e) {
+                    String message = "";
+                    switch (e) {
+                      case BackupFrequencyType.everyTenMinutes:
+                        message = "Every 10 minutes";
+                        break;
+                      case BackupFrequencyType.everyAppStart:
+                        message = "Every app startup";
+                        break;
+                      case BackupFrequencyType.afterClosingAWallet:
+                        message = "After closing a cryptocurrency wallet";
+                        break;
+                    }
 
-                      return DropdownMenuItem(
-                        value: e,
-                        child: Text(
-                          message,
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
-                        ),
-                      );
-                    },
-                  ),
+                    return DropdownMenuItem(
+                      value: e,
+                      child: Text(
+                        message,
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      ),
+                    );
+                  }),
                 ],
                 onChanged: (value) {
                   if (value is BackupFrequencyType) {
@@ -694,19 +674,17 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                   offset: const Offset(0, -10),
                   elevation: 0,
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
                   ),
                 ),
                 menuItemStyleData: const MenuItemStyleData(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
               ),
             ),
@@ -759,9 +737,10 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                             padding: const EdgeInsets.only(right: 4.0),
                             child: SvgPicture.asset(
                               Assets.svg.chevronDown,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle2,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle2,
                               width: 12,
                               height: 6,
                             ),
@@ -774,9 +753,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               ],
             ),
           if (!isDesktop) const Spacer(),
-          SizedBox(
-            height: isDesktop ? 24 : 10,
-          ),
+          SizedBox(height: isDesktop ? 24 : 10),
           if (isDesktop)
             Row(
               children: [
@@ -787,9 +764,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     onPressed: Navigator.of(context).pop,
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     label: "Save",
@@ -802,18 +777,16 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             ),
           if (!isDesktop)
             TextButton(
-              style: shouldEnableCreate
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context)
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryDisabledButtonStyle(context),
+              style:
+                  shouldEnableCreate
+                      ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .getPrimaryEnabledButtonStyle(context)
+                      : Theme.of(context)
+                          .extension<StackColors>()!
+                          .getPrimaryDisabledButtonStyle(context),
               onPressed: !shouldEnableCreate ? null : onSavePressed,
-              child: Text(
-                "Save",
-                style: STextStyles.button(context),
-              ),
+              child: Text("Save", style: STextStyles.button(context)),
             ),
         ],
       ),

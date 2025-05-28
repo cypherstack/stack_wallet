@@ -20,6 +20,7 @@ import '../../models/exchange/response_objects/trade.dart';
 import '../../pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
@@ -116,7 +117,9 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
               ),
               title: Text("Send from", style: STextStyles.navBarTitle(context)),
             ),
-            body: Padding(padding: const EdgeInsets.all(16), child: child),
+            body: SafeArea(
+              child: Padding(padding: const EdgeInsets.all(16), child: child),
+            ),
           ),
         );
       },
@@ -404,12 +407,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
   @override
   Widget build(BuildContext context) {
-    final wallet = ref.watch(pWallets).getWallet(walletId);
-
-    final locale = ref.watch(
-      localeServiceChangeNotifierProvider.select((value) => value.locale),
-    );
-
     final coin = ref.watch(pWalletCoin(walletId));
 
     final isFiro = coin is Firo;
@@ -428,70 +425,77 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  MaterialButton(
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
-                    key: Key("walletsSheetItemButtonFiroPrivateKey_$walletId"),
-                    padding: const EdgeInsets.all(0),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
+                  if (!trade.exchangeName.startsWith(
+                    TrocadorExchange.exchangeName,
+                  ))
+                    MaterialButton(
+                      splashColor:
+                          Theme.of(context).extension<StackColors>()!.highlight,
+                      key: Key(
+                        "walletsSheetItemButtonFiroPrivateKey_$walletId",
                       ),
-                    ),
-                    onPressed: () async {
-                      if (mounted) {
-                        unawaited(_send(shouldSendPublicFiroFunds: false));
-                      }
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 6,
-                          left: 16,
-                          right: 16,
-                          bottom: 6,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Use private balance",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                Text(
-                                  ref
-                                      .watch(pAmountFormatter(coin))
-                                      .format(
-                                        ref
-                                            .watch(
-                                              pWalletBalanceTertiary(walletId),
-                                            )
-                                            .spendable,
-                                      ),
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                              ],
-                            ),
-                            SvgPicture.asset(
-                              Assets.svg.chevronRight,
-                              height: 14,
-                              width: 7,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemLabel,
-                            ),
-                          ],
+                      padding: const EdgeInsets.all(0),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
                         ),
                       ),
+                      onPressed: () async {
+                        if (mounted) {
+                          unawaited(_send(shouldSendPublicFiroFunds: false));
+                        }
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 6,
+                            left: 16,
+                            right: 16,
+                            bottom: 6,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Use private balance",
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                  Text(
+                                    ref
+                                        .watch(pAmountFormatter(coin))
+                                        .format(
+                                          ref
+                                              .watch(
+                                                pWalletBalanceTertiary(
+                                                  walletId,
+                                                ),
+                                              )
+                                              .spendable,
+                                        ),
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                ],
+                              ),
+                              SvgPicture.asset(
+                                Assets.svg.chevronRight,
+                                height: 14,
+                                width: 7,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.infoItemLabel,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
                   MaterialButton(
                     splashColor:
                         Theme.of(context).extension<StackColors>()!.highlight,

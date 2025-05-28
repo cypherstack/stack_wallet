@@ -87,115 +87,106 @@ class XPubViewState extends ConsumerState<XPubView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => Background(
-        child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-              },
-            ),
-            title: Text(
-              "Wallet xpub(s)",
-              style: STextStyles.navBarTitle(context),
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              top: 12,
-              left: 16,
-              right: 16,
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: child,
+      builder:
+          (child) => Background(
+            child: Scaffold(
+              backgroundColor:
+                  Theme.of(context).extension<StackColors>()!.background,
+              appBar: AppBar(
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                title: Text(
+                  "Wallet xpub(s)",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+                  child: LayoutBuilder(
+                    builder:
+                        (context, constraints) => SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: IntrinsicHeight(
+                              child: Column(
+                                children: [
+                                  Expanded(child: child),
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
       child: ConditionalParent(
         condition: isDesktop,
-        builder: (child) => DesktopDialog(
-          maxWidth: 600,
-          maxHeight: double.infinity,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        builder:
+            (child) => DesktopDialog(
+              maxWidth: 600,
+              maxHeight: double.infinity,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 32,
-                    ),
-                    child: Text(
-                      "${ref.watch(pWalletName(widget.walletId))} xpub(s)",
-                      style: STextStyles.desktopH2(context),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 32),
+                        child: Text(
+                          "${ref.watch(pWalletName(widget.walletId))} xpub(s)",
+                          style: STextStyles.desktopH2(context),
+                        ),
+                      ),
+                      DesktopDialogCloseButton(
+                        onPressedOverride:
+                            Navigator.of(context, rootNavigator: true).pop,
+                      ),
+                    ],
                   ),
-                  DesktopDialogCloseButton(
-                    onPressedOverride: Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop,
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+                      child: SingleChildScrollView(child: child),
+                    ),
                   ),
                 ],
               ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                  child: SingleChildScrollView(
-                    child: child,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
         child: Column(
           mainAxisSize: Util.isDesktop ? MainAxisSize.min : MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              height: Util.isDesktop ? 12 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 12 : 16),
             DetailItem(
               title: "Master fingerprint",
               detail: widget.xpubData.fingerprint,
               horizontal: true,
-              borderColor: Util.isDesktop
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG
-                  : null,
+              borderColor:
+                  Util.isDesktop
+                      ? Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG
+                      : null,
             ),
-            SizedBox(
-              height: Util.isDesktop ? 12 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 12 : 16),
             DetailItemBase(
               horizontal: true,
-              borderColor: Util.isDesktop
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG
-                  : null,
+              borderColor:
+                  Util.isDesktop
+                      ? Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG
+                      : null,
               title: Text(
                 "Derivation",
                 style: STextStyles.itemSubtitle(context),
@@ -226,9 +217,10 @@ class XPubViewState extends ConsumerState<XPubView> {
                     isExpanded: true,
                     buttonStyleData: ButtonStyleData(
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG,
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         ),
@@ -241,9 +233,10 @@ class XPubViewState extends ConsumerState<XPubView> {
                           Assets.svg.chevronDown,
                           width: 12,
                           height: 6,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveSearchIconRight,
+                          color:
+                              Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconRight,
                         ),
                       ),
                     ),
@@ -251,9 +244,10 @@ class XPubViewState extends ConsumerState<XPubView> {
                       offset: const Offset(0, -10),
                       elevation: 0,
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
+                        color:
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG,
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         ),
@@ -269,46 +263,34 @@ class XPubViewState extends ConsumerState<XPubView> {
                 ),
               ),
             ),
-            SizedBox(
-              height: Util.isDesktop ? 12 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 12 : 16),
             QR(
               data: _current(_currentDropDownValue),
-              size: Util.isDesktop
-                  ? 256
-                  : MediaQuery.of(context).size.width / 1.5,
+              size:
+                  Util.isDesktop
+                      ? 256
+                      : MediaQuery.of(context).size.width / 1.5,
             ),
-            SizedBox(
-              height: Util.isDesktop ? 12 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 12 : 16),
             RoundedWhiteContainer(
-              borderColor: Util.isDesktop
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG
-                  : null,
+              borderColor:
+                  Util.isDesktop
+                      ? Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG
+                      : null,
               child: SelectableText(
                 _current(_currentDropDownValue),
                 style: STextStyles.w500_14(context),
               ),
             ),
-            SizedBox(
-              height: Util.isDesktop ? 12 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 12 : 16),
             if (!Util.isDesktop) const Spacer(),
             Row(
               children: [
                 if (Util.isDesktop) const Spacer(),
-                if (Util.isDesktop)
-                  const SizedBox(
-                    width: 16,
-                  ),
-                Expanded(
-                  child: PrimaryButton(
-                    label: "Copy",
-                    onPressed: _copy,
-                  ),
-                ),
+                if (Util.isDesktop) const SizedBox(width: 16),
+                Expanded(child: PrimaryButton(label: "Copy", onPressed: _copy)),
               ],
             ),
           ],

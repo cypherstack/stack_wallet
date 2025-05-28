@@ -288,7 +288,7 @@ class _MonkeyViewState extends ConsumerState<MonkeyView> {
                     ),
                   ],
                 ),
-                body: child,
+                body: SafeArea(child: child),
               ),
           child: ConditionalParent(
             condition: isDesktop,

@@ -9,12 +9,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'create_backup_view.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import 'create_backup_view.dart';
 
 class CreateBackupInfoView extends StatelessWidget {
   const CreateBackupInfoView({super.key});
@@ -36,63 +37,59 @@ class CreateBackupInfoView extends StatelessWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Create backup",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Create backup", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Center(
-                          child: Text(
-                            "Info",
-                            style: STextStyles.pageTitleH2(context),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Center(
+                            child: Text(
+                              "Info",
+                              style: STextStyles.pageTitleH2(context),
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Text(
-                            // TODO: need info
-                            "{lorem ipsum}",
-                            style: STextStyles.baseXS(context),
+                          const SizedBox(height: 16),
+                          RoundedWhiteContainer(
+                            child: Text(
+                              // TODO: need info
+                              "{lorem ipsum}",
+                              style: STextStyles.baseXS(context),
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        const Spacer(),
-                        TextButton(
-                          style: Theme.of(context)
-                              .extension<StackColors>()!
-                              .getPrimaryEnabledButtonStyle(context),
-                          onPressed: () {
-                            Navigator.of(context)
-                                .pushNamed(CreateBackupView.routeName);
-                          },
-                          child: Text(
-                            "Next",
-                            style: STextStyles.button(context),
+                          const SizedBox(height: 16),
+                          const Spacer(),
+                          TextButton(
+                            style: Theme.of(context)
+                                .extension<StackColors>()!
+                                .getPrimaryEnabledButtonStyle(context),
+                            onPressed: () {
+                              Navigator.of(
+                                context,
+                              ).pushNamed(CreateBackupView.routeName);
+                            },
+                            child: Text(
+                              "Next",
+                              style: STextStyles.button(context),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

@@ -37,10 +37,7 @@ import 'fusion_progress_view.dart';
 import 'fusion_rounds_selection_sheet.dart';
 
 class CashFusionView extends ConsumerStatefulWidget {
-  const CashFusionView({
-    super.key,
-    required this.walletId,
-  });
+  const CashFusionView({super.key, required this.walletId});
 
   static const routeName = "/cashFusionView";
 
@@ -74,15 +71,16 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-            "FusionProgressUIState was already set for ${widget.walletId}",
-          )) {
+        "FusionProgressUIState was already set for ${widget.walletId}",
+      )) {
         rethrow;
       }
     }
 
-    final int rounds = _option == FusionOption.continuous
-        ? 0
-        : int.parse(fusionRoundController.text);
+    final int rounds =
+        _option == FusionOption.continuous
+            ? 0
+            : int.parse(fusionRoundController.text);
 
     final newInfo = FusionInfo(
       host: serverController.text,
@@ -94,16 +92,11 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
     // update user prefs (persistent)
     ref.read(prefsChangeNotifierProvider).setFusionServerInfo(coin, newInfo);
 
-    unawaited(
-      fusionWallet.fuse(
-        fusionInfo: newInfo,
-      ),
-    );
+    unawaited(fusionWallet.fuse(fusionInfo: newInfo));
 
-    await Navigator.of(context).pushNamed(
-      FusionProgressView.routeName,
-      arguments: widget.walletId,
-    );
+    await Navigator.of(
+      context,
+    ).pushNamed(FusionProgressView.routeName, arguments: widget.walletId);
   }
 
   @override
@@ -118,8 +111,9 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
 
     coin = ref.read(pWalletCoin(widget.walletId));
 
-    final info =
-        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
+    final info = ref
+        .read(prefsChangeNotifierProvider)
+        .getFusionServerInfo(coin);
 
     serverController.text = info.host;
     portController.text = info.port.toString();
@@ -156,10 +150,7 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
           appBar: AppBar(
             automaticallyImplyLeading: false,
             leading: const AppBarBackButton(),
-            title: Text(
-              "Fusion",
-              style: STextStyles.navBarTitle(context),
-            ),
+            title: Text("Fusion", style: STextStyles.navBarTitle(context)),
             titleSpacing: 0,
             actions: [
               AspectRatio(
@@ -170,9 +161,10 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                     Assets.svg.circleQuestion,
                     width: 20,
                     height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .topNavIconPrimary,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.topNavIconPrimary,
                   ),
                   onPressed: () async {
                     //' TODO show about?
@@ -181,225 +173,62 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
               ),
             ],
           ),
-          body: LayoutBuilder(
-            builder: (builderContext, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          RoundedWhiteContainer(
-                            child: Text(
-                              "Fusion helps anonymize your coins by mixing them.",
-                              style: STextStyles.w500_12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Server settings",
-                                style: STextStyles.w500_14(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark3,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (builderContext, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RoundedWhiteContainer(
+                              child: Text(
+                                "Fusion helps anonymize your coins by mixing them.",
+                                style: STextStyles.w500_12(context).copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textSubtitle1,
                                 ),
                               ),
-                              CustomTextButton(
-                                text: "Default",
-                                onTap: () {
-                                  final def = kFusionServerInfoDefaults[coin]!;
-                                  serverController.text = def.host;
-                                  portController.text = def.port.toString();
-                                  fusionRoundController.text =
-                                      def.rounds.toString();
-                                  _option = FusionOption.continuous;
-                                  setState(() {
-                                    _enableSSLCheckbox = def.ssl;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
                             ),
-                            child: TextField(
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              controller: serverController,
-                              focusNode: serverFocusNode,
-                              onChanged: (value) {
-                                setState(() {
-                                  _enableStartButton = value.isNotEmpty &&
-                                      portController.text.isNotEmpty &&
-                                      fusionRoundController.text.isNotEmpty;
-                                });
-                              },
-                              style: STextStyles.field(context),
-                              decoration: standardInputDecoration(
-                                "Server",
-                                serverFocusNode,
-                                context,
-                                desktopMed: true,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                            child: TextField(
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              controller: portController,
-                              focusNode: portFocusNode,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Server settings",
+                                  style: STextStyles.w500_14(context).copyWith(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.textDark3,
+                                  ),
+                                ),
+                                CustomTextButton(
+                                  text: "Default",
+                                  onTap: () {
+                                    final def =
+                                        kFusionServerInfoDefaults[coin]!;
+                                    serverController.text = def.host;
+                                    portController.text = def.port.toString();
+                                    fusionRoundController.text =
+                                        def.rounds.toString();
+                                    _option = FusionOption.continuous;
+                                    setState(() {
+                                      _enableSSLCheckbox = def.ssl;
+                                    });
+                                  },
+                                ),
                               ],
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                setState(() {
-                                  _enableStartButton = value.isNotEmpty &&
-                                      serverController.text.isNotEmpty &&
-                                      fusionRoundController.text.isNotEmpty;
-                                });
-                              },
-                              style: STextStyles.field(context),
-                              decoration: standardInputDecoration(
-                                "Port",
-                                portFocusNode,
-                                context,
-                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _enableSSLCheckbox = !_enableSSLCheckbox;
-                              });
-                            },
-                            child: Container(
-                              color: Colors.transparent,
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: Checkbox(
-                                      materialTapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                      value: _enableSSLCheckbox,
-                                      onChanged: (newValue) {
-                                        setState(
-                                          () {
-                                            _enableSSLCheckbox =
-                                                !_enableSSLCheckbox;
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
-                                  Text(
-                                    "Use SSL",
-                                    style: STextStyles.itemSubtitle12(context),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Rounds of fusion",
-                            style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark3,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          RoundedContainer(
-                            onPressed: () async {
-                              final option =
-                                  await showModalBottomSheet<FusionOption?>(
-                                backgroundColor: Colors.transparent,
-                                context: context,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(20),
-                                  ),
-                                ),
-                                builder: (_) {
-                                  return FusionRoundCountSelectSheet(
-                                    currentOption: _option,
-                                  );
-                                },
-                              );
-                              if (option != null) {
-                                setState(() {
-                                  _option = option;
-                                });
-                              }
-                            },
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveBG,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _option.name.capitalize(),
-                                    style: STextStyles.w500_12(context),
-                                  ),
-                                  SvgPicture.asset(
-                                    Assets.svg.chevronDown,
-                                    width: 12,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textSubtitle1,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (_option == FusionOption.custom)
-                            const SizedBox(
-                              height: 10,
-                            ),
-                          if (_option == FusionOption.custom)
+                            const SizedBox(height: 12),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
@@ -407,45 +236,203 @@ class _CashFusionViewState extends ConsumerState<CashFusionView> {
                               child: TextField(
                                 autocorrect: false,
                                 enableSuggestions: false,
-                                controller: fusionRoundController,
-                                focusNode: fusionRoundFocusNode,
+                                controller: serverController,
+                                focusNode: serverFocusNode,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _enableStartButton =
+                                        value.isNotEmpty &&
+                                        portController.text.isNotEmpty &&
+                                        fusionRoundController.text.isNotEmpty;
+                                  });
+                                },
+                                style: STextStyles.field(context),
+                                decoration: standardInputDecoration(
+                                  "Server",
+                                  serverFocusNode,
+                                  context,
+                                  desktopMed: true,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                Constants.size.circularBorderRadius,
+                              ),
+                              child: TextField(
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                controller: portController,
+                                focusNode: portFocusNode,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
                                 ],
                                 keyboardType: TextInputType.number,
                                 onChanged: (value) {
                                   setState(() {
-                                    _enableStartButton = value.isNotEmpty &&
+                                    _enableStartButton =
+                                        value.isNotEmpty &&
                                         serverController.text.isNotEmpty &&
-                                        portController.text.isNotEmpty;
+                                        fusionRoundController.text.isNotEmpty;
                                   });
                                 },
                                 style: STextStyles.field(context),
                                 decoration: standardInputDecoration(
-                                  "Number of fusions",
-                                  fusionRoundFocusNode,
+                                  "Port",
+                                  portFocusNode,
                                   context,
-                                ).copyWith(
-                                  labelText: "Enter number of fusions..",
                                 ),
                               ),
                             ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          const Spacer(),
-                          PrimaryButton(
-                            label: "Start",
-                            enabled: _enableStartButton,
-                            onPressed: _startFusion,
-                          ),
-                        ],
+                            const SizedBox(height: 10),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _enableSSLCheckbox = !_enableSSLCheckbox;
+                                });
+                              },
+                              child: Container(
+                                color: Colors.transparent,
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: Checkbox(
+                                        materialTapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        value: _enableSSLCheckbox,
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            _enableSSLCheckbox =
+                                                !_enableSSLCheckbox;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      "Use SSL",
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              "Rounds of fusion",
+                              style: STextStyles.w500_14(context).copyWith(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark3,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            RoundedContainer(
+                              onPressed: () async {
+                                final option =
+                                    await showModalBottomSheet<FusionOption?>(
+                                      backgroundColor: Colors.transparent,
+                                      context: context,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(20),
+                                        ),
+                                      ),
+                                      builder: (_) {
+                                        return FusionRoundCountSelectSheet(
+                                          currentOption: _option,
+                                        );
+                                      },
+                                    );
+                                if (option != null) {
+                                  setState(() {
+                                    _option = option;
+                                  });
+                                }
+                              },
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textFieldActiveBG,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _option.name.capitalize(),
+                                      style: STextStyles.w500_12(context),
+                                    ),
+                                    SvgPicture.asset(
+                                      Assets.svg.chevronDown,
+                                      width: 12,
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            if (_option == FusionOption.custom)
+                              const SizedBox(height: 10),
+                            if (_option == FusionOption.custom)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  controller: fusionRoundController,
+                                  focusNode: fusionRoundFocusNode,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _enableStartButton =
+                                          value.isNotEmpty &&
+                                          serverController.text.isNotEmpty &&
+                                          portController.text.isNotEmpty;
+                                    });
+                                  },
+                                  style: STextStyles.field(context),
+                                  decoration: standardInputDecoration(
+                                    "Number of fusions",
+                                    fusionRoundFocusNode,
+                                    context,
+                                  ).copyWith(
+                                    labelText: "Enter number of fusions..",
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 16),
+                            const Spacer(),
+                            PrimaryButton(
+                              label: "Start",
+                              enabled: _enableStartButton,
+                              onPressed: _startFusion,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

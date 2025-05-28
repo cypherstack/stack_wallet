@@ -13,22 +13,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar/isar.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
+import '../../../models/exchange/aggregate_currency.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
 import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exchange_data_loading_service.dart';
-import '../../../services/exchange/majestic_bank/majestic_bank_exchange.dart';
-import '../../../services/exchange/nanswap/nanswap_exchange.dart';
-import '../../../services/exchange/trocador/trocador_exchange.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/logger.dart';
 import '../../../utilities/prefs.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/background.dart';
+import '../../../widgets/coin_ticker_tag.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_loading_overlay.dart';
@@ -42,14 +43,12 @@ import '../../buy_view/sub_widgets/crypto_selection_view.dart';
 class ExchangeCurrencySelectionView extends StatefulWidget {
   const ExchangeCurrencySelectionView({
     super.key,
-    required this.willChangeTicker,
-    required this.pairedTicker,
+    required this.pairedCurrency,
     required this.isFixedRate,
     required this.willChangeIsSend,
   });
 
-  final String? willChangeTicker;
-  final String? pairedTicker;
+  final AggregateCurrency? pairedCurrency;
   final bool isFixedRate;
   final bool willChangeIsSend;
 
@@ -64,7 +63,7 @@ class _ExchangeCurrencySelectionViewState
   final _searchFocusNode = FocusNode();
   final isDesktop = Util.isDesktop;
 
-  List<Currency> _currencies = [];
+  List<AggregateCurrency> _currencies = [];
 
   bool _loaded = false;
   String _searchString = "";
@@ -99,26 +98,7 @@ class _ExchangeCurrencySelectionViewState
     return result;
   }
 
-  Future<List<Currency>> _loadCurrencies() async {
-    if (widget.pairedTicker == null) {
-      return await _getCurrencies();
-    }
-    await ExchangeDataLoadingService.instance.initDB();
-    final List<Currency> currencies =
-        await ExchangeDataLoadingService.instance.isar.currencies
-            .where()
-            .filter()
-            .exchangeNameEqualTo(MajesticBankExchange.exchangeName)
-            .or()
-            .exchangeNameStartsWith(TrocadorExchange.exchangeName)
-            .or()
-            .exchangeNameStartsWith(NanswapExchange.exchangeName)
-            .findAll();
-
-    return _getDistinctCurrenciesFrom(currencies);
-  }
-
-  Future<List<Currency>> _getCurrencies() async {
+  Future<List<AggregateCurrency>> _loadCurrencies() async {
     await ExchangeDataLoadingService.instance.initDB();
     final currencies =
         await ExchangeDataLoadingService.instance.isar.currencies
@@ -154,53 +134,78 @@ class _ExchangeCurrencySelectionViewState
       }
     }
 
-    return _getDistinctCurrenciesFrom(currencies);
+    return await _getDistinctCurrenciesFrom(currencies);
   }
 
-  List<Currency> _getDistinctCurrenciesFrom(List<Currency> currencies) {
-    final List<Currency> distinctCurrencies = [];
+  Future<List<AggregateCurrency>> _getDistinctCurrenciesFrom(
+    List<Currency> currencies,
+  ) async {
+    final Map<String, List<Currency>> groups = {};
+
     for (final currency in currencies) {
-      if (!distinctCurrencies.any(
-        (e) => e.ticker.toLowerCase() == currency.ticker.toLowerCase(),
-      )) {
-        distinctCurrencies.add(currency);
-      }
+      final key = '${currency.ticker.toLowerCase()}|${currency.getFuzzyNet()}';
+
+      groups.putIfAbsent(key, () => []).add(currency);
     }
-    return distinctCurrencies;
-  }
 
-  List<Currency> filter(String text) {
-    if (widget.pairedTicker == null) {
-      if (text.isEmpty) {
-        return _currencies;
-      }
+    final Set<AggregateCurrency> results = {};
 
-      return _currencies
-          .where(
-            (e) =>
-                e.name.toLowerCase().contains(text.toLowerCase()) ||
-                e.ticker.toLowerCase().contains(text.toLowerCase()),
-          )
-          .toList();
-    } else {
-      if (text.isEmpty) {
-        return _currencies
+    for (final group in groups.values) {
+      final items = group
+          .map((e) => Tuple2(e.exchangeName, e))
+          .toList(growable: false);
+
+      results.add(AggregateCurrency(exchangeCurrencyPairs: items));
+    }
+
+    if (widget.pairedCurrency != null) {
+      results.remove(widget.pairedCurrency);
+    }
+
+    final walletCoins =
+        results
             .where(
-              (e) =>
-                  e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase(),
+              (currency) =>
+                  AppConfig.coins
+                      .where(
+                        (coin) =>
+                            coin.ticker.toLowerCase() ==
+                                currency.ticker.toLowerCase() &&
+                            currency.fuzzyNet == coin.ticker.toLowerCase(),
+                      )
+                      .isNotEmpty,
             )
             .toList();
-      }
 
-      return _currencies
-          .where(
-            (e) =>
-                e.ticker.toLowerCase() != widget.pairedTicker!.toLowerCase() &&
-                (e.name.toLowerCase().contains(text.toLowerCase()) ||
-                    e.ticker.toLowerCase().contains(text.toLowerCase())),
-          )
-          .toList();
+    final list = results.toList();
+
+    // sort alphabetically by name
+    list.sort((a, b) => a.name.compareTo(b.name));
+
+    // reverse sort walletCoins to prepare for next step
+    walletCoins.sort((a, b) => b.name.compareTo(a.name));
+
+    // insert wallet coins at beginning
+    for (final c in walletCoins) {
+      list.remove(c);
+      list.insert(0, c);
     }
+
+    return list;
+  }
+
+  List<AggregateCurrency> filter(String text) {
+    if (text.isEmpty) {
+      return _currencies.toList();
+    }
+
+    return _currencies
+        .where(
+          (e) =>
+              e.name.toLowerCase().contains(text.toLowerCase()) ||
+              e.ticker.toLowerCase().contains(text.toLowerCase()),
+        )
+        .toList();
   }
 
   @override
@@ -262,187 +267,194 @@ class _ExchangeCurrencySelectionViewState
           ),
         );
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
-        children: [
-          if (!isDesktop) const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              autofocus: isDesktop,
-              autocorrect: !isDesktop,
-              enableSuggestions: !isDesktop,
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              onChanged: (value) => setState(() => _searchString = value),
-              style: STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Search",
-                _searchFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 16,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
+          children: [
+            if (!isDesktop) const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+              child: TextField(
+                autofocus: isDesktop,
+                autocorrect: !isDesktop,
+                enableSuggestions: !isDesktop,
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                onChanged: (value) => setState(() => _searchString = value),
+                style: STextStyles.field(context),
+                decoration: standardInputDecoration(
+                  "Search",
+                  _searchFocusNode,
+                  context,
+                  desktopMed: isDesktop,
+                ).copyWith(
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 16,
+                    ),
+                    child: SvgPicture.asset(
+                      Assets.svg.search,
+                      width: 16,
+                      height: 16,
+                    ),
                   ),
-                  child: SvgPicture.asset(
-                    Assets.svg.search,
-                    width: 16,
-                    height: 16,
-                  ),
-                ),
-                suffixIcon:
-                    _searchController.text.isNotEmpty
-                        ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _searchController.text = "";
-                                      _searchString = "";
-                                    });
-                                  },
-                                ),
-                              ],
+                  suffixIcon:
+                      _searchController.text.isNotEmpty
+                          ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchController.text = "";
+                                        _searchString = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
-                        : null,
+                          )
+                          : null,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Flexible(
-            child: Builder(
-              builder: (context) {
-                final coins = AppConfig.coins.where(
-                  (e) =>
-                      e.ticker.toLowerCase() !=
-                      widget.pairedTicker?.toLowerCase(),
-                );
+            const SizedBox(height: 20),
+            Flexible(
+              child: Builder(
+                builder: (context) {
+                  final items = filter(_searchString);
 
-                final items = filter(_searchString);
-
-                final walletCoins =
-                    items
-                        .where(
-                          (currency) =>
-                              coins
-                                  .where(
-                                    (coin) =>
-                                        coin.ticker.toLowerCase() ==
-                                        currency.ticker.toLowerCase(),
-                                  )
-                                  .isNotEmpty,
-                        )
-                        .toList();
-
-                // sort alphabetically by name
-                items.sort((a, b) => a.name.compareTo(b.name));
-
-                // reverse sort walletCoins to prepare for next step
-                walletCoins.sort((a, b) => b.name.compareTo(a.name));
-
-                // insert wallet coins at beginning
-                for (final c in walletCoins) {
-                  items.remove(c);
-                  items.insert(0, c);
-                }
-
-                return RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(0),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    primary: isDesktop ? false : null,
-                    itemCount: items.length,
-                    itemBuilder: (builderContext, index) {
-                      final bool hasImageUrl = items[index].image.startsWith(
-                        "http",
-                      );
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).pop(items[index]);
-                          },
-                          child: RoundedWhiteContainer(
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child:
-                                      AppConfig.isStackCoin(items[index].ticker)
-                                          ? CoinIconForTicker(
-                                            ticker: items[index].ticker,
-                                            size: 24,
-                                          )
-                                          // ? getIconForTicker(
-                                          //     items[index].ticker,
-                                          //     size: 24,
-                                          //   )
-                                          : hasImageUrl
-                                          ? SvgPicture.network(
-                                            items[index].image,
-                                            width: 24,
-                                            height: 24,
-                                            placeholderBuilder:
-                                                (_) => const LoadingIndicator(),
-                                          )
-                                          : const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                          ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        items[index].name,
-                                        style: STextStyles.largeMedium14(
-                                          context,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        items[index].ticker.toUpperCase(),
-                                        style: STextStyles.smallMed12(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textSubtitle1,
-                                        ),
-                                      ),
-                                    ],
+                  return RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(0),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      primary: isDesktop ? false : null,
+                      itemCount: items.length,
+                      itemBuilder: (builderContext, index) {
+                        final image = items[index].image;
+                        final hasImageUrl = image.startsWith("http");
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: GestureDetector(
+                            onTap: () {
+                              final selected = items[index];
+                              Logging.instance.d("swap selected: $selected");
+                              Navigator.of(context).pop(selected);
+                            },
+                            child: RoundedWhiteContainer(
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child:
+                                        AppConfig.isStackCoin(
+                                              items[index].ticker,
+                                            )
+                                            ? CoinIconForTicker(
+                                              ticker: items[index].ticker,
+                                              size: 24,
+                                            )
+                                            : hasImageUrl
+                                            ? _NetImage(
+                                              url: image,
+                                              key: ValueKey(
+                                                image + items[index].fuzzyNet,
+                                              ),
+                                            )
+                                            : const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                            ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              items[index].name,
+                                              style: STextStyles.largeMedium14(
+                                                context,
+                                              ),
+                                            ),
+                                            if (items[index].ticker
+                                                    .toLowerCase() !=
+                                                items[index].fuzzyNet
+                                                    .toLowerCase())
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 12,
+                                                ),
+                                                child: CoinTickerTag(
+                                                  ticker:
+                                                      items[index].fuzzyNet
+                                                          .toUpperCase(),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          items[index].ticker.toUpperCase(),
+                                          style: STextStyles.smallMed12(
+                                            context,
+                                          ).copyWith(
+                                            color:
+                                                Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textSubtitle1,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _NetImage extends StatelessWidget {
+  const _NetImage({super.key, required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    if (url.endsWith(".svg")) {
+      return SvgPicture.network(
+        key: key,
+        url,
+        width: 24,
+        height: 24,
+        placeholderBuilder: (_) => const LoadingIndicator(),
+      );
+    } else {
+      return Image.network(url, width: 24, height: 24, key: key);
+    }
   }
 }

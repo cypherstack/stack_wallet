@@ -26,10 +26,7 @@ import 'delete_view_only_wallet_keys_view.dart';
 import 'delete_wallet_recovery_phrase_view.dart';
 
 class DeleteWalletWarningView extends ConsumerWidget {
-  const DeleteWalletWarningView({
-    super.key,
-    required this.walletId,
-  });
+  const DeleteWalletWarningView({super.key, required this.walletId});
 
   static const String routeName = "/deleteWalletWarning";
 
@@ -47,143 +44,132 @@ class DeleteWalletWarningView extends ConsumerWidget {
             },
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 16,
-            right: 16,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(
-                height: 32,
-              ),
-              Center(
-                child: Text(
-                  "Attention!",
-                  style: STextStyles.pageTitleH1(context),
-                ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              RoundedContainer(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .warningBackground,
-                child: Text(
-                  "You are going to permanently delete your wallet.\n\n"
-                  "If you delete your wallet, the only way you can have access"
-                  " to your funds is by using your backup key.\n\n"
-                  "${AppConfig.appName} does not keep nor is able to restore "
-                  "your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
-                  style: STextStyles.baseXS(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .warningForeground,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 32),
+                Center(
+                  child: Text(
+                    "Attention!",
+                    style: STextStyles.pageTitleH1(context),
                   ),
                 ),
-              ),
-              const Spacer(),
-              TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  "Cancel",
-                  style: STextStyles.button(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .accentColorDark,
+                const SizedBox(height: 16),
+                RoundedContainer(
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.warningBackground,
+                  child: Text(
+                    "You are going to permanently delete your wallet.\n\n"
+                    "If you delete your wallet, the only way you can have access"
+                    " to your funds is by using your backup key.\n\n"
+                    "${AppConfig.appName} does not keep nor is able to restore "
+                    "your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
+                    style: STextStyles.baseXS(context).copyWith(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.warningForeground,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context),
-                onPressed: () async {
-                  final wallet = ref.read(pWallets).getWallet(walletId);
+                const Spacer(),
+                TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    "Cancel",
+                    style: STextStyles.button(context).copyWith(
+                      color:
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonStyle(context),
+                  onPressed: () async {
+                    final wallet = ref.read(pWallets).getWallet(walletId);
 
-                  // TODO: [prio=med] take wallets that don't have a mnemonic into account
+                    // TODO: [prio=med] take wallets that don't have a mnemonic into account
 
-                  List<String>? mnemonic;
-                  ({
-                    String myName,
-                    String config,
-                    String keys,
-                    ({String config, String keys})? prevGen,
-                  })? frostWalletData;
-                  ViewOnlyWalletData? viewOnlyData;
+                    List<String>? mnemonic;
+                    ({
+                      String myName,
+                      String config,
+                      String keys,
+                      ({String config, String keys})? prevGen,
+                    })?
+                    frostWalletData;
+                    ViewOnlyWalletData? viewOnlyData;
 
-                  if (wallet is BitcoinFrostWallet) {
-                    final futures = [
-                      wallet.getSerializedKeys(),
-                      wallet.getMultisigConfig(),
-                      wallet.getSerializedKeysPrevGen(),
-                      wallet.getMultisigConfigPrevGen(),
-                    ];
+                    if (wallet is BitcoinFrostWallet) {
+                      final futures = [
+                        wallet.getSerializedKeys(),
+                        wallet.getMultisigConfig(),
+                        wallet.getSerializedKeysPrevGen(),
+                        wallet.getMultisigConfigPrevGen(),
+                      ];
 
-                    final results = await Future.wait(futures);
+                      final results = await Future.wait(futures);
 
-                    if (results.length == 4) {
-                      frostWalletData = (
-                        myName: wallet.frostInfo.myName,
-                        config: results[1]!,
-                        keys: results[0]!,
-                        prevGen: results[2] == null || results[3] == null
-                            ? null
-                            : (
-                                config: results[3]!,
-                                keys: results[2]!,
-                              ),
-                      );
-                    }
-                  } else {
-                    if (wallet is ViewOnlyOptionInterface &&
-                        wallet.isViewOnly) {
-                      viewOnlyData = await wallet.getViewOnlyWalletData();
-                    } else if (wallet is MnemonicInterface) {
-                      mnemonic = await wallet.getMnemonicAsWords();
-                    }
-                  }
-                  if (context.mounted) {
-                    if (viewOnlyData != null) {
-                      await Navigator.of(context).pushNamed(
-                        DeleteViewOnlyWalletKeysView.routeName,
-                        arguments: (
-                          walletId: walletId,
-                          data: viewOnlyData,
-                        ),
-                      );
+                      if (results.length == 4) {
+                        frostWalletData = (
+                          myName: wallet.frostInfo.myName,
+                          config: results[1]!,
+                          keys: results[0]!,
+                          prevGen:
+                              results[2] == null || results[3] == null
+                                  ? null
+                                  : (config: results[3]!, keys: results[2]!),
+                        );
+                      }
                     } else {
-                      await Navigator.of(context).pushNamed(
-                        DeleteWalletRecoveryPhraseView.routeName,
-                        arguments: (
-                          walletId: walletId,
-                          mnemonicWords: mnemonic ?? [],
-                          frostWalletData: frostWalletData,
-                        ),
-                      );
+                      if (wallet is ViewOnlyOptionInterface &&
+                          wallet.isViewOnly) {
+                        viewOnlyData = await wallet.getViewOnlyWalletData();
+                      } else if (wallet is MnemonicInterface) {
+                        mnemonic = await wallet.getMnemonicAsWords();
+                      }
                     }
-                  }
-                },
-                child: Text(
-                  "View Backup Key",
-                  style: STextStyles.button(context),
+                    if (context.mounted) {
+                      if (viewOnlyData != null) {
+                        await Navigator.of(context).pushNamed(
+                          DeleteViewOnlyWalletKeysView.routeName,
+                          arguments: (walletId: walletId, data: viewOnlyData),
+                        );
+                      } else {
+                        await Navigator.of(context).pushNamed(
+                          DeleteWalletRecoveryPhraseView.routeName,
+                          arguments: (
+                            walletId: walletId,
+                            mnemonicWords: mnemonic ?? [],
+                            frostWalletData: frostWalletData,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(
+                    "View Backup Key",
+                    style: STextStyles.button(context),
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-            ],
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
