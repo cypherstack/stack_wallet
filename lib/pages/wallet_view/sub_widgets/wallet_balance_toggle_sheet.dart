@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../models/balance.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
@@ -22,20 +23,10 @@ import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
-enum _BalanceType {
-  available,
-  full,
-  lelantusAvailable,
-  lelantusFull,
-  sparkAvailable,
-  sparkFull;
-}
+enum _BalanceType { available, full, sparkAvailable, sparkFull }
 
 class WalletBalanceToggleSheet extends ConsumerWidget {
-  const WalletBalanceToggleSheet({
-    super.key,
-    required this.walletId,
-  });
+  const WalletBalanceToggleSheet({super.key, required this.walletId});
 
   final String walletId;
 
@@ -54,42 +45,23 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
             ? _BalanceType.available
             : _BalanceType.full;
 
-    Balance? balanceSecondary;
     Balance? balanceTertiary;
     if (isFiro) {
-      balanceSecondary = ref.watch(pWalletBalanceSecondary(walletId));
       balanceTertiary = ref.watch(pWalletBalanceTertiary(walletId));
 
-      switch (ref.watch(publicPrivateBalanceStateProvider.state).state) {
-        case FiroType.spark:
-          _bal = _bal == _BalanceType.available
-              ? _BalanceType.sparkAvailable
-              : _BalanceType.sparkFull;
-          break;
-
-        case FiroType.lelantus:
-          _bal = _bal == _BalanceType.available
-              ? _BalanceType.lelantusAvailable
-              : _BalanceType.lelantusFull;
-          break;
-
-        case FiroType.public:
-          // already set above
-          break;
-      }
-
-      // hack to not show lelantus balance in ui if zero
-      if (balanceSecondary?.spendable.raw == BigInt.zero) {
-        balanceSecondary = null;
+      if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
+          FiroType.spark) {
+        _bal =
+            _bal == _BalanceType.available
+                ? _BalanceType.sparkAvailable
+                : _BalanceType.sparkFull;
       }
     }
 
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: LimitedBox(
         maxHeight: maxHeight,
@@ -107,9 +79,10 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -118,9 +91,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                   height: 4,
                 ),
               ),
-              const SizedBox(
-                height: 36,
-              ),
+              const SizedBox(height: 36),
               Padding(
                 padding: const EdgeInsets.only(left: 8.0),
                 child: Text(
@@ -129,9 +100,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                   textAlign: TextAlign.left,
                 ),
               ),
-              const SizedBox(
-                height: 24,
-              ),
+              const SizedBox(height: 24),
               BalanceSelector(
                 title: "Available${isFiro ? " public" : ""} balance",
                 coin: coin,
@@ -153,9 +122,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 value: _BalanceType.available,
                 groupValue: _bal,
               ),
-              const SizedBox(
-                height: 12,
-              ),
+              const SizedBox(height: 12),
               BalanceSelector(
                 title: "Full${isFiro ? " public" : ""} balance",
                 coin: coin,
@@ -177,62 +144,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 value: _BalanceType.full,
                 groupValue: _bal,
               ),
-              if (balanceSecondary != null)
-                const SizedBox(
-                  height: 12,
-                ),
-              if (balanceSecondary != null)
-                BalanceSelector(
-                  title: "Available Lelantus balance",
-                  coin: coin,
-                  balance: balanceSecondary.spendable,
-                  onPressed: () {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.available;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        FiroType.lelantus;
-                    Navigator.of(context).pop();
-                  },
-                  onChanged: (_) {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.available;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        FiroType.lelantus;
-                    Navigator.of(context).pop();
-                  },
-                  value: _BalanceType.lelantusAvailable,
-                  groupValue: _bal,
-                ),
-              if (balanceSecondary != null)
-                const SizedBox(
-                  height: 12,
-                ),
-              if (balanceSecondary != null)
-                BalanceSelector(
-                  title: "Full Lelantus balance",
-                  coin: coin,
-                  balance: balanceSecondary.total,
-                  onPressed: () {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.full;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        FiroType.lelantus;
-                    Navigator.of(context).pop();
-                  },
-                  onChanged: (_) {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.full;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        FiroType.lelantus;
-                    Navigator.of(context).pop();
-                  },
-                  value: _BalanceType.lelantusFull,
-                  groupValue: _bal,
-                ),
-              if (balanceTertiary != null)
-                const SizedBox(
-                  height: 12,
-                ),
+              if (balanceTertiary != null) const SizedBox(height: 12),
               if (balanceTertiary != null)
                 BalanceSelector(
                   title: "Available Spark balance",
@@ -255,10 +167,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                   value: _BalanceType.sparkAvailable,
                   groupValue: _bal,
                 ),
-              if (balanceTertiary != null)
-                const SizedBox(
-                  height: 12,
-                ),
+              if (balanceTertiary != null) const SizedBox(height: 12),
               if (balanceTertiary != null)
                 BalanceSelector(
                   title: "Full Spark balance",
@@ -281,9 +190,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                   value: _BalanceType.sparkFull,
                   groupValue: _bal,
                 ),
-              const SizedBox(
-                height: 40,
-              ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -331,33 +238,28 @@ class BalanceSelector<T> extends ConsumerWidget {
               width: 20,
               height: 20,
               child: Radio(
-                activeColor: Theme.of(context)
-                    .extension<StackColors>()!
-                    .radioButtonIconEnabled,
+                activeColor:
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.radioButtonIconEnabled,
                 value: value,
                 groupValue: groupValue,
                 onChanged: onChanged,
               ),
             ),
-            const SizedBox(
-              width: 12,
-            ),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: STextStyles.titleBold12(context),
-                ),
-                const SizedBox(
-                  height: 2,
-                ),
+                Text(title, style: STextStyles.titleBold12(context)),
+                const SizedBox(height: 2),
                 Text(
                   ref.watch(pAmountFormatter(coin)).format(balance),
                   style: STextStyles.itemSubtitle12(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
+                    color:
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textSubtitle1,
                   ),
                 ),
               ],

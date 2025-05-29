@@ -52,15 +52,9 @@ class TxData {
   final BigInt? chainId;
   // wownero and monero specific
   final lib_monero.PendingTransaction? pendingTransaction;
-  final lib_salvium.PendingTransaction? pendingSalviumTransaction;
 
-  // firo lelantus specific
-  final int? jMintValue;
-  final List<int>? spendCoinIndexes;
-  final int? height;
-  final TransactionType? txType;
-  final TransactionSubType? txSubType;
-  final List<Map<String, dynamic>>? mintsMapLelantus;
+  // salvium
+  final lib_salvium.PendingTransaction? pendingSalviumTransaction;
 
   // tezos specific
   final tezart.OperationsList? tezosOperationsList;
@@ -113,12 +107,6 @@ class TxData {
     this.chainId,
     this.pendingTransaction,
     this.pendingSalviumTransaction,
-    this.jMintValue,
-    this.spendCoinIndexes,
-    this.height,
-    this.txType,
-    this.txSubType,
-    this.mintsMapLelantus,
     this.tezosOperationsList,
     this.sparkRecipients,
     this.otherData,
@@ -303,12 +291,6 @@ class TxData {
       pendingTransaction: pendingTransaction ?? this.pendingTransaction,
       pendingSalviumTransaction:
           pendingSalviumTransaction ?? this.pendingSalviumTransaction,
-      jMintValue: jMintValue ?? this.jMintValue,
-      spendCoinIndexes: spendCoinIndexes ?? this.spendCoinIndexes,
-      height: height ?? this.height,
-      txType: txType ?? this.txType,
-      txSubType: txSubType ?? this.txSubType,
-      mintsMapLelantus: mintsMapLelantus ?? this.mintsMapLelantus,
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
       sparkMints: sparkMints ?? this.sparkMints,
@@ -347,12 +329,6 @@ class TxData {
       'chainId: $chainId, '
       'pendingTransaction: $pendingTransaction, '
       'pendingSalviumTransaction: $pendingSalviumTransaction, '
-      'jMintValue: $jMintValue, '
-      'spendCoinIndexes: $spendCoinIndexes, '
-      'height: $height, '
-      'txType: $txType, '
-      'txSubType: $txSubType, '
-      'mintsMapLelantus: $mintsMapLelantus, '
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
       'sparkMints: $sparkMints, '

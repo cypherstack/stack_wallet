@@ -48,8 +48,6 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
     required this.walletName,
     required this.coin,
     required this.restoreBlockHeight,
-    this.enableLelantusScanning = false,
-
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -58,7 +56,6 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
   final String walletName;
   final CryptoCurrency coin;
   final int restoreBlockHeight;
-  final bool enableLelantusScanning;
   final ClipboardInterface clipboard;
 
   @override
@@ -111,12 +108,6 @@ class _RestoreViewOnlyWalletViewState
 
     final ViewOnlyWalletType viewOnlyWalletType;
     if (widget.coin is Bip39HDCurrency) {
-      if (widget.coin is Firo) {
-        otherDataJson.addAll({
-          WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
-          WalletInfoKeys.enableLelantusScanning: widget.enableLelantusScanning,
-        });
-      }
       viewOnlyWalletType =
           _addressOnly
               ? ViewOnlyWalletType.addressOnly

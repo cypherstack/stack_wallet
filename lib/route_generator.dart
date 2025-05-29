@@ -143,7 +143,6 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_recovery_phrase_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_wallet_warning_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/edit_refresh_height_view.dart';
-import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/lelantus_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rbf_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_info.dart';
@@ -179,7 +178,6 @@ import 'pages_desktop_specific/desktop_buy/desktop_buy_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_all_trades_view.dart';
 import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
-import 'pages_desktop_specific/lelantus_coins/lelantus_coins_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
@@ -1512,7 +1510,7 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case RestoreWalletView.routeName:
-        if (args is Tuple6<String, CryptoCurrency, int, int, String, bool>) {
+        if (args is Tuple5<String, CryptoCurrency, int, int, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder:
@@ -1522,7 +1520,6 @@ class RouteGenerator {
                   seedWordsLength: args.item3,
                   restoreBlockHeight: args.item4,
                   mnemonicPassphrase: args.item5,
-                  enableLelantusScanning: args.item6 ?? false,
                 ),
             settings: RouteSettings(name: settings.name),
           );
@@ -1535,7 +1532,6 @@ class RouteGenerator {
               String walletName,
               CryptoCurrency coin,
               int restoreBlockHeight,
-              bool enableLelantusScanning,
             })) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
@@ -1544,7 +1540,6 @@ class RouteGenerator {
                   walletName: args.walletName,
                   coin: args.coin,
                   restoreBlockHeight: args.restoreBlockHeight,
-                  enableLelantusScanning: args.enableLelantusScanning,
                 ),
             settings: RouteSettings(name: settings.name),
           );
@@ -2045,16 +2040,6 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case LelantusSettingsView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => LelantusSettingsView(walletId: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
       case RbfSettingsView.routeName:
         if (args is String) {
           return getRoute(
@@ -2227,16 +2212,6 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DesktopWalletAddressesView(walletId: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case LelantusCoinsView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => LelantusCoinsView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }

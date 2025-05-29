@@ -63,7 +63,6 @@ scripts/**/build
 /lib/external_api_keys.dart
 
 libepic_cash_wallet.dll
-libmobileliblelantus.dll
 libtor_ffi.dll
 flutter_libsparkmobile.dll
 secp256k1.dll

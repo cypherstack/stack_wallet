@@ -65,8 +65,6 @@ PODS:
     - Flutter
   - isar_flutter_libs (1.0.0):
     - Flutter
-  - lelantus (0.0.1):
-    - Flutter
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -129,7 +127,6 @@ DEPENDENCIES:
   - frostdart (from `.symlinks/plugins/frostdart/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - isar_flutter_libs (from `.symlinks/plugins/isar_flutter_libs/ios`)
-  - lelantus (from `.symlinks/plugins/lelantus/ios`)
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -186,8 +183,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
   isar_flutter_libs:
     :path: ".symlinks/plugins/isar_flutter_libs/ios"
-  lelantus:
-    :path: ".symlinks/plugins/lelantus/ios"
   local_auth_darwin:
     :path: ".symlinks/plugins/local_auth_darwin/darwin"
   package_info_plus:
@@ -230,7 +225,6 @@ SPEC CHECKSUMS:
   frostdart: 4c72b69ccac2f13ede744107db046a125acce597
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   isar_flutter_libs: fdf730ca925d05687f36d7f1d355e482529ed097
-  lelantus: 417f0221260013dfc052cae9cf4b741b6479edba
   local_auth_darwin: 66e40372f1c29f383a314c738c7446e2f7fdadc3
   MTBBarcodeScanner: f453b33c4b7dfe545d8c6484ed744d55671788cb
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4

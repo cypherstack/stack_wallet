@@ -8,7 +8,6 @@ import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
-import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/eth_commons.dart';
 import '../../../../utilities/text_styles.dart';
@@ -72,9 +71,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
         (cryptoCurrency is ElectrumXCurrencyInterface &&
             !(((cryptoCurrency is Firo) &&
                 (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                        FiroType.lelantus ||
-                    ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                        FiroType.spark))));
+                    FiroType.spark))));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,17 +192,6 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                                                   .state,
                                             )
                                             .state ==
-                                        FiroType.lelantus) {
-                                      ref
-                                          .read(feeSheetSessionCacheProvider)
-                                          .average[amount] = await firoWallet
-                                          .estimateFeeForLelantus(amount);
-                                    } else if (ref
-                                            .read(
-                                              publicPrivateBalanceStateProvider
-                                                  .state,
-                                            )
-                                            .state ==
                                         FiroType.spark) {
                                       ref
                                           .read(feeSheetSessionCacheProvider)
@@ -258,36 +244,6 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                             ],
                           );
                         }
-                      },
-                    )
-                    : (cryptoCurrency is Firo) &&
-                        ref
-                                .watch(publicPrivateBalanceStateProvider.state)
-                                .state ==
-                            FiroType.lelantus
-                    ? Builder(
-                      builder: (context) {
-                        final lelantusFee = ref
-                            .watch(pAmountFormatter(cryptoCurrency))
-                            .format(
-                              Amount(
-                                rawValue: BigInt.parse("3794"),
-                                fractionDigits: cryptoCurrency.fractionDigits,
-                              ),
-                              indicatePrecisionLoss: false,
-                            );
-                        return Text(
-                          "~$lelantusFee",
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textFieldActiveText,
-                          ),
-                          textAlign: TextAlign.left,
-                        );
                       },
                     )
                     : Row(

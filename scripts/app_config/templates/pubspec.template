@@ -24,9 +24,6 @@ dependencies:
   mutex: ^3.0.0
   web_socket_channel: ^2.4.0
 
-  lelantus:
-    path: ./crypto_plugins/flutter_liblelantus
-
   frostdart:
     path: ./crypto_plugins/frostdart
 

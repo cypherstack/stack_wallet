@@ -168,9 +168,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         case FiroType.public:
           availableBalance = wallet.info.cachedBalance.spendable;
           break;
-        case FiroType.lelantus:
-          availableBalance = wallet.info.cachedBalanceSecondary.spendable;
-          break;
         case FiroType.spark:
           availableBalance = wallet.info.cachedBalanceTertiary.spendable;
           break;
@@ -365,16 +362,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 ),
               );
             }
-            break;
-
-          case FiroType.lelantus:
-            txDataFuture = wallet.prepareSendLelantus(
-              txData: TxData(
-                recipients: [
-                  (address: _address!, amount: amount, isChange: false),
-                ],
-              ),
-            );
             break;
 
           case FiroType.spark:
@@ -849,9 +836,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         case FiroType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
-        case FiroType.lelantus:
-          amount = ref.read(pWalletBalanceSecondary(walletId)).spendable;
-          break;
         case FiroType.spark:
           amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
           break;
@@ -1056,30 +1040,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ],
                   ),
                 ),
-                if (ref.watch(pWalletBalanceSecondary(walletId)).spendable.raw >
-                    BigInt.zero)
-                  DropdownMenuItem(
-                    value: FiroType.lelantus,
-                    child: Row(
-                      children: [
-                        Text(
-                          "Lelantus balance",
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          ref
-                              .watch(pAmountFormatter(coin))
-                              .format(
-                                ref
-                                    .watch(pWalletBalanceSecondary(walletId))
-                                    .spendable,
-                              ),
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                      ],
-                    ),
-                  ),
                 DropdownMenuItem(
                   value: FiroType.public,
                   child: Row(
@@ -1531,32 +1491,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               if (_address == null || _address!.isEmpty) {
                 error = null;
               } else if (coin is Firo) {
-                if (firoType == FiroType.lelantus) {
-                  if (_data != null && _data.contactLabel == _address) {
-                    error =
-                        SparkInterface.validateSparkAddress(
-                              address: _data.address,
-                              isTestNet: coin.network.isTestNet,
-                            )
-                            ? "Lelantus to Spark not supported"
-                            : null;
-                  } else if (ref.watch(pValidSparkSendToAddress)) {
-                    error = "Lelantus to Spark not supported";
-                  } else {
-                    error =
-                        ref.watch(pValidSendToAddress)
-                            ? null
-                            : "Invalid address";
-                  }
+                if (_data != null && _data.contactLabel == _address) {
+                  error = null;
+                } else if (!ref.watch(pValidSendToAddress) &&
+                    !ref.watch(pValidSparkSendToAddress)) {
+                  error = "Invalid address";
                 } else {
-                  if (_data != null && _data.contactLabel == _address) {
-                    error = null;
-                  } else if (!ref.watch(pValidSendToAddress) &&
-                      !ref.watch(pValidSparkSendToAddress)) {
-                    error = "Invalid address";
-                  } else {
-                    error = null;
-                  }
+                  error = null;
                 }
               } else {
                 if (_data != null && _data.contactLabel == _address) {
@@ -1590,13 +1531,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
-        if (isStellar ||
-            (ref.watch(pValidSparkSendToAddress) &&
-                firoType != FiroType.lelantus))
+        if (isStellar || ref.watch(pValidSparkSendToAddress))
           const SizedBox(height: 10),
-        if (isStellar ||
-            (ref.watch(pValidSparkSendToAddress) &&
-                firoType != FiroType.lelantus))
+        if (isStellar || ref.watch(pValidSparkSendToAddress))
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,

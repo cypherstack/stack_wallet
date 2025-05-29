@@ -177,45 +177,6 @@ class AboutView extends ConsumerWidget {
                               );
                             },
                           ),
-                          if (AppConfig.coins.whereType<Firo>().isNotEmpty)
-                            const SizedBox(height: 12),
-                          if (AppConfig.coins.whereType<Firo>().isNotEmpty)
-                            FutureBuilder(
-                              future: GitStatus.getFiroCommitStatus(),
-                              builder: (
-                                context,
-                                AsyncSnapshot<CommitStatus> snapshot,
-                              ) {
-                                CommitStatus stateOfCommit =
-                                    CommitStatus.notLoaded;
-
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  stateOfCommit = snapshot.data!;
-                                }
-                                return RoundedWhiteContainer(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text(
-                                        "Firo Build Commit",
-                                        style: STextStyles.titleBold12(context),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      SelectableText(
-                                        GitStatus.firoCommit,
-                                        style: GitStatus.styleForStatus(
-                                          stateOfCommit,
-                                          context,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
                           if (AppConfig.coins.whereType<Epiccash>().isNotEmpty)
                             const SizedBox(height: 12),
                           if (AppConfig.coins.whereType<Epiccash>().isNotEmpty)
@@ -256,50 +217,7 @@ class AboutView extends ConsumerWidget {
                                 );
                               },
                             ),
-                          if (AppConfig.coins.whereType<Monero>().isNotEmpty)
-                            const SizedBox(height: 12),
-                          // if (AppConfig.coins.whereType<Monero>().isNotEmpty)
-                          //   FutureBuilder(
-                          //     future: GitStatus.getMoneroCommitStatus(),
-                          //     builder: (
-                          //       context,
-                          //       AsyncSnapshot<CommitStatus> snapshot,
-                          //     ) {
-                          //       CommitStatus stateOfCommit =
-                          //           CommitStatus.notLoaded;
-                          //
-                          //       if (snapshot.connectionState ==
-                          //               ConnectionState.done &&
-                          //           snapshot.hasData) {
-                          //         stateOfCommit = snapshot.data!;
-                          //       }
-                          //       return RoundedWhiteContainer(
-                          //         child: Column(
-                          //           crossAxisAlignment:
-                          //               CrossAxisAlignment.stretch,
-                          //           children: [
-                          //             Text(
-                          //               "Monero Build Commit",
-                          //               style: STextStyles.titleBold12(context),
-                          //             ),
-                          //             const SizedBox(
-                          //               height: 4,
-                          //             ),
-                          //             SelectableText(
-                          //               GitStatus.moneroCommit,
-                          //               style: GitStatus.styleForStatus(
-                          //                 stateOfCommit,
-                          //                 context,
-                          //               ),
-                          //             ),
-                          //           ],
-                          //         ),
-                          //       );
-                          //     },
-                          //   ),
-                          // const SizedBox(
-                          //   height: 12,
-                          // ),
+                          const SizedBox(height: 12),
                           RoundedWhiteContainer(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

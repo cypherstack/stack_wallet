@@ -109,11 +109,6 @@ class WalletSummaryInfo extends ConsumerWidget {
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
 
-        case FiroType.lelantus:
-          final balance = ref.watch(pWalletBalanceSecondary(walletId));
-          balanceToShow = _showAvailable ? balance.spendable : balance.total;
-          break;
-
         case FiroType.public:
           final balance = ref.watch(pWalletBalance(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;

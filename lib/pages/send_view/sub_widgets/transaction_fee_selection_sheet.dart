@@ -101,10 +101,6 @@ class _TransactionFeeSelectionSheetState
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
                     amount,
                   );
-                case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
-                    amount,
-                  );
                 case FiroType.public:
                   fee = await (wallet as FiroWallet).estimateFeeFor(
                     amount,
@@ -142,10 +138,6 @@ class _TransactionFeeSelectionSheetState
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
                     amount,
                   );
-                case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
-                    amount,
-                  );
                 case FiroType.public:
                   fee = await (wallet as FiroWallet).estimateFeeFor(
                     amount,
@@ -180,10 +172,6 @@ class _TransactionFeeSelectionSheetState
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
-                    amount,
-                  );
-                case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
                     amount,
                   );
                 case FiroType.public:

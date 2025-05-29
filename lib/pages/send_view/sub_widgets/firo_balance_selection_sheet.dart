@@ -20,10 +20,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
 
 class FiroBalanceSelectionSheet extends ConsumerStatefulWidget {
-  const FiroBalanceSelectionSheet({
-    super.key,
-    required this.walletId,
-  });
+  const FiroBalanceSelectionSheet({super.key, required this.walletId});
 
   final String walletId;
 
@@ -46,8 +43,9 @@ class _FiroBalanceSelectionSheetState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final wallet =
-        ref.watch(pWallets.select((value) => value.getWallet(walletId)));
+    final wallet = ref.watch(
+      pWallets.select((value) => value.getWallet(walletId)),
+    );
     final firoWallet = wallet as FiroWallet;
 
     final coin = wallet.info.coin;
@@ -55,17 +53,10 @@ class _FiroBalanceSelectionSheetState
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 10,
-          bottom: 0,
-        ),
+        padding: const EdgeInsets.only(left: 24, right: 24, top: 10, bottom: 0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,9 +64,10 @@ class _FiroBalanceSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  color:
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -84,9 +76,7 @@ class _FiroBalanceSelectionSheetState
                 height: 4,
               ),
             ),
-            const SizedBox(
-              height: 36,
-            ),
+            const SizedBox(height: 36),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -95,9 +85,7 @@ class _FiroBalanceSelectionSheetState
                   style: STextStyles.pageTitleH2(context),
                   textAlign: TextAlign.left,
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () {
                     final state =
@@ -120,15 +108,18 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .radioButtonIconEnabled,
+                                activeColor:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                 value: FiroType.spark,
-                                groupValue: ref
-                                    .watch(
-                                      publicPrivateBalanceStateProvider.state,
-                                    )
-                                    .state,
+                                groupValue:
+                                    ref
+                                        .watch(
+                                          publicPrivateBalanceStateProvider
+                                              .state,
+                                        )
+                                        .state,
                                 onChanged: (x) {
                                   ref
                                       .read(
@@ -142,9 +133,7 @@ class _FiroBalanceSelectionSheetState
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         Flexible(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,13 +145,15 @@ class _FiroBalanceSelectionSheetState
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              const SizedBox(
-                                width: 2,
-                              ),
+                              const SizedBox(width: 2),
                               Text(
-                                ref.watch(pAmountFormatter(coin)).format(
+                                ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(
                                       firoWallet
-                                          .info.cachedBalanceTertiary.spendable,
+                                          .info
+                                          .cachedBalanceTertiary
+                                          .spendable,
                                     ),
                                 style: STextStyles.itemSubtitle(context),
                                 textAlign: TextAlign.left,
@@ -176,97 +167,8 @@ class _FiroBalanceSelectionSheetState
                     ),
                   ),
                 ),
-                if (firoWallet.info.cachedBalanceSecondary.spendable.raw >
-                    BigInt.zero)
-                  const SizedBox(
-                    height: 16,
-                  ),
-                if (firoWallet.info.cachedBalanceSecondary.spendable.raw >
-                    BigInt.zero)
-                  GestureDetector(
-                    onTap: () {
-                      final state = ref
-                          .read(publicPrivateBalanceStateProvider.state)
-                          .state;
-                      if (state != FiroType.lelantus) {
-                        ref
-                            .read(publicPrivateBalanceStateProvider.state)
-                            .state = FiroType.lelantus;
-                      }
-                      Navigator.of(context).pop();
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: Radio(
-                                  activeColor: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .radioButtonIconEnabled,
-                                  value: FiroType.lelantus,
-                                  groupValue: ref
-                                      .watch(
-                                        publicPrivateBalanceStateProvider.state,
-                                      )
-                                      .state,
-                                  onChanged: (x) {
-                                    ref
-                                        .read(
-                                          publicPrivateBalanceStateProvider
-                                              .state,
-                                        )
-                                        .state = FiroType.lelantus;
 
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 12,
-                          ),
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Row(
-                                //   children: [
-                                Text(
-                                  "Lelantus balance",
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
-                                ),
-                                const SizedBox(
-                                  width: 2,
-                                ),
-                                Text(
-                                  ref.watch(pAmountFormatter(coin)).format(
-                                        firoWallet.info.cachedBalanceSecondary
-                                            .spendable,
-                                      ),
-                                  style: STextStyles.itemSubtitle(context),
-                                  textAlign: TextAlign.left,
-                                ),
-                              ],
-                            ),
-                            //   ],
-                            // ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () {
                     final state =
@@ -288,15 +190,18 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .radioButtonIconEnabled,
+                                activeColor:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .radioButtonIconEnabled,
                                 value: FiroType.public,
-                                groupValue: ref
-                                    .watch(
-                                      publicPrivateBalanceStateProvider.state,
-                                    )
-                                    .state,
+                                groupValue:
+                                    ref
+                                        .watch(
+                                          publicPrivateBalanceStateProvider
+                                              .state,
+                                        )
+                                        .state,
                                 onChanged: (x) {
                                   ref
                                       .read(
@@ -309,9 +214,7 @@ class _FiroBalanceSelectionSheetState
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         Flexible(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,11 +226,11 @@ class _FiroBalanceSelectionSheetState
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
-                              const SizedBox(
-                                width: 2,
-                              ),
+                              const SizedBox(width: 2),
                               Text(
-                                ref.watch(pAmountFormatter(coin)).format(
+                                ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(
                                       firoWallet.info.cachedBalance.spendable,
                                     ),
                                 style: STextStyles.itemSubtitle(context),
@@ -340,12 +243,8 @@ class _FiroBalanceSelectionSheetState
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 16),
+                const SizedBox(height: 24),
               ],
             ),
           ],

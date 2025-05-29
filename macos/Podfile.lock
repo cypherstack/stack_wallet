@@ -30,8 +30,6 @@ PODS:
     - FlutterMacOS
   - isar_flutter_libs (1.0.0):
     - FlutterMacOS
-  - lelantus (0.0.1):
-    - FlutterMacOS
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -86,7 +84,6 @@ DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
   - frostdart (from `Flutter/ephemeral/.symlinks/plugins/frostdart/macos`)
   - isar_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos`)
-  - lelantus (from `Flutter/ephemeral/.symlinks/plugins/lelantus/macos`)
   - local_auth_darwin (from `Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
@@ -135,8 +132,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/frostdart/macos
   isar_flutter_libs:
     :path: Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos
-  lelantus:
-    :path: Flutter/ephemeral/.symlinks/plugins/lelantus/macos
   local_auth_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin
   package_info_plus:
@@ -176,7 +171,6 @@ SPEC CHECKSUMS:
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   frostdart: e6bf3119527ccfbcec1b8767da6ede5bb4c4f716
   isar_flutter_libs: 43385c99864c168fadba7c9adeddc5d38838ca6a
-  lelantus: 308e42c5a648598936a07a234471dd8cf8e687a0
   local_auth_darwin: 66e40372f1c29f383a314c738c7446e2f7fdadc3
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
