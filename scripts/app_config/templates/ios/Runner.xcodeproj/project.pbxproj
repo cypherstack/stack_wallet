@@ -310,9 +310,11 @@
 				"${BUILT_PRODUCTS_DIR}/barcode_scan2/barcode_scan2.framework",
 				"${BUILT_PRODUCTS_DIR}/coinlib_flutter/secp256k1.framework",
 				"${BUILT_PRODUCTS_DIR}/connectivity_plus/connectivity_plus.framework",
-				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs/ios/Frameworks/MoneroWallet.framework",
-				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs/ios/Frameworks/WowneroWallet.framework",
-				"${BUILT_PRODUCTS_DIR}/cs_monero_flutter_libs/cs_monero_flutter_libs.framework",
+				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs_ios/ios/Frameworks/MoneroWallet.framework",
+				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs_ios/ios/Frameworks/WowneroWallet.framework",
+				"${BUILT_PRODUCTS_DIR}/cs_monero_flutter_libs_ios/cs_monero_flutter_libs_ios.framework",
+				"${PODS_ROOT}/../.symlinks/plugins/cs_salvium_flutter_libs_ios/ios/Frameworks/SalviumWallet.framework",
+				"${BUILT_PRODUCTS_DIR}/cs_salvium_flutter_libs_ios/cs_salvium_flutter_libs_ios.framework",
 				"${BUILT_PRODUCTS_DIR}/device_info_plus/device_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/devicelocale/devicelocale.framework",
 				"${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework",
@@ -333,6 +335,7 @@
 				"${BUILT_PRODUCTS_DIR}/tor_ffi_plugin/tor_ffi_plugin.framework",
 				"${BUILT_PRODUCTS_DIR}/url_launcher_ios/url_launcher_ios.framework",
 				"${BUILT_PRODUCTS_DIR}/wakelock_plus/wakelock_plus.framework",
+				"${BUILT_PRODUCTS_DIR}/xelis_flutter/xelis_flutter.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
@@ -348,7 +351,9 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/connectivity_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MoneroWallet.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WowneroWallet.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_monero_flutter_libs.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_monero_flutter_libs_ios.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SalviumWallet.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_salvium_flutter_libs_ios.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/device_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/devicelocale.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/file_picker.framework",
@@ -369,6 +374,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/tor_ffi_plugin.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/url_launcher_ios.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/wakelock_plus.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/xelis_flutter.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
