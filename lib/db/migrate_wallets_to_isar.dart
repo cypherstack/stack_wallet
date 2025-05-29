@@ -20,14 +20,17 @@ Future<void> migrateWalletsToIsar({
   await MainDB.instance.initMainDB();
 
   // ensure fresh
-  await MainDB.instance.isar
-      .writeTxn(() async => await MainDB.instance.isar.transactionV2s.clear());
+  await MainDB.instance.isar.writeTxn(
+    () async => await MainDB.instance.isar.transactionV2s.clear(),
+  );
 
-  final allWalletsBox =
-      await DB.instance.hive.openBox<dynamic>(DB.boxNameAllWalletsData);
+  final allWalletsBox = await DB.instance.hive.openBox<dynamic>(
+    DB.boxNameAllWalletsData,
+  );
 
-  final names = DB.instance
-      .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
+  final names =
+      DB.instance.get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names')
+          as Map?;
 
   if (names == null) {
     // no wallets to migrate
@@ -37,27 +40,23 @@ Future<void> migrateWalletsToIsar({
   //
   // Parse the old data from the Hive map into a nice list
   //
-  final List<
-      ({
-        String coinIdentifier,
-        String name,
-        String walletId,
-      })> oldInfo = Map<String, dynamic>.from(names).values.map((e) {
-    final map = e as Map;
-    return (
-      coinIdentifier: map["coin"] as String,
-      walletId: map["id"] as String,
-      name: map["name"] as String,
-    );
-  }).toList();
+  final List<({String coinIdentifier, String name, String walletId})> oldInfo =
+      Map<String, dynamic>.from(names).values.map((e) {
+        final map = e as Map;
+        return (
+          coinIdentifier: map["coin"] as String,
+          walletId: map["id"] as String,
+          name: map["name"] as String,
+        );
+      }).toList();
 
   //
   // Get current ordered list of favourite wallet Ids
   //
   final List<String> favourites =
-      (await DB.instance.hive.openBox<String>(DB.boxNameFavoriteWallets))
-          .values
-          .toList();
+      (await DB.instance.hive.openBox<String>(
+        DB.boxNameFavoriteWallets,
+      )).values.toList();
 
   final List<(WalletInfo, WalletInfoMeta)> newInfo = [];
   final List<TokenWalletInfo> tokenInfo = [];
@@ -72,10 +71,11 @@ Future<void> migrateWalletsToIsar({
     //
     // First handle transaction notes
     //
-    final newNoteCount = await MainDB.instance.isar.transactionNotes
-        .where()
-        .walletIdEqualTo(old.walletId)
-        .count();
+    final newNoteCount =
+        await MainDB.instance.isar.transactionNotes
+            .where()
+            .walletIdEqualTo(old.walletId)
+            .count();
     if (newNoteCount == 0) {
       final map = walletBox.get('notes') as Map?;
 
@@ -108,18 +108,18 @@ Future<void> migrateWalletsToIsar({
     //
     final Map<String, dynamic> otherData = {};
 
-    final List<String>? tokenContractAddresses = walletBox.get(
-      "ethTokenContracts",
-    ) as List<String>?;
+    final List<String>? tokenContractAddresses =
+        walletBox.get("ethTokenContracts") as List<String>?;
 
     if (tokenContractAddresses?.isNotEmpty == true) {
       otherData[WalletInfoKeys.tokenContractAddresses] = tokenContractAddresses;
 
       for (final address in tokenContractAddresses!) {
-        final contract = await MainDB.instance.isar.ethContracts
-            .where()
-            .addressEqualTo(address)
-            .findFirst();
+        final contract =
+            await MainDB.instance.isar.ethContracts
+                .where()
+                .addressEqualTo(address)
+                .findFirst();
         if (contract != null) {
           tokenInfo.add(
             TokenWalletInfo(
@@ -133,7 +133,7 @@ Future<void> migrateWalletsToIsar({
     }
 
     // epiccash specifics
-    if (old.coinIdentifier == Epiccash(CryptoCurrencyNetwork.main)) {
+    if (old.coinIdentifier == Epiccash(CryptoCurrencyNetwork.main).identifier) {
       final epicWalletInfo = ExtraEpiccashWalletInfo.fromMap({
         "receivingIndex": walletBox.get("receivingIndex") as int? ?? 0,
         "changeIndex": walletBox.get("changeIndex") as int? ?? 0,
@@ -149,8 +149,9 @@ Future<void> migrateWalletsToIsar({
     } else if (old.coinIdentifier ==
             Firo(CryptoCurrencyNetwork.main).identifier ||
         old.coinIdentifier == Firo(CryptoCurrencyNetwork.test).identifier) {
-      otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] = walletBox
-              .get(WalletInfoKeys.lelantusCoinIsarRescanRequired) as bool? ??
+      otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] =
+          walletBox.get(WalletInfoKeys.lelantusCoinIsarRescanRequired)
+              as bool? ??
           true;
     }
 
@@ -161,8 +162,9 @@ Future<void> migrateWalletsToIsar({
 
     final infoMeta = WalletInfoMeta(
       walletId: old.walletId,
-      isMnemonicVerified: allWalletsBox
-              .get("${old.walletId}_mnemonicHasBeenVerified") as bool? ??
+      isMnemonicVerified:
+          allWalletsBox.get("${old.walletId}_mnemonicHasBeenVerified")
+              as bool? ??
           false,
     );
 
@@ -170,19 +172,15 @@ Future<void> migrateWalletsToIsar({
       coinName: old.coinIdentifier,
       walletId: old.walletId,
       name: old.name,
-      mainAddressType: AppConfig.getCryptoCurrencyFor(old.coinIdentifier)!
-          .defaultAddressType,
+      mainAddressType:
+          AppConfig.getCryptoCurrencyFor(
+            old.coinIdentifier,
+          )!.defaultAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
-      cachedChainHeight: walletBox.get(
-            DBKeys.storedChainHeight,
-          ) as int? ??
-          0,
-      cachedBalanceString: walletBox.get(
-        DBKeys.cachedBalance,
-      ) as String?,
-      cachedBalanceSecondaryString: walletBox.get(
-        DBKeys.cachedBalanceSecondary,
-      ) as String?,
+      cachedChainHeight: walletBox.get(DBKeys.storedChainHeight) as int? ?? 0,
+      cachedBalanceString: walletBox.get(DBKeys.cachedBalance) as String?,
+      cachedBalanceSecondaryString:
+          walletBox.get(DBKeys.cachedBalanceSecondary) as String?,
       otherDataJsonString: jsonEncode(otherData),
     );
 
@@ -197,10 +195,12 @@ Future<void> migrateWalletsToIsar({
 
   if (newInfo.isNotEmpty) {
     await MainDB.instance.isar.writeTxn(() async {
-      await MainDB.instance.isar.walletInfo
-          .putAll(newInfo.map((e) => e.$1).toList());
-      await MainDB.instance.isar.walletInfoMeta
-          .putAll(newInfo.map((e) => e.$2).toList());
+      await MainDB.instance.isar.walletInfo.putAll(
+        newInfo.map((e) => e.$1).toList(),
+      );
+      await MainDB.instance.isar.walletInfoMeta.putAll(
+        newInfo.map((e) => e.$2).toList(),
+      );
 
       if (tokenInfo.isNotEmpty) {
         await MainDB.instance.isar.tokenWalletInfo.putAll(tokenInfo);
