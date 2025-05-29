@@ -170,6 +170,7 @@ class _SelectNewFrostImportTypeViewState
                 ).pushNamed(FrostStepScaffold.routeName);
               },
             ),
+            if (Util.isDesktop) const SizedBox(height: 32),
           ],
         ),
       ),
