@@ -48,7 +48,7 @@ class CNExchangeTransaction {
   final String refundExtraId;
 
   /// Deadline until which the estimated rate or transaction is valid.
-  final DateTime validUntil;
+  final DateTime? validUntil;
 
   /// Date when transaction was created.
   final DateTime date;
@@ -104,7 +104,7 @@ class CNExchangeTransaction {
       toCurrency: json["toCurrency"] as String,
       refundAddress: json["refundAddress"] as String,
       refundExtraId: json["refundExtraId"] as String,
-      validUntil: DateTime.parse(json["validUntil"] as String),
+      validUntil: DateTime.tryParse(json["validUntil"] as String? ?? ""),
       date: DateTime.parse(json["date"] as String),
       id: json["id"] as String,
       directedAmount: Decimal.tryParse(json["directedAmount"].toString()),
@@ -133,7 +133,7 @@ class CNExchangeTransaction {
       "toCurrency": toCurrency,
       "refundAddress": refundAddress,
       "refundExtraId": refundExtraId,
-      "validUntil": validUntil.toIso8601String(),
+      "validUntil": validUntil?.toIso8601String(),
       "date": date.toIso8601String(),
       "id": id,
       "directedAmount": directedAmount,
