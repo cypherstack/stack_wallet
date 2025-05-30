@@ -2336,7 +2336,13 @@ class RouteGenerator {
             is ({
               List<String> mnemonic,
               String walletId,
-              ({String keys, String config})? frostData,
+              ({
+                String myName,
+                String config,
+                String keys,
+                ({String config, String keys})? prevGen,
+              })?
+              frostData,
             })) {
           return FadePageRoute(
             WalletKeysDesktopPopup(
@@ -2350,7 +2356,13 @@ class RouteGenerator {
             is ({
               List<String> mnemonic,
               String walletId,
-              ({String keys, String config})? frostData,
+              ({
+                String myName,
+                String config,
+                String keys,
+                ({String config, String keys})? prevGen,
+              })?
+              frostData,
               KeyDataInterface? keyData,
             })) {
           return FadePageRoute(
