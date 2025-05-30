@@ -1270,7 +1270,7 @@ class Prefs extends ChangeNotifier {
         true;
   }
 
-  // Show/hide lelantus and spark coins. Defaults to false
+  // Show/hide spark coins. Defaults to false
   bool _advancedFiroFeatures = false;
   bool get advancedFiroFeatures => _advancedFiroFeatures;
   set advancedFiroFeatures(bool advancedFiroFeatures) {

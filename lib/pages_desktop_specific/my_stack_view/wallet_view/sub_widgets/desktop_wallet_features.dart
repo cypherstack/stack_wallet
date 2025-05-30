@@ -44,7 +44,6 @@ import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet.dart' show Wallet;
 import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/lelantus_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
@@ -60,7 +59,6 @@ import '../../../cashfusion/desktop_cashfusion_view.dart';
 import '../../../churning/desktop_churning_view.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../desktop_menu.dart';
-import '../../../lelantus_coins/lelantus_coins_view.dart';
 import '../../../ordinals/desktop_ordinals_view.dart';
 import '../../../spark_coins/spark_coins_view.dart';
 import '../desktop_wallet_view.dart';
@@ -75,7 +73,6 @@ enum WalletFeature {
     "Coin control",
     "Control, freeze, and utilize outputs at your discretion",
   ),
-  lelantusCoins("Lelantus coins", "View wallet lelantus coins"),
   sparkCoins("Spark coins", "View wallet spark coins"),
   ordinals("Ordinals", "View and control your ordinals in ${AppConfig.prefix}"),
   monkey("MonKey", "Generate Banano MonKey"),
@@ -86,7 +83,6 @@ enum WalletFeature {
 
   // special cases
   clearSparkCache("", ""),
-  lelantusScanOption("", ""),
   rbf("", ""),
   reuseAddress("", "");
 
@@ -134,12 +130,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     Navigator.of(
       context,
     ).pushNamed(DesktopCoinControlView.routeName, arguments: widget.walletId);
-  }
-
-  void _onLelantusCoinsPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(LelantusCoinsView.routeName, arguments: widget.walletId);
   }
 
   void _onSparkCoinsPressed() {
@@ -236,7 +226,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     }
 
     try {
-      // await firoWallet.anonymizeAllLelantus();
       await firoWallet.anonymizeAllSpark();
       shouldPop = true;
       if (mounted) {
@@ -419,13 +408,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (firoAdvanced && wallet is FiroWallet)
         (
-          WalletFeature.lelantusCoins,
-          Assets.svg.coinControl.gamePad,
-          _onLelantusCoinsPressed,
-        ),
-
-      if (firoAdvanced && wallet is FiroWallet)
-        (
           WalletFeature.sparkCoins,
           Assets.svg.coinControl.gamePad,
           _onSparkCoinsPressed,
@@ -443,7 +425,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       if (!isViewOnly && wallet is CashFusionInterface)
         (WalletFeature.fusion, Assets.svg.cashFusion, _onFusionPressed),
 
-      if (!isViewOnly && (wallet is LibMoneroWallet || wallet is LibSalviumWallet))
+      if (!isViewOnly &&
+          (wallet is LibMoneroWallet || wallet is LibSalviumWallet))
         (WalletFeature.churn, Assets.svg.churn, _onChurnPressed),
 
       if (wallet is NamecoinWallet)
@@ -481,9 +464,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final extraOptions = [
       if (wallet is SparkInterface && !isViewOnly)
         (WalletFeature.clearSparkCache, Assets.svg.key, () => ()),
-
-      if (wallet is LelantusInterface && !isViewOnly)
-        (WalletFeature.lelantusScanOption, Assets.svg.key, () => ()),
 
       if (wallet is RbfInterface) (WalletFeature.rbf, Assets.svg.key, () => ()),
 

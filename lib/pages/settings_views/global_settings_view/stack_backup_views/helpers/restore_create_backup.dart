@@ -506,7 +506,9 @@ abstract class SWB {
 
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
-        if (wallet is EpiccashWallet || wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
+        if (wallet is EpiccashWallet ||
+            wallet is LibMoneroWallet ||
+            wallet is LibSalviumWallet) {
           restoreHeight = 0;
         } else {
           restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;
@@ -789,13 +791,6 @@ abstract class SWB {
           error: e,
           stackTrace: s,
         );
-      }
-
-      if (coin is Firo) {
-        otherData ??= {};
-        // swb will do a restore so this flag should be set to false so another
-        // rescan/restore isn't done when opening the wallet
-        otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] = false;
       }
 
       final info = WalletInfo(

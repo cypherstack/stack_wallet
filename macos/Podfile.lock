@@ -9,6 +9,8 @@ PODS:
     - ReachabilitySwift
   - cs_monero_flutter_libs_macos (0.0.1):
     - FlutterMacOS
+  - cs_salvium_flutter_libs_macos (0.0.1):
+    - FlutterMacOS
   - desktop_drop (0.0.1):
     - FlutterMacOS
   - device_info_plus (0.0.1):
@@ -30,8 +32,6 @@ PODS:
     - FlutterMacOS
   - isar_flutter_libs (1.0.0):
     - FlutterMacOS
-  - lelantus (0.0.1):
-    - FlutterMacOS
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -46,6 +46,8 @@ PODS:
   - "sqlite3 (3.46.0+1)":
     - "sqlite3/common (= 3.46.0+1)"
   - "sqlite3/common (3.46.0+1)"
+  - "sqlite3/dbstatvtab (3.46.0+1)":
+    - sqlite3/common
   - "sqlite3/fts5 (3.46.0+1)":
     - sqlite3/common
   - "sqlite3/perf-threadsafe (3.46.0+1)":
@@ -54,7 +56,8 @@ PODS:
     - sqlite3/common
   - sqlite3_flutter_libs (0.0.1):
     - FlutterMacOS
-    - sqlite3 (~> 3.46.0)
+    - "sqlite3 (~> 3.46.0+1)"
+    - sqlite3/dbstatvtab
     - sqlite3/fts5
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
@@ -75,6 +78,7 @@ DEPENDENCIES:
   - coinlib_flutter (from `Flutter/ephemeral/.symlinks/plugins/coinlib_flutter/darwin`)
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
   - cs_monero_flutter_libs_macos (from `Flutter/ephemeral/.symlinks/plugins/cs_monero_flutter_libs_macos/macos`)
+  - cs_salvium_flutter_libs_macos (from `Flutter/ephemeral/.symlinks/plugins/cs_salvium_flutter_libs_macos/macos`)
   - desktop_drop (from `Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - devicelocale (from `Flutter/ephemeral/.symlinks/plugins/devicelocale/macos`)
@@ -86,7 +90,6 @@ DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
   - frostdart (from `Flutter/ephemeral/.symlinks/plugins/frostdart/macos`)
   - isar_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos`)
-  - lelantus (from `Flutter/ephemeral/.symlinks/plugins/lelantus/macos`)
   - local_auth_darwin (from `Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
@@ -113,6 +116,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos
   cs_monero_flutter_libs_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/cs_monero_flutter_libs_macos/macos
+  cs_salvium_flutter_libs_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/cs_salvium_flutter_libs_macos/macos
   desktop_drop:
     :path: Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos
   device_info_plus:
@@ -135,8 +140,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/frostdart/macos
   isar_flutter_libs:
     :path: Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos
-  lelantus:
-    :path: Flutter/ephemeral/.symlinks/plugins/lelantus/macos
   local_auth_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin
   package_info_plus:
@@ -165,6 +168,7 @@ SPEC CHECKSUMS:
   coinlib_flutter: 9275e8255ef67d3da33beb6e117d09ced4f46eb5
   connectivity_plus: 18d3c32514c886e046de60e9c13895109866c747
   cs_monero_flutter_libs_macos: b901f94d39d1338f706312b026aba928d23582d4
+  cs_salvium_flutter_libs_macos: 3c7b30fb8c82ee0fb0195280ddcc10c65ab5e082
   desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
   device_info_plus: ce1b7762849d3ec103d0e0517299f2db7ad60720
   devicelocale: 9f0f36ac651cabae2c33f32dcff4f32b61c38225
@@ -176,14 +180,13 @@ SPEC CHECKSUMS:
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   frostdart: e6bf3119527ccfbcec1b8767da6ede5bb4c4f716
   isar_flutter_libs: 43385c99864c168fadba7c9adeddc5d38838ca6a
-  lelantus: 308e42c5a648598936a07a234471dd8cf8e687a0
   local_auth_darwin: 66e40372f1c29f383a314c738c7446e2f7fdadc3
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   ReachabilitySwift: 7f151ff156cea1481a8411701195ac6a984f4979
   share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
   sqlite3: 292c3e1bfe89f64e51ea7fc7dab9182a017c8630
-  sqlite3_flutter_libs: 1be4459672f8168ded2d8667599b8e3ca5e72b83
+  sqlite3_flutter_libs: 5ca46c1a04eddfbeeb5b16566164aa7ad1616e7b
   stack_wallet_backup: 6ebc60b1bdcf11cf1f1cbad9aa78332e1e15778c
   tor_ffi_plugin: 2566c1ed174688cca560fa0c64b7a799c66f07cb
   url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404

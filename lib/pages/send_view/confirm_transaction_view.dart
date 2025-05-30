@@ -150,10 +150,6 @@ class _ConfirmTransactionViewState
               }
               break;
 
-            case FiroType.lelantus:
-              txDataFuture = wallet.confirmSendLelantus(txData: widget.txData);
-              break;
-
             case FiroType.spark:
               txDataFuture = wallet.confirmSendSpark(txData: widget.txData);
               break;
@@ -362,11 +358,6 @@ class _ConfirmTransactionViewState
             fee = widget.txData.fee;
             amountWithoutChange = widget.txData.amountWithoutChange!;
           }
-          break;
-
-        case FiroType.lelantus:
-          fee = widget.txData.fee;
-          amountWithoutChange = widget.txData.amountWithoutChange!;
           break;
 
         case FiroType.spark:

@@ -497,9 +497,6 @@ abstract class WalletInfoKeys {
   static const String bananoMonkeyImageBytes = "monkeyImageBytesKey";
   static const String tezosDerivationPath = "tezosDerivationPathKey";
   static const String xelisDerivationPath = "xelisDerivationPathKey";
-  static const String lelantusCoinIsarRescanRequired =
-      "lelantusCoinIsarRescanRequired";
-  static const String enableLelantusScanning = "enableLelantusScanningKey";
   static const String firoSparkCacheSetBlockHashCache =
       "firoSparkCacheSetBlockHashCacheKey";
   static const String enableOptInRbf = "enableOptInRbfKey";

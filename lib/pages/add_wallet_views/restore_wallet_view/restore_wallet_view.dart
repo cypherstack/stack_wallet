@@ -77,8 +77,6 @@ class RestoreWalletView extends ConsumerStatefulWidget {
     required this.seedWordsLength,
     required this.mnemonicPassphrase,
     required this.restoreBlockHeight,
-    this.enableLelantusScanning = false,
-
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -89,7 +87,6 @@ class RestoreWalletView extends ConsumerStatefulWidget {
   final String mnemonicPassphrase;
   final int seedWordsLength;
   final int restoreBlockHeight;
-  final bool enableLelantusScanning;
 
   final ClipboardInterface clipboard;
 
@@ -244,11 +241,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               creationHeight: height,
             ).toMap(),
           ),
-        });
-      } else if (widget.coin is Firo) {
-        otherDataJsonString = jsonEncode({
-          WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
-          WalletInfoKeys.enableLelantusScanning: widget.enableLelantusScanning,
         });
       }
 

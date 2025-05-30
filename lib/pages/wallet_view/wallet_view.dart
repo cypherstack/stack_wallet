@@ -22,7 +22,6 @@ import '../../app_config.dart';
 import '../../frost_route_generator.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../../pages_desktop_specific/lelantus_coins/lelantus_coins_view.dart';
 import '../../pages_desktop_specific/spark_coins/spark_coins_view.dart';
 import '../../providers/global/active_wallet_provider.dart';
 import '../../providers/global/auto_swb_service_provider.dart';
@@ -100,7 +99,6 @@ import '../send_view/send_view.dart';
 import '../settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
 import '../spark_names/spark_names_home_view.dart';
-import '../special/firo_rescan_recovery_error_dialog.dart';
 import '../token_view/my_tokens_view.dart';
 import 'sub_widgets/transactions_list.dart';
 import 'sub_widgets/wallet_summary.dart';
@@ -145,36 +143,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late StreamSubscription<dynamic> _nodeStatusSubscription;
 
   bool _rescanningOnOpen = false;
-  bool _lelantusRescanRecovery = false;
-
-  Future<void> _firoRescanRecovery() async {
-    final success =
-        await (ref.read(pWallets).getWallet(walletId) as FiroWallet)
-            .firoRescanRecovery();
-
-    if (success) {
-      // go into wallet
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => setState(() {
-          _rescanningOnOpen = false;
-          _lelantusRescanRecovery = false;
-        }),
-      );
-    } else {
-      // show error message dialog w/ options
-      if (mounted) {
-        final shouldRetry = await Navigator.of(
-          context,
-        ).pushNamed(FiroRescanRecoveryErrorView.routeName, arguments: walletId);
-
-        if (shouldRetry is bool && shouldRetry) {
-          await _firoRescanRecovery();
-        }
-      } else {
-        return await _firoRescanRecovery();
-      }
-    }
-  }
 
   @override
   void initState() {
@@ -196,13 +164,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
     isSparkWallet = wallet is SparkInterface;
 
-    if (coin is Firo && (wallet as FiroWallet).lelantusCoinIsarRescanRequired) {
-      _rescanningOnOpen = true;
-      _lelantusRescanRecovery = true;
-      _firoRescanRecovery();
-    } else {
-      wallet.refresh();
-    }
+    wallet.refresh();
 
     if (wallet.refreshMutex.isLocked) {
       _currentSyncStatus = WalletSyncStatus.syncing;
@@ -267,7 +229,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   // DateTime? _cachedTime;
 
   Future<bool> _onWillPop() async {
-    if (_rescanningOnOpen || _lelantusRescanRecovery) {
+    if (_rescanningOnOpen) {
       return false;
     }
 
@@ -491,7 +453,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     try {
-      // await firoWallet.anonymizeAllLelantus();
       await firoWallet.anonymizeAllSpark();
       shouldPop = true;
       if (mounted) {
@@ -553,46 +514,41 @@ class _WalletViewState extends ConsumerState<WalletView> {
                   eventBus: null,
                   textColor:
                       Theme.of(context).extension<StackColors>()!.textDark,
-                  actionButton:
-                      _lelantusRescanRecovery
-                          ? null
-                          : SecondaryButton(
-                            label: "Cancel",
-                            onPressed: () async {
-                              await showDialog<void>(
-                                context: context,
-                                builder:
-                                    (context) => StackDialog(
-                                      title: "Warning!",
-                                      message:
-                                          "Skipping this process can completely"
-                                          " break your wallet. It is only meant to be done in"
-                                          " emergency situations where the migration fails"
-                                          " and will not let you continue. Still skip?",
-                                      leftButton: SecondaryButton(
-                                        label: "Cancel",
-                                        onPressed:
-                                            Navigator.of(
-                                              context,
-                                              rootNavigator: true,
-                                            ).pop,
-                                      ),
-                                      rightButton: SecondaryButton(
-                                        label: "Ok",
-                                        onPressed: () {
-                                          Navigator.of(
-                                            context,
-                                            rootNavigator: true,
-                                          ).pop();
-                                          setState(
-                                            () => _rescanningOnOpen = false,
-                                          );
-                                        },
-                                      ),
-                                    ),
-                              );
-                            },
-                          ),
+                  actionButton: SecondaryButton(
+                    label: "Cancel",
+                    onPressed: () async {
+                      await showDialog<void>(
+                        context: context,
+                        builder:
+                            (context) => StackDialog(
+                              title: "Warning!",
+                              message:
+                                  "Skipping this process can completely"
+                                  " break your wallet. It is only meant to be done in"
+                                  " emergency situations where the migration fails"
+                                  " and will not let you continue. Still skip?",
+                              leftButton: SecondaryButton(
+                                label: "Cancel",
+                                onPressed:
+                                    Navigator.of(
+                                      context,
+                                      rootNavigator: true,
+                                    ).pop,
+                              ),
+                              rightButton: SecondaryButton(
+                                label: "Ok",
+                                onPressed: () {
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop();
+                                  setState(() => _rescanningOnOpen = false);
+                                },
+                              ),
+                            ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -1168,22 +1124,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         ),
                       ))
                     WalletNavigationBarItemData(
-                      label: "Lelantus coins",
-                      icon: const CoinControlNavIcon(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          LelantusCoinsView.routeName,
-                          arguments: widget.walletId,
-                        );
-                      },
-                    ),
-                  if (wallet is FiroWallet &&
-                      ref.watch(
-                        prefsChangeNotifierProvider.select(
-                          (value) => value.advancedFiroFeatures,
-                        ),
-                      ))
-                    WalletNavigationBarItemData(
                       label: "Spark coins",
                       icon: const CoinControlNavIcon(),
                       onTap: () {
@@ -1296,7 +1236,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if ((wallet is LibMoneroWallet || wallet is LibSalviumWallet) && !viewOnly)
+                  if ((wallet is LibMoneroWallet ||
+                          wallet is LibSalviumWallet) &&
+                      !viewOnly)
                     WalletNavigationBarItemData(
                       label: "Churn",
                       icon: const ChurnNavIcon(),

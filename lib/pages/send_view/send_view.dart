@@ -498,7 +498,6 @@ class _SendViewState extends ConsumerState<SendView> {
   late Future<String> _calculateFeesFuture;
 
   Map<Amount, String> cachedFees = {};
-  Map<Amount, String> cachedFiroLelantusFees = {};
   Map<Amount, String> cachedFiroSparkFees = {};
   Map<Amount, String> cachedFiroPublicFees = {};
 
@@ -512,11 +511,6 @@ class _SendViewState extends ConsumerState<SendView> {
         case FiroType.public:
           if (cachedFiroPublicFees[amount] != null) {
             return cachedFiroPublicFees[amount]!;
-          }
-          break;
-        case FiroType.lelantus:
-          if (cachedFiroLelantusFees[amount] != null) {
-            return cachedFiroLelantusFees[amount]!;
           }
           break;
         case FiroType.spark:
@@ -585,12 +579,6 @@ class _SendViewState extends ConsumerState<SendView> {
               .format(fee, withUnitName: true, indicatePrecisionLoss: false);
           return cachedFiroPublicFees[amount]!;
 
-        case FiroType.lelantus:
-          fee = await firoWallet.estimateFeeForLelantus(amount);
-          cachedFiroLelantusFees[amount] = ref
-              .read(pAmountFormatter(coin))
-              .format(fee, withUnitName: true, indicatePrecisionLoss: false);
-          return cachedFiroLelantusFees[amount]!;
         case FiroType.spark:
           fee = await firoWallet.estimateFeeForSpark(amount);
           cachedFiroSparkFees[amount] = ref
@@ -620,9 +608,6 @@ class _SendViewState extends ConsumerState<SendView> {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case FiroType.public:
           availableBalance = wallet.info.cachedBalance.spendable;
-          break;
-        case FiroType.lelantus:
-          availableBalance = wallet.info.cachedBalanceSecondary.spendable;
           break;
         case FiroType.spark:
           availableBalance = wallet.info.cachedBalanceTertiary.spendable;
@@ -781,16 +766,6 @@ class _SendViewState extends ConsumerState<SendView> {
                 ),
               );
             }
-            break;
-
-          case FiroType.lelantus:
-            txDataFuture = wallet.prepareSendLelantus(
-              txData: TxData(
-                recipients: [
-                  (address: _address!, amount: amount, isChange: false),
-                ],
-              ),
-            );
             break;
 
           case FiroType.spark:
@@ -953,9 +928,7 @@ class _SendViewState extends ConsumerState<SendView> {
         case FiroType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
-        case FiroType.lelantus:
-          amount = ref.read(pWalletBalanceSecondary(walletId)).spendable;
-          break;
+
         case FiroType.spark:
           amount = ref.read(pWalletBalanceTertiary(walletId)).spendable;
           break;
@@ -1358,16 +1331,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       )
                                                       .spendable;
                                               break;
-                                            case FiroType.lelantus:
-                                              amount =
-                                                  ref
-                                                      .read(
-                                                        pWalletBalanceSecondary(
-                                                          walletId,
-                                                        ),
-                                                      )
-                                                      .spendable;
-                                              break;
+
                                             case FiroType.spark:
                                               amount =
                                                   ref
@@ -1616,11 +1580,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                             const SizedBox(height: 10),
                             if (isStellar ||
-                                (ref.watch(pValidSparkSendToAddress) &&
-                                    ref.watch(
-                                          publicPrivateBalanceStateProvider,
-                                        ) !=
-                                        FiroType.lelantus))
+                                ref.watch(pValidSparkSendToAddress))
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
@@ -1712,43 +1672,14 @@ class _SendViewState extends ConsumerState<SendView> {
                                 if (_address == null || _address!.isEmpty) {
                                   error = null;
                                 } else if (isFiro) {
-                                  if (ref.watch(
-                                        publicPrivateBalanceStateProvider,
-                                      ) ==
-                                      FiroType.lelantus) {
-                                    if (_data != null &&
-                                        _data.contactLabel == _address) {
-                                      error =
-                                          SparkInterface.validateSparkAddress(
-                                                address: _data.address,
-                                                isTestNet:
-                                                    coin.network ==
-                                                    CryptoCurrencyNetwork.test,
-                                              )
-                                              ? "Unsupported"
-                                              : null;
-                                    } else if (ref.watch(
-                                      pValidSparkSendToAddress,
-                                    )) {
-                                      error = "Unsupported";
-                                    } else {
-                                      error =
-                                          ref.watch(pValidSendToAddress)
-                                              ? null
-                                              : "Invalid address";
-                                    }
+                                  if (_data != null &&
+                                      _data.contactLabel == _address) {
+                                    error = null;
+                                  } else if (!ref.watch(pValidSendToAddress) &&
+                                      !ref.watch(pValidSparkSendToAddress)) {
+                                    error = "Invalid address";
                                   } else {
-                                    if (_data != null &&
-                                        _data.contactLabel == _address) {
-                                      error = null;
-                                    } else if (!ref.watch(
-                                          pValidSendToAddress,
-                                        ) &&
-                                        !ref.watch(pValidSparkSendToAddress)) {
-                                      error = "Invalid address";
-                                    } else {
-                                      error = null;
-                                    }
+                                    error = null;
                                   }
                                 } else {
                                   if (_data != null &&
@@ -1863,16 +1794,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                                           ref
                                                               .watch(
                                                                 pWalletBalance(
-                                                                  walletId,
-                                                                ),
-                                                              )
-                                                              .spendable;
-                                                      break;
-                                                    case FiroType.lelantus:
-                                                      amount =
-                                                          ref
-                                                              .watch(
-                                                                pWalletBalanceSecondary(
                                                                   walletId,
                                                                 ),
                                                               )

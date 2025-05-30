@@ -9,8 +9,6 @@ mkdir -p build
 
 PLUGINS_DIR=../../crypto_plugins
 
-(cd "${PLUGINS_DIR}"/flutter_liblelantus/scripts/android && ./build_all.sh )
-
 # libepiccash requires old rust
 source ../rust_version.sh
 set_rust_version_for_libepiccash

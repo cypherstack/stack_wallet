@@ -2243,8 +2243,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<void> updateBalance() async {
-    // call to super to update transparent balance (and lelantus balance if
-    // what ever class this mixin is used on uses LelantusInterface as well)
+    // call to super to update transparent balance
     final normalBalanceFuture = super.updateBalance();
 
     // todo: spark balance aka update info.tertiaryBalance here?

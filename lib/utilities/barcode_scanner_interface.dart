@@ -44,7 +44,11 @@ Future<void> checkCamPermDeniedMobileAndOpenAppSettings(
 }) async {
   if (Platform.isAndroid || Platform.isIOS) {
     final status = await Permission.camera.status;
-    if (status == PermissionStatus.permanentlyDenied && context.mounted) {
+    final androidShow =
+        Platform.isAndroid && status == PermissionStatus.permanentlyDenied;
+    final iosShow = Platform.isIOS && status == PermissionStatus.denied;
+
+    if ((iosShow || androidShow) && context.mounted) {
       final trySettings = await showDialog<bool>(
         context: context,
         builder:
