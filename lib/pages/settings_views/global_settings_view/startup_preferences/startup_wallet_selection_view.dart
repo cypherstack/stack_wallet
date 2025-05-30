@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../providers/providers.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -64,180 +65,179 @@ class _StartupWalletSelectionViewState
             ),
           ),
         ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            return Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                top: 12,
-                right: 12,
-              ),
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 24,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            height: 4,
-                          ),
-                          Text(
-                            "Select a wallet to load into immediately on startup",
-                            style: STextStyles.smallMed12(context),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          RoundedWhiteContainer(
-                            padding: const EdgeInsets.all(0),
-                            child: Column(
-                              children: [
-                                ...wallets.map(
-                                  (wallet) => Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Row(
-                                      key: Key(
-                                        "startupWalletSelectionGroupKey_${wallet.walletId}",
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Padding(
+                padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              "Select a wallet to load into immediately on startup",
+                              style: STextStyles.smallMed12(context),
+                            ),
+                            const SizedBox(height: 12),
+                            RoundedWhiteContainer(
+                              padding: const EdgeInsets.all(0),
+                              child: Column(
+                                children: [
+                                  ...wallets.map(
+                                    (wallet) => Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Row(
+                                        key: Key(
+                                          "startupWalletSelectionGroupKey_${wallet.walletId}",
+                                        ),
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: ref
+                                                  .watch(
+                                                    pCoinColor(
+                                                      ref.watch(
+                                                        pWalletCoin(
+                                                          wallet.walletId,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                  .withOpacity(0.5),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    Constants
+                                                        .size
+                                                        .circularBorderRadius,
+                                                  ),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(4),
+                                              child: SvgPicture.file(
+                                                File(
+                                                  ref.watch(
+                                                    coinIconProvider(
+                                                      ref.watch(
+                                                        pWalletCoin(
+                                                          wallet.walletId,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                width: 20,
+                                                height: 20,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  ref.watch(
+                                                    pWalletName(
+                                                      wallet.walletId,
+                                                    ),
+                                                  ),
+                                                  style:
+                                                      STextStyles.titleBold12(
+                                                        context,
+                                                      ),
+                                                ),
+                                                // const SizedBox(
+                                                //   height: 2,
+                                                // ),
+                                                // FutureBuilder(
+                                                //   future: manager.totalBalance,
+                                                //   builder: (builderContext,
+                                                //       AsyncSnapshot<Decimal> snapshot) {
+                                                //     if (snapshot.connectionState ==
+                                                //             ConnectionState.done &&
+                                                //         snapshot.hasData) {
+                                                //       return Text(
+                                                //         "${Format.localizedStringAsFixed(
+                                                //           value: snapshot.data!,
+                                                //           locale: ref.watch(
+                                                //               localeServiceChangeNotifierProvider
+                                                //                   .select((value) =>
+                                                //                       value.locale)),
+                                                //           decimalPlaces: 8,
+                                                //         )} ${manager.coin.ticker}",
+                                                //         style: STextStyles.itemSubtitle(context),
+                                                //       );
+                                                //     } else {
+                                                //       return AnimatedText(
+                                                //         stringsToLoopThrough: const [
+                                                //           "Loading balance",
+                                                //           "Loading balance.",
+                                                //           "Loading balance..",
+                                                //           "Loading balance..."
+                                                //         ],
+                                                //         style: STextStyles.itemSubtitle(context),
+                                                //       );
+                                                //     }
+                                                //   },
+                                                // ),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: Radio(
+                                              activeColor:
+                                                  Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .radioButtonIconEnabled,
+                                              value: wallet.walletId,
+                                              groupValue: ref.watch(
+                                                prefsChangeNotifierProvider
+                                                    .select(
+                                                      (value) =>
+                                                          value.startupWalletId,
+                                                    ),
+                                              ),
+                                              onChanged: (value) {
+                                                if (value is String) {
+                                                  ref
+                                                      .read(
+                                                        prefsChangeNotifierProvider,
+                                                      )
+                                                      .startupWalletId = value;
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      children: [
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            color: ref
-                                                .watch(
-                                                  pCoinColor(
-                                                    ref.watch(
-                                                      pWalletCoin(
-                                                        wallet.walletId,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                                .withOpacity(0.5),
-                                            borderRadius: BorderRadius.circular(
-                                              Constants
-                                                  .size.circularBorderRadius,
-                                            ),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(4),
-                                            child: SvgPicture.file(
-                                              File(
-                                                ref.watch(
-                                                  coinIconProvider(
-                                                    ref.watch(
-                                                      pWalletCoin(
-                                                        wallet.walletId,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              width: 20,
-                                              height: 20,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 12,
-                                        ),
-                                        Expanded(
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                ref.watch(
-                                                  pWalletName(wallet.walletId),
-                                                ),
-                                                style: STextStyles.titleBold12(
-                                                  context,
-                                                ),
-                                              ),
-                                              // const SizedBox(
-                                              //   height: 2,
-                                              // ),
-                                              // FutureBuilder(
-                                              //   future: manager.totalBalance,
-                                              //   builder: (builderContext,
-                                              //       AsyncSnapshot<Decimal> snapshot) {
-                                              //     if (snapshot.connectionState ==
-                                              //             ConnectionState.done &&
-                                              //         snapshot.hasData) {
-                                              //       return Text(
-                                              //         "${Format.localizedStringAsFixed(
-                                              //           value: snapshot.data!,
-                                              //           locale: ref.watch(
-                                              //               localeServiceChangeNotifierProvider
-                                              //                   .select((value) =>
-                                              //                       value.locale)),
-                                              //           decimalPlaces: 8,
-                                              //         )} ${manager.coin.ticker}",
-                                              //         style: STextStyles.itemSubtitle(context),
-                                              //       );
-                                              //     } else {
-                                              //       return AnimatedText(
-                                              //         stringsToLoopThrough: const [
-                                              //           "Loading balance",
-                                              //           "Loading balance.",
-                                              //           "Loading balance..",
-                                              //           "Loading balance..."
-                                              //         ],
-                                              //         style: STextStyles.itemSubtitle(context),
-                                              //       );
-                                              //     }
-                                              //   },
-                                              // ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: Radio(
-                                            activeColor: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .radioButtonIconEnabled,
-                                            value: wallet.walletId,
-                                            groupValue: ref.watch(
-                                              prefsChangeNotifierProvider
-                                                  .select(
-                                                (value) =>
-                                                    value.startupWalletId,
-                                              ),
-                                            ),
-                                            onChanged: (value) {
-                                              if (value is String) {
-                                                ref
-                                                    .read(
-                                                      prefsChangeNotifierProvider,
-                                                    )
-                                                    .startupWalletId = value;
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      ],
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

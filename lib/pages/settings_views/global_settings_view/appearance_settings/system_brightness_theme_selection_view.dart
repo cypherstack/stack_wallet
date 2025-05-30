@@ -64,11 +64,12 @@ class _SystemBrightnessThemeSelectionViewState
 
   @override
   void initState() {
-    installedThemeIdNames = ref
-        .read(pThemeService)
-        .installedThemes
-        .map((e) => Tuple2(e.themeId, e.name))
-        .toList();
+    installedThemeIdNames =
+        ref
+            .read(pThemeService)
+            .installedThemes
+            .map((e) => Tuple2(e.themeId, e.name))
+            .toList();
 
     super.initState();
   }
@@ -89,52 +90,45 @@ class _SystemBrightnessThemeSelectionViewState
             style: STextStyles.navBarTitle(context),
           ),
         ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Text(
-                            "Select a light and dark theme that will be"
-                            " activated automatically when your phone system"
-                            " switches light and dark mode.",
-                            style: STextStyles.smallMed12(context),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 16),
+                          RoundedWhiteContainer(
+                            child: Text(
+                              "Select a light and dark theme that will be"
+                              " activated automatically when your phone system"
+                              " switches light and dark mode.",
+                              style: STextStyles.smallMed12(context),
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Choose light mode theme",
-                                style: STextStyles.titleBold12(context),
-                              ),
-                              const SizedBox(
-                                height: 18,
-                              ),
-                              for (int i = 0;
+                          const SizedBox(height: 10),
+                          RoundedWhiteContainer(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Choose light mode theme",
+                                  style: STextStyles.titleBold12(context),
+                                ),
+                                const SizedBox(height: 18),
+                                for (
+                                  int i = 0;
                                   i < (2 * installedThemeIdNames.length) - 1;
-                                  i++)
-                                (i % 2 == 1)
-                                    ? const SizedBox(
-                                        height: 10,
-                                      )
-                                    : ThemeOption(
+                                  i++
+                                )
+                                  (i % 2 == 1)
+                                      ? const SizedBox(height: 10)
+                                      : ThemeOption(
                                         label:
                                             installedThemeIdNames[i ~/ 2].item2,
                                         onPressed: () {
@@ -170,36 +164,33 @@ class _SystemBrightnessThemeSelectionViewState
                                             installedThemeIdNames[i ~/ 2].item1,
                                         groupValue: ref.watch(
                                           prefsChangeNotifierProvider.select(
-                                            (value) => value
-                                                .systemBrightnessLightThemeId,
+                                            (value) =>
+                                                value
+                                                    .systemBrightnessLightThemeId,
                                           ),
                                         ),
                                       ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        RoundedWhiteContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Choose dark mode theme",
-                                style: STextStyles.titleBold12(context),
-                              ),
-                              const SizedBox(
-                                height: 18,
-                              ),
-                              for (int i = 0;
+                          const SizedBox(height: 10),
+                          RoundedWhiteContainer(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Choose dark mode theme",
+                                  style: STextStyles.titleBold12(context),
+                                ),
+                                const SizedBox(height: 18),
+                                for (
+                                  int i = 0;
                                   i < (2 * installedThemeIdNames.length) - 1;
-                                  i++)
-                                (i % 2 == 1)
-                                    ? const SizedBox(
-                                        height: 10,
-                                      )
-                                    : ThemeOption(
+                                  i++
+                                )
+                                  (i % 2 == 1)
+                                      ? const SizedBox(height: 10)
+                                      : ThemeOption(
                                         label:
                                             installedThemeIdNames[i ~/ 2].item2,
                                         onPressed: () {
@@ -235,24 +226,24 @@ class _SystemBrightnessThemeSelectionViewState
                                             installedThemeIdNames[i ~/ 2].item1,
                                         groupValue: ref.watch(
                                           prefsChangeNotifierProvider.select(
-                                            (value) => value
-                                                .systemBrightnessDarkThemeId,
+                                            (value) =>
+                                                value
+                                                    .systemBrightnessDarkThemeId,
                                           ),
                                         ),
                                       ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

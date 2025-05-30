@@ -416,8 +416,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
 
     final currentLength = ref.watch(mnemonicWordCountStateProvider);
 
-    final isMoneroAnd25 = widget.coin is Monero && currentLength == 25;
-    final isWowneroAnd25 = widget.coin is Wownero && currentLength == 25;
+    final isCnAnd25 = widget.coin is CryptonoteCurrency && currentLength == 25;
 
     final bool supportsPassphrase;
     if (widget.coin.hasMnemonicPassphraseSupport) {
@@ -432,7 +431,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
 
     return Column(
       children: [
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isCnAnd25 || widget.coin is Epiccash)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -459,9 +458,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
               ),
             ],
           ),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isCnAnd25 || widget.coin is Epiccash)
           SizedBox(height: Util.isDesktop ? 16 : 8),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isCnAnd25 || widget.coin is Epiccash)
           ref.watch(_pIsUsingDate)
               ? RestoreFromDatePicker(
                 onTap: widget.dateChooserFunction,
@@ -518,9 +517,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                   ),
                 ),
               ),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
-          const SizedBox(height: 8),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isCnAnd25 || widget.coin is Epiccash) const SizedBox(height: 8),
+        if (isCnAnd25 || widget.coin is Epiccash)
           RoundedWhiteContainer(
             child: Center(
               child: Text(
@@ -541,7 +539,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
               ),
             ),
           ),
-        if (isMoneroAnd25 || widget.coin is Epiccash || isWowneroAnd25)
+        if (isCnAnd25 || widget.coin is Epiccash)
           SizedBox(height: Util.isDesktop ? 24 : 16),
         Text(
           "Choose recovery phrase length",

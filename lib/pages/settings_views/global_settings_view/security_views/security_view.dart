@@ -212,265 +212,61 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
           ),
           title: Text("Security", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              RoundedWhiteContainer(
-                padding: const EdgeInsets.all(0),
-                child: RawMaterialButton(
-                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      RouteGenerator.getRoute(
-                        shouldUseMaterialRoute:
-                            RouteGenerator.useMaterialPageRoute,
-                        builder:
-                            (_) => const LockscreenView(
-                              showBackButton: true,
-                              routeOnSuccess: ChangePinView.routeName,
-                              biometricsCancelButtonString: "CANCEL",
-                              biometricsLocalizedReason:
-                                  "Authenticate to change PIN",
-                              biometricsAuthenticationTitle: "Change PIN",
-                            ),
-                        settings: const RouteSettings(
-                          name: "/changepinlockscreen",
-                        ),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 20,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          "Change PIN",
-                          style: STextStyles.titleBold12(context),
-                          textAlign: TextAlign.left,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              RoundedWhiteContainer(
-                child: Consumer(
-                  builder: (_, ref, __) {
-                    return RawMaterialButton(
-                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      onPressed: null,
-                      //     () {
-                      //   final useBio =
-                      //       ref.read(prefsChangeNotifierProvider).useBiometrics;
-                      //
-                      //   debugPrint("useBio: $useBio");
-                      //   ref.read(prefsChangeNotifierProvider).useBiometrics =
-                      //       !useBio;
-                      //
-                      //   debugPrint(
-                      //       "useBio set to: ${ref.read(prefsChangeNotifierProvider).useBiometrics}");
-                      // },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Enable biometric authentication",
-                              style: STextStyles.titleBold12(context),
-                              textAlign: TextAlign.left,
-                            ),
-                            SizedBox(
-                              height: 20,
-                              width: 40,
-                              child: DraggableSwitchButton(
-                                isOn: ref.watch(
-                                  prefsChangeNotifierProvider.select(
-                                    (value) => value.useBiometrics,
-                                  ),
-                                ),
-                                onValueChanged: (newValue) {
-                                  ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .useBiometrics = newValue;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-              RoundedWhiteContainer(
-                child: Consumer(
-                  builder: (_, ref, __) {
-                    return RawMaterialButton(
-                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      onPressed: null,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Randomize PIN Pad",
-                              style: STextStyles.titleBold12(context),
-                              textAlign: TextAlign.left,
-                            ),
-                            SizedBox(
-                              height: 20,
-                              width: 40,
-                              child: DraggableSwitchButton(
-                                isOn: ref.watch(
-                                  prefsChangeNotifierProvider.select(
-                                    (value) => value.randomizePIN,
-                                  ),
-                                ),
-                                onValueChanged: (newValue) {
-                                  ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .randomizePIN = newValue;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // The "autoPin" preference (whether to automatically accept a correct PIN).
-              const SizedBox(height: 8),
-              RoundedWhiteContainer(
-                child: Consumer(
-                  builder: (_, ref, __) {
-                    return RawMaterialButton(
-                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      onPressed: null,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Auto-accept correct PIN",
-                              style: STextStyles.titleBold12(context),
-                              textAlign: TextAlign.left,
-                            ),
-                            SizedBox(
-                              height: 20,
-                              width: 40,
-                              child: DraggableSwitchButton(
-                                isOn: ref.watch(
-                                  prefsChangeNotifierProvider.select(
-                                    (value) => value.autoPin,
-                                  ),
-                                ),
-                                onValueChanged: (newValue) {
-                                  ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .autoPin = newValue;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              if (!ref.watch(pDuress)) const SizedBox(height: 8),
-              if (!ref.watch(pDuress))
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                 RoundedWhiteContainer(
-                  child: Consumer(
-                    builder: (_, ref, __) {
-                      return RawMaterialButton(
-                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        onPressed: null,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Duress PIN",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
+                  padding: const EdgeInsets.all(0),
+                  child: RawMaterialButton(
+                    // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        RouteGenerator.getRoute(
+                          shouldUseMaterialRoute:
+                              RouteGenerator.useMaterialPageRoute,
+                          builder:
+                              (_) => const LockscreenView(
+                                showBackButton: true,
+                                routeOnSuccess: ChangePinView.routeName,
+                                biometricsCancelButtonString: "CANCEL",
+                                biometricsLocalizedReason:
+                                    "Authenticate to change PIN",
+                                biometricsAuthenticationTitle: "Change PIN",
                               ),
-                              SizedBox(
-                                height: 20,
-                                width: 40,
-                                child: DraggableSwitch(
-                                  value: ref.watch(
-                                    prefsChangeNotifierProvider.select(
-                                      (value) => value.hasDuressPin,
-                                    ),
-                                  ),
-                                  onChanged: _duressToggled,
-                                ),
-                              ),
-                            ],
+                          settings: const RouteSettings(
+                            name: "/changepinlockscreen",
                           ),
                         ),
                       );
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 20,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Change PIN",
+                            style: STextStyles.titleBold12(context),
+                            textAlign: TextAlign.left,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              if (!ref.watch(pDuress) &&
-                  ref.watch(
-                    prefsChangeNotifierProvider.select(
-                      (value) => value.hasDuressPin,
-                    ),
-                  ))
                 const SizedBox(height: 8),
-              if (!ref.watch(pDuress) &&
-                  ref.watch(
-                    prefsChangeNotifierProvider.select(
-                      (value) => value.hasDuressPin,
-                    ),
-                  ))
                 RoundedWhiteContainer(
                   child: Consumer(
                     builder: (_, ref, __) {
@@ -483,29 +279,40 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           ),
                         ),
                         onPressed: null,
+                        //     () {
+                        //   final useBio =
+                        //       ref.read(prefsChangeNotifierProvider).useBiometrics;
+                        //
+                        //   debugPrint("useBio: $useBio");
+                        //   ref.read(prefsChangeNotifierProvider).useBiometrics =
+                        //       !useBio;
+                        //
+                        //   debugPrint(
+                        //       "useBio set to: ${ref.read(prefsChangeNotifierProvider).useBiometrics}");
+                        // },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Biometrics opens duress",
+                                "Enable biometric authentication",
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
                               SizedBox(
                                 height: 20,
                                 width: 40,
-                                child: DraggableSwitch(
-                                  value: ref.watch(
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
                                     prefsChangeNotifierProvider.select(
-                                      (value) => value.biometricsDuress,
+                                      (value) => value.useBiometrics,
                                     ),
                                   ),
-                                  onChanged: (newValue) {
+                                  onValueChanged: (newValue) {
                                     ref
                                         .read(prefsChangeNotifierProvider)
-                                        .biometricsDuress = newValue;
+                                        .useBiometrics = newValue;
                                   },
                                 ),
                               ),
@@ -516,7 +323,204 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                     },
                   ),
                 ),
-            ],
+                const SizedBox(height: 8),
+                RoundedWhiteContainer(
+                  child: Consumer(
+                    builder: (_, ref, __) {
+                      return RawMaterialButton(
+                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        onPressed: null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Randomize PIN Pad",
+                                style: STextStyles.titleBold12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.randomizePIN,
+                                    ),
+                                  ),
+                                  onValueChanged: (newValue) {
+                                    ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .randomizePIN = newValue;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                // The "autoPin" preference (whether to automatically accept a correct PIN).
+                const SizedBox(height: 8),
+                RoundedWhiteContainer(
+                  child: Consumer(
+                    builder: (_, ref, __) {
+                      return RawMaterialButton(
+                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        onPressed: null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Auto-accept correct PIN",
+                                style: STextStyles.titleBold12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.autoPin,
+                                    ),
+                                  ),
+                                  onValueChanged: (newValue) {
+                                    ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .autoPin = newValue;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                if (!ref.watch(pDuress)) const SizedBox(height: 8),
+                if (!ref.watch(pDuress))
+                  RoundedWhiteContainer(
+                    child: Consumer(
+                      builder: (_, ref, __) {
+                        return RawMaterialButton(
+                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                          ),
+                          onPressed: null,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Duress PIN",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                  width: 40,
+                                  child: DraggableSwitch(
+                                    value: ref.watch(
+                                      prefsChangeNotifierProvider.select(
+                                        (value) => value.hasDuressPin,
+                                      ),
+                                    ),
+                                    onChanged: _duressToggled,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                if (!ref.watch(pDuress) &&
+                    ref.watch(
+                      prefsChangeNotifierProvider.select(
+                        (value) => value.hasDuressPin,
+                      ),
+                    ))
+                  const SizedBox(height: 8),
+                if (!ref.watch(pDuress) &&
+                    ref.watch(
+                      prefsChangeNotifierProvider.select(
+                        (value) => value.hasDuressPin,
+                      ),
+                    ))
+                  RoundedWhiteContainer(
+                    child: Consumer(
+                      builder: (_, ref, __) {
+                        return RawMaterialButton(
+                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                          ),
+                          onPressed: null,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Biometrics opens duress",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                  width: 40,
+                                  child: DraggableSwitch(
+                                    value: ref.watch(
+                                      prefsChangeNotifierProvider.select(
+                                        (value) => value.biometricsDuress,
+                                      ),
+                                    ),
+                                    onChanged: (newValue) {
+                                      ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .biometricsDuress = newValue;
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

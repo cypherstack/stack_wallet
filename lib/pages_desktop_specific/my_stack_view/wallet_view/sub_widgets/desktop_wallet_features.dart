@@ -40,6 +40,7 @@ import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet.dart' show Wallet;
 import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -442,7 +443,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       if (!isViewOnly && wallet is CashFusionInterface)
         (WalletFeature.fusion, Assets.svg.cashFusion, _onFusionPressed),
 
-      if (!isViewOnly && wallet is LibMoneroWallet)
+      if (!isViewOnly && (wallet is LibMoneroWallet || wallet is LibSalviumWallet))
         (WalletFeature.churn, Assets.svg.churn, _onChurnPressed),
 
       if (wallet is NamecoinWallet)

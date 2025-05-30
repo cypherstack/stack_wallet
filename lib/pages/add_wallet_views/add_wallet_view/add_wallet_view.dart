@@ -67,9 +67,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
   String _searchTerm = "";
 
-  final _coinsTestnet = [
-    ...AppConfig.coins.where((e) => e.network.isTestNet),
-  ];
+  final _coinsTestnet = [...AppConfig.coins.where((e) => e.network.isTestNet)];
   final _coins = [
     ...AppConfig.coins.where((e) => e.network == CryptoCurrencyNetwork.main),
   ];
@@ -104,16 +102,17 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     if (isDesktop) {
       contract = await showDialog(
         context: context,
-        builder: (context) => const DesktopDialog(
-          maxWidth: 580,
-          maxHeight: 500,
-          child: AddCustomTokenView(),
-        ),
+        builder:
+            (context) => const DesktopDialog(
+              maxWidth: 580,
+              maxHeight: 500,
+              child: AddCustomTokenView(),
+            ),
       );
     } else {
-      contract = await Navigator.of(context).pushNamed(
-        AddCustomTokenView.routeName,
-      );
+      contract = await Navigator.of(
+        context,
+      ).pushNamed(AddCustomTokenView.routeName);
     }
 
     if (contract != null) {
@@ -215,7 +214,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
       if (contracts.isEmpty) {
         contracts.addAll(DefaultTokens.list);
-        MainDB.instance.putEthContracts(contracts).then(
+        MainDB.instance
+            .putEthContracts(contracts)
+            .then(
               (value) =>
                   ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
             );
@@ -256,12 +257,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         ),
         body: Column(
           children: [
-            const AddWalletText(
-              isDesktop: true,
-            ),
-            const SizedBox(
-              height: 16,
-            ),
+            const AddWalletText(isDesktop: true),
+            const SizedBox(height: 16),
             Expanded(
               child: SizedBox(
                 width: 480,
@@ -291,10 +288,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 _searchTerm = value;
                               });
                             },
-                            style:
-                                STextStyles.desktopTextMedium(context).copyWith(
-                              height: 2,
-                            ),
+                            style: STextStyles.desktopTextMedium(
+                              context,
+                            ).copyWith(height: 2),
                             decoration: standardInputDecoration(
                               "Search",
                               _searchFocusNode,
@@ -312,42 +308,44 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                   Assets.svg.search,
                                   width: 24,
                                   height: 24,
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldDefaultSearchIconLeft,
+                                  color:
+                                      Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFieldDefaultSearchIconLeft,
                                 ),
                               ),
-                              suffixIcon: _searchFieldController.text.isNotEmpty
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(right: 10),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            TextFieldIconButton(
-                                              child: const XIcon(
-                                                width: 24,
-                                                height: 24,
-                                              ),
-                                              onTap: () async {
-                                                setState(() {
-                                                  _searchFieldController.text =
-                                                      "";
-                                                  _searchTerm = "";
-                                                });
-                                              },
-                                            ),
-                                          ],
+                              suffixIcon:
+                                  _searchFieldController.text.isNotEmpty
+                                      ? Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 10,
                                         ),
-                                      ),
-                                    )
-                                  : null,
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            children: [
+                                              TextFieldIconButton(
+                                                child: const XIcon(
+                                                  width: 24,
+                                                  height: 24,
+                                                ),
+                                                onTap: () async {
+                                                  setState(() {
+                                                    _searchFieldController
+                                                        .text = "";
+                                                    _searchTerm = "";
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                      : null,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 8,
-                      ),
+                      const SizedBox(height: 8),
                       Expanded(
                         child: SingleChildScrollView(
                           child: Column(
@@ -361,8 +359,10 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                               if (coinTestnetEntities.isNotEmpty)
                                 ExpandingSubListItem(
                                   title: "Testnet",
-                                  entities:
-                                      filter(_searchTerm, coinTestnetEntities),
+                                  entities: filter(
+                                    _searchTerm,
+                                    coinTestnetEntities,
+                                  ),
                                   initialState: ExpandableState.expanded,
                                   animationDurationMultiplier: 0.5,
                                 ),
@@ -380,27 +380,19 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 20,
-                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             const SizedBox(
               height: 70,
               width: 480,
-              child: AddWalletNextButton(
-                isDesktop: true,
-              ),
+              child: AddWalletNextButton(isDesktop: true),
             ),
-            const SizedBox(
-              height: 32,
-            ),
+            const SizedBox(height: 32),
           ],
         ),
       );
@@ -447,113 +439,109 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
               ),
             ],
           ),
-          body: Container(
-            color: Theme.of(context).extension<StackColors>()!.background,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const AddWalletText(
-                    isDesktop: false,
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                    child: Semantics(
-                      label:
-                          "Search Text Field. Inputs Text To Search In Wallets.",
-                      excludeSemantics: true,
-                      child: TextField(
-                        autofocus: isDesktop,
-                        autocorrect: !isDesktop,
-                        enableSuggestions: !isDesktop,
-                        controller: _searchFieldController,
-                        focusNode: _searchFocusNode,
-                        onChanged: (value) =>
-                            setState(() => _searchTerm = value),
-                        style: STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Search",
-                          _searchFocusNode,
-                          context,
-                          desktopMed: isDesktop,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 16,
+          body: SafeArea(
+            child: Container(
+              color: Theme.of(context).extension<StackColors>()!.background,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const AddWalletText(isDesktop: false),
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
+                      child: Semantics(
+                        label:
+                            "Search Text Field. Inputs Text To Search In Wallets.",
+                        excludeSemantics: true,
+                        child: TextField(
+                          autofocus: isDesktop,
+                          autocorrect: !isDesktop,
+                          enableSuggestions: !isDesktop,
+                          controller: _searchFieldController,
+                          focusNode: _searchFocusNode,
+                          onChanged:
+                              (value) => setState(() => _searchTerm = value),
+                          style: STextStyles.field(context),
+                          decoration: standardInputDecoration(
+                            "Search",
+                            _searchFocusNode,
+                            context,
+                            desktopMed: isDesktop,
+                          ).copyWith(
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 16,
+                              ),
+                              child: SvgPicture.asset(
+                                Assets.svg.search,
+                                width: 16,
+                                height: 16,
+                              ),
                             ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: 16,
-                              height: 16,
-                            ),
-                          ),
-                          suffixIcon: _searchFieldController.text.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              _searchFieldController.text = "";
-                                              _searchTerm = "";
-                                            });
-                                          },
+                            suffixIcon:
+                                _searchFieldController.text.isNotEmpty
+                                    ? Padding(
+                                      padding: const EdgeInsets.only(right: 0),
+                                      child: UnconstrainedBox(
+                                        child: Row(
+                                          children: [
+                                            TextFieldIconButton(
+                                              child: const XIcon(),
+                                              onTap: () async {
+                                                setState(() {
+                                                  _searchFieldController.text =
+                                                      "";
+                                                  _searchTerm = "";
+                                                });
+                                              },
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : null,
+                                      ),
+                                    )
+                                    : null,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          ExpandingSubListItem(
-                            title: "Coins",
-                            entities: filter(_searchTerm, coinEntities),
-                            initialState: ExpandableState.expanded,
-                          ),
-                          if (coinTestnetEntities.isNotEmpty)
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
                             ExpandingSubListItem(
-                              title: "Testnet",
-                              entities:
-                                  filter(_searchTerm, coinTestnetEntities),
+                              title: "Coins",
+                              entities: filter(_searchTerm, coinEntities),
                               initialState: ExpandableState.expanded,
                             ),
-                          if (tokenEntities.isNotEmpty)
-                            ExpandingSubListItem(
-                              title: "Tokens",
-                              entities: filter(_searchTerm, tokenEntities),
-                              initialState: ExpandableState.expanded,
-                            ),
-                        ],
+                            if (coinTestnetEntities.isNotEmpty)
+                              ExpandingSubListItem(
+                                title: "Testnet",
+                                entities: filter(
+                                  _searchTerm,
+                                  coinTestnetEntities,
+                                ),
+                                initialState: ExpandableState.expanded,
+                              ),
+                            if (tokenEntities.isNotEmpty)
+                              ExpandingSubListItem(
+                                title: "Tokens",
+                                entities: filter(_searchTerm, tokenEntities),
+                                initialState: ExpandableState.expanded,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  const AddWalletNextButton(
-                    isDesktop: false,
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    const AddWalletNextButton(isDesktop: false),
+                  ],
+                ),
               ),
             ),
           ),

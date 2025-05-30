@@ -1,4 +1,5 @@
 import 'package:cs_monero/cs_monero.dart' as lib_monero;
+import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -51,6 +52,7 @@ class TxData {
   final BigInt? chainId;
   // wownero and monero specific
   final lib_monero.PendingTransaction? pendingTransaction;
+  final lib_salvium.PendingTransaction? pendingSalviumTransaction;
 
   // firo lelantus specific
   final int? jMintValue;
@@ -110,6 +112,7 @@ class TxData {
     this.nonce,
     this.chainId,
     this.pendingTransaction,
+    this.pendingSalviumTransaction,
     this.jMintValue,
     this.spendCoinIndexes,
     this.height,
@@ -138,6 +141,14 @@ class TxData {
         if (pendingTransaction!.amount + fee!.raw == sum.raw) {
           return Amount(
             rawValue: pendingTransaction!.amount,
+            fractionDigits: recipients!.first.amount.fractionDigits,
+          );
+        }
+      }
+      if (pendingSalviumTransaction?.amount != null && fee != null) {
+        if (pendingSalviumTransaction!.amount + fee!.raw == sum.raw) {
+          return Amount(
+            rawValue: pendingSalviumTransaction!.amount,
             fractionDigits: recipients!.first.amount.fractionDigits,
           );
         }
@@ -174,6 +185,14 @@ class TxData {
           if (pendingTransaction!.amount + fee!.raw == sum.raw) {
             return Amount(
               rawValue: pendingTransaction!.amount,
+              fractionDigits: recipients!.first.amount.fractionDigits,
+            );
+          }
+        }
+        if (pendingSalviumTransaction?.amount != null && fee != null) {
+          if (pendingSalviumTransaction!.amount + fee!.raw == sum.raw) {
+            return Amount(
+              rawValue: pendingSalviumTransaction!.amount,
               fractionDigits: recipients!.first.amount.fractionDigits,
             );
           }
@@ -234,6 +253,7 @@ class TxData {
     int? nonce,
     BigInt? chainId,
     lib_monero.PendingTransaction? pendingTransaction,
+    lib_salvium.PendingTransaction? pendingSalviumTransaction,
     int? jMintValue,
     List<int>? spendCoinIndexes,
     int? height,
@@ -281,6 +301,8 @@ class TxData {
       nonce: nonce ?? this.nonce,
       chainId: chainId ?? this.chainId,
       pendingTransaction: pendingTransaction ?? this.pendingTransaction,
+      pendingSalviumTransaction:
+          pendingSalviumTransaction ?? this.pendingSalviumTransaction,
       jMintValue: jMintValue ?? this.jMintValue,
       spendCoinIndexes: spendCoinIndexes ?? this.spendCoinIndexes,
       height: height ?? this.height,
@@ -324,6 +346,7 @@ class TxData {
       'nonce: $nonce, '
       'chainId: $chainId, '
       'pendingTransaction: $pendingTransaction, '
+      'pendingSalviumTransaction: $pendingSalviumTransaction, '
       'jMintValue: $jMintValue, '
       'spendCoinIndexes: $spendCoinIndexes, '
       'height: $height, '

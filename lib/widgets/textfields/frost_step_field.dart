@@ -1,10 +1,12 @@
 import 'dart:io';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
@@ -16,7 +18,7 @@ import '../icon_widgets/qrcode_icon.dart';
 import '../icon_widgets/x_icon.dart';
 import '../textfield_icon_button.dart';
 
-class FrostStepField extends StatefulWidget {
+class FrostStepField extends ConsumerStatefulWidget {
   const FrostStepField({
     super.key,
     required this.controller,
@@ -35,10 +37,10 @@ class FrostStepField extends StatefulWidget {
   final bool showQrScanOption;
 
   @override
-  State<FrostStepField> createState() => _FrostStepFieldState();
+  ConsumerState<FrostStepField> createState() => _FrostStepFieldState();
 }
 
-class _FrostStepFieldState extends State<FrostStepField> {
+class _FrostStepFieldState extends ConsumerState<FrostStepField> {
   final _xKey = UniqueKey();
   final _pasteKey = UniqueKey();
   late final Key? _qrKey;
@@ -46,13 +48,8 @@ class _FrostStepFieldState extends State<FrostStepField> {
   bool _isEmpty = true;
 
   final _inputBorder = OutlineInputBorder(
-    borderSide: const BorderSide(
-      width: 0,
-      color: Colors.transparent,
-    ),
-    borderRadius: BorderRadius.circular(
-      Constants.size.circularBorderRadius,
-    ),
+    borderSide: const BorderSide(width: 0, color: Colors.transparent),
+    borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
   );
 
   late final void Function(String) _changed;
@@ -79,12 +76,10 @@ class _FrostStepFieldState extends State<FrostStepField> {
       if (Platform.isAndroid || Platform.isIOS) {
         if (FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
-          await Future<void>.delayed(
-            const Duration(milliseconds: 75),
-          );
+          await Future<void>.delayed(const Duration(milliseconds: 75));
         }
 
-        final qrResult = await BarcodeScanner.scan();
+        final qrResult = await ref.read(pBarcodeScanner).scan();
 
         widget.controller.text = qrResult.rawContent;
 
@@ -106,11 +101,26 @@ class _FrostStepFieldState extends State<FrostStepField> {
         }
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.w(
-        "Failed to get camera permissions while trying to scan qr code: ",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.w(
+          "Failed to get camera permissions while trying to scan qr code: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 
@@ -118,19 +128,15 @@ class _FrostStepFieldState extends State<FrostStepField> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: widget.label != null,
-      builder: (child) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            widget.label!,
-            style: STextStyles.w500_14(context),
+      builder:
+          (child) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(widget.label!, style: STextStyles.w500_14(context)),
+              const SizedBox(height: 4),
+              child,
+            ],
           ),
-          const SizedBox(
-            height: 4,
-          ),
-          child,
-        ],
-      ),
       child: TextField(
         controller: widget.controller,
         focusNode: widget.focusNode,
@@ -141,53 +147,60 @@ class _FrostStepFieldState extends State<FrostStepField> {
         onChanged: _changed,
         decoration: InputDecoration(
           hintText: widget.hint,
-          fillColor: widget.focusNode.hasFocus
-              ? Theme.of(context).extension<StackColors>()!.textFieldActiveBG
-              : Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
-          hintStyle: Util.isDesktop
-              ? STextStyles.desktopTextFieldLabel(context)
-              : STextStyles.fieldLabel(context),
+          fillColor:
+              widget.focusNode.hasFocus
+                  ? Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveBG
+                  : Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
+          hintStyle:
+              Util.isDesktop
+                  ? STextStyles.desktopTextFieldLabel(context)
+                  : STextStyles.fieldLabel(context),
           enabledBorder: _inputBorder,
           focusedBorder: _inputBorder,
           errorBorder: _inputBorder,
           disabledBorder: _inputBorder,
           focusedErrorBorder: _inputBorder,
           suffixIcon: Padding(
-            padding: _isEmpty
-                ? const EdgeInsets.only(right: 8)
-                : const EdgeInsets.only(right: 0),
+            padding:
+                _isEmpty
+                    ? const EdgeInsets.only(right: 8)
+                    : const EdgeInsets.only(right: 0),
             child: UnconstrainedBox(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   !_isEmpty
                       ? TextFieldIconButton(
-                          semanticsLabel:
-                              "Clear Button. Clears The Frost Step Field Input.",
-                          key: _xKey,
-                          onTap: () {
-                            widget.controller.text = "";
+                        semanticsLabel:
+                            "Clear Button. Clears The Frost Step Field Input.",
+                        key: _xKey,
+                        onTap: () {
+                          widget.controller.text = "";
 
-                            _changed(widget.controller.text);
-                          },
-                          child: const XIcon(),
-                        )
+                          _changed(widget.controller.text);
+                        },
+                        child: const XIcon(),
+                      )
                       : TextFieldIconButton(
-                          semanticsLabel:
-                              "Paste Button. Pastes From Clipboard To Frost Step Field Input.",
-                          key: _pasteKey,
-                          onTap: () async {
-                            final ClipboardData? data =
-                                await Clipboard.getData(Clipboard.kTextPlain);
-                            if (data?.text != null && data!.text!.isNotEmpty) {
-                              widget.controller.text = data.text!.trim();
-                            }
+                        semanticsLabel:
+                            "Paste Button. Pastes From Clipboard To Frost Step Field Input.",
+                        key: _pasteKey,
+                        onTap: () async {
+                          final ClipboardData? data = await Clipboard.getData(
+                            Clipboard.kTextPlain,
+                          );
+                          if (data?.text != null && data!.text!.isNotEmpty) {
+                            widget.controller.text = data.text!.trim();
+                          }
 
-                            _changed(widget.controller.text);
-                          },
-                          child:
-                              _isEmpty ? const ClipboardIcon() : const XIcon(),
-                        ),
+                          _changed(widget.controller.text);
+                        },
+                        child: _isEmpty ? const ClipboardIcon() : const XIcon(),
+                      ),
                   if (_isEmpty && widget.showQrScanOption)
                     TextFieldIconButton(
                       semanticsLabel:

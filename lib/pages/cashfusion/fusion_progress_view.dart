@@ -33,10 +33,7 @@ import '../../widgets/rounded_container.dart';
 import '../../widgets/stack_dialog.dart';
 
 class FusionProgressView extends ConsumerStatefulWidget {
-  const FusionProgressView({
-    super.key,
-    required this.walletId,
-  });
+  const FusionProgressView({super.key, required this.walletId});
 
   static const routeName = "/cashFusionProgressView";
 
@@ -52,23 +49,24 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     final shouldCancel = await showDialog<bool?>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => StackDialog(
-        title: "Cancel fusion?",
-        leftButton: SecondaryButton(
-          label: "No",
-          buttonHeight: null,
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-        ),
-        rightButton: PrimaryButton(
-          label: "Yes",
-          buttonHeight: null,
-          onPressed: () {
-            Navigator.of(context).pop(true);
-          },
-        ),
-      ),
+      builder:
+          (_) => StackDialog(
+            title: "Cancel fusion?",
+            leftButton: SecondaryButton(
+              label: "No",
+              buttonHeight: null,
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            rightButton: PrimaryButton(
+              label: "Yes",
+              buttonHeight: null,
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ),
     );
 
     if (shouldCancel == true && mounted) {
@@ -113,9 +111,10 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     final bool _failed =
         ref.watch(fusionProgressUIStateProvider(widget.walletId)).failed;
 
-    final int _fusionRoundsCompleted = ref
-        .watch(fusionProgressUIStateProvider(widget.walletId))
-        .fusionRoundsCompleted;
+    final int _fusionRoundsCompleted =
+        ref
+            .watch(fusionProgressUIStateProvider(widget.walletId))
+            .fusionRoundsCompleted;
 
     WakelockPlus.enable();
 
@@ -124,28 +123,28 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
         return await _requestAndProcessCancel();
       },
       child: Background(
-        child: SafeArea(
-          child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              leading: AppBarBackButton(
-                onPressed: () async {
-                  if (await _requestAndProcessCancel()) {
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
+        child: Scaffold(
+          backgroundColor:
+              Theme.of(context).extension<StackColors>()!.background,
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (await _requestAndProcessCancel()) {
+                  if (mounted) {
+                    Navigator.of(context).pop();
                   }
-                },
-              ),
-              title: Text(
-                "Fusion progress",
-                style: STextStyles.navBarTitle(context),
-              ),
-              titleSpacing: 0,
+                }
+              },
             ),
-            body: LayoutBuilder(
+            title: Text(
+              "Fusion progress",
+              style: STextStyles.navBarTitle(context),
+            ),
+            titleSpacing: 0,
+          ),
+          body: SafeArea(
+            child: LayoutBuilder(
               builder: (builderContext, constraints) {
                 return SingleChildScrollView(
                   child: ConstrainedBox(
@@ -160,64 +159,57 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                           children: [
                             if (_fusionRoundsCompleted == 0)
                               RoundedContainer(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .snackBarBackError,
+                                color:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .snackBarBackError,
                                 child: Text(
                                   "Do not close this window. If you exit, "
                                   "the process will be canceled.",
-                                  style:
-                                      STextStyles.smallMed14(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .snackBarTextError,
+                                  style: STextStyles.smallMed14(
+                                    context,
+                                  ).copyWith(
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .snackBarTextError,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                             if (_fusionRoundsCompleted > 0)
                               RoundedContainer(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .snackBarBackInfo,
+                                color:
+                                    Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .snackBarBackInfo,
                                 child: Text(
                                   "Fusion rounds completed: $_fusionRoundsCompleted",
                                   style: STextStyles.w500_14(context).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .snackBarTextInfo,
+                                    color:
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .snackBarTextInfo,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            FusionProgress(
-                              walletId: widget.walletId,
-                            ),
+                            const SizedBox(height: 20),
+                            FusionProgress(walletId: widget.walletId),
                             const Spacer(),
-                            const SizedBox(
-                              height: 16,
-                            ),
+                            const SizedBox(height: 16),
                             if (_succeeded)
                               PrimaryButton(
                                 label: "Fuse again",
                                 onPressed: _fuseAgain,
                               ),
-                            if (_succeeded)
-                              const SizedBox(
-                                height: 16,
-                              ),
+                            if (_succeeded) const SizedBox(height: 16),
                             if (_failed)
                               PrimaryButton(
                                 label: "Try again",
                                 onPressed: _fuseAgain,
                               ),
-                            if (_failed)
-                              const SizedBox(
-                                height: 16,
-                              ),
+                            if (_failed) const SizedBox(height: 16),
                             SecondaryButton(
                               label: "Cancel",
                               onPressed: () async {
@@ -247,8 +239,9 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
     final fusionWallet =
         ref.read(pWallets).getWallet(widget.walletId) as CashFusionInterface;
 
-    final fusionInfo =
-        ref.read(prefsChangeNotifierProvider).getFusionServerInfo(coin);
+    final fusionInfo = ref
+        .read(prefsChangeNotifierProvider)
+        .getFusionServerInfo(coin);
 
     try {
       fusionWallet.uiState = ref.read(
@@ -256,8 +249,8 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
       );
     } catch (e) {
       if (!e.toString().contains(
-            "FusionProgressUIState was already set for ${widget.walletId}",
-          )) {
+        "FusionProgressUIState was already set for ${widget.walletId}",
+      )) {
         rethrow;
       }
     }

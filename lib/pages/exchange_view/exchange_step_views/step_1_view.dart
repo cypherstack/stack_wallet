@@ -66,159 +66,157 @@ class _Step1ViewState extends State<Step1View> {
               }
             },
           ),
-          title: Text(
-            "Swap",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Swap", style: STextStyles.navBarTitle(context)),
         ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = MediaQuery.of(context).size.width - 32;
-            return Padding(
-              padding: const EdgeInsets.all(12),
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 24,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          StepRow(
-                            count: 4,
-                            current: 0,
-                            width: width,
-                          ),
-                          const SizedBox(
-                            height: 14,
-                          ),
-                          Text(
-                            "Confirm amount",
-                            style: STextStyles.pageTitleH1(context),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            "Network fees and other exchange charges are included in the rate.",
-                            style: STextStyles.itemSubtitle(context),
-                          ),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "You send",
-                                  style: STextStyles.itemSubtitle(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .infoItemText,
-                                  ),
-                                ),
-                                Text(
-                                  "${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker.toUpperCase()}",
-                                  style: STextStyles.itemSubtitle12(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .infoItemText,
-                                  ),
-                                ),
-                              ],
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = MediaQuery.of(context).size.width - 32;
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 24,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            StepRow(count: 4, current: 0, width: width),
+                            const SizedBox(height: 14),
+                            Text(
+                              "Confirm amount",
+                              style: STextStyles.pageTitleH1(context),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "You receive",
-                                  style: STextStyles.itemSubtitle(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .infoItemText,
-                                  ),
-                                ),
-                                Text(
-                                  "~${model.receiveAmount.toStringAsFixed(8)} ${model.receiveTicker.toUpperCase()}",
-                                  style: STextStyles.itemSubtitle12(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .infoItemText,
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(height: 8),
+                            Text(
+                              "Network fees and other exchange charges are included in the rate.",
+                              style: STextStyles.itemSubtitle(context),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          RoundedWhiteContainer(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  model.rateType == ExchangeRateType.estimated
-                                      ? "Estimated rate"
-                                      : "Fixed rate",
-                                  style: STextStyles.itemSubtitle(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .infoItemLabel,
+                            const SizedBox(height: 24),
+                            RoundedWhiteContainer(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "You send",
+                                    style: STextStyles.itemSubtitle(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemText,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  model.rateInfo,
-                                  style: STextStyles.itemSubtitle12(context)
-                                      .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .infoItemText,
+                                  Text(
+                                    "${model.sendAmount.toStringAsFixed(8)} ${model.sendTicker.toUpperCase()}",
+                                    style: STextStyles.itemSubtitle12(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemText,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pushNamed(
-                                Step2View.routeName,
-                                arguments: model,
-                              );
-                            },
-                            style: Theme.of(context)
-                                .extension<StackColors>()!
-                                .getPrimaryEnabledButtonStyle(context),
-                            child: Text(
-                              "Next",
-                              style: STextStyles.button(context),
+                            const SizedBox(height: 12),
+                            RoundedWhiteContainer(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "You receive",
+                                    style: STextStyles.itemSubtitle(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemText,
+                                    ),
+                                  ),
+                                  Text(
+                                    "~${model.receiveAmount.toStringAsFixed(8)} ${model.receiveTicker.toUpperCase()}",
+                                    style: STextStyles.itemSubtitle12(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemText,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 12),
+                            RoundedWhiteContainer(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    model.rateType == ExchangeRateType.estimated
+                                        ? "Estimated rate"
+                                        : "Fixed rate",
+                                    style: STextStyles.itemSubtitle(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemLabel,
+                                    ),
+                                  ),
+                                  Text(
+                                    model.rateInfo,
+                                    style: STextStyles.itemSubtitle12(
+                                      context,
+                                    ).copyWith(
+                                      color:
+                                          Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .infoItemText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pushNamed(
+                                  Step2View.routeName,
+                                  arguments: model,
+                                );
+                              },
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .getPrimaryEnabledButtonStyle(context),
+                              child: Text(
+                                "Next",
+                                style: STextStyles.button(context),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

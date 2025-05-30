@@ -21,7 +21,6 @@ import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
@@ -296,29 +295,31 @@ class _ConfirmNameTransactionViewState
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
-              body: LayoutBuilder(
-                builder: (builderContext, constraints) {
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                      left: 12,
-                      top: 12,
-                      right: 12,
-                    ),
-                    child: SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight - 24,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: child,
+              body: SafeArea(
+                child: LayoutBuilder(
+                  builder: (builderContext, constraints) {
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        left: 12,
+                        top: 12,
+                        right: 12,
+                      ),
+                      child: SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 24,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: child,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),

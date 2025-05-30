@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +13,7 @@ import '../../../../providers/providers.dart';
 import '../../../../services/frost.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/show_loading.dart';
@@ -212,7 +212,7 @@ class _RestoreFrostMsWalletViewState
           await Future<void>.delayed(const Duration(milliseconds: 75));
         }
 
-        final qrResult = await BarcodeScanner.scan();
+        final qrResult = await ref.read(pBarcodeScanner).scan();
 
         configFieldController.text = qrResult.rawContent;
 
@@ -238,11 +238,26 @@ class _RestoreFrostMsWalletViewState
         }
       }
     } on PlatformException catch (e, s) {
-      Logging.instance.w(
-        "Failed to get camera permissions while trying to scan qr code: ",
-        error: e,
-        stackTrace: s,
-      );
+      if (mounted) {
+        try {
+          await checkCamPermDeniedMobileAndOpenAppSettings(
+            context,
+            logging: Logging.instance,
+          );
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to check cam permissions",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      } else {
+        Logging.instance.w(
+          "Failed to get camera permissions while trying to scan qr code: ",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
   }
 

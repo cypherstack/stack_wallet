@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +23,7 @@ import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
@@ -36,6 +36,7 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -228,7 +229,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 
     // strip unused path
     String address = formData.host!;
-    if (coin is LibMoneroWallet) {
+    if (coin is LibMoneroWallet || coin is LibSalviumWallet) {
       if (address.startsWith("http")) {
         final uri = Uri.parse(address);
         address = "${uri.scheme}://${uri.host}";
@@ -241,7 +242,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     final plainEnabled =
         formData.netOption == TorPlainNetworkOption.clear ||
         formData.netOption == TorPlainNetworkOption.both;
-    
+
     final forceNoTor = formData.forceNoTor ?? false;
 
     switch (viewType) {
@@ -374,8 +375,23 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         }
       } else {
         try {
-          final result = await BarcodeScanner.scan();
+          final result = await ref.read(pBarcodeScanner).scan();
           await _processQrData(result.rawContent);
+        } on PlatformException catch (e, s) {
+          if (mounted) {
+            try {
+              await checkCamPermDeniedMobileAndOpenAppSettings(
+                context,
+                logging: Logging.instance,
+              );
+            } catch (e, s) {
+              Logging.instance.e(
+                "Failed to check cam permissions",
+                error: e,
+                stackTrace: s,
+              );
+            }
+          }
         } catch (e, s) {
           Logging.instance.e("$runtimeType._scanQr()", error: e, stackTrace: s);
         }
@@ -562,27 +578,29 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     ),
                 ],
               ),
-              body: Padding(
-                padding: const EdgeInsets.only(
-                  top: 12,
-                  left: 12,
-                  right: 12,
-                  bottom: 12,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 8,
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    bottom: 12,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight - 8,
+                            ),
+                            child: IntrinsicHeight(child: child),
                           ),
-                          child: IntrinsicHeight(child: child),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -1067,7 +1085,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 } else {
                   enableSSLCheckbox = true;
                 }
-              } else if (widget.coin is LibMoneroWallet) {
+              } else if (widget.coin is LibMoneroWallet || widget.coin is LibSalviumWallet) {
                 if (newValue.startsWith("https://")) {
                   _useSSL = true;
                 } else if (newValue.startsWith("http://")) {
@@ -1274,7 +1292,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin is LibMoneroWallet)
+        if (widget.coin is LibMoneroWallet || widget.coin is LibSalviumWallet)
           Row(
             children: [
               GestureDetector(

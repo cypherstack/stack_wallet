@@ -536,6 +536,94 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0-pre"
+  cs_salvium:
+    dependency: "direct main"
+    description:
+      name: cs_salvium
+      sha256: e25976e874dcf6bf4e4330b541b1028cffe8bacfffbcc51ab106f76c6686a56d
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  cs_salvium_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: cs_salvium_flutter_libs
+      sha256: "4ab42fb499de4749e30de5cd4155aaaa44239229ec30a5c4ce661c6a2964ea96"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
+  cs_salvium_flutter_libs_android:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android
+      sha256: "63603fc4c94d609e13c8e8064c742ac628ef006d3af9990e2c585489bde9b96d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_android_arm64_v8a:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_arm64_v8a
+      sha256: "5ced9fe6d71dd22f90865600b8dff1ed07ce480db6c9de1a8d56e63318000e97"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_android_armeabi_v7a:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_armeabi_v7a
+      sha256: "2fb718dff22918e72b138c191dbd887d8d241f03a34add11e8d699c48b657b47"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_android_x86_64:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_android_x86_64
+      sha256: "85134ab635a4dddec5735fdd8f3971a1c33e3aaa1c8aa88e54f0b3d5e0d0caab"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_ios:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_ios
+      sha256: "6e57590b054f420c79549d7059edfeca55e38cea19e34cf94fcf9fbd3de53d8b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_linux:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_linux
+      sha256: ed24070da5c4bad5fd2f76c003a45a7378389d382b919cfa1ee88fad25d07fe3
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
+  cs_salvium_flutter_libs_macos:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_macos
+      sha256: "9df0818299a5ddadd41eb4c94de2cd8e519d1e9f4aa6166657397200397f402f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_platform_interface:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_platform_interface
+      sha256: "36ef1edd1481b92a95500fbdf397a371c1d624b58401a56638dc315f3c607dc0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  cs_salvium_flutter_libs_windows:
+    dependency: transitive
+    description:
+      name: cs_salvium_flutter_libs_windows
+      sha256: "3cef0c1320ecc55afecbe5d0a97b9447d033d5994a2ebf93df64d0558e582daf"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   csslib:
     dependency: transitive
     description:

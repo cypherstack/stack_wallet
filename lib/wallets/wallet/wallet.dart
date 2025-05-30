@@ -35,6 +35,7 @@ import 'impl/dogecoin_wallet.dart';
 import 'impl/ecash_wallet.dart';
 import 'impl/epiccash_wallet.dart';
 import 'impl/ethereum_wallet.dart';
+import 'impl/fact0rn_wallet.dart';
 import 'impl/firo_wallet.dart';
 import 'impl/litecoin_wallet.dart';
 import 'impl/monero_wallet.dart';
@@ -42,6 +43,7 @@ import 'impl/namecoin_wallet.dart';
 import 'impl/nano_wallet.dart';
 import 'impl/particl_wallet.dart';
 import 'impl/peercoin_wallet.dart';
+import 'impl/salvium_wallet.dart';
 import 'impl/solana_wallet.dart';
 import 'impl/stellar_wallet.dart';
 import 'impl/sub_wallets/eth_token_wallet.dart';
@@ -357,6 +359,9 @@ abstract class Wallet<T extends CryptoCurrency> {
       case const (Ethereum):
         return EthereumWallet(net);
 
+      case const (Fact0rn):
+        return Fact0rnWallet(net);
+
       case const (Firo):
         return FiroWallet(net);
 
@@ -377,6 +382,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Peercoin):
         return PeercoinWallet(net);
+
+      case const (Salvium):
+        return SalviumWallet(net);
 
       case const (Solana):
         return SolanaWallet(net);

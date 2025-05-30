@@ -29,7 +29,7 @@ class EstimatedExchangeAmount {
   final String? rateId;
 
   /// Date and time before which the estimated amount is valid if using `rateId`.
-  final DateTime validUntil;
+  final DateTime? validUntil;
 
   /// Dash-separated min and max estimated time in minutes.
   final String? transactionSpeedForecast;
@@ -87,7 +87,7 @@ class EstimatedExchangeAmount {
       flow: _parseFlow(json["flow"] as String),
       type: _parseType(json["type"] as String),
       rateId: json["rateId"] as String?,
-      validUntil: DateTime.parse(json["validUntil"] as String),
+      validUntil: DateTime.tryParse(json["validUntil"] as String? ?? ""),
       transactionSpeedForecast: json["transactionSpeedForecast"] as String?,
       warningMessage: json["warningMessage"] as String?,
       depositFee: Decimal.parse(json["depositFee"].toString()),
@@ -108,7 +108,7 @@ class EstimatedExchangeAmount {
       "flow": flow.name.replaceAll("fixedRate", "fixed-rate"),
       "type": type.name,
       "rateId": rateId,
-      "validUntil": validUntil.toIso8601String(),
+      "validUntil": validUntil?.toIso8601String(),
       "transactionSpeedForecast": transactionSpeedForecast,
       "warningMessage": warningMessage,
       "depositFee": depositFee.toString(),

@@ -36,6 +36,22 @@ class TrocadorExchange extends Exchange {
 
   static const onlySupportedNetwork = "Mainnet";
 
+  static ProviderWarning? checkFiro(Currency currency) {
+    if (currency.ticker.toLowerCase() == "firo" &&
+        currency.name.contains("No Spark")) {
+      return ProviderWarning.noSpark;
+    }
+    return null;
+  }
+
+  static ProviderWarning? checkLtc(Currency currency) {
+    if (currency.ticker.toLowerCase() == "ltc" &&
+        currency.name.contains("not MW")) {
+      return ProviderWarning.noMWEB;
+    }
+    return null;
+  }
+
   @override
   Future<ExchangeResponse<Trade>> createTrade({
     required String from,
@@ -420,4 +436,26 @@ class TrocadorExchange extends Exchange {
   // Trocador supports Tor.
   @override
   bool get supportsTor => true;
+}
+
+enum ProviderWarning {
+  noSpark("NO SPARK"),
+  noMWEB("NO MW");
+
+  final String value;
+  const ProviderWarning(this.value);
+
+  String get message => switch (this) {
+    ProviderWarning.noSpark => "No Spark",
+    ProviderWarning.noMWEB => "No MimbleWimble",
+  };
+
+  String get messageDetail => switch (this) {
+    ProviderWarning.noSpark =>
+      "Trocador does not support Firo transactions involving Spark addresses,"
+          " including both sending to and receiving from them.",
+    ProviderWarning.noMWEB =>
+      "Trocador does not support Litecoin transactions involving MWEB "
+          "(MimbleWimble Extension Block) addresses.",
+  };
 }

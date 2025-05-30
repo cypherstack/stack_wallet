@@ -31,6 +31,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -183,7 +184,7 @@ class _NewWalletRecoveryPhraseWarningViewState
 
       // TODO: Refactor these to generate each coin in their respective classes
       // This code should not be in a random view page file
-      if (coin is Monero || coin is Wownero || coin is Xelis) {
+      if (coin is Monero || coin is Wownero || coin is Xelis || coin is Salvium) {
         // currently a special case due to the
         // xmr/wow libraries handling their
         // own mnemonic generation
@@ -229,6 +230,8 @@ class _NewWalletRecoveryPhraseWarningViewState
       );
 
       if (wallet is LibMoneroWallet) {
+        await wallet.init(wordCount: wordCount);
+      } else if (wallet is LibSalviumWallet) {
         await wallet.init(wordCount: wordCount);
       } else {
         await wallet.init();
