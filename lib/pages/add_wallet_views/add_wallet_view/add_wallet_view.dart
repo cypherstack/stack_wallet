@@ -32,9 +32,11 @@ import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -139,50 +141,21 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
       if (results != null) {
         if (mounted) {
-          unawaited(showModalBottomSheet<dynamic>(
-            backgroundColor: Colors.transparent,
+          final Wallet<CryptoCurrency>? wallet = await showLoading(
+            whileFuture: results.coin.importPaperWallet(results, ref),
             context: context,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            builder: (_) {
-              return Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).extension<StackColors>()!.popupBG,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                  ),
-                  child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const CircularProgressIndicator(),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Importing ${results.coin.prettyName} Paper Wallet",
-                            style: STextStyles.field(context).copyWith(
-                              fontSize: 16,
-                              height: 1.5,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      )
-                  ),
-              );
-            },
-          ));
-          final wallet = await results.coin.importPaperWallet(results, ref);
+            message: "Importing paper wallet...",
+          );
+          if (wallet == null) {
+            throw Exception(
+              "Failed to import paper wallet because wallet from importPaperWallet is null: ${results.coin.prettyName}",
+            );
+          }
           if (mounted) {
             Navigator.pop(context);
             await Navigator.of(context).pushNamed(
               WalletView.routeName,
-              arguments: wallet.walletId,
+              arguments: wallet!.walletId,
             );
           }
         }

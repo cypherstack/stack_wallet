@@ -1,30 +1,30 @@
 import 'dart:io';
 
-import 'package:compat/old_cw_core/wallet_type.dart';
-import 'package:cs_monero/cs_monero.dart' as cs_monero;
 import 'package:cs_monero/src/ffi_bindings/monero_wallet_bindings.dart'
     as xmr_wallet_ffi;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/io_client.dart';
 import 'package:monero_rpc/monero_rpc.dart';
+import 'package:socks5_proxy/socks.dart';
 
-import '../../../models/isar/models/isar_models.dart';
 import '../../../models/node_model.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/node_service_provider.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
+import '../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../../services/node_service.dart';
+import '../../../services/tor_service.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
 import '../../isar/models/wallet_info.dart';
-import '../../isar/providers/wallet_info_provider.dart';
 import '../../models/tx_data.dart';
 import '../../wallet/impl/monero_wallet.dart';
-import '../../wallet/intermediate/lib_monero_wallet.dart';
 import '../../wallet/wallet.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
@@ -147,6 +147,7 @@ class Monero extends CryptonoteCurrency {
   @override
   Future<Wallet<CryptoCurrency>> importPaperWallet(WalletUriData walletData, WidgetRef ref) async {
     if (walletData.txids != null) {
+      // If the walletData contains txids, we need to create a temporary wallet to sweep the gift wallet
       final wallet = await Wallet.create(
         walletInfo: WalletInfo.createNew(
           coin: walletData.coin,
@@ -164,10 +165,31 @@ class Monero extends CryptonoteCurrency {
       await (wallet as MoneroWallet).init(isRestore: true);
       await wallet.recover(isRescan: false);
 
-      // Scan the blocks with given txids
-      final primaryNode = defaultNode;
+      final primaryNode = NodeService(secureStorageInterface: ref.read(secureStoreProvider))
+          .getPrimaryNodeFor(currency: walletData.coin) ?? defaultNode;
+
+      // Create an HTTP client with Tor support if enabled
+      final torService = TorService.sharedInstance;
+      final prefs = Prefs.instance;
+      final httpClient = HttpClient();
+      if (prefs.useTor) {
+        if (torService.status != TorConnectionStatus.connected) {
+          if (prefs.torKillSwitch) {
+            throw Exception("Tor is not connected, and the kill switch is enabled. Can't sweep gift wallet");
+          } else {
+            // If Tor is not connected, we can still proceed with the request
+            Logging.instance.w("Tor is not connected, proceeding without Tor.");
+          }
+        } else {
+          SocksTCPClient.assignToHttpClient(httpClient, [ProxySettings(torService.getProxyInfo().host, torService.getProxyInfo().port)]);
+        }
+      }
+
+      // Create a DaemonRpc instance to interact with the Monero node
       final daemonRpc = DaemonRpc(
-          IOClient(HttpClient()), "${primaryNode.host}:${primaryNode.port}");
+          IOClient(httpClient), "${primaryNode.host}:${primaryNode.port}");
+
+      // Scan the blocks with given txids
       final txs = await daemonRpc.postToEndpoint("/get_transactions", {
         "txs_hashes": walletData.txids,
         "decode_as_json": true,
