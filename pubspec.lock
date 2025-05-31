@@ -540,18 +540,18 @@ packages:
     dependency: "direct main"
     description:
       name: cs_salvium
-      sha256: e25976e874dcf6bf4e4330b541b1028cffe8bacfffbcc51ab106f76c6686a56d
+      sha256: "5711a9b547e9e5ba1d91e1c6b37ba94803b0b7c6ef56baf245b270e2a637b839"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.0"
   cs_salvium_flutter_libs:
     dependency: "direct main"
     description:
       name: cs_salvium_flutter_libs
-      sha256: "4ab42fb499de4749e30de5cd4155aaaa44239229ec30a5c4ce661c6a2964ea96"
+      sha256: cb2759e3d0829251cb13daa9e012f7821d9717ec1f1dedc9329c4012f99f386c
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.2"
   cs_salvium_flutter_libs_android:
     dependency: transitive
     description:
@@ -588,18 +588,18 @@ packages:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_ios
-      sha256: "6e57590b054f420c79549d7059edfeca55e38cea19e34cf94fcf9fbd3de53d8b"
+      sha256: "4c11cc7499ca7d3a8c0f2b29fcb4eaf4cd1475c5752f34856a3d4c0b721a6319"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1"
   cs_salvium_flutter_libs_linux:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_linux
-      sha256: ed24070da5c4bad5fd2f76c003a45a7378389d382b919cfa1ee88fad25d07fe3
+      sha256: "0cb2f545ea4aa45c819a0656540d022a9c73a43681e50f1d2a5e72eaf1bc500e"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.2"
   cs_salvium_flutter_libs_macos:
     dependency: transitive
     description:
@@ -620,10 +620,10 @@ packages:
     dependency: transitive
     description:
       name: cs_salvium_flutter_libs_windows
-      sha256: "3cef0c1320ecc55afecbe5d0a97b9447d033d5994a2ebf93df64d0558e582daf"
+      sha256: "824966223a32bfe4d99c634d3b8d81917806d06ad878007552597e2070c25a02"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.0"
   csslib:
     dependency: transitive
     description:
