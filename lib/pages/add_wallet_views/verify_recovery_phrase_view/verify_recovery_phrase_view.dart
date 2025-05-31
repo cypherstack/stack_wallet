@@ -117,12 +117,6 @@ class _VerifyRecoveryPhraseViewState
 
     final ViewOnlyWalletType viewOnlyWalletType;
     if (widget.wallet is ExtendedKeysInterface) {
-      if (widget.wallet.cryptoCurrency is Firo) {
-        otherDataJson.addAll({
-          WalletInfoKeys.lelantusCoinIsarRescanRequired: false,
-          WalletInfoKeys.enableLelantusScanning: false,
-        });
-      }
       viewOnlyWalletType = ViewOnlyWalletType.xPub;
     } else if (widget.wallet is LibMoneroWallet ||
         widget.wallet is LibSalviumWallet) {

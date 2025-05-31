@@ -142,8 +142,6 @@ class _NewWalletRecoveryPhraseWarningViewState
         //        ),
         //      },
         //    );
-      } else if (widget.coin is Firo) {
-        otherDataJson = {WalletInfoKeys.lelantusCoinIsarRescanRequired: false};
       }
 
       if (ref.read(pDuress)) {
@@ -184,7 +182,10 @@ class _NewWalletRecoveryPhraseWarningViewState
 
       // TODO: Refactor these to generate each coin in their respective classes
       // This code should not be in a random view page file
-      if (coin is Monero || coin is Wownero || coin is Xelis || coin is Salvium) {
+      if (coin is Monero ||
+          coin is Wownero ||
+          coin is Xelis ||
+          coin is Salvium) {
         // currently a special case due to the
         // xmr/wow libraries handling their
         // own mnemonic generation

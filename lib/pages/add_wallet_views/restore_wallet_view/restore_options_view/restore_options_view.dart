@@ -33,7 +33,6 @@ import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dar
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
-import '../../../../widgets/custom_buttons/checkbox_text_button.dart';
 import '../../../../widgets/date_picker/date_picker.dart';
 import '../../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../../widgets/desktop/desktop_scaffold.dart';
@@ -85,9 +84,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   bool _hasBlockHeight = false;
   DateTime? _restoreFromDate;
   bool hidePassword = true;
-
-  bool enableLelantusScanning = false;
-  bool get supportsLelantus => coin is Firo;
 
   @override
   void initState() {
@@ -149,13 +145,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
         if (!_showViewOnlyOption) {
           await Navigator.of(context).pushNamed(
             RestoreWalletView.routeName,
-            arguments: Tuple6(
+            arguments: Tuple5(
               walletName,
               coin,
               ref.read(mnemonicWordCountStateProvider.state).state,
               height,
               passwordController.text,
-              enableLelantusScanning,
             ),
           );
         } else {
@@ -165,7 +160,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               walletName: walletName,
               coin: coin,
               restoreBlockHeight: height,
-              enableLelantusScanning: enableLelantusScanning,
             ),
           );
         }
@@ -353,9 +347,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     dateChooserFunction:
                         isDesktop ? chooseDesktopDate : chooseDate,
                     chooseMnemonicLength: chooseMnemonicLength,
-                    lelScanChanged: (value) {
-                      enableLelantusScanning = value;
-                    },
                   ),
               if (!isDesktop) const Spacer(flex: 3),
               SizedBox(height: isDesktop ? 32 : 12),
@@ -386,7 +377,6 @@ class SeedRestoreOption extends ConsumerStatefulWidget {
     required this.pwFocusNode,
     required this.dateChooserFunction,
     required this.chooseMnemonicLength,
-    required this.lelScanChanged,
   });
 
   final CryptoCurrency coin;
@@ -398,7 +388,6 @@ class SeedRestoreOption extends ConsumerStatefulWidget {
 
   final Future<void> Function() dateChooserFunction;
   final Future<void> Function() chooseMnemonicLength;
-  final void Function(bool) lelScanChanged;
 
   @override
   ConsumerState<SeedRestoreOption> createState() => _SeedRestoreOptionState();
@@ -407,7 +396,6 @@ class SeedRestoreOption extends ConsumerStatefulWidget {
 class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
   bool _hidePassword = true;
   bool _expandedAdvanced = false;
-  bool _enableLelantusScanning = false;
   bool _blockFieldEmpty = true;
 
   @override
@@ -669,17 +657,6 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
               color: Colors.transparent,
               child: Column(
                 children: [
-                  if (widget.coin is Firo)
-                    CheckboxTextButton(
-                      label: "Scan for Lelantus transactions",
-                      onChanged: (newValue) {
-                        setState(() {
-                          _enableLelantusScanning = newValue ?? true;
-                        });
-
-                        widget.lelScanChanged(_enableLelantusScanning);
-                      },
-                    ),
                   if (widget.coin is Firo) const SizedBox(height: 8),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(

@@ -10,11 +10,8 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum FiroType {
-  public,
-  lelantus,
-  spark;
-}
+enum FiroType { public, spark }
 
-final publicPrivateBalanceStateProvider =
-    StateProvider<FiroType>((_) => FiroType.spark);
+final publicPrivateBalanceStateProvider = StateProvider<FiroType>(
+  (_) => FiroType.spark,
+);

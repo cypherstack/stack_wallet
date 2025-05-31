@@ -52,7 +52,6 @@ import 'impl/wownero_wallet.dart';
 import 'impl/xelis_wallet.dart';
 import 'intermediate/cryptonote_wallet.dart';
 import 'wallet_mixin_interfaces/electrumx_interface.dart';
-import 'wallet_mixin_interfaces/lelantus_interface.dart';
 import 'wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'wallet_mixin_interfaces/multi_address_interface.dart';
 import 'wallet_mixin_interfaces/paynym_interface.dart';
@@ -686,13 +685,6 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       // await getAllTxsToWatch();
 
-      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (this is LelantusInterface && !viewOnly) {
-        if (info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
-            false) {
-          await (this as LelantusInterface).refreshLelantusData();
-        }
-      }
       _fireRefreshPercentChange(0.90);
 
       await updateBalance();

@@ -23,7 +23,6 @@ import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/extended_keys_interface.dart';
-import '../wallet_mixin_interfaces/lelantus_interface.dart';
 import '../wallet_mixin_interfaces/spark_interface.dart';
 
 const sparkStartBlock = 819300; // (approx 18 Jan 2024)
@@ -32,11 +31,9 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     with
         ElectrumXInterface<T>,
         ExtendedKeysInterface<T>,
-        LelantusInterface<T>,
         SparkInterface<T>,
         CoinControlInterface<T> {
   // IMPORTANT: The order of the above mixins matters.
-  // SparkInterface MUST come after LelantusInterface.
 
   FiroWallet(CryptoCurrencyNetwork network) : super(Firo(network) as T);
 
@@ -695,20 +692,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           await mainDB.deleteWalletBlockchainData(walletId);
         }
 
-        // lelantus
-        int? latestSetId;
-        final List<Future<dynamic>> lelantusFutures = [];
-        final enableLelantusScanning =
-            info.otherData[WalletInfoKeys.enableLelantusScanning] as bool? ??
-            false;
-        if (enableLelantusScanning) {
-          latestSetId = await electrumXClient.getLelantusLatestCoinId();
-          lelantusFutures.add(
-            electrumXCachedClient.getUsedCoinSerials(cryptoCurrency: info.coin),
-          );
-          lelantusFutures.add(getSetDataMap(latestSetId));
-        }
-
         // spark
         final latestSparkCoinId = await electrumXClient.getSparkLatestCoinId();
         final List<Future<void>> sparkAnonSetFutures = [];
@@ -809,44 +792,9 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
         await Future.wait([updateTransactions(), updateUTXOs()]);
 
-        final List<Future<dynamic>> futures = [];
-        if (enableLelantusScanning) {
-          futures.add(lelantusFutures[0]);
-          futures.add(lelantusFutures[1]);
-        }
-        futures.add(sparkUsedCoinTagsFuture);
-        futures.addAll(sparkAnonSetFutures);
+        await Future.wait([sparkUsedCoinTagsFuture, ...sparkAnonSetFutures]);
 
-        final futureResults = await Future.wait(futures);
-
-        // lelantus
-        Set<String>? usedSerialsSet;
-        Map<dynamic, dynamic>? setDataMap;
-        if (enableLelantusScanning) {
-          usedSerialsSet = (futureResults[0] as List<String>).toSet();
-          setDataMap = futureResults[1] as Map<dynamic, dynamic>;
-        }
-
-        if (Util.isDesktop) {
-          await Future.wait([
-            if (enableLelantusScanning)
-              recoverLelantusWallet(
-                latestSetId: latestSetId!,
-                usedSerialNumbers: usedSerialsSet!,
-                setDataMap: setDataMap!,
-              ),
-            recoverSparkWallet(latestSparkCoinId: latestSparkCoinId),
-          ]);
-        } else {
-          if (enableLelantusScanning) {
-            await recoverLelantusWallet(
-              latestSetId: latestSetId!,
-              usedSerialNumbers: usedSerialsSet!,
-              setDataMap: setDataMap!,
-            );
-          }
-          await recoverSparkWallet(latestSparkCoinId: latestSparkCoinId);
-        }
+        await recoverSparkWallet(latestSparkCoinId: latestSparkCoinId);
       });
 
       unawaited(refresh());
@@ -883,24 +831,5 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
     return vSize * (feeRatePerKB.toInt() / 1000).ceil();
-  }
-
-  // ===========================================================================
-
-  bool get lelantusCoinIsarRescanRequired =>
-      info.otherData[WalletInfoKeys.lelantusCoinIsarRescanRequired] as bool? ??
-      true;
-
-  Future<bool> firoRescanRecovery() async {
-    try {
-      await recover(isRescan: true);
-      await info.updateOtherData(
-        newEntries: {WalletInfoKeys.lelantusCoinIsarRescanRequired: false},
-        isar: mainDB.isar,
-      );
-      return true;
-    } catch (_) {
-      return false;
-    }
   }
 }

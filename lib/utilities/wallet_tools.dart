@@ -2,7 +2,6 @@ import 'package:isar/isar.dart';
 
 import '../db/isar/main_db.dart';
 import '../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import '../models/isar/models/firo_specific/lelantus_coin.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/isar/models/spark_coin.dart';
 import '../wallets/wallet/impl/firo_wallet.dart';
@@ -20,10 +19,11 @@ abstract class WalletDevTools {
       maxDecimals: 8,
     );
 
-    final all = MainDB.instance.isar.transactionV2s
-        .where()
-        .walletIdEqualTo(wallet.walletId)
-        .findAllSync();
+    final all =
+        MainDB.instance.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(wallet.walletId)
+            .findAllSync();
 
     final totalCount = all.length;
 
@@ -47,14 +47,11 @@ abstract class WalletDevTools {
       fractionDigits: 8,
     );
 
-    final lelantusCoinsCount = MainDB.instance.isar.lelantusCoins
-        .where()
-        .walletIdEqualTo(wallet.walletId)
-        .countSync();
-    final sparkCoinsCount = MainDB.instance.isar.sparkCoins
-        .where()
-        .walletIdEqualToAnyLTagHash(wallet.walletId)
-        .countSync();
+    final sparkCoinsCount =
+        MainDB.instance.isar.sparkCoins
+            .where()
+            .walletIdEqualToAnyLTagHash(wallet.walletId)
+            .countSync();
 
     final buffer = StringBuffer();
     buffer.writeln("============= ${wallet.info.name} =============");
@@ -63,7 +60,6 @@ abstract class WalletDevTools {
     buffer.writeln(
       "balanceAccordingToTxns: ${amtFmt.format(balanceAccordingToTxHistory)}",
     );
-    buffer.writeln("lelantusCoinsCount: $lelantusCoinsCount");
     buffer.writeln("sparkCoinsCount: $sparkCoinsCount");
     buffer.writeln("==================================================");
 

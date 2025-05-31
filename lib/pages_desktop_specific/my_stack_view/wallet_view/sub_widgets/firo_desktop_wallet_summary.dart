@@ -85,8 +85,6 @@ class _WFiroDesktopWalletSummaryState
         _showAvailable ? balance0.spendable : balance0.total;
 
     final balance1 = ref.watch(pWalletBalanceSecondary(walletId));
-    final balanceToShowLelantus =
-        _showAvailable ? balance1.spendable : balance1.total;
 
     final balance2 = ref.watch(pWalletBalance(walletId));
     final balanceToShowPublic =
@@ -116,19 +114,7 @@ class _WFiroDesktopWalletSummaryState
                       ),
                   ],
                 ),
-                if (balanceToShowLelantus.raw > BigInt.zero)
-                  TableRow(
-                    children: [
-                      const _Prefix(type: FiroType.lelantus),
-                      _Balance(coin: coin, amount: balanceToShowLelantus),
-                      if (price != null)
-                        _Price(
-                          coin: coin,
-                          amount: balanceToShowLelantus,
-                          price: price,
-                        ),
-                    ],
-                  ),
+
                 TableRow(
                   children: [
                     const _Prefix(type: FiroType.public),
@@ -166,8 +152,6 @@ class _Prefix extends StatelessWidget {
   String get asset {
     switch (type) {
       case FiroType.public:
-        return Assets.png.glasses;
-      case FiroType.lelantus:
         return Assets.png.glasses;
       case FiroType.spark:
         return Assets.svg.spark;

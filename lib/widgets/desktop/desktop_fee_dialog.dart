@@ -73,10 +73,6 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
                     amount,
                   );
-                case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
-                    amount,
-                  );
                 case FiroType.public:
                   fee = await (wallet as FiroWallet).estimateFeeFor(
                     amount,
@@ -127,10 +123,6 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
                     amount,
                   );
-                case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
-                    amount,
-                  );
                 case FiroType.public:
                   fee = await (wallet as FiroWallet).estimateFeeFor(
                     amount,
@@ -179,10 +171,6 @@ class _DesktopFeeDialogState extends ConsumerState<DesktopFeeDialog> {
               switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
                 case FiroType.spark:
                   fee = await (wallet as FiroWallet).estimateFeeForSpark(
-                    amount,
-                  );
-                case FiroType.lelantus:
-                  fee = await (wallet as FiroWallet).estimateFeeForLelantus(
                     amount,
                   );
                 case FiroType.public:
@@ -361,28 +349,6 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
           ),
       child: Builder(
         builder: (_) {
-          if (!widget.isButton) {
-            final coin = ref.watch(
-              pWallets.select(
-                (value) => value.getWallet(widget.walletId).info.coin,
-              ),
-            );
-            if ((coin is Firo) &&
-                ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                    FiroType.lelantus) {
-              return Text(
-                "~${ref.watch(pAmountFormatter(coin)).format(Amount(rawValue: BigInt.parse("3794"), fractionDigits: coin.fractionDigits), indicatePrecisionLoss: false)}",
-                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldActiveText,
-                ),
-                textAlign: TextAlign.left,
-              );
-            }
-          }
-
           if (widget.feeRateType == FeeRateType.custom) {
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

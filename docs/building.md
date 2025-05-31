@@ -283,7 +283,6 @@ The WSL2 host may optionally be navigated to the `stack_wallet` repository on th
 If the DLLs were built on the WSL filesystem instead of on Windows, copy the resulting `dll`s to their respective positions on the Windows host:
 
 - `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
-- `stack_wallet/crypto_plugins/flutter_liblelantus/scripts/windows/build/libmobileliblelantus.dll`
 
 <!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
 
