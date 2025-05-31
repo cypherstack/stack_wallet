@@ -478,9 +478,16 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     });
   }
 
+  // dumb temporary hack
+  bool _canPing = false;
+
   @override
   Future<bool> pingCheck() async {
-    return (await libMoneroWallet?.isConnectedToDaemon()) ?? false;
+    if (_canPing) {
+      return (await libMoneroWallet?.isConnectedToDaemon()) ?? false;
+    } else {
+      return false;
+    }
   }
 
   @override
@@ -490,8 +497,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     final host =
         node.host.endsWith(".onion") ? node.host : Uri.parse(node.host).host;
     ({InternetAddress host, int port})? proxy;
+    _canPing = true;
     if (prefs.useTor) {
       if (node.clearnetEnabled && !node.torEnabled) {
+        _canPing = false;
         libMoneroWallet?.stopAutoSaving();
         libMoneroWallet?.stopListeners();
         libMoneroWallet?.stopSyncing();
@@ -501,6 +510,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       proxy = TorService.sharedInstance.getProxyInfo();
     } else {
       if (!node.clearnetEnabled && node.torEnabled) {
+        _canPing = false;
         libMoneroWallet?.stopAutoSaving();
         libMoneroWallet?.stopListeners();
         libMoneroWallet?.stopSyncing();
@@ -1087,8 +1097,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     final node = getCurrentNode();
 
+    _canPing = true;
     if (prefs.useTor) {
       if (node.clearnetEnabled && !node.torEnabled) {
+        _canPing = false;
         libMoneroWallet?.stopAutoSaving();
         libMoneroWallet?.stopListeners();
         libMoneroWallet?.stopSyncing();
@@ -1097,6 +1109,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       }
     } else {
       if (!node.clearnetEnabled && node.torEnabled) {
+        _canPing = false;
         libMoneroWallet?.stopAutoSaving();
         libMoneroWallet?.stopListeners();
         libMoneroWallet?.stopSyncing();
