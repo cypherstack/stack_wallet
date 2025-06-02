@@ -19,6 +19,7 @@ import '../models/isar/models/blockchain_data/address.dart';
 import '../models/isar/models/contact_entry.dart' as isar_contact;
 import '../models/isar/models/isar_models.dart' as isar_models;
 import '../models/models.dart';
+import '../models/node_model.dart';
 import '../services/mixins/wallet_db.dart';
 import '../services/wallets_service.dart';
 import '../utilities/amount/amount.dart';
@@ -361,6 +362,20 @@ class DbVersionMigrator with WalletDB {
         // try to continue migrating
         return await migrate(14, secureStore: secureStore);
 
+      case 14:
+        // migrate
+        await _v14();
+
+        // update version
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 15,
+        );
+
+        // try to continue migrating
+        return await migrate(15, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -631,5 +646,30 @@ class DbVersionMigrator with WalletDB {
       // finally delete logs db
       await isar.close(deleteFromDisk: true);
     }
+  }
+
+  Future<void> _v14() async {
+    final nodesBox = await DB.instance.hive.openBox<NodeModel>(
+      DB.boxNameNodeModels,
+    );
+    final primariesBox = await DB.instance.hive.openBox<NodeModel>(
+      DB.boxNamePrimaryNodesDeprecated,
+    );
+
+    final primaries = primariesBox.values;
+
+    for (final node in primaries) {
+      await nodesBox.put(
+        node.id,
+        node.copyWith(
+          loginName: node.loginName,
+          trusted: node.trusted,
+          isPrimary: true,
+        ),
+      );
+    }
+
+    await primariesBox.close();
+    await primariesBox.deleteFromDisk();
   }
 }
