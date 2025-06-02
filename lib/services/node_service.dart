@@ -74,7 +74,9 @@ class NodeService extends ChangeNotifier {
       }
     }
 
-    for (final defaultNode in AppConfig.coins.map((e) => e.defaultNode)) {
+    for (final defaultNode in AppConfig.coins.map(
+      (e) => e.defaultNode(isPrimary: true),
+    )) {
       final savedNode = DB.instance.get<NodeModel>(
         boxName: DB.boxNameNodeModels,
         key: defaultNode.id,
@@ -102,26 +104,8 @@ class NodeService extends ChangeNotifier {
             torEnabled: savedNode.torEnabled,
             clearnetEnabled: savedNode.clearnetEnabled,
             loginName: savedNode.loginName,
-          ),
-        );
-      }
-
-      // check if a default node is the primary node for the crypto currency
-      // and update it if needed
-      final coin = AppConfig.getCryptoCurrencyByPrettyName(
-        defaultNode.coinName,
-      );
-      final primaryNode = getPrimaryNodeFor(currency: coin);
-      if (primaryNode != null && primaryNode.id == defaultNode.id) {
-        await setPrimaryNodeFor(
-          coin: coin,
-          node: defaultNode.copyWith(
-            enabled: primaryNode.enabled,
-            isFailover: primaryNode.isFailover,
-            trusted: primaryNode.trusted,
-            torEnabled: primaryNode.torEnabled,
-            clearnetEnabled: primaryNode.clearnetEnabled,
-            loginName: primaryNode.loginName,
+            isPrimary: savedNode.isPrimary,
+            forceNoTor: savedNode.forceNoTor,
           ),
         );
       }
@@ -226,17 +210,6 @@ class NodeService extends ChangeNotifier {
     String? password,
     bool shouldNotifyListeners,
   ) async {
-    // Handle primary node updates (logic from edit())
-    final coin = AppConfig.getCryptoCurrencyByPrettyName(node.coinName);
-    final primaryNode = getPrimaryNodeFor(currency: coin);
-    if (primaryNode?.id == node.id) {
-      await setPrimaryNodeFor(
-        coin: coin,
-        node: node,
-        shouldNotifyListeners: true,
-      );
-    }
-
     // Save to database (logic from add()).
     await DB.instance.put<NodeModel>(
       boxName: DB.boxNameNodeModels,

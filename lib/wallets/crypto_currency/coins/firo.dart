@@ -62,8 +62,8 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
-        DerivePathType.bip44,
-      ];
+    DerivePathType.bip44,
+  ];
 
   @override
   String get genesisHash {
@@ -78,10 +78,8 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  Amount get dustLimit => Amount(
-        rawValue: BigInt.from(1000),
-        fractionDigits: fractionDigits,
-      );
+  Amount get dustLimit =>
+      Amount(rawValue: BigInt.from(1000), fractionDigits: fractionDigits);
 
   Uint8List get exAddressVersion {
     switch (network) {
@@ -207,10 +205,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   bool isExchangeAddress(String address) {
     try {
-      EXP2PKHAddress.fromString(
-        address,
-        exAddressVersion,
-      );
+      EXP2PKHAddress.fromString(address, exAddressVersion);
       return true;
     } catch (_) {
       return false;
@@ -218,7 +213,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   }
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -233,6 +228,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       case CryptoCurrencyNetwork.test:
@@ -248,6 +244,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

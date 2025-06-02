@@ -52,7 +52,8 @@ class Cardano extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return Uri.parse(
-            "https://explorer.cardano.org/en/transaction?id=$txid");
+          "https://explorer.cardano.org/en/transaction?id=$txid",
+        );
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
@@ -64,7 +65,7 @@ class Cardano extends Bip39Currency {
   DerivePathType get defaultDerivePathType => DerivePathType.cardanoShelley;
 
   @override
-  NodeModel get defaultNode {
+  NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
@@ -79,6 +80,7 @@ class Cardano extends Bip39Currency {
           isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
+          isPrimary: isPrimary,
         );
 
       default:

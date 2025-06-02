@@ -794,8 +794,8 @@ abstract class SWB {
       var node = nodeService.getPrimaryNodeFor(currency: coin);
 
       if (node == null) {
-        node = coin.defaultNode;
-        await nodeService.setPrimaryNodeFor(coin: coin, node: node);
+        node = coin.defaultNode(isPrimary: true);
+        await nodeService.save(node, null, false);
       }
 
       // final txTracker = TransactionNotificationTracker(walletId: walletId);

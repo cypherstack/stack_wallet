@@ -165,10 +165,10 @@ class _NewWalletRecoveryPhraseWarningViewState
           .getPrimaryNodeFor(currency: coin);
 
       if (node == null) {
-        node = coin.defaultNode;
+        node = coin.defaultNode(isPrimary: true);
         await ref
             .read(nodeServiceChangeNotifierProvider)
-            .setPrimaryNodeFor(coin: coin, node: node);
+            .save(node, null, false);
       }
 
       final txTracker = TransactionNotificationTracker(walletId: info.walletId);
