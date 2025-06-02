@@ -259,9 +259,34 @@ class NodeService extends ChangeNotifier {
   }
 
   Future<void> delete(String id, bool shouldNotifyListeners) async {
-    await DB.instance.delete<NodeModel>(boxName: DB.boxNameNodeModels, key: id);
+    final nodeToDelete = getNodeById(id: id);
 
+    if (nodeToDelete == null) {
+      // doesn't exist
+      Logging.instance.w(
+        "Attempted delete of a node model that does not exist",
+      );
+      return;
+    }
+
+    final coin = AppConfig.getCryptoCurrencyByPrettyName(nodeToDelete.coinName);
+    final remaining = getNodesFor(coin);
+
+    if (remaining.length - 1 < 1) {
+      // doesn't exist
+      Logging.instance.w("Attempted delete the last remaining node for $coin");
+      return;
+    }
+
+    remaining.retainWhere((e) => e.id != nodeToDelete.id);
+
+    await DB.instance.delete<NodeModel>(boxName: DB.boxNameNodeModels, key: id);
     await secureStorageInterface.delete(key: "${id}_nodePW");
+
+    if (nodeToDelete.isPrimary) {
+      await setPrimaryNodeFor(coin: coin, node: remaining.first);
+    }
+
     if (shouldNotifyListeners) {
       notifyListeners();
     }
