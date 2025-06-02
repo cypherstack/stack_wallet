@@ -10,6 +10,7 @@ import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
+import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
@@ -24,7 +25,6 @@ import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../wallet_mixin_interfaces/spark_interface.dart';
-import '../../../models/keys/view_only_wallet_data.dart';
 
 const sparkStartBlock = 819300; // (approx 18 Jan 2024)
 
@@ -722,17 +722,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           for (final type in cryptoCurrency.supportedDerivationPathTypes) {
             receiveFutures.add(
               canBatch
-                  ? checkGapsBatched(
-                      txCountBatchSize,
-                      root,
-                      type,
-                      receiveChain,
-                    )
-                  : checkGapsLinearly(
-                      root,
-                      type,
-                      receiveChain,
-                    ),
+                  ? checkGapsBatched(txCountBatchSize, root, type, receiveChain)
+                  : checkGapsLinearly(root, type, receiveChain),
             );
           }
 
@@ -741,17 +732,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
           for (final type in cryptoCurrency.supportedDerivationPathTypes) {
             changeFutures.add(
               canBatch
-                  ? checkGapsBatched(
-                      txCountBatchSize,
-                      root,
-                      type,
-                      changeChain,
-                    )
-                  : checkGapsLinearly(
-                      root,
-                      type,
-                      changeChain,
-                    ),
+                  ? checkGapsBatched(txCountBatchSize, root, type, changeChain)
+                  : checkGapsLinearly(root, type, changeChain),
             );
           }
         }
